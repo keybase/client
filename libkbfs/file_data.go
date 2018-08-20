@@ -1000,70 +1000,6 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 	return unrefs, nil
 }
 
-// readyHelper takes a set of paths from a root down to a child block,
-// and readies all the blocks represented in those paths.  If the
-// caller wants leaf blocks readied, then the last element of each
-// slice in `pathsFromRoot` should contain a leaf block, with a child
-// index of -1.  It's assumed that all slices in `pathsFromRoot` have
-// the same size. This function returns a map pointing from the new
-// block info from any readied block to its corresponding old block
-// pointer.
-func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
-	bcache BlockCache, bops BlockOps, bps *blockPutState,
-	pathsFromRoot [][]parentBlockAndChildIndex,
-	df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
-	oldPtrs := make(map[BlockInfo]BlockPointer)
-	newPtrs := make(map[BlockPointer]bool)
-
-	// Starting from the leaf level, ready each block at each
-	// level, and put the new BlockInfo into the parent block at the
-	// level above.  At each level, only ready each block once. Don't
-	// ready the root block though; the folderBranchOps Sync code will
-	// do that.
-	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
-		for i := 0; i < len(pathsFromRoot); i++ {
-			// Ready the dirty block.
-			pb := pathsFromRoot[i][level]
-
-			parentPB := pathsFromRoot[i][level-1]
-			ptr := parentPB.childBlockPtr()
-			// If this is already a new pointer, skip it.
-			if newPtrs[ptr] {
-				continue
-			}
-
-			newInfo, _, readyBlockData, err := ReadyBlock(
-				ctx, bcache, bops, fd.tree.crypto, fd.tree.kmd, pb.pblock,
-				fd.tree.chargedTo, fd.rootBlockPointer().GetBlockType())
-			if err != nil {
-				return nil, err
-			}
-
-			err = bcache.Put(
-				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
-			if err != nil {
-				return nil, err
-			}
-
-			// Only the leaf level need to be tracked by the dirty file.
-			var syncFunc func() error
-			if level == len(pathsFromRoot[0])-1 && df != nil {
-				syncFunc = func() error { return df.setBlockSynced(ptr) }
-			}
-
-			bps.addNewBlock(
-				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
-			bps.saveOldPtr(ptr)
-
-			parentPB.pblock.(*FileBlock).IPtrs[parentPB.childIndex].BlockInfo =
-				newInfo
-			oldPtrs[newInfo] = ptr
-			newPtrs[newInfo.BlockPointer] = true
-		}
-	}
-	return oldPtrs, nil
-}
-
 // ready, if given an indirect top-block, readies all the dirty child
 // blocks, and updates their block IDs in their parent block's list of
 // indirect pointers.  It returns a map pointing from the new block
@@ -1071,41 +1007,14 @@ func (fd *fileData) readyHelper(ctx context.Context, id tlf.ID,
 func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
 	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
-	if !topBlock.IsInd {
-		return nil, nil
-	}
-
-	// This will contain paths to all dirty leaf paths.  The final
-	// entry index in each path will be the leaf node block itself
-	// (with a -1 child index).
-	var dirtyLeafPaths [][]parentBlockAndChildIndex
-
-	// Gather all the paths to all dirty leaf blocks first.
-	off := Int64Offset(0)
-	for off >= 0 {
-		_, parentBlocks, block, nextBlockOff, _, err :=
-			fd.getNextDirtyFileBlockAtOffset(
-				ctx, topBlock, off, blockWrite, dirtyBcache)
-		if err != nil {
-			return nil, err
-		}
-
-		if block == nil {
-			// No more dirty blocks.
-			break
-		}
-		off = nextBlockOff // Will be -1 if there are no more blocks.
-
-		dirtyLeafPaths = append(dirtyLeafPaths,
-			append(parentBlocks, parentBlockAndChildIndex{block, -1}))
-	}
-
-	// No dirty blocks means nothing to do.
-	if len(dirtyLeafPaths) == 0 {
-		return nil, nil
-	}
-
-	return fd.readyHelper(ctx, id, bcache, bops, bps, dirtyLeafPaths, df)
+	return fd.tree.ready(
+		ctx, id, bcache, dirtyBcache, bops, bps, topBlock,
+		func(ptr BlockPointer) func() error {
+			if df != nil {
+				return func() error { return df.setBlockSynced(ptr) }
+			}
+			return nil
+		})
 }
 
 func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
@@ -1411,7 +1320,7 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 		pfr[i] = append(pfr[i], parentBlockAndChildIndex{leafBlock, -1})
 	}
 
-	newInfos, err := fd.readyHelper(
+	newInfos, err := fd.tree.readyHelper(
 		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
 	if err != nil {
 		return nil, err
@@ -1447,7 +1356,7 @@ func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
 			"Indirect file %v had no indirect blocks", fd.rootBlockPointer())
 	}
 
-	newInfos, err := fd.readyHelper(
+	newInfos, err := fd.tree.readyHelper(
 		ctx, fd.tree.file.Tlf, bcache, bops, bps, pfr, nil)
 	if err != nil {
 		return nil, err

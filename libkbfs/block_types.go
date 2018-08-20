@@ -349,7 +349,7 @@ func (db *DirBlock) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 // SetIndirectPtrOff implements the BlockWithPtrs interface for DirBlock.
 func (db *DirBlock) SetIndirectPtrOff(i int, off Offset) {
 	if !db.IsInd {
-		panic("SetIndirectPtrOff called on a direct file block")
+		panic("SetIndirectPtrOff called on a direct directory block")
 	}
 	sOff, ok := off.(*StringOffset)
 	if !ok {
@@ -357,6 +357,14 @@ func (db *DirBlock) SetIndirectPtrOff(i int, off Offset) {
 			"with a %T offset", off))
 	}
 	db.IPtrs[i].Off = *sOff
+}
+
+// SetIndirectPtrInfo implements the BlockWithPtrs interface for DirBlock.
+func (db *DirBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
+	if !db.IsInd {
+		panic("SetIndirectPtrInfo called on a direct directory block")
+	}
+	db.IPtrs[i].BlockInfo = info
 }
 
 // FileBlock is the contents of a file
@@ -611,6 +619,14 @@ func (fb *FileBlock) SetIndirectPtrOff(i int, off Offset) {
 			"with a %T offset", off))
 	}
 	fb.IPtrs[i].Off = iOff
+}
+
+// SetIndirectPtrInfo implements the BlockWithPtrs interface for FileBlock.
+func (fb *FileBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
+	if !fb.IsInd {
+		panic("SetIndirectPtrInfo called on a direct file block")
+	}
+	fb.IPtrs[i].BlockInfo = info
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.

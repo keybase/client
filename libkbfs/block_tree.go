@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -54,6 +55,10 @@ func (pbci parentBlockAndChildIndex) childBlockPtr() BlockPointer {
 
 func (pbci parentBlockAndChildIndex) clearEncodedSize() {
 	pbci.pblock.ClearIndirectPtrSize(pbci.childIndex)
+}
+
+func (pbci parentBlockAndChildIndex) setChildBlockInfo(info BlockInfo) {
+	pbci.pblock.SetIndirectPtrInfo(pbci.childIndex, info)
 }
 
 func (bt *blockTree) rootBlockPointer() BlockPointer {
@@ -121,8 +126,8 @@ func (bt *blockTree) getBlockAtOffset(ctx context.Context,
 	return ptr, parentBlocks, block, nextBlockStartOff, startOff, wasDirty, nil
 }
 
-// getNextDirtyFileBlockAtOffsetAtLevel does the same thing as
-// `getNextDirtyFileBlockAtOffset` (see the comments on that function)
+// getNextDirtyBlockAtOffsetAtLevel does the same thing as
+// `getNextDirtyBlockAtOffset` (see the comments on that function)
 // on a subsection of the block tree (not necessarily starting from
 // the top block).
 func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
@@ -793,4 +798,115 @@ func (bt *blockTree) markParentsDirty(parentBlocks []parentBlockAndChildIndex) (
 		}
 	}
 	return dirtyPtrs, unrefs, nil
+}
+
+type makeSyncFunc func(ptr BlockPointer) func() error
+
+// readyHelper takes a set of paths from a root down to a child block,
+// and readies all the blocks represented in those paths.  If the
+// caller wants leaf blocks readied, then the last element of each
+// slice in `pathsFromRoot` should contain a leaf block, with a child
+// index of -1.  It's assumed that all slices in `pathsFromRoot` have
+// the same size. This function returns a map pointing from the new
+// block info from any readied block to its corresponding old block
+// pointer.
+func (bt *blockTree) readyHelper(
+	ctx context.Context, id tlf.ID, bcache BlockCache, bops BlockOps,
+	bps *blockPutState, pathsFromRoot [][]parentBlockAndChildIndex,
+	makeSync makeSyncFunc) (map[BlockInfo]BlockPointer, error) {
+	oldPtrs := make(map[BlockInfo]BlockPointer)
+	newPtrs := make(map[BlockPointer]bool)
+
+	// Starting from the leaf level, ready each block at each level,
+	// and put the new BlockInfo into the parent block at the level
+	// above.  At each level, only ready each block once. Don't ready
+	// the root block though; the folderUpdatePrepper code will do
+	// that.
+	for level := len(pathsFromRoot[0]) - 1; level > 0; level-- {
+		for i := 0; i < len(pathsFromRoot); i++ {
+			// Ready the dirty block.
+			pb := pathsFromRoot[i][level]
+
+			parentPB := pathsFromRoot[i][level-1]
+			ptr := parentPB.childBlockPtr()
+			// If this is already a new pointer, skip it.
+			if newPtrs[ptr] {
+				continue
+			}
+
+			newInfo, _, readyBlockData, err := ReadyBlock(
+				ctx, bcache, bops, bt.crypto, bt.kmd, pb.pblock,
+				bt.chargedTo, bt.rootBlockPointer().GetBlockType())
+			if err != nil {
+				return nil, err
+			}
+
+			err = bcache.Put(
+				newInfo.BlockPointer, id, pb.pblock, PermanentEntry)
+			if err != nil {
+				return nil, err
+			}
+
+			// Only the leaf level need to be tracked by the dirty file.
+			var syncFunc func() error
+			if makeSync != nil && level == len(pathsFromRoot[0])-1 {
+				syncFunc = makeSync(ptr)
+			}
+
+			bps.addNewBlock(
+				newInfo.BlockPointer, pb.pblock, readyBlockData, syncFunc)
+			bps.saveOldPtr(ptr)
+
+			parentPB.setChildBlockInfo(newInfo)
+			oldPtrs[newInfo] = ptr
+			newPtrs[newInfo.BlockPointer] = true
+		}
+	}
+	return oldPtrs, nil
+}
+
+// ready, if given an indirect top-block, readies all the dirty child
+// blocks, and updates their block IDs in their parent block's list of
+// indirect pointers.  It returns a map pointing from the new block
+// info from any readied block to its corresponding old block pointer.
+func (bt *blockTree) ready(
+	ctx context.Context, id tlf.ID, bcache BlockCache,
+	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
+	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
+	map[BlockInfo]BlockPointer, error) {
+	if !topBlock.IsIndirect() {
+		return nil, nil
+	}
+
+	// This will contain paths to all dirty leaf paths.  The final
+	// entry index in each path will be the leaf node block itself
+	// (with a -1 child index).
+	var dirtyLeafPaths [][]parentBlockAndChildIndex
+
+	// Gather all the paths to all dirty leaf blocks first.
+	off := topBlock.FirstOffset()
+	for off != nil {
+		_, parentBlocks, block, nextBlockOff, _, err :=
+			bt.getNextDirtyBlockAtOffset(
+				ctx, topBlock, off, blockWrite, dirtyBcache)
+		if err != nil {
+			return nil, err
+		}
+
+		if block == nil {
+			// No more dirty blocks.
+			break
+		}
+		off = nextBlockOff // Will be `nil` if there are no more blocks.
+
+		dirtyLeafPaths = append(dirtyLeafPaths,
+			append(parentBlocks, parentBlockAndChildIndex{block, -1}))
+	}
+
+	// No dirty blocks means nothing to do.
+	if len(dirtyLeafPaths) == 0 {
+		return nil, nil
+	}
+
+	return bt.readyHelper(ctx, id, bcache, bops, bps, dirtyLeafPaths, makeSync)
 }

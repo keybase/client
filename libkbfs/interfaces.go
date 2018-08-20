@@ -154,6 +154,9 @@ type BlockWithPtrs interface {
 	// SetIndirectPtrOff set the offset of the indirect pointer stored
 	// at index `i`.
 	SetIndirectPtrOff(i int, off Offset)
+	// SetIndirectPtrInfo sets the block info of the indirect pointer
+	// stored at index `i`.
+	SetIndirectPtrInfo(i int, info BlockInfo)
 	// SwapIndirectPtrs swaps the indirect ptr at `i` in this block
 	// with the one at `otherI` in `other`.
 	SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int)

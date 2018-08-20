@@ -1007,6 +1007,16 @@ func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrOff(i, off interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrOff", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrOff), i, off)
 }
 
+// SetIndirectPtrInfo mocks base method
+func (m *MockBlockWithPtrs) SetIndirectPtrInfo(i int, info BlockInfo) {
+	m.ctrl.Call(m, "SetIndirectPtrInfo", i, info)
+}
+
+// SetIndirectPtrInfo indicates an expected call of SetIndirectPtrInfo
+func (mr *MockBlockWithPtrsMockRecorder) SetIndirectPtrInfo(i, info interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIndirectPtrInfo", reflect.TypeOf((*MockBlockWithPtrs)(nil).SetIndirectPtrInfo), i, info)
+}
+
 // SwapIndirectPtrs mocks base method
 func (m *MockBlockWithPtrs) SwapIndirectPtrs(i int, other BlockWithPtrs, otherI int) {
 	m.ctrl.Call(m, "SwapIndirectPtrs", i, other, otherI)
