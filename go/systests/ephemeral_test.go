@@ -362,6 +362,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
@@ -439,10 +440,6 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	eng := engine.NewSelfProvisionEngine(g, newName)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
-
-	g.GetDeviceEKStorage().ClearCache()
-	g.GetUserEKBoxStorage().ClearCache()
-	g.GetTeamEKBoxStorage().ClearCache()
 
 	teamEK2, err := getTeamEK(g, teamID, teamEK1.Metadata.Generation)
 	require.NoError(t, err)
