@@ -199,15 +199,28 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		return fmt.Errorf("Chat public-ness does not match reference message")
 	}
 	if headerQ.TlfName != headerRef.TlfName {
-		// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
-		namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
-			headerQ.TlfPublic)
-		if err != nil {
-			return err
-		}
-		if !namesEq {
-			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
+				conv.Metadata.IdTriple.Tlfid,
+				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+			if err != nil {
+				return err
+			}
+			if info.CanonicalName != headerQ.TlfName {
+				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", headerQ.TlfName, info.CanonicalName)
+			}
+		default:
+			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
+			namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
+				headerQ.TlfPublic)
+			if err != nil {
+				return err
+			}
+			if !namesEq {
+				s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
+				return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+			}
 		}
 	}
 

@@ -1308,14 +1308,24 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
-	// this if we are online
+	// Only do this check if there is a chance the TLF name might be an SBS
+	// name. Only attempt this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-		info, err := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType()).LookupID(ctx,
-			conversationLocal.Info.TLFNameExpanded(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			errMsg := err.Error()
+		infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
+		var info *types.NameInfo
+		var ierr error
+		switch conversationRemote.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			info, ierr = infoSource.LookupName(ctx,
+				conversationLocal.Info.Triple.Tlfid,
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		default:
+			info, ierr = infoSource.LookupID(ctx,
+				conversationLocal.Info.TLFNameExpanded(),
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		}
+		if ierr != nil {
+			errMsg := ierr.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT,
 				nil)

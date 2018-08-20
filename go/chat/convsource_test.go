@@ -724,6 +724,11 @@ func (f failingTlf) LookupID(context.Context, string, bool) (*types.NameInfo, er
 	return nil, nil
 }
 
+func (f failingTlf) LookupName(context.Context, chat1.TLFID, bool) (*types.NameInfo, error) {
+	require.Fail(f.t, "Lookup call")
+	return nil, nil
+}
+
 func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptKeys, error) {
 	require.Fail(f.t, "AllCryptKeys call")
 	return nil, nil

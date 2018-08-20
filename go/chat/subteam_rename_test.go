@@ -86,12 +86,12 @@ func TestChatSubteamRename(t *testing.T) {
 		subSubConv2 := convs[3] // u1
 
 		// Rename the subteam
-		desiredName, err := parentTeamName.Append("bb2")
+		newSubteamName, err := parentTeamName.Append("bb2")
 		require.NoError(t, err)
-		err = teams.RenameSubteam(context.TODO(), tc.G, subteamName, desiredName)
+		err = teams.RenameSubteam(context.TODO(), tc.G, subteamName, newSubteamName)
 		require.NoError(t, err)
-
-		t.Logf("convs: %+v", convs)
+		newSubSubteamName, err := newSubteamName.Append(subSubteamBasename)
+		require.NoError(t, err)
 
 		u1ExpectedUpdates := []chat1.ConversationID{
 			subConv1.Id,
@@ -129,6 +129,34 @@ func TestChatSubteamRename(t *testing.T) {
 		case <-listener2.subteamRename:
 			require.Fail(t, "unexpected update")
 		case <-time.After(2 * time.Second):
+		}
+		ib, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(), nil, true, &chat1.GetInboxLocalQuery{
+			ConvIDs: u1ExpectedUpdates,
+		}, nil)
+		require.NoError(t, err)
+		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
+		for _, conv := range ib.Convs {
+			convID := conv.GetConvID()
+			if convID.Eq(subConv1.Id) || convID.Eq(subConv2.Id) {
+				require.Equal(t, newSubteamName.String(), conv.Info.TlfName)
+			} else if convID.Eq(subSubConv1.Id) || convID.Eq(subSubConv2.Id) {
+				require.Equal(t, newSubSubteamName.String(), conv.Info.TlfName)
+			}
+			// Make sure we can send to each conversation
+			_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+				ConversationID: convID,
+				Msg: chat1.MessagePlaintext{
+					ClientHeader: chat1.MessageClientHeader{
+						Conv:        conv.Info.Triple,
+						MessageType: chat1.MessageType_TEXT,
+						TlfName:     conv.Info.TlfName,
+					},
+					MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+						Body: "Hello",
+					}),
+				},
+			})
+			require.NoError(t, err)
 		}
 	})
 }
