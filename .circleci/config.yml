@@ -8,28 +8,24 @@ version: 2
 jobs:
   build:
     working_directory: ~/go-path/src/github.com/keybase/kbfs
-    parallelism: 1
 
     docker:
     - image: keybaseprivate/circleci-kbfs@sha256:6e95999341a551ca9d175f497abc6f99e42583d977e26489471a86895327cd28
-      command: /sbin/init
 
     steps:
-    # Clone client.
-    - run: git clone https://github.com/keybase/client.git $GOPATH/src/github.com/keybase/client
-
-    ##
-    ## Build.
-    ##
-
     - checkout
 
     # TODO: Investigate whether we can do some caching to speed up
     # this step, e.g. of /tmp/go-android/pkg.
     - run:
-        working_directory: ../client/shared
         environment:
+          LOCAL_CLIENT: 0
           LOCAL_KBFS: 1
-        command: ./react-native/gobuild.sh android
-
-    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+          KEYBASE_BUILD: kbfsci
+          DEST_DIR: /tmp
+        command: |
+          cd /tmp
+          wget https://raw.githubusercontent.com/keybase/client/master/shared/react-native/gobuild.sh -O gobuild.sh
+          chmod a+x gobuild.sh
+          ./gobuild.sh android
+          ls -la keybaselib.aar
