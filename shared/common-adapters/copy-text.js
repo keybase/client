@@ -1,7 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import * as Kb from '.'
+import {Box2} from './box'
+import Icon from './icon'
+import Button from './button'
+import ButtonBar from './button-bar'
+import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {
@@ -56,36 +60,36 @@ class _CopyText extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2
+      <Box2
         ref={r => (this._attachmentRef = r)}
         direction="horizontal"
         style={collapseStyles([styles.container, this.props.containerStyle])}
       >
         <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          {isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Kb.Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          {isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+          <Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
             Copied to clipboard
-          </Kb.Text>
+          </Text>
         </Toast>
-        <Kb.Text
+        <Text
           lineClamp={1}
           type="Body"
           selectable={true}
           style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
         >
           {this._isRevealed() ? this.props.text : '••••••••••••'}
-        </Kb.Text>
+        </Text>
         {!this._isRevealed() && (
-          <Kb.Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
+          <Text type="BodySmallPrimaryLink" style={styles.reveal} onClick={this.reveal}>
             Reveal
-          </Kb.Text>
+          </Text>
         )}
-        <Kb.ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
-          <Kb.Button type="Primary" style={styles.button} onClick={this.copy}>
-            <Kb.Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
-          </Kb.Button>
-        </Kb.ButtonBar>
-      </Kb.Box2>
+        <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
+          <Button type="Primary" style={styles.button} onClick={this.copy}>
+            <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
+          </Button>
+        </ButtonBar>
+      </Box2>
     )
   }
 }

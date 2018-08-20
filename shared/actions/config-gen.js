@@ -12,6 +12,7 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
+export const _avatarQueue = 'config:_avatarQueue'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -119,6 +120,7 @@ type _UpdateFollowingPayload = $ReadOnly<{|
   isTracking: boolean,
 |}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
+type __avatarQueuePayload = void
 
 // Action Creators
 /**
@@ -189,6 +191,7 @@ export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => (
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
+export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: false, payload, type: _avatarQueue})
 
 // Action Payloads
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
@@ -226,6 +229,7 @@ export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
 export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
 export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
+export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
 
 // All Actions
 // prettier-ignore
@@ -265,4 +269,5 @@ export type Actions =
   | StartHandshakePayload
   | UpdateFollowingPayload
   | UpdateMenubarWindowIDPayload
+  | _avatarQueuePayload
   | {type: 'common:resetStore', payload: void}
