@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalMargins, isMobile, styleSheetCreate} from '../../styles'
-import WalletModal from '../wallet-modal'
+import WalletPopup from '../wallet-modal'
 
 type Props = {
   secretKey: ?string,
@@ -18,7 +18,7 @@ export default class extends React.Component<Props> {
 
   render() {
     return (
-      <WalletModal onClose={this.props.onClose}>
+      <WalletPopup onClose={this.props.onClose}>
         <Icon
           type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
           style={iconCastPlatformStyles(styles.icon)}
@@ -38,7 +38,7 @@ export default class extends React.Component<Props> {
           </Text>
         </InfoNote>
         <Button label="Close" onClick={this.props.onClose} type="Secondary" />
-      </WalletModal>
+      </WalletPopup>
     )
   }
 }

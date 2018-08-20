@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import WalletModal from '../../wallet-modal'
+import WalletPopup from '../../wallet-modal'
 
 export type Props = {
   name: string,
@@ -12,7 +12,7 @@ export type Props = {
   onClose: () => void,
 }
 
-const RemoveAccountDialog = (props: Props) => {
+const RemoveAccountPopup = (props: Props) => {
   const buttons = [
     <Kb.Button
       fullWidth={Styles.isMobile}
@@ -33,7 +33,7 @@ const RemoveAccountDialog = (props: Props) => {
   ]
 
   return (
-    <WalletModal onClose={props.onClose} bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}>
+    <WalletPopup onClose={props.onClose} bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}>
       <Kb.Icon
         type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
         style={Kb.iconCastPlatformStyles(styles.icon)}
@@ -44,7 +44,7 @@ const RemoveAccountDialog = (props: Props) => {
       <Kb.Text type="BodySmall">Balance:</Kb.Text>
       <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
       <Kb.Text type="BodySmallExtrabold">{props.keys}</Kb.Text>
-    </WalletModal>
+    </WalletPopup>
   )
 }
 
@@ -66,4 +66,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default RemoveAccountDialog
+export default RemoveAccountPopup

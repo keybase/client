@@ -2,7 +2,7 @@
 import React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import WalletModal from '../../wallet-modal'
+import WalletPopup from '../../wallet-modal'
 
 type Props = Kb.PropsWithTimer<{
   name: string,
@@ -29,7 +29,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
 
   render() {
     return (
-      <WalletModal
+      <WalletPopup
         onClose={this.props.onClose}
         containerStyle={styles.container}
         bottomButtons={[
@@ -69,7 +69,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             Copied to clipboard
           </Kb.Text>
         </Kb.Toast>
-      </WalletModal>
+      </WalletPopup>
     )
   }
 }

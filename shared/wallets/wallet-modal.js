@@ -11,7 +11,7 @@ type WalletModalProps = {|
   bottomButtons?: Array<React.Node>, // Buttons to be placed in the bottom Button Bar
 |}
 
-const WalletModal = (props: WalletModalProps) => (
+const WalletPopup = (props: WalletModalProps) => (
   <Kb.Box2
     direction="vertical"
     fullHeight={true}
@@ -65,4 +65,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletModal)
+export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletPopup)

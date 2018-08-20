@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import WalletModal from '../../../wallet-modal'
+import WalletPopup from '../../../wallet-modal'
 
 type Props = {|
   accountName: string,
@@ -32,7 +32,7 @@ const SetDefaultAccount = (props: Props) => {
   ]
 
   return (
-    <WalletModal
+    <WalletPopup
       onClose={props.onClose}
       containerStyle={{justifyContent: 'flex-start'}}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
@@ -52,7 +52,7 @@ const SetDefaultAccount = (props: Props) => {
         will now be tied to your Keybase identity. Your account's name remains encrypted and only visible to
         you.
       </Kb.Text>
-    </WalletModal>
+    </WalletPopup>
   )
 }
 

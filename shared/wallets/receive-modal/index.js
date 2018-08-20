@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalMargins, isMobile, styleSheetCreate} from '../../styles'
-import WalletModal from '../wallet-modal'
+import WalletPopup from '../wallet-modal'
 
 type Props = {
   federatedAddress?: string,
@@ -12,7 +12,7 @@ type Props = {
 }
 
 const ReceiveModal = (props: Props) => (
-  <WalletModal onClose={props.onClose}>
+  <WalletPopup onClose={props.onClose}>
     <Icon
       type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
       style={iconCastPlatformStyles(styles.icon)}
@@ -43,7 +43,7 @@ const ReceiveModal = (props: Props) => (
       </Text>
     </InfoNote>
     <Button label="Close" onClick={props.onClose} type="Secondary" />
-  </WalletModal>
+  </WalletPopup>
 )
 
 const styles = styleSheetCreate({

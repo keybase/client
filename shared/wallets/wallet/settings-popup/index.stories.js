@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import SettingsPopup from '.'
 import confirmDefaultAccount from './set-default/index.stories'
-import RemoveAccountDialog from './remove-account'
-import ReallyRemoveDialog from './really-remove-account'
+import RemoveAccountPopup from './remove-account-popup'
+import RemoveAccountAccountPopup from './really-remove-account-popup'
 
 const defaultSettingsProps = {
   name: 'awesome account',
@@ -50,8 +50,8 @@ const load = () => {
     .add('Secondary', () => <SettingsPopup {...secondarySettingsProps} />)
     .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
-    .add('Remove warning', () => <RemoveAccountDialog {...warningProps} />)
-    .add('Really remove', () => <ReallyRemoveDialog {...reallyProps} />)
+    .add('Remove warning', () => <RemoveAccountPopup {...warningProps} />)
+    .add('Really remove', () => <RemoveAccountAccountPopup {...reallyProps} />)
   confirmDefaultAccount()
 }
 
