@@ -175,8 +175,7 @@ func (b *BlockSplitterSimple) SplitDirIfNeeded(block *DirBlock) (
 	// and add to the new block.
 	newBlock := NewDirBlock().(*DirBlock)
 	startOff := int(len(names) / 2)
-	for i := startOff; i < len(names); i++ {
-		name := names[i]
+	for _, name := range names[int(len(names)/2):] {
 		newBlock.Children[name] = block.Children[name]
 		delete(block.Children, name)
 	}

@@ -571,8 +571,8 @@ func (bt *blockTree) newRightBlock(
 }
 
 // setParentOffsets updates the parent offsets for a newly-moved
-// block, all the way up to its common ancestor (which is the one with
-// the one that doesn't have a childIndex of 0).
+// block, all the way up to its common ancestor (which is the one that
+// doesn't have a childIndex of 0).
 func (bt *blockTree) setParentOffsets(
 	ctx context.Context, newOff Offset,
 	parents []parentBlockAndChildIndex, currIndex int) (
