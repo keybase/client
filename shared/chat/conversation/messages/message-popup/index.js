@@ -4,6 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import AttachmentMessage from './attachment/container'
 import TextMessage from './text/container'
 import ExplodingMessage from './exploding/container'
+import PaymentMessage from './payment/container'
 import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
@@ -27,23 +28,49 @@ class MessageAction extends React.PureComponent<Props> {
         />
       )
     }
-    return this.props.message.type === 'text' ? (
-      <TextMessage
-        attachTo={this.props.attachTo}
-        message={this.props.message}
-        onHidden={this.props.onHidden}
-        position={this.props.position}
-        visible={this.props.visible}
-      />
-    ) : (
-      <AttachmentMessage
-        attachTo={this.props.attachTo}
-        message={this.props.message}
-        onHidden={this.props.onHidden}
-        position={this.props.position}
-        visible={this.props.visible}
-      />
-    )
+    switch (this.props.message.type) {
+      case 'text':
+        return (
+          <TextMessage
+            attachTo={this.props.attachTo}
+            message={this.props.message}
+            onHidden={this.props.onHidden}
+            position={this.props.position}
+            visible={this.props.visible}
+          />
+        )
+      case 'attachment':
+        return (
+          <AttachmentMessage
+            attachTo={this.props.attachTo}
+            message={this.props.message}
+            onHidden={this.props.onHidden}
+            position={this.props.position}
+            visible={this.props.visible}
+          />
+        )
+      case 'sendPayment':
+        return (
+          <PaymentMessage
+            attachTo={this.props.attachTo}
+            message={this.props.message}
+            onHidden={this.props.onHidden}
+            position={this.props.position}
+            visible={this.props.visible}
+          />
+        )
+      case 'requestPayment':
+        return (
+          <PaymentMessage
+            attachTo={this.props.attachTo}
+            message={this.props.message}
+            onHidden={this.props.onHidden}
+            position={this.props.position}
+            visible={this.props.visible}
+          />
+        )
+    }
+    return null
   }
 }
 
