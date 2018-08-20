@@ -122,7 +122,7 @@
     "buffer": "5.1.0",
     "core-js": "2.5.7",
     "cross-env": "5.1.6",
-    "electron-spellchecker": "git://github.com/adamjspooner/electron-spellchecker",
+    "electron-spellchecker": "git://github.com/keybase/electron-spellchecker#39a93785fb11e69e3d633532929e4129334c5a8e",
     "emoji-datasource": "4.0.4",
     "emoji-datasource-apple": "4.0.4",
     "emoji-mart": "2.6.1",
