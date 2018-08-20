@@ -90,7 +90,7 @@ const styles = styleSheetCreate({
       marginBottom: globalMargins.small,
     },
     isMobile: {
-      marginBottom: globalMargins.xlarge,
+      marginBottom: 50,
     },
   }),
   infoNoteText: {
