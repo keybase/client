@@ -4633,9 +4633,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// write might slip in after the pointers are updated, but before
 	// the deferred writes are re-applied.
 	afterUpdateFn := func() error {
-		// Clear the dirty directories before we the afterUpdateFns
-		// start replaying deferred writes, so we don't lose the
-		// deferreed write state when we clear.
+		// Clear the dirty directories before the afterUpdateFns start
+		// replaying deferred writes, so we don't lose the deferreed
+		// write state when we clear.
 		fbo.blocks.clearAllDirtyDirsLocked(ctx, lState)
 		var errs []error
 		for _, auf := range afterUpdateFns {
