@@ -42,16 +42,6 @@ class Input extends Component<Props, State> {
       height: null,
     }
 
-    if (__DEV__) {
-      if (props.type === 'password' || props.type === 'passwordVisible') {
-        if (!props.uncontrolled) {
-          console.error(
-            'Controlled password field on mobile, likely incorrect. Can crash on long passphrases'
-          )
-        }
-      }
-    }
-
     // TODO: Remove once we can use HOCTimers.
     this._timeoutIds = []
   }

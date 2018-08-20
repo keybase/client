@@ -11521,9 +11521,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     fbjs "^0.8.3"
 
-react-native@0.57.0-rc.0:
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-57-rc0":
   version "0.57.0-rc.0"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.57.0-rc.0.tgz#f52c259af35112339f858daf84bb97a3a9eb5cc9"
+  resolved "git://github.com/keybase/react-native#3c9e66fd390305e1ab12a961c2e8854f135262ca"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
