@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-#ifndef __GO_SEQ_HDR__
-#define __GO_SEQ_HDR__
+#ifndef __GO_SEQ_ANDROID_HDR__
+#define __GO_SEQ_ANDROID_HDR__
 
 #include <stdint.h>
 #include <android/log.h>
@@ -64,4 +64,4 @@ extern jmethodID go_seq_get_static_method_id(jclass clazz, const char *name, con
 extern jmethodID go_seq_get_method_id(jclass clazz, const char *name, const char *sig);
 extern int go_seq_isinstanceof(jint refnum, jclass clazz);
 
-#endif // __GO_SEQ_HDR__
+#endif // __GO_SEQ_ANDROID_HDR__
