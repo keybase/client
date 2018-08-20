@@ -3,6 +3,7 @@ package teams
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"golang.org/x/net/context"
 
@@ -69,6 +70,14 @@ func (t TeamSigChainState) GetLatestSeqno() keybase1.Seqno {
 
 func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
+}
+
+func (t TeamSigChainState) GetLatestHighSeqno() keybase1.Seqno {
+	return t.inner.LastHighSeqno
+}
+
+func (t TeamSigChainState) GetLatestHighLinkID() keybase1.LinkID {
+	return t.inner.LastHighLinkID
 }
 
 func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {
@@ -645,6 +654,14 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
 
+	var prevAdmins []keybase1.UserVersion
+	if prevState != nil {
+		prevAdmins, err = prevState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
+		if err != nil {
+			return res, fmt.Errorf("cannot get admins on team sigchain: %s", err)
+		}
+	}
+
 	var newState *TeamSigChainState
 	if link.isStubbed() {
 		if prevState == nil {
@@ -667,11 +684,36 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	newState.inner.LastLinkID = link.LinkID().Export()
 	newState.inner.LinkIDs[link.Seqno()] = link.LinkID().Export()
 
+	wasHigh, err := t.wasHighLink(prevAdmins, newState, link)
+	if err != nil {
+		return res, fmt.Errorf("cannot determine if this team chain link is high: %s", err)
+	}
+	if wasHigh {
+		newState.inner.LastHighSeqno = link.Seqno()
+		newState.inner.LastHighLinkID = link.LinkID().Export()
+	}
+
 	if link.isStubbed() {
 		newState.inner.StubbedLinks[link.Seqno()] = true
 	}
 
 	return *newState, nil
+}
+
+func (t *teamSigchainPlayer) wasHighLink(prevAdmins []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
+	switch link.LinkType() {
+	case libkb.SigchainV2TypeTeamRoot, libkb.SigchainV2TypeTeamSubteamHead:
+		return true, nil
+	case libkb.SigchainV2TypeTeamChangeMembership:
+		// only if this changed the current set of explicit admins on the team
+		currentAdmins, err := newState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
+		if err != nil {
+			return true, err
+		}
+		return !reflect.DeepEqual(currentAdmins, prevAdmins), nil
+	default:
+		return false, nil
+	}
 }
 
 func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked) (err error) {

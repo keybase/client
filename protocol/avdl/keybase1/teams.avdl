@@ -361,6 +361,10 @@ protocol teams {
     Seqno lastSeqno;
     LinkID lastLinkID;
 
+    // The last high link procesed
+    Seqno lastHighSeqno;
+    LinkID lastHighLinkID;
+
     // Present if a subteam
     union { null, TeamID } parentID;
 
