@@ -3841,6 +3841,41 @@ func (mr *MockBlockCacheMockRecorder) GetCleanBytesCapacity() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCleanBytesCapacity", reflect.TypeOf((*MockBlockCache)(nil).GetCleanBytesCapacity))
 }
 
+// MockisDirtyProvider is a mock of isDirtyProvider interface
+type MockisDirtyProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockisDirtyProviderMockRecorder
+}
+
+// MockisDirtyProviderMockRecorder is the mock recorder for MockisDirtyProvider
+type MockisDirtyProviderMockRecorder struct {
+	mock *MockisDirtyProvider
+}
+
+// NewMockisDirtyProvider creates a new mock instance
+func NewMockisDirtyProvider(ctrl *gomock.Controller) *MockisDirtyProvider {
+	mock := &MockisDirtyProvider{ctrl: ctrl}
+	mock.recorder = &MockisDirtyProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockisDirtyProvider) EXPECT() *MockisDirtyProviderMockRecorder {
+	return m.recorder
+}
+
+// IsDirty mocks base method
+func (m *MockisDirtyProvider) IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool {
+	ret := m.ctrl.Call(m, "IsDirty", tlfID, ptr, branch)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDirty indicates an expected call of IsDirty
+func (mr *MockisDirtyProviderMockRecorder) IsDirty(tlfID, ptr, branch interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDirty", reflect.TypeOf((*MockisDirtyProvider)(nil).IsDirty), tlfID, ptr, branch)
+}
+
 // MockDirtyBlockCache is a mock of DirtyBlockCache interface
 type MockDirtyBlockCache struct {
 	ctrl     *gomock.Controller
@@ -3862,6 +3897,18 @@ func NewMockDirtyBlockCache(ctrl *gomock.Controller) *MockDirtyBlockCache {
 // EXPECT returns an object that allows the caller to indicate expected use
 func (m *MockDirtyBlockCache) EXPECT() *MockDirtyBlockCacheMockRecorder {
 	return m.recorder
+}
+
+// IsDirty mocks base method
+func (m *MockDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool {
+	ret := m.ctrl.Call(m, "IsDirty", tlfID, ptr, branch)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDirty indicates an expected call of IsDirty
+func (mr *MockDirtyBlockCacheMockRecorder) IsDirty(tlfID, ptr, branch interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDirty", reflect.TypeOf((*MockDirtyBlockCache)(nil).IsDirty), tlfID, ptr, branch)
 }
 
 // Get mocks base method
@@ -3899,18 +3946,6 @@ func (m *MockDirtyBlockCache) Delete(tlfID tlf.ID, ptr BlockPointer, branch Bran
 // Delete indicates an expected call of Delete
 func (mr *MockDirtyBlockCacheMockRecorder) Delete(tlfID, ptr, branch interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockDirtyBlockCache)(nil).Delete), tlfID, ptr, branch)
-}
-
-// IsDirty mocks base method
-func (m *MockDirtyBlockCache) IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool {
-	ret := m.ctrl.Call(m, "IsDirty", tlfID, ptr, branch)
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-// IsDirty indicates an expected call of IsDirty
-func (mr *MockDirtyBlockCacheMockRecorder) IsDirty(tlfID, ptr, branch interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDirty", reflect.TypeOf((*MockDirtyBlockCache)(nil).IsDirty), tlfID, ptr, branch)
 }
 
 // IsAnyDirty mocks base method

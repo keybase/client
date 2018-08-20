@@ -1086,6 +1086,12 @@ type BlockCache interface {
 // struct{}.
 type DirtyPermChan <-chan struct{}
 
+type isDirtyProvider interface {
+	// IsDirty states whether or not the block associated with the
+	// given block pointer and branch name is dirty in this cache.
+	IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool
+}
+
 // DirtyBlockCache gets and puts plaintext dir blocks and file blocks
 // into a cache, which have been modified by the application and not
 // yet committed on the KBFS servers.  They are identified by a
@@ -1094,6 +1100,8 @@ type DirtyPermChan <-chan struct{}
 // modified via multiple branches.  Dirty blocks are never evicted,
 // they must be deleted explicitly.
 type DirtyBlockCache interface {
+	isDirtyProvider
+
 	// Get gets the block associated with the given block ID.  Returns
 	// the dirty block for the given ID, if one exists.
 	Get(tlfID tlf.ID, ptr BlockPointer, branch BranchName) (Block, error)
@@ -1104,9 +1112,6 @@ type DirtyBlockCache interface {
 	// pointer and branch from the cache.  No error is returned if no
 	// block exists for the given ID.
 	Delete(tlfID tlf.ID, ptr BlockPointer, branch BranchName) error
-	// IsDirty states whether or not the block associated with the
-	// given block pointer and branch name is dirty in this cache.
-	IsDirty(tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool
 	// IsAnyDirty returns whether there are any dirty blocks in the
 	// cache. tlfID may be ignored.
 	IsAnyDirty(tlfID tlf.ID) bool

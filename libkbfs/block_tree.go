@@ -132,7 +132,7 @@ func (bt *blockTree) getBlockAtOffset(ctx context.Context,
 // the top block).
 func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 	pblock BlockWithPtrs, off Offset, rtype blockReqType,
-	dirtyBcache DirtyBlockCache, parentBlocks []parentBlockAndChildIndex) (
+	dirtyBcache isDirtyProvider, parentBlocks []parentBlockAndChildIndex) (
 	ptr BlockPointer, newParentBlocks []parentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Search along paths of dirty blocks until we find a dirty leaf
@@ -231,7 +231,7 @@ func (bt *blockTree) getNextDirtyBlockAtOffsetAtLevel(ctx context.Context,
 // to be local.  `nextBlockStartOff` is `nil` if there's no next block.
 func (bt *blockTree) getNextDirtyBlockAtOffset(ctx context.Context,
 	topBlock BlockWithPtrs, off Offset, rtype blockReqType,
-	dirtyBcache DirtyBlockCache) (
+	dirtyBcache isDirtyProvider) (
 	ptr BlockPointer, parentBlocks []parentBlockAndChildIndex,
 	block BlockWithPtrs, nextBlockStartOff, startOff Offset, err error) {
 	// Find the block matching the offset, if it exists.
@@ -871,7 +871,7 @@ func (bt *blockTree) readyHelper(
 // info from any readied block to its corresponding old block pointer.
 func (bt *blockTree) ready(
 	ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
 	topBlock BlockWithPtrs, makeSync makeSyncFunc) (
 	map[BlockInfo]BlockPointer, error) {
 	if !topBlock.IsIndirect() {

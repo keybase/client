@@ -1005,7 +1005,7 @@ func (fd *fileData) split(ctx context.Context, id tlf.ID,
 // indirect pointers.  It returns a map pointing from the new block
 // info from any readied block to its corresponding old block pointer.
 func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
-	dirtyBcache DirtyBlockCache, bops BlockOps, bps *blockPutState,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
 	topBlock *FileBlock, df *dirtyFile) (map[BlockInfo]BlockPointer, error) {
 	return fd.tree.ready(
 		ctx, id, bcache, dirtyBcache, bops, bps, topBlock,
