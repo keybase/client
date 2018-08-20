@@ -6136,9 +6136,9 @@ flora-colossus@^1.0.0:
     debug "^3.1.0"
     fs-extra "^4.0.0"
 
-flow-annotation-check@1.8.0:
-  version "1.8.0"
-  resolved "https://registry.yarnpkg.com/flow-annotation-check/-/flow-annotation-check-1.8.0.tgz#49a97d2ddd7d0f91c2addc4b95d1e89ec5eea6ad"
+flow-annotation-check@1.8.1:
+  version "1.8.1"
+  resolved "https://registry.yarnpkg.com/flow-annotation-check/-/flow-annotation-check-1.8.1.tgz#41ed407a79e56f5ea71b8f4edc55853c66799e3f"
   dependencies:
     argparse "^1.0.9"
     babel-plugin-transform-object-rest-spread "^6.20.2"
@@ -6149,14 +6149,14 @@ flow-bin@0.79.0:
   version "0.79.0"
   resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.79.0.tgz#a7029f2832d45e5b78f7e77a74fee898722fb6ef"
 
-flow-coverage-report@^0.5.0:
+"flow-coverage-report@git://github.com/keybase/flow-coverage-report#keybase-changes-off-master":
   version "0.5.0"
-  resolved "https://registry.yarnpkg.com/flow-coverage-report/-/flow-coverage-report-0.5.0.tgz#adbcecb5bf9a068d3d66f8881b0d7b96cb82c5f2"
+  resolved "git://github.com/keybase/flow-coverage-report#c8c6201e79d0d902df67e60da7984154845b531a"
   dependencies:
     array.prototype.find "2.0.4"
     babel-runtime "6.23.0"
     badge-up "2.3.0"
-    flow-annotation-check "1.8.0"
+    flow-annotation-check "1.8.1"
     glob "7.1.1"
     minimatch "3.0.4"
     mkdirp "0.5.1"
