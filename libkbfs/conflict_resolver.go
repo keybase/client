@@ -2709,11 +2709,10 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 				newPtrs[ptr] = true
 			}
 
+			mdInfo := unmergedChains.mostRecentChainMDInfo
 			nodeMap, cache, err := cr.fbo.blocks.SearchForNodes(
 				ctx, cr.fbo.nodeCache, ptrs, newPtrs,
-				unmergedChains.mostRecentChainMDInfo,
-				unmergedChains.mostRecentChainMDInfo.GetRootDirEntry().
-					BlockPointer)
+				mdInfo, mdInfo.GetRootDirEntry().BlockPointer)
 			if err != nil {
 				return path{}, err
 			}
