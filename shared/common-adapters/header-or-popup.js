@@ -11,9 +11,7 @@ import type {Props} from './header-or-popup'
 //       <Foo />
 //     </PopupDialog>
 function HeaderOrPopup<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return isMobile
-    ? HeaderHoc(WrappedComponent)
-    : Popup(WrappedComponent)
+  return isMobile ? HeaderHoc(WrappedComponent) : Popup(WrappedComponent)
 }
 
 function Popup<P: {}>(Wrapped: React.ComponentType<P>) {

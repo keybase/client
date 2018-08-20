@@ -18,7 +18,7 @@ export default class extends React.Component<Props> {
 
   render() {
     return (
-      <WalletPopup onClose={this.props.onClose}>
+      <WalletPopup onClose={this.props.onClose} headerStyle={styles.headerStyle}>
         <Icon
           type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
           style={iconCastPlatformStyles(styles.icon)}
@@ -44,6 +44,7 @@ export default class extends React.Component<Props> {
 }
 
 const styles = styleSheetCreate({
+  headerStyle: {},
   headerText: {
     marginBottom: globalMargins.medium,
   },

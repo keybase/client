@@ -31,7 +31,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
     return (
       <WalletPopup
         onClose={this.props.onClose}
-        containerStyle={styles.container}
+        containerStyle={styles.backgroundColor}
+        headerStyle={styles.backgroundColor}
         bottomButtons={[
           <Kb.Button
             fullWidth={Styles.isMobile}
@@ -75,7 +76,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
+  backgroundColor: {
     backgroundColor: Styles.globalColors.yellow,
   },
   icon: Styles.platformStyles({

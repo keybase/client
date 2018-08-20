@@ -2,12 +2,14 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {compose, renameProp} from 'recompose'
+import {compose, renameProp, withProps} from 'recompose'
 
 type WalletModalProps = {|
   children: React.Node,
   onClose: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
+  // Since the header is only displayed on mobile, its styles only apply to mobile.
+  headerStyle?: Styles.StylesCrossPlatform,
   // Buttons to be placed in the bottom Button Bar.
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.Node>,
@@ -67,4 +69,10 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletPopup)
+export default compose(
+  renameProp('onClose', 'onCancel'),
+  withProps(ownProps => ({
+    headerStyle: Styles.collapseStyles([{borderBottomWidth: 0}, ownProps.headerStyle]),
+  })),
+  Kb.HeaderOrPopup
+)(WalletPopup)
