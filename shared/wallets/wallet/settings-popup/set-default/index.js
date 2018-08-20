@@ -34,17 +34,15 @@ const SetDefaultAccount = (props: Props) => {
   return (
     <WalletPopup
       onClose={props.onClose}
-      containerStyle={{justifyContent: 'flex-start'}}
+      // containerStyle={styles.container}
+      headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
-      <Kb.Box style={{position: 'relative', marginBottom: Styles.globalMargins.mediumLarge}}>
-        <Kb.Icon type="icon-wallet-48" />
+      <Kb.Box style={styles.avatarAndIcon}>
+        <Kb.Icon type={Styles.isMobile ? 'icon-wallet-64' : 'icon-wallet-48'} />
         <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
       </Kb.Box>
-      <Kb.Text
-        type="Header"
-        style={Styles.collapseStyles([styles.textAlignCenter, {marginBottom: Styles.globalMargins.medium}])}
-      >
+      <Kb.Text type="Header" style={styles.mainText}>
         Set <Kb.Text type="HeaderItalic">{props.accountName}</Kb.Text> as your default Keybase account?
       </Kb.Text>
       <Kb.Text type="Body" style={styles.textAlignCenter}>
@@ -57,6 +55,18 @@ const SetDefaultAccount = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {
+    justifyContent: 'flex-start',
+  },
+  avatarAndIcon: Styles.platformStyles({
+    common: {
+      position: 'relative',
+      marginBottom: Styles.globalMargins.mediumLarge,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.large,
+    },
+  }),
   avatar: Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -67,7 +77,19 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       left: -8,
-      top: 12,
+      bottom: -2,
+    },
+  }),
+  header: {
+    borderBottomWidth: 0,
+  },
+  mainText: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.small,
+      marginLeft: Styles.globalMargins.small,
     },
   }),
   textAlignCenter: {

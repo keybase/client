@@ -44,7 +44,6 @@ export default class extends React.Component<Props> {
 }
 
 const styles = styleSheetCreate({
-  headerStyle: {},
   headerText: {
     marginBottom: globalMargins.medium,
   },
