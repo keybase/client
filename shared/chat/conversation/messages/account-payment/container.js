@@ -49,6 +49,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       }
     }
     case 'requestPayment': {
+      const message: Types.MessageRequestPayment = ownProps.message
       const requestID = ownProps.message.requestID
       const request = Constants.getRequest(state, requestID)
       if (!request) {
@@ -61,7 +62,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: '', // TODO pending core support
+        memo: message.note,
         pending: false,
       }
     }
