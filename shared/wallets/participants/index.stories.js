@@ -2,18 +2,35 @@
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import {Box} from '../../common-adapters'
-import Participants from '.'
+import Participants, {type Wallet} from '.'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Participants: props => ({}),
 })
 
+const fromWallet: Wallet = {
+  name: 'Primary Wallet',
+  user: 'cjb',
+  contents: '2000 XLM',
+}
+
+const wallets = [
+  {
+    name: 'Secondary Wallet',
+    user: 'cjb',
+    contents: '6435 XLM',
+  },
+  {
+    name: 'third Wallet',
+    user: 'cjb',
+    contents: '10 XLM',
+  },
+]
+
 const confirmCommonProps = {
   isConfirm: true,
-  fromWallet: 'Primary Wallet',
-  fromWalletUser: 'cjb',
-  fromWalletContents: '2000 XLM',
+  fromWallet,
   recipientUsername: 'zanderz',
   recipientFullName: 'Steve Sanders',
   recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46',
@@ -23,18 +40,15 @@ const confirmCommonProps = {
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{maxWidth: 360}}>{story()}</Box>)
+    .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
     .add('To Keybase user', () => <Participants recipientType="keybaseUser" />)
     .add('To other wallet', () => (
-      <Participants
-        recipientType="otherAccount"
-        fromWallet="Primary Wallet"
-        fromWalletUser="cjb"
-        fromWalletContents="2000 XLM"
-      />
+      <Participants recipientType="otherAccount" fromWallet={fromWallet} wallets={wallets} />
     ))
     .add('To stellar address', () => <Participants recipientType="stellarPublicKey" />)
-    .add('Stellar address Error', () => <Participants incorrect="Stellar address incorrect" recipientType="stellarPublicKey" />)
+    .add('Stellar address Error', () => (
+      <Participants incorrect="Stellar address incorrect" recipientType="stellarPublicKey" />
+    ))
     .add('User match', () => (
       <Participants
         recipientType="keybaseUser"

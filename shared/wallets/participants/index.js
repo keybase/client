@@ -5,13 +5,18 @@ import FromField from './from-field'
 import ToField from './to-field'
 import type {CounterpartyType} from '../../constants/types/wallets'
 
+export type Wallet = {|
+  name: string,
+  user: string,
+  contents: string,
+|}
+
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
   /* Used for the confirm screen */
   isConfirm?: boolean,
-  fromWallet?: string,
-  fromWalletUser?: string,
-  fromWalletContents?: string,
+  fromWallet?: Wallet,
+  wallets?: Wallet[],
   /* Used for send to stellar address */
   incorrect?: string,
   onChangeAddress?: string => void,
@@ -26,14 +31,11 @@ type ParticipantsProps = {|
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {(props.isConfirm || props.recipientType === 'otherAccount') &&
-      props.fromWallet &&
-      props.fromWalletUser &&
-      props.fromWalletContents && (
+      props.fromWallet && (
         <FromField
           isConfirm={props.isConfirm || false}
-          walletName={props.fromWallet}
-          username={props.fromWalletUser}
-          walletContents={props.fromWalletContents}
+          selectedWallet={props.fromWallet}
+          wallets={props.wallets}
         />
       )}
     <ToField

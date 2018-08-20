@@ -48,9 +48,11 @@ const ConfirmSend = (props: ConfirmSendProps) => (
           isConfirm={true}
           recipientUsername={props.receiverUsername}
           recipientFullName={props.receiverFullName}
-          fromWalletUser={props.yourUsername}
-          fromWallet={props.yourWalletName}
-          fromWalletContents={props.yourWalletContents}
+          fromWallet={{
+            name: props.yourWalletName,
+            user: props.yourUsername,
+            contents: props.yourWalletContents,
+          }}
         />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
