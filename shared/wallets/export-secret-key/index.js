@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
-import {globalMargins, isMobile, styleSheetCreate} from '../../styles'
+import {globalMargins, isMobile, styleSheetCreate, platformStyles} from '../../styles'
 import WalletPopup from '../wallet-popup'
 
 type Props = {
@@ -11,22 +11,38 @@ type Props = {
   username: string,
 }
 
-export default class extends React.Component<Props> {
+export default class ExportSecretKeyPopup extends React.Component<Props> {
   componentWillMount() {
     this.props.onLoadSecretKey()
   }
 
   render() {
+    const header = (
+      <React.Fragment>
+        <Text type="BodySmallSemibold">{this.props.username}’s account</Text>
+        <Text type="BodyBig" style={styles.headerText}>
+          Secret key
+        </Text>
+      </React.Fragment>
+    )
+
+    const mobileHeaderWrapper = (
+      <Box2 direction="horizontal" centerChildren={true} style={styles.header}>
+        <Box2 direction="vertical">{header}</Box2>
+      </Box2>
+    )
+
     return (
-      <WalletPopup onClose={this.props.onClose} headerStyle={styles.headerStyle}>
+      <WalletPopup
+        onClose={this.props.onClose}
+        customCancelText="Close"
+        customComponent={isMobile && mobileHeaderWrapper}
+      >
         <Icon
           type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
           style={iconCastPlatformStyles(styles.icon)}
         />
-        <Text type="BodySmallSemibold">{this.props.username}’s wallet</Text>
-        <Text type="Header" style={styles.headerText}>
-          Secret key
-        </Text>
+        {!isMobile && header}
         {!!this.props.secretKey && (
           <Box2 direction="vertical" style={styles.secretKeyContainer}>
             <CopyText withReveal={true} text={this.props.secretKey} />
@@ -37,19 +53,39 @@ export default class extends React.Component<Props> {
             Only paste your secret key in 100% safe places.
           </Text>
         </InfoNote>
-        <Button label="Close" onClick={this.props.onClose} type="Secondary" />
+        {!isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
       </WalletPopup>
     )
   }
 }
 
 const styles = styleSheetCreate({
-  headerText: {
-    marginBottom: globalMargins.medium,
-  },
-  icon: {
-    marginBottom: globalMargins.small,
-  },
+  header: platformStyles({
+    isMobile: {
+      position: 'absolute',
+      left: 0,
+      bottom: 0,
+      right: 0,
+      top: 0,
+      flex: 1,
+    },
+  }),
+  headerText: platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isElectron: {
+      marginBottom: globalMargins.medium,
+    },
+  }),
+  icon: platformStyles({
+    isElectron: {
+      marginBottom: globalMargins.small,
+    },
+    isMobile: {
+      marginBottom: globalMargins.xlarge,
+    },
+  }),
   infoNoteText: {
     marginBottom: globalMargins.medium,
     textAlign: 'center',
@@ -57,9 +93,16 @@ const styles = styleSheetCreate({
   progressContainer: {
     marginBottom: globalMargins.medium,
   },
-  secretKeyContainer: {
-    marginBottom: globalMargins.medium,
-    maxWidth: 272,
-    width: '100%',
-  },
+  secretKeyContainer: platformStyles({
+    common: {
+      width: '100%',
+    },
+    isElectron: {
+      maxWidth: 272,
+      marginBottom: globalMargins.medium,
+    },
+    isMobile: {
+      marginBottom: globalMargins.xlarge,
+    },
+  }),
 })
