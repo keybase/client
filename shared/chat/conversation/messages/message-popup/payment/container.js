@@ -10,13 +10,6 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 // This file has two connectors and a wrapper. One connector is for sendPayment
 // and the other for requestPayment. The wrapper decides which to use.
 
-type OwnPropsCommon = {|
-  attachTo: ?React.Component<any, any>,
-  onHidden: () => void,
-  position: Position,
-  visible: boolean,
-|}
-
 type OwnProps = {|
   attachTo: ?React.Component<any, any>,
   message: ChatTypes.MessageRequestPayment | ChatTypes.MessageSendPayment,
