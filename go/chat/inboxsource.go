@@ -1314,6 +1314,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
 		var info *types.NameInfo
 		var ierr error
+		// If we are of type TEAM, it's possible that our subteam has been
+		// renamed so we have to rely on the Tlfid, not the TLFName to get the
+		// latest info.
 		switch conversationRemote.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
 			info, ierr = infoSource.LookupName(ctx,
