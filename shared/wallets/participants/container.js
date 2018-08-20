@@ -4,15 +4,18 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
+  const build = state.wallets.buildingPayment
+  const built = state.wallets.builtPayment
+
   // Building section
-  const recipientType = state.wallets.buildingPayment.recipientType
-  const to = state.wallets.buildingPayment.to
+  const recipientType = build.recipientType
+  const to = build.to
   const recipientStellarAddress = recipientType === 'stellarPublicKey' && to
 
   // Built section
-  const incorrect = state.wallets.builtPayment.toErrMsg
-  const recipientUsername = state.wallets.builtPayment.toUsername
-  const worthDescription = state.wallets.builtPayment.worthDescription
+  const incorrect = built.toErrMsg
+  const recipientUsername = built.toUsername
+  const worthDescription = built.worthDescription
 
   return {
     incorrect,

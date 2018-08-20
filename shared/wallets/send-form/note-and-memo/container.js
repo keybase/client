@@ -4,7 +4,13 @@ import * as WalletsGen from '../../../actions/wallets-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => {
+  const b = state.wallets.builtPayment
+  return {
+    memoError: b.publicMemoErrMsg.stringValue(),
+    noteError: b.secretNoteErrMsg.stringValue(),
+  }
+}
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangePublicMemo: (publicMemo: string) =>
