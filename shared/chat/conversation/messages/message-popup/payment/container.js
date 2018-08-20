@@ -3,8 +3,19 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
+import * as WalletTypes from '../../../../../constants/types/wallets'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+
+// This file has two connectors and a wrapper. One connector is for sendPayment
+// and the other for requestPayment. The wrapper decides which to use.
+
+type OwnPropsCommon = {|
+  attachTo: ?React.Component<any, any>,
+  onHidden: () => void,
+  position: Position,
+  visible: boolean,
+|}
 
 type OwnProps = {|
   attachTo: ?React.Component<any, any>,
@@ -14,27 +25,6 @@ type OwnProps = {|
   visible: boolean,
 |}
 
-const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  const accountID = WalletConstants.getDefaultAccountID(state)
-  let _record = null
-  if (ownProps.message.type === 'sendPayment') {
-    if (accountID) {
-      _record = WalletConstants.getPayment(state, accountID, ownProps.message.paymentID)
-    }
-  } else {
-    _record = WalletConstants.getRequest(state, ownProps.message.requestID)
-  }
-  return {
-    _record,
-    _you: state.config.username,
-  }
-}
-
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
-  onCancel: () => {},
-})
-
-// Props to show the loading indicator
 const commonLoadingProps = {
   amountNominal: '',
   balanceChange: '',
@@ -50,25 +40,58 @@ const commonLoadingProps = {
   txVerb: 'sent',
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  if (!stateProps._record) {
-    // haven't loaded details
-    return {
-      ...commonLoadingProps,
-      attachTo: ownProps.attachTo,
-      onHidden: ownProps.onHidden,
-      position: ownProps.position,
-      visible: ownProps.visible,
-    }
-  }
-  const you = stateProps._you
-  const message = ownProps.message
+// MessageSendPayment ===================================
+const sendMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  return {}
+}
+
+const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
   return {
-    ...stateProps,
-    ...dispatchProps,
-    ...ownProps,
+    ...commonLoadingProps,
+    attachTo: ownProps.attachTo,
+    onHidden: ownProps.onHidden,
+    position: ownProps.position,
+    visible: ownProps.visible,
   }
 }
 
-const ConnectedPaymentPopup = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(PaymentPopup)
-export default ConnectedPaymentPopup
+const SendPaymentPopup = Container.connect(sendMapStateToProps, () => ({}), sendMergeProps)(PaymentPopup)
+
+// MessageRequestPayment ================================
+const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+  return {}
+}
+
+const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({})
+
+const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  return {
+    ...commonLoadingProps,
+    attachTo: ownProps.attachTo,
+    onHidden: ownProps.onHidden,
+    position: ownProps.position,
+    visible: ownProps.visible,
+  }
+}
+
+const RequestPaymentPopup = Container.connect(
+  requestMapStateToProps,
+  requestMapDispatchToProps,
+  requestMergeProps
+)(PaymentPopup)
+
+// Wrapper ==============================================
+const PaymentPopupChooser = (props: OwnProps) => {
+  switch (props.message.type) {
+    case 'sendPayment':
+      // $FlowIssue complains about different props but all use OwnProps
+      return <SendPaymentPopup {...props} />
+    case 'requestPayment':
+      // $FlowIssue complains about different props but all use OwnProps
+      return <RequestPaymentPopup {...props} />
+    default:
+      throw new Error(`PaymentPopup: impossible case encountered: ${props.message.type}`)
+  }
+}
+
+export default PaymentPopupChooser
