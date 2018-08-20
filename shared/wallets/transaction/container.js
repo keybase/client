@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     delta: tx.delta,
     large: counterpartyType !== 'wallet',
-    memo: tx.note,
+    memo: tx.note.stringValue(),
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,

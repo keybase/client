@@ -160,6 +160,38 @@ type XML struct {
 	stack []*Element
 }
 
+// RawValueByName returns the original raw string value of first matching element attribute, or error if not exists.
+// Given <manifest package="VAL" ...> then RawValueByName("manifest", xml.Name{Local: "package"}) returns "VAL".
+func (bx *XML) RawValueByName(elname string, attrname xml.Name) (string, error) {
+	elref, err := bx.Pool.RefByName(elname)
+	if err != nil {
+		return "", err
+	}
+	nref, err := bx.Pool.RefByName(attrname.Local)
+	if err != nil {
+		return "", err
+	}
+	nsref := PoolRef(NoEntry)
+	if attrname.Space != "" {
+		nsref, err = bx.Pool.RefByName(attrname.Space)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	for el := range bx.iterElements() {
+		if el.Name == elref {
+			for _, attr := range el.attrs {
+				// TODO enforce TypedValue DataString constraint?
+				if nsref == attr.NS && nref == attr.Name {
+					return bx.Pool.strings[int(attr.RawValue)], nil
+				}
+			}
+		}
+	}
+	return "", fmt.Errorf("no matching element %q for attribute %+v found", elname, attrname)
+}
+
 const (
 	androidSchema = "http://schemas.android.com/apk/res/android"
 	toolsSchema   = "http://schemas.android.com/tools"
@@ -170,7 +202,7 @@ var skipSynthesize bool
 
 // UnmarshalXML decodes an AndroidManifest.xml document returning type XML
 // containing decoded resources.
-func UnmarshalXML(r io.Reader) (*XML, error) {
+func UnmarshalXML(r io.Reader, withIcon bool) (*XML, error) {
 	tbl, err := OpenTable()
 	if err != nil {
 		return nil, err
@@ -247,6 +279,25 @@ func UnmarshalXML(r io.Reader) (*XML, error) {
 
 					q = append(q, ltoken{s, line}, ltoken{e, line})
 				}
+			case "application":
+				if !skipSynthesize {
+					for _, attr := range tkn.Attr {
+						if attr.Name.Space == androidSchema && attr.Name.Local == "icon" {
+							return nil, fmt.Errorf("manual declaration of android:icon in AndroidManifest.xml not supported")
+						}
+					}
+					if withIcon {
+						tkn.Attr = append(tkn.Attr,
+							xml.Attr{
+								Name: xml.Name{
+									Space: androidSchema,
+									Local: "icon",
+								},
+								Value: "@mipmap/icon",
+							})
+					}
+				}
+				q = append(q, ltoken{tkn, line})
 			}
 		default:
 			q = append(q, ltoken{tkn, line})
@@ -371,6 +422,14 @@ func UnmarshalXML(r io.Reader) (*XML, error) {
 							nattr.TypedValue.Type = DataReference
 							dref, err := tbl.RefByName(attr.Value)
 							if err != nil {
+								if strings.HasPrefix(attr.Value, "@mipmap") {
+									// firstDrawableId is a TableRef matching first entry of mipmap spec initialized by NewMipmapTable.
+									// 7f is default package, 02 is mipmap spec, 0000 is first entry; e.g. R.drawable.icon
+									// TODO resource table should generate ids as required.
+									const firstDrawableId = 0x7f020000
+									nattr.TypedValue.Value = firstDrawableId
+									continue
+								}
 								return nil, err
 							}
 							nattr.TypedValue.Value = uint32(dref)
