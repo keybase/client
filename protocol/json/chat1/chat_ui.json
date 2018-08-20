@@ -424,10 +424,6 @@
           "name": "fullUrlCached"
         },
         {
-          "type": "boolean",
-          "name": "inlineVideoPlayable"
-        },
-        {
           "type": "string",
           "name": "mimeType"
         },
@@ -437,6 +433,10 @@
             "string"
           ],
           "name": "videoDuration"
+        },
+        {
+          "type": "boolean",
+          "name": "inlineVideoPlayable"
         }
       ]
     },

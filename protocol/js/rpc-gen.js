@@ -144,6 +144,7 @@ export const constantsStatusCode = {
   sckeysyncedpgpnotfound: 929,
   sckeynomatchinggpg: 930,
   sckeyrevoked: 931,
+  scsigcannotverify: 1002,
   scsigwrongkey: 1008,
   scsigoldseqno: 1010,
   scbadtracksession: 1301,
@@ -243,6 +244,7 @@ export const constantsStatusCode = {
   scteamshowcasepermdenied: 2711,
   scteamprovisionalcankey: 2721,
   scteamprovisionalcannotkey: 2722,
+  scteamftloutdated: 2736,
   scephemeralkeybadgeneration: 2900,
   scephemeralkeyunexpectedbox: 2901,
   scephemeralkeymissingbox: 2902,
@@ -1123,10 +1125,10 @@ export type FSStatusCode =
 
 export type FSSyncStatus = $ReadOnly<{totalSyncingBytes: Int64, syncingPaths?: ?Array<String>, endEstimate?: ?Time}>
 export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
-export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeedItem}, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
-export type FastTeamLoadArg = $ReadOnly<{id: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestGeneration: Boolean}>
+export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
+export type FastTeamLoadArg = $ReadOnly<{ID: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestKey: Boolean}>
 export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type FastTeamSigChainState = $ReadOnly<{id: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last: LinkPair, parentID?: ?TeamID, perTeamKeys: {[key: string]: PerTeamKey}, downPointers: {[key: string]: DownPointer}, lastUpPointer: LinkPair, isDeleted: Boolean, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
+export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
 export type FavoriteFavoriteAddRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteFavoriteIgnoreRpcParam = $ReadOnly<{folder: Folder}>
 export type FavoriteGetFavoritesRpcParam = void
@@ -1383,8 +1385,7 @@ export type KeybaseTime = $ReadOnly<{unix: Time, chain: Seqno}>
 export type LeaseID = String
 export type LinkCheckResult = $ReadOnly<{proofId: Int, proofResult: ProofResult, snoozedResult: ProofResult, torWarning: Boolean, tmpTrackExpireTime: Time, cached?: ?CheckResult, diff?: ?TrackDiff, remoteDiff?: ?TrackDiff, hint?: ?SigHint, breaksTracking: Boolean}>
 export type LinkID = String
-export type LinkPair = $ReadOnly<{seqno: Seqno, linkID: LinkID}>
-export type LinkTriple = $ReadOnly<{id: TeamID, pair: LinkPair}>
+export type LinkTriple = $ReadOnly<{seqno: Seqno, seqType: SeqType, linkID: LinkID}>
 export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
@@ -1794,7 +1795,7 @@ export type SaltpackSenderType =
   | 7 // EXPIRED_7
 
 export type SaltpackSignOptions = $ReadOnly<{detached: Boolean, binary: Boolean, saltpackVersion: Int}>
-export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{sender: SaltpackSender, usedDelegateUI: Boolean}>
+export type SaltpackUiSaltpackPromptForDecryptRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean}>
 export type SaltpackUiSaltpackVerifyBadSenderRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 export type SaltpackUiSaltpackVerifySuccessRpcParam = $ReadOnly<{signingKID: KID, sender: SaltpackSender}>
 export type SaltpackVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
@@ -1945,6 +1946,7 @@ export type StatusCode =
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
+  | 1002 // SCSigCannotVerify_1002
   | 1008 // SCSigWrongKey_1008
   | 1010 // SCSigOldSeqno_1010
   | 1301 // SCBadTrackSession_1301
@@ -2044,6 +2046,7 @@ export type StatusCode =
   | 2711 // SCTeamShowcasePermDenied_2711
   | 2721 // SCTeamProvisionalCanKey_2721
   | 2722 // SCTeamProvisionalCannotKey_2722
+  | 2736 // SCTeamFTLOutdated_2736
   | 2900 // SCEphemeralKeyBadGeneration_2900
   | 2901 // SCEphemeralKeyUnexpectedBox_2901
   | 2902 // SCEphemeralKeyMissingBox_2902
@@ -2325,6 +2328,7 @@ export type UiPromptYesNoRpcParam = $ReadOnly<{text: Text, promptDefault: Prompt
 export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
+export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
@@ -2677,7 +2681,7 @@ export type IncomingCallMapType = {|
   'keybase.1.rekeyUI.delegateRekeyUI'?: (params: $ReadOnly<{}>, response: {error: RPCErrorHandler, result: (result: RekeyUIDelegateRekeyUIResult) => void}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.rekeyUI.refresh'?: (params: $ReadOnly<{sessionID: Int, problemSetDevices: ProblemSetDevices}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.rekeyUI.rekeySendEvent'?: (params: $ReadOnly<{sessionID: Int, event: RekeyEvent}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
-  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $ReadOnly<{sessionID: Int, sender: SaltpackSender, usedDelegateUI: Boolean}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
+  'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender, usedDelegateUI: Boolean}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.saltpackUi.saltpackVerifyBadSender'?: (params: $ReadOnly<{sessionID: Int, signingKID: KID, sender: SaltpackSender}>, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,
   'keybase.1.secretUi.getPassphrase'?: (params: $ReadOnly<{sessionID: Int, pinentry: GUIEntryArg, terminal?: ?SecretEntryArg}>, response: {error: RPCErrorHandler, result: (result: SecretUiGetPassphraseResult) => void}, state: TypedState) => Saga.Effect | Array<Saga.Effect> | null | void,

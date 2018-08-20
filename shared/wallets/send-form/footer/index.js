@@ -1,53 +1,57 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Icon, iconCastPlatformStyles} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import Available from '../available/container'
 import {globalColors, globalMargins, styleSheetCreate} from '../../../styles'
 
 type Props = {
-  onClickSend: Function,
-  onClickRequest?: Function,
   disabled?: boolean,
+  onClickRequest?: Function,
+  onClickSend: Function,
+  worthDescription?: string,
 }
 
-const Footer = ({onClickSend, onClickRequest, disabled}: Props) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.background}>
-    <Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
-      {!!onClickRequest && (
-        <Button
+const Footer = (props: Props) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
+    <Kb.Text style={styles.worthDescription} type="BodySmall">
+      {props.worthDescription}
+    </Kb.Text>
+    <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
+      {!!props.onClickRequest && (
+        <Kb.Button
           type="Wallet"
           label="Request"
-          onClick={onClickRequest}
-          disabled={disabled}
+          onClick={props.onClickRequest}
+          disabled={props.disabled}
           fullWidth={true}
           style={styles.button}
           children={
-            <Icon
+            <Kb.Icon
               type="iconfont-stellar-request"
-              style={iconCastPlatformStyles(styles.icon)}
+              style={Kb.iconCastPlatformStyles(styles.icon)}
               color={globalColors.white}
             />
           }
         />
       )}
-      <Button
+      <Kb.Button
         type="Wallet"
         label="Send"
-        onClick={onClickSend}
-        disabled={disabled}
+        onClick={props.onClickSend}
+        disabled={props.disabled}
         fullWidth={true}
         style={styles.button}
         children={
-          <Icon
+          <Kb.Icon
             type="iconfont-stellar-send"
-            style={iconCastPlatformStyles(styles.icon)}
+            style={Kb.iconCastPlatformStyles(styles.icon)}
             color={globalColors.white}
           />
         }
       />
-    </Box2>
+    </Kb.Box2>
     <Available />
-  </Box2>
+  </Kb.Box2>
 )
 
 const styles = styleSheetCreate({
@@ -63,6 +67,9 @@ const styles = styleSheetCreate({
   icon: {marginRight: globalMargins.tiny},
   background: {
     backgroundColor: globalColors.blue5,
+  },
+  worthDescription: {
+    textAlign: 'center',
   },
 })
 

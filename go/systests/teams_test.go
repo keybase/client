@@ -604,7 +604,7 @@ func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
 }
 
 func (u *userPlusDevice) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
-	u.tc.T.Logf("waiting for team rotate %s", teamID)
+	u.tc.T.Logf("waiting for newly added to team %s", teamID)
 
 	// Process any number of badge state updates, but bail out after 10
 	// seconds.
@@ -615,7 +615,7 @@ func (u *userPlusDevice) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
 		case tid := <-u.notifications.newlyAddedToTeam:
 			u.tc.T.Logf("newlyAddedToTeam recieved: %+v", tid)
 			if tid.Eq(teamID) {
-				u.tc.T.Logf("rotate matched!")
+				u.tc.T.Logf("newlyAddedToTeam matched!")
 				return
 			}
 			u.tc.T.Logf("ignoring newly added message attempt %d (expected team = %v)", i, teamID)
@@ -677,6 +677,13 @@ func (u *userPlusDevice) track(username string) {
 	trackCmd.SetUser(username)
 	trackCmd.SetOptions(keybase1.TrackOptions{BypassConfirm: true})
 	err := trackCmd.Run()
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) untrack(username string) {
+	untrackCmd := client.NewCmdUntrackRunner(u.tc.G)
+	untrackCmd.SetUser(username)
+	err := untrackCmd.Run()
 	require.NoError(u.tc.T, err)
 }
 

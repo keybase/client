@@ -26,8 +26,10 @@ type Props = {
   hasProgress: boolean,
   height: number,
   onClick: () => void,
+  onDoubleClick: () => void,
   onShowInFinder: null | (() => void),
   path: string,
+  fullPath: string,
   progress: number,
   progressLabel: string,
   showButton: null | 'play' | 'film',
@@ -40,35 +42,44 @@ type Props = {
 
 type State = {
   loaded: boolean,
+  loadingVideo: 'notloaded' | 'loading' | 'loaded',
   playingVideo: boolean,
 }
 
 class ImageAttachment extends React.PureComponent<Props, State> {
   imageRef: any
 
-  constructor(props: Props) {
-    super(props)
-    this.imageRef = React.createRef()
-  }
-  state = {loaded: false, playingVideo: false}
+  state = {loaded: false, playingVideo: false, loadingVideo: 'notloaded'}
   _setLoaded = () => this.setState({loaded: true})
+  _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
   _onClick = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoClick()
-      this.setState(p => ({playingVideo: !p.playingVideo}))
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoClick()
+      this.setState(p => ({
+        playingVideo: !p.playingVideo,
+        loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
+      }))
     } else {
       this.props.onClick()
     }
   }
+  _onDoubleClick = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      if (this.state.playingVideo) {
+        this._onClick()
+      }
+    }
+    this.props.onDoubleClick()
+  }
   _onMouseEnter = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseEnter()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseEnter()
     }
   }
   _onMouseLeave = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef && this.imageRef.current) {
-      this.imageRef.current.onVideoMouseLeave()
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseLeave()
     }
   }
 
@@ -77,6 +88,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
       <ClickableBox
         style={styles.imageContainer}
         onClick={this._onClick}
+        onDoubleClick={this._onDoubleClick}
         onLongPress={this.props.toggleMessageMenu}
         onMouseEnter={this._onMouseEnter}
         onMouseLeave={this._onMouseLeave}
@@ -96,9 +108,13 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
-              ref={this.imageRef}
+              ref={ref => {
+                this.imageRef = ref
+              }}
               src={this.props.path}
+              videoSrc={this.props.fullPath}
               onLoad={this._setLoaded}
+              onLoadedVideo={this._setVideoLoaded}
               loaded={this.state.loaded}
               inlineVideoPlayable={this.props.inlineVideoPlayable}
               style={collapseStyles([
@@ -111,7 +127,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               ])}
             />
           )}
-          {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
+          {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+            <ProgressIndicator style={styles.progress} />
+          )}
           {!!this.props.showButton &&
             !this.state.playingVideo && (
               <Icon
@@ -214,13 +232,22 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: {
-    bottom: '5%',
-    position: 'absolute',
-    right: '3%',
-    backgroundColor: globalColors.black_75,
-    alignSelf: 'flex-start',
-  },
+  durationContainer: platformStyles({
+    isElectron: {
+      bottom: '5%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+    isMobile: {
+      bottom: '7%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+  }),
   durationText: {
     color: globalColors.white,
     paddingLeft: 5,
@@ -241,7 +268,15 @@ const styles = styleSheetCreate({
   }),
   progress: platformStyles({
     isElectron: {
-      margin: 'auto',
+      bottom: '50%',
+      left: '50%',
+      marginBottom: -32,
+      marginLeft: -32,
+      marginRight: -32,
+      marginTop: -32,
+      position: 'absolute',
+      right: '50%',
+      top: '50%',
     },
     isMobile: {
       width: 48,

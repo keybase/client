@@ -409,6 +409,10 @@ func (l LinkID) Eq(l2 LinkID) bool {
 	return l == l2
 }
 
+func (l LinkID) IsNil() bool {
+	return len(l) == 0
+}
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }

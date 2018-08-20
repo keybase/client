@@ -308,9 +308,9 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 	})
 }
 
-func signerToX(uv *keybase1.UserVersion) *signerX {
+func signerToX(uv *keybase1.UserVersion) *SignerX {
 	if uv == nil {
 		return nil
 	}
-	return &signerX{signer: *uv}
+	return &SignerX{signer: *uv}
 }

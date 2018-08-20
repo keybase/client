@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
 import {Box, NameWithIcon, ScrollView, Text} from '../../common-adapters'
-import {globalStyles, globalMargins} from '../../styles'
+import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 export type FollowSuggestion = Types._FollowSuggestion
@@ -13,46 +13,64 @@ export type Props = {
 }
 
 export default (props: Props) => (
-  <Box style={containerStyle}>
-    <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.tiny, marginLeft: globalMargins.tiny}}>
+  <Box style={styles.container}>
+    <Text type="BodySmallSemibold" style={styles.text}>
       Consider following...
     </Text>
     <ScrollView
       {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
-      contentContainerStyle={scrollViewContainerStyle}
+      contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
         <NameWithIcon
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
-          metaStyle={{paddingLeft: 2, paddingRight: 2}}
+          metaStyle={styles.meta}
           onClick={() => props.onClickUser(suggestion.username)}
           colorFollowing={true}
           size="small"
-          containerStyle={suggestionContainerStyle}
+          containerStyle={styles.suggestionContainer}
         />
       ))}
     </ScrollView>
   </Box>
 )
 
-const suggestionContainerStyle = {
-  flexShrink: 0,
-  width: 112,
-  height: 106,
-}
-
-const containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  position: 'relative',
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-}
-
-const scrollViewContainerStyle = {
-  ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? null
-    : {...globalStyles.flexBoxRow, width: '100%', height: 106, flexWrap: 'wrap', overflow: 'hidden'}),
-}
+const styles = styleSheetCreate({
+  container: {
+    ...globalStyles.flexBoxColumn,
+    paddingTop: globalMargins.tiny,
+    position: 'relative',
+  },
+  meta: {
+    paddingLeft: 2,
+    paddingRight: 2,
+  },
+  scrollViewContainer: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      borderBottomWidth: 1,
+      borderColor: globalColors.black_10,
+    },
+    isElectron: {
+      borderBottomStyle: 'solid',
+      flexWrap: 'wrap',
+      height: 106,
+      overflow: 'hidden',
+      width: '100%',
+    },
+    isMobile: {
+      paddingBottom: globalMargins.tiny,
+    },
+  }),
+  suggestionContainer: {
+    flexShrink: 0,
+    height: 106,
+    width: 112,
+  },
+  text: {
+    marginBottom: globalMargins.tiny,
+    marginLeft: globalMargins.tiny,
+  },
+})

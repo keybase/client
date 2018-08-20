@@ -168,7 +168,7 @@ const stylesUnselected = {
 const stylesUnderline = {
   height: NativeStyleSheet.hairlineWidth,
   alignSelf: 'stretch',
-  backgroundColor: globalColors.black_05,
+  backgroundColor: globalColors.black_10,
 }
 
 export {TabBarItem, TabBarButton}

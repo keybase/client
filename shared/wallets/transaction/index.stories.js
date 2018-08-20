@@ -85,7 +85,7 @@ const load = () => {
   addConfigs(stories, 'Account', config => (
     <Transaction
       counterparty="Second account"
-      counterpartyType="account"
+      counterpartyType="otherAccount"
       amountUser="$100"
       amountXLM="545.2562704 XLM"
       status="completed"

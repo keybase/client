@@ -170,7 +170,7 @@ class ProfileRender extends PureComponent<Props, State> {
                 ...Styles.globalStyles.flexBoxColumn,
                 padding: Styles.globalMargins.small,
                 alignItems: 'center',
-                borderBottom: `1px solid ${Styles.globalColors.black_05}`,
+                borderBottom: `1px solid ${Styles.globalColors.black_10}`,
               }}
             >
               <PlatformIcon

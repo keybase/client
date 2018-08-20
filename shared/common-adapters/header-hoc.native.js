@@ -97,7 +97,7 @@ const _buttonStyle = {
 const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottomColor: Styles.globalColors.black_05,
+  borderBottomColor: Styles.globalColors.black_10,
   borderBottomWidth: StyleSheet.hairlineWidth,
   justifyContent: 'flex-start',
   minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
@@ -120,7 +120,6 @@ const _rightActionStyle = {
   bottom: 0,
   flex: 1,
   justifyContent: 'flex-end',
-  left: 0,
   position: 'absolute', // This is always right-aligned
   right: 0,
   top: 0,
