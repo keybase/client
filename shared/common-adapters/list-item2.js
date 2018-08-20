@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
-import {Box2, Divider} from '.'
+import {Box2} from './box'
+import Divider from './divider'
 
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 

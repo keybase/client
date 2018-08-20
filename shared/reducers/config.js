@@ -166,6 +166,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
+    case ConfigGen._avatarQueue:
       return state
     default:
       /*::

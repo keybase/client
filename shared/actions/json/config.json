@@ -96,5 +96,6 @@
     "loggedOut": {},
     "loggedIn": { "causedByStartup": "boolean" },
     "updateMenubarWindowID": { "id": "number" },
+    "_avatarQueue": {},
   }
 }

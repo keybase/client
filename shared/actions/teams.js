@@ -295,7 +295,7 @@ const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) 
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+    yield Saga.put(TeamsGen.createGetDetails({teamname}))
   }
 }
 
@@ -393,7 +393,7 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO get rid of this once core sends us a notification for this (CORE-7125)
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    yield Saga.put(TeamsGen.createGetDetails({teamname})) // getDetails will unset loading
   }
 }
 
@@ -655,13 +655,14 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
 function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
   const {teamname, conversationIDKey} = action.payload
+  // TODO promise
   return Saga.all([
     Saga.call(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: ChatConstants.makeInboxQuery([conversationIDKey]),
     }),
-    Saga.identity(teamname),
-    Saga.identity(conversationIDKey),
+    Saga.call(() => teamname),
+    Saga.call(() => conversationIDKey),
   ])
 }
 
@@ -698,8 +699,9 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
       tlfName: teamname,
       topicType: RPCChatTypes.commonTopicType.chat,
     }),
-    Saga.identity(teamname),
-    Saga.identity(waitingKey),
+    // TODO promise
+    Saga.call(() => teamname),
+    Saga.call(() => waitingKey),
     Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
   ])
 }
@@ -947,7 +949,7 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+    yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
     // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
     yield Saga.put(TeamsGen.createGetTeams())
@@ -978,51 +980,71 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
-        name: teamname,
-        settings: {
-          joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
-          open: settings.openTeam,
-        },
+      Saga.call(function*() {
+        RPCTypes.teamsTeamSetSettingsRpcPromise({
+          name: teamname,
+          settings: {
+            joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+            open: settings.openTeam,
+          },
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTarsDisabledRpcPromise, {
-        disabled: settings.ignoreAccessRequests,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTarsDisabledRpcPromise({
+          disabled: settings.ignoreAccessRequests,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        anyMemberShowcase: settings.publicityAnyMember,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamShowcaseRpcPromise({
+          anyMemberShowcase: settings.publicityAnyMember,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
-        isShowcased: settings.publicityMember,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamMemberShowcaseRpcPromise({
+          isShowcased: settings.publicityMember,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        isShowcased: settings.publicityTeam,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamShowcaseRpcPromise({
+          isShowcased: settings.publicityTeam,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   return Saga.all([
     Saga.all(calls),
     Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
-    Saga.identity(
+    Saga.call(() =>
       Saga.all([
         // TODO delete this getDetails call when CORE-7125 is finished
         Saga.put(TeamsGen.createGetDetails({teamname})),
