@@ -55,7 +55,7 @@ const HoverBox = isMobile
       },
       '&.active, &:hover': props.decorate
         ? {
-            backgroundColor: globalColors.blue5,
+            backgroundColor: globalColors.blue4,
           }
         : {},
     }))
