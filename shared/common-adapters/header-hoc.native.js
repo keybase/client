@@ -13,7 +13,6 @@ export const HeaderHocHeader = ({
   hideBackLabel,
   title,
   onCancel,
-  customCancelText,
   onBack,
   onRightAction,
   rightActionLabel,
@@ -28,7 +27,7 @@ export const HeaderHocHeader = ({
     )}
     {onCancel && (
       <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
-        {customCancelText || 'Cancel'}
+        Cancel
       </Text>
     )}
     {onBack && (
