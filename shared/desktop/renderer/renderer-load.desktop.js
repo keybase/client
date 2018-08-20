@@ -33,6 +33,6 @@ window.spellCheckHandler.switchLanguage(navigator.language || 'en-US')
 let contextMenuBuilder = new ContextMenuBuilder(window.spellCheckHandler)
 
 // Add context menu listener
-let contextMenuListener = new ContextMenuListener(info => {
+new ContextMenuListener(info => {
   contextMenuBuilder.showPopupMenu(info)
 })
