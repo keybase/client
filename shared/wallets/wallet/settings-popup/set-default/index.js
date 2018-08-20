@@ -57,7 +57,7 @@ const styles = Styles.styleSheetCreate({
   avatarAndIcon: Styles.platformStyles({
     common: {
       position: 'relative',
-      marginBottom: Styles.globalMargins.mediumLarge,
+      marginBottom: Styles.globalMargins.large,
     },
     isMobile: {
       marginTop: Styles.globalMargins.large,
@@ -81,11 +81,14 @@ const styles = Styles.styleSheetCreate({
   },
   mainText: Styles.platformStyles({
     common: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+    isElectron: {
       marginBottom: Styles.globalMargins.medium,
     },
     isMobile: {
-      marginRight: Styles.globalMargins.small,
-      marginLeft: Styles.globalMargins.small,
+      marginBottom: Styles.globalMargins.small,
     },
   }),
   textAlignCenter: {
