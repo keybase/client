@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
+	"github.com/stretchr/testify/require"
 )
 
 func TestConfigGetAndSet(t *testing.T) {
@@ -148,4 +149,48 @@ func testConfigGetAndSet(t *testing.T, g *libkb.GlobalContext) {
 	testConfigGet(t, g, "yo.0.a.b", []string{"[1,2,3]\n"}, nil, false)
 	testConfigClear(t, g, "yo.0.a.c", false)
 	testConfigGet(t, g, "", []string{"{\"foo\":{\"bar\":\"bartime\",\"baz\":null},\"yo\":[{\"a\":{\"b\":[1,2,3]}},10,\"hi\"]}\n"}, nil, false)
+}
+
+func TestConfigTx(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	user := tt.addUser("usr")
+
+	G := user.tc.G
+
+	// Make a tx, write something, then commit. Expecting to be able
+	// to read that back during the transaction and after commit.
+	w := G.Env.GetConfigWriter()
+	tx, err := w.BeginTransaction()
+	require.NoError(t, err)
+
+	require.NoError(t, w.SetStringAtPath("bbbbar", "world, over?"))
+
+	i, err := G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
+	require.NoError(t, err)
+	require.Equal(t, "world, over?", i)
+
+	require.NoError(t, tx.Commit())
+
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
+	require.NoError(t, err)
+	require.Equal(t, "world, over?", i)
+
+	// Make a tx, write something, then Abort. It should be as the
+	// write never happened.
+	w = G.Env.GetConfigWriter()
+	tx, err = w.BeginTransaction()
+	require.NoError(t, err)
+
+	require.NoError(t, w.SetStringAtPath("fooozzzz", "hello World"))
+
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("fooozzzz")
+	require.NoError(t, err)
+	require.Equal(t, "hello World", i)
+
+	require.NoError(t, tx.Abort())
+
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("fooozzzz")
+	require.NoError(t, err)
+	require.Nil(t, i)
 }
