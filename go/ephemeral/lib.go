@@ -393,6 +393,7 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 }
 
 func (e *EKLib) PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID) {
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamID: teamID: %v", teamID)
 	e.teamEKGenCache.Remove(e.cacheKey(teamID))
 	if err := e.G().GetTeamEKBoxStorage().PurgeCacheForTeamID(ctx, teamID); err != nil {
 		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamID: %v", err)
@@ -400,7 +401,7 @@ func (e *EKLib) PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID
 }
 
 func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
-
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamIDAndGeneration: teamID: %v, generation: %v", teamID, generation)
 	cacheKey := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
