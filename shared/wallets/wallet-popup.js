@@ -8,7 +8,9 @@ type WalletModalProps = {|
   children: React.Node,
   onClose: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
-  bottomButtons?: Array<React.Node>, // Buttons to be placed in the bottom Button Bar
+  // Buttons to be placed in the bottom Button Bar.
+  // If none are included, the bar is not rendered.
+  bottomButtons?: Array<React.Node>,
 |}
 
 const WalletPopup = (props: WalletModalProps) => (
