@@ -1,7 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Divider, Icon, Markdown, Text, type IconType} from '../../../../common-adapters'
-import {globalColors, styleSheetCreate} from '../../../../styles'
+import {
+  Box2,
+  Button,
+  Divider,
+  Icon,
+  Markdown,
+  ProgressIndicator,
+  Text,
+  type IconType,
+} from '../../../../common-adapters'
+import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   action: string,
@@ -9,6 +18,7 @@ export type Props = {|
   balanceChange: string,
   balanceChangeColor: string,
   icon: IconType,
+  loading: boolean,
   memo: string,
   onSend?: () => void,
   pending: boolean,
@@ -16,8 +26,10 @@ export type Props = {|
 |}
 
 const AccountPayment = (props: Props) => {
-  return (
-    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+  const contents = props.loading ? (
+    <ProgressIndicator style={styles.progressIndicator} />
+  ) : (
+    <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
         <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
@@ -50,6 +62,11 @@ const AccountPayment = (props: Props) => {
             style={{alignSelf: 'flex-start'}}
           />
         )}
+    </React.Fragment>
+  )
+  return (
+    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      {contents}
     </Box2>
   )
 }
@@ -59,6 +76,17 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     flex: 1,
   },
+  progressIndicator: platformStyles({
+    // Match height of a line of text
+    isElectron: {
+      height: 17,
+      width: 17,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
   purple: {color: globalColors.purple2},
   quoteMarker: {maxWidth: 3, minWidth: 3},
 })

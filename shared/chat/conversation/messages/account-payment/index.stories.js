@@ -11,6 +11,7 @@ const sentProps = {
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.red,
   icon: 'iconfont-stellar-send',
+  loading: false,
   memo: ':beer:',
   pending: false,
 }
@@ -21,6 +22,7 @@ const sendingProps = {
   balanceChange: '-90.5700999 XLM',
   balanceChangeColor: globalColors.grey,
   icon: 'iconfont-time',
+  loading: false,
   memo: ':beer:',
   pending: true,
 }
@@ -30,6 +32,7 @@ const requestCommon = {
   balanceChange: '',
   balanceChangeColor: '',
   icon: 'iconfont-stellar-request',
+  loading: false,
   pending: false,
 }
 
@@ -44,8 +47,8 @@ const theyRequestProps = {
   ...requestCommon,
   amount: '$107',
   memo: 'things',
-  sendButtonLabel: 'Send Lumens worth $107',
   onSend: action('onSend'),
+  sendButtonLabel: 'Send Lumens worth $107',
 }
 
 const sentAssetProps = {
@@ -54,7 +57,19 @@ const sentAssetProps = {
   balanceChange: '-1 BTC',
   balanceChangeColor: globalColors.red,
   icon: 'iconfont-stellar-send',
+  loading: false,
   memo: '₿',
+  pending: false,
+}
+
+const loadingProps = {
+  action: '',
+  amount: '',
+  balanceChange: '',
+  balanceChangeColor: '',
+  icon: 'iconfont-stellar-send',
+  loading: true,
+  memo: '',
   pending: false,
 }
 
@@ -66,6 +81,7 @@ const load = () => {
     .add('You request', () => <Payment {...youRequestProps} />)
     .add('They request', () => <Payment {...theyRequestProps} />)
     .add('Sent non-native', () => <Payment {...sentAssetProps} />)
+    .add('Loading', () => <Payment {...loadingProps} />)
 }
 
 export default load

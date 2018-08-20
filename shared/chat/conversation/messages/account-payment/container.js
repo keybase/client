@@ -10,7 +10,7 @@ type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment,
 }
 
-const mapStateToProps = (state, ownProps: OwnProps) => {
+const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   switch (ownProps.message.type) {
     case 'sendPayment': {
       return {
@@ -19,6 +19,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChange: '-90.5700999 XLM',
         balanceChangeColor: Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
+        loading: false,
         memo: ':beer:',
         pending: false,
       }
@@ -30,6 +31,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChange: '-90.5700999 XLM',
         balanceChangeColor: Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
+        loading: false,
         memo: ':beer:',
         pending: false,
       }
@@ -41,6 +43,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     balanceChange: '-90.5700999 XLM',
     balanceChangeColor: Styles.globalColors.red,
     icon: 'iconfont-stellar-send',
+    loading: false,
     memo: ':beer:',
     pending: false,
   }
