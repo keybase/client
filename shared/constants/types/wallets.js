@@ -95,6 +95,7 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
+  pendingMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
 }
