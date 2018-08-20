@@ -26,7 +26,7 @@ const colors = {
   blue3_40_on_white: 'rgb(220, 235, 255)',
   blue3_60: 'rgba(168, 204, 255, 0.6)',
   blue3_60_on_white: 'rgb(203, 224, 255)',
-  blue4: '#E6EDF7',
+  blue4: '#EBF2FC',
   blue5: '#F2F4F7',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
