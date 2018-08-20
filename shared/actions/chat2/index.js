@@ -1622,28 +1622,15 @@ function* attachmentDownload(action: Chat2Gen.AttachmentDownloadPayload) {
 function* attachmentPreviewSelect(action: Chat2Gen.AttachmentPreviewSelectPayload) {
   const message = action.payload.message
   if (Constants.isVideoAttachment(message)) {
-    // Start up the fullscreen video view only on iOS, and only if we have the file downloaded
-    if (isMobile) {
-      yield Saga.put(
-        Route.navigateAppend([
-          {
-            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-            selected: 'attachmentVideoFullscreen',
-          },
-        ])
-      )
-      // If we are on desktop, or if we are on mobile and we haven't downloaded the video, let's do that
-      // here
-    } else if (!isMobile || !message.fileURLCached) {
-      yield Saga.put(
-        Chat2Gen.createAttachmentDownload({
-          conversationIDKey: message.conversationIDKey,
-          ordinal: message.ordinal,
-        })
-      )
-    }
-    // Otherwise we just do nothing. On Android this is relevant, since the fullscreen viewer just
-    // doesn't seem to work there.
+    // Start up the fullscreen video view
+    yield Saga.put(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'attachmentVideoFullscreen',
+        },
+      ])
+    )
   } else {
     yield Saga.put(
       Route.navigateAppend([

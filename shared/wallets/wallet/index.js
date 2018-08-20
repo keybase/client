@@ -34,6 +34,7 @@ export default (props: Props) => {
         <Transaction
           accountID={props.accountID}
           paymentID={item.paymentID}
+          status={item.status}
           key={`${props.accountID}:${item.paymentID}`}
         />
       )

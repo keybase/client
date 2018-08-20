@@ -28,7 +28,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         )
       )
     case WalletsGen.paymentsReceived:
-      return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+      return state
+        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
     case WalletsGen.secretKeyReceived:
       return state.set('exportedSecretKey', action.payload.secretKey)
     case WalletsGen.secretKeySeen:
