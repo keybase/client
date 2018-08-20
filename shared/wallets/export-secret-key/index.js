@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
-import {globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
+import {globalMargins, isMobile, styleSheetCreate} from '../../styles'
 import WalletModal from '../wallet-modal'
 
 type Props = {
@@ -44,24 +44,6 @@ export default class extends React.Component<Props> {
 }
 
 const styles = styleSheetCreate({
-  container: platformStyles({
-    common: {
-      alignItems: 'center',
-      paddingLeft: globalMargins.medium,
-      paddingRight: globalMargins.medium,
-    },
-    isElectron: {
-      height: 525,
-      width: 360,
-      paddingBottom: globalMargins.xlarge,
-      paddingTop: globalMargins.xlarge,
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingBottom: globalMargins.medium,
-      paddingTop: globalMargins.medium,
-    },
-  }),
   headerText: {
     marginBottom: globalMargins.medium,
   },
