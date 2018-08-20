@@ -192,6 +192,8 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
       code: r.asset.code,
       issuerAccountID: Types.stringToAccountID(r.asset.issuer),
     })
+  } else if (r.currency) {
+    asset = 'currency'
   }
   return makeRequest({
     amountDescription: r.amountDescription,
@@ -247,6 +249,9 @@ const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymen
   state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
   makePayment()
 
+const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
+  state.wallets.requests.get(requestID, null)
+
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
 
@@ -281,6 +286,7 @@ export {
   getPayments,
   getPendingPayment,
   getPendingPayments,
+  getRequest,
   getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,

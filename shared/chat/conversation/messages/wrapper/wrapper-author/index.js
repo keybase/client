@@ -164,6 +164,7 @@ const RightSide = props => (
             <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
           )}
           {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+            // $FlowIssue thinks PaymentMessage doesn't want message prop
             <PaymentMessage message={props.message} />
           )}
           {props.isEdited && <EditedMark />}

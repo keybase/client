@@ -49,27 +49,24 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
       }
     }
     case 'requestPayment': {
+      const requestID = ownProps.message.requestID
+      const request = Constants.getRequest(state, requestID)
+      if (!request) {
+        return loadingProps
+      }
       return {
-        action: 'sent lumens worth',
-        amount: '$35',
-        balanceChange: '-90.5700999 XLM',
-        balanceChangeColor: Styles.globalColors.red,
-        icon: 'iconfont-stellar-send',
+        action: request.asset === 'currency' ? 'requested lumens worth' : 'requested',
+        amount: request.amountDescription,
+        balanceChange: '',
+        balanceChangeColor: '',
+        icon: 'iconfont-stellar-request',
         loading: false,
-        memo: ':beer:',
+        memo: '', // TODO pending core support
         pending: false,
       }
     }
-  }
-  return {
-    action: 'sent lumens worth',
-    amount: '$35',
-    balanceChange: '-90.5700999 XLM',
-    balanceChangeColor: Styles.globalColors.red,
-    icon: 'iconfont-stellar-send',
-    loading: false,
-    memo: ':beer:',
-    pending: false,
+    default:
+      throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
   }
 }
 
@@ -87,10 +84,13 @@ type LoadCalls = {|
 
 class LoadWrapper extends React.Component<AccountPaymentProps & LoadCalls> {
   componentDidMount() {
-    this.props.loadTxData()
+    if (this.props.loading) {
+      this.props.loadTxData()
+    }
   }
   render() {
-    return <AccountPayment {...this.props} />
+    const {loadTxData, ...passThroughProps} = this.props
+    return <AccountPayment {...passThroughProps} />
   }
 }
 
