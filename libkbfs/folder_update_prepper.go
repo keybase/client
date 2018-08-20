@@ -155,6 +155,20 @@ func (fup *folderUpdatePrepper) unembedBlockChanges(
 	return nil
 }
 
+type isDirtyWithLBC struct {
+	lbc         localBcache
+	dirtyBcache DirtyBlockCache
+}
+
+func (idwl isDirtyWithLBC) IsDirty(
+	tlfID tlf.ID, ptr BlockPointer, branch BranchName) bool {
+	if _, ok := idwl.lbc[ptr]; ok {
+		return true
+	}
+
+	return idwl.dirtyBcache.IsDirty(tlfID, ptr, branch)
+}
+
 // prepUpdateForPath updates, and readies, the blocks along the path
 // for the given write, up to the root of the tree or stopAt (if
 // specified).  When it updates the root of the tree, it also modifies
@@ -182,6 +196,10 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	// now ready each dblock and write the DirEntry for the next one
 	// in the path
 	currBlock := newBlock
+	var currDD *dirData
+	if _, isDir := newBlock.(*DirBlock); isDir {
+		currDD = fup.blocks.newDirDataWithLBC(lState, dir, chargedTo, md, lbc)
+	}
 	currName := name
 	newPath := path{
 		FolderBranch: dir.FolderBranch,
@@ -194,6 +212,16 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	now := fup.nowUnixNano()
 	var uid keybase1.UID
 	for len(newPath.path) < len(dir.path)+1 {
+		if currDD != nil {
+			// Ready any non-top blocks in the directory.
+			err := currDD.ready(ctx, fup.id(), fup.config.BlockCache(),
+				isDirtyWithLBC{lbc, fup.config.DirtyBlockCache()},
+				fup.config.BlockOps(), bps, currBlock.(*DirBlock))
+			if err != nil {
+				return path{}, DirEntry{}, nil, err
+			}
+		}
+
 		info, plainSize, err := fup.readyBlockMultiple(
 			ctx, md.ReadOnly(), currBlock, chargedTo, bps,
 			fup.config.DefaultBlockType())
@@ -207,7 +235,6 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 
 		// get the parent block
 		prevIdx := len(dir.path) - len(newPath.path)
-		var prevDblock *DirBlock
 		var de DirEntry
 		var nextName string
 		nextDoSetTime := false
@@ -220,31 +247,10 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 				path:         dir.path[:prevIdx+1],
 			}
 
-			// First, check the localBcache, which could contain
-			// blocks that were modified across multiple calls to
-			// prepUpdateForPath.
-			var ok bool
-			prevDblock, ok = lbc[prevDir.tailPointer()]
-			if !ok {
-				// If the block isn't in the local bcache, we
-				// have to fetch it, possibly from the
-				// network. Directory blocks are only ever
-				// modified while holding mdWriterLock, so it's
-				// safe to fetch them one at a time.
-				prevDblock, err = fup.blocks.GetDir(
-					ctx, lState, md.ReadOnly(), prevDir, blockWrite)
-				if err != nil {
-					return path{}, DirEntry{}, nil, err
-				}
-			}
-
-			// modify the direntry for currName; make one
-			// if it doesn't exist (which should only
-			// happen the first time around).
-			//
-			// TODO: Pull the creation out of here and
-			// into createEntryLocked().
-			if de, ok = prevDblock.Children[currName]; !ok {
+			dd := fup.blocks.newDirDataWithLBC(
+				lState, prevDir, chargedTo, md, lbc)
+			de, err = dd.lookup(ctx, currName)
+			if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
 				// If this isn't the first time
 				// around, we have an error.
 				if len(newPath.path) > 1 {
@@ -265,9 +271,16 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 				// If we're creating a new directory entry, the
 				// parent's times must be set as well.
 				nextDoSetTime = true
+			} else if err != nil {
+				return path{}, DirEntry{}, nil, err
 			}
 
+			prevDblock, err := dd.getTopBlock(ctx, blockWrite)
+			if err != nil {
+				return path{}, DirEntry{}, nil, err
+			}
 			currBlock = prevDblock
+			currDD = dd
 			nextName = prevDir.tailName()
 		}
 
@@ -281,7 +294,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		if prevIdx < 0 {
 			md.AddUpdate(md.data.Dir.BlockInfo, info)
 			bps.saveOldPtr(md.data.Dir.BlockPointer)
-		} else if prevDe, ok := prevDblock.Children[currName]; ok {
+		} else if prevDe, err := currDD.lookup(ctx, currName); err == nil {
 			md.AddUpdate(prevDe.BlockInfo, info)
 			bps.saveOldPtr(prevDe.BlockPointer)
 		} else {
@@ -323,20 +336,13 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		if prevIdx < 0 {
 			md.data.Dir = de
 		} else {
-			prevDblock.Children[currName] = de
+			currDD.setEntry(ctx, currName, de)
 		}
 		currName = nextName
 
 		// Stop before we get to the common ancestor; it will be taken care of
 		// on the next sync call
 		if prevIdx >= 0 && dir.path[prevIdx].BlockPointer == stopAt {
-			// Put this back into the cache as dirty -- the next
-			// prepUpdateForPath call will ready it.
-			dblock, ok := currBlock.(*DirBlock)
-			if !ok {
-				return path{}, DirEntry{}, nil, BadDataError{stopAt.ID}
-			}
-			lbc[stopAt] = dblock
 			break
 		}
 		doSetTime = nextDoSetTime

@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
+	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
@@ -62,10 +63,19 @@ var hiddenEntries = map[string]bool{
 	".kbfs_autogit": true,
 }
 
+func (dd *dirData) getTopBlock(ctx context.Context, rtype blockReqType) (
+	*DirBlock, error) {
+	topBlock, _, err := dd.getter(
+		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, rtype)
+	if err != nil {
+		return nil, err
+	}
+	return topBlock, nil
+}
+
 func (dd *dirData) getChildren(ctx context.Context) (
 	children map[string]EntryInfo, err error) {
-	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
+	topBlock, err := dd.getTopBlock(ctx, blockRead)
 	if err != nil {
 		return nil, err
 	}
@@ -94,8 +104,7 @@ func (dd *dirData) getChildren(ctx context.Context) (
 }
 
 func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
-	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockRead)
+	topBlock, err := dd.getTopBlock(ctx, blockRead)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -217,9 +226,8 @@ func (dd *dirData) processModifiedBlock(
 
 func (dd *dirData) addEntryHelper(
 	ctx context.Context, name string, newDe DirEntry,
-	errorIfExists bool) error {
-	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockWrite)
+	errorIfExists, errorIfNoMatch bool) error {
+	topBlock, err := dd.getTopBlock(ctx, blockWrite)
 	if err != nil {
 		return err
 	}
@@ -235,7 +243,7 @@ func (dd *dirData) addEntryHelper(
 	de, exists := dblock.Children[name]
 	if errorIfExists && exists {
 		return NameExistsError{name}
-	} else if !errorIfExists &&
+	} else if errorIfNoMatch &&
 		(!exists || de.BlockPointer != newDe.BlockPointer) {
 		return NoSuchNameError{name}
 	}
@@ -246,17 +254,21 @@ func (dd *dirData) addEntryHelper(
 
 func (dd *dirData) addEntry(
 	ctx context.Context, newName string, newDe DirEntry) error {
-	return dd.addEntryHelper(ctx, newName, newDe, true)
+	return dd.addEntryHelper(ctx, newName, newDe, true, false)
 }
 
 func (dd *dirData) updateEntry(
 	ctx context.Context, name string, newDe DirEntry) error {
-	return dd.addEntryHelper(ctx, name, newDe, false)
+	return dd.addEntryHelper(ctx, name, newDe, false, true)
+}
+
+func (dd *dirData) setEntry(
+	ctx context.Context, name string, newDe DirEntry) error {
+	return dd.addEntryHelper(ctx, name, newDe, false, false)
 }
 
 func (dd *dirData) removeEntry(ctx context.Context, name string) error {
-	topBlock, _, err := dd.getter(
-		ctx, dd.tree.kmd, dd.rootBlockPointer(), dd.tree.file, blockWrite)
+	topBlock, err := dd.getTopBlock(ctx, blockWrite)
 	if err != nil {
 		return err
 	}
@@ -279,4 +291,15 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) error {
 	// the tree.  TODO: remove empty blocks all the way up the tree
 	// and shift parent pointers around as needed.
 	return dd.processModifiedBlock(ctx, ptr, parentBlocks, dblock)
+}
+
+// ready, if given an indirect top-block, readies all the dirty child
+// blocks, and updates their block IDs in their parent block's list of
+// indirect pointers.
+func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
+	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
+	topBlock *DirBlock) error {
+	_, err := dd.tree.ready(
+		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)
+	return err
 }

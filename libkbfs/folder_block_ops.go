@@ -897,6 +897,50 @@ func (fbo *folderBlockOps) newDirData(lState *lockState,
 		}, fbo.log)
 }
 
+// newDirDataWithLBC creates a new `dirData` that reads from and puts
+// into a local block cache.  It is only intended for non-parallel
+// write-based usage.  If it reads a block out from anything but the
+// `lbc`, it makes a copy of it before inserting it into the `lbc`.
+func (fbo *folderBlockOps) newDirDataWithLBC(lState *lockState,
+	dir path, chargedTo keybase1.UserOrTeamID, kmd KeyMetadata,
+	lbc localBcache) *dirData {
+	return newDirData(dir, chargedTo, fbo.config.Crypto(),
+		fbo.config.BlockSplitter(), kmd,
+		func(ctx context.Context, kmd KeyMetadata, _ BlockPointer,
+			dir path, rtype blockReqType) (*DirBlock, bool, error) {
+			block, ok := lbc[dir.tailPointer()]
+			if ok {
+				return block, true, nil
+			}
+
+			if rtype == blockReadParallel {
+				return nil, false, errors.New(
+					"LBC must be used with parallel reads")
+			}
+
+			// Lock and fetch for reading only, we want any dirty
+			// blocks to go into the lbc.
+			fbo.blockLock.RLock(lState)
+			defer fbo.blockLock.RUnlock(lState)
+			block, wasDirty, err := fbo.getDirLocked(
+				ctx, lState, kmd, dir, blockRead)
+			if err != nil {
+				return nil, false, err
+			}
+
+			if rtype == blockWrite {
+				// Make a copy before we stick it in the local block cache.
+				block = block.DeepCopy()
+				lbc[dir.tailPointer()] = block
+			}
+			return block, wasDirty, nil
+		},
+		func(ptr BlockPointer, block Block) error {
+			lbc[ptr] = block.(*DirBlock)
+			return nil
+		}, fbo.log)
+}
+
 func (fbo *folderBlockOps) updateParentDirEntryLocked(
 	ctx context.Context, lState *lockState, dir path,
 	kmd KeyMetadataWithRootDirEntry, setMtime, setCtime bool) (func(), error) {
