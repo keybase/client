@@ -20,7 +20,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
     const header = (
       <React.Fragment>
         <Text type="BodySmallSemibold">{this.props.username}’s account</Text>
-        <Text type="BodyBig" style={styles.headerText}>
+        <Text type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key
         </Text>
       </React.Fragment>
@@ -82,7 +82,7 @@ const styles = styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: globalMargins.medium,
+      marginBottom: globalMargins.xlarge,
     },
   }),
   icon: platformStyles({
