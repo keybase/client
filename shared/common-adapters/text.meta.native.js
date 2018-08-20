@@ -100,6 +100,14 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 16,
     styleOverride: globalStyles.fontRegular,
   },
+  BodyItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: {
+      ...globalStyles.fontRegular,
+      fontStyle: 'italic',
+    },
+  },
   BodyExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 16,
