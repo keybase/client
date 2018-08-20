@@ -157,7 +157,7 @@ const MenuButtons = (props: MenuButtonsProps) => (
           style={styles.reactButton}
         />
         <Box ref={props.setAttachmentRef}>
-          {!!(props.message.type === 'attachment' || props.message.type === 'text') && (
+          {(props.message.type === 'attachment' || props.message.type === 'text') && (
             <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
           )}
         </Box>
