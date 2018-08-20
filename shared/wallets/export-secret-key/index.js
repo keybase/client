@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import {globalMargins, isMobile, styleSheetCreate} from '../../styles'
-import WalletPopup from '../wallet-modal'
+import WalletPopup from '../wallet-popup'
 
 type Props = {
   secretKey: ?string,
