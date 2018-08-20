@@ -82,7 +82,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
     return (
       <Box style={styles.container}>
         {props.orangeLineAbove && <Box style={styles.orangeLine} />}
-        {props.timestamp && <Timestamp timestamp={props.timestamp} />}
+        {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
           className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
           {...(isMobile && props.decorate
@@ -108,7 +108,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                   />
                 )}
               {!props.exploded &&
-                props.decorate && (
+                !!props.decorate && (
                   <MenuButtons
                     conversationIDKey={props.conversationIDKey}
                     message={props.message}
@@ -157,7 +157,7 @@ const MenuButtons = (props: MenuButtonsProps) => (
           style={styles.reactButton}
         />
         <Box ref={props.setAttachmentRef}>
-          {(props.message.type === 'attachment' || props.message.type === 'text') && (
+          {!!(props.message.type === 'attachment' || props.message.type === 'text') && (
             <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
           )}
         </Box>

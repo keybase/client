@@ -37,6 +37,9 @@ const styles = StyleSheet.create(styleMap)
 // Init common styles for perf
 
 class Text extends Component<Props> {
+  static defaultProps = {
+    allowFontScaling: false,
+  }
   _nativeText: any
 
   focus() {
