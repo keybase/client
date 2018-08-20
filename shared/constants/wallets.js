@@ -239,14 +239,19 @@ const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
 
-const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
-const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
   state.wallets.pendingMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+
+const getDefaultAccountID = (state: TypedState) => {
+  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+  return defaultAccount ? defaultAccount.accountID : null
+}
 
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
@@ -268,6 +273,7 @@ export {
   getAccountIDs,
   getAccount,
   getAssets,
+  getDefaultAccountID,
   getFederatedAddress,
   getPayment,
   getPayments,

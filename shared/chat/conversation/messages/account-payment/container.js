@@ -1,10 +1,23 @@
 // @flow
 import * as React from 'react'
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Styles from '../../../../styles'
 import AccountPayment, {type Props as AccountPaymentProps} from '.'
+
+// Props for rendering the loading indicator
+const loadingProps = {
+  action: '',
+  amount: '',
+  balanceChange: '',
+  balanceChangeColor: '',
+  icon: 'iconfont-stellar-send',
+  loading: true,
+  memo: '',
+  pending: false,
+}
 
 type OwnProps = {
   message: Types.MessageSendPayment | Types.MessageRequestPayment,
@@ -13,6 +26,12 @@ type OwnProps = {
 const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   switch (ownProps.message.type) {
     case 'sendPayment': {
+      const paymentID = ownProps.message.paymentID
+      const accountID = Constants.getDefaultAccountID(state)
+      if (!accountID) {
+        return loadingProps
+      }
+      const payment = Constants.getPayment(state, accountID, paymentID)
       return {
         action: 'sent lumens worth',
         amount: '$35',
