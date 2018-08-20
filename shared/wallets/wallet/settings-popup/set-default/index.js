@@ -34,7 +34,6 @@ const SetDefaultAccount = (props: Props) => {
   return (
     <WalletPopup
       onClose={props.onClose}
-      // containerStyle={styles.container}
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
@@ -55,9 +54,6 @@ const SetDefaultAccount = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    justifyContent: 'flex-start',
-  },
   avatarAndIcon: Styles.platformStyles({
     common: {
       position: 'relative',

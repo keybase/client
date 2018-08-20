@@ -49,6 +49,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       height: 525,
       width: 360,
+      borderRadius: 'inherit',
       paddingBottom: Styles.globalMargins.xlarge,
       paddingTop: Styles.globalMargins.xlarge,
       textAlign: 'center',
