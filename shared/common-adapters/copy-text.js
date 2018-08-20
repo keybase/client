@@ -18,9 +18,9 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
-import {compose, connect} from '../util/container'
+import {compose, connect, setDisplayName} from '../util/container'
 
-type Props = PropsWithTimer<{
+export type Props = PropsWithTimer<{
   containerStyle?: StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
@@ -100,6 +100,7 @@ const mapDispatchToProps = dispatch => ({
 
 const CopyText = compose(
   connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('CopyText'),
   HOCTimers
 )(_CopyText)
 
