@@ -250,12 +250,15 @@ func (db *DirBlock) DeepCopy() *DirBlock {
 	for k, v := range db.Children {
 		childrenCopy[k] = v
 	}
-	// TODO KBFS-3: add a copy for IPtrs too once we support indirect dir
-	// blocks
+	var iptrsCopy []IndirectDirPtr
+	if db.IsInd {
+		iptrsCopy = make([]IndirectDirPtr, len(db.IPtrs))
+		copy(iptrsCopy, db.IPtrs)
+	}
 	return &DirBlock{
 		CommonBlock: db.CommonBlock.DeepCopy(),
 		Children:    childrenCopy,
-		IPtrs:       db.IPtrs,
+		IPtrs:       iptrsCopy,
 	}
 }
 
