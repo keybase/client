@@ -4,6 +4,7 @@ import * as Container from '../../../../../util/container'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletTypes from '../../../../../constants/types/wallets'
+import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -52,17 +53,60 @@ const SendPaymentPopup = Container.connect(sendMapStateToProps, () => ({}), send
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  return {}
+  if (ownProps.message.type !== 'requestPayment') {
+    throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
+  }
+  const {requestID} = ownProps.message
+  const _request = WalletConstants.getRequest(state, requestID)
+  return {
+    _request,
+    _you: state.config.username,
+  }
 }
 
-const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({})
+const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+  onCancel: () => {
+    // TODO
+  },
+})
 
 const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const request = stateProps._request
+  if (!request) {
+    return {
+      ...commonLoadingProps,
+      attachTo: ownProps.attachTo,
+      onHidden: ownProps.onHidden,
+      position: ownProps.position,
+      visible: ownProps.visible,
+    }
+  }
+  const you = stateProps._you
+
+  let bottomLine = ''
+  if (request.asset !== 'native' && request.asset !== 'currency') {
+    bottomLine = request.asset.issuerName || request.asset.issuerAccountID || ''
+  }
+
+  let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${
+    request.asset === 'currency' ? ' lumens worth' : ''
+  }`
+
   return {
-    ...commonLoadingProps,
+    amountNominal: request.amountDescription,
     attachTo: ownProps.attachTo,
+    balanceChange: '',
+    balanceChangeColor: '',
+    bottomLine,
+    icon: 'receiving',
+    loading: false,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
+    sender: ownProps.message.author,
+    senderDeviceName: ownProps.message.deviceName,
+    timestamp: formatTimeForMessages(ownProps.message.timestamp),
+    topLine,
+    txVerb: 'requested',
     visible: ownProps.visible,
   }
 }
