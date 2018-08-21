@@ -2,13 +2,21 @@
 import logger from '../logger'
 import * as RS from 'redux-saga'
 import * as Effects from 'redux-saga/effects'
-import * as ConfigGen from '../actions/config-gen'
 import {convertToError} from '../util/errors'
 import type {TypedState} from '../constants/reducer'
 import type {TypedActions} from '../actions/typed-actions-gen'
 import put from './typed-put'
 
 export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
+
+// Not importing this to avoid require cycles
+const ConfigGen = {
+  createGlobalError: p => ({
+    error: false,
+    payload: p.globalError,
+    type: 'config:globalError',
+  }),
+}
 
 function safeTakeEvery(
   pattern: RS.Pattern,

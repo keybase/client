@@ -1,8 +1,8 @@
 // @flow
 // Helper to deal with service calls in a saga friendly way
-import {getEngine, Engine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
+import {getEngine} from './require'
 import {sequentially} from '../util/saga'
 import type {CommonResponseHandler, RPCError} from './types'
 import {printOutstandingRPCs} from '../local-debug'
@@ -35,7 +35,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.error(...args)
     }
@@ -45,7 +45,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.result(...args)
     }
@@ -62,11 +62,10 @@ function* call(p: {
   waitingKey?: string,
 }): Generator<any, any, any> {
   const {method, params, incomingCallMap, waitingKey} = p
-  const engine = getEngine()
 
   // Waiting on the server
   if (waitingKey) {
-    Engine.dispatchWaitingAction(waitingKey, true)
+    getEngine().dispatchWaitingAction(waitingKey, true)
   }
 
   const buffer = RS.buffers.expanding(10)
@@ -78,7 +77,7 @@ function* call(p: {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
-          Engine.dispatchWaitingAction(waitingKey, false)
+          getEngine().dispatchWaitingAction(waitingKey, false)
         }
 
         const response = makeWaitingResponse(_response, waitingKey)
@@ -110,7 +109,7 @@ function* call(p: {
       }, 2000)
     }
 
-    engine._rpcOutgoing({
+    getEngine()._rpcOutgoing({
       callback: (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
@@ -185,7 +184,7 @@ function* call(p: {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {
       // No longer waiting
-      Engine.dispatchWaitingAction(waitingKey, false)
+      getEngine().dispatchWaitingAction(waitingKey, false)
     }
 
     if (finalError) {

@@ -1,6 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text, Avatar, Badge} from '.'
+import Box from './box'
+import Icon from './icon'
+import Text from './text'
+import Avatar from './avatar'
+import Badge from './badge'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
