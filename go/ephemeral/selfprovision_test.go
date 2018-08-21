@@ -1,7 +1,6 @@
 package ephemeral
 
 import (
-	"context"
 	"testing"
 
 	"github.com/keybase/client/go/engine"
@@ -14,9 +13,9 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	tc, user := ephemeralKeyTestSetup(t)
 	defer tc.Cleanup()
 
-	ctx := context.TODO()
 	g := tc.G
 	m := libkb.NewMetaContextForTest(tc)
+	ctx := m.Ctx()
 	teamID := createTeam(tc)
 
 	ekLib := g.GetEKLib()
@@ -54,6 +53,7 @@ func TestEphemeralSelfProvision(t *testing.T) {
 	eng := engine.NewSelfProvisionEngine(g, newName)
 	err = engine.RunEngine2(m, eng)
 	require.NoError(t, err)
+	require.Equal(t, m.ActiveDevice().Name(), newName)
 
 	teamEK2, err := g.GetTeamEKBoxStorage().Get(ctx, teamID, teamEK1.Metadata.Generation)
 	require.NoError(t, err)
