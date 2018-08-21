@@ -71,6 +71,7 @@ const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
     bottomLine: '', // TODO on asset support in payment
     icon: payment.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
+    onCancel: null,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
     sender: ownProps.message.author,
@@ -159,10 +160,8 @@ const RequestPaymentPopup = Container.connect(
 const PaymentPopupChooser = (props: OwnProps) => {
   switch (props.message.type) {
     case 'sendPayment':
-      // $FlowIssue complains about different props but all use OwnProps
       return <SendPaymentPopup {...props} />
     case 'requestPayment':
-      // $FlowIssue complains about different props but all use OwnProps
       return <RequestPaymentPopup {...props} />
     default:
       throw new Error(`PaymentPopup: impossible case encountered: ${props.message.type}`)

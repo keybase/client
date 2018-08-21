@@ -34,7 +34,11 @@ export type Props = {|
   isRevoked: boolean,
   isYou: boolean,
   measure: null | (() => void),
-  message: Types.MessageText | Types.MessageAttachment,
+  message:
+    | Types.MessageText
+    | Types.MessageAttachment
+    | Types.MessageSendPayment
+    | Types.MessageRequestPayment,
   messageFailed: boolean,
   messageKey: string,
   messagePending: boolean,
@@ -164,7 +168,6 @@ const RightSide = props => (
             <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
           )}
           {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
-            // $FlowIssue thinks PaymentMessage doesn't want message prop
             <PaymentMessage message={props.message} />
           )}
           {props.isEdited && <EditedMark />}

@@ -44,7 +44,7 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
           payment.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
         loading: false,
-        memo: payment.note,
+        memo: payment.note.stringValue(),
         pending: false,
         sendButtonLabel: '',
       }
@@ -99,7 +99,7 @@ type LoadCalls = {|
   loadTxData: () => void,
 |}
 
-class LoadWrapper extends React.Component<AccountPaymentProps & LoadCalls> {
+class LoadWrapper extends React.Component<{...AccountPaymentProps, ...LoadCalls}> {
   componentDidMount() {
     if (this.props.loading) {
       this.props.loadTxData()
@@ -111,5 +111,9 @@ class LoadWrapper extends React.Component<AccountPaymentProps & LoadCalls> {
   }
 }
 
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps)(LoadWrapper)
+const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, (sp, dp, op) => ({
+  ...sp,
+  ...dp,
+  ...op,
+}))(LoadWrapper)
 export default ConnectedAccountPayment
