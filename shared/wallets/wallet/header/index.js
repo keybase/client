@@ -5,7 +5,6 @@ import * as Styles from '../../../styles'
 
 type Props = {
   isDefaultWallet: boolean,
-  navigateAppend: (...Array<any>) => any,
   onDeposit: () => void,
   onReceive: () => void,
   onSendToAnotherWallet: () => void,

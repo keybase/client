@@ -1384,7 +1384,7 @@ const previewConversationFindExisting = (
         ...params,
       })
 
-  const passUsersDown = Saga.identity(users)
+  const passUsersDown = Saga.call(() => users)
 
   return Saga.sequentially([markPendingWaiting, setUsers, makeCall, passUsersDown])
 }

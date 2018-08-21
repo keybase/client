@@ -95,7 +95,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
 
   yield Saga.put(ProfileGen.createUpdateSigID({sigID: null}))
 
-  const proveStartProofChanMap = RPCTypes.proveStartProofRpcChannelMap(
+  const proveStartProofChanMap: any = RPCTypes.proveStartProofRpcChannelMap(
     [
       'keybase.1.proveUi.promptUsername',
       'keybase.1.proveUi.outputInstructions',
