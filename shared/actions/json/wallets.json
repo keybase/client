@@ -28,7 +28,9 @@
       "_description": "Clear a prepared payment once it has been sent or canceled",
     },
     "cancelRequest": {
-      "_description": "Cancel a request",
+      "_description": "Cancel a request. Optionally delete an associated message",
+      "conversationIDKey?": "ChatTypes.ConversationIDKey",
+      "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
     "exportSecretKey": {

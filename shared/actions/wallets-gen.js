@@ -5,6 +5,7 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/wallets'
+import * as ChatTypes from '../constants/types/chat2'
 import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'
 import HiddenString from '../util/hidden-string'
 
@@ -56,7 +57,11 @@ type _AssetsReceivedPayload = $ReadOnly<{|
 |}>
 type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
-type _CancelRequestPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
+type _CancelRequestPayload = $ReadOnly<{|
+  conversationIDKey?: ChatTypes.ConversationIDKey,
+  ordinal?: ChatTypes.Ordinal,
+  requestID: StellarRPCTypes.KeybaseRequestID,
+|}>
 type _ClearBuildingPaymentPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void
@@ -134,7 +139,7 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
 /**
- * Cancel a request
+ * Cancel a request. Optionally delete an associated message
  */
 export const createCancelRequest = (payload: _CancelRequestPayload) => ({error: false, payload, type: cancelRequest})
 /**

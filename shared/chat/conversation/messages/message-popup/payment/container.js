@@ -105,7 +105,13 @@ const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
     }
-    dispatch(WalletGen.createCancelRequest({requestID: ownProps.message.requestID}))
+    dispatch(
+      WalletGen.createCancelRequest({
+        conversationIDKey: ownProps.message.conversationIDKey,
+        ordinal: ownProps.message.ordinal,
+        requestID: ownProps.message.requestID,
+      })
+    )
   },
 })
 
