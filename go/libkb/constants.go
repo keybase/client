@@ -21,17 +21,15 @@ const (
 
 var TorProxy = "localhost:9050"
 
-type RunMode string
+type RunMode = kbconst.RunMode
 
 const (
-	DevelRunMode      RunMode = "devel"
-	StagingRunMode    RunMode = "staging"
-	ProductionRunMode RunMode = "prod"
-	RunModeError      RunMode = "error"
-	NoRunMode         RunMode = ""
+	DevelRunMode      RunMode = kbconst.DevelRunMode
+	StagingRunMode    RunMode = kbconst.StagingRunMode
+	ProductionRunMode RunMode = kbconst.ProductionRunMode
+	RunModeError      RunMode = kbconst.RunModeError
+	NoRunMode         RunMode = kbconst.NoRunMode
 )
-
-var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
 
 var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
