@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 // TODO Deprecated. Instead use engine/saga helper
 // Handles sending requests to the daemon
 import logger from '../logger'

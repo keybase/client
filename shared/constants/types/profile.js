@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import * as RPCTypes from './rpc-gen'
 import type {PlatformsExpandedType} from './more'
 

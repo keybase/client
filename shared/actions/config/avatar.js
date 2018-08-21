@@ -25,7 +25,7 @@ function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.Load
   }
 
   if (avatarChannel) {
-    yield Saga.put(avatarChannel, 'queue')
+    yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
   }
 }
 
@@ -82,7 +82,7 @@ function* handleAvatarQueue() {
 
     // more to load?
     if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
-      yield Saga.put(avatarChannel, 'queue')
+      yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
     }
   }
 }
