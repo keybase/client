@@ -17,23 +17,14 @@ func CheckUsername(s string) bool {
 	return len(s) >= 2 && len(s) <= 16 && usernameRE.MatchString(s)
 }
 
-// BadUsernameError is returned when a bad Keybase username is
-// encountered.
-type BadUsernameError struct {
-	N   string
-	msg string
+// InvalidUsernameError is returned when an invalid Keybase username
+// is encountered.
+type InvalidUsernameError struct {
+	Username string
 }
 
-func (e BadUsernameError) Error() string {
-	if len(e.msg) == 0 {
-		return "Bad username: '" + e.N + "'"
-	}
-	return e.msg
-}
-
-// NewBadUsernameError creates a new BadUsernameError.
-func NewBadUsernameError(n string) BadUsernameError {
-	return BadUsernameError{N: n}
+func (e InvalidUsernameError) Error() string {
+	return "Bad username: '" + e.Username + "'"
 }
 
 // NormalizedUsername is a Keybase username that has been normalized
@@ -58,11 +49,12 @@ func (n NormalizedUsername) String() string { return string(n) }
 // IsNil returns true if the username is the empty string
 func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
 
-// CheckValid returns true if the username is valid.
+// CheckValid returns nil if the username is valid, and
+// InvalidUsernameError otherwise.
 func (n NormalizedUsername) CheckValid() error {
 	s := n.String()
 	if !CheckUsername(s) {
-		return NewBadUsernameError(s)
+		return InvalidUsernameError{s}
 	}
 	return nil
 }
