@@ -6,7 +6,6 @@ import (
 
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/username"
 	context "golang.org/x/net/context"
 )
 
@@ -391,7 +390,7 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	if n.IsNil() {
 		return nil
 	}
-	if !username.CheckUsername(n.String()) {
+	if !kbun.CheckUsername(n.String()) {
 		return NewBadUsernameError(n.String())
 	}
 	g.switchUserMu.Lock()
