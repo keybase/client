@@ -81,5 +81,12 @@ untyped-import=off
 deprecated-type=error
 sketchy-number-and=off
 
+[strict]
+nonstrict-import
+unclear-type
+unsafe-getters-setters
+untyped-import
+untyped-type-import
+
 [version]
 ^0.79.0

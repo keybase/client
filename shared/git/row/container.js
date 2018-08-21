@@ -1,44 +1,57 @@
 // @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
-import {createSetTeamRepoSettings} from '../../actions/git-gen'
-import {connect, type TypedState, compose, withHandlers} from '../../util/container'
-import {createGetProfile} from '../../actions/tracker-gen'
-import {navigateAppend} from '../../actions/route-tree'
+import * as ConfigGen from '../../actions/config-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as GitGen from '../../actions/git-gen'
+import {connect, type TypedState, compose, withHandlers, isMobile} from '../../util/container'
+import * as TrackerGen from '../../actions/tracker-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
-import {copyToClipboard} from '../../util/clipboard'
 import openURL from '../../util/open-url'
-import {isMobile} from '../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {id, expanded}) => {
+type OwnProps = {
+  id: string,
+  expanded: boolean,
+  onShowDelete: string => void,
+  onToggleExpand: string => void,
+}
+
+const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
   const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo())
   return {
     git,
     expanded,
-    isNew: state.entities.getIn(['git', 'isNew', id], false),
+    isNew: !!state.entities.getIn(['git', 'isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: state.config.username,
   }
 }
 
-const mapDispatchToProps = (dispatch: any) => ({
-  openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+  openUserTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({username, forceDisplay: true})),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
     dispatch(
-      createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname: teamname || '', channelName: null})
+      GitGen.createSetTeamRepoSettings({
+        chatDisabled: disabled,
+        repoID,
+        teamname: teamname || '',
+        channelName: null,
+      })
     ),
   _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
-      navigateAppend(
-        [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
-        isMobile ? [settingsTab, settingsGitTab] : [gitTab]
-      )
+      RouteTreeGen.createNavigateAppend({
+        path: [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
+        parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
+      })
     ),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {id, ...git} = stateProps.git.toObject()
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const git = stateProps.git
 
   return {
     canDelete: git.canDelete,
@@ -47,7 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     chatDisabled: git.chatDisabled,
     devicename: git.devicename,
     expanded: stateProps.expanded,
-    isNew: git.isNew,
+    isNew: stateProps.isNew,
     lastEditTime: git.lastEditTime,
     lastEditUser: git.lastEditUser,
     lastEditUserFollowing: stateProps.lastEditUserFollowing,
@@ -58,13 +71,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onClickDevice: () => {
       git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
     },
-    onCopy: () => copyToClipboard(git.url),
+    onCopy: () => dispatchProps.copyToClipboard(git.url),
     onShowDelete: () => ownProps.onShowDelete(git.id),
-    openUserTracker: git.openUserTracker,
+    openUserTracker: dispatchProps.openUserTracker,
     _onOpenChannelSelection: () =>
       dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
-    onToggleExpand: () => ownProps.onToggleExpand(id),
+    onToggleExpand: () => ownProps.onToggleExpand(git.id),
   }
 }
 

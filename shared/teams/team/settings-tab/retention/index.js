@@ -11,11 +11,12 @@ import {
 } from '../../../../styles'
 import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/popup-menu'
-import {type RetentionPolicy} from '../../../../constants/types/teams'
+import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
-import {type RetentionEntityType} from './container'
+
+export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type Props = {
   canSetPolicy: boolean,
