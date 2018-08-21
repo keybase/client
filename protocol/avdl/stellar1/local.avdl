@@ -292,8 +292,8 @@ protocol local {
     string toAssertion; // keybase username or sbs assertion.
 
     // Exactly one of asset or currency below is filled
-    string amount; // numerical value of user intent, i.e. "123.23"
-    union { null, Asset } asset; //
+    string amount;
+    union { null, Asset } asset;
     union { null, OutsideCurrencyCode } currency;
 
     // Formatted amount of either outside currency or stellar lumens.
