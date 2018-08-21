@@ -1,18 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import Row from '../participants-row'
-import WalletEntry from '../wallet-entry'
+import * as Kb from '../../../common-adapters'
+import Row from '../../participants-row'
+import WalletEntry from '../../wallet-entry'
 import type {Account} from '.'
 
 type FromFieldProps = {|
-  isConfirm: boolean,
-  initialWallet: Account,
-  wallets?: Account[],
+  initialAccount: Account,
+  accounts: Account[],
 |}
 
 type FromFieldState = {|
-  selectedWallet: Account,
+  selectedAccount: Account,
 |}
 
 type DropdownTextProps = {
@@ -27,7 +26,7 @@ const DropdownText = ({text, ...props}: DropdownTextProps) => (
 
 class FromField extends React.Component<FromFieldProps, FromFieldState> {
   state = {
-    selectedWallet: this.props.initialWallet,
+    selectedAccount: this.props.initialAccount,
   }
 
   _createDropdownEntry = (wallet: Account, key: number) => (
@@ -69,32 +68,18 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
       <DropdownText key="create-new" text="Create a new account" />,
     ]
 
-    if (this.props.wallets && this.props.wallets.length > 0) {
-      const walletItems = this.props.wallets.map((wallet, index) =>
-        this._createDropdownEntry(wallet, index + 1)
-      )
+    if (this.props.accounts.length > 0) {
+      const walletItems = this.props.accounts.map((wallet, index) => this._createDropdownEntry(wallet, index))
       items = walletItems.concat(items)
     }
 
-    items.unshift(this._createDropdownEntry(this.state.selectedWallet, 0))
-
     return (
-      <Row heading="From:" headingAlignment={!this.props.isConfirm ? 'Right' : 'Left'}>
-        {this.props.isConfirm && (
-          <WalletEntry
-            keybaseUser={this.props.initialWallet.user}
-            name={this.props.initialWallet.name}
-            contents={this.props.initialWallet.contents}
-          />
-        )}
-        {/* TODO: Add wallet dropdown for wallet->wallet */}
-        {!this.props.isConfirm && (
-          <Kb.Dropdown
-            onChanged={this._onDropdownChange}
-            items={items}
-            selected={this._createSelectedEntry(this.state.selectedWallet)}
-          />
-        )}
+      <Row heading="From:" headingAlignment="Right">
+        <Kb.Dropdown
+          onChanged={this._onDropdownChange}
+          items={items}
+          selected={this._createSelectedEntry(this.state.selectedAccount)}
+        />
       </Row>
     )
   }

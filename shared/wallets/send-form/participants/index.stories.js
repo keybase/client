@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Sb from '../../stories/storybook'
-import {Box} from '../../common-adapters'
+import * as Sb from '../../../stories/storybook'
+import {Box} from '../../../common-adapters'
 import Participants, {type Account} from '.'
 
 const provider = Sb.createPropProviderWithCommon({
@@ -29,23 +29,33 @@ const accounts = [
   },
 ]
 
+const defaultProps = {
+  fromAccount: primaryAccount,
+  allAccounts: accounts,
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
-    .add('To Keybase user', () => <Participants recipientType="keybaseUser" />)
+    .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
     .add('To other account (multiple accounts)', () => (
-      <Participants recipientType="otherAccount" fromWallet={primaryAccount} wallets={accounts} />
+      <Participants recipientType="otherAccount" {...defaultProps} />
     ))
     .add('To other account (one account)', () => (
-      <Participants recipientType="otherAccount" fromWallet={primaryAccount} wallets={accounts.slice(0, 1)} />
+      <Participants recipientType="otherAccount" {...defaultProps} allAccounts={accounts.slice(0, 1)} />
     ))
-    .add('To stellar address', () => <Participants recipientType="stellarPublicKey" />)
+    .add('To stellar address', () => <Participants {...defaultProps} recipientType="stellarPublicKey" />)
     .add('Stellar address Error', () => (
-      <Participants incorrect="Stellar address incorrect" recipientType="stellarPublicKey" />
+      <Participants
+        {...defaultProps}
+        incorrect="Stellar address incorrect"
+        recipientType="stellarPublicKey"
+      />
     ))
     .add('User match', () => (
       <Participants
+        {...defaultProps}
         recipientType="keybaseUser"
         recipientUsername="yen"
         recipientFullName="Addie Stokes"

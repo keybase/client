@@ -1,7 +1,7 @@
 // @flow
 import Participants from '.'
-import * as WalletsGen from '../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment

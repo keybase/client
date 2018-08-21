@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
 import ToField from './to-field'
-import type {CounterpartyType} from '../../constants/types/wallets'
+import type {CounterpartyType} from '../../../constants/types/wallets'
 
 export type Account = {|
   name: string,
@@ -13,10 +13,9 @@ export type Account = {|
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
-  /* Used for the confirm screen */
-  isConfirm?: boolean,
-  fromWallet?: Account,
-  wallets?: Account[],
+  fromAccount: Account,
+  /* Used for send to other account */
+  allAccounts?: Account[],
   /* Used for send to stellar address */
   incorrect?: string,
   onChangeAddress?: string => void,
@@ -30,18 +29,13 @@ type ParticipantsProps = {|
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {(props.isConfirm || props.recipientType === 'otherAccount') &&
-      props.fromWallet && (
-        <FromField
-          isConfirm={props.isConfirm || false}
-          initialWallet={props.fromWallet}
-          wallets={props.wallets}
-        />
+    {props.recipientType === 'otherAccount' &&
+      props.fromAccount && (
+        <FromField initialAccount={props.fromAccount} accounts={props.allAccounts ? props.allAccounts : []} />
       )}
     <ToField
-      isConfirm={props.isConfirm || false}
       recipientType={props.recipientType}
-      accounts={props.wallets ? props.wallets : []}
+      accounts={props.allAccounts ? props.allAccounts : []}
       incorrect={props.incorrect}
       username={props.recipientUsername}
       fullName={props.recipientFullName}

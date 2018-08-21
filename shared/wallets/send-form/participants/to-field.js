@@ -1,15 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import Row from '../participants-row'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import Row from '../../participants-row'
 import type {Account} from '.'
-import type {CounterpartyType} from '../../constants/types/wallets'
+import type {CounterpartyType} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
-  /* Used for the confirm screen */
-  isConfirm: boolean,
   /* Used for send to stellar address */
   incorrect?: string,
   onChangeAddress?: string => void,
@@ -33,7 +31,7 @@ const ToField = (props: ToFieldProps) => {
 
   let component
 
-  if (props.username) {
+  if (props.recipientType === 'keybaseUser' && props.username) {
     component = (
       <React.Fragment>
         <Kb.NameWithIcon
@@ -44,33 +42,22 @@ const ToField = (props: ToFieldProps) => {
           onClick={props.onShowProfile}
           avatarStyle={styles.avatar}
         />
-        {!props.isConfirm && (
-          <Kb.Icon
-            type="iconfont-remove"
-            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-            fontSize={16}
-            color={Styles.globalColors.black_20}
-            onClick={props.onRemoveProfile}
-          />
-        )}
+        <Kb.Icon
+          type="iconfont-remove"
+          boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+          fontSize={16}
+          color={Styles.globalColors.black_20}
+          onClick={props.onRemoveProfile}
+        />
       </React.Fragment>
     )
-  } else if (props.isConfirm && props.recipientType === 'stellarPublicKey') {
-    component = (
-      <React.Fragment>
-        {stellarIcon}
-        <Kb.Text type="BodySemibold" style={styles.stellarAddressConfirmText}>
-          {props.stellarAddress}
-        </Kb.Text>
-      </React.Fragment>
-    )
-  } else if (props.isConfirm && props.recipientType === 'otherAccount') {
-    // TODO: Implement this
-  } else if (!props.isConfirm && props.recipientType === 'otherAccount') {
-    if (props.accounts.length === 1) {
+  } else if (props.recipientType === 'otherAccount') {
+    if (props.accounts.length <= 1) {
       component = (
         <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
       )
+    } else {
+      // component = <Kb.Dropdown />
     }
   } else {
     component = (

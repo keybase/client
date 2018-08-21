@@ -14,7 +14,6 @@ import transaction from './transaction/index.stories'
 import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
-import participants from './participants/index.stories'
 
 const load = () => {
   asset()
@@ -29,7 +28,6 @@ const load = () => {
   wallet()
   transaction()
   transactionDetails()
-  participants()
 
   /* Still TODO */
   storiesOf('Wallets', module).add('Wallet Onboarding', () => (
