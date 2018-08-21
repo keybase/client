@@ -69,6 +69,7 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export const localBuildPaymentLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.buildPaymentLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localCreateWalletAccountLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.createWalletAccountLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetAccountAssetsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getAccountAssetsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPaymentDetailsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPaymentDetailsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetPaymentsLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'stellar.1.local.getPaymentsLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

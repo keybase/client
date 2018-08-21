@@ -1,6 +1,7 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
 import Container from './container'
 import ReceiveModal from './receive-modal/container'
@@ -11,6 +12,11 @@ import ConfirmForm from './confirm-form/container'
 
 const routeTree = makeRouteDefNode({
   children: {
+    createNewAccount: {
+      children: {},
+      component: CreateNewAccount,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,

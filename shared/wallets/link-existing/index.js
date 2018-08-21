@@ -334,5 +334,5 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export {Wrapper}
+export {EnterName, Wrapper}
 export default LinkWallet
