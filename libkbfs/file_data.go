@@ -82,26 +82,6 @@ func (fd *fileData) getLeafBlocksForOffsetRange(ctx context.Context,
 	return pathsFromRoot, blocks, nextBlockOffset, nil
 }
 
-func (fd *fileData) getIndirectBlocksForOffsetRange(ctx context.Context,
-	pblock *FileBlock, startOff, endOff Int64Offset) (
-	pathsFromRoot [][]parentBlockAndChildIndex, err error) {
-	var eo Offset
-	if endOff >= 0 {
-		eo = endOff
-	}
-
-	// Fetch the paths of indirect blocks, without getting the direct
-	// blocks.
-	pfr, _, _, err := fd.tree.getBlocksForOffsetRange(
-		ctx, fd.rootBlockPointer(), pblock, startOff, eo, false,
-		false /* no direct blocks */)
-	if err != nil {
-		return nil, err
-	}
-
-	return pfr, nil
-}
-
 func childFileIptr(p parentBlockAndChildIndex) IndirectFilePtr {
 	fb := p.pblock.(*FileBlock)
 	return fb.IPtrs[p.childIndex]
@@ -708,8 +688,8 @@ func (fd *fileData) truncateShrink(ctx context.Context, size uint64,
 		// right-most block, since those blocks need to be
 		// unreferenced, and their parents need to be modified or
 		// unreferenced.
-		pfr, err := fd.getIndirectBlocksForOffsetRange(
-			ctx, topBlock, nextBlockOff, -1)
+		pfr, err := fd.tree.getIndirectBlocksForOffsetRange(
+			ctx, topBlock, nextBlockOff, nil)
 		if err != nil {
 			return DirEntry{}, nil, nil, 0, err
 		}
@@ -1017,49 +997,14 @@ func (fd *fileData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 		})
 }
 
-func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(ctx context.Context,
-	topBlock *FileBlock) ([]BlockInfo, error) {
-	if !topBlock.IsInd {
-		return nil, nil
-	}
-
-	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
-	if err != nil {
-		return nil, err
-	}
-
-	var blockInfos []BlockInfo
-	infoSeen := make(map[BlockPointer]bool)
-	for _, path := range pfr {
-	pathLoop:
-		for _, pb := range path {
-			for _, iptr := range pb.pblock.(*FileBlock).IPtrs {
-				if infoSeen[iptr.BlockPointer] {
-					// No need to iterate through this whole block
-					// again if we've already seen one of its children
-					// before.
-					continue pathLoop
-				}
-				infoSeen[iptr.BlockPointer] = true
-				blockInfos = append(blockInfos, iptr.BlockInfo)
-			}
-		}
-	}
-	return blockInfos, nil
+func (fd *fileData) getIndirectFileBlockInfosWithTopBlock(
+	ctx context.Context, topBlock *FileBlock) ([]BlockInfo, error) {
+	return fd.tree.getIndirectBlockInfosWithTopBlock(ctx, topBlock)
 }
 
 func (fd *fileData) getIndirectFileBlockInfos(ctx context.Context) (
 	[]BlockInfo, error) {
-	if fd.rootBlockPointer().DirectType == DirectBlock {
-		return nil, nil
-	}
-
-	topBlock, _, err := fd.getter(
-		ctx, fd.tree.kmd, fd.rootBlockPointer(), fd.tree.file, blockRead)
-	if err != nil {
-		return nil, err
-	}
-	return fd.getIndirectFileBlockInfosWithTopBlock(ctx, topBlock)
+	return fd.tree.getIndirectBlockInfos(ctx)
 }
 
 // findIPtrsAndClearSize looks for the given set of indirect pointers,
@@ -1072,7 +1017,8 @@ func (fd *fileData) findIPtrsAndClearSize(
 		return nil, nil
 	}
 
-	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	pfr, err := fd.tree.getIndirectBlocksForOffsetRange(
+		ctx, topBlock, Int64Offset(0), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1160,7 +1106,8 @@ func (fd *fileData) deepCopy(ctx context.Context, dataVer DataVer) (
 	}
 
 	// For indirect files, get all the paths to leaf blocks.
-	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	pfr, err := fd.tree.getIndirectBlocksForOffsetRange(
+		ctx, topBlock, Int64Offset(0), nil)
 	if err != nil {
 		return zeroPtr, nil, err
 	}
@@ -1285,7 +1232,8 @@ func (fd *fileData) undupChildrenInCopy(ctx context.Context,
 	// that because topBlock is a result of `deepCopy`, all of the
 	// indirect blocks that will make up the paths are also deep
 	// copies, and thus are modifiable.
-	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	pfr, err := fd.tree.getIndirectBlocksForOffsetRange(
+		ctx, topBlock, Int64Offset(0), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1347,7 +1295,8 @@ func (fd *fileData) readyNonLeafBlocksInCopy(ctx context.Context,
 	// For indirect files, get all the paths to leaf blocks.  Note
 	// that because topBlock is a deepCopy, all of the blocks are also
 	// deepCopys and thus are modifiable.
-	pfr, err := fd.getIndirectBlocksForOffsetRange(ctx, topBlock, 0, -1)
+	pfr, err := fd.tree.getIndirectBlocksForOffsetRange(
+		ctx, topBlock, Int64Offset(0), nil)
 	if err != nil {
 		return nil, err
 	}

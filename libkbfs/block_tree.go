@@ -910,3 +910,66 @@ func (bt *blockTree) ready(
 
 	return bt.readyHelper(ctx, id, bcache, bops, bps, dirtyLeafPaths, makeSync)
 }
+
+func (bt *blockTree) getIndirectBlocksForOffsetRange(
+	ctx context.Context, pblock BlockWithPtrs, startOff, endOff Offset) (
+	pathsFromRoot [][]parentBlockAndChildIndex, err error) {
+	// Fetch the paths of indirect blocks, without getting the direct
+	// blocks.
+	pfr, _, _, err := bt.getBlocksForOffsetRange(
+		ctx, bt.rootBlockPointer(), pblock, startOff, endOff, false,
+		false /* no direct blocks */)
+	if err != nil {
+		return nil, err
+	}
+
+	return pfr, nil
+}
+
+func (bt *blockTree) getIndirectBlockInfosWithTopBlock(
+	ctx context.Context, topBlock BlockWithPtrs) ([]BlockInfo, error) {
+	if !topBlock.IsIndirect() {
+		return nil, nil
+	}
+
+	pfr, err := bt.getIndirectBlocksForOffsetRange(
+		ctx, topBlock, topBlock.FirstOffset(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var blockInfos []BlockInfo
+	infoSeen := make(map[BlockPointer]bool)
+	for _, path := range pfr {
+	pathLoop:
+		for _, pb := range path {
+			for i := 0; i < pb.pblock.NumIndirectPtrs(); i++ {
+				info, _ := pb.pblock.IndirectPtr(i)
+				if infoSeen[info.BlockPointer] {
+					// No need to iterate through this whole block
+					// again if we've already seen one of its children
+					// before.
+					continue pathLoop
+				}
+
+				infoSeen[info.BlockPointer] = true
+				blockInfos = append(blockInfos, info)
+			}
+		}
+	}
+	return blockInfos, nil
+}
+
+func (bt *blockTree) getIndirectBlockInfos(ctx context.Context) (
+	[]BlockInfo, error) {
+	if bt.rootBlockPointer().DirectType == DirectBlock {
+		return nil, nil
+	}
+
+	topBlock, _, err := bt.getter(
+		ctx, bt.kmd, bt.rootBlockPointer(), bt.file, blockRead)
+	if err != nil {
+		return nil, err
+	}
+	return bt.getIndirectBlockInfosWithTopBlock(ctx, topBlock)
+}
