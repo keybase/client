@@ -5,7 +5,7 @@ import FromField from './from-field'
 import ToField from './to-field'
 import type {CounterpartyType} from '../../constants/types/wallets'
 
-export type Wallet = {|
+export type Account = {|
   name: string,
   user: string,
   contents: string,
@@ -15,8 +15,8 @@ type ParticipantsProps = {|
   recipientType: CounterpartyType,
   /* Used for the confirm screen */
   isConfirm?: boolean,
-  fromWallet?: Wallet,
-  wallets?: Wallet[],
+  fromWallet?: Account,
+  wallets?: Account[],
   /* Used for send to stellar address */
   incorrect?: string,
   onChangeAddress?: string => void,
@@ -41,6 +41,7 @@ const Participants = (props: ParticipantsProps) => (
     <ToField
       isConfirm={props.isConfirm || false}
       recipientType={props.recipientType}
+      accounts={props.wallets ? props.wallets : []}
       incorrect={props.incorrect}
       username={props.recipientUsername}
       fullName={props.recipientFullName}

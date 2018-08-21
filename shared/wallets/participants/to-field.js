@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import Row from './row'
+import Row from '../participants-row'
+import type {Account} from '.'
 import type {CounterpartyType} from '../../constants/types/wallets'
 
 type ToFieldProps = {|
@@ -13,6 +14,8 @@ type ToFieldProps = {|
   incorrect?: string,
   onChangeAddress?: string => void,
   stellarAddress?: string,
+  /** Used for sending from account to account */
+  accounts: Account[],
   /* Used to display a keybase profile */
   username?: string,
   fullName?: string,
@@ -64,7 +67,11 @@ const ToField = (props: ToFieldProps) => {
   } else if (props.isConfirm && props.recipientType === 'otherAccount') {
     // TODO: Implement this
   } else if (!props.isConfirm && props.recipientType === 'otherAccount') {
-    // TODO: Implement this
+    if (props.accounts.length === 1) {
+      component = (
+        <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
+      )
+    }
   } else {
     component = (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
@@ -95,11 +102,12 @@ const ToField = (props: ToFieldProps) => {
   return (
     <Row
       heading="To:"
+      headingAlignment={props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
       headingStyle={
         props.recipientType === 'stellarPublicKey' && !props.username ? {alignSelf: 'flex-start'} : {}
       }
       dividerColor={props.incorrect ? Styles.globalColors.red : ''}
-      noBottomDivider={true}
+      bottomDivider={false}
     >
       {component}
     </Row>
@@ -139,6 +147,11 @@ const styles = Styles.styleSheetCreate({
   input: {
     padding: 0,
   },
+  createNewAccountButton: Styles.platformStyles({
+    isElectron: {
+      width: 194,
+    },
+  }),
 })
 
 export default ToField

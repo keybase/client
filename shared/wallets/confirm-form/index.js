@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants from '../participants'
+import Participants from './participants'
 import NoteAndMemo from './note-and-memo'
 import type {CounterpartyType} from '../../constants/types/wallets'
 
@@ -22,12 +22,14 @@ type ConfirmSendProps = {|
   bannerBackground?: Background,
   bannerText?: string,
   waitingKey?: string,
-  // TODO: these props are probably one level too high, and should be in Participants' container.
   yourUsername: string,
-  yourWalletName: string,
-  yourWalletContents: string,
-  receiverUsername: string,
-  receiverFullName: string,
+  yourAccountName: string,
+  yourAccountContents: string,
+  recipientUsername?: string,
+  recipientFullName?: string,
+  recipientStellarAddress?: string,
+  recipientAccountName?: string,
+  recipientAccountContents?: string,
   recipientType: CounterpartyType,
 |}
 
@@ -44,15 +46,15 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
         <Participants
+          yourUsername={props.yourUsername}
           recipientType={props.recipientType}
-          isConfirm={true}
-          recipientUsername={props.receiverUsername}
-          recipientFullName={props.receiverFullName}
-          fromWallet={{
-            name: props.yourWalletName,
-            user: props.yourUsername,
-            contents: props.yourWalletContents,
-          }}
+          fromAccountName={props.yourAccountName}
+          fromAccountContents={props.yourAccountContents}
+          recipientUsername={props.recipientUsername}
+          recipientFullName={props.recipientFullName}
+          recipientStellarAddress={props.recipientStellarAddress}
+          recipientAccountName={props.recipientAccountName}
+          recipientAccountContents={props.recipientAccountContents}
         />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />

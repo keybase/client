@@ -1,18 +1,18 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import Row from './row'
-import WalletEntry from './wallet-entry'
-import type {Wallet} from '.'
+import Row from '../participants-row'
+import WalletEntry from '../wallet-entry'
+import type {Account} from '.'
 
 type FromFieldProps = {|
   isConfirm: boolean,
-  initialWallet: Wallet,
-  wallets?: Wallet[],
+  initialWallet: Account,
+  wallets?: Account[],
 |}
 
 type FromFieldState = {|
-  selectedWallet: Wallet,
+  selectedWallet: Account,
 |}
 
 type DropdownTextProps = {
@@ -30,7 +30,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     selectedWallet: this.props.initialWallet,
   }
 
-  _createDropdownEntry = (wallet: Wallet, key: number) => (
+  _createDropdownEntry = (wallet: Account, key: number) => (
     <WalletEntry
       key={key}
       keybaseUser={wallet.user}
@@ -40,7 +40,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     />
   )
 
-  _createSelectedEntry = (wallet: Wallet) => (
+  _createSelectedEntry = (wallet: Account) => (
     <Kb.Box2 direction="horizontal" centerChildren={true} gap="tiny">
       <Kb.Avatar size={32} username={wallet.user} />
       <Kb.Text type="Body">{wallet.name}</Kb.Text>
@@ -79,7 +79,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     items.unshift(this._createDropdownEntry(this.state.selectedWallet, 0))
 
     return (
-      <Row heading="From:">
+      <Row heading="From:" headingAlignment={!this.props.isConfirm ? 'Right' : 'Left'}>
         {this.props.isConfirm && (
           <WalletEntry
             keybaseUser={this.props.initialWallet.user}

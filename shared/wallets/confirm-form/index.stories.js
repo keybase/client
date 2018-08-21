@@ -25,10 +25,13 @@ const confirmProps = {
   onSendClick: Sb.action('onSendClick'),
   waiting: false,
   yourUsername: 'cecileb',
-  yourWalletName: "cecileb's wallet",
-  yourWalletContents: '280.0871234 XLM',
-  receiverUsername: 'nathunsmitty',
-  receiverFullName: 'Nathan Smith',
+  yourAccountName: "cecileb's account",
+  yourAccountContents: '280.0871234 XLM',
+  recipientUsername: 'nathunsmitty',
+  recipientFullName: 'Nathan Smith',
+  recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
+  recipientAccountName: 'Secondary Account',
+  recipientAccountContents: '534 XLM',
   recipientType: 'keybaseUser',
 }
 
@@ -45,7 +48,9 @@ const banner = {
 const load = () => {
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
-    .add('Normal', () => <ConfirmSend {...confirmProps} />)
+    .add('To User', () => <ConfirmSend {...confirmProps} />)
+    .add('To Other Account', () => <ConfirmSend {...confirmProps} recipientType="otherAccount" />)
+    .add('To Stellar Address', () => <ConfirmSend {...confirmProps} recipientType="stellarPublicKey" />)
     .add('Waiting', () => <ConfirmSend {...confirmProps} waiting={true} />)
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)
