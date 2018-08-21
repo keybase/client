@@ -21,13 +21,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
     ),
 })
 
-const mergeProps = (_, {onBack, onChat}, {path}) => {
+const mergeProps = (_, {onBack, onChat}, {path, routePath}) => {
   const elems = Types.getPathElements(path)
   return {
     path,
     title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
     onBack,
     onChat: elems.length > 2 ? onChat : undefined,
+    routePath,
   }
 }
 

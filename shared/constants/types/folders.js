@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import type {Folder as FolderRPC} from './rpc-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 

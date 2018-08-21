@@ -1,9 +1,11 @@
 // @flow
-import {action, createPropProvider} from './storybook'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
+import * as _CopyText from '../common-adapters/copy-text'
+import {action} from '@storybook/addon-actions'
+import {createPropProvider} from './storybook.shared'
 
 /*
  * Some common prop factory creators.
@@ -65,10 +67,15 @@ export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key
   }),
 })
 
+const CopyText = () => ({
+  CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
+})
+
 export const Common = () => ({
   ...Usernames(),
   ...Avatar(),
   ...WaitingButton(),
+  ...CopyText(),
 })
 
 export const createPropProviderWithCommon = (custom: ?Object) =>

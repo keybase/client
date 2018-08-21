@@ -36,8 +36,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? globalColors.green
       : message.transferState === 'downloading'
         ? globalColors.blue
-        : null
-    : null
+        : ''
+    : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
@@ -45,9 +45,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
-          : null
+          : ''
   const buttonType = message.showPlayButton ? 'play' : null
-  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+
   return {
     arrowColor,
     height: message.previewHeight,
@@ -67,7 +68,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: message.videoDuration,
+    inlineVideoPlayable: !!message.videoDuration,
     title: message.title || message.fileName,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),

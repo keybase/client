@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
@@ -24,7 +25,6 @@ export type _State = {
   debugDump: Array<string>,
   deviceID: DeviceID,
   deviceName: ?string,
-  error: any,
   defaultUsername: string,
   followers: I.Set<string>,
   following: I.Set<string>,

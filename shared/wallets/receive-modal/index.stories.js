@@ -5,7 +5,6 @@ import ReceiveModal from '.'
 
 const load = () => {
   Sb.storiesOf('Wallets', module)
-    .addDecorator(Sb.createPropProvider())
     .add('Receive to primary', () => (
       <ReceiveModal
         federatedAddress="cecile*keybase.io"

@@ -24,7 +24,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     deviceName: ownProps.deviceName,
     error: stateProps.error,
-    existingDevices: stateProps._existingDevices,
     onBack: dispatchProps.onBack,
     onChange: ownProps.onChange,
     onSubmit,

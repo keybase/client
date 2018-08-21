@@ -3,7 +3,6 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import React, {Component} from 'react'
-import {type EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -27,7 +26,7 @@ import {makeLeafTags} from '../route-tree'
 import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
-  mode: 'modal' | null,
+  mode: 'modal' | 'card',
   renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
   onNavigateBack: () => any,
   stack: RouteRenderStack,
@@ -156,7 +155,7 @@ function renderStackRoute(route, shouldRender) {
 }
 
 class MainNavStack extends Component<any, {verticalOffset: number}> {
-  _listener: EmitterListener
+  _listener = null
   _mounted = true
   state = {
     verticalOffset: 0,
@@ -195,7 +194,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
       <CardStackShim
         key={props.routeSelected}
         hidden={false}
-        mode={null}
+        mode="card"
         stack={props.routeStack}
         renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
@@ -365,6 +364,12 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  hideNav: stateProps.hideNav,
+  navigateUp: dispatchProps.navigateUp,
+  ...ownProps,
+})
+
 const styles = styleSheetCreate({
   container: {...globalStyles.fullHeight},
   content: {...globalStyles.flexGrow},
@@ -396,4 +401,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Nav)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)

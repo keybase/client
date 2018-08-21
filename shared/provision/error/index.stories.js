@@ -4,7 +4,7 @@ import Error from '.'
 import {action, storiesOf} from '../../stories/storybook'
 import {convertToRPCError} from '../../util/errors'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 
 const props = {
   error: convertToRPCError({

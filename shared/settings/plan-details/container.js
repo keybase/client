@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../../logger'
 import PlanDetails from './index'
 import {connect} from 'react-redux'

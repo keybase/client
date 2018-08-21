@@ -20,6 +20,7 @@ const rootDecorator = story => (
 
 const load = () => {
   addDecorator(rootDecorator)
+  // $FlowIssue
   addDecorator(Sb.createPropProviderWithCommon())
   configure(() => {
     Object.keys(stories).forEach(s => stories[s]())
