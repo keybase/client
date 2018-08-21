@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
