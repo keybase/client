@@ -1,7 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import {capitalize} from 'lodash'
+import {capitalize} from 'lodash-es'
 
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
@@ -88,6 +88,7 @@ export const niceError = (e: RPCError) => {
   if (!e) {
     return ''
   }
+
   switch (e.code) {
     case RPCTypes.constantsStatusCode.scnotfound:
       return "Sorry, can't find that username"

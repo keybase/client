@@ -21,4 +21,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Footer'))(Footer)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('Footer')
+)(Footer)

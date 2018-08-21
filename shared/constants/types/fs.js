@@ -3,10 +3,11 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
-import {type Actions} from '../../actions/fs-gen'
+// lets not create cycles in flow, lets discuss how to fix this
+// import {type Actions} from '../../actions/fs-gen'
 
 export opaque type Path = ?string
 
@@ -17,8 +18,8 @@ export type ProgressType = 'favorite' | 'pending' | 'loaded'
 export type _FsError = {
   time: number,
   error: string,
-  erroredAction: Actions,
-  retriableAction?: Actions,
+  erroredAction: any, // Actions,
+  retriableAction?: any, // Actions,
 }
 export type FsError = I.RecordOf<_FsError>
 

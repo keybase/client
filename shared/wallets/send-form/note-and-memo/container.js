@@ -9,6 +9,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     memoError: b.publicMemoErrMsg.stringValue(),
     noteError: b.secretNoteErrMsg.stringValue(),
+    toSelf: false, // TODO
   }
 }
 
@@ -23,6 +24,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('NoteAndMemo'))(
-  NoteAndMemo
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('NoteAndMemo')
+)(NoteAndMemo)

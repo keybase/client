@@ -1,5 +1,6 @@
-// @flow
+// @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'

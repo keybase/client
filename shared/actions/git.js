@@ -4,18 +4,16 @@ import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as WaitingGen from './waiting-gen'
 import * as NotificationsGen from './notifications-gen'
-import * as Entities from './entities'
+import * as EntitiesGen from './entities-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTreeTypes from '../constants/types/route-tree'
-import * as RouteTreeConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import * as Types from '../constants/types/git'
 import moment from 'moment'
 import {isMobile} from '../constants/platform'
-import {navigateTo, setRouteState} from './route-tree'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 
@@ -65,7 +63,9 @@ function* _loadGit(action: GitGen.LoadGitPayload): Saga.SagaGenerator<any, any> 
       }
     }
 
-    yield Saga.put(Entities.replaceEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
+    yield Saga.put(
+      EntitiesGen.createReplaceEntity({keyPath: ['git'], entities: I.Map({idToInfo: I.Map(idToInfo)})})
+    )
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.loadingWaitingKey}))
   }
@@ -77,7 +77,12 @@ function* _createDeleteHelper(theCall: any): Generator<any, void, any> {
   yield Saga.put.resolve(WaitingGen.createIncrementWaiting({key: Constants.loadingWaitingKey}))
   try {
     yield theCall
-    yield Saga.put(navigateTo(isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab], []))
+    yield Saga.put(
+      RouteTreeGen.createNavigateTo({
+        path: isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab],
+        parentPath: [],
+      })
+    )
     yield Saga.put(GitGen.createLoadGit())
   } catch (err) {
     yield Saga.put(GitGen.createSetError({error: err}))
@@ -196,17 +201,29 @@ const _processGitRepo = (results: Array<RPCTypes.GitRepoResult>) => {
     }
   }
 
-  return Saga.put(Entities.mergeEntity(['git'], I.Map({idToInfo: I.Map(idToInfo)})))
+  return Saga.put(
+    EntitiesGen.createMergeEntity({
+      keyPath: ['git'],
+      entities: I.Map({idToInfo: I.Map(idToInfo)}),
+    })
+  )
 }
 
 const _setError = (action: GitGen.SetErrorPayload) =>
-  Saga.put(Entities.replaceEntity(['git'], I.Map([['error', action.payload.error]])))
+  Saga.put(
+    EntitiesGen.createReplaceEntity({keyPath: ['git'], entities: I.Map([['error', action.payload.error]])})
+  )
 
 const _badgeAppForGit = (action: GitGen.BadgeAppForGitPayload) =>
-  Saga.put(Entities.replaceEntity(['git'], I.Map([['isNew', I.Set(action.payload.ids)]])))
+  Saga.put(
+    EntitiesGen.createReplaceEntity({
+      keyPath: ['git'],
+      entities: I.Map([['isNew', I.Set(action.payload.ids)]]),
+    })
+  )
 
 let _wasOnGitTab = false
-const _onTabChange = (action: RouteTreeTypes.SwitchTo) => {
+const _onTabChange = (action: RouteTreeGen.SwitchToPayload) => {
   // on the git tab?
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -237,7 +254,7 @@ function _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload) {
 function _navigateToTeamRepo(action: GitGen.NavigateToTeamRepoPayload) {
   return Saga.sequentially([
     Saga.call(_loadGit, GitGen.createLoadGit()),
-    Saga.identity(action),
+    Saga.call(() => action),
     // This needs to be a select so we get the store post-loadGit
     Saga.select((state: TypedState) => state.entities.getIn(['git', 'idToInfo'])),
   ])
@@ -251,8 +268,10 @@ function _processNavigateToTeamRepo(results: any[]) {
     return
   }
   return Saga.sequentially([
-    Saga.put(navigateTo([Tabs.gitTab])),
-    Saga.put(setRouteState([Tabs.gitTab], {expandedSet: I.Set([repo.id])})),
+    Saga.put(RouteTreeGen.createNavigateTo({path: [Tabs.gitTab]})),
+    Saga.put(
+      RouteTreeGen.createSetRouteState({path: [Tabs.gitTab], partialState: {expandedSet: I.Set([repo.id])}})
+    ),
   ])
 }
 
@@ -268,7 +287,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(GitGen.setError, _setError)
   yield Saga.safeTakeEveryPure(GitGen.badgeAppForGit, _badgeAppForGit)
   yield Saga.safeTakeEveryPure(GitGen.handleIncomingGregor, _handleIncomingGregor)
-  yield Saga.safeTakeEveryPure(RouteTreeConstants.switchTo, _onTabChange, null, logError)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEveryPure(GitGen.setTeamRepoSettings, _setTeamRepoSettings)
   yield Saga.safeTakeEveryPure(GitGen.loadGitRepo, _loadGitRepo, _processGitRepo)
   yield Saga.safeTakeEveryPure(GitGen.navigateToTeamRepo, _navigateToTeamRepo, _processNavigateToTeamRepo)

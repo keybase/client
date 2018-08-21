@@ -9,7 +9,7 @@ import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
 import {
   branch,
-  connect,
+  remoteConnect,
   compose,
   lifecycle,
   renderNothing,
@@ -65,7 +65,7 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(s => s, mapDispatchToProps, mergeProps),
+  remoteConnect(s => s, mapDispatchToProps, mergeProps),
   branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
