@@ -3,9 +3,10 @@ import * as React from 'react'
 import {Box, CopyableText, HeaderOnMobile, Text} from '../../../common-adapters'
 import {globalStyles, globalMargins} from '../../../styles'
 
-export type Props = {
+type Props = {|
+  onBack: () => void,
   text: string,
-}
+|}
 
 const ConversationError = ({text}: Props) => (
   <Box style={styleContainer}>

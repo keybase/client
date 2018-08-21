@@ -2480,3 +2480,17 @@ func NewRecipientNotFoundError(message string) error {
 		error: fmt.Errorf(message),
 	}
 }
+
+//=============================================================================
+
+type TeamFTLOutdatedError struct {
+	msg string
+}
+
+func NewTeamFTLOutdatedError(s string) error {
+	return TeamFTLOutdatedError{s}
+}
+
+func (t TeamFTLOutdatedError) Error() string {
+	return fmt.Sprintf("FTL outdated: %s", t.msg)
+}

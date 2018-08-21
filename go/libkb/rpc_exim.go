@@ -722,6 +722,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCTeamFTLOutdated:
+		return NewTeamFTLOutdatedError(s.Desc)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2340,5 +2342,12 @@ func (e MerkleClientError) ToStatus() (ret keybase1.Status) {
 	ret.Name = "MERKLE_CLIENT_ERROR"
 	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "type", Value: fmt.Sprintf("%d", int(e.t))})
 	ret.Desc = e.m
+	return ret
+}
+
+func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamFTLOutdated
+	ret.Name = "TEAM_FTL_OUTDATED"
+	ret.Desc = e.msg
 	return ret
 }

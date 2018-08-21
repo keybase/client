@@ -3,17 +3,19 @@ import logger from '../../logger'
 import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouteTreeGen from '../route-tree-gen'
 import engine, {Engine} from '../../engine'
-import {navigateTo, navigateAppend} from '../route-tree'
 import {peopleTab} from '../../constants/tabs'
 
-import type {NavigateTo} from '../../constants/types/route-tree'
 import type {ProvablePlatformsType} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-const _askTextOrDNS = (): NavigateTo => navigateTo(['proveWebsiteChoice'], [peopleTab])
-const _registerBTC = (): NavigateTo => navigateTo(['proveEnterUsername'], [peopleTab])
-const _registerZcash = (): NavigateTo => navigateTo(['proveEnterUsername'], [peopleTab])
+const _askTextOrDNS = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveWebsiteChoice'], parentPath: [peopleTab]})
+const _registerBTC = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]})
+const _registerZcash = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]})
 
 function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
@@ -38,7 +40,7 @@ function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<
       )
     } else {
       yield Saga.put(ProfileGen.createUpdateProofStatus({found, status}))
-      yield Saga.put(navigateAppend(['confirmOrPending'], [peopleTab]))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['confirmOrPending'], parentPath: [peopleTab]}))
     }
   } catch (error) {
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))
@@ -81,7 +83,7 @@ function _addProof(action: ProfileGen.AddProofPayload) {
       actions.push(Saga.call(_addServiceProof, action.payload.platform))
       break
     case 'pgp':
-      actions.push(Saga.put(navigateAppend(['pgp'], [peopleTab])))
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['pgp'], parentPath: [peopleTab]})))
   }
 
   return Saga.sequentially(actions)
@@ -93,7 +95,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
 
   yield Saga.put(ProfileGen.createUpdateSigID({sigID: null}))
 
-  const proveStartProofChanMap = RPCTypes.proveStartProofRpcChannelMap(
+  const proveStartProofChanMap: any = RPCTypes.proveStartProofRpcChannelMap(
     [
       'keybase.1.proveUi.promptUsername',
       'keybase.1.proveUi.outputInstructions',
@@ -167,7 +169,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
           })
         )
       }
-      yield Saga.put(navigateTo(['proveEnterUsername'], [peopleTab]))
+      yield Saga.put(RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]}))
     } else if (incoming['keybase.1.proveUi.outputInstructions']) {
       // $FlowIssue
       if (service === 'dnsOrGenericWebSite') {
@@ -189,7 +191,7 @@ function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<a
         })
       )
       _outputInstructionsResponse = incoming['keybase.1.proveUi.outputInstructions'].response
-      yield Saga.put(navigateAppend(['postProof'], [peopleTab]))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['postProof'], parentPath: [peopleTab]}))
     } else if (incoming.finished) {
       yield Saga.put(ProfileGen.createUpdateSigID({sigID: incoming.finished.params.sigID}))
       if (incoming.finished.error) {
@@ -262,7 +264,7 @@ function* _submitCryptoAddress(
     yield Saga.put(
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok})
     )
-    yield Saga.put(navigateAppend(['confirmOrPending'], [peopleTab]))
+    yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['confirmOrPending'], parentPath: [peopleTab]}))
   } catch (error) {
     logger.warn('Error making proof')
     yield Saga.put(ProfileGen.createWaiting({waiting: false}))

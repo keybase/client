@@ -163,14 +163,11 @@ func (t testUISource) GetStreamUICli() *keybase1.StreamUiClient {
 // Create a team with me as the owner
 func createTeam(tc libkb.TestContext) string {
 	b, err := libkb.RandBytes(4)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	name := hex.EncodeToString(b)
+	require.NoError(tc.T, err)
+
+	name := fmt.Sprintf("TeAm%v", hex.EncodeToString(b))
 	_, err = teams.CreateRootTeam(context.TODO(), tc.G, name, keybase1.TeamSettings{})
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 	return name
 }
 
@@ -649,7 +646,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 			require.Equal(t, refName, conv.MaxMsgSummaries[0].TlfName)
 		case chat1.ConversationMembersType_TEAM:
 			teamName := ctc.teamCache[teamKey(ctc.users())]
-			require.Equal(t, teamName, conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, strings.ToLower(teamName), conv.MaxMsgSummaries[0].TlfName)
 		}
 	})
 }
@@ -2478,6 +2475,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2517,6 +2515,7 @@ func TestChatSrvGetThreadNonblockServerPage(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2582,6 +2581,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2617,6 +2617,7 @@ func TestChatSrvGetThreadNonblockIncremental(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2718,6 +2719,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2765,6 +2767,7 @@ func TestChatSrvGetThreadNonblockSupersedes(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)
@@ -2988,6 +2991,7 @@ func TestChatSrvGetThreadNonblockPlaceholderFirst(t *testing.T) {
 			require.NoError(t, err)
 			close(cb)
 		}()
+		clock.Advance(50 * time.Millisecond)
 		select {
 		case res := <-threadCb:
 			require.False(t, res.Full)

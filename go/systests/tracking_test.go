@@ -11,6 +11,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -213,4 +214,50 @@ func TestTrackingNotifications(t *testing.T) {
 	if err := <-stopCh; err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestV2Compressed(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	aliceG := alice.tc.G
+
+	tt.addUser("wong")
+	wong := tt.users[1]
+	wongG := wong.tc.G
+	iuiW := newSimpleIdentifyUI()
+	attachIdentifyUI(t, wongG, iuiW)
+	iuiW.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
+
+	idAndListFollowers := func(username string) {
+		cli1, err := client.GetIdentifyClient(aliceG)
+		require.NoError(t, err)
+		_, err = cli1.Identify2(context.TODO(), keybase1.Identify2Arg{
+			UserAssertion:    username,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		})
+		require.NoError(t, err)
+
+		cli2, err := client.GetUserClient(aliceG)
+		require.NoError(t, err)
+		_, err = cli2.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{
+			Assertion: username,
+			Reverse:   false,
+		})
+		require.NoError(t, err)
+	}
+
+	aliceG.ProofCache.DisableDisk()
+	wongG.ProofCache.DisableDisk()
+	// The track/untrack statements will be stubbed links, the proveRooter will
+	// not
+	wong.track(alice.username)
+	// ensure we don't stub a non-stubable
+	wong.proveRooter()
+	idAndListFollowers(wong.username)
+
+	// ensure we don't stub tail since we need to check against the merkle tree
+	wong.untrack(alice.username)
+	idAndListFollowers(wong.username)
 }

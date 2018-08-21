@@ -941,6 +941,8 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
 	if err = isAbortedRequest(ctx); err != nil {
 		return res, err

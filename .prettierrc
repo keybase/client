@@ -13,7 +13,7 @@
       }
     },
     {
-      "files": "rpc-*gen*.js",
+      "files": "rpc-*gen*",
       "options": {
         "printWidth": 9999
       }

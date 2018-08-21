@@ -266,7 +266,7 @@ class TabBar extends React.Component<Props> {
         style={{
           ...globalStyles.flexBoxRow,
           flexShrink: 0,
-          borderBottom: `solid 1px ${globalColors.black_05}`,
+          borderBottom: `solid 1px ${globalColors.black_10}`,
           ...this.props.styleTabBar,
         }}
       >

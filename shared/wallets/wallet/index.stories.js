@@ -11,7 +11,7 @@ const provider = Sb.createPropProviderWithCommon({
   Header: props => ({
     onDeposit: Sb.action('onDeposit'),
     onReceive: Sb.action('onReceive'),
-    onSendToAnotherWallet: Sb.action('onSendToAnotherWallet'),
+    onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
     onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
     onSettings: Sb.action('onSettings'),

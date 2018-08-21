@@ -30,10 +30,10 @@ const Wallet = (props: Props) => {
       children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
-        // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
           paymentID={item.paymentID}
+          status={item.status}
           key={`${props.accountID}:${item.paymentID}`}
         />
       )

@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 
@@ -15,21 +15,59 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   description: '',
 })
 
+const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
+  amount: '0',
+  currency: 'XLM', // FIXME: Use default currency?
+  from: '',
+  publicMemo: new HiddenString(''),
+  recipientType: null,
+  secretNote: new HiddenString(''),
+  to: '',
+})
+
+const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
+  amountErrMsg: '',
+  banners: null,
+  publicMemoErrMsg: new HiddenString(''),
+  readyToSend: false,
+  secretNoteErrMsg: new HiddenString(''),
+  toErrMsg: '',
+  toUsername: '',
+  worthDescription: '',
+  worthInfo: '',
+})
+
 const makeState: I.RecordFactory<Types._State> = I.Record({
   accountMap: I.Map(),
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
   assetsMap: I.Map(),
+  buildingPayment: makeBuildingPayment(),
+  builtPayment: makeBuiltPayment(),
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
+  pendingMap: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
 })
+
+const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
+  makeBuiltPayment({
+    amountErrMsg: b.amountErrMsg,
+    banners: b.banners,
+    publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
+    readyToSend: b.readyToSend,
+    secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
+    toErrMsg: b.toErrMsg,
+    toUsername: b.toUsername,
+    worthDescription: b.worthDescription,
+    worthInfo: b.worthInfo,
+  })
 
 const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
@@ -78,9 +116,9 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   delta: 'none',
   error: '',
   id: {txID: ''},
-  note: '',
-  noteErr: '',
-  publicMemo: '',
+  note: new HiddenString(''),
+  noteErr: new HiddenString(''),
+  publicMemo: new HiddenString(''),
   publicMemoType: '',
   source: '',
   sourceType: '',
@@ -108,8 +146,8 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     delta: balanceDeltaToString[p.delta],
     error: '',
     id: p.id,
-    note: p.note,
-    noteErr: p.noteErr,
+    note: new HiddenString(p.note),
+    noteErr: new HiddenString(p.noteErr),
     source: p.source,
     sourceType: partyTypeToString[p.sourceType],
     statusDescription: p.statusDescription,
@@ -129,7 +167,7 @@ const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => 
     case 'sbs':
     case 'keybase':
       if (p.source === p.target) {
-        return 'account'
+        return 'otherAccount'
       }
       return 'keybaseUser'
     case 'stellar':
@@ -144,6 +182,8 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
 
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 
+const sendPaymentWaitingKey = 'wallets:stellarSend'
+
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
@@ -151,8 +191,14 @@ const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
 
+const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
+
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
   state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+
+const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
+  state.wallets.pendingMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
@@ -173,22 +219,28 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wa
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  buildPaymentResultToBuiltPayment,
   getAccountIDs,
   getAccount,
   getAssets,
   getFederatedAddress,
   getPayment,
   getPayments,
+  getPendingPayment,
+  getPendingPayments,
   getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeBuildingPayment,
+  makeBuiltPayment,
   makePayment,
   makeReserve,
   makeState,
   paymentResultToPayment,
   paymentToCounterpartyType,
   paymentToYourRole,
+  sendPaymentWaitingKey,
 }

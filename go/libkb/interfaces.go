@@ -618,6 +618,11 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type FastTeamLoader interface {
+	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	OnLogout()
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletGated(context.Context) error

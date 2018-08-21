@@ -5,8 +5,9 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants, {type Recipient} from '../participants'
+import Participants from '../participants'
 import NoteAndMemo from './note-and-memo'
+import type {CounterpartyType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -20,14 +21,14 @@ type ConfirmSendProps = {|
   publicMemo?: string,
   bannerBackground?: Background,
   bannerText?: string,
-
+  waitingKey?: string,
   // TODO: these props are probably one level too high, and should be in Participants' container.
   yourUsername: string,
   yourWalletName: string,
   yourWalletContents: string,
   receiverUsername: string,
   receiverFullName: string,
-  recipientType: Recipient,
+  recipientType: CounterpartyType,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -64,10 +65,10 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         gapEnd={true}
         style={styles.buttonContainer}
       >
-        <Kb.Button
+        <Kb.WaitingButton
           type="PrimaryGreen"
           onClick={props.onSendClick}
-          waiting={props.waiting}
+          waitingKey={props.waitingKey}
           fullWidth={true}
           style={styles.button}
           children={
@@ -80,7 +81,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodySemibold" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
-                  {props.amount}
+                  {props.amount} {props.assetType}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>
@@ -104,7 +105,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       borderTopStyle: 'solid',
       borderTopWidth: 1,
-      borderTopColor: Styles.globalColors.black_05,
+      borderTopColor: Styles.globalColors.black_10,
     },
   }),
   button: {
