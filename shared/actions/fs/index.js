@@ -356,7 +356,6 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
 
 let polling = false
 function* pollSyncStatusUntilDone(action: FsGen.FsActivityPayload): Saga.SagaGenerator<any, any> {
-  console.log('pollllllll')
   if (polling) {
     return
   }
