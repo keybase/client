@@ -22,102 +22,136 @@ type ToFieldProps = {|
   onRemoveProfile?: () => void,
 |}
 
-const ToField = (props: ToFieldProps) => {
-  const stellarIcon = (
-    <Kb.Icon
-      type={props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
-      style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-    />
-  )
+type ToFieldState = {|
+  selectedAccount?: Account,
+|}
 
-  let component
-
-  if (props.recipientType === 'keybaseUser' && props.username) {
-    component = (
-      <React.Fragment>
-        <Kb.NameWithIcon
-          colorFollowing={true}
-          horizontal={true}
-          username={props.username}
-          metaOne={props.fullName}
-          onClick={props.onShowProfile}
-          avatarStyle={styles.avatar}
-        />
-        <Kb.Icon
-          type="iconfont-remove"
-          boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-          fontSize={16}
-          color={Styles.globalColors.black_20}
-          onClick={props.onRemoveProfile}
-        />
-      </React.Fragment>
-    )
-  } else if (props.recipientType === 'otherAccount') {
-    if (props.accounts.length <= 1) {
-      component = (
-        <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
-      )
-    } else {
-      let items = [
-        <DropdownText key="link-existing" text="Link an existing Stellar account" />,
-        <DropdownText key="create-new" text="Create a new account" />,
-      ]
-
-      if (props.accounts.length > 0) {
-        const walletItems = props.accounts.map((account, index) => (
-          <DropdownEntry key={index} account={account} />
-        ))
-        items = walletItems.concat(items)
-      }
-
-      component = (
-        <Kb.Dropdown
-          onChanged={() => console.log('hi')}
-          items={items}
-          selected={<SelectedEntry account={props.accounts[0]} />}
-        />
-      )
-    }
-  } else {
-    component = (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-          {props.recipientType === 'stellarPublicKey' && stellarIcon}
-          <Kb.NewInput
-            type="text"
-            onChangeText={props.onChangeAddress}
-            textType="BodySemibold"
-            placeholder={props.recipientType === 'stellarPublicKey' ? 'Stellar address' : 'Search Keybase'}
-            placeholderColor={Styles.globalColors.black_20}
-            hideBorder={true}
-            containerStyle={styles.input}
-            multiline={true}
-            rowsMin={props.recipientType === 'stellarPublicKey' ? 2 : 1}
-            rowsMax={3}
-          />
-        </Kb.Box2>
-        {!!props.incorrect && (
-          <Kb.Text type="BodySmall" style={styles.errorText}>
-            {props.incorrect}
-          </Kb.Text>
-        )}
-      </Kb.Box2>
-    )
+class ToField extends React.Component<ToFieldProps, ToFieldState> {
+  state = {
+    selectedAccount: undefined,
   }
 
-  return (
-    <Row
-      heading="To:"
-      headingAlignment={props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
-      headingStyle={
-        props.recipientType === 'stellarPublicKey' && !props.username ? {alignSelf: 'flex-start'} : {}
+  onDropdownChange = (node: React.Node) => {
+    if (React.isValidElement(node)) {
+      // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
+      const element = (node: React.Element<any>)
+      if (element.type === DropdownText) {
+        if (element.key === 'create-new') {
+          console.log('hey!')
+        } else if (element.key === 'link-existing') {
+          console.log('ho!')
+        }
+      } else {
+        this.setState({
+          selectedAccount: element.props.account,
+        })
       }
-      dividerColor={props.incorrect ? Styles.globalColors.red : ''}
-      bottomDivider={false}
-    >
-      {component}
-    </Row>
-  )
+    }
+  }
+
+  render() {
+    const stellarIcon = (
+      <Kb.Icon
+        type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+        style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+      />
+    )
+
+    let component
+
+    if (this.props.recipientType === 'keybaseUser' && this.props.username) {
+      component = (
+        <React.Fragment>
+          <Kb.NameWithIcon
+            colorFollowing={true}
+            horizontal={true}
+            username={this.props.username}
+            metaOne={this.props.fullName}
+            onClick={this.props.onShowProfile}
+            avatarStyle={styles.avatar}
+          />
+          <Kb.Icon
+            type="iconfont-remove"
+            boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
+            fontSize={16}
+            color={Styles.globalColors.black_20}
+            onClick={this.props.onRemoveProfile}
+          />
+        </React.Fragment>
+      )
+    } else if (this.props.recipientType === 'otherAccount') {
+      if (this.props.accounts.length <= 1) {
+        component = (
+          <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
+        )
+      } else {
+        let items = [
+          <DropdownText key="link-existing" text="Link an existing Stellar account" />,
+          <DropdownText key="create-new" text="Create a new account" />,
+        ]
+
+        if (this.props.accounts.length > 0) {
+          const walletItems = this.props.accounts.map((account, index) => (
+            <DropdownEntry key={index} account={account} />
+          ))
+          items = walletItems.concat(items)
+        }
+
+        component = (
+          <Kb.Dropdown
+            onChanged={this.onDropdownChange}
+            items={items}
+            selected={
+              this.state.selectedAccount ? <SelectedEntry account={this.state.selectedAccount} /> : undefined
+            }
+          />
+        )
+      }
+    } else {
+      component = (
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+            {this.props.recipientType === 'stellarPublicKey' && stellarIcon}
+            <Kb.NewInput
+              type="text"
+              onChangeText={this.props.onChangeAddress}
+              textType="BodySemibold"
+              placeholder={
+                this.props.recipientType === 'stellarPublicKey' ? 'Stellar address' : 'Search Keybase'
+              }
+              placeholderColor={Styles.globalColors.black_20}
+              hideBorder={true}
+              containerStyle={styles.input}
+              multiline={true}
+              rowsMin={this.props.recipientType === 'stellarPublicKey' ? 2 : 1}
+              rowsMax={3}
+            />
+          </Kb.Box2>
+          {!!this.props.incorrect && (
+            <Kb.Text type="BodySmall" style={styles.errorText}>
+              {this.props.incorrect}
+            </Kb.Text>
+          )}
+        </Kb.Box2>
+      )
+    }
+
+    return (
+      <Row
+        heading="To:"
+        headingAlignment={this.props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
+        headingStyle={
+          this.props.recipientType === 'stellarPublicKey' && !this.props.username
+            ? {alignSelf: 'flex-start'}
+            : {}
+        }
+        dividerColor={this.props.incorrect ? Styles.globalColors.red : ''}
+        bottomDivider={false}
+      >
+        {component}
+      </Row>
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({

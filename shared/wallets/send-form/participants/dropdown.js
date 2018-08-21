@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+// import * as Styles from '../../../styles'
 import WalletEntry from '../../wallet-entry'
 import type {Account} from '.'
 
@@ -21,9 +22,9 @@ type SelectedEntryProps = {
 
 /** The display of the selected account in the dropdown */
 export const SelectedEntry = ({account, ...props}: SelectedEntryProps) => (
-  <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny">
-    <Kb.Avatar size={32} username={account.user} />
-    <Kb.Text type="Body">{account.name}</Kb.Text>
+  <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
+    <Kb.Avatar size={16} username={account.user} />
+    <Kb.Text type="BodySemibold">{account.name}</Kb.Text>
   </Kb.Box2>
 )
 
@@ -37,5 +38,6 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
     name={props.account.name}
     contents={props.account.contents}
     showWalletIcon={false}
+    center={true}
   />
 )
