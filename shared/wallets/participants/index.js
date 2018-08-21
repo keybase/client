@@ -34,7 +34,7 @@ const Participants = (props: ParticipantsProps) => (
       props.fromWallet && (
         <FromField
           isConfirm={props.isConfirm || false}
-          selectedWallet={props.fromWallet}
+          initialWallet={props.fromWallet}
           wallets={props.wallets}
         />
       )}
