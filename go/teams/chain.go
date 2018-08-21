@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 
 	"golang.org/x/net/context"
 
@@ -654,9 +655,9 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
 
-	var prevAdmins []keybase1.UserVersion
+	var prevAdminsOrAbove []keybase1.UserVersion
 	if prevState != nil {
-		prevAdmins, err = prevState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
+		prevAdminsOrAbove, err = prevState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
 		if err != nil {
 			return res, fmt.Errorf("cannot get admins on team sigchain: %s", err)
 		}
@@ -684,7 +685,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	newState.inner.LastLinkID = link.LinkID().Export()
 	newState.inner.LinkIDs[link.Seqno()] = link.LinkID().Export()
 
-	wasHigh, err := t.wasHighLink(prevAdmins, newState, link)
+	wasHigh, err := t.wasHighLink(prevAdminsOrAbove, newState, link)
 	if err != nil {
 		return res, fmt.Errorf("cannot determine if this team chain link is high: %s", err)
 	}
@@ -700,17 +701,19 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	return *newState, nil
 }
 
-func (t *teamSigchainPlayer) wasHighLink(prevAdmins []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
+func (t *teamSigchainPlayer) wasHighLink(prevAdminsOrAbove []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
 	switch link.LinkType() {
 	case libkb.SigchainV2TypeTeamRoot, libkb.SigchainV2TypeTeamSubteamHead:
 		return true, nil
 	case libkb.SigchainV2TypeTeamChangeMembership:
-		// only if this changed the current set of explicit admins on the team
-		currentAdmins, err := newState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
+		// only if this changed the current set of explicit admins/owners on the team
+		currentAdminsOrAbove, err := newState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
 		if err != nil {
 			return true, err
 		}
-		return !reflect.DeepEqual(currentAdmins, prevAdmins), nil
+		sort.Sort(keybase1.ByUserVersionID(prevAdminsOrAbove))
+		sort.Sort(keybase1.ByUserVersionID(currentAdminsOrAbove))
+		return !reflect.DeepEqual(currentAdminsOrAbove, prevAdminsOrAbove), nil
 	default:
 		return false, nil
 	}
