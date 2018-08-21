@@ -298,6 +298,13 @@ func (f *JSONFile) save() (err error) {
 	return nil
 }
 
+func (f *jsonFileTransaction) Rollback() error {
+	f.f.G().Log.Debug("+ Rolling back %s to state from %s", f.f.which, f.f.filename)
+	err := f.f.Load(false)
+	f.f.G().Log.Debug("- Rollback -> %s", ErrToOk(err))
+	return err
+}
+
 func (f *jsonFileTransaction) Abort() error {
 	f.f.G().Log.Debug("+ Aborting %s rewrite %s", f.f.which, f.tmpname)
 	err := os.Remove(f.tmpname)
@@ -308,7 +315,10 @@ func (f *jsonFileTransaction) Abort() error {
 
 func (f *jsonFileTransaction) Commit() (err error) {
 	f.f.G().Log.Debug("+ Commit %s rewrite %s", f.f.which, f.tmpname)
-	defer func() { f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err)) }()
+	defer func() {
+		f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err))
+		f.f.setTx(nil)
+	}()
 
 	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
 	if err = MakeParentDirs(f.f.G().Log, f.f.filename); err != nil {
@@ -319,8 +329,6 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	if err != nil {
 		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
 	}
-	f.f.setTx(nil)
-
 	return err
 }
 

@@ -88,6 +88,21 @@ func (a *ActiveDevice) ClearCaches() {
 	a.secretPromptCancelTimer.Reset()
 }
 
+// CreateActiveDeviceBackup creates a backup of ActiveDevice that can
+// be later passed to ActiveDevice.SetOrClear to restore said backup.
+func (a *ActiveDevice) CreateBackup() (ret *ActiveDevice) {
+	a.Lock()
+	ret = &ActiveDevice{
+		uv:            a.uv,
+		deviceID:      a.deviceID,
+		signingKey:    a.signingKey,
+		encryptionKey: a.encryptionKey,
+		deviceName:    a.deviceName,
+	}
+	a.Unlock()
+	return ret
+}
+
 // Copy ActiveDevice info from the given ActiveDevice.
 func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 

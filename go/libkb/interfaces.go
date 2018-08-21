@@ -189,6 +189,7 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
