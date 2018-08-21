@@ -3,14 +3,21 @@
 
 package libkb
 
+// RunMode is an enum type for the mode the Keybase app runs in.
 type RunMode string
 
 const (
-	DevelRunMode      RunMode = "devel"
-	StagingRunMode    RunMode = "staging"
+	// DevelRunMode means use devel servers.
+	DevelRunMode RunMode = "devel"
+	// DevelRunMode means use staging servers.
+	StagingRunMode RunMode = "staging"
+	// DevelRunMode means use prod servers (default for released apps).
 	ProductionRunMode RunMode = "prod"
-	RunModeError      RunMode = "error"
-	NoRunMode         RunMode = ""
+	// RunModeError means an error was encountered.
+	RunModeError RunMode = "error"
+	// NoRunMode is the nil value for RunMode.
+	NoRunMode RunMode = ""
 )
 
+// KBFSLogFileName is the name of the log file for KBFS.
 const KBFSLogFileName = "keybase.kbfs.log"
