@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import Row from '../../participants-row'
+import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import type {Account} from '.'
 import type {CounterpartyType} from '../../../constants/types/wallets'
 
@@ -57,7 +58,25 @@ const ToField = (props: ToFieldProps) => {
         <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
       )
     } else {
-      // component = <Kb.Dropdown />
+      let items = [
+        <DropdownText key="link-existing" text="Link an existing Stellar account" />,
+        <DropdownText key="create-new" text="Create a new account" />,
+      ]
+
+      if (props.accounts.length > 0) {
+        const walletItems = props.accounts.map((account, index) => (
+          <DropdownEntry key={index} account={account} />
+        ))
+        items = walletItems.concat(items)
+      }
+
+      component = (
+        <Kb.Dropdown
+          onChanged={() => console.log('hi')}
+          items={items}
+          selected={<SelectedEntry account={props.accounts[0]} />}
+        />
+      )
     }
   } else {
     component = (
@@ -110,11 +129,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     marginRight: Styles.globalMargins.xxtiny,
   },
-  stellarAddressConfirmText: Styles.platformStyles({
-    isElectron: {
-      wordBreak: 'break-all',
-    },
-  }),
   avatar: {
     marginRight: 8,
   },
