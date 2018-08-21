@@ -73,13 +73,3 @@ func (n NormalizedUsername) CheckValid() error {
 	}
 	return nil
 }
-
-// NormalizedUsernamesToStrings converts the given list of normalized
-// usernames to a list of strings.
-func NormalizedUsernamesToStrings(names []NormalizedUsername) []string {
-	y := make([]string, len(names))
-	for i, n := range names {
-		y[i] = n.String()
-	}
-	return y
-}
