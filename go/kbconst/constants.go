@@ -9,9 +9,10 @@ type RunMode string
 const (
 	// DevelRunMode means use devel servers.
 	DevelRunMode RunMode = "devel"
-	// DevelRunMode means use staging servers.
+	// StagingRunMode means use staging servers.
 	StagingRunMode RunMode = "staging"
-	// DevelRunMode means use prod servers (default for released apps).
+	// ProductionRunMode means use prod servers (default for
+	// released apps).
 	ProductionRunMode RunMode = "prod"
 	// RunModeError means an error was encountered.
 	RunModeError RunMode = "error"
