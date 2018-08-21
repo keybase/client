@@ -1904,21 +1904,25 @@ const iconMeta_ = {
   'icon-wallet-remove-48': {
     isFont: false,
     extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-remove-48.png'),
   },
   'icon-wallet-remove-64': {
     isFont: false,
     extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-remove-64.png'),
   },
   'icon-wallet-secret-key-48': {
     isFont: false,
     extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-secret-key-48.png'),
   },
   'icon-wallet-secret-key-64': {
     isFont: false,
     extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-secret-key-64.png'),
   },
   'icon-website-16': {

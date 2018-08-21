@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
-import {globalMargins, isMobile, styleSheetCreate, platformStyles} from '../../styles'
+import * as Styles from '../../styles'
 import WalletPopup from '../wallet-popup'
 
 type Props = {
@@ -15,7 +15,7 @@ const ReceiveModal = (props: Props) => {
   const header = (
     <React.Fragment>
       <Text type="BodySmallSemibold">{props.username}’s account</Text>
-      <Text type={isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+      <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
         Receive
       </Text>
     </React.Fragment>
@@ -31,14 +31,14 @@ const ReceiveModal = (props: Props) => {
     <WalletPopup
       onClose={props.onClose}
       customCancelText="Close"
-      customComponent={isMobile && mobileHeaderWrapper}
+      customComponent={Styles.isMobile && mobileHeaderWrapper}
       containerStyle={styles.container}
     >
       <Icon
-        type={isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
+        type={Styles.isMobile ? 'icon-wallet-receive-64' : 'icon-wallet-receive-48'}
         style={iconCastPlatformStyles(styles.icon)}
       />
-      {!isMobile && header}
+      {!Styles.isMobile && header}
       <Text type="Body" style={styles.instructionText}>
         To receive Lumens or assets from non-Keybase users, pass your Stellar addresses around:
       </Text>
@@ -60,66 +60,62 @@ const ReceiveModal = (props: Props) => {
           Use the chat interface to request Lumens from a Keybase user.
         </Text>
       </InfoNote>
-      {!isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
+      {!Styles.isMobile && <Button label="Close" onClick={props.onClose} type="Secondary" />}
     </WalletPopup>
   )
 }
 
-const styles = styleSheetCreate({
-  container: platformStyles({
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
     isMobile: {
-      paddingTop: globalMargins.medium,
-      paddingBottom: globalMargins.xlarge,
+      paddingTop: Styles.globalMargins.medium,
+      paddingBottom: Styles.globalMargins.xlarge,
     },
   }),
-  header: platformStyles({
+  header: Styles.platformStyles({
     isMobile: {
-      position: 'absolute',
-      left: 0,
-      bottom: 0,
-      right: 0,
-      top: 0,
+      ...Styles.globalStyles.fillAbsolute,
       flex: 1,
     },
   }),
-  headerText: platformStyles({
+  headerText: Styles.platformStyles({
     common: {
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: globalMargins.medium,
+      marginBottom: Styles.globalMargins.medium,
     },
   }),
-  icon: platformStyles({
+  icon: Styles.platformStyles({
     isElectron: {
-      marginBottom: globalMargins.small,
+      marginBottom: Styles.globalMargins.small,
     },
     isMobile: {
       marginBottom: 50,
     },
   }),
   infoNoteText: {
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
     textAlign: 'center',
   },
-  instructionText: platformStyles({
+  instructionText: Styles.platformStyles({
     common: {
       textAlign: 'center',
     },
     isElectron: {
-      marginBottom: globalMargins.medium,
+      marginBottom: Styles.globalMargins.medium,
     },
-    isMobile: {marginBottom: globalMargins.small},
+    isMobile: {marginBottom: Styles.globalMargins.small},
   }),
   orText: {
-    marginBottom: globalMargins.tiny,
+    marginBottom: Styles.globalMargins.tiny,
   },
   stellarAddressContainer: {
-    marginBottom: globalMargins.tiny,
+    marginBottom: Styles.globalMargins.tiny,
     width: '100%',
   },
   federatedAddressContainer: {
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
     width: '100%',
   },
 })
