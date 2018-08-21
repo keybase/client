@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   platformHandle: routeProps.get('platformHandle'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch, {routeProps}) => ({
   onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
   onRevoke: () => {
     if (routeProps.get('platform') === 'pgp') {

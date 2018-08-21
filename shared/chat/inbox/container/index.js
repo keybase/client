@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),

@@ -59,7 +59,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => {
     dispatch(setRouteState(path, partialState))

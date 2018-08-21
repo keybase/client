@@ -50,7 +50,7 @@ type DispatchProps = {|
   // TODO remove member
 |}
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}): DispatchProps => ({
   onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
   _onEditMembership: (name: string, username: string) =>
     dispatch(

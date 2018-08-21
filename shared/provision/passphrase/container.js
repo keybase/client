@@ -66,7 +66,7 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: WaitingConstants.anyWaiting(state, Constants.waitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onSubmit: (passphrase: string) =>

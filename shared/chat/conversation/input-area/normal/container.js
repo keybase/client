@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import HiddenString from '../../../../util/hidden-string'
-import {connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 import Input, {type Props} from '.'
 
 type OwnProps = {

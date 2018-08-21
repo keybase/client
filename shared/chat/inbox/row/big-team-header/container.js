@@ -1,5 +1,5 @@
 // @flow
-import {connect, type Dispatch, type TypedState} from '../../../../util/container'
+import {connect, type TypedState} from '../../../../util/container'
 import {isTeamWithChosenChannels, getTeamMemberCount} from '../../../../constants/teams'
 import {navigateTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {teamname}) => ({
   teamname,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
+const mapDispatchToProps = (dispatch, {teamname}) => ({
   onClick: () => dispatch(navigateTo([teamsTab, {props: {teamname}, selected: 'team'}])),
 })
 

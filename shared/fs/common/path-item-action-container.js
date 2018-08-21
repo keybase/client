@@ -30,7 +30,7 @@ const mapStateToProps = (state: TypedState) => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),

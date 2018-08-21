@@ -29,7 +29,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: WaitingConstants.anyWaiting(state, getPeopleDataWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   getData: (markViewed = true) =>
     dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
   onSearch: () => {

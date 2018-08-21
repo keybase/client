@@ -4,11 +4,11 @@ import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
 import {isMobile} from '../../constants/platform'
 import {navigateUp} from '../../actions/route-tree'
-import {compose, connect, setDisplayName, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import FolderHeader from './header'
 
-const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
+const mapDispatchToProps = (dispatch, {path, routePath}) => ({
   onBack: isMobile ? () => dispatch(navigateUp()) : undefined, // TODO: put if on route ...
   onChat: () =>
     dispatch(

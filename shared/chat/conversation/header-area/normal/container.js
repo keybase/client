@@ -38,7 +38,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),

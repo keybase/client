@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
+const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 

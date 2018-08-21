@@ -29,7 +29,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _onMuteConversation: (muted: boolean) =>
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
   _updateNotifications: (

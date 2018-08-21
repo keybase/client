@@ -360,7 +360,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 

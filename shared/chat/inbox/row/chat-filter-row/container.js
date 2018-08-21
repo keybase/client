@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
+const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))

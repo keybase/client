@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
   onBack: () => dispatch(navigateUp()),
 })

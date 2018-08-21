@@ -41,7 +41,7 @@ type DispatchProps = {|
   onCancel: () => void,
 |}
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(
       TeamsGen.createAddToTeam({

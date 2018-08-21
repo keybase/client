@@ -13,6 +13,6 @@ function TestPopup({onClose}: {onClose: () => void}) {
   )
 }
 
-export default connect(null, (dispatch: Dispatch) => ({
+export default connect(null, (dispatch) => ({
   onClose: () => dispatch(navigateUp()),
 }))(TestPopup)

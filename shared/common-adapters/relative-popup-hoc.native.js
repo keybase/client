@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import {connect, type Dispatch} from '../util/container'
+import {connect} from '../util/container'
 import type {RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
 const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   const C: React.ComponentType<Props<any>> = connect(
     () => ({}),
-    (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+    (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())
         const onPopupWillClose = routeProps.get('onPopupWillClose')
