@@ -99,7 +99,10 @@
     },
     "installKBFS": {},
     "uninstallKBFSConfirm": {},
-    "fsActivity": {},
+    "notifyTlfUpdate": {
+      "tlfPath": "Types.Path"
+    },
+    "notifySyncActivity": {},
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},
     "localHTTPServerInfo": {

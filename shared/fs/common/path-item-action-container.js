@@ -181,7 +181,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     lastWriter: pathItem.lastWriter.username,
     name: pathElements[pathElements.length - 1],
     size: pathItem.size,
-    needLoadMimeType: type === 'file' && pathItem.mimeType === '',
+    // The file content could change, resulting mime type change. So just
+    // request it regardless whether we have it or not. The FS saga takes care
+    // of preventing the RPC if it's already subscribed.
+    needLoadMimeType: type === 'file',
     needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
@@ -212,7 +215,6 @@ export default compose(
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
         return
       }
-      // TODO: get rid of these when we have notifications in place.
       this.props.needFolderList && this.props.loadFolderList()
       this.props.needLoadMimeType && this.props.loadMimeType()
     },

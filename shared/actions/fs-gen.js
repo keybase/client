@@ -27,7 +27,6 @@ export const filePreviewLoad = 'fs:filePreviewLoad'
 export const filePreviewLoaded = 'fs:filePreviewLoaded'
 export const folderListLoad = 'fs:folderListLoad'
 export const folderListLoaded = 'fs:folderListLoaded'
-export const fsActivity = 'fs:fsActivity'
 export const fsError = 'fs:fsError'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
@@ -41,6 +40,8 @@ export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
 export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
+export const notifySyncActivity = 'fs:notifySyncActivity'
+export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -109,7 +110,6 @@ type _FolderListLoadedPayload = $ReadOnly<{|
   path: Types.Path,
   pathItems: I.Map<Types.Path, Types.PathItem>,
 |}>
-type _FsActivityPayload = void
 type _FsErrorPayload = $ReadOnly<{|error: Types.FsError|}>
 type _FuseStatusPayload = void
 type _FuseStatusResultPayload = $ReadOnly<{|
@@ -145,6 +145,8 @@ type _NewFolderNamePayload = $ReadOnly<{|
   name: string,
 |}>
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
+type _NotifySyncActivityPayload = void
+type _NotifyTlfUpdatePayload = $ReadOnly<{|tlfPath: Types.Path|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
@@ -205,7 +207,6 @@ export const createFilePreviewLoad = (payload: _FilePreviewLoadPayload) => ({err
 export const createFilePreviewLoaded = (payload: _FilePreviewLoadedPayload) => ({error: false, payload, type: filePreviewLoaded})
 export const createFolderListLoad = (payload: _FolderListLoadPayload) => ({error: false, payload, type: folderListLoad})
 export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({error: false, payload, type: folderListLoaded})
-export const createFsActivity = (payload: _FsActivityPayload) => ({error: false, payload, type: fsActivity})
 export const createFsError = (payload: _FsErrorPayload) => ({error: false, payload, type: fsError})
 export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
 export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
@@ -219,6 +220,8 @@ export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: fa
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
 export const createNewFolderName = (payload: _NewFolderNamePayload) => ({error: false, payload, type: newFolderName})
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
+export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({error: false, payload, type: notifySyncActivity})
+export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -253,7 +256,6 @@ export type FilePreviewLoadPayload = $Call<typeof createFilePreviewLoad, _FilePr
 export type FilePreviewLoadedPayload = $Call<typeof createFilePreviewLoaded, _FilePreviewLoadedPayload>
 export type FolderListLoadPayload = $Call<typeof createFolderListLoad, _FolderListLoadPayload>
 export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _FolderListLoadedPayload>
-export type FsActivityPayload = $Call<typeof createFsActivity, _FsActivityPayload>
 export type FsErrorPayload = $Call<typeof createFsError, _FsErrorPayload>
 export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
 export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
@@ -267,6 +269,8 @@ export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoad
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
 export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderNamePayload>
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
+export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
+export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -303,7 +307,6 @@ export type Actions =
   | FilePreviewLoadedPayload
   | FolderListLoadPayload
   | FolderListLoadedPayload
-  | FsActivityPayload
   | FsErrorPayload
   | FuseStatusPayload
   | FuseStatusResultPayload
@@ -317,6 +320,8 @@ export type Actions =
   | MimeTypeLoadedPayload
   | NewFolderNamePayload
   | NewFolderRowPayload
+  | NotifySyncActivityPayload
+  | NotifyTlfUpdatePayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload

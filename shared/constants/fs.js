@@ -679,8 +679,8 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to download for ${action.payload.intent}: ${Types.getPathName(action.payload.path)}.`
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
-    case FsGen.fsActivity:
-      return `Failed to gather information about KBFS activities.`
+    case FsGen.notifySyncActivity:
+      return `Failed to gather information about KBFS uploading activities.`
     case FsGen.refreshLocalHTTPServerInfo:
       return 'Failed to get information about internal HTTP server.'
     case FsGen.mimeTypeLoad:
