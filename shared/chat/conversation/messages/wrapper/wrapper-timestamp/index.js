@@ -128,7 +128,10 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>
         </HoverBox>
-        {popupableMessageTypes.includes(props.message.type) && (
+        {(props.message.type === 'text' ||
+          props.message.type === 'attachment' ||
+          props.message.type === 'sendPayment' ||
+          props.message.type === 'requestPayment') && (
           <MessagePopup
             attachTo={props.attachmentRef}
             message={props.message}

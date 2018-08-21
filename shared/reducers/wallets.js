@@ -126,6 +126,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return request ? state.update('requests', r => r.set(request.id, request)) : state
     // Saga only actions
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelRequest:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:

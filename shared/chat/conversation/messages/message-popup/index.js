@@ -9,7 +9,11 @@ import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<any, any>,
-  message: Types.MessageText | Types.MessageAttachment,
+  message:
+    | Types.MessageText
+    | Types.MessageAttachment
+    | Types.MessageSendPayment
+    | Types.MessageRequestPayment,
   onHidden: () => void,
   position: Position,
   visible: boolean,
@@ -17,19 +21,19 @@ type Props = {
 
 class MessageAction extends React.PureComponent<Props> {
   render() {
-    if (this.props.message.exploding) {
-      return (
-        <ExplodingMessage
-          attachTo={this.props.attachTo}
-          message={this.props.message}
-          onHidden={this.props.onHidden}
-          position={this.props.position}
-          visible={this.props.visible}
-        />
-      )
-    }
     switch (this.props.message.type) {
       case 'text':
+        if (this.props.message.exploding) {
+          return (
+            <ExplodingMessage
+              attachTo={this.props.attachTo}
+              message={this.props.message}
+              onHidden={this.props.onHidden}
+              position={this.props.position}
+              visible={this.props.visible}
+            />
+          )
+        }
         return (
           <TextMessage
             attachTo={this.props.attachTo}
@@ -40,6 +44,17 @@ class MessageAction extends React.PureComponent<Props> {
           />
         )
       case 'attachment':
+        if (this.props.message.exploding) {
+          return (
+            <ExplodingMessage
+              attachTo={this.props.attachTo}
+              message={this.props.message}
+              onHidden={this.props.onHidden}
+              position={this.props.position}
+              visible={this.props.visible}
+            />
+          )
+        }
         return (
           <AttachmentMessage
             attachTo={this.props.attachTo}
