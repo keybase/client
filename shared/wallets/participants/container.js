@@ -29,7 +29,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
-  setDisplayName('Participants')
-)(Participants)
+export default compose(setDisplayName('Participants'))(Participants)
