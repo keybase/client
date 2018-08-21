@@ -187,6 +187,11 @@ const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDeta
     WalletsGen.createRequestDetailReceived({request})
   )
 
+const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) =>
+  RPCTypes.localCancelRequestLocalRpcPromise({reqID: action.payload.requestID}).catch(err =>
+    logger.error(`Error cancelling request: ${err.message}`)
+  )
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(
     [WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount, WalletsGen.refreshPayments],
@@ -236,6 +241,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
+  yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
 }
 
 export default walletsSaga

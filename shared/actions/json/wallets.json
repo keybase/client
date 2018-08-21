@@ -27,6 +27,10 @@
     "clearBuiltPayment": {
       "_description": "Clear a prepared payment once it has been sent or canceled",
     },
+    "cancelRequest": {
+      "_description": "Cancel a request",
+      "requestID": "StellarRPCTypes.KeybaseRequestID",
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",

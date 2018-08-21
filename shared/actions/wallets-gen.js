@@ -15,6 +15,7 @@ export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const buildPayment = 'wallets:buildPayment'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
+export const cancelRequest = 'wallets:cancelRequest'
 export const clearBuildingPayment = 'wallets:clearBuildingPayment'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearErrors = 'wallets:clearErrors'
@@ -55,6 +56,7 @@ type _AssetsReceivedPayload = $ReadOnly<{|
 |}>
 type _BuildPaymentPayload = void
 type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
+type _CancelRequestPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ClearBuildingPaymentPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void
@@ -131,6 +133,10 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  * Ask the service to validate an account secret key.
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({error: false, payload, type: validateSecretKey})
+/**
+ * Cancel a request
+ */
+export const createCancelRequest = (payload: _CancelRequestPayload) => ({error: false, payload, type: cancelRequest})
 /**
  * Clear a payment that was being prepared
  */
@@ -272,6 +278,7 @@ export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _Acco
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
 export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
+export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequestPayload>
 export type ClearBuildingPaymentPayload = $Call<typeof createClearBuildingPayment, _ClearBuildingPaymentPayload>
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
@@ -314,6 +321,7 @@ export type Actions =
   | AssetsReceivedPayload
   | BuildPaymentPayload
   | BuiltPaymentReceivedPayload
+  | CancelRequestPayload
   | ClearBuildingPaymentPayload
   | ClearBuiltPaymentPayload
   | ClearErrorsPayload

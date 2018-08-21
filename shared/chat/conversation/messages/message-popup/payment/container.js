@@ -4,6 +4,7 @@ import * as Container from '../../../../../util/container'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletTypes from '../../../../../constants/types/wallets'
+import * as WalletGen from '../../../../../actions/wallets-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -66,7 +67,10 @@ const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps)
 
 const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onCancel: () => {
-    // TODO
+    if (ownProps.message.type !== 'requestPayment') {
+      throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
+    }
+    dispatch(WalletGen.createCancelRequest({requestID: ownProps.message.requestID}))
   },
 })
 
