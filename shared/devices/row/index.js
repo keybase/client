@@ -25,8 +25,10 @@ const DeviceRow = (props: Props) => {
       icon = props.isCurrentDevice ? 'icon-phone-success-32' : 'icon-phone-32'
       break
     default:
+      /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (type: empty) => any
       ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.type)
+      */
       icon = 'icon-paper-key-48'
   }
 
