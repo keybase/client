@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import {Spring} from 'react-spring'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
@@ -12,6 +13,7 @@ import {connect, type TypedState, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
+import {collapseStyles} from '../../../styles'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
@@ -148,9 +150,16 @@ class InfoPanelSelector extends React.PureComponent<Props> {
       <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
     ) : (
       <Box onClick={this.props.onBack} style={clickCatcherStyle}>
-        <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
-          <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
-        </Box>
+        <Spring from={{right: -320}} to={{right: 0}}>
+          {styles => (
+            <Box style={collapseStyles([styles, panelContainerStyle])} onClick={evt => evt.stopPropagation()}>
+              <ConnectedInfoPanel
+                onBack={this.props.onBack}
+                conversationIDKey={this.props.conversationIDKey}
+              />
+            </Box>
+          )}
+        </Spring>
       </Box>
     )
   }
@@ -158,13 +167,12 @@ class InfoPanelSelector extends React.PureComponent<Props> {
 
 const clickCatcherStyle = {position: 'absolute', top: 38, right: 0, bottom: 0, left: 80}
 const panelContainerStyle = {
-  position: 'absolute',
-  right: 0,
-  top: 0,
   bottom: 0,
-  width: 320,
   display: 'flex',
   flexDirection: 'column',
+  position: 'absolute',
+  top: 0,
+  width: 320,
 }
 
 export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)
