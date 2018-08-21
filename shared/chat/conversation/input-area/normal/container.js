@@ -8,6 +8,7 @@ import {connect, type TypedState, type Dispatch} from '../../../../util/containe
 import Input, {type Props} from '.'
 
 type OwnProps = {
+  conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
   onScrollDown: () => void,
 }
@@ -23,7 +24,7 @@ const setUnsentText = (conversationIDKey: Types.ConversationIDKey, text: string)
   unsentText[conversationIDKey] = text
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const quoteInfo = Constants.getQuoteInfo(state, conversationIDKey)
 

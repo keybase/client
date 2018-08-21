@@ -6,17 +6,17 @@ import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
 import {upperFirst} from 'lodash-es'
 
-type Props = {
+type Props = {|
   canSetMinWriterRole: boolean,
   isSmallTeam: boolean,
   minWriterRole: TeamTypes.TeamRoleType,
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
-}
+|}
 
-type State = {
+type State = {|
   saving: boolean,
   selected: TeamTypes.TeamRoleType,
-}
+|}
 
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}

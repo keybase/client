@@ -22,7 +22,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  devices: stateProps.devices.map(d => d.toJS()).toArray(),
+  devices: stateProps.devices.toArray(),
   onBack: dispatchProps.onBack,
   onResetAccount: dispatchProps.onResetAccount,
   onSelect: dispatchProps.onSelect,

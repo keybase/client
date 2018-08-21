@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import * as RPCTypes from './rpc-gen'
 import type {Folder} from './folders'
 import type {FriendshipUserInfo} from './profile'
