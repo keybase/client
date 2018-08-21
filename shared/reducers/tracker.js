@@ -92,6 +92,7 @@ export default function(
           name: nonUser.assertion,
           reason: `You opened ${nonUser.folderName}`,
           serviceName: nonUser.socialAssertion.service,
+          type: 'nonUser',
         }
       })
     }
