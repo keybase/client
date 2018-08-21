@@ -90,7 +90,7 @@ func (a *ActiveDevice) ClearCaches() {
 
 // CreateActiveDeviceBackup creates a backup of ActiveDevice that can
 // be later passed to ActiveDevice.SetOrClear to restore said backup.
-func (a *ActiveDevice) CreateBackup() (ret *ActiveDevice) {
+func (a *ActiveDevice) CopyForRollback() (ret *ActiveDevice) {
 	a.Lock()
 	ret = &ActiveDevice{
 		uv:            a.uv,

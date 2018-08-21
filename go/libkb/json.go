@@ -317,7 +317,6 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	f.f.G().Log.Debug("+ Commit %s rewrite %s", f.f.which, f.tmpname)
 	defer func() {
 		f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err))
-		f.f.setTx(nil)
 	}()
 
 	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
@@ -328,8 +327,10 @@ func (f *jsonFileTransaction) Commit() (err error) {
 	err = renameFile(f.f.G(), f.tmpname, f.f.filename)
 	if err != nil {
 		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
+		return err
 	}
-	return err
+	f.f.setTx(nil)
+	return nil
 }
 
 type valueGetter func(*jsonw.Wrapper) (interface{}, error)

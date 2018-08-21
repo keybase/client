@@ -170,6 +170,7 @@ type ConfigReader interface {
 	GetUsername() NormalizedUsername
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetAllUserConfigs() (*UserConfig, []UserConfig, error)
+	RefreshUserConfig()
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
 	GetSecurityAccessGroupOverride() (bool, bool)

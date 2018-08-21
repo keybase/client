@@ -352,14 +352,19 @@ func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n 
 	return m.switchUserNewConfig(uv.Uid, n, salt, d, ad)
 }
 
-func (m MetaContext) RestoreActiveDeviceFromBackup(dev *ActiveDevice) (err error) {
+func (m MetaContext) RollbackActiveDevice(dev *ActiveDevice) (err error) {
 	if m.activeDevice != nil {
 		return fmt.Errorf("Unexpected MetaContext with local ActiveDevice")
 	}
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	// check AD with config ?
+	conf := g.Env.GetConfig()
+	conf.RefreshUserConfig()
+	configDev := conf.GetDeviceID()
+	if configDev != dev.deviceID {
+		return fmt.Errorf("Cannot rollback to device: %s; device in config is: %s", dev.deviceID, configDev)
+	}
 	g.ActiveDevice.SetOrClear(m, dev)
 	return nil
 }
@@ -371,7 +376,7 @@ func (m MetaContext) CopyActiveDeviceForRollback() (ret *ActiveDevice, err error
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	return g.ActiveDevice.CreateBackup(), nil
+	return g.ActiveDevice.CopyForRollback(), nil
 }
 
 // SwitchUserNukeConfig removes the given username from the config file, and

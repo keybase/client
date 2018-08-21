@@ -119,6 +119,7 @@ func (n NullConfiguration) GetAllUsernames() (NormalizedUsername, []NormalizedUs
 func (n NullConfiguration) GetAllUserConfigs() (*UserConfig, []UserConfig, error) {
 	return nil, nil, nil
 }
+func (n NullConfiguration) RefreshUserConfig() {}
 
 func (n NullConfiguration) GetDebug() (bool, bool) {
 	return false, false
