@@ -3,12 +3,12 @@ import type {Component} from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
+import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Route from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-import {copyToClipboard} from '../../../../../util/clipboard'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
@@ -55,7 +55,7 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   },
   _onCopy: () => {
     if (ownProps.message.type === 'text') {
-      copyToClipboard(ownProps.message.text.stringValue())
+      dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
     }
   },
   _onDownload: () =>

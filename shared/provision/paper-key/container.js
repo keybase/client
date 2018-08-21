@@ -20,5 +20,5 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 
 export default compose(
   withStateHandlers({paperKey: ''}, {onChangePaperKey: () => (paperKey: string) => ({paperKey})}),
-  connect(mapStateToProps, mapDispatchToProps)
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))
 )(PaperKey)

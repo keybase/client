@@ -32,4 +32,18 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
     dispatch(WalletsGen.createLinkExistingAccount({name, secretKey: new HiddenString(sk)})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(LinkExisting)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  keyError: stateProps.keyError,
+  linkExistingAccountError: stateProps.linkExistingAccountError,
+  nameError: stateProps.nameError,
+  nameValidationState: stateProps.nameValidationState,
+  secretKeyValidationState: stateProps.secretKeyValidationState,
+  waiting: stateProps.waiting,
+  onCancel: dispatchProps.onCancel,
+  onCheckKey: dispatchProps.onCheckKey,
+  onCheckName: dispatchProps.onCheckName,
+  onClearErrors: dispatchProps.onClearErrors,
+  onDone: dispatchProps.onDone,
+})
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)

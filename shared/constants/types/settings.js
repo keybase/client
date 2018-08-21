@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
 import type {SimpleProofState} from './tracker'

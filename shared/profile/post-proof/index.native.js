@@ -84,7 +84,7 @@ const PostProof = (props: Props) => {
               onAllowProofCheck(true)
               proofAction()
             }}
-            label={proofActionText}
+            label={proofActionText || ''}
           />
         )}
       {allowProofCheck && (
@@ -93,7 +93,7 @@ const PostProof = (props: Props) => {
           fullWidth={true}
           type="Primary"
           onClick={() => onComplete()}
-          label={onCompleteText}
+          label={onCompleteText || ''}
           waiting={isOnCompleteWaiting}
         />
       )}
