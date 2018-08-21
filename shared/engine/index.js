@@ -3,7 +3,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/engine'
 import Session from './session'
-import {initEngine} from './require'
+import {initEngine, initEngineSaga} from './require'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
@@ -12,6 +12,7 @@ import {log} from '../native/log/logui'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
+import engineSaga from './saga'
 
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
@@ -493,6 +494,7 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
     initEngine((engine: any))
+    initEngineSaga(engineSaga)
   }
   return engine
 }
