@@ -11,7 +11,6 @@ import {
   type PropsWithTimer,
 } from '../../common-adapters/mobile.native'
 import {globalStyles, globalColors, globalMargins, isIPhoneX, platformStyles} from '../../styles'
-import {copyToClipboard} from '../../util/clipboard'
 import {RPCError} from '../../util/errors'
 
 import type {Props as _Props} from './index.types'
@@ -140,7 +139,7 @@ class GlobalError extends Component<Props, State> {
         {this.props.debugDump.length ? (
           <Box style={{flex: 1}}>
             <Button
-              onClick={() => copyToClipboard(this.props.debugDump.join('\n'))}
+              onClick={() => this.props.copyToClipboard(this.props.debugDump.join('\n'))}
               type="Primary"
               label="Copy"
             />

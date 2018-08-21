@@ -13,6 +13,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onDismiss: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
     dispatch(ConfigGen.createDebugDump({items: []}))

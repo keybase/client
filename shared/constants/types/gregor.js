@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import * as RPCTypesGregor from './rpc-gregor-gen'
 import * as RPCTypes from './rpc-gen'
 

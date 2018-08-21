@@ -254,7 +254,7 @@ function _handleIncomingGregor(action: GitGen.HandleIncomingGregorPayload) {
 function _navigateToTeamRepo(action: GitGen.NavigateToTeamRepoPayload) {
   return Saga.sequentially([
     Saga.call(_loadGit, GitGen.createLoadGit()),
-    Saga.identity(action),
+    Saga.call(() => action),
     // This needs to be a select so we get the store post-loadGit
     Saga.select((state: TypedState) => state.entities.getIn(['git', 'idToInfo'])),
   ])
