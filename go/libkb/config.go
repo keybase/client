@@ -316,6 +316,15 @@ func (f *JSONConfigFile) GetAllUsernames() (current NormalizedUsername, others [
 	return
 }
 
+// RefreshUserConfig triggers a reload of UserConfig from config file,
+// even if user hasn't changed. Used when rolling back failed self-
+// provisioning attempt.
+func (f *JSONConfigFile) RefreshUserConfig() {
+	f.userConfigWrapper.Lock()
+	defer f.userConfigWrapper.Unlock()
+	f.userConfigWrapper.userConfig = nil // trigger refresh by clearing cached userconfig
+}
+
 // SetDeviceID sets the device field of the UserConfig object
 func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 	f.userConfigWrapper.Lock()

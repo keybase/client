@@ -15,6 +15,8 @@ type SelfProvisionEngine struct {
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
 	ekReboxer      *ephemeralKeyReboxer
+
+	adBackup *libkb.ActiveDevice
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -58,11 +60,11 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "SelfProvisionEngine")
 	defer m.CTrace("SelfProvisionEngine#Run", func() error { return err })()
 
-	if d, err := libkb.GetDeviceCloneState(m); err != nil {
+	if _, err := libkb.GetDeviceCloneState(m); err != nil {
 		return err
-	} else if !d.IsClone() {
+	} /* else if !d.IsClone() {
 		return fmt.Errorf("to self provision, you must be a cloned device")
-	}
+	} */
 
 	// transaction around config file
 	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
@@ -75,10 +77,33 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// login context
 	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uv, e.G().Env.GetUsername())
 
+	fmt.Printf("m is %+v\n\n", m)
+	ad, err := m.CopyActiveDeviceForRollback()
+	if err != nil {
+		return err
+	}
+	e.adBackup = ad
+
+	fmt.Printf("Active Device is: %+v\n\n", e.G().ActiveDevice)
+	fmt.Printf("Active Device For Rollback is: %+v\n\n", ad)
+
 	// From this point on, if there's an error, we abort the transaction.
 	defer func() {
 		if tx != nil {
+			// NOTE: Rollback() is not enough for config. RollbackActiveDevice
+			// also calls GetConfig().RefreshUserConfig() to restore application
+			// state completely.
+			tx.Rollback()
 			tx.Abort()
+			if e.adBackup != nil {
+				if err2 := m.RollbackActiveDevice(e.adBackup); err2 != nil {
+					// Current session is probably hosed anyway, but
+					// at least make note of this in logs.
+					m.CWarningf("Unable to rollback active device: %s", err2)
+				}
+			}
+			// TODO: Remove tossed device secret keys from secret
+			// store.
 		}
 		if err == nil {
 			// cache the passphrase stream from the login context to the active
@@ -94,32 +119,44 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	e.ekReboxer = newEphemeralKeyReboxer(m)
 
-	// Make new device keys and sign them with current device keys
-	if err = e.provision(m, keys); err != nil {
+	// Make new device keys and sign them with current device keys,
+	// use new keys to make new ActiveDevice and set it in G, and
+	// change Config.
+	if err := e.provision(m, keys); err != nil {
 		return err
 	}
 
+	if err := verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID()); err != nil {
+		m.CDebugf("verifyLocalStorage failed with: %v", err)
+		return err
+	}
+	if err := e.syncSecretStore(m); err != nil {
+		m.CDebugf("unable to syncSecretStore: %v", err)
+		return err
+	}
+
+	_ = fmt.Errorf
+	return fmt.Errorf("imagine it errored out right here")
+
 	// commit the config changes
-	// NOTE we should wrap the Active device change in a transaction as well.
 	if err := tx.Commit(); err != nil {
 		return err
 	}
 
 	// Zero out the TX so that we don't abort it in the defer() exit.
 	tx = nil
+	// ActiveDevice restore is tied to tx, but nil this field anyway.
+	e.adBackup = nil
 
-	// Now we can store and encrypt the new deviceEK with the new globally set
-	// active device
+	// Now we can store and encrypt the new deviceEK with the new
+	// globally set active device. This happens last because we don't
+	// have a way to reverse it, and also we can't keep EKs for
+	// different devices at the same time.
 	if e.ekReboxer.storeEKs(m); err != nil {
 		m.CDebugf("unable to store ephemeral keys: %v", err)
 	}
 
-	// TODO we should error out here if this fails once we have the active
-	// device setting in a transaction.
-	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
-	if err := e.syncSecretStore(m); err != nil {
-		m.CDebugf("unable to syncSecretStore: %v", err)
-	}
+	verifyConfigAndSecretkeysFiles(m, e.User.GetNormalizedName())
 
 	e.clearCaches(m)
 	e.sendNotification()

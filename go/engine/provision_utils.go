@@ -134,32 +134,37 @@ func makeUserEKBoxForProvisionee(m libkb.MetaContext, KID keybase1.KID) (*keybas
 	return ekLib.BoxLatestUserEK(m.Ctx(), receiverKey, deviceEKGeneration)
 }
 
-func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) {
-	m.CDebugf("verifying local storage")
-	defer m.CDebugf("done verifying local storage")
+func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) (err error) {
+	m.CDebugf("+ verifying local storage")
+	defer func() { m.CDebugf("- verifying local storage done -> %s", libkb.ErrToOk(err)) }()
 	normUsername := libkb.NewNormalizedUsername(username)
 
-	// check config.json looks ok
-	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
 	cr := m.G().Env.GetConfig()
 	if cr.GetUsername() != normUsername {
-		m.CDebugf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
+		return fmt.Errorf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
 	}
 	if cr.GetUID().NotEqual(uid) {
-		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
+		return fmt.Errorf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
 	}
-
-	// check keys in secretkeys.mpack
-	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
 
 	// check secret stored
 	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
 	if err != nil {
-		m.CDebugf("failed to retrieve secret for %s: %s", username, err)
+		return fmt.Errorf("failed to retrieve secret for %s: %s", username, err)
 	}
 	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("retrieved nil/empty secret for %s", username)
+		return fmt.Errorf("retrieved nil/empty secret for %s", username)
 	}
+	return nil
+}
+
+// verifyConfigAndSecretkeysFiles checks config and secretkeys file.
+// This doesn't error out, because at the time it is called, it would
+// be too late to revert anything, but it might leave useful traces in
+// the logs.
+func verifyConfigAndSecretkeysFiles(m libkb.MetaContext, normUsername libkb.NormalizedUsername) {
+	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
+	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
 }
 
 func verifyRegularFile(m libkb.MetaContext, name, filename string) {
