@@ -624,7 +624,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
-	iRes, err := t.addInnerLink(&state, link, signer, true)
+	iRes, err := t.addInnerLink(ctx, &state, link, signer, true)
 	if err != nil {
 		return TeamSigChainState{}, err
 	}
@@ -648,18 +648,23 @@ type teamSigchainPlayer struct {
 func (t *teamSigchainPlayer) appendChainLinkHelper(
 	ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *SignerX) (
 	res TeamSigChainState, err error) {
+	ctx, tbs := t.G().CTimeBuckets(ctx)
 
 	err = t.checkOuterLink(ctx, prevState, link)
 	if err != nil {
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
 
+	fin := tbs.Record("chain.null")
+	fin()
 	var prevAdmins []keybase1.UserVersion
 	if prevState != nil {
+		fin := tbs.Record("chain.prevAdmins")
 		prevAdmins, err = prevState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
 		if err != nil {
 			return res, fmt.Errorf("cannot get admins on team sigchain: %s", err)
 		}
+		fin()
 	}
 
 	var newState *TeamSigChainState
@@ -673,7 +678,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		if signer == nil || !signer.signer.Uid.Exists() {
 			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
-		iRes, err := t.addInnerLink(prevState, link, *signer, false)
+		iRes, err := t.addInnerLink(ctx, prevState, link, *signer, false)
 		if err != nil {
 			return res, err
 		}
@@ -684,7 +689,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	newState.inner.LastLinkID = link.LinkID().Export()
 	newState.inner.LinkIDs[link.Seqno()] = link.LinkID().Export()
 
-	wasHigh, err := t.wasHighLink(prevAdmins, newState, link)
+	wasHigh, err := t.wasHighLink(ctx, prevAdmins, newState, link)
 	if err != nil {
 		return res, fmt.Errorf("cannot determine if this team chain link is high: %s", err)
 	}
@@ -700,7 +705,9 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	return *newState, nil
 }
 
-func (t *teamSigchainPlayer) wasHighLink(prevAdmins []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
+func (t *teamSigchainPlayer) wasHighLink(ctx context.Context, prevAdmins []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
+	ctx, tbs := t.G().CTimeBuckets(ctx)
+	defer tbs.Record("chain.wasHighLink")()
 	switch link.LinkType() {
 	case libkb.SigchainV2TypeTeamRoot, libkb.SigchainV2TypeTeamSubteamHead:
 		return true, nil
@@ -751,7 +758,7 @@ type checkInnerLinkResult struct {
 // Check and add the inner link.
 // `isInflate` is false if this is a new link and true if it is a link which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
-func (t *teamSigchainPlayer) addInnerLink(
+func (t *teamSigchainPlayer) addInnerLink(ctx context.Context,
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
 	isInflate bool) (
 	res checkInnerLinkResult, err error) {
@@ -951,7 +958,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("malformed root team id")
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+		roleUpdates, err := t.sanityCheckMembers(ctx, *team.Members, sanityCheckMembersOptions{
 			requireOwners:       true,
 			allowRemovals:       false,
 			onlyOwnersOrReaders: isImplicit,
@@ -1042,7 +1049,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, err
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+		roleUpdates, err := t.sanityCheckMembers(ctx, *team.Members, sanityCheckMembersOptions{
 			disallowOwners:      prevState.IsSubteam(),
 			allowRemovals:       true,
 			onlyOwnersOrReaders: prevState.IsImplicit(),
@@ -1322,7 +1329,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, NewImplicitTeamOperationError(payload.Body.Type)
 		}
 
-		roleUpdates, err := t.sanityCheckMembers(*team.Members, sanityCheckMembersOptions{
+		roleUpdates, err := t.sanityCheckMembers(ctx, *team.Members, sanityCheckMembersOptions{
 			disallowOwners: true,
 			allowRemovals:  false,
 		})
@@ -1804,7 +1811,8 @@ type sanityCheckMembersOptions struct {
 // Check that all the users are formatted correctly.
 // Check that there are no duplicate members.
 // Do not check that all removals are members. That should be true, but not strictly enforced when reading.
-func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
+func (t *teamSigchainPlayer) sanityCheckMembers(ctx context.Context, members SCTeamMembers, options sanityCheckMembersOptions) (chainRoleUpdates, error) {
+	ctx, tbs := t.G().CTimeBuckets(ctx)
 	type assignment struct {
 		m    SCTeamMember
 		role keybase1.TeamRole
@@ -1884,6 +1892,16 @@ func (t *teamSigchainPlayer) sanityCheckMembers(members SCTeamMembers, options s
 
 		seen[uv] = true
 	}
+
+	fin := tbs.Record("chain.test")
+	x := 0
+	if len(res[keybase1.TeamRole_OWNER])+len(res[keybase1.TeamRole_ADMIN]) > 0 {
+		x = 1
+	} else {
+		x = 2
+	}
+	_ = x
+	fin()
 
 	return res, nil
 }

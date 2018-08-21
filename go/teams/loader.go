@@ -655,6 +655,10 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			tbs.Log(ctx, "CachedUPAKLoader.LoadKeyV2") // note LoadKeyV2 calls Load2
 			tbs.Log(ctx, "CachedUPAKLoader.LoadV2")
 			tbs.Log(ctx, "CachedUPAKLoader.DeepCopy")
+			tbs.Log(ctx, "chain.null")
+			tbs.Log(ctx, "chain.prevAdmins")
+			tbs.Log(ctx, "chain.wasHighLink")
+			tbs.Log(ctx, "chain.test")
 			l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
 		}
 	}
