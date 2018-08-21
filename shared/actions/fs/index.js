@@ -369,9 +369,6 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
   polling = true
   try {
     while (1) {
-      yield Saga.call(RPCTypes.SimpleFSSimpleFSSuppressNotificationsRpcPromise, {
-        suppressDurationSec: 8,
-      })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
         {
