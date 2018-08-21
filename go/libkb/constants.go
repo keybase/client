@@ -569,7 +569,7 @@ const (
 
 const (
 	ServiceLogFileName = "keybase.service.log"
-	KBFSLogFileName    = "keybase.kbfs.log"
+	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"
