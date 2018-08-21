@@ -3,8 +3,8 @@ import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as ChatTypes from '../../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
-import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
+import * as Styles from '../../../../../styles'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -37,15 +37,49 @@ const commonLoadingProps = {
 
 // MessageSendPayment ===================================
 const sendMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  return {}
+  if (ownProps.message.type !== 'sendPayment') {
+    throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
+  }
+  const {paymentID} = ownProps.message
+  const accountID = WalletConstants.getDefaultAccountID(state)
+  let _payment = null
+  if (accountID) {
+    _payment = WalletConstants.getPayment(state, accountID, paymentID)
+  }
+  return {
+    _payment,
+    _you: state.config.username,
+  }
 }
 
 const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
+  if (!stateProps._payment) {
+    return {
+      ...commonLoadingProps,
+      attachTo: ownProps.attachTo,
+      onHidden: ownProps.onHidden,
+      position: ownProps.position,
+      visible: ownProps.visible,
+    }
+  }
+  const {_payment: payment, _you: you} = stateProps
   return {
-    ...commonLoadingProps,
+    amountNominal: payment.worth || payment.amountDescription,
     attachTo: ownProps.attachTo,
+    balanceChange: `${payment.delta === 'increase' ? '+' : '-'}${payment.amountDescription}`,
+    balanceChangeColor: payment.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+    bottomLine: '', // TODO on asset support in payment
+    icon: payment.delta === 'increase' ? 'receiving' : 'sending',
+    loading: false,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
+    sender: ownProps.message.author,
+    senderDeviceName: ownProps.message.deviceName,
+    timestamp: formatTimeForMessages(ownProps.message.timestamp),
+    topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
+      payment.worthCurrency ? ' lumens worth' : ''
+    }`,
+    txVerb: 'sent',
     visible: ownProps.visible,
   }
 }
@@ -75,7 +109,7 @@ const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
 })
 
 const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const request = stateProps._request
+  const {_request: request, _you: you} = stateProps
   if (!request) {
     return {
       ...commonLoadingProps,
@@ -85,7 +119,6 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       visible: ownProps.visible,
     }
   }
-  const you = stateProps._you
 
   let bottomLine = ''
   if (request.asset !== 'native' && request.asset !== 'currency') {
