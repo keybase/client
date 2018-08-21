@@ -4,64 +4,7 @@
 import logger from '../logger'
 import * as Saga from '../util/saga'
 import {mapValues, forEach} from 'lodash-es'
-
-let getEngine
-
-// To avoid require cycles we inject this in
-export const initEngine = e => {
-  getEngine = e
-}
-
-export class EngineChannel {
-  _map: Constants.ChannelMap<any>
-  _sessionID: SessionID
-  _configKeys: Array<string>
-
-  constructor(map: Constants.ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
-    this._map = map
-    this._sessionID = sessionID
-    this._configKeys = configKeys
-  }
-
-  getMap(): Constants.ChannelMap<any> {
-    return this._map
-  }
-
-  close() {
-    Constants.closeChannelMap(this._map)
-    getEngine().cancelSession(this._sessionID)
-  }
-
-  *take(key: string): Generator<any, any, any> {
-    return yield Constants.takeFromChannelMap(this._map, key)
-  }
-
-  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
-    const timeout = options && options.timeout
-    const otherRacers = (options && options.racers) || {}
-    const initMap = {
-      ...(timeout
-        ? {
-            timeout: Saga.call(Saga.delay, timeout),
-          }
-        : {}),
-      ...otherRacers,
-    }
-
-    const raceMap = this._configKeys.reduce((map, key) => {
-      map[key] = Constants.takeFromChannelMap(this._map, key)
-      return map
-    }, initMap)
-
-    const result = yield Saga.race(raceMap)
-
-    if (result.timeout) {
-      this.close()
-    }
-
-    return result
-  }
-}
+import {getEngine} from '../engine/require'
 
 export type Buffer<T> = {
   isEmpty: () => boolean,
@@ -86,6 +29,57 @@ export type ChannelMap<T> = {
 export type SagaMap = {
   // $FlowIssue with returning Generators from functions
   [key: string]: Generator<*, *, *>,
+}
+
+export class EngineChannel {
+  _map: ChannelMap<any>
+  _sessionID: SessionID
+  _configKeys: Array<string>
+
+  constructor(map: ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
+    this._map = map
+    this._sessionID = sessionID
+    this._configKeys = configKeys
+  }
+
+  getMap(): ChannelMap<any> {
+    return this._map
+  }
+
+  close() {
+    closeChannelMap(this._map)
+    getEngine().cancelSession(this._sessionID)
+  }
+
+  *take(key: string): Generator<any, any, any> {
+    return yield takeFromChannelMap(this._map, key)
+  }
+
+  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
+    const timeout = options && options.timeout
+    const otherRacers = (options && options.racers) || {}
+    const initMap = {
+      ...(timeout
+        ? {
+            timeout: Saga.call(Saga.delay, timeout),
+          }
+        : {}),
+      ...otherRacers,
+    }
+
+    const raceMap = this._configKeys.reduce((map, key) => {
+      map[key] = takeFromChannelMap(this._map, key)
+      return map
+    }, initMap)
+
+    const result = yield Saga.race(raceMap)
+
+    if (result.timeout) {
+      this.close()
+    }
+
+    return result
+  }
 }
 
 type RpcRunResult = any
