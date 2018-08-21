@@ -13,6 +13,8 @@ import (
 
 //==================================================================
 
+// TODO: Remove these aliases once everything outside of this repo
+// points to username.
 type NormalizedUsername = username.NormalizedUsername
 
 func NewNormalizedUsername(s string) NormalizedUsername {
