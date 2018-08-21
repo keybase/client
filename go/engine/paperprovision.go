@@ -19,6 +19,8 @@ type PaperProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
+
+	deviceWrapEng *DeviceWrap
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
@@ -118,6 +120,12 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Make new device keys and sign them with this paper key
 	if err = e.paper(m, keys); err != nil {
+		return err
+	}
+
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := e.deviceWrapEng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
 
@@ -222,11 +230,11 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	}, nil
 }
 
-// copied from loginProvision
-// makeDeviceKeys uses DeviceWrap to generate device keys.
+// copied from loginProvision makeDeviceKeys
+// uses DeviceWrap to generate device keys and sets active device.
 func (e *PaperProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
+	e.deviceWrapEng = NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, e.deviceWrapEng)
 }
 
 // copied from loginProvision

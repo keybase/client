@@ -556,6 +556,9 @@ func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArg
 	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
+	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
+		return err
+	}
 
 	e.signingKey = eng.SigningKey()
 	e.encryptionKey = eng.EncryptionKey()
