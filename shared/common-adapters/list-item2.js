@@ -64,7 +64,7 @@ const ListItem = (props: Props) => (
 
 const smallHeight = Styles.isMobile ? 48 : 40
 const largeHeight = Styles.isMobile ? 64 : 56
-const smallIconWidth = Styles.isMobile ? 56 : 48
+const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 
 const styles = Styles.styleSheetCreate({
