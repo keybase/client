@@ -17,16 +17,6 @@ func CheckUsername(s string) bool {
 	return len(s) >= 2 && len(s) <= 16 && usernameRE.MatchString(s)
 }
 
-// InvalidUsernameError is returned when an invalid Keybase username
-// is encountered.
-type InvalidUsernameError struct {
-	Username string
-}
-
-func (e InvalidUsernameError) Error() string {
-	return "Bad username: '" + e.Username + "'"
-}
-
 // NormalizedUsername is a Keybase username that has been normalized
 // (toLowered) and therefore will compare correctly against other
 // normalized usernames.
@@ -48,13 +38,3 @@ func (n NormalizedUsername) String() string { return string(n) }
 
 // IsNil returns true if the username is the empty string
 func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
-
-// CheckValid returns nil if the username is valid, and
-// InvalidUsernameError otherwise.
-func (n NormalizedUsername) CheckValid() error {
-	s := n.String()
-	if !CheckUsername(s) {
-		return InvalidUsernameError{s}
-	}
-	return nil
-}
