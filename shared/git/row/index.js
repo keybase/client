@@ -60,7 +60,7 @@ class Row extends React.Component<Props> {
             ...(this.props.expanded
               ? {
                   height: 6,
-                  backgroundColor: globalColors.greyBlue1,
+                  backgroundColor: globalColors.blueGrey,
                 }
               : {}),
           }}

@@ -22,7 +22,7 @@ const Wallets = ({navigateAppend, refresh, waitingKey}: Props) => (
 
 const styles = styleSheetCreate({
   walletListContainer: {
-    backgroundColor: globalColors.greyBlue1,
+    backgroundColor: globalColors.blueGrey,
     borderStyle: 'solid',
     flexBasis: 240,
   },
