@@ -65,7 +65,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     this.props.isSelected
       ? this.props.backgroundColor
       : this.state.isHovered
-        ? globalColors.black_05
+        ? globalColors.blue6
         : this.props.backgroundColor
 
   render() {

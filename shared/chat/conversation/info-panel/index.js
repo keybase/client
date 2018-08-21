@@ -23,7 +23,7 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
+        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 
