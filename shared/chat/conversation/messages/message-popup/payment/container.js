@@ -100,6 +100,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     bottomLine,
     icon: 'receiving',
     loading: false,
+    onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
     sender: ownProps.message.author,

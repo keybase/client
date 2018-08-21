@@ -70,9 +70,10 @@ const Header = (props: HeaderProps) =>
           <Kb.ConnectedUsernames
             clickable={true}
             colorFollowing={true}
+            colorYou={true}
             inline={true}
             usernames={[props.sender]}
-            type="BodyTiny"
+            type="BodyTinySemibold"
           />
         </Kb.Box2>
         <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
@@ -115,6 +116,7 @@ const PaymentPopup = (props: Props) => {
   return (
     <Kb.FloatingMenu
       attachTo={props.attachTo}
+      closeOnSelect={true}
       onHidden={props.onHidden}
       position={props.position}
       header={header}
