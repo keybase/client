@@ -19,10 +19,6 @@ func NewNormalizedUsername(s string) NormalizedUsername {
 	return username.NormalizedUsername(s)
 }
 
-func NormalizedUsernamesToStrings(names []NormalizedUsername) []string {
-	return username.NormalizedUsernamesToStrings(names)
-}
-
 //==================================================================
 
 type UserConfig struct {
