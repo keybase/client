@@ -14,12 +14,15 @@ import (
 	"github.com/keybase/gregor/base/log"
 )
 
+// ListenerSource represents where an HTTP server should listen.
 type ListenerSource interface {
 	GetListener() (net.Listener, string, error)
 }
 
+// RandomPortListenerSource means listen on a random port.
 type RandomPortListenerSource struct{}
 
+// GetListener implements ListenerSource.
 func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
 	localhost := "127.0.0.1"
 	listener, err := net.Listen("tcp", fmt.Sprintf("%s:0", localhost))
@@ -31,16 +34,20 @@ func (r RandomPortListenerSource) GetListener() (net.Listener, string, error) {
 	return listener, address, nil
 }
 
+// NewRandomPortListenerSource creates a new RandomPortListenerSource.
 func NewRandomPortListenerSource() *RandomPortListenerSource {
 	return &RandomPortListenerSource{}
 }
 
+// PortRangeListenerSource means listen on the given range.
 type PortRangeListenerSource struct {
 	sync.Mutex
 	pinnedPort int
 	low, high  int
 }
 
+// NewPortRangeListenerSource creates a new PortListenerSource
+// listening on low to high (inclusive).
 func NewPortRangeListenerSource(low, high int) *PortRangeListenerSource {
 	return &PortRangeListenerSource{
 		low:  low,
@@ -48,10 +55,13 @@ func NewPortRangeListenerSource(low, high int) *PortRangeListenerSource {
 	}
 }
 
+// NewFixedPortListenerSource creates a new PortListenerSource
+// listening on the given port.
 func NewFixedPortListenerSource(port int) *PortRangeListenerSource {
 	return NewPortRangeListenerSource(port, port)
 }
 
+// GetListener implements ListenerSource.
 func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address string, err error) {
 	p.Lock()
 	defer p.Unlock()
@@ -91,6 +101,8 @@ type HTTPSrv struct {
 	active         bool
 }
 
+// NewHTTPSrv creates a new HTTP server with the given listener
+// source.
 func NewHTTPSrv(log logger.Logger, listenerSource ListenerSource) *HTTPSrv {
 	return &HTTPSrv{
 		log:            log,
@@ -98,6 +110,7 @@ func NewHTTPSrv(log logger.Logger, listenerSource ListenerSource) *HTTPSrv {
 	}
 }
 
+// Start starts listening on the server's listener source.
 func (h *HTTPSrv) Start() (err error) {
 	h.Lock()
 	defer h.Unlock()
@@ -131,12 +144,14 @@ func (h *HTTPSrv) Start() (err error) {
 	return nil
 }
 
+// Active returns true if the server is active.
 func (h *HTTPSrv) Active() bool {
 	h.Lock()
 	defer h.Unlock()
 	return h.active
 }
 
+// Addr returns the server's address, if it's running.
 func (h *HTTPSrv) Addr() (string, error) {
 	h.Lock()
 	defer h.Unlock()
@@ -146,6 +161,7 @@ func (h *HTTPSrv) Addr() (string, error) {
 	return "", errors.New("server not running")
 }
 
+// Stop stops listening on the server's listener source.
 func (h *HTTPSrv) Stop() {
 	h.Lock()
 	defer h.Unlock()
