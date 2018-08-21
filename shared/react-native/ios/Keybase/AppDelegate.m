@@ -7,12 +7,12 @@
 //
 
 #import "AppDelegate.h"
-#import "RCTPushNotificationManager.h"
-#import "RCTBundleURLProvider.h"
-#import "RCTRootView.h"
+#import <React/RCTPushNotificationManager.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
 #import "Engine.h"
 #import "LogSend.h"
-#import "RCTLinkingManager.h"
+#import <React/RCTLinkingManager.h>
 #import <keybase/keybase.h>
 #import "Pusher.h"
 
@@ -153,6 +153,7 @@ const BOOL isDebug = NO;
   //
 //   jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
   jsCodeLocation = [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index.ios" fallbackResource:nil];
+     jsCodeLocation = [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=false"];
 #ifdef SYSTRACING
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self
                                             launchOptions:launchOptions];
