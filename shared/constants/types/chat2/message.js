@@ -135,6 +135,7 @@ export type _MessageAttachment = {
   fileSize: number,
   hasBeenEdited: boolean,
   id: MessageID, // that of first attachment message, not second attachment-uploaded message
+  inlineVideoPlayable: boolean,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,

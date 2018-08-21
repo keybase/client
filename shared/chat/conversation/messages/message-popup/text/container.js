@@ -24,8 +24,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
+  const _participantsCount = meta.participants.count()
   return {
     _canDeleteHistory,
+    _participantsCount,
     _you: state.config.username,
   }
 }
@@ -112,7 +114,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onHidden: () => ownProps.onHidden(),
     onQuote: message.type === 'text' && !yourMessage ? () => dispatchProps._onQuote(message) : null,
     onReplyPrivately:
-      message.type === 'text' && !yourMessage ? () => dispatchProps._onReplyPrivately(message) : null,
+      message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
+        ? () => dispatchProps._onReplyPrivately(message)
+        : null,
     onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,

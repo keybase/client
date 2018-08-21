@@ -4,9 +4,8 @@ import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+  onClose: () => dispatch(navigateUp()),
+})
 
-const mergeProps = (stateProps, dispatchProps) => ({})
-
-// $FlowIssue TODO
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SendForm)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(SendForm)

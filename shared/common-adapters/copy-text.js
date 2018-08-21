@@ -109,7 +109,7 @@ const styles = styleSheetCreate({
   buttonContainer: {
     flexGrow: 1,
     minHeight: 0,
-    width: 'initial',
+    width: 'auto',
   },
   button: platformStyles({
     common: {

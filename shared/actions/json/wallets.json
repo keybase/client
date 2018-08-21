@@ -14,13 +14,26 @@
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
+    "buildPayment": {
+      "_description": "Prepare a payment for sending",
+    },
+    "builtPaymentReceived": {
+      "_description": "Update our store with a prepared payment",
+      "build": "Types.BuiltPayment",
+    },
+    "clearBuildingPayment": {
+      "_description": "Clear a payment that was being prepared",
+    },
+    "clearBuiltPayment": {
+      "_description": "Clear a prepared payment once it has been sent or canceled",
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
@@ -38,14 +51,15 @@
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
-      "publicNote": "string",
-      "publicNoteType": "string",
+      "publicMemo": "HiddenString",
+      "publicMemoType": "string",
       "txID": "string",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
       "payments": "Array<Types.Payment>",
+      "pending": "Array<Types.Payment>",
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -60,6 +74,45 @@
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
       "show?": "boolean",
+    },
+    "refreshPayments": {
+      "_description": "In response to a notification, resync payment info",
+      "accountID": "Types.AccountID",
+    },
+    "sendPayment": {
+      "_description": "Perform sending a payment",
+    },
+    "sentPayment": {
+      "_description": "Successfully sent a payment",
+      "kbTxID": "HiddenString",
+    },
+    "setBuildingAmount": {
+      "_description": "Set building amount",
+      "amount": "string",
+    },
+    "setBuildingCurrency": {
+      "_description": "Set building currency",
+      "currency": "string",
+    },
+    "setBuildingFrom": {
+      "_description": "Set building from",
+      "from": "string",
+    },
+    "setBuildingPublicMemo": {
+      "_description": "Set building public memo",
+      "publicMemo": "HiddenString",
+    },
+    "setBuildingRecipientType": {
+      "_description": "Set building recipient type",
+      "recipientType": "Types.CounterpartyType",
+    },
+    "setBuildingSecretNote": {
+      "_description": "Set building secret note",
+      "secretNote": "HiddenString",
+    },
+    "setBuildingTo": {
+      "_description": "Set building to -- depends on recipientType",
+      "to": "string",
     },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",

@@ -126,7 +126,7 @@ const load = () => {
     .add('Received from another account', () => (
       <TransactionDetails
         counterparty="Second account"
-        counterpartyType="account"
+        counterpartyType="otherAccount"
         delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"

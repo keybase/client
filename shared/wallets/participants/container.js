@@ -1,15 +1,32 @@
 // @flow
 import Participants from '.'
+import * as WalletsGen from '../../actions/wallets-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => {
+  const build = state.wallets.buildingPayment
+  const built = state.wallets.builtPayment
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+  // Building section
+  const recipientType = build.recipientType || 'keybaseUser'
+  const to = build.to
+  const recipientStellarAddress = recipientType === 'stellarPublicKey' ? to : ''
 
-const mergeProps = (stateProps, dispatchProps) => ({})
+  // Built section
+  const incorrect = built.toErrMsg
+  const recipientUsername = built.toUsername
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  // $FlowIssue TODO
-  setDisplayName('Participants')
-)(Participants)
+  return {
+    incorrect,
+    recipientStellarAddress,
+    recipientType,
+    recipientUsername,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onChangeAddress: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
+  onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
+})
+
+export default compose(setDisplayName('Participants'))(Participants)

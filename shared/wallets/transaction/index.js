@@ -22,7 +22,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'account':
+    case 'otherAccount':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -80,7 +80,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           textType={textType}
         />
       )
-    case 'account':
+    case 'otherAccount':
       return props.large ? (
         <Text type={textType}>{props.counterparty}</Text>
       ) : (
@@ -129,7 +129,7 @@ const Detail = (props: DetailProps) => {
     </React.Fragment>
   )
 
-  if (props.counterpartyType === 'account') {
+  if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (

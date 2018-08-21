@@ -74,8 +74,6 @@ import (
 	"fmt"
 	"hash"
 	"io"
-
-	"golang.org/x/mobile/internal/binres"
 )
 
 // NewWriter returns a new Writer writing an APK file to w.
@@ -102,14 +100,6 @@ type Writer struct {
 func (w *Writer) Create(name string) (io.Writer, error) {
 	if err := w.clearCur(); err != nil {
 		return nil, fmt.Errorf("apk: Create(%s): %v", name, err)
-	}
-	if name == "AndroidManifest.xml" {
-		w.cur = &fileWriter{
-			name: name,
-			w:    new(bytes.Buffer),
-			sha1: sha1.New(),
-		}
-		return w.cur, nil
 	}
 	res, err := w.create(name)
 	if err != nil {
@@ -233,24 +223,6 @@ Created-By: 1.0 (Go)
 func (w *Writer) clearCur() error {
 	if w.cur == nil {
 		return nil
-	}
-	if w.cur.name == "AndroidManifest.xml" {
-		buf := w.cur.w.(*bytes.Buffer)
-		bxml, err := binres.UnmarshalXML(buf)
-		if err != nil {
-			return err
-		}
-		b, err := bxml.MarshalBinary()
-		if err != nil {
-			return err
-		}
-		f, err := w.create("AndroidManifest.xml")
-		if err != nil {
-			return err
-		}
-		if _, err := f.Write(b); err != nil {
-			return err
-		}
 	}
 	w.manifest = append(w.manifest, manifestEntry{
 		name: w.cur.name,

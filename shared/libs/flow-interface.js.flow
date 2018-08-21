@@ -274,7 +274,7 @@ declare module 'react-native-camera' {
 declare module 'react-native-contacts' {
   declare module.exports: any
 }
-declare module 'rn-fetch-blob' {
+declare module 'react-native-fetch-blob' {
   declare module.exports: any
 }
 declare module 'react-native-image-picker' {
