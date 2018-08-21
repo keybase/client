@@ -1,37 +1,19 @@
 // @flow
 import {Component} from 'react'
-import type {Time} from '../../constants/types/rpc-gen'
-import type {SimpleProofState} from '../../constants/types/tracker'
-
-type InviteBase = {
-  id: string,
-  created: Time,
-}
-
-export type PendingInvite = {
-  url: string,
-  email: ?string,
-} & InviteBase
-
-export type AcceptedInvite = {
-  username: string,
-  fullname: string,
-  currentlyFollowing: boolean,
-  trackerState: SimpleProofState,
-} & InviteBase
+import * as Types from '../../constants/types/settings'
 
 export type Props = {
   inviteEmail: string,
   inviteMessage: string,
   showMessageField: boolean,
-  pendingInvites: Array<PendingInvite>,
-  acceptedInvites: Array<AcceptedInvite>,
+  pendingInvites: Array<Types.PendingInvite>,
+  acceptedInvites: Array<Types.AcceptedInvite>,
   onSelectUser: (username: string) => void,
   onReclaimInvitation: (invitationId: string) => void,
   onRefresh: () => void,
   onGenerateInvitation: (email: string, message: string) => void,
   onClearError: () => void,
-  onSelectPendingInvite: (invite: PendingInvite) => void,
+  onSelectPendingInvite: (invite: Types.PendingInvite) => void,
   waitingForResponse: boolean,
   error: ?Error,
 }

@@ -1,7 +1,24 @@
-// @flow
-import type {Email} from './rpc-gen'
-import type {AcceptedInvite, PendingInvite} from '../../settings/invites/index'
+// @flow strict
 import HiddenString from '../../util/hidden-string'
+import type {Email, Time} from './rpc-gen'
+import type {SimpleProofState} from './tracker'
+
+type InviteBase = {
+  id: string,
+  created: Time,
+}
+
+export type PendingInvite = {
+  url: string,
+  email: ?string,
+} & InviteBase
+
+export type AcceptedInvite = {
+  username: string,
+  fullname: string,
+  currentlyFollowing: boolean,
+  trackerState: SimpleProofState,
+} & InviteBase
 
 export type Invitation = {
   created: number,

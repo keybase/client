@@ -154,7 +154,6 @@ const MenuButtons = (props: MenuButtonsProps) => (
           ordinal={props.ordinal}
           onShowPicker={props.setShowingPicker}
           showBorder={false}
-          tooltipEnabled={false}
           style={styles.reactButton}
         />
         <Box ref={props.setAttachmentRef}>

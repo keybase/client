@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     currentDeviceAlreadyProvisioned,
     // we either have a name for real or we asked on a previous screen
-    currentDeviceName: currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName,
+    currentDeviceName: (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || '',
     currentDeviceType: isMobile ? 'mobile' : 'desktop',
     error: state.provision.error.stringValue(),
     otherDeviceName: state.provision.codePageOtherDeviceName,

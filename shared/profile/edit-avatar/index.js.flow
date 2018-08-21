@@ -6,12 +6,7 @@ export type Props = {
   createdTeam?: boolean,
   image?: any,
   onClose: () => void,
-  onSave: (
-    filename: string,
-    crop?: RPCTypes.ImageCropRect,
-    teamname?: string,
-    sendChatNotification?: boolean
-  ) => void,
+  onSave: ( filename: string, crop?: RPCTypes.ImageCropRect) => void,
   sendChatNotification?: boolean,
   teamname?: string,
 }

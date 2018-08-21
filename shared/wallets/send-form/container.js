@@ -8,4 +8,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   onClose: () => dispatch(navigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SendForm)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(SendForm)

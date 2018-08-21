@@ -1,7 +1,8 @@
 // Types related to a message
-// @flow
+// @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'

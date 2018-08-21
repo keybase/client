@@ -5,7 +5,7 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {switchTo} from '../actions/route-tree'
 import {ChatRow} from './chat.desktop'
-import {connect, compose, type Dispatch} from '../util/container'
+import {remoteConnect, compose, type Dispatch} from '../util/container'
 
 const mapStateToProps = (state) => ({
   conversations: state.conversations,
@@ -33,5 +33,5 @@ const mergeProps = (stateProps, dispatchProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps)
+  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)
 )(ChatRow)

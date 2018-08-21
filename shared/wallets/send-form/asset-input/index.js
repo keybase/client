@@ -50,7 +50,7 @@ const AssetInput = (props: Props) => (
           </Text>
         </Text>
       )}
-    {props.warningPayee && (
+    {!!props.warningPayee && (
       <Text type="BodySmallError">
         {props.warningPayee} doesn't accept{' '}
         <Text type="BodySmallSemibold" style={{color: globalColors.red}}>

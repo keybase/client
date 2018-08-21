@@ -856,13 +856,13 @@
 			"revisionTime": "2018-08-07T10:09:57Z"
 		},
 		{
-			"checksumSHA1": "2Fk4509KezbD/X96/xobUPzXDec=",
+			"checksumSHA1": "IuPfwRNASnJMU++sVAnIgkznc/g=",
 			"path": "golang.org/x/mobile/cmd/gomobile",
 			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
 			"revisionTime": "2018-08-07T10:09:57Z"
 		},
 		{
-			"checksumSHA1": "CdVS11W0V70Majqzd9x0r8DTDHY=",
+			"checksumSHA1": "FsQ17s1p6fWu0CSAfj+vN/l/kTU=",
 			"path": "golang.org/x/mobile/internal/binres",
 			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
 			"revisionTime": "2018-08-07T10:09:57Z"

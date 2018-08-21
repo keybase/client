@@ -3,14 +3,13 @@ import React from 'react'
 import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
-type Props = {
-  errorText: string,
-  name: string,
+type Props = {|
+  onBack: ?() => void,
   onCancel: () => void,
   onDeleteHistory: () => void,
-}
+|}
 
-const DeleteHistoryWarning = ({errorText, name, onCancel, onDeleteHistory}: Props) => (
+const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
   <MaybePopup onClose={onCancel}>
     <Box
       style={{

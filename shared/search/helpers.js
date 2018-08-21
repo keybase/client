@@ -41,7 +41,9 @@ const clearSearchHoc = withHandlers({
 type OwnPropsWithSearchDebounced = OwnProps & {_searchDebounced: $PropertyType<OwnProps, 'search'>}
 
 const onChangeSelectedSearchResultHoc = compose(
+  // $FlowIssue TODO fix up thie type for real
   withHandlers({
+    // $FlowIssue TODO fix up thie type for real
     onMove: ({onUpdateSelectedSearchResult, selectedSearchId, searchResultIds}: OwnProps) => (
       direction: 'up' | 'down'
     ) => {
@@ -57,6 +59,7 @@ const onChangeSelectedSearchResultHoc = compose(
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
+  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),
