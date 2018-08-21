@@ -46,5 +46,5 @@ sleep 5 && requestbundles &
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
 while true; do
-  babel-node ./node_modules/react-native/local-cli/cli.js start --resetCache
+  BABEL_ENV=RN babel-node ./node_modules/react-native/local-cli/cli.js start --resetCache
 done

@@ -6,7 +6,7 @@
 */
 
 // Cache in the module. This can get called from multiple places and env vars can get lost
-let isReactNative = process.env.BABEL_ENV !== 'electron'
+let isReactNative = process.env.BABEL_ENV === 'RN'
 module.exports = function(api /*: Api */) {
   api.cache(true)
 
