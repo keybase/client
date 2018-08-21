@@ -5,10 +5,14 @@ import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '
 
 const mapStateToProps = (state: TypedState) => ({
   displayUnit: state.wallets.buildingPayment.currency,
+  inputPlaceholder: '0.00',
+  bottomLabel: '', // TODO
+  topLabel: '', // TODO
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  inputPlaceholder: '0.00',
+  onChangeDisplayUnit: () => {}, // TODO
+  onClickInfo: () => {}, // TODO
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
