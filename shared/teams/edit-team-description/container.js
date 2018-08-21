@@ -1,8 +1,8 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
-import {connect} from 'react-redux'
 import {
+  connect,
   compose,
   withHandlers,
   withProps,

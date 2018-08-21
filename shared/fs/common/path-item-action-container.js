@@ -9,7 +9,6 @@ import {
   lifecycle,
   setDisplayName,
   type TypedState,
-  type Dispatch,
 } from '../../util/container'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'

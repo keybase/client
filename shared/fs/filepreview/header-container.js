@@ -4,7 +4,6 @@ import {
   connect,
   lifecycle,
   setDisplayName,
-  type Dispatch,
   type TypedState,
 } from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'

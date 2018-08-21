@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {connect} from 'react-redux'
+import {connect} from '../../util/container'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'

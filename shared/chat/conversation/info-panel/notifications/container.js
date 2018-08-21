@@ -10,7 +10,6 @@ import {
   setDisplayName,
   withStateHandlers,
   type TypedState,
-  type Dispatch,
 } from '../../../../util/container'
 
 type OwnProps = {

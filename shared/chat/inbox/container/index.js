@@ -12,7 +12,7 @@ import {
   withStateHandlers,
   isMobile,
 } from '../../../util/container'
-import type {TypedState, Dispatch} from '../../../util/container'
+import type {TypedState} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 

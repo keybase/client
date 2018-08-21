@@ -4,7 +4,6 @@ import {
   compose,
   connect,
   lifecycle,
-  type Dispatch,
   type TypedState,
   setDisplayName,
 } from '../../util/container'
