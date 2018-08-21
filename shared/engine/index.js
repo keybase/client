@@ -257,13 +257,13 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _rpcOutgoing = (p: {
+  _rpcOutgoing(p: {
     method: string,
     params: ?Object,
     callback: (...args: Array<any>) => void,
     incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
     waitingKey?: string,
-  }) => {
+  }) {
     const {method, params = {}, callback, incomingCallMap, waitingKey} = p
     // Make a new session and start the request
     const session = this.createSession({incomingCallMap, waitingKey})
