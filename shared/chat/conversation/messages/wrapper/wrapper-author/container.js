@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnP
   const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
   const lastPositionExists = orangeLineMessageID === message.id
 
-  // text and attachment messages hae a bunch of info about the status.
+  // text and attachment messages have a bunch of info about the status.
   // payments don't.
   let messageSent, messageFailed, messagePending, isExplodingUnreadable
   if (message.type === 'text' || message.type === 'attachment') {
