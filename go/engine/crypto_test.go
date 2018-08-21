@@ -314,7 +314,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	m.ActiveDevice().CachePaperKey(m, libkb.NewDeviceWithKeysOnly(peng.SigKey(), peng.EncKey()))
+	m.ActiveDevice().CacheProvisioningKey(m, libkb.NewDeviceWithKeysOnly(peng.SigKey(), peng.EncKey()))
 
 	key := peng.EncKey()
 	kp, ok := key.(libkb.NaclDHKeyPair)

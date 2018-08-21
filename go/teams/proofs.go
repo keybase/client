@@ -113,7 +113,9 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 
 	var action string
 	defer func() {
-		p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		if action != "discard-easy" && !ShouldSuppressLogging(ctx) {
+			p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		}
 	}()
 
 	idx := newProofIndex(a.leafID, b.leafID)
@@ -274,6 +276,10 @@ func (p proof) findLink(ctx context.Context, g *libkb.GlobalContext, world Loade
 		return linkID, NewProofError(p, fmt.Sprintf("no linkID for seqno %d", seqno))
 	}
 	return linkID, nil
+}
+
+func (p *proofSetT) checkRequired() bool {
+	return len(p.proofs) > 0
 }
 
 // check the entire proof set, failing if any one proof fails.

@@ -20,54 +20,54 @@ type SaltpackUI struct {
 }
 
 func (s *SaltpackUI) doNonInteractive(arg keybase1.SaltpackPromptForDecryptArg) error {
+	var err error
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
 		if s.force {
 			s.G().Log.Warning("Your view of the sender is broken, but forcing through.")
 			return nil
 		}
-		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender identity failed"}
+		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender identity failed"}
 	case keybase1.SaltpackSenderType_REVOKED:
 		if s.force {
-			s.G().Log.Warning("The key that signed this message is revoked, but forcing through.")
+			s.G().Log.Warning("The key that authenticated this message is revoked, but forcing through.")
 			return nil
 		}
-		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key revoked"}
+		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key revoked"}
 	case keybase1.SaltpackSenderType_EXPIRED:
 		if s.force {
-			s.G().Log.Warning("The key that signed this message is expired, but forcing through.")
+			s.G().Log.Warning("The key that authenticated this message is expired, but forcing through.")
 			return nil
 		}
-		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key expired"}
+		err = libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender key expired"}
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		s.G().Log.Warning("The sender of this message is a Keybase user you don't follow. Consider doing so for even stronger security!")
+	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_SELF, keybase1.SaltpackSenderType_UNKNOWN, keybase1.SaltpackSenderType_ANONYMOUS:
+		// No need to issue warnings here
 	default:
-		return nil
+		panic("unexpected SenderType in SaltpackPromptForDecrypt")
 	}
+	if err != nil {
+		w := s.terminal.ErrorWriter()
+		fmt.Fprintf(w, ColorString(s.G(), "red", "Use --force to decrypt anyway.\n"))
+	}
+	return err
 }
 
 func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) error {
-	var why string
 	def := libkb.PromptDefaultYes
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_SELF:
+		// No need to ask for confirmation in this case.
 		return nil
-	case keybase1.SaltpackSenderType_NOT_TRACKED:
-		why = "The sender of this message is a Keybase user you don't follow"
-	case keybase1.SaltpackSenderType_UNKNOWN:
-		why = "The sender of this message is unknown to Keybase"
-	case keybase1.SaltpackSenderType_ANONYMOUS:
-		why = "The sender of this message has chosen to remain anonymous"
-	case keybase1.SaltpackSenderType_TRACKING_BROKE:
-		why = "You follow the sender of this message, but your view of them is broken"
+	case keybase1.SaltpackSenderType_TRACKING_BROKE, keybase1.SaltpackSenderType_REVOKED, keybase1.SaltpackSenderType_EXPIRED:
 		def = libkb.PromptDefaultNo
-	case keybase1.SaltpackSenderType_REVOKED:
-		why = "The key that signed this message has been revoked"
-		def = libkb.PromptDefaultNo
-	case keybase1.SaltpackSenderType_EXPIRED:
-		why = "The key that signed this message has expired"
-		def = libkb.PromptDefaultNo
+	case keybase1.SaltpackSenderType_UNKNOWN, keybase1.SaltpackSenderType_ANONYMOUS, keybase1.SaltpackSenderType_NOT_TRACKED:
+		// In this case the default answer is yes.
+	default:
+		panic("unexpected SenderType in SaltpackPromptForDecrypt")
 	}
-	why += ". Go ahead and decrypt?"
-	ok, err := s.terminal.PromptYesNo(PromptDescriptorDecryptInteractive, why, def)
+	ok, err := s.terminal.PromptYesNo(PromptDescriptorDecryptInteractive, "Go ahead and decrypt?", def)
 	if err != nil {
 		return err
 	}
@@ -79,10 +79,28 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 }
 
 func (s *SaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
-	if arg.UsedDelegateUI {
-		w := s.terminal.ErrorWriter()
-		fmt.Fprintf(w, "Message authored by "+ColorString(s.G(), "bold", arg.Sender.Username)+"\n")
+	w := s.terminal.ErrorWriter()
+	switch arg.Sender.SenderType {
+	case keybase1.SaltpackSenderType_TRACKING_OK:
+		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (whom you do not follow).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+	case keybase1.SaltpackSenderType_UNKNOWN:
+		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("The author of this message is unknown to Keybase (key ID: %s).\n", arg.SigningKID)))
+	case keybase1.SaltpackSenderType_SELF:
+		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Authored by %s (you).\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+	case keybase1.SaltpackSenderType_ANONYMOUS:
+		fmt.Fprintf(w, ColorString(s.G(), "green", "The sender of this message has chosen to remain anonymous.\n"))
+	case keybase1.SaltpackSenderType_TRACKING_BROKE:
+		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s.\nYou follow the sender of this message, but your view of them is broken.\n", ColorString(s.G(), "bold", arg.Sender.Username))))
+	case keybase1.SaltpackSenderType_REVOKED:
+		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has been revoked (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+	case keybase1.SaltpackSenderType_EXPIRED:
+		fmt.Fprintf(w, ColorString(s.G(), "red", fmt.Sprintf("Authored by %s, however the key that authenticated this message has expired (key ID: %s).\n", ColorString(s.G(), "bold", arg.Sender.Username), arg.SigningKID)))
+	default:
+		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
+
 	if !s.interactive {
 		return s.doNonInteractive(arg)
 	}
@@ -95,23 +113,22 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	var un string
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_UNKNOWN:
-		un = "The signer of this message is unknown to Keybase"
-	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_NOT_TRACKED:
+		un = fmt.Sprintf("The signer of this message is unknown to Keybase.\nSigning key ID: %s", arg.SigningKID)
+	case keybase1.SaltpackSenderType_TRACKING_OK:
 		un = fmt.Sprintf("Signed by %s", ColorString(s.G(), "bold", arg.Sender.Username))
+	case keybase1.SaltpackSenderType_NOT_TRACKED:
+		un = fmt.Sprintf("Signed by %s (whom you do not follow)", ColorString(s.G(), "bold", arg.Sender.Username))
+		s.G().Log.Warning("The sender of this message is a Keybase user you don't follow. Consider doing so for even stronger security!")
 	case keybase1.SaltpackSenderType_SELF:
 		un = fmt.Sprintf("Signed by %s (you)", ColorString(s.G(), "bold", arg.Sender.Username))
 	default:
 		return fmt.Errorf("Unexpected sender type: %s", arg.Sender.SenderType)
 	}
-	fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Signature verified. %s.\n", un)))
-	if arg.Sender.SenderType == keybase1.SaltpackSenderType_UNKNOWN {
-		fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("Signing key ID: %s.\n", arg.SigningKID)))
-	}
-
+	fmt.Fprintf(w, ColorString(s.G(), "green", fmt.Sprintf("%s.\n", un)))
 	return nil
 }
 
-// This function is responsible for short-circuiting the output of the bad
+// SaltpackVerifyBadSender is responsible for short-circuiting the output of the bad
 // message. It returns an error if the --force argument isn't present, and the
 // VerifyEngine bubbles that up. This is similar to doNonInteractive above.
 func (s *SaltpackUI) SaltpackVerifyBadSender(_ context.Context, arg keybase1.SaltpackVerifyBadSenderArg) error {

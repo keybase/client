@@ -45,17 +45,17 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn     ServerConnection
-	uiSource       UISource
-	boxer          *Boxer
-	identNotifier  types.IdentifyNotifier
-	clock          clockwork.Clock
-	convPageStatus map[string]chat1.Pagination
+	serverConn        ServerConnection
+	uiSource          UISource
+	boxer             *Boxer
+	identNotifier     types.IdentifyNotifier
+	clock             clockwork.Clock
+	convPageStatus    map[string]chat1.Pagination
+	cachedThreadDelay *time.Duration
 
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
-	cachedThreadDelay *time.Duration
 	remoteThreadDelay *time.Duration
 }
 
@@ -482,28 +482,28 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
 				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
-				res.Messages = append(res.Messages, chat1.NewMessageUnboxedWithPlaceholder(
-					chat1.MessageUnboxedPlaceholder{
-						MessageID: m.GetMessageID(),
-						Hidden:    true,
-					},
-				))
+				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
 			}
 		}
 		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
 	}()
 
-	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
-		state, err := oldMsg.State()
-		if err != nil {
+	shouldAppend := func(newMsg chat1.MessageUnboxed, oldMsgs map[chat1.MessageID]chat1.MessageUnboxed) bool {
+		oldMsg, ok := oldMsgs[newMsg.GetMessageID()]
+		if !ok {
 			return true
 		}
-		switch state {
-		case chat1.MessageUnboxedState_VALID:
-			return false
-		default:
+		// If either message is not valid, return the new one, something weird might be going on
+		if !oldMsg.IsValid() || !newMsg.IsValid() {
 			return true
 		}
+		// If newMsg is now superseded by something different than what we sent, then let's include it
+		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
+			h.Debug(ctx, "mergeLocalRemoteThread: including supersededBy change: msgID: %d",
+				newMsg.GetMessageID())
+			return true
+		}
+		return false
 	}
 	switch mode {
 	case chat1.GetThreadNonblockCbMode_FULL:
@@ -516,8 +516,7 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			}
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
-				oldMsg, ok := lm[m.GetMessageID()]
-				if !ok || shouldAppend(oldMsg) {
+				if shouldAppend(m, lm) {
 					res.Messages = append(res.Messages, m)
 				}
 			}
@@ -658,6 +657,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if pagination, err = utils.DecodePagination(arg.Pagination); err != nil {
 		return res, err
 	}
+
+	// Enable delete placeholders for supersede transform
+	if arg.Query == nil {
+		arg.Query = new(chat1.GetThreadQuery)
+	}
+	arg.Query.EnableDeletePlaceholders = true
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
@@ -1766,8 +1771,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
-		arg.Visibility == keybase1.TLFVisibility_PUBLIC)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		arg.TlfName, arg.Visibility == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err
@@ -1928,7 +1933,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
 	if err != nil {
 		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err

@@ -65,7 +65,7 @@ class UserImage extends React.PureComponent<ImageProps> {
 }
 
 const borderOffset = -1
-const borderSize = 2
+const borderSize = 1
 // Layer on top to extend outside of the image
 class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
   render() {
@@ -135,7 +135,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           )}
           {(!!this.props.borderColor || this.props.isTeam) && (
             <Border
-              borderColor={this.props.borderColor || globalColors.black_05}
+              borderColor={this.props.borderColor || globalColors.black_10}
               borderRadius={borderRadius}
             />
           )}

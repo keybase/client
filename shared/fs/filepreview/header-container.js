@@ -18,26 +18,21 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     path,
     pathItem,
-    _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
   loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
   onBack: () => dispatch(navigateUp()),
-  _showInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _openFinderPopup: (evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {_fileUIEnabled, path, pathItem} = stateProps
-  const {loadFilePreview, onBack, _openFinderPopup, _showInFileUI} = dispatchProps
+  const {path, pathItem} = stateProps
+  const {loadFilePreview, onBack} = dispatchProps
   return {
     pathItem,
 
     onBack,
-    onShowInFileUI: _fileUIEnabled ? () => _showInFileUI(path) : _openFinderPopup,
 
     loadFilePreview,
     path,

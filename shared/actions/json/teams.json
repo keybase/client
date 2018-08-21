@@ -221,7 +221,6 @@
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
-    "setupTeamHandlers": {},
     "updateChannelName": {
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",

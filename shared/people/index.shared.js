@@ -25,7 +25,7 @@ export const PeoplePageSearchBar = (
     styleSearchText?: any,
   }
 ) => (
-  <Box style={{...styleRowContainer, ...props.styleRowContainer}}>
+  <Box style={collapseStyles([styleRowContainer, props.styleRowContainer])}>
     <ClickableBox
       onClick={props.onSearch}
       style={collapseStyles([styleSearchContainer, props.styleSearchContainer])}

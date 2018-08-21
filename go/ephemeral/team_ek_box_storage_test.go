@@ -129,6 +129,20 @@ func TestTeamEKBoxStorage(t *testing.T) {
 	expected := []keybase1.EkGeneration(nil)
 	require.NoError(t, err)
 	require.Equal(t, expected, expired)
+
+	// Verify we store failures in the cache
+	t.Logf("cache failures")
+	nonexistent, err = rawTeamEKBoxStorage.Get(context.Background(), teamID, teamEKMetadata.Generation+1)
+	require.Error(t, err)
+	require.Equal(t, keybase1.TeamEk{}, nonexistent)
+	cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(context.Background(), teamID)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Len(t, cache, 1)
+
+	cacheItem, ok := cache[teamEKMetadata.Generation+1]
+	require.True(t, ok)
+	require.True(t, cacheItem.HasError())
 }
 
 // If we change the key format intentionally, we have to introduce some form of
@@ -146,6 +160,6 @@ func TestTeamEKStorageKeyFormat(t *testing.T) {
 
 	key, err := s.dbKey(context.Background(), teamID)
 	require.NoError(t, err)
-	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s", teamID, s.G().Env.GetUsername(), uv.EldestSeqno)
+	expected := fmt.Sprintf("teamEphemeralKeyBox-%s-%s-%s-%d", teamID, s.G().Env.GetUsername(), uv.EldestSeqno, teamEKBoxStorageDBVersion)
 	require.Equal(t, expected, key.Key)
 }

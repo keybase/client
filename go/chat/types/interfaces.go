@@ -32,13 +32,14 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
-	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
-	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
-	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
+	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
+	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
+	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
+	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
 	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -282,6 +283,8 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) error
 	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
 		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
+	StreamAttachment(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 }

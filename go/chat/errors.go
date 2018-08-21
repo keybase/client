@@ -138,6 +138,22 @@ func (e TransientUnboxingError) InternalError() string {
 
 //=============================================================================
 
+type EphemeralAlreadyExpiredError struct{ inner error }
+
+func NewEphemeralAlreadyExpiredError() EphemeralAlreadyExpiredError {
+	return EphemeralAlreadyExpiredError{}
+}
+
+func (e EphemeralAlreadyExpiredError) Error() string {
+	return "Unable to decrypt already exploded message"
+}
+
+func (e EphemeralAlreadyExpiredError) InternalError() string {
+	return e.Error()
+}
+
+//=============================================================================
+
 type EphemeralUnboxingError struct{ inner error }
 
 func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
@@ -437,6 +453,26 @@ func (e SenderTestImmediateFailError) Error() string {
 
 func (e SenderTestImmediateFailError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 	return chat1.OutboxErrorType_MISC, true
+}
+
+//=============================================================================
+
+type DecryptionKeyNotFoundError struct {
+	generation            int
+	kbfsEncrypted, public bool
+}
+
+func NewDecryptionKeyNotFoundError(generation int, public, kbfsEncrypted bool) DecryptionKeyNotFoundError {
+	return DecryptionKeyNotFoundError{
+		generation:    generation,
+		kbfsEncrypted: kbfsEncrypted,
+		public:        public,
+	}
+}
+
+func (e DecryptionKeyNotFoundError) Error() string {
+	return fmt.Sprintf("decryption key not found for generation: %v kbfsEncrypted: %v public: %v",
+		e.generation, e.kbfsEncrypted, e.public)
 }
 
 //=============================================================================

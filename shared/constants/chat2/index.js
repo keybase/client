@@ -23,6 +23,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
   messageMap: I.Map(),
@@ -60,6 +61,8 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
+export const getMessageKey = (message: Types.Message) =>
+  `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -183,6 +186,26 @@ export const makeInboxQuery = (
     unreadOnly: false,
   }
 }
+
+export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.commonConversationMembersType.kbfs:
+      return RPCChatTypes.commonConversationMembersType.kbfs
+    case RPCChatTypes.commonConversationMembersType.team:
+      return RPCChatTypes.commonConversationMembersType.team
+    case RPCChatTypes.commonConversationMembersType.impteamnative:
+      return RPCChatTypes.commonConversationMembersType.impteamnative
+    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
+      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    default:
+      return null
+  }
+}
+
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100

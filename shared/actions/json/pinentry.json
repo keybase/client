@@ -17,7 +17,6 @@
       "keyPath": "Array<string>",
       "entities": "I.List<any>"
     },
-    "registerPinentryListener": {},
     "newPinentry": {
       "showTyping": "RPCTypes.Feature",
       "type": "RPCTypes.PassphraseType",
@@ -32,8 +31,6 @@
       "sessionID": "number",
       "passphrase": "string"
     },
-    "onCancel": {
-      "sessionID": "number"
-    }
+    "onCancel": { "sessionID": "number" }
   }
 }

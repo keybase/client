@@ -1187,6 +1187,7 @@ type SimpleFSDumpDebuggingInfoArg struct {
 }
 
 type SimpleFSSyncStatusArg struct {
+	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
 type SimpleFSGetHTTPAddressAndTokenArg struct {
@@ -1273,7 +1274,7 @@ type SimpleFSInterface interface {
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Get sync status.
-	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
+	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
 	// access KBFS content through HTTP. It's fine to call this RPC more than once,
 	// but it's probably best to call this once and keep using it. Clients should
@@ -1665,7 +1666,12 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSSyncStatus(ctx)
+					typedArgs, ok := args.(*[]SimpleFSSyncStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSSyncStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSyncStatus(ctx, (*typedArgs)[0].Filter)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1908,8 +1914,9 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 }
 
 // Get sync status.
-func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{SimpleFSSyncStatusArg{}}, &res)
+func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilter) (res FSSyncStatus, err error) {
+	__arg := SimpleFSSyncStatusArg{Filter: filter}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{__arg}, &res)
 	return
 }
 

@@ -451,8 +451,6 @@ func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
 	return "", nil
 }
 
-const deletedTextCLI = "[deleted]"
-
 // Everything you need to show a message.
 // Takes into account superseding edits and deletions.
 type messageView struct {
@@ -512,7 +510,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(ctx, body.KbTxID)
+	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.TxID.String())
 	if err != nil {
 		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"

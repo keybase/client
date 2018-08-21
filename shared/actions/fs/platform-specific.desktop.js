@@ -1,6 +1,5 @@
 // @flow
 import * as FsGen from '../fs-gen'
-import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
@@ -15,7 +14,7 @@ import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
-import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
+import {navigateTo} from '../route-tree'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 type pathType = 'file' | 'directory'
@@ -120,19 +119,10 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .slice(2)
     .join(path.sep)
 
-  const state: TypedState = yield Saga.select()
-  let {
-    config: {kbfsPath},
-  } = state
+  const kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
   if (!kbfsPath) {
-    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-
-    if (!kbfsPath) {
-      throw new Error('No kbfsPath (RPC)')
-    }
-
-    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
+    throw new Error('No kbfsPath (RPC)')
   }
 
   const resolvedPath = path.resolve(kbfsPath, subPath)
@@ -303,26 +293,6 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
-  const {targetRect, routePath} = action.payload
-  return Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {
-            targetRect,
-            position: 'bottom right',
-            onHidden: () => Saga.put(navigateUp()),
-            onInstall: () => Saga.put(FsGen.createInstallFuse()),
-          },
-          selected: 'finderAction',
-        },
-      ])
-    )
-  )
-}
-
 function platformSpecificIntentEffect(
   intent: Types.DownloadIntent,
   localPath: string,
@@ -385,9 +355,6 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-
-  // These are saga tasks that may use actions above.
-  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
 export {platformSpecificIntentEffect, platformSpecificSaga}

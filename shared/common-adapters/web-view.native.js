@@ -23,17 +23,27 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 `
 
 export default (isIOS
-  ? (props: WebViewProps) => (
-      <WKWebView
-        source={{uri: props.url}}
-        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-        style={props.style}
-      />
-    )
-  : (props: WebViewProps) => (
-      <WebView
-        source={{uri: props.url}}
-        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-        style={props.style}
-      />
-    ))
+  ? (props: WebViewProps) => {
+      const {onLoadingStateChange} = props
+      return (
+        <WKWebView
+          source={{uri: props.url}}
+          injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+          style={props.style}
+          onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
+          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+        />
+      )
+    }
+  : (props: WebViewProps) => {
+      const {onLoadingStateChange} = props
+      return (
+        <WebView
+          source={{uri: props.url}}
+          injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+          style={props.style}
+          onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
+          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+        />
+      )
+    })

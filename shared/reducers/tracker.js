@@ -411,7 +411,6 @@ export default function(
     case TrackerGen.openProofUrl:
     case TrackerGen.parseFriendship:
     case TrackerGen.refollow:
-    case TrackerGen.setupTrackerHandlers:
     case TrackerGen.unfollow:
     case TrackerGen.updateTrackers:
       return state

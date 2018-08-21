@@ -1,10 +1,6 @@
 // @flow
-import Box from './box'
-import Icon from './icon'
 import * as React from 'react'
-import Text from './text'
-import {Badge} from './badge'
-import Avatar from './avatar'
+import {Box, Icon, Text, Avatar, Badge} from '.'
 import {get} from 'lodash-es'
 import shallowEqual from 'shallowequal'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
@@ -270,7 +266,7 @@ class TabBar extends React.Component<Props> {
         style={{
           ...globalStyles.flexBoxRow,
           flexShrink: 0,
-          borderBottom: `solid 1px ${globalColors.black_05}`,
+          borderBottom: `solid 1px ${globalColors.black_10}`,
           ...this.props.styleTabBar,
         }}
       >
@@ -348,8 +344,8 @@ const styleBadgeAvatar = {
 
 const styleBadgeNav = {
   position: 'absolute',
-  left: 46,
-  top: 5,
+  right: 12,
+  top: 4,
 }
 
 const styleBadgeIcon = {

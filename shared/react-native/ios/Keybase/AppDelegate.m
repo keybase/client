@@ -143,6 +143,7 @@ const BOOL isDebug = NO;
   [DDLog addLogger:self.fileLogger];
 
   [self setupGo];
+  [self notifyAppState:application];
 
   NSURL *jsCodeLocation;
 
@@ -261,14 +262,9 @@ const BOOL isDebug = NO;
 }
 
 - (void) hideCover {
-  // Always cancel outstanding animations else they can fight and the timing is very weird
   NSLog(@"hideCover: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
-  [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-    self.resignImageView.alpha = 0;
-  } completion:^(BOOL finished){
-    NSLog(@"hideCover: hid keyz screen. Finished: %d", finished);
-  }];
+  self.resignImageView.alpha = 0;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
@@ -325,11 +321,6 @@ const BOOL isDebug = NO;
 - (void)applicationWillEnterForeground:(UIApplication *)application {
   NSLog(@"applicationWillEnterForeground: hiding keyz screen.");
   [self hideCover];
-}
-
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
-  NSLog(@"applicationDidFinishLaunching: notifying service.");
-  [self notifyAppState:application];
 }
 
 - (void)notifyAppState:(UIApplication *)application {

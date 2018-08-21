@@ -12,6 +12,7 @@ import (
 func NewCmdAccount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	subcommands := []cli.Command{
 		NewCmdAccountDelete(cl, g),
+		NewCmdAccountLockdown(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificAccountCommands(cl, g)...)
 	return cli.Command{

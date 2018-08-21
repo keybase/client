@@ -256,11 +256,13 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	// Fake the teamEK creation time so we are forced to generate a new one.
 	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
 		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation)
-		teamEKBoxes, found, err := rawTeamEKBoxStorage.getMap(context.Background(), teamID)
+		cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(context.Background(), teamID)
 		require.NoError(t, err)
 		require.True(t, found)
-		teamEKBoxed, ok := teamEKBoxes[generation]
+		cacheItem, ok := cache[generation]
 		require.True(t, ok)
+		require.False(t, cacheItem.HasError())
+		teamEKBoxed := cacheItem.TeamEKBoxed
 		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
 		err = teamEKBoxStorage.Put(context.Background(), teamID, generation, teamEKBoxed)
 		require.NoError(t, err)

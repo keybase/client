@@ -1,6 +1,7 @@
 // @flow
 import logger from '../../logger'
 import * as Constants from '../../constants/fs'
+import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -15,22 +16,19 @@ import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
 
-function* listFavoritesSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
-  try {
-    const results = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
-      args: [{key: 'problems', value: '1'}],
-      endpoint: 'kbfs/favorite/list',
-    })
-    const username = state.config.username || ''
-    const loggedIn = state.config.loggedIn
-    const folders = Constants.folderToFavoriteItems(results && results.body, username, loggedIn)
-
-    yield Saga.put(FsGen.createFavoritesLoaded({folders}))
-  } catch (e) {
-    logger.warn('Error listing favorites:', e)
-  }
-}
+const loadFavorites = (state: TypedState) =>
+  RPCTypes.apiserverGetWithSessionRpcPromise({
+    args: [{key: 'problems', value: '1'}],
+    endpoint: 'kbfs/favorite/list',
+  })
+    .then(results =>
+      Constants.createFavoritesLoadedFromJSONResults(
+        results && results.body,
+        state.config.username || '',
+        state.config.loggedIn
+      )
+    )
+    .catch(e => logger.warn('Error listing favorites:', e))
 
 const direntToMetadata = (d: RPCTypes.Dirent) => ({
   name: d.name.split('/').pop(),
@@ -51,20 +49,13 @@ const makeEntry = (d: RPCTypes.Dirent, children?: Set<string>) => {
     case RPCTypes.simpleFSDirentType.sym:
       return Constants.makeSymlink({
         ...direntToMetadata(d),
-        progress: 'loaded',
         // TODO: plumb link target
       })
     case RPCTypes.simpleFSDirentType.file:
     case RPCTypes.simpleFSDirentType.exec:
-      return Constants.makeFile({
-        ...direntToMetadata(d),
-        progress: 'loaded',
-      })
+      return Constants.makeFile(direntToMetadata(d))
     default:
-      return Constants.makeUnknownPathItem({
-        ...direntToMetadata(d),
-        progress: 'loaded',
-      })
+      return Constants.makeUnknownPathItem(direntToMetadata(d))
   }
 }
 
@@ -157,30 +148,28 @@ function* folderList(action: FsGen.FolderListLoadPayload): Saga.SagaGenerator<an
   // Get metadata fields of the directory that we just loaded from state to
   // avoid overriding them.
   const state = yield Saga.select()
-  const {
-    lastModifiedTimestamp,
-    lastWriter,
-    size,
-    writable,
-    favoriteChildren,
-    tlfMeta,
-  }: Types.FolderPathItem = state.fs.pathItems.get(rootPath)
+  const {lastModifiedTimestamp, lastWriter, size, writable}: Types.FolderPathItem = state.fs.pathItems.get(
+    rootPath,
+    Constants.makeFolder({name: Types.getPathName(rootPath)})
+  )
 
   const pathItems = [
-    [
-      rootPath,
-      Constants.makeFolder({
-        lastModifiedTimestamp,
-        lastWriter,
-        size,
-        name: Types.getPathName(rootPath),
-        writable,
-        children: I.Set(childMap.get(rootPath)),
-        progress: 'loaded',
-        tlfMeta,
-        favoriteChildren,
-      }),
-    ],
+    ...(Types.getPathLevel(rootPath) > 2
+      ? [
+          [
+            rootPath,
+            Constants.makeFolder({
+              lastModifiedTimestamp,
+              lastWriter,
+              size,
+              name: Types.getPathName(rootPath),
+              writable,
+              children: I.Set(childMap.get(rootPath)),
+              progress: 'loaded',
+            }),
+          ],
+        ]
+      : []),
     ...entries.map(direntToPathAndPathItem),
   ]
   yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
@@ -279,13 +268,28 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     // Kick off any post-download actions, now that the file is available locally.
     const intentEffect = platformSpecificIntentEffect(intent, localPath, mimeType)
     intentEffect && (yield intentEffect)
+    yield Saga.put(FsGen.createDownloadFinished({key}))
   } catch (error) {
     console.log(`Download for intent[${intent}] error: ${error}`)
-    yield Saga.put(FsGen.createDownloadFinished({key, error}))
-    return
+    yield Saga.put(
+      FsGen.createDownloadFinished({
+        key,
+        error: Constants.makeError({
+          error,
+          erroredAction: action,
+          retriableAction: action,
+        }),
+      })
+    )
+  } finally {
+    if (intent !== 'none') {
+      // If the intent is not 'none', we don't need to wait for user to
+      // dismiss. So just clear them out when we're done.
+      // TODO: errors would be swallowen here, so need to figure out if there
+      // are errors here that we should bring user's attention to.
+      yield Saga.put(FsGen.createDismissDownload({key}))
+    }
   }
-
-  yield Saga.put(FsGen.createDownloadFinished({key}))
 }
 
 function* upload(action: FsGen.UploadPayload) {
@@ -315,7 +319,16 @@ function* upload(action: FsGen.UploadPayload) {
     yield Saga.put(FsGen.createUploadWritingFinished({path}))
   } catch (error) {
     console.log(`Upload error: ${error}`)
-    yield Saga.put(FsGen.createUploadWritingFinished({path, error}))
+    yield Saga.put(
+      FsGen.createUploadWritingFinished({
+        path,
+        error: Constants.makeError({
+          error,
+          erroredAction: action,
+          retriableAction: action,
+        }),
+      })
+    )
   }
 }
 
@@ -352,7 +365,10 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
         suppressDurationSec: 8,
       })
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
-        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise
+        RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
+        {
+          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        }
       )
       yield Saga.sequentially([
         Saga.put(
@@ -393,7 +409,7 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
   }
 }
 
-function _setupFSHandlers() {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
 }
@@ -412,7 +428,10 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
     yield Saga.put(
       FsGen.createFavoriteIgnoreError({
         path: action.payload.path,
-        errorText: 'No folder specified',
+        error: Constants.makeError({
+          error: 'No folder specified',
+          erroredAction: action,
+        }),
       })
     )
   } else {
@@ -451,6 +470,9 @@ const getMimeTypePromise = (path: Types.Path, serverInfo: Types._LocalHTTPServer
         case 403:
           reject(Constants.invalidTokenError)
           return
+        case 404:
+          reject(Constants.notFoundError)
+          return
         default:
           reject(new Error(`unexpected HTTP status code: ${statusCode || ''}`))
       }
@@ -480,10 +502,18 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
       yield Saga.put(FsGen.createMimeTypeLoaded({path, mimeType}))
       return mimeType
     } catch (err) {
-      if (err !== Constants.invalidTokenError) {
-        throw err
+      if (err === Constants.invalidTokenError) {
+        token = '' // Set token to '' to trigger the refresh in next iteration.
+        continue
       }
-      token = '' // Set token to '' to trigger the refresh in next iteration.
+      if (err === Constants.notFoundError) {
+        // This file or its parent folder has been removed. So just stop here.
+        // This could happen when there are KBFS updates if user has previously
+        // inspected mime type, and we tracked the path through a refresh tag,
+        // but the path has been removed since then.
+        return
+      }
+      throw err
     }
   }
   throw new Error('failed to load mime type')
@@ -547,8 +577,8 @@ const editFailed = (res, {payload: {editID}}) => Saga.put(FsGen.createEditFailed
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  if (pathItem.type === 'folder') {
+  const pathItem = state.fs.pathItems.get(path)
+  if (!pathItem || pathItem.type === 'folder') {
     yield Saga.put(
       putActionIfOnPath(
         routePath,
@@ -601,7 +631,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.upload, upload)
   yield Saga.safeTakeEvery(FsGen.folderListLoad, folderList)
   yield Saga.safeTakeEvery(FsGen.filePreviewLoad, filePreview)
-  yield Saga.safeTakeEvery(FsGen.favoritesLoad, listFavoritesSaga)
+  yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEveryPure(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
@@ -610,12 +640,12 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
-  yield Saga.safeTakeEveryPure(FsGen.setupFSHandlers, _setupFSHandlers)
 
   yield Saga.fork(platformSpecificSaga)
 
   // These are saga tasks that may use actions above.
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default fsSaga

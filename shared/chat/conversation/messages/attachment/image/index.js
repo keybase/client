@@ -26,30 +26,72 @@ type Props = {
   hasProgress: boolean,
   height: number,
   onClick: () => void,
+  onDoubleClick: () => void,
   onShowInFinder: null | (() => void),
   path: string,
+  fullPath: string,
   progress: number,
   progressLabel: string,
   showButton: null | 'play' | 'film',
   title: string,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
   videoDuration: string,
+  inlineVideoPlayable: boolean,
   width: number,
 }
 
 type State = {
   loaded: boolean,
+  loadingVideo: 'notloaded' | 'loading' | 'loaded',
+  playingVideo: boolean,
 }
 
 class ImageAttachment extends React.PureComponent<Props, State> {
-  state = {loaded: false}
+  imageRef: any
+
+  state = {loaded: false, playingVideo: false, loadingVideo: 'notloaded'}
   _setLoaded = () => this.setState({loaded: true})
+  _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
+
+  _onClick = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoClick()
+      this.setState(p => ({
+        playingVideo: !p.playingVideo,
+        loadingVideo: p.loadingVideo === 'notloaded' ? 'loading' : p.loadingVideo,
+      }))
+    } else {
+      this.props.onClick()
+    }
+  }
+  _onDoubleClick = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      if (this.state.playingVideo) {
+        this._onClick()
+      }
+    }
+    this.props.onDoubleClick()
+  }
+  _onMouseEnter = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseEnter()
+    }
+  }
+  _onMouseLeave = () => {
+    if (this.props.inlineVideoPlayable && this.imageRef) {
+      this.imageRef.onVideoMouseLeave()
+    }
+  }
+
   render() {
     return (
       <ClickableBox
         style={styles.imageContainer}
-        onClick={this.props.onClick}
-        onLongPress={this.props.toggleShowingMenu}
+        onClick={this._onClick}
+        onDoubleClick={this._onDoubleClick}
+        onLongPress={this.props.toggleMessageMenu}
+        onMouseEnter={this._onMouseEnter}
+        onMouseLeave={this._onMouseLeave}
       >
         <Text type="BodySemibold" style={styles.title}>
           {this.props.title}
@@ -66,9 +108,15 @@ class ImageAttachment extends React.PureComponent<Props, State> {
         >
           {!!this.props.path && (
             <ImageRender
+              ref={ref => {
+                this.imageRef = ref
+              }}
               src={this.props.path}
+              videoSrc={this.props.fullPath}
               onLoad={this._setLoaded}
+              onLoadedVideo={this._setVideoLoaded}
               loaded={this.state.loaded}
+              inlineVideoPlayable={this.props.inlineVideoPlayable}
               style={collapseStyles([
                 styles.image,
                 {
@@ -79,14 +127,18 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               ])}
             />
           )}
-          {!this.state.loaded && <ProgressIndicator style={styles.progress} />}
-          {!!this.props.showButton && (
-            <Icon
-              type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-              style={iconCastPlatformStyles(styles.playButton)}
-            />
+          {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+            <ProgressIndicator style={styles.progress} />
           )}
+          {!!this.props.showButton &&
+            !this.state.playingVideo && (
+              <Icon
+                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                style={iconCastPlatformStyles(styles.playButton)}
+              />
+            )}
           {this.props.videoDuration.length > 0 &&
+            !this.state.playingVideo &&
             this.state.loaded && (
               <Box style={styles.durationContainer}>
                 <Text type={'BodySmall'} style={styles.durationText}>
@@ -180,13 +232,22 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: {
-    bottom: '5%',
-    position: 'absolute',
-    right: '3%',
-    backgroundColor: globalColors.black_75,
-    alignSelf: 'flex-start',
-  },
+  durationContainer: platformStyles({
+    isElectron: {
+      bottom: '5%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+    isMobile: {
+      bottom: '7%',
+      position: 'absolute',
+      right: '3%',
+      backgroundColor: globalColors.black_75,
+      alignSelf: 'flex-start',
+    },
+  }),
   durationText: {
     color: globalColors.white,
     paddingLeft: 5,
@@ -204,13 +265,18 @@ const styles = styleSheetCreate({
     isElectron: {
       wordBreak: 'break-word',
     },
-    isMobile: {
-      backgroundColor: globalColors.fastBlank,
-    },
   }),
   progress: platformStyles({
     isElectron: {
-      margin: 'auto',
+      bottom: '50%',
+      left: '50%',
+      marginBottom: -32,
+      marginLeft: -32,
+      marginRight: -32,
+      marginTop: -32,
+      position: 'absolute',
+      right: '50%',
+      top: '50%',
     },
     isMobile: {
       width: 48,

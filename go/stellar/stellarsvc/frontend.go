@@ -47,15 +47,16 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 			Name:      account.Name,
 		}
 
-		balances, err := s.remoter.Balances(ctx, acct.AccountID)
+		details, err := s.remoter.Details(ctx, acct.AccountID)
 		if err != nil {
-			s.G().Log.CDebugf(ctx, "remote.Balances failed for %q: %s", acct.AccountID, err)
+			s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", acct.AccountID, err)
 			return nil, err
 		}
-		acct.BalanceDescription, err = balanceList(balances).balanceDescription()
+		acct.BalanceDescription, err = balanceList(details.Balances).balanceDescription()
 		if err != nil {
 			return nil, err
 		}
+		acct.Seqno = details.Seqno
 
 		accts = append(accts, acct)
 	}
@@ -812,12 +813,9 @@ func (s *Server) GetSendAssetChoicesLocal(ctx context.Context, arg stellar1.GetS
 	}
 
 	if arg.To != "" {
-		uis := libkb.UIs{
-			IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
-		}
-		mctx := s.mctx(ctx).WithUIs(uis)
+		mctx := s.mctx(ctx)
 
-		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To))
+		recipient, err := stellar.LookupRecipient(mctx, stellarcommon.RecipientInput(arg.To), false)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "Skipping asset filtering: stellar.LookupRecipient for %q failed with: %s",
 				arg.To, err)
@@ -879,9 +877,6 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		secretNote bool
 		publicMemo bool
 	}{}
-	uis := libkb.UIs{
-		IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
-	}
 	log := func(format string, args ...interface{}) {
 		s.G().Log.CDebugf(ctx, "bpl: "+format, args...)
 	}
@@ -949,7 +944,7 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		}
 	}
 	if !skipRecipient {
-		recipient, err := bpc.LookupRecipient(s.mctx(ctx).WithUIs(uis), stellarcommon.RecipientInput(arg.To))
+		recipient, err := bpc.LookupRecipient(s.mctx(ctx), stellarcommon.RecipientInput(arg.To))
 		if err != nil {
 			log("error with recipient field %v: %v", arg.To, err)
 			res.ToErrMsg = "recipient not found"
@@ -1269,11 +1264,8 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 		}
 	}
 
-	uis := libkb.UIs{
-		IdentifyUI: s.uiSource.IdentifyUI(s.G(), arg.SessionID),
-	}
-	mctx := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
-	sendRes, err := stellar.SendPayment(mctx, s.remoter, stellar.SendPaymentArg{
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	sendRes, err := stellar.SendPaymentGUI(mctx, s.remoter, stellar.SendPaymentArg{
 		From:           arg.From,
 		FromSeqno:      fromSeqno,
 		To:             stellarcommon.RecipientInput(to),

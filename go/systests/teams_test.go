@@ -1,6 +1,7 @@
 package systests
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -80,7 +81,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if before.Generation() != 1 {
 		t.Errorf("generation before rotate: %d, expected 1", before.Generation())
 	}
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	// User1 should get a gregor that the team he was just added to changed.
 	tt.users[1].waitForTeamChangedGregor(teamID, keybase1.Seqno(2))
@@ -99,7 +100,7 @@ func TestTeamRotateOnRevoke(t *testing.T) {
 	if after.Generation() != 2 {
 		t.Errorf("generation after rotate: %d, expected 2", after.Generation())
 	}
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Fatal("team secret did not change when rotated")
 	}
@@ -218,7 +219,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	}
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
-	u.stellarClient = stellar1.LocalClient{Cli: cli}
+	u.stellarClient = newStellarRetryClient(cli)
 
 	g.ConfigureConfig()
 
@@ -254,7 +255,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
-	stellarClient            stellar1.LocalClient
+	stellarClient            stellar1.LocalInterface
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
 }
@@ -596,9 +597,31 @@ func (u *userPlusDevice) waitForTeamChangeRenamed(teamID keybase1.TeamID) {
 			}
 			u.tc.T.Logf("ignoring change message attempt %d (expected team = %v, renamed = true)", i, teamID)
 		case <-timeout:
-			u.tc.T.Fatalf("timed out waiting for team changes %s", teamID)
+			require.Fail(u.tc.T, fmt.Sprintf("timed out waiting for team changes %s", teamID))
 		}
 		i++
+	}
+}
+
+func (u *userPlusDevice) waitForNewlyAddedToTeamByID(teamID keybase1.TeamID) {
+	u.tc.T.Logf("waiting for newly added to team %s", teamID)
+
+	// Process any number of badge state updates, but bail out after 10
+	// seconds.
+	timeout := time.After(10 * time.Second * libkb.CITimeMultiplier(u.tc.G))
+	i := 0
+	for {
+		select {
+		case tid := <-u.notifications.newlyAddedToTeam:
+			u.tc.T.Logf("newlyAddedToTeam recieved: %+v", tid)
+			if tid.Eq(teamID) {
+				u.tc.T.Logf("newlyAddedToTeam matched!")
+				return
+			}
+			u.tc.T.Logf("ignoring newly added message attempt %d (expected team = %v)", i, teamID)
+		case <-timeout:
+			require.Fail(u.tc.T, fmt.Sprintf("timed out waiting newly added message %s", teamID))
+		}
 	}
 }
 
@@ -654,6 +677,13 @@ func (u *userPlusDevice) track(username string) {
 	trackCmd.SetUser(username)
 	trackCmd.SetOptions(keybase1.TrackOptions{BypassConfirm: true})
 	err := trackCmd.Run()
+	require.NoError(u.tc.T, err)
+}
+
+func (u *userPlusDevice) untrack(username string) {
+	untrackCmd := client.NewCmdUntrackRunner(u.tc.G)
+	untrackCmd.SetUser(username)
+	err := untrackCmd.Run()
 	require.NoError(u.tc.T, err)
 }
 
@@ -883,18 +913,20 @@ func GetTeamForTestByID(ctx context.Context, g *libkb.GlobalContext, id keybase1
 }
 
 type teamNotifyHandler struct {
-	changeCh    chan keybase1.TeamChangedByIDArg
-	abandonCh   chan keybase1.TeamID
-	badgeCh     chan keybase1.BadgeState
-	newTeamEKCh chan keybase1.NewTeamEkArg
+	changeCh         chan keybase1.TeamChangedByIDArg
+	abandonCh        chan keybase1.TeamID
+	badgeCh          chan keybase1.BadgeState
+	newTeamEKCh      chan keybase1.NewTeamEkArg
+	newlyAddedToTeam chan keybase1.TeamID
 }
 
 func newTeamNotifyHandler() *teamNotifyHandler {
 	return &teamNotifyHandler{
-		changeCh:    make(chan keybase1.TeamChangedByIDArg, 10),
-		abandonCh:   make(chan keybase1.TeamID, 10),
-		badgeCh:     make(chan keybase1.BadgeState, 10),
-		newTeamEKCh: make(chan keybase1.NewTeamEkArg, 10),
+		changeCh:         make(chan keybase1.TeamChangedByIDArg, 10),
+		abandonCh:        make(chan keybase1.TeamID, 10),
+		badgeCh:          make(chan keybase1.BadgeState, 10),
+		newTeamEKCh:      make(chan keybase1.NewTeamEkArg, 10),
+		newlyAddedToTeam: make(chan keybase1.TeamID, 10),
 	}
 }
 
@@ -912,6 +944,11 @@ func (n *teamNotifyHandler) TeamDeleted(ctx context.Context, teamID keybase1.Tea
 }
 
 func (n *teamNotifyHandler) TeamExit(ctx context.Context, teamID keybase1.TeamID) error {
+	return nil
+}
+
+func (n *teamNotifyHandler) NewlyAddedToTeam(ctx context.Context, teamID keybase1.TeamID) error {
+	n.newlyAddedToTeam <- teamID
 	return nil
 }
 
@@ -1032,7 +1069,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob should see alice's key is revoked")
 	{
-		_, pubKey, _, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
 		require.NoError(t, err)
 		t.Logf("%v", spew.Sdump(pubKey))
 		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)
@@ -1047,11 +1084,11 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// Another test of loading a team with a valid link signed by a now-revoked device.
-// The previous test didn't catch a bug.
-// In this test at the time when the device is revoked the team sigchain points to
-// a link that was signed by a never-revoked device and is subsequent to the link
-// signed by the revoked device.
+// Another test of loading a team with a valid link signed by a now-revoked
+// device.  The previous test didn't catch a bug.  In this test at the time
+// when the device is revoked the team sigchain points to a link that was
+// signed by a never-revoked device and is subsequent to the link signed by the
+// revoked device.
 func TestTeamSignedByRevokedDevice2(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -1114,7 +1151,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	t.Logf("bob should see alice's key is revoked")
 	{
-		_, pubKey, _, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
 		require.NoError(t, err)
 		t.Logf("%v", spew.Sdump(pubKey))
 		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)

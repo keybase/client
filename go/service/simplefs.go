@@ -258,12 +258,12 @@ func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 }
 
 // SimpleFSSyncStatus - Get sync status.
-func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.FSSyncStatus{}, err
 	}
-	return cli.SimpleFSSyncStatus(ctx)
+	return cli.SimpleFSSyncStatus(ctx, filter)
 }
 
 // SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.

@@ -61,7 +61,7 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
 	// CORE-8119: Will delegating to stellar.LookupRecipient be too slow?
 	// CORE-8119: Will it do identifies?
-	return LookupRecipient(mctx, to)
+	return LookupRecipient(mctx, to, false /* isCLI */)
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,

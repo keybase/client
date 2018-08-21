@@ -9,13 +9,20 @@ import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
   message: Types.MessageAttachment,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onClick: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createAttachmentPreviewSelect({
+        message,
+      })
+    )
+  },
+  _onDoubleClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
@@ -46,13 +53,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : null
-  const buttonType = message.showPlayButton ? (message.fileURLCached && isMobile ? 'play' : 'film') : null
+  const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
     height: message.previewHeight,
     message,
     onClick: () => dispatchProps._onClick(message),
+    onDoubleClick: () => dispatchProps._onDoubleClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
         ? (e: SyntheticEvent<any>) => {
@@ -62,12 +70,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
+    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
+    inlineVideoPlayable: message.inlineVideoPlayable,
     title: message.title || message.fileName,
-    toggleShowingMenu: ownProps.toggleShowingMenu,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,
   }

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {ClickableBox, Box2, Text, Badge} from '../../../../common-adapters'
+import {Badge, Box2, ClickableBox, Divider, Text} from '../../../../common-adapters'
 import {
   styleSheetCreate,
   platformStyles,
@@ -19,7 +19,7 @@ type Props = {
   toggle: () => void,
 }
 
-class Divider extends React.PureComponent<Props> {
+class TeamsDivider extends React.PureComponent<Props> {
   render() {
     return (
       <Box2
@@ -40,12 +40,12 @@ class Divider extends React.PureComponent<Props> {
               </Text>
               {this.props.hiddenCount > 0 &&
                 this.props.badgeCount > 0 && (
-                  <Badge badgeStyle={styles.badgeToggle} badgeNumber={this.props.badgeCount} />
+                  <Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
                 )}
             </Box2>
           </ClickableBox>
         )}
-        <Box2 direction="vertical" style={styles.divider} />
+        <Divider />
         {!this.props.showButton && (
           <Text type="BodySmallSemibold" style={styles.dividerText}>
             Big teams
@@ -60,12 +60,6 @@ const styles = styleSheetCreate({
   badge: {
     marginLeft: globalMargins.xtiny,
     marginRight: 0,
-    position: 'relative',
-  },
-  badgeToggle: {
-    marginLeft: globalMargins.xtiny,
-    marginRight: 0,
-    position: 'relative',
   },
   buttonText: {color: globalColors.black_60},
   containerButton: platformStyles({
@@ -92,11 +86,6 @@ const styles = styleSheetCreate({
     alignSelf: 'center',
     flexShrink: 0,
   },
-  divider: {
-    backgroundColor: globalColors.black_05,
-    height: 1,
-    width: '100%',
-  },
   dividerText: {
     alignSelf: 'flex-start',
     marginLeft: globalMargins.tiny,
@@ -104,7 +93,7 @@ const styles = styleSheetCreate({
   },
   toggleButton: platformStyles({
     common: {
-      backgroundColor: globalColors.black_05,
+      backgroundColor: globalColors.black_10,
       borderRadius: 19,
       marginBottom: globalMargins.xtiny,
       marginTop: globalMargins.xtiny,
@@ -128,4 +117,4 @@ const styles = styleSheetCreate({
   }),
 })
 
-export {Divider}
+export {TeamsDivider}

@@ -16,6 +16,5 @@
     "skipTodo": {
       "type": "Types.TodoType"
     },
-    "setupPeopleHandlers": {}
   }
 }

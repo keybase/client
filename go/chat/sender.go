@@ -1108,6 +1108,16 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 	return false, nil
 }
 
+func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
+	switch err {
+	case ErrDuplicateConnection:
+		// This just happens when threads are racing to reconnect to Gregor, don't count it as
+		// an error to send.
+		return false
+	}
+	return true
+}
+
 func (s *Deliverer) deliverLoop() {
 	bgctx := context.Background()
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender deliver loop: uid: %s duration: %v",
@@ -1146,7 +1156,7 @@ func (s *Deliverer) deliverLoop() {
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
-				CtxKeyFinder(bctx, s.G()).SetNameInfoSourceOverride(s.testingNameInfoSource)
+				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
@@ -1193,8 +1203,8 @@ func (s *Deliverer) deliverLoop() {
 					}); err != nil {
 						s.Debug(bctx, "deliverLoop: unable to fail message: err: %s", err.Error())
 					}
-				} else {
-					if err = s.outbox.RecordFailedAttempt(bgctx, obr); err != nil {
+				} else if s.shouldRecordError(bctx, err) {
+					if err = s.outbox.RecordFailedAttempt(bctx, obr); err != nil {
 						s.Debug(bgctx, "deliverLoop: unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}

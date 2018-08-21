@@ -427,13 +427,13 @@ func merkleFirstSkipKey() DbKey {
 }
 
 func (mc *MerkleClient) dbLookup(m MetaContext, k DbKey) (ret *MerkleRoot, err error) {
-	defer m.CVTrace(VLog0, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
+	defer m.CVTrace(VLog1, fmt.Sprintf("MerkleClient#dbLookup(%+v)", k), func() error { return err })()
 	curr, err := m.G().LocalDb.Lookup(k)
 	if err != nil {
 		return nil, err
 	}
 	if curr == nil {
-		m.VLogf(VLog0, "| MerkleClient#dbLookup(%+v) found not results", k)
+		m.VLogf(VLog1, "| MerkleClient#dbLookup(%+v) found not results", k)
 		return nil, nil
 	}
 
@@ -464,7 +464,7 @@ func (mc *MerkleClient) loadFirstSkip(m MetaContext) (err error) {
 }
 
 func (mc *MerkleClient) loadRoot(m MetaContext) (err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#loadRoot()", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleClient#loadRoot()", func() error { return err })()
 	var mr *MerkleRoot
 	mr, err = mc.dbLookup(m, merkleHeadKey())
 	if mr == nil || err != nil {
@@ -693,7 +693,7 @@ func (mc *MerkleClient) lookupPathAndSkipSequenceTeam(m MetaContext, q HTTPArgs,
 
 // `isUser` is true for loading a user and false for loading a team.
 func (mc *MerkleClient) lookupPathAndSkipSequenceHelper(m MetaContext, q HTTPArgs, sigHints *SigHints, lastRoot *MerkleRoot, isUser bool) (apiRes *APIRes, err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleClient#lookupPathAndSkipSequence", func() error { return err })()
 
 	// Poll for 10s and ask for a race-free state.
 	w := 10 * int(CITimeMultiplier(mc.G()))
@@ -764,7 +764,7 @@ func readRootFromAPIRes(m MetaContext, jw *jsonw.Wrapper) (*MerkleRoot, error) {
 // with the merkle root we last fetched from the DB. In verifySkipSequence, we walk over this Sequence
 // to make sure that it obeys proper construction.
 func (mc *MerkleClient) readSkipSequenceFromAPIRes(m MetaContext, res *APIRes, thisRoot *MerkleRoot, lastRoot *MerkleRoot) (ret SkipSequence, err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleClient#readSkipSequenceFromAPIRes", func() error { return err })()
 	if lastRoot == nil {
 		m.VLogf(VLog0, "| lastRoot==nil")
 		return nil, nil
@@ -776,7 +776,7 @@ func (mc *MerkleClient) readSkipSequenceFromAPIRes(m MetaContext, res *APIRes, t
 	skips := res.Body.AtKey("skips")
 
 	if skips.IsNil() {
-		m.VLogf(VLog0, "| skip list from API server is nil")
+		m.VLogf(VLog1, "| skip list from API server is nil")
 		return nil, nil
 	}
 
@@ -849,7 +849,7 @@ func (mc *MerkleClient) readPathFromAPIResUser(m MetaContext, res *APIRes) (vp *
 }
 
 func (mc *MerkleClient) readPathFromAPIRes(m MetaContext, res *APIRes) (vp *VerificationPath, err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#readPathFromAPIRes", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleClient#readPathFromAPIRes", func() error { return err })()
 
 	vp = &VerificationPath{
 		Contextified: NewContextified(mc.G()),
@@ -950,7 +950,7 @@ func (mc *MerkleClient) findValidKIDAndSig(root *MerkleRoot) (keybase1.KID, stri
 }
 
 func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisRoot *MerkleRoot, lastRoot *MerkleRoot, historical bool) (err error) {
-	defer m.CVTrace(VLog0, "MerkleClient#verifySkipSequence", func() error { return err })()
+	defer m.CVTrace(VLog1, "MerkleClient#verifySkipSequence", func() error { return err })()
 
 	var left, right keybase1.Seqno
 	if thisRoot.Seqno() != nil {
@@ -968,33 +968,33 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 	// the last known root is too old. It's not OK if the last known root is
 	// from after the server starting providing skip pointers.
 	if ss == nil {
-		m.VLogf(VLog0, "| nil SkipSequence")
+		m.VLogf(VLog1, "| nil SkipSequence")
 		fss := mc.FirstSeqnoWithSkips()
 		if lastRoot == nil {
-			m.VLogf(VLog0, "| lastRoot==nil, so OK")
+			m.VLogf(VLog1, "| lastRoot==nil, so OK")
 			return nil
 		}
 		if fss == nil {
-			m.VLogf(VLog0, "| no known root with skips, so OK")
+			m.VLogf(VLog1, "| no known root with skips, so OK")
 			return nil
 		}
 		if *fss > right {
-			m.VLogf(VLog0, "| right marker (%d) is from before first known root with skips (%d), so OK", int(right), int(*fss))
+			m.VLogf(VLog1, "| right marker (%d) is from before first known root with skips (%d), so OK", int(right), int(*fss))
 			return nil
 		}
 		if *fss > left {
-			m.VLogf(VLog0, "| left marker (%d) is from before first known root with skips (%d), so OK", int(left), int(*fss))
+			m.VLogf(VLog1, "| left marker (%d) is from before first known root with skips (%d), so OK", int(left), int(*fss))
 			return nil
 		}
 		if thisRoot != nil && *lastRoot.Seqno() == *thisRoot.Seqno() {
-			m.VLogf(VLog0, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
+			m.VLogf(VLog1, "| thisRoot is the same as lastRoot (%d), so OK", int(*lastRoot.Seqno()))
 			return nil
 		}
 		return MerkleClientError{fmt.Sprintf("Expected a skip sequence with last=%d", int(*lastRoot.Seqno())), merkleErrorNoSkipSequence}
 	}
 
 	if left == right {
-		m.VLogf(VLog0, "| No change since last check (seqno %d)", *thisRoot.Seqno())
+		m.VLogf(VLog1, "| No change since last check (seqno %d)", *thisRoot.Seqno())
 		return nil
 	}
 	return ss.verify(m, left, right)
@@ -1005,12 +1005,12 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 // it might contain: [ 100, 84, 82, 81 ] in that case that we last fetched Seqno=81 and the server is
 // currently at Seqno=100.
 func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
-	defer m.CVTrace(VLog0, "SkipSequence#verify", func() error { return err })()
+	defer m.CVTrace(VLog1, "SkipSequence#verify", func() error { return err })()
 
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
 		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
-		m.VLogf(VLog0, "| Checking skip %d->%d", thisRoot, prevRoot)
+		m.VLogf(VLog1, "| Checking skip %d->%d", thisRoot, prevRoot)
 
 		// First check that the merkle Seqno sequence is strictly decreasing
 		if thisRoot <= prevRoot {
@@ -1056,7 +1056,7 @@ func (mc *MerkleClient) verifyAndStoreRoot(m MetaContext, root *MerkleRoot, seqn
 }
 
 func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot, seqnoWhenCalled *keybase1.Seqno, historical bool) (err error) {
-	defer m.CVTrace(VLog0, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
+	defer m.CVTrace(VLog1, fmt.Sprintf("merkleClient#verifyAndStoreRootHelper(root=%d, cached=%v, historical=%v)", int(*root.Seqno()), seqnoWhenCalled, historical), func() error { return err })()
 
 	// First make sure it's not a rollback. If we're doing an historical lookup, it's
 	// actual OK.
@@ -1078,7 +1078,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 	if err != nil {
 		return err
 	}
-	m.VLogf(VLog0, "+ Merkle: using KID=%s for verifying server sig", kid)
+	m.VLogf(VLog1, "+ Merkle: using KID=%s for verifying server sig", kid)
 
 	key, err := mc.keyring.Load(kid)
 	if err != nil {
@@ -1095,7 +1095,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 		return err
 	}
 
-	m.VLogf(VLog0, "- Merkle: server sig verified")
+	m.VLogf(VLog1, "- Merkle: server sig verified")
 
 	mc.verified[*root.Seqno()] = true
 
@@ -1203,7 +1203,7 @@ func parseV2(jw *jsonw.Wrapper) (*MerkleUserLeaf, error) {
 }
 
 func parseMerkleUserLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (user *MerkleUserLeaf, err error) {
-	m.VLogf(VLog0, "+ ParsingMerkleUserLeaf")
+	m.VLogf(VLog1, "+ ParsingMerkleUserLeaf")
 
 	if jw == nil {
 		m.VLogf(VLog0, "| empty leaf found; user wasn't in tree")
@@ -1240,12 +1240,12 @@ func parseMerkleUserLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (us
 		err = fmt.Errorf("Unexpected version: %d", v)
 	}
 
-	m.VLogf(VLog0, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	m.VLogf(VLog1, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
 	return
 }
 
 func parseMerkleTeamLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (leaf *MerkleTeamLeaf, err error) {
-	m.VLogf(VLog0, "+ ParsingMerkleUserLeaf")
+	m.VLogf(VLog1, "+ ParsingMerkleTeamLeaf")
 
 	if jw == nil {
 		m.VLogf(VLog0, "| empty leaf found; team wasn't in tree")
@@ -1282,7 +1282,7 @@ func parseMerkleTeamLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (le
 		return
 	}
 
-	m.VLogf(VLog0, "- ParsingMerkleUserLeaf -> %v", ErrToOk(err))
+	m.VLogf(VLog1, "- ParsingMerkleTeamLeaf -> %v", ErrToOk(err))
 	return &MerkleTeamLeaf{
 		// TeamID is filled in by the caller
 		Public:  public,
@@ -1292,17 +1292,17 @@ func parseMerkleTeamLeaf(m MetaContext, jw *jsonw.Wrapper, g *GlobalContext) (le
 
 func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInfoT) (username string, err error) {
 	if CheckUIDAgainstUsername(userInfo.uid, userInfo.username) == nil {
-		m.VLogf(VLog0, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
+		m.VLogf(VLog1, "| Username %s mapped to %s via direct hash", userInfo.username, userInfo.uid)
 		username = userInfo.username
 		return
 	}
 
-	m.VLogf(VLog0, "| Failed to map Username %s -> UID %s via direct hash", userInfo.username, userInfo.uid)
+	m.VLogf(VLog1, "| Failed to map Username %s -> UID %s via direct hash", userInfo.username, userInfo.uid)
 
 	if userInfo.usernameCased != userInfo.username && strings.ToLower(userInfo.usernameCased) == userInfo.username {
-		m.VLogf(VLog0, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
+		m.VLogf(VLog1, "| Checking cased username difference: %s v %s", userInfo.username, userInfo.usernameCased)
 		if CheckUIDAgainstCasedUsername(userInfo.uid, userInfo.usernameCased) == nil {
-			m.VLogf(VLog0, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
+			m.VLogf(VLog1, "| Username %s mapped to %s via direct hash (w/ username casing)", userInfo.usernameCased, userInfo.uid)
 			username = userInfo.username
 			return
 		}
@@ -1330,7 +1330,7 @@ func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInf
 		return
 	}
 
-	m.VLogf(VLog0, "| Username %s mapped to %s via Merkle lookup", userInfo.username, userInfo.uid)
+	m.VLogf(VLog1, "| Username %s mapped to %s via Merkle lookup", userInfo.username, userInfo.uid)
 	username = userInfo.username
 
 	return

@@ -43,13 +43,10 @@ type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
-	CryptKeys        map[chat1.ConversationMembersType][]CryptKey
 }
 
 func NewNameInfo() *NameInfo {
-	return &NameInfo{
-		CryptKeys: make(map[chat1.ConversationMembersType][]CryptKey),
-	}
+	return &NameInfo{}
 }
 
 type MembershipUpdateRes struct {
@@ -161,6 +158,11 @@ func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer
 	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
 	progress ProgressReporter) error {
 	return nil
+}
+
+func (d DummyAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error) {
+	return nil, nil
 }
 
 func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,

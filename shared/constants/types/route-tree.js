@@ -13,7 +13,10 @@ export type RefreshRouteDef = NoErrorTypedAction<
   {loginRouteTree: RouteDefParams, appRouteTree: RouteDefParams}
 >
 
-export type SwitchRouteDef = NoErrorTypedAction<'routeTree:switchRouteDef', {routeDef: RouteDefParams}>
+export type SwitchRouteDef = NoErrorTypedAction<
+  'routeTree:switchRouteDef',
+  {routeDef: RouteDefParams, path?: PropsPath<any>}
+>
 
 export type SwitchTo = NoErrorTypedAction<'routeTree:switchTo', {path: Path, parentPath: ?Path}>
 
