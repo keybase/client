@@ -66,7 +66,7 @@ export default compose(
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
   remoteConnect(s => s, mapDispatchToProps, mergeProps),
-  branch(props => !props.username, renderNothing),
+  branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')
