@@ -6,6 +6,7 @@ package simplefs
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -1888,8 +1889,7 @@ func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *libkbfs.TlfHandle) {
 // SimpleFSSuppressNotifications suppresses FSEvent and FSSyncEvent
 // notifications.
 func (k *SimpleFS) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
-	k.config.Reporter().SuppressNotifications(ctx, time.Duration(suppressDurationSec)*time.Second)
-	return nil
+	return errors.New("this rpc is deprecated")
 }
 
 // SimpleFSGetUserQuotaUsage returns the quota usage information for

@@ -82,9 +82,7 @@ type ReporterKBPKI struct {
 	notifyBuffer     chan *keybase1.FSNotification
 	notifyPathBuffer chan string
 	notifySyncBuffer chan *keybase1.FSPathSyncStatus
-	suppressCh       chan time.Duration
 	canceler         func()
-	done             <-chan struct{}
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
@@ -96,11 +94,9 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
 		notifyPathBuffer: make(chan string, bufSize),
 		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, bufSize),
-		suppressCh:       make(chan time.Duration, 1),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
-	r.done = ctx.Done()
 	go r.send(ctx)
 	return r
 }
@@ -250,16 +246,6 @@ func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
 	}
 }
 
-// SuppressNotifications implements the Reporter interface for ReporterKBPKI.
-func (r *ReporterKBPKI) SuppressNotifications(
-	ctx context.Context, suppressDuration time.Duration) {
-	select {
-	case r.suppressCh <- suppressDuration:
-	case <-ctx.Done():
-	case <-r.done:
-	}
-}
-
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
@@ -267,12 +253,13 @@ func (r *ReporterKBPKI) Shutdown() {
 	close(r.notifySyncBuffer)
 }
 
-// send takes notifications out of notifyBuffer and notifySyncBuffer
-// and sends them to the keybase daemon.
+const reporterSendInterval = time.Second
+
+// send takes notifications out of notifyBuffer, notifyPathBuffer, and
+// notifySyncBuffer and sends them to the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
-	suppressTimer := time.NewTimer(0)
-	suppressed := false
-	var stagedNotification *keybase1.FSNotification
+	sendTicker := time.NewTicker(reporterSendInterval)
+	defer sendTicker.Stop()
 	var stagedPath string
 	var stagedStatus *keybase1.FSPathSyncStatus
 
@@ -282,9 +269,17 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if !ok {
 				return
 			}
-			if suppressed {
-				stagedNotification = notification
-			} else if err := r.config.KeybaseService().Notify(ctx,
+			nt := notification.NotificationType
+			// Only these notifications are used in frontend:
+			// https://github.com/keybase/client/blob/0d63795105f64289ba4ef20fbefe56aad91bc7e9/shared/util/kbfs-notifications.js#L142-L154
+			if nt != keybase1.FSNotificationType_REKEYING &&
+				nt != keybase1.FSNotificationType_INITIALIZED &&
+				nt != keybase1.FSNotificationType_CONNECTION {
+				continue
+			}
+			// Send them right away rather than staging it and waiting for the
+			// ticker, since each of them can be distinct from each other.
+			if err := r.config.KeybaseService().Notify(ctx,
 				notification); err != nil {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
@@ -293,39 +288,13 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 			if !ok {
 				return
 			}
-			if suppressed {
-				stagedPath = path
-			} else if err := r.config.KeybaseService().NotifyPathUpdated(
-				ctx, path); err != nil {
-				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-					"notification for path: %s", err)
-			}
+			stagedPath = path
 		case status, ok := <-r.notifySyncBuffer:
 			if !ok {
 				return
 			}
-			if suppressed {
-				stagedStatus = status
-			} else if err := r.config.KeybaseService().NotifySyncStatus(ctx,
-				status); err != nil {
-				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-					"sync status: %s", err)
-			}
-		case suppressFor, ok := <-r.suppressCh:
-			if !ok {
-				return
-			}
-			suppressTimer.Reset(suppressFor)
-			suppressed = true
-		case <-suppressTimer.C:
-			if stagedNotification != nil {
-				if err := r.config.KeybaseService().Notify(ctx,
-					stagedNotification); err != nil {
-					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-						"notification: %s", err)
-				}
-				stagedNotification = nil
-			}
+			stagedStatus = status
+		case <-sendTicker.C:
 			if stagedPath != "" {
 				if err := r.config.KeybaseService().NotifyPathUpdated(
 					ctx, stagedPath); err != nil {
@@ -342,7 +311,8 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				}
 				stagedStatus = nil
 			}
-			suppressed = false
+		case <-ctx.Done():
+			return
 		}
 	}
 }
