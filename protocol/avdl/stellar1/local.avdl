@@ -234,8 +234,8 @@ protocol local {
     string publicMemoErrMsg;
 
     // Optional. Blank if non-native assets are being sent or if there is a global error.
-    // Example: "This is *96.5634762 XLM*."
-    // Example: "This is *$246.47*."
+    // Example: "96.5634762 XLM"
+    // Example: "$246.47"
     string worthDescription;
     // Set with `worthDescription`
     // Example: "$1 = 5.0992345 XLM\nSource: coinmarketcap.com"

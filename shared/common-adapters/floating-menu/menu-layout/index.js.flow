@@ -3,7 +3,7 @@ import * as React from 'react'
 
 export type MenuItem = {|
   title: string, // Only used as ID if view is provided for Header
-  view?: React.Node,
+  view?: React.Node, // Required for header
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   disabled?: boolean,

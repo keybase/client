@@ -1130,7 +1130,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
 			return res
 		}
-		res.worthDescription = fmt.Sprintf("This is *%s*", xlmAmountFormatted)
+		res.worthDescription = xlmAmountFormatted
 		if convertAmountOutside != "0" {
 			// haveAmount gates whether the send button is enabled.
 			// Only enable after `worthDescription` is set.
@@ -1184,7 +1184,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error formatting converted outside amount: %v", err)
 			return res
 		}
-		res.worthDescription = fmt.Sprintf("This is *%s*", outsideAmountFormatted)
+		res.worthDescription = outsideAmountFormatted
 		res.worthInfo, err = s.buildPaymentWorthInfo(ctx, xrate)
 		if err != nil {
 			log("error making worth info: %v", err)

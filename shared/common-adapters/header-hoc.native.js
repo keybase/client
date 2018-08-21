@@ -120,7 +120,6 @@ const _rightActionStyle = {
   bottom: 0,
   flex: 1,
   justifyContent: 'flex-end',
-  left: 0,
   position: 'absolute', // This is always right-aligned
   right: 0,
   top: 0,

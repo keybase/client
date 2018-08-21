@@ -5,21 +5,21 @@ import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {fileUIName} from '../../constants/platform'
 import {
-  Box,
   Box2,
+  Box,
   ClickableBox,
+  ProgressIndicator,
   Icon,
-  iconCastPlatformStyles,
   Text,
   FloatingMenu,
-  ProgressIndicator,
+  iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import PathItemIcon from './path-item-icon'
-import PathItemInfo from './path-item-info'
-import StaticBreadcrumb from './static-breadcrumb'
+import PathItemIcon from '../common/path-item-icon'
+import PathItemInfo from '../common/path-item-info'
+import StaticBreadcrumb from '../common/static-breadcrumb'
+import {memoize} from 'lodash-es'
 import DownloadTrackingHoc from './download-tracking-hoc'
-import {memoize} from 'lodash'
 
 type Props = {
   name: string,
@@ -242,12 +242,18 @@ const styles = Styles.styleSheetCreate({
       marginTop: undefined,
     },
   }),
-  header: {
-    ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
-    alignItems: 'center',
-    paddingTop: Styles.globalMargins.small,
-  },
+  header: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      width: '100%',
+      alignItems: 'center',
+      paddingTop: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.large,
+    },
+  }),
   actionIcon: {
     padding: Styles.globalMargins.tiny,
   },

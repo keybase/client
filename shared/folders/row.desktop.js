@@ -3,8 +3,9 @@ import * as React from 'react'
 import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
 import {globalStyles, globalColors, globalMargins, desktopStyles, platformStyles} from '../styles'
+import * as Types from '../constants/types/folders'
 
-import type {Folder} from './list.desktop'
+type Folder = Types.Folder
 
 class Avatars extends React.PureComponent<any> {
   render() {

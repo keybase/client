@@ -11,12 +11,17 @@
 #include <jni.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include "seq.h"
 #include "_cgo_export.h"
 
 #define NULL_REFNUM 41
+
+// initClasses are only exported from Go if reverse bindings are used.
+// If they're not, weakly define a no-op function.
+__attribute__((weak)) void initClasses(void) { }
 
 static JavaVM *jvm;
 // jnienvs holds the per-thread JNIEnv* for Go threads where we called AttachCurrentThread.
@@ -245,23 +250,19 @@ jobject go_seq_from_refnum(JNIEnv *env, int32_t refnum, jclass proxy_class, jmet
 	if (refnum == NULL_REFNUM) {
 		return NULL;
 	}
+	if (refnum < 0) { // Go object
+		// return new <Proxy>(refnum)
+		return (*env)->NewObject(env, proxy_class, proxy_cons, refnum);
+	}
 	// Seq.Ref ref = Seq.getRef(refnum)
 	jobject ref = (*env)->CallStaticObjectMethod(env, seq_class, seq_getRef, (jint)refnum);
 	if (ref == NULL) {
 		LOG_FATAL("Unknown reference: %d", refnum);
 	}
-	if (refnum > 0) { // Java object
-		// Go incremented the reference count just before passing the refnum. Decrement it here.
-		(*env)->CallStaticVoidMethod(env, seq_class, seq_decRef, (jint)refnum);
-		// return ref.obj
-		return (*env)->GetObjectField(env, ref, ref_objField);
-	} else if (proxy_class != NULL) {
-		// return new <Proxy>(ref)
-		return (*env)->NewObject(env, proxy_class, proxy_cons, ref);
-	} else {
-		// We're inside a Java proxy constructor and only need the Seq.Ref
-		return ref;
-	}
+	// Go incremented the reference count just before passing the refnum. Decrement it here.
+	(*env)->CallStaticVoidMethod(env, seq_class, seq_decRef, (jint)refnum);
+	// return ref.obj
+	return (*env)->GetObjectField(env, ref, ref_objField);
 }
 
 // go_seq_to_java_string converts a nstring to a jstring.
@@ -349,7 +350,7 @@ Java_go_Seq_destroyRef(JNIEnv *env, jclass clazz, jint refnum) {
 }
 
 JNIEXPORT void JNICALL
-Java_go_Seq_incGoRef(JNIEnv *env, jclass clazz, jint refnum) {
+Java_go_Seq_incGoRef(JNIEnv *env, jclass clazz, jint refnum, jobject ref) {
 	IncGoRef(refnum);
 }
 

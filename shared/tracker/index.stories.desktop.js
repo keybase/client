@@ -312,6 +312,7 @@ const load = () => {
     .add('Tracker Error', () => (
       <Tracker {...propsWhatevz} errorMessage={'Failed to hit API Server'} onRetry={Sb.action('onRetry')} />
     ))
+    .add('Yourself', () => <Tracker {...propsDefault} myUsername={propsDefault.username} reason="" />)
 }
 
 export default load

@@ -409,6 +409,10 @@ func (l LinkID) Eq(l2 LinkID) bool {
 	return l == l2
 }
 
+func (l LinkID) IsNil() bool {
+	return len(l) == 0
+}
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
@@ -2028,7 +2032,7 @@ func TeamNameFromString(s string) (TeamName, error) {
 func (t TeamName) String() string {
 	tmp := make([]string, len(t.Parts))
 	for i, p := range t.Parts {
-		tmp[i] = string(p)
+		tmp[i] = strings.ToLower(string(p))
 	}
 	return strings.Join(tmp, ".")
 }

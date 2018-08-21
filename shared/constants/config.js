@@ -31,7 +31,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   defaultUsername: '',
   deviceID: '',
   deviceName: '',
-  error: null,
   followers: I.Set(),
   following: I.Set(),
   globalError: null,

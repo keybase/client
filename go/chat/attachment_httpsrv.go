@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -179,21 +178,32 @@ func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, erro
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
 	// Hack for Android video to work
-	if runtime.GOOS == "android" && !contentForce {
-		r.Debug(ctx, "serve: android client detected, showing the HTML video viewer")
+
+	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
 		if _, err := w.Write([]byte(fmt.Sprintf(`
 			<html>
 				<head>
 					<title>Keybase Video Viewer</title>
+					<script>
+						window.togglePlay = function(data) {
+							var vid = document.getElementById("vid");
+							if (data === "play") {
+								vid.play();
+								vid.setAttribute('controls', 'controls');
+							} else {
+								vid.pause();
+								vid.removeAttribute('controls');
+							}
+						  }
+					</script>
 				</head>
-				<body>
-					<video width="320" height="240" src="%s" controls autoplay>
-						Your browser does not support the video tag.
-					</video>
+				<body style="margin: 0px">
+					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
-		`, req.URL.String()+"&contentforce=true"))); err != nil {
+		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
 			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
 		}
 		return true

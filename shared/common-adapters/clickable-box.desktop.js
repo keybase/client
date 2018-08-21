@@ -31,7 +31,7 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
   }
 
   render() {
-    const {style, children, underlayColor, hoverColor, onClick, ...otherProps} = this.props
+    const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = this.props
 
     // filter out native-only calls
     const {onPress, onLongPress, onPressIn, onPressOut, ...passThroughProps} = otherProps
@@ -67,6 +67,7 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
         onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
         onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
+        onDoubleClick={onDoubleClick}
         onClick={onClick}
         style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
       >

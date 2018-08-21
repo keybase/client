@@ -4,6 +4,7 @@ import * as Sb from '../../../../stories/storybook'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
+import paymentPopupStories from './payment/index.stories'
 import ExplodingPopupMenu, {type OwnProps as ExplodingOwnProps} from './exploding/container'
 import HiddenString from '../../../../util/hidden-string'
 
@@ -120,6 +121,9 @@ const load = () => {
     .add('Exploding attachment', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonAttachment} />
     ))
+
+  // Externally defined stories
+  paymentPopupStories()
 }
 
 export default load

@@ -15,6 +15,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
   installFuse: () => dispatch(FsGen.createInstallFuse()),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ConnectedOpenInFileUI'))(
-  OpenInFileUI
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('ConnectedOpenInFileUI')
+)(OpenInFileUI)

@@ -5,10 +5,9 @@ import * as Styles from '../../../styles'
 
 type Props = {
   isDefaultWallet: boolean,
-  navigateAppend: (...Array<any>) => any,
   onDeposit: () => void,
   onReceive: () => void,
-  onSendToAnotherWallet: () => void,
+  onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSettings: () => void,
@@ -39,7 +38,7 @@ const Header = (props: Props) => (
       <SendButton
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
-        onSendToAnotherWallet={props.onSendToAnotherWallet}
+        onSendToAnotherAccount={props.onSendToAnotherAccount}
       />
       <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" />
       <DropdownButton
@@ -54,7 +53,7 @@ const Header = (props: Props) => (
 type SendProps = {
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
-  onSendToAnotherWallet: () => void,
+  onSendToAnotherAccount: () => void,
 }
 
 class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
@@ -68,7 +67,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
       title: 'To a Stellar address',
     },
     {
-      onClick: () => this.props.onSendToAnotherWallet(),
+      onClick: () => this.props.onSendToAnotherAccount(),
       title: 'To another account',
     },
   ]

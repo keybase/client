@@ -39,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
+  // $FlowIssue @jzils new flow errors here
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('FilePreviewDefaultView')
 )(DefaultView)

@@ -9,7 +9,8 @@ import * as Constants from '../constants/devices'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of devices but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'devices:'
 export const endangeredTLFsLoaded = 'devices:endangeredTLFsLoaded'
 export const load = 'devices:load'
 export const loaded = 'devices:loaded'
