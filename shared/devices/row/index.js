@@ -39,7 +39,7 @@ const DeviceRow = (props: Props) => {
       onClick={props.showExistingDevicePage}
       icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" style={{justifyContent: 'center', minHeight: 48}}>
           <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemiboldItalic">
             {props.name}
           </Kb.Text>
