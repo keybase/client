@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -391,7 +390,7 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	if n.IsNil() {
 		return nil
 	}
-	if !kbun.CheckUsername(n.String()) {
+	if !n.IsValid() {
 		return NewBadUsernameError(n.String())
 	}
 	g.switchUserMu.Lock()

@@ -38,3 +38,6 @@ func (n NormalizedUsername) String() string { return string(n) }
 
 // IsNil returns true if the username is the empty string
 func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
+
+// IsValid returns CheckUsername(n.String()).
+func (n NormalizedUsername) IsValid() bool { return CheckUsername(string(n)) }
