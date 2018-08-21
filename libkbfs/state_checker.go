@@ -48,19 +48,40 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	return nil
 }
 
+// findAllDirBlocks adds all dir blocks found under this block to
+// the blocksFound map, if the given path represents an indirect
+// block.
+func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
+	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
+	dir path, blockSizes map[BlockPointer]uint32) error {
+	infos, err := ops.blocks.GetIndirectDirBlockInfos(ctx, lState, kmd, dir)
+	if err != nil {
+		return err
+	}
+
+	for _, info := range infos {
+		blockSizes[info.BlockPointer] = info.EncodedSize
+	}
+	return nil
+}
+
 // findAllBlocksInPath adds all blocks found within this directory to
 // the blockSizes map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	dir path, blockSizes map[BlockPointer]uint32) error {
-	dblock, err := ops.blocks.GetDirBlockForReading(ctx, lState, kmd,
-		dir.tailPointer(), dir.Branch, dir)
+	children, err := ops.blocks.GetEntries(ctx, lState, kmd, dir)
 	if err != nil {
 		return err
 	}
 
-	for name, de := range dblock.Children {
+	err = sc.findAllDirBlocks(ctx, lState, ops, kmd, dir, blockSizes)
+	if err != nil {
+		return err
+	}
+
+	for name, de := range children {
 		if de.Type == Sym {
 			continue
 		}

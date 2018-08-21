@@ -433,7 +433,7 @@ func newFolderBranchOps(
 			dirtyFiles: make(map[BlockPointer]*dirtyFile),
 			deferred:   make(map[BlockRef]deferredState),
 			unrefCache: make(map[BlockRef]*syncInfo),
-			dirtyDirs:  make(map[BlockPointer]bool),
+			dirtyDirs:  make(map[BlockPointer][]BlockInfo),
 			nodeCache:  nodeCache,
 		},
 		nodeCache:       nodeCache,
@@ -4638,7 +4638,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		// Clear the dirty directories before the afterUpdateFns start
 		// replaying deferred writes, so we don't lose the deferreed
 		// write state when we clear.
-		fbo.blocks.clearAllDirtyDirsLocked(ctx, lState)
+		fbo.blocks.clearAllDirtyDirsLocked(ctx, lState, md)
 		var errs []error
 		for _, auf := range afterUpdateFns {
 			err := auf()

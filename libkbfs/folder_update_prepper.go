@@ -214,11 +214,15 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	for len(newPath.path) < len(dir.path)+1 {
 		if currDD != nil {
 			// Ready any non-top blocks in the directory.
-			err := currDD.ready(ctx, fup.id(), fup.config.BlockCache(),
+			newInfos, err := currDD.ready(
+				ctx, fup.id(), fup.config.BlockCache(),
 				isDirtyWithLBC{lbc, fup.config.DirtyBlockCache()},
 				fup.config.BlockOps(), bps, currBlock.(*DirBlock))
 			if err != nil {
 				return path{}, DirEntry{}, nil, err
+			}
+			for newInfo := range newInfos {
+				md.AddRefBlock(newInfo)
 			}
 		}
 
@@ -282,6 +286,11 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			currBlock = prevDblock
 			currDD = dd
 			nextName = prevDir.tailName()
+			dirUnrefs := fup.blocks.GetDirtyDirUnrefs(
+				lState, prevDir.tailPointer())
+			for _, unref := range dirUnrefs {
+				md.AddUnrefBlock(unref)
+			}
 		}
 
 		if de.Type == Dir {
@@ -336,7 +345,13 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		if prevIdx < 0 {
 			md.data.Dir = de
 		} else {
-			currDD.setEntry(ctx, currName, de)
+			unrefs, err := currDD.setEntry(ctx, currName, de)
+			if err != nil {
+				return path{}, DirEntry{}, nil, err
+			}
+			for _, unref := range unrefs {
+				md.AddUnrefBlock(unref)
+			}
 		}
 		currName = nextName
 

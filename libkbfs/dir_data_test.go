@@ -197,7 +197,7 @@ func TestDirDataLookup(t *testing.T) {
 
 func addFakeDirDataEntry(
 	t *testing.T, ctx context.Context, dd *dirData, name string, size uint64) {
-	err := dd.addEntry(ctx, name, DirEntry{
+	_, err := dd.addEntry(ctx, name, DirEntry{
 		EntryInfo: EntryInfo{
 			Size: size,
 		},
@@ -416,7 +416,7 @@ func TestDirDataAddEntry(t *testing.T) {
 	testDirDataCheckLookup(t, ctx, dd, " 1", 14)
 
 	t.Log("Adding an existing name should error")
-	err := dd.addEntry(ctx, "a", DirEntry{
+	_, err := dd.addEntry(ctx, "a", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -434,7 +434,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	t.Log("Make a simple dir and remove one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
 	addFakeDirDataEntry(t, ctx, dd, "z", 2)
-	err := dd.removeEntry(ctx, "z")
+	_, err := dd.removeEntry(ctx, "z")
 	require.NoError(t, err)
 	require.Len(t, topBlock.Children, 1)
 	testDirDataCheckLookup(t, ctx, dd, "a", 1)
@@ -457,7 +457,7 @@ func TestDirDataRemoveEntry(t *testing.T) {
 	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	err = dd.removeEntry(ctx, "c")
+	_, err = dd.removeEntry(ctx, "c")
 	require.NoError(t, err)
 	expectedLeafs := []testDirDataLeaf{
 		{"", 2, false},    // " 1" and "a"
@@ -482,7 +482,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 
 	t.Log("Make a simple dir and update one entry")
 	addFakeDirDataEntry(t, ctx, dd, "a", 1)
-	err := dd.updateEntry(ctx, "a", DirEntry{
+	_, err := dd.updateEntry(ctx, "a", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},
@@ -506,7 +506,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	addFakeDirDataEntry(t, ctx, dd, " 1", 14)
 	testDirDataCleanCache(dd, cleanBcache, dirtyBcache)
 
-	err = dd.updateEntry(ctx, "c", DirEntry{
+	_, err = dd.updateEntry(ctx, "c", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 1000,
 		},
@@ -526,7 +526,7 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	}
 	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 2)
 	t.Log("Updating an non-existing name should error")
-	err = dd.updateEntry(ctx, "foo", DirEntry{
+	_, err = dd.updateEntry(ctx, "foo", DirEntry{
 		EntryInfo: EntryInfo{
 			Size: 100,
 		},

@@ -103,6 +103,33 @@ func (dd *dirData) getChildren(ctx context.Context) (
 	return children, nil
 }
 
+func (dd *dirData) getEntries(ctx context.Context) (
+	children map[string]DirEntry, err error) {
+	topBlock, err := dd.getTopBlock(ctx, blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	_, blocks, _, err := dd.tree.getBlocksForOffsetRange(
+		ctx, dd.rootBlockPointer(), topBlock, topBlock.FirstOffset(), nil,
+		false, true)
+	if err != nil {
+		return nil, err
+	}
+
+	numEntries := 0
+	for _, b := range blocks {
+		numEntries += len(b.(*DirBlock).Children)
+	}
+	children = make(map[string]DirEntry, numEntries)
+	for _, b := range blocks {
+		for k, de := range b.(*DirBlock).Children {
+			children[k] = de
+		}
+	}
+	return children, nil
+}
+
 func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 	topBlock, err := dd.getTopBlock(ctx, blockRead)
 	if err != nil {
@@ -168,18 +195,20 @@ func (dd *dirData) createIndirectBlock(ctx context.Context, dver DataVer) (
 
 func (dd *dirData) processModifiedBlock(
 	ctx context.Context, ptr BlockPointer,
-	parentBlocks []parentBlockAndChildIndex, block *DirBlock) error {
+	parentBlocks []parentBlockAndChildIndex, block *DirBlock) (
+	unrefs []BlockInfo, err error) {
 	newBlocks, newOffset := dd.tree.bsplit.SplitDirIfNeeded(block)
 
-	err := dd.tree.cacher(ptr, block)
+	err = dd.tree.cacher(ptr, block)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	_, _, err = dd.tree.markParentsDirty(parentBlocks)
+	_, newUnrefs, err := dd.tree.markParentsDirty(parentBlocks)
 	if err != nil {
-		return err
+		return nil, err
 	}
+	unrefs = append(unrefs, newUnrefs...)
 
 	if len(newBlocks) > 1 {
 		dd.tree.log.CDebugf(ctx, "Making new right block for %v",
@@ -189,7 +218,7 @@ func (dd *dirData) processModifiedBlock(
 			ctx, parentBlocks, newOffset, FirstValidDataVer,
 			NewDirBlockWithPtrs, dd.createIndirectBlock)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		if len(parentBlocks) == 0 {
@@ -200,7 +229,7 @@ func (dd *dirData) processModifiedBlock(
 				rightParents[0].pblock.(*DirBlock).IPtrs[0].BlockPointer,
 				newBlocks[0])
 			if err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -209,43 +238,45 @@ func (dd *dirData) processModifiedBlock(
 		pb := rightParents[len(rightParents)-1]
 		err = dd.tree.cacher(pb.childBlockPtr(), newBlocks[1])
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		// Shift it over if needed.
 		topBlock := rightParents[0].pblock
-		_, _, _, err =
+		_, newUnrefs, _, err :=
 			dd.tree.shiftBlocksToFillHole(ctx, topBlock, rightParents)
 		if err != nil {
-			return err
+			return nil, err
 		}
+		unrefs = append(unrefs, newUnrefs...)
 	}
 
-	return nil
+	return unrefs, nil
 }
 
 func (dd *dirData) addEntryHelper(
 	ctx context.Context, name string, newDe DirEntry,
-	errorIfExists, errorIfNoMatch bool) error {
+	errorIfExists, errorIfNoMatch bool) (
+	unrefs []BlockInfo, err error) {
 	topBlock, err := dd.getTopBlock(ctx, blockWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, blockWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	dblock := block.(*DirBlock)
 
 	de, exists := dblock.Children[name]
 	if errorIfExists && exists {
-		return NameExistsError{name}
+		return nil, NameExistsError{name}
 	} else if errorIfNoMatch &&
 		(!exists || de.BlockPointer != newDe.BlockPointer) {
-		return NoSuchNameError{name}
+		return nil, NoSuchNameError{name}
 	}
 	dblock.Children[name] = newDe
 
@@ -253,37 +284,41 @@ func (dd *dirData) addEntryHelper(
 }
 
 func (dd *dirData) addEntry(
-	ctx context.Context, newName string, newDe DirEntry) error {
+	ctx context.Context, newName string, newDe DirEntry) (
+	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, newName, newDe, true, false)
 }
 
 func (dd *dirData) updateEntry(
-	ctx context.Context, name string, newDe DirEntry) error {
+	ctx context.Context, name string, newDe DirEntry) (
+	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, true)
 }
 
 func (dd *dirData) setEntry(
-	ctx context.Context, name string, newDe DirEntry) error {
+	ctx context.Context, name string, newDe DirEntry) (
+	unrefs []BlockInfo, err error) {
 	return dd.addEntryHelper(ctx, name, newDe, false, false)
 }
 
-func (dd *dirData) removeEntry(ctx context.Context, name string) error {
+func (dd *dirData) removeEntry(ctx context.Context, name string) (
+	unrefs []BlockInfo, err error) {
 	topBlock, err := dd.getTopBlock(ctx, blockWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	off := StringOffset(name)
 	ptr, parentBlocks, block, _, _, _, err := dd.tree.getBlockAtOffset(
 		ctx, topBlock, &off, blockWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	dblock := block.(*DirBlock)
 
 	if _, exists := dblock.Children[name]; !exists {
 		// Nothing to do.
-		return nil
+		return nil, nil
 	}
 	delete(dblock.Children, name)
 
@@ -295,11 +330,55 @@ func (dd *dirData) removeEntry(ctx context.Context, name string) error {
 
 // ready, if given an indirect top-block, readies all the dirty child
 // blocks, and updates their block IDs in their parent block's list of
-// indirect pointers.
+// indirect pointers.  It returns a map pointing from the new block
+// info from any readied block to its corresponding old block pointer.
 func (dd *dirData) ready(ctx context.Context, id tlf.ID, bcache BlockCache,
 	dirtyBcache isDirtyProvider, bops BlockOps, bps *blockPutState,
-	topBlock *DirBlock) error {
-	_, err := dd.tree.ready(
+	topBlock *DirBlock) (map[BlockInfo]BlockPointer, error) {
+	return dd.tree.ready(
 		ctx, id, bcache, dirtyBcache, bops, bps, topBlock, nil)
-	return err
+}
+
+// getDirtyChildPtrs returns a set of dirty child pointers (not the
+// root pointer) for the directory.
+func (dd *dirData) getDirtyChildPtrs(
+	ctx context.Context, dirtyBcache isDirtyProvider) (
+	ptrs map[BlockPointer]bool, err error) {
+	topBlock, err := dd.getTopBlock(ctx, blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	if !topBlock.IsIndirect() {
+		return nil, nil
+	}
+
+	ptrs = make(map[BlockPointer]bool)
+
+	// Gather all the paths to all dirty leaf blocks first.
+	off := topBlock.FirstOffset()
+	for off != nil {
+		_, parentBlocks, block, nextBlockOff, _, err :=
+			dd.tree.getNextDirtyBlockAtOffset(
+				ctx, topBlock, off, blockWrite, dirtyBcache)
+		if err != nil {
+			return nil, err
+		}
+
+		if block == nil {
+			// No more dirty blocks.
+			break
+		}
+		off = nextBlockOff // Will be `nil` if there are no more blocks.
+
+		for _, pb := range parentBlocks {
+			ptrs[pb.childBlockPtr()] = true
+		}
+	}
+	return ptrs, nil
+}
+
+func (dd *dirData) getIndirectDirBlockInfos(ctx context.Context) (
+	[]BlockInfo, error) {
+	return dd.tree.getIndirectBlockInfos(ctx)
 }
