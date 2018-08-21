@@ -102,7 +102,7 @@ func (dd *dirData) lookup(ctx context.Context, name string) (DirEntry, error) {
 
 	off := StringOffset(name)
 	_, _, block, _, _, _, err := dd.tree.getBlockAtOffset(
-		ctx, topBlock, &off, blockRead)
+		ctx, topBlock, &off, blockLookup)
 	if err != nil {
 		return DirEntry{}, err
 	}
