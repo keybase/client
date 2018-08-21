@@ -16,6 +16,7 @@ export const _avatarQueue = 'config:_avatarQueue'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
+export const copyToClipboard = 'config:copyToClipboard'
 export const daemonError = 'config:daemonError'
 export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
@@ -61,6 +62,7 @@ type _BootstrapStatusLoadedPayload = $ReadOnly<{|
 |}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
+type _CopyToClipboardPayload = $ReadOnly<{|text: string|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
 type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
@@ -168,6 +170,7 @@ export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({error: false, payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({error: false, payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({error: false, payload, type: changedFocus})
+export const createCopyToClipboard = (payload: _CopyToClipboardPayload) => ({error: false, payload, type: copyToClipboard})
 export const createDaemonError = (payload: _DaemonErrorPayload) => ({error: false, payload, type: daemonError})
 export const createDebugDump = (payload: _DebugDumpPayload) => ({error: false, payload, type: debugDump})
 export const createDumpLogs = (payload: _DumpLogsPayload) => ({error: false, payload, type: dumpLogs})
@@ -194,6 +197,7 @@ export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: fa
 export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
 export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
 export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
+export type CopyToClipboardPayload = $Call<typeof createCopyToClipboard, _CopyToClipboardPayload>
 export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
 export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
 export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
@@ -233,6 +237,7 @@ export type Actions =
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload
+  | CopyToClipboardPayload
   | DaemonErrorPayload
   | DaemonHandshakeDonePayload
   | DaemonHandshakePayload

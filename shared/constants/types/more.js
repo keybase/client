@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 
 const provablePlatformsMap = {
   twitter: true,

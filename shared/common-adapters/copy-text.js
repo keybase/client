@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
 import Icon from './icon'
 import Button from './button'
@@ -7,7 +8,6 @@ import ButtonBar from './button-bar'
 import Text from './text'
 import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
-import {copyToClipboard} from '../util/clipboard'
 import {
   collapseStyles,
   type StylesCrossPlatform,
@@ -18,11 +18,13 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
+import {compose, connect, setDisplayName} from '../util/container'
 
-type Props = PropsWithTimer<{
+export type Props = PropsWithTimer<{
   containerStyle?: StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
+  copyToClipboard: string => void,
 }>
 
 type State = {
@@ -47,7 +49,7 @@ class _CopyText extends React.Component<Props, State> {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
     )
-    copyToClipboard(this.props.text)
+    this.props.copyToClipboard(this.props.text)
   }
 
   reveal = () => {
@@ -91,7 +93,16 @@ class _CopyText extends React.Component<Props, State> {
     )
   }
 }
-const CopyText = HOCTimers(_CopyText)
+
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+})
+
+const CopyText = compose(
+  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  setDisplayName('CopyText'),
+  HOCTimers
+)(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = styleSheetCreate({

@@ -511,7 +511,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
           return ''
         }
-        // $ForceType
         const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
         return `${invite.name}@${sbs}`
       })()

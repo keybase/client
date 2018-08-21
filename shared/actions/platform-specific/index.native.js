@@ -18,6 +18,7 @@ import {
   ActionSheetIOS,
   CameraRoll,
   PermissionsAndroid,
+  Clipboard,
 } from 'react-native'
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'react-native-fetch-blob'
@@ -281,12 +282,17 @@ const waitForStartupDetails = (state: TypedState) => {
   })
 }
 
+const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+  Clipboard.setString(action.payload.text)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
   yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel

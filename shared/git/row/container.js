@@ -1,15 +1,14 @@
 // @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
-import {createSetTeamRepoSettings} from '../../actions/git-gen'
-import {connect, type TypedState, compose, withHandlers} from '../../util/container'
-import {createGetProfile} from '../../actions/tracker-gen'
-import {navigateAppend} from '../../actions/route-tree'
+import * as ConfigGen from '../../actions/config-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as GitGen from '../../actions/git-gen'
+import {connect, type TypedState, compose, withHandlers, isMobile} from '../../util/container'
+import * as TrackerGen from '../../actions/tracker-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
-import {copyToClipboard} from '../../util/clipboard'
 import openURL from '../../util/open-url'
-import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
   id: string,
@@ -30,17 +29,24 @@ const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  openUserTracker: (username: string) => dispatch(createGetProfile({username, forceDisplay: true})),
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+  openUserTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({username, forceDisplay: true})),
   _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
     dispatch(
-      createSetTeamRepoSettings({chatDisabled: disabled, repoID, teamname: teamname || '', channelName: null})
+      GitGen.createSetTeamRepoSettings({
+        chatDisabled: disabled,
+        repoID,
+        teamname: teamname || '',
+        channelName: null,
+      })
     ),
   _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
-      navigateAppend(
-        [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
-        isMobile ? [settingsTab, settingsGitTab] : [gitTab]
-      )
+      RouteTreeGen.createNavigateAppend({
+        path: [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
+        parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
+      })
     ),
 })
 
@@ -65,7 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClickDevice: () => {
       git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
     },
-    onCopy: () => copyToClipboard(git.url),
+    onCopy: () => dispatchProps.copyToClipboard(git.url),
     onShowDelete: () => ownProps.onShowDelete(git.id),
     openUserTracker: dispatchProps.openUserTracker,
     _onOpenChannelSelection: () =>
