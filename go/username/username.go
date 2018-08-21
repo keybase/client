@@ -4,7 +4,6 @@
 package username
 
 import (
-	"fmt"
 	"regexp"
 	"strings"
 )
@@ -35,12 +34,6 @@ func (e BadUsernameError) Error() string {
 // NewBadUsernameError creates a new BadUsernameError.
 func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
-}
-
-// NewBadUsernameErrorWithFullMessage creates a new BadUsernameError
-// with a formatted string.
-func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
-	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
 }
 
 // NormalizedUsername is a Keybase username that has been normalized
