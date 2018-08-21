@@ -28,7 +28,7 @@ type Props = {
 const HoverBox = isMobile
   ? Box
   : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blue6},
+      ':hover': {backgroundColor: globalColors.greyBlue2},
     })
 
 class BigTeamChannel extends PureComponent<Props> {
