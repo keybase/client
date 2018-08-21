@@ -82,9 +82,16 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         </React.Fragment>
       )
     } else if (this.props.recipientType === 'otherAccount') {
-      if (this.props.accounts.length <= 1) {
+      if (this.props.accounts.length <= 1 && this.props.onCreateNewAccount) {
         component = (
-          <Kb.Button type="Primary" style={styles.createNewAccountButton} label="Create a new account" />
+          <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
+            <Kb.Button
+              type="Wallet"
+              style={styles.createNewAccountButton}
+              label="Create a new account"
+              onClick={this.props.onCreateNewAccount}
+            />
+          </Kb.Box2>
         )
       } else {
         let items = [
