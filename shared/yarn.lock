@@ -1290,32 +1290,6 @@
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.7.0.tgz#9a06f4f137ee84d7df0460c1fdb1135ffa6c50fd"
 
-"@storybook/addon-actions@4.0.0-alpha.4":
-  version "4.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@storybook/addon-actions/-/addon-actions-4.0.0-alpha.4.tgz#3ea9e8d914fe8ec26183241887c53c78a681e1aa"
-  dependencies:
-    "@storybook/addons" "4.0.0-alpha.4"
-    "@storybook/components" "4.0.0-alpha.4"
-    babel-runtime "^6.26.0"
-    deep-equal "^1.0.1"
-    glamor "^2.20.40"
-    glamorous "^4.12.4"
-    global "^4.3.2"
-    make-error "^1.3.4"
-    prop-types "^15.6.1"
-    react-inspector "^2.3.0"
-    uuid "^3.2.1"
-
-"@storybook/addon-links@4.0.0-alpha.4":
-  version "4.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@storybook/addon-links/-/addon-links-4.0.0-alpha.4.tgz#3aa97e73e91f1b302f9f8291856f42878aa3da0f"
-  dependencies:
-    "@storybook/addons" "4.0.0-alpha.4"
-    "@storybook/components" "4.0.0-alpha.4"
-    babel-runtime "^6.26.0"
-    global "^4.3.2"
-    prop-types "^15.6.1"
-
 "@storybook/addon-storyshots@4.0.0-alpha.4":
   version "4.0.0-alpha.4"
   resolved "https://registry.yarnpkg.com/@storybook/addon-storyshots/-/addon-storyshots-4.0.0-alpha.4.tgz#67a143f9d9dfc98488f81de5269de64891ba8a11"
@@ -1345,13 +1319,6 @@
     "@storybook/channels" "4.0.0-alpha.4"
     global "^4.3.2"
     json-stringify-safe "^5.0.1"
-
-"@storybook/channel-websocket@4.0.0-alpha.4":
-  version "4.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@storybook/channel-websocket/-/channel-websocket-4.0.0-alpha.4.tgz#888de52fa058967d34974b12634e673ef231a8ce"
-  dependencies:
-    "@storybook/channels" "4.0.0-alpha.4"
-    global "^4.3.2"
 
 "@storybook/channels@4.0.0-alpha.4":
   version "4.0.0-alpha.4"
@@ -1472,53 +1439,6 @@
     hoist-non-react-statics "^1.2.0"
     lodash.pick "^4.4.0"
     shallowequal "^0.2.2"
-
-"@storybook/react-native@4.0.0-alpha.4":
-  version "4.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/@storybook/react-native/-/react-native-4.0.0-alpha.4.tgz#1c38bd7d691c1c046bff74a3b4575449174afb79"
-  dependencies:
-    "@storybook/addon-actions" "4.0.0-alpha.4"
-    "@storybook/addon-links" "4.0.0-alpha.4"
-    "@storybook/addons" "4.0.0-alpha.4"
-    "@storybook/channel-websocket" "4.0.0-alpha.4"
-    "@storybook/core" "4.0.0-alpha.4"
-    "@storybook/react-dev-utils" "^5.0.0"
-    "@storybook/ui" "4.0.0-alpha.4"
-    babel-loader "^7.1.4"
-    babel-plugin-macros "^2.2.0"
-    babel-plugin-syntax-async-functions "^6.13.0"
-    babel-plugin-syntax-trailing-function-commas "^6.22.0"
-    babel-plugin-transform-class-properties "^6.24.1"
-    babel-plugin-transform-object-rest-spread "^6.23.0"
-    babel-plugin-transform-regenerator "^6.26.0"
-    babel-plugin-transform-runtime "^6.23.0"
-    babel-preset-env "^1.6.1"
-    babel-preset-flow "^6.23.0"
-    babel-preset-minify "^0.4.0"
-    babel-preset-react "^6.24.1"
-    babel-register "^6.26.0"
-    babel-runtime "^6.26.0"
-    case-sensitive-paths-webpack-plugin "^2.1.2"
-    commander "^2.15.1"
-    dotenv-webpack "^1.5.5"
-    express "^4.16.3"
-    find-cache-dir "^1.0.0"
-    global "^4.3.2"
-    html-loader "^0.5.5"
-    html-webpack-plugin "^3.2.0"
-    json5 "^1.0.1"
-    markdown-loader "^2.0.2"
-    prop-types "^15.6.1"
-    react-native-compat "^1.0.0"
-    react-native-iphone-x-helper "^1.0.2"
-    shelljs "^0.8.1"
-    url-parse "^1.4.0"
-    util-deprecate "^1.0.2"
-    uuid "^3.2.1"
-    webpack "^4.6.0"
-    webpack-dev-middleware "^3.1.2"
-    webpack-hot-middleware "^2.22.1"
-    ws "^5.1.1"
 
 "@storybook/react-simple-di@^1.2.1":
   version "1.3.0"
@@ -2587,7 +2507,7 @@ babel-plugin-react-docgen@^2.0.0-rc.0:
     lodash "^4.17.0"
     react-docgen "^3.0.0-beta11"
 
-babel-plugin-syntax-async-functions@^6.13.0, babel-plugin-syntax-async-functions@^6.8.0:
+babel-plugin-syntax-async-functions@^6.8.0:
   version "6.13.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-syntax-async-functions/-/babel-plugin-syntax-async-functions-6.13.0.tgz#cad9cad1191b5ad634bf30ae0872391e0647be95"
 
@@ -2918,7 +2838,7 @@ babel-plugin-transform-minify-booleans@^6.9.2:
   version "6.9.2"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-minify-booleans/-/babel-plugin-transform-minify-booleans-6.9.2.tgz#cf995be067a0303cb526549f03dcd9682419430d"
 
-babel-plugin-transform-object-rest-spread@^6.20.2, babel-plugin-transform-object-rest-spread@^6.22.0, babel-plugin-transform-object-rest-spread@^6.23.0, babel-plugin-transform-object-rest-spread@^6.8.0:
+babel-plugin-transform-object-rest-spread@^6.20.2, babel-plugin-transform-object-rest-spread@^6.22.0, babel-plugin-transform-object-rest-spread@^6.8.0:
   version "6.26.0"
   resolved "https://registry.yarnpkg.com/babel-plugin-transform-object-rest-spread/-/babel-plugin-transform-object-rest-spread-6.26.0.tgz#0f36692d50fef6b7e2d4b3ac1478137a963b7b06"
   dependencies:
@@ -7708,10 +7628,6 @@ is-directory@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/is-directory/-/is-directory-0.3.1.tgz#61339b6f2475fc772fd9c9d83f5c8575dc154ae1"
 
-is-dom@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/is-dom/-/is-dom-1.0.9.tgz#483832d52972073de12b9fe3f60320870da8370d"
-
 is-dotfile@^1.0.0:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/is-dotfile/-/is-dotfile-1.0.3.tgz#a6a2f32ffd2dfb04f5ca25ecd0f6b83cf798a1e1"
@@ -9108,10 +9024,6 @@ make-dir@^1.1.0:
   resolved "https://registry.yarnpkg.com/make-dir/-/make-dir-1.2.0.tgz#6d6a49eead4aae296c53bbf3a1a008bd6c89469b"
   dependencies:
     pify "^3.0.0"
-
-make-error@^1.3.4:
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/make-error/-/make-error-1.3.4.tgz#19978ed575f9e9545d2ff8c13e33b5d18a67d535"
 
 makeerror@1.0.x:
   version "1.0.11"
@@ -11416,13 +11328,6 @@ react-icons@^2.2.7:
   dependencies:
     react-icon-base "2.1.0"
 
-react-inspector@^2.3.0:
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/react-inspector/-/react-inspector-2.3.0.tgz#fc9c1d38ab687fc0d190dcaf133ae40158968fc8"
-  dependencies:
-    babel-runtime "^6.26.0"
-    is-dom "^1.0.9"
-
 react-is@^16.4.2:
   version "16.4.2"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.4.2.tgz#84891b56c2b6d9efdee577cc83501dfc5ecead88"
@@ -11465,12 +11370,6 @@ react-native-camera@1.1.4:
     lodash "^4.17.4"
     prop-types "^15.5.10"
 
-react-native-compat@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/react-native-compat/-/react-native-compat-1.0.0.tgz#491dbd8a0105ac061b8d0d926463ce6a3dff33bc"
-  dependencies:
-    prop-types "^15.5.10"
-
 react-native-contacts@2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-native-contacts/-/react-native-contacts-2.2.0.tgz#9a1a10d36f492728f6317a7f785809bf6ee49229"
@@ -11494,10 +11393,6 @@ react-native-drawer-layout@1.3.2:
 "react-native-image-picker@git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e":
   version "0.26.7"
   resolved "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e"
-
-react-native-iphone-x-helper@^1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/react-native-iphone-x-helper/-/react-native-iphone-x-helper-1.0.2.tgz#7dbca530930f7c1ce8633cc8fd13ba94102992e1"
 
 react-native-mime-types@^2.2.1:
   version "2.2.1"
@@ -13940,13 +13835,6 @@ url-parse@^1.1.8:
     querystringify "~1.0.0"
     requires-port "1.0.x"
 
-url-parse@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.4.0.tgz#6bfdaad60098c7fe06f623e42b22de62de0d3d75"
-  dependencies:
-    querystringify "^2.0.0"
-    requires-port "^1.0.0"
-
 url-parse@^1.4.1:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/url-parse/-/url-parse-1.4.1.tgz#4dec9dad3dc8585f862fed461d2e19bbf623df30"
@@ -13981,7 +13869,7 @@ utf8-byte-length@^1.0.1:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/utf8-byte-length/-/utf8-byte-length-1.0.4.tgz#f45f150c4c66eee968186505ab93fcbb8ad6bf61"
 
-util-deprecate@^1.0.2, util-deprecate@~1.0.1:
+util-deprecate@~1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/util-deprecate/-/util-deprecate-1.0.2.tgz#450d4dc9fa70de732762fbd2d4a28981419a0ccf"
 
@@ -14504,12 +14392,6 @@ ws@^4.0.0:
   dependencies:
     async-limiter "~1.0.0"
     safe-buffer "~5.1.0"
-
-ws@^5.1.1:
-  version "5.1.1"
-  resolved "https://registry.yarnpkg.com/ws/-/ws-5.1.1.tgz#1d43704689711ac1942fd2f283e38f825c4b8b95"
-  dependencies:
-    async-limiter "~1.0.0"
 
 xcode@^0.9.1:
   version "0.9.3"
