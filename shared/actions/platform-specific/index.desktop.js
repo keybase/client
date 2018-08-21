@@ -175,7 +175,9 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifyFS.FSActivity',
-    ({notification}, _, __, getState) => [kbfsNotification(notification, NotifyPopup, getState)]
+    ({notification}, _, __, getState) => {
+      kbfsNotification(notification, NotifyPopup, getState)
+    }
   )
 
   getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
@@ -197,12 +199,14 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate',
     ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-      return [NotifyPopup('Client out of date!', {body}, 60 * 60)]
+      NotifyPopup('Client out of date!', {body}, 60 * 60)
     }
   )
 
   getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
-    dumpLogs().then(() => response && response.result())
+    dumpLogs().then(() => {
+      response && response.result()
+    })
   })
 }
 

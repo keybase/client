@@ -567,7 +567,7 @@ const reactionUpdateToActions = (info: RPCChatTypes.ReactionUpdateNotif) => {
 const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.NewChatActivity',
-    (payload: {activity: RPCChatTypes.ChatActivity}, ignore1, ignore2, getState) => {
+    (payload: {activity: RPCChatTypes.ChatActivity}, _, __, getState) => {
       const activity: RPCChatTypes.ChatActivity = payload.activity
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
@@ -587,27 +587,25 @@ const setupEngineListeners = () => {
         }
         case RPCChatTypes.notifyChatChatActivityType.membersUpdate:
           const convID = activity.membersUpdate && activity.membersUpdate.convID
-          return convID
-            ? [
-                Chat2Gen.createMetaRequestTrusted({
-                  conversationIDKeys: [Types.conversationIDToKey(convID)],
-                  force: true,
-                }),
-              ]
-            : null
+          return (
+            convID &&
+            Chat2Gen.createMetaRequestTrusted({
+              conversationIDKeys: [Types.conversationIDToKey(convID)],
+              force: true,
+            })
+          )
         case RPCChatTypes.notifyChatChatActivityType.setAppNotificationSettings:
           const setAppNotificationSettings: ?RPCChatTypes.SetAppNotificationSettingsInfo =
             activity.setAppNotificationSettings
-          return setAppNotificationSettings
-            ? [
-                Chat2Gen.createNotificationSettingsUpdated({
-                  conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
-                  settings: setAppNotificationSettings.settings,
-                }),
-              ]
-            : null
+          return (
+            setAppNotificationSettings &&
+            Chat2Gen.createNotificationSettingsUpdated({
+              conversationIDKey: Types.conversationIDToKey(setAppNotificationSettings.convID),
+              settings: setAppNotificationSettings.settings,
+            })
+          )
         case RPCChatTypes.notifyChatChatActivityType.teamtype:
-          return [Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})]
+          return Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'})
         case RPCChatTypes.notifyChatChatActivityType.expunge:
           return activity.expunge ? expungeToActions(activity.expunge, getState()) : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
@@ -622,24 +620,23 @@ const setupEngineListeners = () => {
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatTLFFinalize',
-    ({convID}: {convID: RPCChatTypes.ConversationID}) => [
-      Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]}),
-    ]
+    ({convID}: {convID: RPCChatTypes.ConversationID}) =>
+      Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})
   )
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatInboxSynced',
-    ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, ignore1, ignore2, getState) =>
+    ({syncRes}: RPCChatTypes.NotifyChatChatInboxSyncedRpcParam, _, __, getState) =>
       onChatInboxSynced(syncRes, getState)
   )
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () => [
-    WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted}),
-  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxSyncStarted', () =>
+    WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})
+  )
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () => [
-    Chat2Gen.createInboxRefresh({reason: 'inboxStale'}),
-  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatInboxStale', () =>
+    Chat2Gen.createInboxRefresh({reason: 'inboxStale'})
+  )
 
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatIdentifyUpdate',
@@ -666,13 +663,11 @@ const setupEngineListeners = () => {
     }: RPCChatTypes.NotifyChatChatAttachmentUploadProgressRpcParam) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
       const ratio = bytesComplete / bytesTotal
-      return [
-        Chat2Gen.createAttachmentUploading({
-          conversationIDKey,
-          outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-          ratio,
-        }),
-      ]
+      return Chat2Gen.createAttachmentUploading({
+        conversationIDKey,
+        outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+        ratio,
+      })
     }
   )
 
@@ -680,40 +675,36 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.ChatAttachmentUploadStart',
     ({convID, outboxID}: RPCChatTypes.NotifyChatChatAttachmentUploadStartRpcParam) => {
       const conversationIDKey = Types.conversationIDToKey(convID)
-      return [
-        Chat2Gen.createAttachmentUploading({
-          conversationIDKey,
-          outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
-          ratio: 0.01,
-        }),
-      ]
+      return Chat2Gen.createAttachmentUploading({
+        conversationIDKey,
+        outboxID: Types.rpcOutboxIDToOutboxID(outboxID),
+        ratio: 0.01,
+      })
     }
   )
 
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () => [
-    Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'}),
-  ])
-  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () => [
-    Chat2Gen.createInboxRefresh({reason: 'leftAConversation'}),
-  ])
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatJoinedConversation', () =>
+    Chat2Gen.createInboxRefresh({reason: 'joinedAConversation'})
+  )
+  engine().setIncomingActionCreators('chat.1.NotifyChat.ChatLeftConversation', () =>
+    Chat2Gen.createInboxRefresh({reason: 'leftAConversation'})
+  )
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetConvRetention', update => {
     if (update.conv) {
-      return [Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})]
+      return Chat2Gen.createUpdateConvRetentionPolicy({conv: update.conv})
     }
     logger.warn(
       'ChatHandler: got NotifyChat.ChatSetConvRetention with no attached InboxUIItem. Forcing update.'
     )
     // force to get the new retention policy
-    return [
-      Chat2Gen.createMetaRequestTrusted({
-        conversationIDKeys: [Types.conversationIDToKey(update.convID)],
-        force: true,
-      }),
-    ]
+    return Chat2Gen.createMetaRequestTrusted({
+      conversationIDKeys: [Types.conversationIDToKey(update.convID)],
+      force: true,
+    })
   })
   engine().setIncomingActionCreators('chat.1.NotifyChat.ChatSetTeamRetention', update => {
     if (update.convs) {
-      return [Chat2Gen.createUpdateTeamRetentionPolicy({convs: update.convs})]
+      return Chat2Gen.createUpdateTeamRetentionPolicy({convs: update.convs})
     }
     // this is a more serious problem, but we don't need to bug the user about it
     logger.error(
@@ -730,7 +721,7 @@ const setupEngineListeners = () => {
     const role = newRole && teamRoleByEnum[newRole]
     logger.info(`ChatHandler: got new minWriterRole ${role} for convID ${conversationIDKey}`)
     if (role && role !== 'none') {
-      return [Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})]
+      return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
     }
     logger.warn(
       `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`

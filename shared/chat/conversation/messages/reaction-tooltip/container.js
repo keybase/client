@@ -39,7 +39,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {_reactions, _usersInfo}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onAddReaction: () => {
     ownProps.onHidden()
     dispatch(

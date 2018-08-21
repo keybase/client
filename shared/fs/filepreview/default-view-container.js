@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path, routePath}) => ({
+const mapDispatchToProps = (dispatch, {path, routePath}) => ({
   download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
   saveMedia: () => dispatch(FsGen.createSaveMedia({path, routePath})),
   shareNative: () => dispatch(FsGen.createShareNative({path, routePath})),

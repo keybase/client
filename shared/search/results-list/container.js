@@ -29,7 +29,7 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
   onClick: (id: string) => {
     !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)
@@ -57,6 +57,6 @@ const Chooser = (props: any) =>
 
 export default compose(
   // $FlowIssue
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('ResultsList')
 )(Chooser)

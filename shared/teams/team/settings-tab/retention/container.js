@@ -131,7 +131,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (
-  dispatch: Dispatch,
+  dispatch,
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
@@ -163,7 +163,7 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('RetentionPicker'),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({

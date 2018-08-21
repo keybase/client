@@ -5,7 +5,7 @@ import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
 import Login from '.'
-import {connect, type TypedState, type Dispatch} from '../../util/container'
+import {connect, type TypedState} from '../../util/container'
 
 type OwnProps = {|
   navigateAppend: (...Array<any>) => any,
@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState) => ({
   selectedUser: state.config.defaultUsername,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onFeedback: () => dispatch(ownProps.navigateAppend(['feedback'])),
   onForgotPassphrase: () => dispatch(LoginGen.createLaunchForgotPasswordWebPage()),
   onLogin: (user: string, passphrase: string) =>

@@ -126,7 +126,7 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
+const mapDispatchToProps = (dispatch, {searchKey}) => ({
   onRemoveUser: id => dispatch(SearchGen.createRemoveResultsToUserInput({searchKey, searchResults: [id]})),
   search: (term: string, service) => {
     if (term) {
@@ -148,7 +148,7 @@ export type Props = _Props & {
 }
 
 const ConnectedUserInput = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},

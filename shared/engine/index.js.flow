@@ -2,14 +2,14 @@
 import type {TypedState, TypedActions, Dispatch} from '../util/container'
 
 declare export class Engine {
-  static dispatchWaitingAction: (key: string, waiting: boolean) => void;
+  dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
   cancelSession(sessionID: any): void;
   rpc(): void;
   setFailOnError(): void;
-  actionOnConnect(key: string, f: () => any): void;
-  actionOnDisconnect(key: string, f: () => any): void;
+  actionOnConnect(key: string, f: () => ?TypedActions): void;
+  actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
   setIncomingActionCreators(
     method: string,
@@ -18,7 +18,7 @@ declare export class Engine {
       response: ?Object,
       dispatch: Dispatch,
       getState: () => TypedState
-    ) => ?Array<TypedActions | null | false | void>
+    ) => null | false | void | TypedActions | Array<TypedActions>
   ): void;
   createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
   _rpcOutgoing({
