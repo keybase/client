@@ -1,7 +1,6 @@
 // @flow
 import logger from '../logger'
 import rootReducer from '../reducers'
-import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
@@ -91,7 +90,6 @@ const errorCatching = store => next => action => {
 const middlewares = [
   errorCatching,
   createSagaMiddleware(crashHandler),
-  thunkMiddleware,
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
 ]

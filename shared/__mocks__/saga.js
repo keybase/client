@@ -31,7 +31,6 @@ const mocks = {
   ...effects,
   actionToAction: () => {},
   actionToPromise: () => {},
-  callAndWrap: () => {},
   identity: () => {},
   safeTakeEvery: () => {},
   safeTakeEveryPure: () => {},

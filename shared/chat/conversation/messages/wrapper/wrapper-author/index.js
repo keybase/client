@@ -10,7 +10,6 @@ import {
   platformStyles,
   styleSheetCreate,
   collapseStyles,
-  type StylesCrossPlatform,
 } from '../../../../../styles'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
@@ -43,9 +42,7 @@ export type Props = {|
   onEdit: null | (() => void),
   onCancel: null | (() => void),
   onAuthorClick: () => void,
-  orangeLineAbove: boolean,
   ordinal: Types.Ordinal,
-  styles: StylesCrossPlatform,
   timestamp: number,
   toggleMessageMenu: () => void,
   type: 'text' | 'attachment',

@@ -302,7 +302,7 @@ class EditAvatar extends React.Component<_Props, State> {
       y0: Math.round(y * ratio),
       y1: Math.round((y + AVATAR_SIZE) * ratio),
     }
-    this.props.onSave(this.state.imageSource, crop, this.props.teamname, this.props.sendChatNotification)
+    this.props.onSave(this.state.imageSource, crop)
   }
 
   render() {
