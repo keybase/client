@@ -611,7 +611,7 @@ func (j *Importer) importClasses(names []string, allowMissingClasses bool) ([]*C
 	out, err := javap.CombinedOutput()
 	if err != nil {
 		if _, ok := err.(*exec.ExitError); !ok {
-			return nil, fmt.Errorf("javap failed: %v: %s", err)
+			return nil, fmt.Errorf("javap failed: %v", err)
 		}
 		// Not every name is a Java class so an exit error from javap is not
 		// fatal.

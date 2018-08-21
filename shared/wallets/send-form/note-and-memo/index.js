@@ -6,8 +6,10 @@ import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
 type Props = {
-  noteError?: string,
   memoError?: string,
+  noteError?: string,
+  onChangePublicMemo: () => void,
+  onChangeSecretNote: () => void,
   toSelf: boolean,
 }
 
@@ -52,6 +54,7 @@ class NoteAndMemo extends React.Component<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.PlainInput
               multiline={true}
+              onChangeText={this.props.onChangeSecretNote}
               placeholder={this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'}
               placeholderColor={placeholderColor}
               rowsMin={Styles.isMobile ? 2 : 3}
@@ -101,6 +104,7 @@ class NoteAndMemo extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.PlainInput
             multiline={true}
+            onChangeText={this.props.onChangePublicMemo}
             placeholder="Add a public memo"
             placeholderColor={placeholderColor}
             style={styles.input}

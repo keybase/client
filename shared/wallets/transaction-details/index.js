@@ -82,7 +82,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return globalColors.green2
     case 'pending':
-      return globalColors.blue5
+      return globalColors.black_75
     case 'error':
       return globalColors.red
     default:

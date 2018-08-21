@@ -588,4 +588,13 @@ public class SeqTest extends InstrumentationTestCase {
   public void testTags() {
     assertEquals("Constant from a tagged file", 42, Testpkg.TaggedConst);
   }
+
+  public void testClassNameWithPackageName() {
+    testpkg.Testpkg_ o = new secondpkg.Secondpkg_();
+    secondpkg.Secondpkg_ o2 = Secondpkg.newSecondpkg();
+    o2.m();
+    o2.setV("hi");
+    assertEquals(o2.getV(), "hi");
+    Testpkg.clashingParameterFromOtherPackage(o2);
+  }
 }

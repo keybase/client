@@ -433,6 +433,10 @@
             "string"
           ],
           "name": "videoDuration"
+        },
+        {
+          "type": "boolean",
+          "name": "inlineVideoPlayable"
         }
       ]
     },
