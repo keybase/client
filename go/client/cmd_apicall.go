@@ -91,7 +91,7 @@ func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 func (c *CmdAPICall) Run() error {
 	if c.parsedHost != "" {
-		if c.parsedHost != c.G().Env.GetServerURI() && c.parsedHost != "https://keybase.io" {
+		if !strings.EqualFold(c.parsedHost, c.G().Env.GetServerURI()) {
 			return fmt.Errorf("Unexpected host in URL mode: %s. This only works for Keybase API.", c.parsedHost)
 		}
 		c.G().Log.Info("Parsed URL as endpoint: %q, args: %+v", c.endpoint, c.args)
@@ -264,6 +264,11 @@ func (c *CmdAPICall) parseEndpointAsURL(ctx *cli.Context) error {
 	// Check host later. During ParseArgv, the environment is not
 	// necessarily completely set.
 	c.parsedHost = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+	// Allow use of 'keybase.io' out of convenience and make it
+	// equivalent to production URI.
+	if strings.EqualFold(c.parsedHost, "https://keybase.io") {
+		c.parsedHost = libkb.ProductionServerURI
+	}
 	if !strings.HasPrefix(u.Path, apiPath) {
 		return fmt.Errorf("URL path has to be API path: %s", apiPath)
 	}
