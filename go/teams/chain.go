@@ -1064,7 +1064,7 @@ func (t *teamSigchainPlayer) addInnerLink(ctx context.Context,
 		}
 
 		// Only owners can remove owners.
-		if t.roleUpdatesDemoteOwners(prevState, roleUpdates) && !signerIsExplicitOwner {
+		if t.roleUpdatesDemoteOwners(ctx, prevState, roleUpdates) && !signerIsExplicitOwner {
 			return res, fmt.Errorf("non-owner cannot demote owners")
 		}
 
@@ -1907,7 +1907,9 @@ func (t *teamSigchainPlayer) sanityCheckMembers(ctx context.Context, members SCT
 }
 
 // Whether the roleUpdates would demote any current owner to a lesser role.
-func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+func (t *teamSigchainPlayer) roleUpdatesDemoteOwners(ctx context.Context, prev *TeamSigChainState, roleUpdates map[keybase1.TeamRole][]keybase1.UserVersion) bool {
+	ctx, tbs := t.G().CTimeBuckets(ctx)
+	defer tbs.Record("chain.roleUpdatesDemoteOwners")()
 
 	// It is OK to readmit an owner if the owner reset and is coming in at a lower permission
 	// level. So check that case here.

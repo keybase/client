@@ -659,6 +659,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 			tbs.Log(ctx, "chain.prevAdmins")
 			tbs.Log(ctx, "chain.wasHighLink")
 			tbs.Log(ctx, "chain.test")
+			tbs.Log(ctx, "chain.roleUpdatesDemoteOwners")
 			l.G().Log.CDebugf(ctx, "TeamLoader lkc cache hits: %v", lkc.cacheHits)
 		}
 	}
