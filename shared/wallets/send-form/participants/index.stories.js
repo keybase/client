@@ -32,6 +32,8 @@ const accounts = [
 const defaultProps = {
   fromAccount: primaryAccount,
   allAccounts: accounts,
+  onLinkAccount: Sb.action('onLinkAccount'),
+  onCreateNewAccount: Sb.action('onCreateNewAccount'),
 }
 
 const load = () => {

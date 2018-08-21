@@ -15,6 +15,8 @@ type ToFieldProps = {|
   stellarAddress?: string,
   /** Used for sending from account to account */
   accounts: Account[],
+  onLinkAccount?: () => void,
+  onCreateNewAccount?: () => void,
   /* Used to display a keybase profile */
   username?: string,
   fullName?: string,
@@ -36,10 +38,10 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
       if (element.type === DropdownText) {
-        if (element.key === 'create-new') {
-          console.log('hey!')
-        } else if (element.key === 'link-existing') {
-          console.log('ho!')
+        if (element.key === 'create-new' && this.props.onCreateNewAccount) {
+          this.props.onCreateNewAccount()
+        } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
+          this.props.onLinkAccount()
         }
       } else {
         this.setState({

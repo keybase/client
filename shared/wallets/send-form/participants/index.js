@@ -25,6 +25,8 @@ type ParticipantsProps = {|
   recipientStellarAddress?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
+  onLinkAccount?: () => void,
+  onCreateNewAccount?: () => void,
 |}
 
 const Participants = (props: ParticipantsProps) => (
@@ -43,6 +45,8 @@ const Participants = (props: ParticipantsProps) => (
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
       onChangeAddress={props.onChangeAddress}
+      onLinkAccount={props.onLinkAccount}
+      onCreateNewAccount={props.onCreateNewAccount}
     />
   </Kb.Box2>
 )
