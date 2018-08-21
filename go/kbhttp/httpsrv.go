@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/gregor/base/log"
 )
 
-type HTTPSrvListenerSource interface {
+type ListenerSource interface {
 	GetListener() (net.Listener, string, error)
 }
 
@@ -86,12 +86,12 @@ type HTTPSrv struct {
 	*http.ServeMux
 	log logger.Logger
 
-	listenerSource HTTPSrvListenerSource
+	listenerSource ListenerSource
 	server         *http.Server
 	active         bool
 }
 
-func NewHTTPSrv(log logger.Logger, listenerSource HTTPSrvListenerSource) *HTTPSrv {
+func NewHTTPSrv(log logger.Logger, listenerSource ListenerSource) *HTTPSrv {
 	return &HTTPSrv{
 		log:            log,
 		listenerSource: listenerSource,

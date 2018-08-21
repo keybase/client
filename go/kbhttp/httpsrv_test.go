@@ -14,7 +14,7 @@ import (
 )
 
 func TestHTTPSrv(t *testing.T) {
-	test := func(s HTTPSrvListenerSource) {
+	test := func(s ListenerSource) {
 		log := logger.NewTestLogger(t)
 		srv := NewHTTPSrv(log, s)
 		require.NoError(t, srv.Start())
