@@ -5373,7 +5373,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				return
 			}
 
-			ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
+			ctc := makeChatTestContext(t, "SrvStellarMessages", 2)
 			defer ctc.cleanup()
 			users := ctc.users()
 
@@ -5383,7 +5383,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-				chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+				mt, ctc.as(t, users[1]).user())
 
 			t.Logf("send a request message")
 			body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
@@ -5421,7 +5421,17 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			}
 			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
 			require.NoError(t, err)
-			_ = res
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event (DELETE) received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
 		})
 	})
 }
