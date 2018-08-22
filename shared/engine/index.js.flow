@@ -2,7 +2,7 @@
 import type {TypedState, TypedActions, Dispatch} from '../util/container'
 
 declare export class Engine {
-  static dispatchWaitingAction: (key: string, waiting: boolean) => void;
+  dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
   cancelSession(sessionID: any): void;

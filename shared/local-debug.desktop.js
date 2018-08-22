@@ -115,5 +115,3 @@ export const {
   skipSecondaryDevtools,
   userTimings,
 } = config
-
-export function setup(store: any) {}
