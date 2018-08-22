@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Box from './box'
 import Avatar from './avatar'
 import Text from './text'
-import {Button} from '../common-adapters'
+import Button from './button'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 

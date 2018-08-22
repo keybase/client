@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import {TouchableWithoutFeedback} from 'react-native'
-import {Box, Box2, FloatingBox} from '..'
+import {Box, Box2} from '../box'
+import FloatingBox from '../floating-box'
 import type {Props} from '.'
 import {collapseStyles, globalColors, globalStyles, styleSheetCreate} from '../../styles'
 
