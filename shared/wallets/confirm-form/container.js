@@ -7,6 +7,11 @@ import {connect, type TypedState, type Dispatch} from '../../util/container'
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
+
+  const recipientType = build.recipientType || 'keybaseUser'
+  const to = build.to
+  const recipientStellarAddress = recipientType === 'stellarPublicKey' ? to : ''
+
   return {
     amount: build.amount,
     assetConversion: built.worthDescription,
@@ -14,7 +19,8 @@ const mapStateToProps = (state: TypedState) => {
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
     receiverUsername: built.toUsername,
-    recipientType: build.recipientType,
+    recipientType,
+    recipientStellarAddress,
     waitingKey: Constants.sendPaymentWaitingKey,
     yourUsername: state.config.username,
   }

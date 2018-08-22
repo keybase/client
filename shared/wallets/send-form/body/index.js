@@ -24,19 +24,7 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
-    <Participants
-      // TODO: Remove these, this is just to make flow happy until we integrate
-      onLinkAccount={() => {}}
-      onCreateNewAccount={() => {}}
-      onChangeFromAccount={() => {}}
-      onChangeToAccount={() => {}}
-      fromAccount={{
-        user: '',
-        name: '',
-        contents: '',
-      }}
-      allAccounts={[]}
-    />
+    <Participants />
     <Divider />
     <AssetInput />
     <NoteAndMemo />
