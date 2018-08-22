@@ -1,9 +1,6 @@
 // @flow
-import * as ConfigGen from '../actions/config-gen'
-import * as Tabs from '../constants/tabs'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
-import {switchTo} from '../actions/route-tree'
 import {FilesPreview} from './files.desktop'
 import {remoteConnect, compose} from '../util/container'
 
