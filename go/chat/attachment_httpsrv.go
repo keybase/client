@@ -36,7 +36,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
-	httpSrv         *libkb.HTTPSrv
+	httpSrv         *kbhttp.HTTPSrv
 	urlMap          *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
