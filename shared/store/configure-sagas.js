@@ -13,7 +13,6 @@ import provisionSaga from '../actions/provision'
 import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
-import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
 import routeSaga from '../actions/route-tree'
 import sagaMonitor from './saga-monitor'
@@ -41,7 +40,6 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(provisionSaga)
   yield Saga.fork(notificationsSaga)
   yield Saga.fork(pinentrySaga)
-  yield Saga.fork(planBillingSaga)
   yield Saga.fork(profileSaga)
   yield Saga.fork(routeSaga)
   yield Saga.fork(searchSaga)

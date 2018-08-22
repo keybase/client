@@ -29,7 +29,7 @@ const listStyle = {
 
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
-type InfoPanelProps = {
+type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
   participants: Array<{
     username: string,
@@ -64,7 +64,8 @@ type InfoPanelProps = {
   onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
-} & HeaderHocProps
+  ...$Exact<HeaderHocProps>,
+|}
 
 // FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
 // use this.props in _renderRow instead

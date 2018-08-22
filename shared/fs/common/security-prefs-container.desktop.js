@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (this.props.appFocusedCount !== prevProps.appFocusedCount) {

@@ -1,5 +1,5 @@
 // @flow
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'

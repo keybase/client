@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch: any, {routePath, routeState, setRouteState
 })
 
 const ConnectedFolders = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       this.props.favoriteList()

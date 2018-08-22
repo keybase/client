@@ -4,5 +4,6 @@ export function NotifyPopup(
   opts: ?Object,
   rateLimitSeconds?: number,
   rateLimitKey?: string,
-  onClick: ?() => void
+  onClick: ?() => void,
+  onClose: ?() => void
 ): void {}

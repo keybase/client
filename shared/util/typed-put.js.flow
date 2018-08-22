@@ -1,0 +1,25 @@
+// @flow
+// import type {PutEffect, Channel} from 'redux-saga'
+// import type {TypedActions} from '../actions/typed-actions-gen'
+// declare var put: {
+// (action: TypedActions): PutEffect<TypedActions, null>,
+// (channel: Channel, action: TypedActions): PutEffect<TypedActions, Channel>,
+// resolve: {
+// (action: TypedActions): PutEffect<TypedActions, null>,
+// (channel: Channel, action: TypedActions): PutEffect<TypedActions, Channel>,
+// },
+// }
+
+// Uncomment the above to have a typed put. Current flow makes this VERY VERY slow. The merge phase timesout on several files.  This was super useful to find thunks but is likely not that useful now
+
+type TypedActions = {type: string}
+
+declare var put: {
+  (action: TypedActions): any,
+  (channel: any, action: TypedActions): any,
+  resolve: {
+    (action: TypedActions): any,
+    (channel: any, action: TypedActions): any,
+  },
+}
+export default put

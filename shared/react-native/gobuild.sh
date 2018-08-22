@@ -42,9 +42,14 @@ client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
 kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 
-# Our custom gopath for iOS build
+# Our custom GOPATH for mobile build.
 GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
+
+# gomobile looks for gobind in $PATH, so put $GOPATH/bin in $PATH. We
+# also want executables from our own GOPATH to override anything
+# already in $PATH (like the old GOPATH), so put $GOPATH/bin first.
+PATH="$GOPATH/bin:$PATH"
 
 # if we don't set this gomobile init get confused
 GOMOBILE="$GOPATH/pkg/gomobile"
@@ -83,8 +88,8 @@ fi
 
 if [ "$check_ci" = "1" ]; then
   "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-  "$GOPATH/bin/release" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  "$GOPATH/bin/release" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
+  release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  release wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
 fi
 
 # Move all vendoring up a directory to github.com/keybase/vendor
@@ -100,7 +105,6 @@ rm -rf "$go_kbfs_dir/vendor"
 rm -rf "$go_client_dir/vendor"
 
 vendor_path="$GOPATH/src/github.com/keybase/vendor"
-gomobile_path="$vendor_path/golang.org/x/mobile/cmd/gomobile"
 rsync -pr --ignore-times "$vendor_path/" "$GOPATH/src/"
 package="github.com/keybase/client/go/bind"
 tags=${TAGS:-"prerelease production"}
@@ -109,13 +113,11 @@ ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 gomobileinit ()
 {
   echo "Build gomobile..."
-  (cd "$gomobile_path" && go build -o "$GOPATH/bin/gomobile")
-  # The gomobile binary only looks for packages in the GOPATH,
-  echo "Doing gomobile init"
-  if [ "$arg" = "ios" ]; then
-    "$GOPATH/bin/gomobile" init
-  elif [ "$arg" = "android" ]; then
-    "$GOPATH/bin/gomobile" init -ndk $ANDROID_HOME/ndk-bundle
+  go install golang.org/x/mobile/cmd/{gomobile,gobind}
+  # iOS doesn't need gomobile init.
+  if [ "$arg" = "android" ]; then
+    echo "Doing gomobile init"
+    gomobile init -ndk $ANDROID_HOME/ndk-bundle
   fi
 }
 
@@ -124,12 +126,12 @@ if [ "$arg" = "ios" ]; then
   ios_dest="$ios_dir/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   set +e
-  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package" 2>&1)"
   set -e
-  if [[ $OUTPUT == *"gomobile"* ]]; then
+  if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
+    gomobile bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
   else
     echo $OUTPUT
   fi
@@ -138,12 +140,12 @@ elif [ "$arg" = "android" ]; then
   android_dest="$android_dir/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   set +e
-  OUTPUT="$("$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
+  OUTPUT="$(gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package" 2>&1)"
   set -e
-  if [[ $OUTPUT == *"gomobile"* ]]; then
+  if [[ $OUTPUT == *gomobile* ]]; then
     echo "Running gomobile init cause: $OUTPUT"
     gomobileinit
-    "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
+    gomobile bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
   else
     echo $OUTPUT
   fi

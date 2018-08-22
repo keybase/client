@@ -6,9 +6,11 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as ChatTypes from '../constants/types/chat2'
 import * as Types from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of teams but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'teams:'
 export const addParticipant = 'teams:addParticipant'
 export const addPeopleToTeam = 'teams:addPeopleToTeam'
 export const addTeamWithChosenChannels = 'teams:addTeamWithChosenChannels'
@@ -187,7 +189,7 @@ type _SaveChannelMembershipPayload = $ReadOnly<{|
 |}>
 type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|
   teamname: string,
-  policy: Types.RetentionPolicy,
+  policy: RetentionPolicy,
 |}>
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
@@ -259,7 +261,7 @@ type _SetTeamPublicitySettingsPayload = $ReadOnly<{|
 |}>
 type _SetTeamRetentionPolicyPayload = $ReadOnly<{|
   teamname: string,
-  retentionPolicy: Types.RetentionPolicy,
+  retentionPolicy: RetentionPolicy,
 |}>
 type _SetTeamSawChatBannerPayload = void
 type _SetTeamSawSubteamsBannerPayload = void

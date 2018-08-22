@@ -14,7 +14,6 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
 
-import type {Action} from '../constants/types/flux'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
@@ -86,7 +85,7 @@ class Engine {
       response: ?Object,
       dispatch: Dispatch,
       getState: () => TypedState
-    ) => ?Array<Action>,
+    ) => ?Array<Object>,
   } = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
   _onDisconnectHandlers: ?{[key: string]: () => void} = {}
@@ -272,6 +271,7 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
+        // TODO remove dispatch and getState, these callbacks should just dispatch actions
         const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
         const actions = (rawActions || []).reduce((arr, a) => {
           if (a) {
@@ -414,7 +414,7 @@ class Engine {
       response: ?Object,
       dispatch: Dispatch,
       getState: () => TypedState
-    ) => ?Array<Action>
+    ) => ?Array<Object>
   ) {
     if (this._incomingActionCreators[method]) {
       rpcLog({
@@ -508,7 +508,7 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
+    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?any
   ) {}
   createSession(
     incomingCallMap: ?IncomingCallMapType,
