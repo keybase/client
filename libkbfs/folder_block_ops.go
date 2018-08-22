@@ -676,7 +676,7 @@ func (fbo *folderBlockOps) getFileLocked(ctx context.Context,
 	// Callers should have already done this check, but it doesn't
 	// hurt to do it again.
 	if !file.isValid() {
-		return nil, InvalidPathError{file}
+		return nil, errors.WithStack(InvalidPathError{file})
 	}
 	fblock, _, err := fbo.getFileBlockLocked(
 		ctx, lState, kmd, file.tailPointer(), file, rtype)
@@ -849,7 +849,7 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 	// Callers should have already done this check, but it doesn't
 	// hurt to do it again.
 	if !dir.isValid() {
-		return nil, false, InvalidPathError{dir}
+		return nil, false, errors.WithStack(InvalidPathError{dir})
 	}
 
 	// Get the block for the last element in the path.
@@ -1430,7 +1430,7 @@ func (fbo *folderBlockOps) Lookup(
 
 	dirPath := fbo.nodeCache.PathFromNode(dir)
 	if !dirPath.isValid() {
-		return nil, DirEntry{}, InvalidPathError{dirPath}
+		return nil, DirEntry{}, errors.WithStack(InvalidPathError{dirPath})
 	}
 
 	childPath := dirPath.ChildPathNoPtr(name)
@@ -1811,7 +1811,7 @@ func (fbo *folderBlockOps) pathFromNodeForBlockWriteLocked(
 	fbo.blockLock.AssertLocked(lState)
 	p := fbo.nodeCache.PathFromNode(n)
 	if !p.isValid() {
-		return path{}, InvalidPathError{p}
+		return path{}, errors.WithStack(InvalidPathError{p})
 	}
 	return p, nil
 }

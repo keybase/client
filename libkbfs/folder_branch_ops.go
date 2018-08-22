@@ -1879,7 +1879,7 @@ type makeNewBlock func() Block
 func (fbo *folderBranchOps) pathFromNodeHelper(n Node) (path, error) {
 	p := fbo.nodeCache.PathFromNode(n)
 	if !p.isValid() {
-		return path{}, InvalidPathError{p}
+		return path{}, errors.WithStack(InvalidPathError{p})
 	}
 	return p, nil
 }
@@ -2973,17 +2973,13 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	// We're not going to modify this copy of the dirblock, so just
-	// fetch it for reading.
-	dblock, err := fbo.blocks.GetDirtyDir(
-		ctx, lState, md.ReadOnly(), dirPath, blockRead)
-	if err != nil {
-		return nil, DirEntry{}, err
-	}
-
 	// does name already exist?
-	if _, ok := dblock.Children[name]; ok {
+	_, err = fbo.blocks.GetEntry(
+		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(name))
+	if err == nil {
 		return nil, DirEntry{}, NameExistsError{name}
+	} else if _, notExists := errors.Cause(err).(NoSuchNameError); !notExists {
+		return nil, DirEntry{}, err
 	}
 
 	if err := fbo.checkNewDirSize(
@@ -3419,19 +3415,15 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 
-	// We're not going to modify this copy of the dirblock, so just
-	// fetch it for reading.
-	dblock, err := fbo.blocks.GetDirtyDir(
-		ctx, lState, md.ReadOnly(), dirPath, blockRead)
-	if err != nil {
-		return DirEntry{}, err
-	}
-
 	// TODO: validate inputs
 
 	// does name already exist?
-	if _, ok := dblock.Children[fromName]; ok {
+	_, err = fbo.blocks.GetEntry(
+		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(fromName))
+	if err == nil {
 		return DirEntry{}, NameExistsError{fromName}
+	} else if _, notExists := errors.Cause(err).(NoSuchNameError); !notExists {
+		return DirEntry{}, err
 	}
 
 	if err := fbo.checkNewDirSize(ctx, lState, md.ReadOnly(),
@@ -3571,17 +3563,13 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 		return err
 	}
 
-	// We're not going to modify this copy of the dirblock, so just
-	// fetch it for reading.
-	pblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dirPath, blockRead)
-	if err != nil {
-		return err
-	}
-
 	// make sure the entry exists
-	de, ok := pblock.Children[name]
-	if !ok {
+	de, err := fbo.blocks.GetEntry(
+		ctx, lState, md, dirPath.ChildPathNoPtr(name))
+	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
 		return NoSuchNameError{name}
+	} else if err != nil {
+		return err
 	}
 
 	parentPtr := dirPath.tailPointer()
@@ -3638,25 +3626,30 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 		return err
 	}
 
-	pblock, err := fbo.blocks.GetDirtyDir(
-		ctx, lState, md.ReadOnly(), dirPath, blockRead)
-	de, ok := pblock.Children[dirName]
-	if !ok {
+	de, err := fbo.blocks.GetEntry(
+		ctx, lState, md.ReadOnly(), dirPath.ChildPathNoPtr(dirName))
+	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
 		return NoSuchNameError{dirName}
+	} else if err != nil {
+		return err
 	}
 
 	// construct a path for the child so we can check for an empty dir
 	childPath := dirPath.ChildPath(dirName, de.BlockPointer)
 
-	childBlock, err := fbo.blocks.GetDirtyDir(
-		ctx, lState, md.ReadOnly(), childPath, blockRead)
+	// Note this fetches all the blocks associated with this
+	// directory, even though technically we just need to find one
+	// entry and it might be wasteful to fetch all the blocks.
+	// However, since removals don't reduce levels of indirection at
+	// the moment, we're forced to do this for now.
+	entries, err := fbo.blocks.GetEntries(ctx, lState, md.ReadOnly(), childPath)
 	if isRecoverableBlockErrorForRemoval(err) {
 		msg := fmt.Sprintf("Recoverable block error encountered for removeDirLocked(%v); continuing", childPath)
 		fbo.log.CWarningf(ctx, "%s", msg)
 		fbo.log.CDebugf(ctx, "%s (err=%v)", msg, err)
 	} else if err != nil {
 		return err
-	} else if len(childBlock.Children) > 0 {
+	} else if len(entries) > 0 {
 		return DirNotEmptyError{dirName}
 	}
 
@@ -3774,13 +3767,13 @@ func (fbo *folderBranchOps) renameLocked(
 
 		if replacedDe.Type == Dir {
 			// The directory must be empty.
-			oldTargetDir, err := fbo.blocks.GetDirBlockForReading(ctx, lState,
-				md.ReadOnly(), replacedDe.BlockPointer, newParentPath.Branch,
-				newParentPath.ChildPathNoPtr(newName))
+			entries, err := fbo.blocks.GetEntries(
+				ctx, lState, md.ReadOnly(),
+				newParentPath.ChildPath(newName, replacedDe.BlockPointer))
 			if err != nil {
 				return err
 			}
-			if len(oldTargetDir.Children) != 0 {
+			if len(entries) != 0 {
 				fbo.log.CWarningf(ctx, "Renaming over a non-empty directory "+
 					" (%s/%s) not allowed.", newParentPath, newName)
 				return DirNotEmptyError{newName}
@@ -4442,7 +4435,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 					})
 			}
 
-			if len(dblock.Children) > 0 {
+			if len(dblock.Children) > 0 || len(dblock.IPtrs) > 0 {
 				continue
 			}
 
@@ -4867,17 +4860,14 @@ func (fbo *folderBranchOps) getUnlinkPathBeforeUpdatingPointers(
 	// If the original (clean) parent block is already GC'd from the
 	// server, this might not work, but hopefully we'd be
 	// fast-forwarding in that case anyway.
-	dblock, err := fbo.blocks.GetDir(ctx, lState, md, p, blockRead)
+	childPath := p.ChildPathNoPtr(childName)
+	de, err := fbo.blocks.GetEntry(ctx, lState, md, childPath)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Couldn't get the dir entry for %s in %v: %+v",
 			childName, p.tailPointer(), err)
 		return path{}, DirEntry{}, false, nil
 	}
-	de, ok := dblock.Children[childName]
-	if !ok {
-		return path{}, DirEntry{}, false, nil
-	}
-	childPath := p.ChildPath(childName, de.BlockPointer)
+	childPath = p.ChildPath(childName, de.BlockPointer)
 	return childPath, de, true, nil
 }
 
