@@ -9,8 +9,12 @@ import "github.com/keybase/client/go/kbhttp"
 
 type HTTPSrvListenerSource = kbhttp.ListenerSource
 
-type HTTPSrv = kbhttp.HTTPSrv
+type HTTPSrv = kbhttp.Srv
 
-func NewHTTPSrv(g *GlobalContext, listenerSource HTTPSrvListenerSource) *kbhttp.HTTPSrv {
-	return kbhttp.NewHTTPSrv(g.GetLog(), listenerSource)
+func NewHTTPSrv(g *GlobalContext, listenerSource HTTPSrvListenerSource) *kbhttp.Srv {
+	return kbhttp.NewSrv(g.GetLog(), listenerSource)
+}
+
+func NewPortRangeListenerSource(low, high int) *kbhttp.PortRangeListenerSource {
+	return kbhttp.NewPortRangeListenerSource(low, high)
 }

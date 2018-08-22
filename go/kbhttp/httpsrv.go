@@ -87,10 +87,10 @@ func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address 
 	return listener, address, errors.New(errMsg)
 }
 
-var errHTTPServerAlreadyRunning = errors.New("http server already running")
+var errAlreadyRunning = errors.New("http server already running")
 
-// HTTPSrv starts a simple HTTP server with a parameter for a module to provide a listener source
-type HTTPSrv struct {
+// Srv starts a simple HTTP server with a parameter for a module to provide a listener source
+type Srv struct {
 	sync.Mutex
 	*http.ServeMux
 	log logger.Logger
@@ -100,28 +100,28 @@ type HTTPSrv struct {
 	active         bool
 }
 
-// NewHTTPSrv creates a new HTTP server with the given listener
+// NewSrv creates a new HTTP server with the given listener
 // source.
-func NewHTTPSrv(log logger.Logger, listenerSource ListenerSource) *HTTPSrv {
-	return &HTTPSrv{
+func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
+	return &Srv{
 		log:            log,
 		listenerSource: listenerSource,
 	}
 }
 
 // Start starts listening on the server's listener source.
-func (h *HTTPSrv) Start() (err error) {
+func (h *Srv) Start() (err error) {
 	h.Lock()
 	defer h.Unlock()
 	if h.active {
-		h.log.Debug("HTTPSrv: already running, not starting again")
+		h.log.Debug("kbhttp.Srv: already running, not starting again")
 		// Just bail out of this if we are already running
-		return errHTTPServerAlreadyRunning
+		return errAlreadyRunning
 	}
 	h.ServeMux = http.NewServeMux()
 	listener, address, err := h.listenerSource.GetListener()
 	if err != nil {
-		h.log.Debug("HTTPSrv: failed to get a listener: %s", err)
+		h.log.Debug("kbhttp.Srv: failed to get a listener: %s", err)
 		return err
 	}
 	h.server = &http.Server{
@@ -132,9 +132,9 @@ func (h *HTTPSrv) Start() (err error) {
 		h.Lock()
 		h.active = true
 		h.Unlock()
-		h.log.Debug("HTTPSrv: server starting on: %s", address)
+		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
 		if err := h.server.Serve(listener); err != nil {
-			h.log.Debug("HTTPSrv: server died: %s", err)
+			h.log.Debug("kbhttp.Srv: server died: %s", err)
 		}
 		h.Lock()
 		h.active = false
@@ -144,14 +144,14 @@ func (h *HTTPSrv) Start() (err error) {
 }
 
 // Active returns true if the server is active.
-func (h *HTTPSrv) Active() bool {
+func (h *Srv) Active() bool {
 	h.Lock()
 	defer h.Unlock()
 	return h.active
 }
 
 // Addr returns the server's address, if it's running.
-func (h *HTTPSrv) Addr() (string, error) {
+func (h *Srv) Addr() (string, error) {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
@@ -161,7 +161,7 @@ func (h *HTTPSrv) Addr() (string, error) {
 }
 
 // Stop stops listening on the server's listener source.
-func (h *HTTPSrv) Stop() {
+func (h *Srv) Stop() {
 	h.Lock()
 	defer h.Unlock()
 	if h.server != nil {
