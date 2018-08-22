@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 )
 
@@ -520,26 +521,40 @@ func (cr *ConflictResolver) createdFileWithNonzeroSizes(
 	unmergedChain *crChain, mergedChain *crChain,
 	unmergedCop, mergedCop *createOp) (bool, error) {
 	lState := makeFBOLockState()
+	// The pointers on the ops' final paths aren't necessarily filled
+	// in, so construct our own partial paths using the chain
+	// pointers, which are enough to satisfy `GetEntry`.
+	mergedPath := path{
+		FolderBranch: mergedCop.getFinalPath().FolderBranch,
+		path: []pathNode{
+			{mergedChain.mostRecent, ""},
+			{zeroPtr, mergedCop.NewName},
+		},
+	}
 	kmd := mergedChains.mostRecentChainMDInfo
-	mergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
-		ctx, lState, kmd, mergedChain.mostRecent,
-		mergedCop.getFinalPath().Branch, path{})
-	if err != nil {
+	mergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, mergedPath)
+	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
+
 	kmd = unmergedChains.mostRecentChainMDInfo
-	unmergedDirBlock, err := cr.fbo.blocks.GetDirBlockForReading(
-		ctx, lState, kmd, unmergedChain.mostRecent,
-		unmergedCop.getFinalPath().Branch, path{})
-	if err != nil {
+	unmergedPath := path{
+		FolderBranch: mergedCop.getFinalPath().FolderBranch,
+		path: []pathNode{
+			{unmergedChain.mostRecent, ""},
+			{zeroPtr, mergedCop.NewName},
+		},
+	}
+	unmergedEntry, err := cr.fbo.blocks.GetEntry(ctx, lState, kmd, unmergedPath)
+	if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
-	mergedEntry, mergedOk :=
-		mergedDirBlock.Children[mergedCop.NewName]
-	unmergedEntry, unmergedOk :=
-		unmergedDirBlock.Children[mergedCop.NewName]
-	if mergedOk && unmergedOk &&
-		mergedEntry.Size > 0 && unmergedEntry.Size > 0 {
+
+	if mergedEntry.Size > 0 && unmergedEntry.Size > 0 {
 		cr.log.CDebugf(ctx,
 			"Not merging files named %s with non-zero sizes "+
 				"(merged=%d unmerged=%d)",
