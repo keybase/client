@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type WalletEntryProps = {
+type AccountEntryProps = {
   name: string,
   keybaseUser: string,
   contents: string,
@@ -12,9 +12,9 @@ type WalletEntryProps = {
   showWalletIcon: boolean,
 }
 
-// TODO WalletEntry is mostly copied from WalletRow, with some row specific
-// properties removed. WalletRow could probably be a wrapper around WalletEntry.
-const WalletEntry = (props: WalletEntryProps) => {
+// TODO AccountEntry is mostly copied from WalletRow, with some row specific
+// properties removed. WalletRow could probably be a wrapper around AccountEntry.
+const AccountEntry = (props: AccountEntryProps) => {
   return (
     <Kb.Box2
       style={Styles.collapseStyles([styles.containerBox, props.style])}
@@ -54,7 +54,7 @@ const WalletEntry = (props: WalletEntryProps) => {
   )
 }
 
-WalletEntry.defaultProps = {
+AccountEntry.defaultProps = {
   showWalletIcon: true,
 }
 
@@ -88,4 +88,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default WalletEntry
+export default AccountEntry

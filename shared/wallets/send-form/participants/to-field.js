@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Row from '../../common/participants-row'
+import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import type {Account} from '.'
 import type {CounterpartyType} from '../../../constants/types/wallets'
@@ -145,8 +145,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     }
 
     return (
-      <Row
-        heading="To:"
+      <ParticipantsRow
+        heading="To"
         headingAlignment={this.props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
         headingStyle={
           this.props.recipientType === 'stellarPublicKey' && !this.props.username
@@ -157,7 +157,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         bottomDivider={!!this.props.incorrect && this.props.recipientType === 'stellarPublicKey'}
       >
         {component}
-      </Row>
+      </ParticipantsRow>
     )
   }
 }

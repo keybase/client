@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 // import * as Styles from '../../../styles'
-import WalletEntry from '../../common/wallet-entry'
+import {AccountEntry} from '../../common'
 import type {Account} from '.'
 
 type DropdownTextProps = {
@@ -33,7 +33,7 @@ type DropdownEntryProps = {
 }
 
 export const DropdownEntry = (props: DropdownEntryProps) => (
-  <WalletEntry
+  <AccountEntry
     keybaseUser={props.account.user}
     name={props.account.name}
     contents={props.account.contents}

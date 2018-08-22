@@ -4,15 +4,16 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  heading: string,
-  bottomDivider?: boolean,
+  heading: 'To' | 'From',
   headingAlignment: 'Left' | 'Right',
+  bottomDivider?: boolean,
   dividerColor?: string,
   headingStyle?: Styles.StylesCrossPlatform,
   children?: React.Node,
 |}
 
-const Row = (props: Props) => (
+/** A row for use in Participants components; provides a blue heading to the left of the content. */
+const ParticipantsRow = (props: Props) => (
   <React.Fragment>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text
@@ -23,7 +24,7 @@ const Row = (props: Props) => (
           props.headingStyle,
         ])}
       >
-        {props.heading}
+        {props.heading}:
       </Kb.Text>
       {props.children}
     </Kb.Box2>
@@ -33,7 +34,7 @@ const Row = (props: Props) => (
   </React.Fragment>
 )
 
-Row.defaultProps = {
+ParticipantsRow.defaultProps = {
   headingAlignment: 'Left',
   bottomDivider: true,
 }
@@ -52,4 +53,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Row
+export default ParticipantsRow

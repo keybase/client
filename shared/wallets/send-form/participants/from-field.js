@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import Row from '../../common/participants-row'
+import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry} from './dropdown'
 import type {Account} from '.'
 
@@ -32,13 +32,13 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     const items = this.props.accounts.map((account, index) => <DropdownEntry key={index} account={account} />)
 
     return (
-      <Row heading="From:" headingAlignment="Right">
+      <ParticipantsRow heading="From" headingAlignment="Right">
         <Kb.Dropdown
           onChanged={this.onDropdownChange}
           items={items}
           selected={<SelectedEntry account={this.state.selectedAccount} />}
         />
-      </Row>
+      </ParticipantsRow>
     )
   }
 }

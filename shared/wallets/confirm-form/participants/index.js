@@ -2,8 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Row from '../../common/participants-row'
-import WalletEntry from '../../common/wallet-entry'
+import {ParticipantsRow, AccountEntry} from '../../common'
 import type {CounterpartyType} from '../../../constants/types/wallets'
 
 export type Account = {|
@@ -77,7 +76,7 @@ const Participants = (props: ParticipantsProps) => {
         )
       }
       toFieldContent = (
-        <WalletEntry
+        <AccountEntry
           keybaseUser={props.yourUsername}
           name={props.recipientAccountName}
           contents={props.recipientAccountContents}
@@ -88,16 +87,16 @@ const Participants = (props: ParticipantsProps) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      <Row heading="From:">
-        <WalletEntry
+      <ParticipantsRow heading="From">
+        <AccountEntry
           keybaseUser={props.yourUsername}
           name={props.fromAccountName}
           contents={props.fromAccountContents}
         />
-      </Row>
-      <Row heading="To:" bottomDivider={false}>
+      </ParticipantsRow>
+      <ParticipantsRow heading="To" bottomDivider={false}>
         {toFieldContent}
-      </Row>
+      </ParticipantsRow>
     </Kb.Box2>
   )
 }
