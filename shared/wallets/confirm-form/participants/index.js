@@ -2,8 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Row from '../../participants-row'
-import WalletEntry from '../../wallet-entry'
+import Row from '../../common/participants-row'
+import WalletEntry from '../../common/wallet-entry'
 import type {CounterpartyType} from '../../../constants/types/wallets'
 
 export type Account = {|

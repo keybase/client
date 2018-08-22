@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-import Row from '../../participants-row'
+import Row from '../../common/participants-row'
 import {SelectedEntry, DropdownEntry} from './dropdown'
 import type {Account} from '.'
 

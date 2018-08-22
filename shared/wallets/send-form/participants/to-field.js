@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import Row from '../../participants-row'
+import Row from '../../common/participants-row'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import type {Account} from '.'
 import type {CounterpartyType} from '../../../constants/types/wallets'
