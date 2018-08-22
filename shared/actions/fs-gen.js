@@ -159,7 +159,7 @@ type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
-  routePath?: I.List<string>,
+  routePath: I.List<string>,
 |}>
 type _OpenSecurityPreferencesPayload = void
 type _PickAndUploadPayload = $ReadOnly<{|

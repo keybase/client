@@ -150,7 +150,7 @@
 
     "openPathItem": {
       "path": "Types.Path",
-      "routePath?": "I.List<string>"
+      "routePath": "I.List<string>"
     },
     "openFilesFromWidget": {
       "path?": "Types.Path"
