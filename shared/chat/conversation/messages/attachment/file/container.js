@@ -40,7 +40,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : ''
-  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
     hasProgress,

@@ -182,7 +182,7 @@ func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string
 	}
 	return &types.NameInfoUntrusted{
 		ID:            chat1.TLFID(kid.ToBytes()),
-		CanonicalName: name,
+		CanonicalName: teamName.String(),
 	}, nil
 }
 

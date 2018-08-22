@@ -43,7 +43,7 @@ export type OwnProps = {|
   showFollowingStatus?: boolean, // show the green dots or not
 |}
 
-type PropsWithoutTimer = {
+type PropsWithoutTimer = {|
   askForUserData?: () => void,
   borderColor?: ?string,
   children?: React.Node,
@@ -66,7 +66,7 @@ type PropsWithoutTimer = {
   teamname?: ?string,
   url: URLType,
   username?: ?string,
-}
+|}
 
 type Props = PropsWithTimer<PropsWithoutTimer>
 

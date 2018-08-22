@@ -117,7 +117,6 @@ const renderSectionHeader = ({
       conversationIDKey={section.conversationIDKey}
       ordinal={section.ordinal}
       emoji={section.title}
-      tooltipEnabled={false}
     />
     <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}

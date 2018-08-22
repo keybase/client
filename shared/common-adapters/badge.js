@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '.'
+import Box from './box'
+import Text from './text'
 import * as Styles from '../styles'
 export type Badge2Props = {|
   badgeNumber: number,

@@ -8,7 +8,8 @@ import * as Types from '../constants/types/login'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of login but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'login:'
 export const launchAccountResetWebPage = 'login:launchAccountResetWebPage'
 export const launchForgotPasswordWebPage = 'login:launchForgotPasswordWebPage'
 export const login = 'login:login'

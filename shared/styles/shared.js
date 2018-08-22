@@ -55,8 +55,8 @@ export const platformStyles = (options: {|
   isElectron?: _StylesDesktop,
 |}) => ({
   ...(options.common ? unifyStyles(options.common) : {}),
+  ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isIOS && options.isIOS ? options.isIOS : {}),
   ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
-  ...(isMobile && options.isMobile ? options.isMobile : {}),
   ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
 })

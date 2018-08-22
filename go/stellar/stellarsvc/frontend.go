@@ -1130,7 +1130,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
 			return res
 		}
-		res.worthDescription = fmt.Sprintf("This is *%s*", xlmAmountFormatted)
+		res.worthDescription = xlmAmountFormatted
 		if convertAmountOutside != "0" {
 			// haveAmount gates whether the send button is enabled.
 			// Only enable after `worthDescription` is set.
@@ -1184,7 +1184,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 			log("error formatting converted outside amount: %v", err)
 			return res
 		}
-		res.worthDescription = fmt.Sprintf("This is *%s*", outsideAmountFormatted)
+		res.worthDescription = outsideAmountFormatted
 		res.worthInfo, err = s.buildPaymentWorthInfo(ctx, xrate)
 		if err != nil {
 			log("error making worth info: %v", err)
@@ -1323,7 +1323,7 @@ func (s *Server) CreateWalletAccountLocal(ctx context.Context, arg stellar1.Crea
 	return stellar.CreateNewAccount(s.mctx(ctx), arg.Name)
 }
 
-func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (res stellar1.RequestDetailsLocal, err error) {
+func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetRequestDetailsLocalArg) (res stellar1.RequestDetailsLocal, err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "GetRequestDetailsLocal",
 		Err:     &err,
@@ -1333,7 +1333,7 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 		return res, err
 	}
 
-	details, err := s.remoter.RequestDetails(ctx, reqID)
+	details, err := s.remoter.RequestDetails(ctx, arg.ReqID)
 	if err != nil {
 		return res, err
 	}
@@ -1412,7 +1412,29 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, reqID stellar1.Keyb
 	return res, nil
 }
 
-func (s *Server) CancelRequestLocal(ctx context.Context, reqID stellar1.KeybaseRequestID) (err error) {
+func (s *Server) MakeRequestLocal(ctx context.Context, arg stellar1.MakeRequestLocalArg) (res stellar1.KeybaseRequestID, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "MakeRequestLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	m := libkb.NewMetaContext(ctx, s.G())
+
+	return stellar.MakeRequestGUI(m, s.remoter, stellar.MakeRequestArg{
+		To:       stellarcommon.RecipientInput(arg.Recipient),
+		Amount:   arg.Amount,
+		Asset:    arg.Asset,
+		Currency: arg.Currency,
+		Note:     arg.Note,
+	})
+}
+
+func (s *Server) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequestLocalArg) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "CancelRequestLocal",
 		Err:     &err,
@@ -1422,7 +1444,7 @@ func (s *Server) CancelRequestLocal(ctx context.Context, reqID stellar1.KeybaseR
 		return err
 	}
 
-	return s.remoter.CancelRequest(ctx, reqID)
+	return s.remoter.CancelRequest(ctx, arg.ReqID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

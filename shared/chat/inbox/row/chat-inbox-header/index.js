@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Inbox from '../..'
+import type {RowItem} from '../../index.types'
 import ChatFilterRow from '../chat-filter-row/container'
 import StartNewChat from '../start-new-chat'
 
@@ -9,7 +9,7 @@ type Props = {
   focusFilter: () => void,
   onNewChat: () => void,
   neverLoaded: boolean,
-  rows: Array<Inbox.RowItem>,
+  rows: Array<RowItem>,
   showNewChat: boolean,
 }
 

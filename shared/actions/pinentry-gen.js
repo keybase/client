@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/pinentry'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of pinentry but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'pinentry:'
 export const deleteEntity = 'pinentry:deleteEntity'
 export const mergeEntity = 'pinentry:mergeEntity'
 export const newPinentry = 'pinentry:newPinentry'

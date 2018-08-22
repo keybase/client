@@ -9,18 +9,18 @@ import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
 import {teamsTab} from '../../../constants/tabs'
-import {connect, type TypedState, isMobile} from '../../../util/container'
+import {connect, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {collapseStyles} from '../../../styles'
 
-type OwnProps = {
+type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
-}
+|}
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.conversationIDKey
   const meta = Constants.getMeta(state, conversationIDKey)
 
@@ -55,7 +55,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
   onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
@@ -83,8 +83,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => 
       ])
     )
   },
-  _onLeaveTeam: (teamname: TeamTypes.Teamname) =>
-    dispatch(Route.navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}])),
   _onViewTeam: (teamname: TeamTypes.Teamname) =>
     dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   _onEditChannel: (teamname: string) =>
@@ -93,14 +91,15 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, onBack}) => 
 })
 
 // state props
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  participants: stateProps._participants
-    .map(p => ({
-      fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
-      username: p,
-    }))
-    .toArray(),
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  admin: stateProps.admin,
+  canDeleteHistory: stateProps.canDeleteHistory,
+  canEditChannel: stateProps.canEditChannel,
+  canSetMinWriterRole: stateProps.canSetMinWriterRole,
+  canSetRetention: stateProps.canSetRetention,
+  channelname: stateProps.channelname,
+  description: stateProps.description,
+  isPreview: stateProps.isPreview,
   onBack: ownProps.onBack,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
@@ -109,37 +108,47 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onShowClearConversationDialog: () => dispatchProps._onShowClearConversationDialog(),
   onShowNewTeamDialog: dispatchProps.onShowNewTeamDialog,
   onShowProfile: dispatchProps.onShowProfile,
-  onLeaveTeam: () => dispatchProps._onLeaveTeam(stateProps.teamname),
   onViewTeam: () => dispatchProps._onViewTeam(stateProps.teamname),
+  participants: stateProps._participants
+    .map(p => ({
+      fullname: stateProps._infoMap.getIn([p, 'fullname'], ''),
+      username: p,
+    }))
+    .toArray(),
+  selectedConversationIDKey: stateProps.selectedConversationIDKey,
+  smallTeam: stateProps.smallTeam,
+  teamname: stateProps.teamname,
 })
 
 const ConnectedInfoPanel = connect(mapStateToProps, mapDispatchToProps, mergeProps)(InfoPanel)
 
-type SelectorOwnProps = {
+type SelectorOwnProps = {|
   routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
   navigateUp: typeof Route.navigateUp,
-}
+|}
 
-const mapStateToSelectorProps = (state: TypedState, ownProps: SelectorOwnProps) => {
-  const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
+const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
+  const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')
   return {
     conversationIDKey,
   }
 }
 
-type SelectorDispatchProps = {
-  onBack: () => void,
-}
-
-const mapDispatchToSelectorProps = (dispatch: Dispatch, {navigateUp}): SelectorDispatchProps => ({
+const mapDispatchToSelectorProps = (dispatch, {navigateUp}: SelectorOwnProps) => ({
   // Used by HeaderHoc.
   onBack: () => navigateUp && dispatch(navigateUp()),
 })
 
-type Props = {
+const mergeSelectorProps = (stateProps, dispatchProps) => ({
+  conversationIDKey: stateProps.conversationIDKey,
+  onBack: dispatchProps.onBack,
+})
+
+type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   onBack: () => void,
-}
+|}
+
 class InfoPanelSelector extends React.PureComponent<Props> {
   render() {
     if (!this.props.conversationIDKey) {
@@ -175,4 +184,6 @@ const panelContainerStyle = {
   width: 320,
 }
 
-export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps)(InfoPanelSelector)
+export default connect(mapStateToSelectorProps, mapDispatchToSelectorProps, mergeSelectorProps)(
+  InfoPanelSelector
+)

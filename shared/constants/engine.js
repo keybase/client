@@ -1,11 +1,10 @@
-// @flow
+// @noflow
 // TODO Deprecated. Instead use engine/saga helper
 // Handles sending requests to the daemon
 import logger from '../logger'
 import * as Saga from '../util/saga'
-import {getEngine, EngineChannel} from '../engine'
 import {mapValues, forEach} from 'lodash-es'
-import * as FluxTypes from './types/flux'
+import {getEngine} from '../engine/require'
 
 export type Buffer<T> = {
   isEmpty: () => boolean,
@@ -32,9 +31,58 @@ export type SagaMap = {
   [key: string]: Generator<*, *, *>,
 }
 
-type RpcRunResult =
-  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:finished', {error: ?any, params: ?any}>
-  | FluxTypes.NoErrorTypedAction<'@@engineRPCCall:bailedEarly', void>
+export class EngineChannel {
+  _map: ChannelMap<any>
+  _sessionID: SessionID
+  _configKeys: Array<string>
+
+  constructor(map: ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
+    this._map = map
+    this._sessionID = sessionID
+    this._configKeys = configKeys
+  }
+
+  getMap(): ChannelMap<any> {
+    return this._map
+  }
+
+  close() {
+    closeChannelMap(this._map)
+    getEngine().cancelSession(this._sessionID)
+  }
+
+  *take(key: string): Generator<any, any, any> {
+    return yield takeFromChannelMap(this._map, key)
+  }
+
+  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
+    const timeout = options && options.timeout
+    const otherRacers = (options && options.racers) || {}
+    const initMap = {
+      ...(timeout
+        ? {
+            timeout: Saga.call(Saga.delay, timeout),
+          }
+        : {}),
+      ...otherRacers,
+    }
+
+    const raceMap = this._configKeys.reduce((map, key) => {
+      map[key] = takeFromChannelMap(this._map, key)
+      return map
+    }, initMap)
+
+    const result = yield Saga.race(raceMap)
+
+    if (result.timeout) {
+      this.close()
+    }
+
+    return result
+  }
+}
+
+type RpcRunResult = any
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}

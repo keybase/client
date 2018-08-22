@@ -6,7 +6,8 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of users but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of users but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'users:'
 export const updateBrokenState = 'users:updateBrokenState'
 export const updateFullnames = 'users:updateFullnames'
 
