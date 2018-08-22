@@ -10,7 +10,7 @@ import {isSpecialMention} from '../constants/chat2'
 const mapStateToProps = (
   state: TypedState,
   {username}: OwnProps
-): {theme: $PropertyType<OwnProps, 'theme'>} => {
+): {|theme: $PropertyType<OwnProps, 'theme'>|} => {
   if (isSpecialMention(username)) {
     return {theme: 'highlight'}
   }
@@ -36,4 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {username}: OwnProps) => ({
       },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Mention'))(Mention)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('Mention')
+)(Mention)

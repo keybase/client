@@ -40,7 +40,6 @@ export type Props = {
   role: Types.MaybeTeamRoleType,
   showingMenu: boolean,
   teamname: Types.Teamname,
-  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,

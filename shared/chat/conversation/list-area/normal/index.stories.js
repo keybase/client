@@ -36,6 +36,7 @@ const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
   conversationIDKey,
+  copyToClipboard: Sb.action('copyToClipboard'),
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,

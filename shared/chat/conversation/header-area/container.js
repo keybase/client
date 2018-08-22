@@ -7,13 +7,17 @@ import ConversationHeader from './normal/container'
 import Search from './search'
 import CreateTeamHeader from '../create-team-header/container'
 
-type Props = {
+type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   onToggleInfoPanel: () => void,
-  isSearching: boolean,
   infoPanelOpen: boolean,
+|}
+
+type Props = {|
+  ...OwnProps,
+  isSearching: boolean,
   showTeamOffer: boolean,
-}
+|}
 
 class HeaderArea extends React.PureComponent<Props> {
   render() {
@@ -32,7 +36,7 @@ class HeaderArea extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   const isSearching =
     state.chat2.pendingMode === 'searchingForUsers' &&
     conversationIDKey === Constants.pendingConversationIDKey
@@ -42,4 +46,5 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
     showTeamOffer: isSearching && meta.participants.size > 1,
   }
 }
-export default connect(mapStateToProps)(HeaderArea)
+
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(HeaderArea)

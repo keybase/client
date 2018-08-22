@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import {Component} from 'react'
 
 export type Options = 'import' | 'provideInfo'

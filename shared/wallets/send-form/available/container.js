@@ -8,4 +8,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Available'))(Available)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('Available')
+)(Available)

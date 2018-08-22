@@ -707,10 +707,14 @@ func TestRequestPayment(t *testing.T) {
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
 
-	err = tcs[0].Srv.CancelRequestLocal(context.Background(), reqID)
+	err = tcs[0].Srv.CancelRequestLocal(context.Background(), stellar1.CancelRequestLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), reqID)
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), stellar1.GetRequestDetailsLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
 }

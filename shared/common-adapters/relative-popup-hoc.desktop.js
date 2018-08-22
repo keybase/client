@@ -295,7 +295,7 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
   )
 
   const C: React.ComponentType<Props<any>> = connect(
-    undefined,
+    () => ({}),
     (dispatch: Dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())
@@ -304,7 +304,8 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
       },
       targetRect: routeProps.get('targetRect'),
       position: routeProps.get('position'),
-    })
+    }),
+    (s, d, o) => ({...o, ...s, ...d})
   )((props: Props<any> & {onClosePopup: () => void}) => {
     // $FlowIssue
     return <ModalPopupComponent {...(props: Props<any>)} onClosePopup={props.onClosePopup} />

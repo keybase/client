@@ -178,11 +178,11 @@ const setupEngineListeners = () => {
     ({notification}, _, __, getState) => [kbfsNotification(notification, NotifyPopup, getState)]
   )
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => [
+  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
     RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
       console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-    }),
-  ])
+    })
+  })
 
   getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
     response && response.result()
@@ -218,6 +218,10 @@ function* loadStartupDetails() {
   )
 }
 
+const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+  SafeElectron.getClipboard().writeText(action.payload.text)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -225,6 +229,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield Saga.fork(initializeAppSettingsState)
 
   if (isWindows) {

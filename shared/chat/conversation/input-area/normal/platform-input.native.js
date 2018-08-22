@@ -95,7 +95,9 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      this.props.onAttach([filename])
+      if (filename) {
+        this.props.onAttach([filename])
+      }
     }
 
     switch (location) {

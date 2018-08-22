@@ -108,8 +108,13 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// Zero out the TX so that we don't abort it in the defer() exit.
 	tx = nil
 
-	// Now we can store and encrypt the new deviceEK with the new globally set
-	// active device
+	// Now we can cleanup old deviceEKs and store the new deviceEK, encrypted
+	// by the new globally set active device.
+	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
+			m.CDebugf("unable to remove old ephemeral keys: %v", err)
+		}
+	}
 	if e.ekReboxer.storeEKs(m); err != nil {
 		m.CDebugf("unable to store ephemeral keys: %v", err)
 	}

@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 
@@ -45,6 +45,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   assetsMap: I.Map(),
   buildingPayment: makeBuildingPayment(),
   builtPayment: makeBuiltPayment(),
+  createNewAccountError: '',
   exportedSecretKey: new HiddenString(''),
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
@@ -180,8 +181,9 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
   return p.delta === 'increase' ? 'receiver' : 'sender'
 }
 
+const createNewAccountWaitingKey = 'wallets:createNewAccount'
+const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
-
 const sendPaymentWaitingKey = 'wallets:stellarSend'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
@@ -206,8 +208,6 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
 
-const linkExistingWaitingKey = 'wallets:linkExisting'
-
 const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => {
   const account = state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
   const {username} = state.config
@@ -220,6 +220,7 @@ export {
   accountResultToAccount,
   assetsResultToAssets,
   buildPaymentResultToBuiltPayment,
+  createNewAccountWaitingKey,
   getAccountIDs,
   getAccount,
   getAssets,

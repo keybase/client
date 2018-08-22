@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
@@ -115,6 +116,7 @@ export type _State = {
   accountNameValidationState: ValidationState,
   buildingPayment: BuildingPayment,
   builtPayment: BuiltPayment,
+  createNewAccountError: string,
   exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
   secretKey: HiddenString,

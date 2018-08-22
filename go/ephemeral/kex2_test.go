@@ -37,7 +37,6 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	// provisioner needs to be logged in
 	userX, err := kbtest.CreateAndSignupFakeUser("X", tcX.G)
 	require.NoError(t, err)
-	// provisioner needs to be logged in
 	err = userX.Login(tcX.G)
 	require.NoError(t, err)
 
