@@ -21,4 +21,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Revoke)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Revoke)

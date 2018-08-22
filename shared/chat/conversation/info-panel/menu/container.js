@@ -100,7 +100,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('TeamDropdownMenu'),
   lifecycle({
     componentDidMount() {
