@@ -283,30 +283,30 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 					"notification: %s", err)
 			}
 		case <-sendTicker.C:
-		inTicker:
-			for {
-				select {
-				case path, ok := <-r.notifyPathBuffer:
-					if !ok {
-						return
-					}
-					if err := r.config.KeybaseService().NotifyPathUpdated(
-						ctx, path); err != nil {
-						r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-							"notification for path: %s", err)
-					}
-				case status, ok := <-r.notifySyncBuffer:
-					if !ok {
-						return
-					}
-					if err := r.config.KeybaseService().NotifySyncStatus(ctx,
-						status); err != nil {
-						r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-							"sync status: %s", err)
-					}
-				default:
-					break inTicker
+			select {
+			case path, ok := <-r.notifyPathBuffer:
+				if !ok {
+					return
 				}
+				if err := r.config.KeybaseService().NotifyPathUpdated(
+					ctx, path); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"notification for path: %s", err)
+				}
+			default:
+			}
+
+			select {
+			case status, ok := <-r.notifySyncBuffer:
+				if !ok {
+					return
+				}
+				if err := r.config.KeybaseService().NotifySyncStatus(ctx,
+					status); err != nil {
+					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+						"sync status: %s", err)
+				}
+			default:
 			}
 		case <-ctx.Done():
 			return
