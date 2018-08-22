@@ -5408,6 +5408,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				unboxed = info.Message
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
+				require.Equal(t, body.Requestpayment(), unboxed.Valid().MessageBody.Requestpayment())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
