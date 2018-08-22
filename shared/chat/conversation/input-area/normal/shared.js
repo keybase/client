@@ -1,8 +1,53 @@
 // @flow
 import * as React from 'react'
-import {Meta} from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import * as I from 'immutable'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {formatDurationShort} from '../../../../util/timestamp'
+
+export const isTyping = (typing: I.Set<string>) => (
+  <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
+    {typing.size > 0 && (
+      <Kb.Box style={styles.typingIconContainer}>
+        <Kb.Icon type="icon-typing-24" style={Kb.iconCastPlatformStyles(styles.typingIcon)} />
+      </Kb.Box>
+    )}
+    {typingNames(typing)}
+  </Kb.Text>
+)
+
+export const typingNames = (typing: I.Set<string>) => {
+  const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
+  switch (typing.size) {
+    case 0:
+      return ''
+    case 1:
+      return [
+        <Kb.Text key={0} type={textType}>
+          {typing.first()}
+        </Kb.Text>,
+        ` is typing`,
+      ]
+    case 2:
+      return [
+        <Kb.Text key={0} type={textType}>
+          {typing.first()}
+        </Kb.Text>,
+        ` and `,
+        <Kb.Text key={1} type={textType}>
+          {typing.skip(1).first()}
+        </Kb.Text>,
+        ` are typing`,
+      ]
+    default:
+      return [
+        <Kb.Text key={0} type={textType}>
+          {typing.join(', ')}
+        </Kb.Text>,
+        ` are typing`,
+      ]
+  }
+}
 
 export const ExplodingMeta = ({
   explodingModeSeconds,
@@ -16,8 +61,10 @@ export const ExplodingMeta = ({
     return null
   }
   return (
-    <Meta
-      backgroundColor={explodingModeSeconds === 0 ? globalColors.blue : globalColors.black_75_on_white}
+    <Kb.Meta
+      backgroundColor={
+        explodingModeSeconds === 0 ? Styles.globalColors.blue : Styles.globalColors.black_75_on_white
+      }
       noUppercase={explodingModeSeconds !== 0}
       style={styles.newBadge}
       size="Small"
@@ -26,10 +73,18 @@ export const ExplodingMeta = ({
   )
 }
 
-const styles = styleSheetCreate({
-  newBadge: platformStyles({
+const styles = Styles.styleSheetCreate({
+  isTypingText: Styles.platformStyles({
+    isElectron: {
+      flexGrow: 1,
+      marginBottom: Styles.globalMargins.xtiny,
+      marginLeft: 56,
+      textAlign: 'left',
+    },
+  }),
+  newBadge: Styles.platformStyles({
     common: {
-      borderColor: globalColors.white,
+      borderColor: Styles.globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
       paddingBottom: 1,
@@ -43,9 +98,28 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       borderWidth: 2,
+      height: 18,
       marginLeft: -5,
       marginTop: -1,
-      height: 18,
+    },
+  }),
+  typingIcon: Styles.platformStyles({
+    common: {
+      position: 'absolute',
+      width: 24,
+    },
+    isElectron: {
+      bottom: 7,
+      left: 21,
+    },
+    isMobile: {
+      bottom: -1,
+    },
+  }),
+  typingIconContainer: Styles.platformStyles({
+    isMobile: {
+      alignItems: 'center',
+      width: 43,
     },
   }),
 })

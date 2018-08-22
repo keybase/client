@@ -20,6 +20,7 @@ import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
+import {isTyping} from './shared'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
 
@@ -347,47 +348,13 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           />
         </Kb.Box>
         <Kb.Box style={styles.footerContainer}>
-          <Kb.Text type="BodySmall" style={styles.isTyping}>
-            {isTyping(this.props.typing)}
-          </Kb.Text>
+          {isTyping(this.props.typing)}
           <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
             *bold*, _italics_, `code`, >quote
           </Kb.Text>
         </Kb.Box>
       </Kb.Box>
     )
-  }
-}
-
-const isTyping = typing => {
-  switch (typing.size) {
-    case 0:
-      return ''
-    case 1:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.first()}
-        </Kb.Text>,
-        ` is typing`,
-      ]
-    case 2:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.first()}
-        </Kb.Text>,
-        ` and `,
-        <Kb.Text key={1} type="BodySmallSemibold">
-          {typing.skip(1).first()}
-        </Kb.Text>,
-        ` are typing`,
-      ]
-    default:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.join(', ')}
-        </Kb.Text>,
-        ` are typing`,
-      ]
   }
 }
 
@@ -536,12 +503,6 @@ const styles = styleSheetCreate({
     borderWidth: 1,
     marginLeft: globalMargins.small,
     marginRight: globalMargins.small,
-  },
-  isTyping: {
-    flexGrow: 1,
-    marginBottom: globalMargins.xtiny,
-    marginLeft: 58,
-    textAlign: 'left',
   },
   mentionCatcher: {
     ...globalStyles.fillAbsolute,

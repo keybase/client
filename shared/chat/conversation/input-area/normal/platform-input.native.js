@@ -12,7 +12,14 @@ import {
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalMargins,
+  globalStyles,
+  globalColors,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -21,7 +28,7 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta} from './shared'
+import {ExplodingMeta, isTyping} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
@@ -172,6 +179,9 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             visible={this.props.showingMenu}
           />
         )}
+        <Box style={collapseStyles([styles.typing, {opacity: this.props.typing.size > 0 ? 1 : 0}])}>
+          {isTyping(this.props.typing)}
+        </Box>
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
@@ -212,7 +222,6 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
-        {this.props.typing.size > 0 && <Typing />}
       </Box>
     )
   }
@@ -233,12 +242,6 @@ const MentionHud = InputAccessory(props => (
 const ChannelMentionHud = InputAccessory(props => (
   <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
 ))
-
-const Typing = () => (
-  <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
-  </Box>
-)
 
 const Action = ({
   hasText,
@@ -368,13 +371,10 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   typing: {
-    bottom: 0,
-    left: 6,
-    position: 'absolute',
-  },
-  typingIcon: {
-    height: 15,
-    width: 15,
+    bottom: 2,
+    height: 16,
+    left: 3,
+    position: 'relative',
   },
 })
 
