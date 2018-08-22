@@ -111,6 +111,12 @@ func newTestRPCLogFactory(t testLogger) rpc.LogFactory {
 	return rpc.NewSimpleLogFactory(testLogOutput{t}, nil)
 }
 
+type testAppStateUpdater struct{}
+
+func (tasu testAppStateUpdater) NextAppStateUpdate(lastState *keybase1.AppState) chan keybase1.AppState {
+	return make(chan keybase1.AppState)
+}
+
 // MakeTestConfigOrBustLoggedInWithMode creates and returns a config
 // suitable for unit-testing with the given mode and list of
 // users. loggedInIndex specifies the index (in the list) of the user
@@ -123,7 +129,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 		return log
 	})
 
-	kbfsOps := NewKBFSOpsStandard(libkb.NewGlobalContext().Init(), config)
+	kbfsOps := NewKBFSOpsStandard(testAppStateUpdater{}, config)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 
@@ -231,7 +237,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
 
-	kbfsOps := NewKBFSOpsStandard(libkb.NewGlobalContext().Init(), c)
+	kbfsOps := NewKBFSOpsStandard(testAppStateUpdater{}, c)
 	c.SetKBFSOps(kbfsOps)
 	c.SetNotifier(kbfsOps)
 

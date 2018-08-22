@@ -140,6 +140,9 @@ func newSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) *SimpleFS {
 }
 
 // NewSimpleFS creates a new SimpleFS instance.
+//
+// TODO: Replace g with more specific arguments once HTTPSrv removes
+// its dependency on GlobalContext.
 func NewSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) keybase1.SimpleFSInterface {
 	return newSimpleFS(g, config)
 }

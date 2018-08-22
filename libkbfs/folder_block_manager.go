@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/kbfssync"
@@ -67,11 +67,11 @@ type blocksToDelete struct {
 // particular TLF.  It archives historical blocks and reclaims quota
 // usage, all in the background.
 type folderBlockManager struct {
-	g            *libkb.GlobalContext
-	config       Config
-	log          logger.Logger
-	shutdownChan chan struct{}
-	id           tlf.ID
+	appStateUpdater env.AppStateUpdater
+	config          Config
+	log             logger.Logger
+	shutdownChan    chan struct{}
+	id              tlf.ID
 
 	numPointersPerGCThreshold int
 
@@ -120,16 +120,16 @@ type folderBlockManager struct {
 }
 
 func newFolderBlockManager(
-	g *libkb.GlobalContext, config Config, fb FolderBranch, bType branchType,
-	helper fbmHelper) *folderBlockManager {
+	appStateUpdater env.AppStateUpdater, config Config, fb FolderBranch,
+	bType branchType, helper fbmHelper) *folderBlockManager {
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 	fbm := &folderBlockManager{
-		g:            g,
-		config:       config,
-		log:          log,
-		shutdownChan: make(chan struct{}),
-		id:           fb.Tlf,
+		appStateUpdater: appStateUpdater,
+		config:          config,
+		log:             log,
+		shutdownChan:    make(chan struct{}),
+		id:              fb.Tlf,
 		numPointersPerGCThreshold: numPointersPerGCThresholdDefault,
 		archiveChan:               make(chan ReadOnlyRootMetadata, 500),
 		archivePauseChan:          make(chan (<-chan struct{})),
@@ -1213,11 +1213,11 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		select {
 		case <-fbm.shutdownChan:
 			return
-		case state = <-fbm.g.AppState.NextUpdate(&state):
+		case state = <-fbm.appStateUpdater.NextAppStateUpdate(&state):
 			for state != keybase1.AppState_FOREGROUND {
 				fbm.log.CDebugf(context.Background(),
 					"Pausing QR while not foregrounded: state=%s", state)
-				state = <-fbm.g.AppState.NextUpdate(&state)
+				state = <-fbm.appStateUpdater.NextAppStateUpdate(&state)
 			}
 			fbm.log.CDebugf(
 				context.Background(), "Resuming QR while foregrounded")

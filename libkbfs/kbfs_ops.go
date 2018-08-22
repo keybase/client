@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsedits"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -26,13 +26,13 @@ import (
 // safe by forwarding requests to individual per-folder-branch
 // handlers that are go-routine-safe.
 type KBFSOpsStandard struct {
-	g        *libkb.GlobalContext
-	config   Config
-	log      logger.Logger
-	deferLog logger.Logger
-	ops      map[FolderBranch]*folderBranchOps
-	opsByFav map[Favorite]*folderBranchOps
-	opsLock  sync.RWMutex
+	appStateUpdater env.AppStateUpdater
+	config          Config
+	log             logger.Logger
+	deferLog        logger.Logger
+	ops             map[FolderBranch]*folderBranchOps
+	opsByFav        map[Favorite]*folderBranchOps
+	opsLock         sync.RWMutex
 	// reIdentifyControlChan controls reidentification.
 	// Sending a value to this channel forces all fbos
 	// to be marked for revalidation.
@@ -56,11 +56,10 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 const longOperationDebugDumpDuration = time.Minute
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
-func NewKBFSOpsStandard(
-	g *libkb.GlobalContext, config Config) *KBFSOpsStandard {
+func NewKBFSOpsStandard(appStateUpdater env.AppStateUpdater, config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
 	kops := &KBFSOpsStandard{
-		g:                     g,
+		appStateUpdater:       appStateUpdater,
 		config:                config,
 		log:                   log,
 		deferLog:              log.CloneWithAddedDepth(1),
@@ -336,7 +335,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(
 		if _, isRevBranch := fb.Branch.RevisionIfSpecified(); isRevBranch {
 			bType = archive
 		}
-		ops = newFolderBranchOps(ctx, fs.g, fs.config, fb, bType)
+		ops = newFolderBranchOps(ctx, fs.appStateUpdater, fs.config, fb, bType)
 		fs.ops[fb] = ops
 	}
 	return ops

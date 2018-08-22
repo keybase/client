@@ -644,7 +644,7 @@ func doInit(
 	k := NewKBPKIClient(config, kbfsLog)
 	config.SetKBPKI(k)
 
-	kbfsOps := NewKBFSOpsStandard(kbCtx.GetGlobalContext(), config)
+	kbfsOps := NewKBFSOpsStandard(kbCtx, config)
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))

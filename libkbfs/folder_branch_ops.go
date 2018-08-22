@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsedits"
@@ -370,7 +371,8 @@ var _ fbmHelper = (*folderBranchOps)(nil)
 
 // newFolderBranchOps constructs a new folderBranchOps object.
 func newFolderBranchOps(
-	ctx context.Context, g *libkb.GlobalContext, config Config, fb FolderBranch,
+	ctx context.Context, appStateUpdater env.AppStateUpdater,
+	config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
 	var nodeCache NodeCache
 	if config.Mode().NodeCacheEnabled() {
@@ -451,7 +453,7 @@ func newFolderBranchOps(
 		log:          log,
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
-	fbo.fbm = newFolderBlockManager(g, config, fb, bType, fbo)
+	fbo.fbm = newFolderBlockManager(appStateUpdater, config, fb, bType, fbo)
 	fbo.rekeyFSM = NewRekeyFSM(fbo)
 	if config.DoBackgroundFlushes() && bType == standard {
 		go fbo.backgroundFlusher()
