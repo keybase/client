@@ -4,7 +4,7 @@ import {connect, compose, withStateHandlers, type TypedState} from '../../util/c
 import * as Constants from '../../constants/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
-import CreateAccount from './index'
+import CreateAccount from '.'
 
 const mapStateToProps = (state: TypedState) => ({
   createNewAccountError: state.wallets.createNewAccountError,
@@ -18,7 +18,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {name, navigateUp}) => ({
   _onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
-  onBack: () => dispatch(navigateUp()),
   onCancel: () => dispatch(navigateUp()),
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
 })
