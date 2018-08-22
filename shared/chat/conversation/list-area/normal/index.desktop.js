@@ -13,7 +13,6 @@ import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
-import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
 import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
@@ -211,10 +210,10 @@ class Thread extends React.PureComponent<Props, State> {
     />
   )
 
-  _onCopyCapture(e) {
+  _onCopyCapture = e => {
     // Copy text only, not HTML/styling.
     e.preventDefault()
-    copyToClipboard(window.getSelection().toString())
+    this.props.copyToClipboard(window.getSelection().toString())
   }
 
   _handleListClick = (ev: SyntheticMouseEvent<Element>) => {

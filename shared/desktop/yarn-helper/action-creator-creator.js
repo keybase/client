@@ -35,7 +35,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 ${prelude.join('\n')}
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of ${ns} but is handled by every reducer. NEVER dispatch this
+export const typePrefix = '${ns}:'
 ${compileActions(ns, actions, compileReduxTypeConstant)}
 
 // Payload Types
@@ -75,10 +76,6 @@ function compileActions(ns: ActionNS, actions: Actions, compileActionFn: Compile
 
 function capitalize(s: string): string {
   return s[0].toUpperCase() + s.slice(1)
-}
-
-function actionReduxTypeName(ns: ActionNS, actionName: ActionName): string {
-  return `'${ns}:${actionName}'`
 }
 
 function payloadKeys(p: Object) {
@@ -139,14 +136,28 @@ function compileActionCreator(ns: ActionNS, actionName: ActionName, desc: Action
 }
 
 function compileReduxTypeConstant(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
-  return `export const ${actionName} = ${actionReduxTypeName(ns, actionName)}`
+  return `export const ${actionName} = '${ns}:${actionName}'`
+}
+
+const cleanName = c => c.replace(/-/g, '')
+function makeTypedActions(created) {
+  return `// @flow
+// NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+  ${created.map(c => `import type {Actions as ${cleanName(c)}Actions} from './${c}-gen'`).join('\n')}
+
+  export type TypedActions =
+    ${created.map(c => `| ${cleanName(c)}Actions`).join('')}
+`
 }
 
 function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
+  const created = []
   files.filter(file => path.extname(file) === '.json').forEach(file => {
     const ns = path.basename(file, '.json')
+    created.push(ns)
     console.log(`Generating ${ns}`)
     const desc = json5.parse(fs.readFileSync(path.join(root, file)))
     const outPath = path.join(root, '..', ns + '-gen.js')
@@ -155,6 +166,14 @@ function main() {
     console.log(generated)
     fs.writeFileSync(outPath, generated)
   })
+
+  console.log(`Generating typed-actions-gen`)
+  const outPath = path.join(root, '..', 'typed-actions-gen.js')
+  const typedActions = makeTypedActions(created)
+  // $FlowIssue
+  const generated = prettier.format(typedActions, prettier.resolveConfig.sync(outPath))
+  console.log(generated)
+  fs.writeFileSync(outPath, generated)
 }
 
 main()

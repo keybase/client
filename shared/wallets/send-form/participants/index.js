@@ -35,13 +35,13 @@ const Participants = (props: ParticipantsProps) => (
     {props.recipientType === 'otherAccount' && (
       <FromField
         initialAccount={props.fromAccount}
-        accounts={props.allAccounts ? props.allAccounts : []}
+        accounts={props.allAccounts}
         onChangeSelectedAccount={props.onChangeFromAccount}
       />
     )}
     <ToField
       recipientType={props.recipientType}
-      accounts={props.allAccounts ? props.allAccounts : []}
+      accounts={props.allAccounts}
       incorrect={props.incorrect}
       username={props.recipientUsername}
       fullName={props.recipientFullName}

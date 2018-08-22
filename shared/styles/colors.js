@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {isAndroid} from '../constants/platform'
 

@@ -13,7 +13,7 @@ export type Props = {
   issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
-  reserves: Types.Reserve[], // non-empty only if native currency
+  reserves: Array<Types.Reserve>, // non-empty only if native currency
 }
 
 type State = {
@@ -79,7 +79,7 @@ export default class extends React.Component<Props, State> {
 type BalanceSummaryProps = {
   availableToSend: string,
   equivAvailableToSend: string,
-  reserves: Types.Reserve[],
+  reserves: Array<Types.Reserve>,
   total: string,
 }
 

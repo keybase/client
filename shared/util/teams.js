@@ -1,6 +1,6 @@
 // @flow
 import {publicAdminsLimit} from '../constants/teams'
-import type {RetentionPolicy} from '../constants/types/teams'
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 
 type SortedAdmins = {
   publicAdmins: Array<string>,

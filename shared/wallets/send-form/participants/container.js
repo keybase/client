@@ -8,21 +8,19 @@ const mapStateToProps = (state: TypedState) => {
   const built = state.wallets.builtPayment
 
   // Building section
-  const recipientType = build.recipientType
-  const to = build.to
-  const recipientStellarAddress = recipientType === 'stellarPublicKey' && to
+  const recipientType = build.recipientType || 'keybaseUser'
+  // const to = build.to
+  // const recipientStellarAddress = recipientType === 'stellarPublicKey' ? to : ''
 
   // Built section
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
-  const worthDescription = built.worthDescription
 
   return {
     incorrect,
-    recipientStellarAddress,
+    // recipientStellarAddress,
     recipientType,
     recipientUsername,
-    worthDescription,
   }
 }
 
@@ -31,6 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('Participants'))(
-  Participants
-)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('Participants')
+)(Participants)

@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/fs'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of fs but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'fs:'
 export const cancelDownload = 'fs:cancelDownload'
 export const commitEdit = 'fs:commitEdit'
 export const discardEdit = 'fs:discardEdit'

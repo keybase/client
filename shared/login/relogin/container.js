@@ -4,7 +4,7 @@ import * as LoginGen from '../../actions/login-gen'
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as SignupGen from '../../actions/signup-gen'
 import HiddenString from '../../util/hidden-string'
-import Login, {type Props} from '.'
+import Login from '.'
 import {connect, type TypedState, type Dispatch} from '../../util/container'
 
 type OwnProps = {|
@@ -48,6 +48,17 @@ type State = {
   inputKey: number,
 }
 
+type Props = {
+  users: Array<string>,
+  onForgotPassphrase: () => void,
+  onSignup: () => void,
+  onSomeoneElse: () => void,
+  error: string,
+  selectedUser: string,
+  onFeedback: () => void,
+  onLogin: (user: string, passphrase: string) => void,
+}
+
 class LoginWrapper extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
@@ -72,14 +83,21 @@ class LoginWrapper extends React.Component<Props, State> {
   render() {
     return (
       <Login
-        {...this.props}
         error={this.props.error}
+        inputKey={String(this.state.inputKey)}
+        onFeedback={this.props.onFeedback}
+        onForgotPassphrase={this.props.onForgotPassphrase}
+        onLogin={this.props.onLogin}
+        onSignup={this.props.onSignup}
+        onSomeoneElse={this.props.onSomeoneElse}
+        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.passphrase)}
+        passphrase={this.state.passphrase}
+        passphraseChange={passphrase => this.setState({passphrase})}
         selectedUser={this.state.selectedUser}
         selectedUserChange={selectedUser => this.setState({selectedUser})}
         showTypingChange={showTyping => this.setState({showTyping})}
-        passphraseChange={passphrase => this.setState({passphrase})}
-        inputKey={String(this.state.inputKey)}
-        onSubmit={() => this.props.onLogin(this.state.selectedUser, this.state.passphrase)}
+        showTyping={this.state.showTyping}
+        users={this.props.users}
       />
     )
   }

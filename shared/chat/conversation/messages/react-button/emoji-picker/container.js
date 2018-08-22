@@ -20,6 +20,15 @@ type OwnProps = RouteProps<
   {}
 >
 
+type WrapperProps = {|
+  onAddReaction: (emoji: string) => void,
+  onCancel: () => void,
+|}
+type WrapperState = {|
+  filter: string,
+  width: number,
+|}
+
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
@@ -34,14 +43,10 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
   }
 }
 
-type WrapperProps = {
-  onAddReaction: (emoji: string) => void,
-  onCancel: () => void,
-}
-type WrapperState = {
-  filter: string,
-  width: number,
-}
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...dispatchProps,
+})
+
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {filter: '', width: 0}
 
@@ -97,4 +102,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Wrapper)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)

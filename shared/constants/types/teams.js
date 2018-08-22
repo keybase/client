@@ -1,7 +1,9 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
+import type {RetentionPolicy} from './retention-policy'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type MaybeTeamRoleType = 'none' | TeamRoleType
@@ -37,10 +39,6 @@ export type _TeamSettings = {...$Exact<RPCTypes.TeamSettings>}
 export type TeamSettings = I.RecordOf<_TeamSettings>
 
 export type ChannelMembershipState = {[ConversationIDKey]: boolean}
-
-// `days` should be left as 0 unless `type` is expire
-export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
-export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
 
 export type _ChannelInfo = {
   channelname: string,

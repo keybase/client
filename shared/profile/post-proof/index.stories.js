@@ -12,6 +12,7 @@ const props = {
   onCancelText: 'Cancel',
   onComplete: action('onComplete'),
   platformUserName: 'awendland',
+  copyToClipboard: action('copyToClipboard'),
 }
 
 const propsTwitter = {

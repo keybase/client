@@ -164,7 +164,7 @@ const Detail = (props: DetailProps) => {
 }
 
 type AmountXLMProps = {|
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -227,7 +227,7 @@ export type Props = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.

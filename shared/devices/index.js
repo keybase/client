@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
+import {compose} from '../util/container'
 
 type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
@@ -22,9 +23,11 @@ type Props = {|
   onBack: () => void,
   revokedItems: Array<Item>,
   waiting: boolean,
+  title: string,
+  ...$Exact<Kb.OverlayParentProps>,
 |}
 
-class Devices extends React.PureComponent<Props & Kb.OverlayParentProps, State> {
+class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
   state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
 
@@ -151,4 +154,4 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Devices))
+export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)

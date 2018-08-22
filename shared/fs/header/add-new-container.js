@@ -70,6 +70,7 @@ const mergeProps = ({_pathItem}, {_newFolderRow, _upload}, {path, style}) => {
 }
 
 export default compose(
+  // $FlowIssue @jzila
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('ConnectedAddNew')
 )(AddNew)

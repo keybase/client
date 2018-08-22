@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/wallets'
 import * as RPCTypes from './types/rpc-stellar-gen'
-import {invert} from 'lodash'
+import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
 

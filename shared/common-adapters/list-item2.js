@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
-import {Box2, Divider} from '.'
+import {Box2} from './box'
+import Divider from './divider'
 
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
@@ -64,7 +65,7 @@ const ListItem = (props: Props) => (
 
 const smallHeight = Styles.isMobile ? 48 : 40
 const largeHeight = Styles.isMobile ? 64 : 56
-const smallIconWidth = Styles.isMobile ? 56 : 48
+const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 
 const styles = Styles.styleSheetCreate({
