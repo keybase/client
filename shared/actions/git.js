@@ -233,7 +233,7 @@ const _onTabChange = (action: RouteTreeGen.SwitchToPayload) => {
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
     // clear badges
-    return Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+    return Saga.callAndWrap(RPCTypes.gregorDismissCategoryRpcPromise, {
       category: 'new_git_repo',
     })
   }

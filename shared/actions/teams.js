@@ -1290,10 +1290,10 @@ const _onTabChange = (action: RouteTreeGen.SwitchToPayload) => {
     _wasOnTeamsTab = false
     // clear badges
     return Saga.all([
-      Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      Saga.callAndWrap(RPCTypes.gregorDismissCategoryRpcPromise, {
         category: 'team.newly_added_to_team',
       }),
-      Saga.call(RPCTypes.gregorDismissCategoryRpcPromise, {
+      Saga.callAndWrap(RPCTypes.gregorDismissCategoryRpcPromise, {
         category: 'team.request_access',
       }),
     ])
