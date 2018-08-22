@@ -48,22 +48,48 @@ function actionToPromise<A>(
   pattern: RS.Pattern,
   f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
 ) {
-  return safeTakeEvery(pattern, function*(action: A) {
-    const state: TypedState = yield Effects.select()
-    const toPut = yield Effects.call(f, state, action)
-    if (toPut) {
-      yield Effects.put(toPut)
+  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): RS.Saga<void> {
+    try {
+      const state: TypedState = yield Effects.select()
+      const toPut = yield Effects.call(f, state, action)
+      if (toPut) {
+        yield Effects.put(toPut)
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToPromise cancelled')
+      }
     }
   })
 }
 
 // like safeTakeEveryPure but simpler, only 2 params and gives you a state first
 function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action: A) => E) {
-  return safeTakeEvery(pattern, function*(action: A) {
-    const state: TypedState = yield Effects.select()
-    const effect: E = f(state, action)
-    if (effect) {
-      yield effect
+  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): RS.Saga<void> {
+    try {
+      const state: TypedState = yield Effects.select()
+      const effect = yield Effects.call(f, state, action)
+      if (effect) {
+        yield effect
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToAction cancelled')
+      }
     }
   })
 }
