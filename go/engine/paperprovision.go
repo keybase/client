@@ -56,20 +56,11 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	e.G().Logout()
 
-	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
 	m = m.WithNewProvisionalLoginContext()
 
 	// From this point on, if there's an error, we abort the
 	// transaction.
 	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
 		if err == nil {
 			m = m.CommitProvisionalLogin()
 		}
@@ -128,15 +119,6 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	if err := e.deviceWrapEng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
-
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	e.sendNotification()
 	return nil
