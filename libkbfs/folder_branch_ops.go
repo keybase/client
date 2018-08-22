@@ -3756,7 +3756,7 @@ func (fbo *folderBranchOps) renameLocked(
 		return err
 	}
 
-	_, newPBlock, newDe, ro, err := fbo.blocks.PrepRename(
+	newDe, replacedDe, ro, err := fbo.blocks.PrepRename(
 		ctx, lState, md.ReadOnly(), oldParentPath, oldName, newParentPath,
 		newName)
 	if err != nil {
@@ -3764,8 +3764,7 @@ func (fbo *folderBranchOps) renameLocked(
 	}
 
 	// does name exist?
-	replacedDe, ok := newPBlock.Children[newName]
-	if ok {
+	if replacedDe.IsInitialized() {
 		// Usually higher-level programs check these, but just in case.
 		if replacedDe.Type == Dir && newDe.Type != Dir {
 			return NotDirError{newParentPath.ChildPathNoPtr(newName)}

@@ -1633,23 +1633,18 @@ func (fbo *folderBlockOps) nowUnixNano() int64 {
 // and new parent block (which may be the same, and which shouldn't be
 // modified), and what is to be the new DirEntry.
 func (fbo *folderBlockOps) PrepRename(
-	ctx context.Context, lState *lockState, kmd KeyMetadata,
+	ctx context.Context, lState *lockState, kmd KeyMetadataWithRootDirEntry,
 	oldParent path, oldName string, newParent path, newName string) (
-	oldPBlock, newPBlock *DirBlock, newDe DirEntry, ro *renameOp,
+	newDe, replacedDe DirEntry, ro *renameOp,
 	err error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
 	// Look up in the old path. Won't be modified, so only fetch for reading.
-	oldPBlock, err = fbo.getDirtyDirLocked(
-		ctx, lState, kmd, oldParent, blockRead)
+	newDe, err = fbo.getEntryLocked(
+		ctx, lState, kmd, oldParent.ChildPathNoPtr(oldName), false)
 	if err != nil {
-		return nil, nil, DirEntry{}, nil, err
-	}
-	newDe, ok := oldPBlock.Children[oldName]
-	// does the name exist?
-	if !ok {
-		return nil, nil, DirEntry{}, nil, NoSuchNameError{oldName}
+		return DirEntry{}, DirEntry{}, nil, err
 	}
 
 	oldParentPtr := oldParent.tailPointer()
@@ -1657,25 +1652,24 @@ func (fbo *folderBlockOps) PrepRename(
 	ro, err = newRenameOp(oldName, oldParentPtr, newName, newParentPtr,
 		newDe.BlockPointer, newDe.Type)
 	if err != nil {
-		return nil, nil, DirEntry{}, nil, err
+		return DirEntry{}, DirEntry{}, nil, err
 	}
 	ro.AddUpdate(oldParentPtr, oldParentPtr)
 	ro.setFinalPath(newParent)
 	ro.oldFinalPath = oldParent
-
-	// TODO: Write a SameBlock() function that can deal properly with
-	// dedup'd blocks that share an ID but can be updated separately.
-	if oldParentPtr.ID == newParentPtr.ID {
-		newPBlock = oldPBlock
-	} else {
-		newPBlock, err = fbo.getDirtyDirLocked(
-			ctx, lState, kmd, newParent, blockRead)
-		if err != nil {
-			return nil, nil, DirEntry{}, nil, err
-		}
+	if oldParentPtr.ID != newParentPtr.ID {
 		ro.AddUpdate(newParentPtr, newParentPtr)
 	}
-	return oldPBlock, newPBlock, newDe, ro, nil
+
+	replacedDe, err = fbo.getEntryLocked(
+		ctx, lState, kmd, newParent.ChildPathNoPtr(newName), false)
+	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
+		return newDe, DirEntry{}, ro, nil
+	} else if err != nil {
+		return DirEntry{}, DirEntry{}, nil, err
+	}
+
+	return newDe, replacedDe, ro, nil
 }
 
 func (fbo *folderBlockOps) newFileData(lState *lockState,
