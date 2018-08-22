@@ -4196,7 +4196,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 //   stunning.
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, node Node, file path) (
-	doSync, stillDirty bool, fblock *FileBlock, lbc localBcache,
+	doSync, stillDirty bool, fblock *FileBlock, dirtyDe *DirEntry,
 	bps *blockPutState, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -4242,7 +4242,7 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 		defer fbo.config.Reporter().Notify(ctx, writeNotification(file, true))
 	}
 
-	fblock, bps, lbc, syncState, err =
+	fblock, bps, dirtyDe, syncState, err =
 		fbo.blocks.StartSync(ctx, lState, md, file)
 	cleanup = func(ctx context.Context, lState *lockState,
 		blocksToRemove []BlockPointer, err error) {
@@ -4253,7 +4253,7 @@ func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 		return false, true, nil, nil, nil, fileSyncState{}, cleanup, err
 	}
 
-	return true, true, fblock, lbc, bps, syncState, cleanup, nil
+	return true, true, fblock, dirtyDe, bps, syncState, cleanup, nil
 }
 
 func addSelfUpdatesAndParent(
@@ -4494,7 +4494,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, fblock, newLbc, newBps, syncState, cleanup, err :=
+		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
@@ -4549,11 +4549,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 		// Update the combined local block cache with this file's
 		// dirty entry.
-		if _, ok := lbc[parent]; ok {
-			lbc[parent].Children[file.tailName()] =
-				newLbc[parent].Children[file.tailName()]
-		} else {
-			lbc[parent] = newLbc[parent]
+		if dirtyDe != nil {
+			fbo.blocks.mergeDirtyEntryWithLBC(
+				ctx, lState, file, md, lbc, *dirtyDe)
 		}
 	}
 

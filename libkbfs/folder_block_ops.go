@@ -2608,35 +2608,41 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	return fblock, si.bps, syncState, dirtyDe, nil
 }
 
-func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path, si *syncInfo,
-	dirtyDe *DirEntry) (lbc localBcache, err error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-
-	parentPath := file.parentPath()
-
-	dblock, _, err := fbo.getDirLocked(
-		ctx, lState, md.ReadOnly(), parentPath.tailPointer(), *parentPath,
-		blockWrite)
-	if err != nil {
-		return nil, err
-	}
-
+func prepDirtyEntryForSync(md *RootMetadata, si *syncInfo, dirtyDe *DirEntry) {
 	// Add in the cached unref'd blocks.
 	si.mergeUnrefCache(md)
-
-	lbc = make(localBcache)
-
 	// Update the file's directory entry to the cached copy.
 	if dirtyDe != nil {
 		dirtyDe.EncodedSize = si.oldInfo.EncodedSize
-		dblock = dblock.DeepCopy()
-		dblock.Children[file.tailName()] = *dirtyDe
-		lbc[parentPath.tailPointer()] = dblock
+	}
+}
+
+// mergeDirtyEntryWithLBC sets the entry for a file into a directory,
+// storing all the affected blocks into `lbc` rather than the dirty
+// block cache.  It must only be called with an entry that's already
+// been written to the dirty block cache, such that no new blocks are
+// dirtied.
+func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
+	ctx context.Context, lState *lockState, file path, md KeyMetadata,
+	lbc localBcache, dirtyDe DirEntry) error {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	chargedTo, err := fbo.getChargedToLocked(ctx, lState, md)
+	if err != nil {
+		return err
 	}
 
-	return lbc, nil
+	dd := fbo.newDirDataWithLBC(lState, *file.parentPath(), chargedTo, md, lbc)
+	unrefs, err := dd.setEntry(ctx, file.tailName(), dirtyDe)
+	if err != nil {
+		return err
+	}
+	if len(unrefs) != 0 {
+		return errors.Errorf(
+			"Merging dirty entry produced %d new unrefs", len(unrefs))
+	}
+	return nil
 }
 
 // StartSync starts a sync for the given file. It returns the new
@@ -2661,24 +2667,20 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 //  })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps *blockPutState, lbc localBcache,
+	fblock *FileBlock, bps *blockPutState, dirtyDe *DirEntry,
 	syncState fileSyncState, err error) {
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
 	}
 
-	fblock, bps, syncState, dirtyDe, err := fbo.startSyncWrite(
+	fblock, bps, syncState, dirtyDe, err = fbo.startSyncWrite(
 		ctx, lState, md, file)
 	if err != nil {
 		return nil, nil, nil, syncState, err
 	}
 
-	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.si,
-		dirtyDe)
-	if err != nil {
-		return nil, nil, nil, syncState, err
-	}
-	return fblock, bps, lbc, syncState, err
+	prepDirtyEntryForSync(md, syncState.si, dirtyDe)
+	return fblock, bps, dirtyDe, syncState, err
 }
 
 // Does any clean-up for a sync of the given file, given an error
