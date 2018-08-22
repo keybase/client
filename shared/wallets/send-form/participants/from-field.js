@@ -19,9 +19,11 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     selectedAccount: this.props.initialAccount,
   }
 
-  _onDropdownChange = (node: React.Node) => {
+  onDropdownChange = (node: React.Node) => {
     if (React.isValidElement(node)) {
-      console.log(node)
+      // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
+      const element = (node: React.Element<any>)
+      this.setState({selectedAccount: element.props.account})
     }
   }
 
@@ -31,7 +33,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     return (
       <Row heading="From:" headingAlignment="Right">
         <Kb.Dropdown
-          onChanged={this._onDropdownChange}
+          onChanged={this.onDropdownChange}
           items={items}
           selected={<SelectedEntry account={this.state.selectedAccount} />}
         />

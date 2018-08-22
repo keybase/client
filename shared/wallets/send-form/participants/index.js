@@ -13,8 +13,8 @@ export type Account = {|
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
-  fromAccount: Account,
   /* Used for send to other account */
+  fromAccount?: Account,
   allAccounts?: Account[],
   /* Used for send to stellar address */
   incorrect?: string,
