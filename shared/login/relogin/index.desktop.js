@@ -63,6 +63,7 @@ class Login extends React.Component<Props, State> {
       floatingHintTextOverride: '',
       hintText: 'Passphrase',
       key: this.props.inputKey,
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
       uncontrolled: true,

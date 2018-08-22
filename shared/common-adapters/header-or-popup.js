@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
 import {isMobile} from '../util/container'
-import {HeaderHoc, PopupDialog} from './index'
+import HeaderHoc from './header-hoc'
+import PopupDialog from './popup-dialog'
 import type {Props} from './header-or-popup'
 
 // HeaderOrPopup replaces our common pattern of:
