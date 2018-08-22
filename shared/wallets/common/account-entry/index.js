@@ -3,14 +3,14 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type AccountEntryProps = {
+type AccountEntryProps = {|
   name: string,
   keybaseUser: string,
   contents: string,
   style?: Styles.StylesCrossPlatform,
   center?: boolean,
   showWalletIcon: boolean,
-}
+|}
 
 // TODO AccountEntry is mostly copied from WalletRow, with some row specific
 // properties removed. WalletRow could probably be a wrapper around AccountEntry.
