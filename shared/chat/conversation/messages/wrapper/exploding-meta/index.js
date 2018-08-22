@@ -269,9 +269,6 @@ const styles = styleSheetCreate({
       height: 15,
       width: 32,
     },
-    isAndroid: {
-      height: 17,
-    },
   }),
 })
 
