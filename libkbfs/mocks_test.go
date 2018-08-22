@@ -8103,8 +8103,8 @@ func (m *MockcrAction) EXPECT() *MockcrActionMockRecorder {
 }
 
 // swapUnmergedBlock mocks base method
-func (m *MockcrAction) swapUnmergedBlock(unmergedChains, mergedChains *crChains, unmergedBlock *DirBlock) (bool, BlockPointer, error) {
-	ret := m.ctrl.Call(m, "swapUnmergedBlock", unmergedChains, mergedChains, unmergedBlock)
+func (m *MockcrAction) swapUnmergedBlock(ctx context.Context, unmergedChains, mergedChains *crChains, unmergedDir *dirData) (bool, BlockPointer, error) {
+	ret := m.ctrl.Call(m, "swapUnmergedBlock", ctx, unmergedChains, mergedChains, unmergedDir)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(BlockPointer)
 	ret2, _ := ret[2].(error)
@@ -8112,32 +8112,32 @@ func (m *MockcrAction) swapUnmergedBlock(unmergedChains, mergedChains *crChains,
 }
 
 // swapUnmergedBlock indicates an expected call of swapUnmergedBlock
-func (mr *MockcrActionMockRecorder) swapUnmergedBlock(unmergedChains, mergedChains, unmergedBlock interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "swapUnmergedBlock", reflect.TypeOf((*MockcrAction)(nil).swapUnmergedBlock), unmergedChains, mergedChains, unmergedBlock)
+func (mr *MockcrActionMockRecorder) swapUnmergedBlock(ctx, unmergedChains, mergedChains, unmergedDir interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "swapUnmergedBlock", reflect.TypeOf((*MockcrAction)(nil).swapUnmergedBlock), ctx, unmergedChains, mergedChains, unmergedDir)
 }
 
 // do mocks base method
-func (m *MockcrAction) do(ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier, unmergedBlock, mergedBlock *DirBlock) error {
-	ret := m.ctrl.Call(m, "do", ctx, unmergedCopier, mergedCopier, unmergedBlock, mergedBlock)
+func (m *MockcrAction) do(ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier, unmergedDir, mergedDir *dirData) error {
+	ret := m.ctrl.Call(m, "do", ctx, unmergedCopier, mergedCopier, unmergedDir, mergedDir)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // do indicates an expected call of do
-func (mr *MockcrActionMockRecorder) do(ctx, unmergedCopier, mergedCopier, unmergedBlock, mergedBlock interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "do", reflect.TypeOf((*MockcrAction)(nil).do), ctx, unmergedCopier, mergedCopier, unmergedBlock, mergedBlock)
+func (mr *MockcrActionMockRecorder) do(ctx, unmergedCopier, mergedCopier, unmergedDir, mergedDir interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "do", reflect.TypeOf((*MockcrAction)(nil).do), ctx, unmergedCopier, mergedCopier, unmergedDir, mergedDir)
 }
 
 // updateOps mocks base method
-func (m *MockcrAction) updateOps(unmergedMostRecent, mergedMostRecent BlockPointer, unmergedBlock, mergedBlock *DirBlock, unmergedChains, mergedChains *crChains) error {
-	ret := m.ctrl.Call(m, "updateOps", unmergedMostRecent, mergedMostRecent, unmergedBlock, mergedBlock, unmergedChains, mergedChains)
+func (m *MockcrAction) updateOps(ctx context.Context, unmergedMostRecent, mergedMostRecent BlockPointer, unmergedDir, mergedDir *dirData, unmergedChains, mergedChains *crChains) error {
+	ret := m.ctrl.Call(m, "updateOps", ctx, unmergedMostRecent, mergedMostRecent, unmergedDir, mergedDir, unmergedChains, mergedChains)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // updateOps indicates an expected call of updateOps
-func (mr *MockcrActionMockRecorder) updateOps(unmergedMostRecent, mergedMostRecent, unmergedBlock, mergedBlock, unmergedChains, mergedChains interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "updateOps", reflect.TypeOf((*MockcrAction)(nil).updateOps), unmergedMostRecent, mergedMostRecent, unmergedBlock, mergedBlock, unmergedChains, mergedChains)
+func (mr *MockcrActionMockRecorder) updateOps(ctx, unmergedMostRecent, mergedMostRecent, unmergedDir, mergedDir, unmergedChains, mergedChains interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "updateOps", reflect.TypeOf((*MockcrAction)(nil).updateOps), ctx, unmergedMostRecent, mergedMostRecent, unmergedDir, mergedDir, unmergedChains, mergedChains)
 }
 
 // String mocks base method

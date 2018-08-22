@@ -2214,24 +2214,6 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 	return actionMap, append(newUnmergedPaths, moreNewUnmergedPaths...), nil
 }
 
-func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
-	lState *lockState, kmd KeyMetadata, dir path, lbc localBcache) (
-	*DirBlock, error) {
-	ptr := dir.tailPointer()
-	// TODO: lock lbc if we parallelize
-	if block, ok := lbc[ptr]; ok {
-		return block, nil
-	}
-	dblock, err := cr.fbo.blocks.GetDirBlockForReading(
-		ctx, lState, kmd, ptr, dir.Branch, dir)
-	if err != nil {
-		return nil, err
-	}
-	dblock = dblock.DeepCopy()
-	lbc[ptr] = dblock
-	return dblock, nil
-}
-
 // fileBlockMap maps latest merged block pointer to a map of final
 // merged name -> file block.
 type fileBlockMap map[BlockPointer]map[string]*FileBlock
@@ -2299,6 +2281,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList, lbc localBcache,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCache) error {
+	mergedMD := mergedChains.mostRecentChainMDInfo
+	chargedTo, err := chargedToForTLF(
+		ctx, cr.config.KBPKI(), cr.config.KBPKI(), mergedMD.GetTlfHandle())
+	if err != nil {
+		return err
+	}
+
 	// For each set of actions:
 	//   * Find the corresponding chains
 	//   * Make a reference to each slice of ops
@@ -2339,12 +2328,13 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		}
 
 		actions := actionMap[mergedPath.tailPointer()]
-		// Now get the directory blocks.
-		unmergedBlock, err := cr.fetchDirBlockCopy(ctx, lState,
-			unmergedChains.mostRecentChainMDInfo, unmergedPath, lbc)
-		if err != nil {
-			return err
-		}
+		// Now get the directory blocks.  For unmerged directories, we
+		// can use a nil local block cache, because unmerged blocks
+		// should never be changed during the CR process (since
+		// they're just going away).
+		unmergedDir := cr.fbo.blocks.newDirDataWithLBC(
+			lState, unmergedPath, chargedTo,
+			unmergedChains.mostRecentChainMDInfo, nil)
 
 		if unmergedPath.tailPointer() == mergedPath.tailPointer() {
 			// recreateOps update the merged paths using original
@@ -2358,20 +2348,22 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 				unmergedPath.tailPointer())
 		}
 
-		var mergedBlock *DirBlock
 		_, blockExists := lbc[mergedPath.tailPointer()]
 		// If this is a recreate op and we haven't yet made a new
 		// block for it, then make a new one and put it in the local
-		// block cache.  Otherwise, fetch it.
+		// block cache.
 		if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
-			mergedBlock = NewDirBlock().(*DirBlock)
-			lbc[mergedPath.tailPointer()] = mergedBlock
-		} else {
-			mergedBlock, err = cr.fetchDirBlockCopy(ctx, lState,
-				mergedChains.mostRecentChainMDInfo, mergedPath, lbc)
-			if err != nil {
-				return err
-			}
+			lbc[mergedPath.tailPointer()] = NewDirBlock().(*DirBlock)
+		}
+		mergedDir := cr.fbo.blocks.newDirDataWithLBC(
+			lState, mergedPath, chargedTo,
+			mergedChains.mostRecentChainMDInfo, lbc)
+		// Force the top block into the `lbc`.  `folderUpdatePrepper`
+		// requires this, even if the block isn't modified, to
+		// distinguish it from a file block.
+		_, err = mergedDir.getTopBlock(ctx, blockWrite)
+		if err != nil {
+			return err
 		}
 
 		if len(actions) > 0 && !doneActions[mergedPath.tailPointer()] {
@@ -2396,34 +2388,38 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 			// Execute each action and save the modified ops back into
 			// each chain.
 			for _, action := range actions {
-				swap, newPtr, err := action.swapUnmergedBlock(unmergedChains,
-					mergedChains, unmergedBlock)
+				swap, newPtr, err := action.swapUnmergedBlock(
+					ctx, unmergedChains, mergedChains, unmergedDir)
 				if err != nil {
 					return err
 				}
-				uBlock := unmergedBlock
+				uDir := unmergedDir
 				if swap {
-					cr.log.CDebugf(ctx, "Swapping out block %v for %v",
+					cr.log.CDebugf(ctx, "Swapping out dir %v for %v",
 						newPtr, unmergedPath.tailPointer())
 					if newPtr == zeroPtr {
 						// Use this merged block
-						uBlock = mergedBlock
+						uDir = mergedDir
 					} else {
-						// Fetch the specified one. Don't need to make
-						// a copy since this will just be a source
-						// block.
-						dBlock, err := cr.fbo.blocks.GetDirBlockForReading(
-							ctx, lState, mergedChains.mostRecentChainMDInfo,
-							newPtr, mergedPath.Branch, path{})
-						if err != nil {
-							return err
+						// Use the specified block, and supply a `nil`
+						// local block cache to ensure that a) only
+						// clean blocks are used, as blocks in the
+						// `lbc` might have already been touched by
+						// previous actions, and b) no new blocks are
+						// cached.
+						newPath := path{
+							FolderBranch: mergedPath.FolderBranch,
+							path: []pathNode{{
+								newPtr, mergedPath.tailName()}},
 						}
-						uBlock = dBlock
+						uDir = cr.fbo.blocks.newDirDataWithLBC(
+							lState, newPath, chargedTo,
+							mergedChains.mostRecentChainMDInfo, nil)
 					}
 				}
 
-				err = action.do(ctx, unmergedFetcher, mergedFetcher, uBlock,
-					mergedBlock)
+				err = action.do(
+					ctx, unmergedFetcher, mergedFetcher, uDir, mergedDir)
 				if err != nil {
 					return err
 				}
@@ -2442,8 +2438,9 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 				mergedMostRecent = mergedChain.mostRecent
 			}
 
-			err := action.updateOps(unmergedMostRecent, mergedMostRecent,
-				unmergedBlock, mergedBlock, unmergedChains, mergedChains)
+			err := action.updateOps(
+				ctx, unmergedMostRecent, mergedMostRecent,
+				unmergedDir, mergedDir, unmergedChains, mergedChains)
 			if err != nil {
 				return err
 			}
