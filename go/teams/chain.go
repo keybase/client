@@ -3,8 +3,6 @@ package teams
 import (
 	"errors"
 	"fmt"
-	"reflect"
-	"sort"
 
 	"golang.org/x/net/context"
 
@@ -655,14 +653,6 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		return res, fmt.Errorf("team sigchain outer link: %s", err)
 	}
 
-	var prevAdminsOrAbove []keybase1.UserVersion
-	if prevState != nil {
-		prevAdminsOrAbove, err = prevState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
-		if err != nil {
-			return res, fmt.Errorf("cannot get admins on team sigchain: %s", err)
-		}
-	}
-
 	var newState *TeamSigChainState
 	if link.isStubbed() {
 		if prevState == nil {
@@ -685,38 +675,11 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 	newState.inner.LastLinkID = link.LinkID().Export()
 	newState.inner.LinkIDs[link.Seqno()] = link.LinkID().Export()
 
-	wasHigh, err := t.wasHighLink(prevAdminsOrAbove, newState, link)
-	if err != nil {
-		return res, fmt.Errorf("cannot determine if this team chain link is high: %s", err)
-	}
-	if wasHigh {
-		newState.inner.LastHighSeqno = link.Seqno()
-		newState.inner.LastHighLinkID = link.LinkID().Export()
-	}
-
 	if link.isStubbed() {
 		newState.inner.StubbedLinks[link.Seqno()] = true
 	}
 
 	return *newState, nil
-}
-
-func (t *teamSigchainPlayer) wasHighLink(prevAdminsOrAbove []keybase1.UserVersion, newState *TeamSigChainState, link *ChainLinkUnpacked) (bool, error) {
-	switch link.LinkType() {
-	case libkb.SigchainV2TypeTeamRoot, libkb.SigchainV2TypeTeamSubteamHead:
-		return true, nil
-	case libkb.SigchainV2TypeTeamChangeMembership:
-		// only if this changed the current set of explicit admins/owners on the team
-		currentAdminsOrAbove, err := newState.GetUsersWithRoleOrAbove(keybase1.TeamRole_ADMIN)
-		if err != nil {
-			return true, err
-		}
-		sort.Sort(keybase1.ByUserVersionID(prevAdminsOrAbove))
-		sort.Sort(keybase1.ByUserVersionID(currentAdminsOrAbove))
-		return !reflect.DeepEqual(currentAdminsOrAbove, prevAdminsOrAbove), nil
-	default:
-		return false, nil
-	}
 }
 
 func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked) (err error) {
@@ -912,9 +875,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 		res.newState = *prevState
 		prevState = nil
 	}
+	isHighLink := false
 
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
+		isHighLink = true
 		err = enforce(LinkRules{
 			Name:                TristateRequire,
 			Members:             TristateRequire,
@@ -1159,6 +1124,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 			}
 		}
 
+		isHighLink, err = t.roleUpdateChangedHighSet(prevState, roleUpdates)
+		if err != nil {
+			return res, fmt.Errorf("could not determine if high user set changed")
+		}
+
 		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		t.completeInvites(&res.newState, team.CompletedInvites)
@@ -1275,6 +1245,8 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("adding new subteam: %v", err)
 		}
 	case libkb.LinkTypeSubteamHead:
+		isHighLink = true
+
 		err = enforce(LinkRules{
 			Name:         TristateRequire,
 			Members:      TristateRequire,
@@ -1622,7 +1594,42 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 		}
 	}
+	if isHighLink {
+		res.newState.inner.LastHighLinkID = link.LinkID().Export()
+		res.newState.inner.LastHighSeqno = link.Seqno()
+	}
 	return res, nil
+}
+
+func (t *teamSigchainPlayer) roleUpdateChangedHighSet(prevState *TeamSigChainState, roleUpdates chainRoleUpdates) (bool, error) {
+	// The high set of users can be changed by promotion to Admin/Owner or
+	// demotion from Admin/Owner.
+	for newRole, uvs := range roleUpdates {
+		if newRole.IsAdminOrAbove() {
+			// were any of these users previously NOT an admin or above
+			for _, uv := range uvs {
+				prevRole, err := prevState.GetUserRole(uv)
+				if err != nil {
+					return false, err
+				}
+				if !prevRole.IsAdminOrAbove() {
+					return true, nil
+				}
+			}
+		} else {
+			// were any of these users previously an admin or above
+			for _, uv := range uvs {
+				prevRole, err := prevState.GetUserRole(uv)
+				if err != nil {
+					return false, err
+				}
+				if prevRole.IsAdminOrAbove() {
+					return true, nil
+				}
+			}
+		}
+	}
+	return false, nil
 }
 
 func (t *teamSigchainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {

@@ -82,7 +82,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) //owner
 	require.NoError(t, err)
-
+	t.Logf("create the team...")
 	// Create a team. This creates the first high link.
 	teamName := u1.Username + "t"
 	teamNameObj, err := keybase1.TeamNameFromString(teamName)
@@ -91,16 +91,19 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
+	t.Logf("adding new reader...")
 	// Adding a new reader is not a high link, so the lastest high seq won't change.
 	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 1)
 
+	t.Logf("adding new admin...")
 	// Adding a new admin IS a high link, so we should jump to 3.
 	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 3)
 
+	t.Logf("adding new subteam...")
 	// Creating a subteam is not a high link for the parent team
 	// but it is for the subteam. The link types are different
 	// "team.root" and "team.subteam_head" so we should check both teams.
@@ -110,6 +113,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	assertHighSeqForTeam(t, tc, subteamID, 1)
 	assertHighSeqForTeam(t, tc, teamID, 3)
 
+	t.Logf("adding new admin to subteam...")
 	// Adding an admin to the subteam is a high link for the subteam but not
 	// the parent. Primarily, we do this to verify that high links advance
 	// the same way on subteams (since there are places that default to a
@@ -120,6 +124,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 	assertHighSeqForTeam(t, tc, teamID, 3)
 
+	t.Logf("demoting admin...")
 	// Back to the root team... downgrading an admin IS a high link for the root team
 	// but it is not one for the subteam, because the subteam needs to care about it's
 	// parent's high links anyway.
@@ -128,12 +133,14 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	assertHighSeqForTeam(t, tc, teamID, 5)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 
+	t.Logf("rotating keys...")
 	// Rotated keys do not create high links.
 	err = RotateKey(ctx, tc.G, *teamID)
 	require.NoError(t, err)
 	assertHighSeqForTeam(t, tc, teamID, 5)
 	assertHighSeqForTeam(t, tc, subteamID, 2)
 
+	t.Logf("deleting subteam...")
 	// Deleting a subteam will not create a high link.
 	subteamName := teamName + "." + sub
 	err = Delete(ctx, tc.G, &teamsUI{}, subteamName)
