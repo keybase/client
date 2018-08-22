@@ -91,7 +91,7 @@ const deviceConnector = connect(
     onConfirm: () => openURL(installLinkURL),
     onDismiss: onSkipTodo('device', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- FOLLOW ----- //
@@ -101,7 +101,7 @@ const followConnector = connect(
     onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
     onDismiss: onSkipTodo('follow', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- CHAT ----- //
@@ -111,7 +111,7 @@ const chatConnector = connect(
     onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
     onDismiss: onSkipTodo('chat', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- PAPERKEY ----- //
@@ -128,7 +128,7 @@ const paperKeyConnector = connect(
     },
     onDismiss: () => {},
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- TEAM ----- //
@@ -141,7 +141,7 @@ const teamConnector = connect(
     },
     onDismiss: onSkipTodo('team', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- FOLDER ----- //
@@ -159,7 +159,7 @@ const folderConnector = connect(
     },
     onDismiss: onSkipTodo('folder', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- GITREPO ----- //
@@ -172,7 +172,7 @@ const gitRepoConnector = connect(
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- TEAMSHOWCASE ----- //
@@ -186,7 +186,7 @@ const teamShowcaseConnector = connect(
     },
     onDismiss: onSkipTodo('teamShowcase', dispatch),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 export default compose(

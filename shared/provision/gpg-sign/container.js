@@ -11,4 +11,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
   onSubmit: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
 })
 
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(GPGSign)
+export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(GPGSign)

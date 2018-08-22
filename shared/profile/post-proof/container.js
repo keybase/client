@@ -42,7 +42,7 @@ export default compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       // Activate the proof check after they've completed the first step for these services.
