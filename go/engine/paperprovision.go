@@ -230,8 +230,8 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	}, nil
 }
 
-// copied from loginProvision makeDeviceKeys
-// uses DeviceWrap to generate device keys and sets active device.
+// Copied from loginProvision. makeDeviceKeys uses DeviceWrap to
+// generate device keys and sets active device.
 func (e *PaperProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
 	e.deviceWrapEng = NewDeviceWrap(m.G(), args)
 	return RunEngine2(m, e.deviceWrapEng)
