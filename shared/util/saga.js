@@ -48,7 +48,7 @@ function actionToPromise<A>(
   pattern: RS.Pattern,
   f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
 ) {
-  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): RS.Saga<void> {
+  return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
     try {
       const state: TypedState = yield Effects.select()
       const toPut = yield Effects.call(f, state, action)
@@ -72,13 +72,10 @@ function actionToPromise<A>(
 
 // like safeTakeEveryPure but simpler, only 2 params and gives you a state first
 function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action: A) => E) {
-  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): RS.Saga<void> {
+  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): Generator<any, void, any> {
     try {
       const state: TypedState = yield Effects.select()
-      const effect = yield Effects.call(f, state, action)
-      if (effect) {
-        yield effect
-      }
+      yield f(state, action)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
       yield Effects.put(
