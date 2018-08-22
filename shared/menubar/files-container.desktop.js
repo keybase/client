@@ -5,7 +5,7 @@ import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
 import {switchTo} from '../actions/route-tree'
 import {FilesPreview} from './files.desktop'
-import {remoteConnect, compose, type Dispatch} from '../util/container'
+import {remoteConnect, compose} from '../util/container'
 
 const mapStateToProps = (state) => ({
   _tlfRows: [
@@ -14,19 +14,9 @@ const mapStateToProps = (state) => ({
   ],
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onSelectPath: (path: FsTypes.Path) => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(switchTo([Tabs.fsTab]))
-    dispatch(FsGen.createOpenPathItem({
-      openDirectly: true,
-      path,
-    }))
-  },
-  onViewAll: () => {
-    dispatch(ConfigGen.createShowMain())
-    dispatch(switchTo([Tabs.fsTab]))
-  },
+const mapDispatchToProps = dispatch => ({
+  _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
+  onViewAll: () => dispatch(FsGen.createOpenFilesFromWidget()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

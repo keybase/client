@@ -150,8 +150,10 @@
 
     "openPathItem": {
       "path": "Types.Path",
-      "routePath?": "I.List<string>",
-      "openDirectly?": "boolean"
+      "routePath?": "I.List<string>"
+    },
+    "openFilesFromWidget": {
+      "path?": "Types.Path"
     },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",

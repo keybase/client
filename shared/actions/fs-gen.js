@@ -43,6 +43,7 @@ export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
 export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
+export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -154,11 +155,11 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
   routePath?: I.List<string>,
-  openDirectly?: boolean,
 |}>
 type _OpenSecurityPreferencesPayload = void
 type _PickAndUploadPayload = $ReadOnly<{|
@@ -231,6 +232,7 @@ export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: fa
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({error: false, payload, type: notifySyncActivity})
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({error: false, payload, type: openAndUpload})
+export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({error: false, payload, type: openFilesFromWidget})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -281,6 +283,7 @@ export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRow
 export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
 export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
 export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
+export type OpenFilesFromWidgetPayload = $Call<typeof createOpenFilesFromWidget, _OpenFilesFromWidgetPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -333,6 +336,7 @@ export type Actions =
   | NotifySyncActivityPayload
   | NotifyTlfUpdatePayload
   | OpenAndUploadPayload
+  | OpenFilesFromWidgetPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload

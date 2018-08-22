@@ -5,6 +5,7 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
@@ -12,7 +13,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend} from '../route-tree'
+import {switchTo, putActionIfOnPath, navigateAppend} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -579,25 +580,19 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
 }
 
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
-  const {path, routePath, openDirectly} = action.payload
+  const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
   const pathItem = state.fs.pathItems.get(path)
   if (!pathItem || pathItem.type === 'folder') {
-    const navigate = navigateAppend([{
-      props: {path},
-      selected: 'folder',
-    }])
-    if (openDirectly) {
-      yield Saga.put(navigate)
-    } else {
-      if (!routePath) return
-      yield Saga.put(
-        putActionIfOnPath(
-          routePath,
-          navigate
-        )
+    yield Saga.put(
+      putActionIfOnPath(
+        routePath,
+        navigateAppend([{
+          props: {path},
+          selected: 'folder',
+        }])
       )
-    }
+    )
     return
   }
 
@@ -610,21 +605,34 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
     bare = isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image'
   }
 
-  const navigate = navigateAppend([{
-    props: {path},
-    selected: bare ? 'barePreview' : 'preview',
-  }])
-  if (openDirectly) {
-    yield Saga.put(navigate)
-  } else {
-    if (!routePath) return
-    yield Saga.put(
-      putActionIfOnPath(
-        routePath,
-        navigate
-      )
+  yield Saga.put(
+    putActionIfOnPath(
+      routePath,
+      navigateAppend([{
+        props: {path},
+        selected: bare ? 'barePreview' : 'preview',
+      }])
     )
+  )
+}
+
+const openFilesFromWidget = (state: TypedState, action: FsGen.OpenFilesFromWidgetPayload) => {
+  const {path} = action.payload
+  const pathItem = path ? state.fs.pathItems.get(path) : undefined
+  let selected = 'preview'
+  if (!pathItem || pathItem.type === 'folder') {
+    selected = 'folder'
   }
+  return Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([Tabs.fsTab])),
+    ...(path
+      ? [Saga.put(navigateAppend([{
+          props: {path},
+          selected,
+        }]))]
+      : []),
+  ])
 }
 
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
@@ -647,6 +655,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)
