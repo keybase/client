@@ -168,7 +168,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _onUsernameClicked: (username: string) => dispatch(createShowUserProfile({username})),
 })
 

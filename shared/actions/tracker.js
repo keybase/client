@@ -13,6 +13,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
 import type {FriendshipUserInfo} from '../constants/types/profile'
+import type {Dispatch} from '../util/container'
 
 // Send a heartbeat while trackers are still open
 function* _trackerTimer(): Generator<any, void, any> {

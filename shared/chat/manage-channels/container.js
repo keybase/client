@@ -56,7 +56,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
     _loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),

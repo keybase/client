@@ -43,7 +43,7 @@ type DispatchProps = {
   onClick: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({

@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onAddPeople: (role: string, sendChatNotification: boolean) => {
     const teamname = routeProps.get('teamname')

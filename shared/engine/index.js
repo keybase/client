@@ -18,7 +18,7 @@ import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
-import type {TypedState} from '../constants/reducer'
+import type {TypedState, Dispatch} from '../util/container'
 
 class EngineChannel {
   _map: Constants.ChannelMap<any>

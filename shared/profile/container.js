@@ -69,7 +69,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),

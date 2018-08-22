@@ -66,7 +66,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(

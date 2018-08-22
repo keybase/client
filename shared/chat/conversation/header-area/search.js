@@ -9,7 +9,6 @@ import {
   lifecycle,
   withProps,
   type TypedState,
-  type Dispatch,
 } from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
