@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import participants from './participants/index.stories'
 import ConfirmSend from '.'
 
 // TODO some of the state of these child components
@@ -42,6 +43,7 @@ const banner = {
 }
 
 const load = () => {
+  participants()
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
     .add('To User', () => <ConfirmSend {...confirmProps} />)

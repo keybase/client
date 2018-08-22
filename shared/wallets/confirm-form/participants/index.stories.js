@@ -20,7 +20,7 @@ const defaultProps = {
 }
 
 const load = () => {
-  Sb.storiesOf('Wallets/SendForm/Participants', module)
+  Sb.storiesOf('Wallets/ConfirmForm/Participants', module)
     .addDecorator(provider)
     .add('To Keybase user', () => <Participants {...defaultProps} recipientType="keybaseUser" />)
     .add('To other account', () => <Participants {...defaultProps} recipientType="otherAccount" />)

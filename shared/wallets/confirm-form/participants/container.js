@@ -1,6 +1,5 @@
 // @flow
 import ConfirmSend from '.'
-// import * as Constants from '../../../constants/wallets'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -14,7 +13,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     recipientType,
     yourUsername: state.config.username,
-    // TODO: fill these in
+    // TODO - Integration PR - fill these in
     fromAccountName: '',
     fromAccountContents: '',
     recipientUsername: built.toUsername,

@@ -14,7 +14,6 @@ const mapStateToProps = (state: TypedState) => {
     assetType: build.currency,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
-    receiverUsername: built.toUsername,
     waitingKey: Constants.sendPaymentWaitingKey,
     yourUsername: state.config.username,
   }
