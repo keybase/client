@@ -1,7 +1,7 @@
 // @flow
 import Footer from '.'
 import * as Route from '../../../actions/route-tree'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   disabled: !state.wallets.builtPayment.readyToSend,

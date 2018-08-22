@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   return {avatar, fullname, fullUsername, myUsername, profileUrl, serviceName, title, username}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   _onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {

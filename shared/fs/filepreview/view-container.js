@@ -4,7 +4,6 @@ import {
   compose,
   connect,
   lifecycle,
-  type Dispatch,
   type TypedState,
   setDisplayName,
 } from '../../util/container'
@@ -34,7 +33,7 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
+const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
