@@ -82,11 +82,16 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     flexWrap: 'wrap',
   },
+  icon: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.xtiny,
+      marginRight: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      verticalAlign: 'middle',
+    },
+  }),
   teamAvatar: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  icon: {
-    marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,
   },
   breadcrumbNonLastItemBox: Styles.platformStyles({

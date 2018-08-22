@@ -29,9 +29,6 @@ const paths = {
 }
 
 const fontHeight = 1024
-const descentFraction = 16 // Source: https://icomoon.io/#docs/font-metrics
-const descent = fontHeight / descentFraction
-const ascent = fontHeight - descent
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
@@ -231,20 +228,9 @@ function updateConstants() {
  */
 const setFontMetrics = () => {
   const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
-  const names = getSvgNames(false)
-    .map(({filename}) => `'${filename.replace('.svg', '')}'`)
-    .join(', ')
   let script = `
   Open('${kbTtf}');
-  SelectAll();
-  Move(0, -${descent});
-  SetGasp(65535, 1  SetOS2Value('WinAscent', ${ascent});
-  SetOS2Value('WinDescent', ${descent});
-  SetOS2Value('TypoAscent', ${ascent});
-  SetOS2Value('TypoDescent', ${0});
-  SetOS2Value('TypoLineGap', ${0});
-  SetOS2Value('HHeadAscent', ${ascent});
-  SetOS2Value('HHeadDescent', ${-descent});5);
+  SetGasp(65535, 15);
   Generate('${kbTtf}');
   `
   script = script
@@ -255,7 +241,7 @@ const setFontMetrics = () => {
   try {
     execSync(command, {encoding: 'utf8', env: process.env})
   } catch (e) {
-    // console.error(e)
+    console.error(e)
   }
 }
 

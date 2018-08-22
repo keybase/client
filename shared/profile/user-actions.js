@@ -174,7 +174,6 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
 const ellipsisIcon = platformStyles({
   common: {
     position: 'relative',
-    top: 1,
   },
 })
 
