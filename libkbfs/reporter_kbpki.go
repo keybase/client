@@ -92,8 +92,8 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 		config:           config,
 		log:              config.MakeLogger(""),
 		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
-		notifyPathBuffer: make(chan string, bufSize),
-		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, bufSize),
+		notifyPathBuffer: make(chan string, 1),
+		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, 1),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -260,8 +260,6 @@ const reporterSendInterval = time.Second
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	sendTicker := time.NewTicker(reporterSendInterval)
 	defer sendTicker.Stop()
-	var stagedPath string
-	var stagedStatus *keybase1.FSPathSyncStatus
 
 	for {
 		select {
@@ -284,32 +282,31 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
 					"notification: %s", err)
 			}
-		case path, ok := <-r.notifyPathBuffer:
-			if !ok {
-				return
-			}
-			stagedPath = path
-		case status, ok := <-r.notifySyncBuffer:
-			if !ok {
-				return
-			}
-			stagedStatus = status
 		case <-sendTicker.C:
-			if stagedPath != "" {
-				if err := r.config.KeybaseService().NotifyPathUpdated(
-					ctx, stagedPath); err != nil {
-					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-						"notification for path: %s", err)
+		inTicker:
+			for {
+				select {
+				case path, ok := <-r.notifyPathBuffer:
+					if !ok {
+						return
+					}
+					if err := r.config.KeybaseService().NotifyPathUpdated(
+						ctx, path); err != nil {
+						r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+							"notification for path: %s", err)
+					}
+				case status, ok := <-r.notifySyncBuffer:
+					if !ok {
+						return
+					}
+					if err := r.config.KeybaseService().NotifySyncStatus(ctx,
+						status); err != nil {
+						r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+							"sync status: %s", err)
+					}
+				default:
+					break inTicker
 				}
-				stagedPath = ""
-			}
-			if stagedStatus != nil {
-				if err := r.config.KeybaseService().NotifySyncStatus(ctx,
-					stagedStatus); err != nil {
-					r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
-						"sync status: %s", err)
-				}
-				stagedStatus = nil
 			}
 		case <-ctx.Done():
 			return
