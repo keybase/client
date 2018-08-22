@@ -26,12 +26,23 @@ func (w *contentTypeOverridingResponseWriter) overrideMimeType(
 	mimeType string) (newMimeType string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
 	// by the frontend WebView.
-	lower := strings.ToLower(mimeType)
-	if strings.Contains(lower, "javascript") ||
-		strings.Contains(lower, "html") {
+	ty := strings.ToLower(mimeType)
+	switch {
+	// First reject anything containing javascript/xml/html.
+	case strings.Contains(ty, "javascript") ||
+		strings.Contains(ty, "xml") ||
+		strings.Contains(ty, "html"):
+		return "text/plain"
+	// Pass multimedia types through, and pdf too.
+	case strings.HasPrefix(ty, "audio/") ||
+		strings.HasPrefix(ty, "image/") ||
+		strings.HasPrefix(ty, "video/") ||
+		ty == "application/pdf":
+		return ty
+	// Otherwise text/plain.
+	default:
 		return "text/plain"
 	}
-	return mimeType
 }
 
 func (w *contentTypeOverridingResponseWriter) override() {
