@@ -51,7 +51,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const ConnectedWaitingButton = connect(mapStateToProps, () => ({}), (s, d, o) => ({...s, ...d, ...o}))(
+const ConnectedWaitingButton = connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(
   setDisplayName('WaitingButton')(WaitingButton)
 )
 export default ConnectedWaitingButton

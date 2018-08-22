@@ -360,14 +360,15 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  // MUST spread ownProps as navigateUp overrides the passed in props!!
+  ...ownProps,
   hideNav: stateProps.hideNav,
   navigateUp: dispatchProps.navigateUp,
-  ...ownProps,
 })
 
 const styles = styleSheetCreate({

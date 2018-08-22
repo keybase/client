@@ -57,6 +57,6 @@ const Chooser = (props: any) =>
 
 export default compose(
   // $FlowIssue
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('ResultsList')
 )(Chooser)

@@ -196,7 +196,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   HeaderHoc,
   HOCTimers
 )(FeedbackContainer)

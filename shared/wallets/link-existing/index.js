@@ -171,7 +171,7 @@ const EnterKey = (props: EnterKeyProps) => (
 type EnterNameProps = {
   error: string,
   name: string,
-  onBack: () => void,
+  onBack: ?() => void,
   onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,
@@ -334,5 +334,5 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export {Wrapper}
+export {EnterName, Wrapper}
 export default LinkWallet

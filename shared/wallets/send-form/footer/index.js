@@ -13,9 +13,11 @@ type Props = {
 
 const Footer = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.background}>
-    <Kb.Text style={styles.worthDescription} type="BodySmall">
-      {props.worthDescription}
-    </Kb.Text>
+    {!!props.worthDescription && (
+      <Kb.Text style={styles.worthDescription} type="BodySmall">
+        This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>
+      </Kb.Text>
+    )}
     <Kb.Box2 direction="horizontal" style={styles.buttonBox} fullWidth={true}>
       {!!props.onClickRequest && (
         <Kb.Button

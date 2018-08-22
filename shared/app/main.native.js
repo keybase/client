@@ -67,5 +67,5 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
 
-const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Main)
+const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
 export default Connected

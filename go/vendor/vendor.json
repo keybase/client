@@ -206,8 +206,8 @@
 		{
 			"checksumSHA1": "cYBWzzaRbkBI848bMlYapMC4+Cs=",
 			"path": "github.com/keybase/go-codec/codec",
-			"revision": "109532272978615a09285fb7bd1c0c7ac6be9ac5",
-			"revisionTime": "2018-06-07T22:35:17Z"
+			"revision": "1cf5262595f30a38e4c594385d275b83653a6a89",
+			"revisionTime": "2018-08-20T23:03:36Z"
 		},
 		{
 			"checksumSHA1": "VJk3rOWfxEV9Ilig5lgzH1qg8Ss=",
@@ -856,13 +856,13 @@
 			"revisionTime": "2018-08-07T10:09:57Z"
 		},
 		{
-			"checksumSHA1": "2Fk4509KezbD/X96/xobUPzXDec=",
+			"checksumSHA1": "IuPfwRNASnJMU++sVAnIgkznc/g=",
 			"path": "golang.org/x/mobile/cmd/gomobile",
 			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
 			"revisionTime": "2018-08-07T10:09:57Z"
 		},
 		{
-			"checksumSHA1": "CdVS11W0V70Majqzd9x0r8DTDHY=",
+			"checksumSHA1": "FsQ17s1p6fWu0CSAfj+vN/l/kTU=",
 			"path": "golang.org/x/mobile/internal/binres",
 			"revision": "bceb7ef27cc623473a5b664d2a3450576dddff0f",
 			"revisionTime": "2018-08-07T10:09:57Z"
