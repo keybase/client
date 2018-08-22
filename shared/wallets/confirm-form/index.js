@@ -5,9 +5,8 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants from './participants'
+import Participants from './participants/container'
 import NoteAndMemo from './note-and-memo'
-import type {CounterpartyType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -22,15 +21,6 @@ type ConfirmSendProps = {|
   bannerBackground?: Background,
   bannerText?: string,
   waitingKey?: string,
-  yourUsername: string,
-  yourAccountName: string,
-  yourAccountContents: string,
-  recipientUsername?: string,
-  recipientFullName?: string,
-  recipientStellarAddress?: string,
-  recipientAccountName?: string,
-  recipientAccountContents?: string,
-  recipientType: CounterpartyType,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -45,17 +35,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Kb.ScrollView style={styles.scrollView}>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
-        <Participants
-          yourUsername={props.yourUsername}
-          recipientType={props.recipientType}
-          fromAccountName={props.yourAccountName}
-          fromAccountContents={props.yourAccountContents}
-          recipientUsername={props.recipientUsername}
-          recipientFullName={props.recipientFullName}
-          recipientStellarAddress={props.recipientStellarAddress}
-          recipientAccountName={props.recipientAccountName}
-          recipientAccountContents={props.recipientAccountContents}
-        />
+        <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
         )}

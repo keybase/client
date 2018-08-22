@@ -1,16 +1,30 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
-import Row from '../participants-row'
-import WalletEntry from '../wallet-entry'
-import type {CounterpartyType} from '../../constants/types/wallets'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
+import Row from '../../participants-row'
+import WalletEntry from '../../wallet-entry'
+import type {CounterpartyType} from '../../../constants/types/wallets'
 
 export type Account = {|
   name: string,
   user: string,
   contents: string,
 |}
+
+/*
+
+  yourUsername: string,
+  yourAccountName: string,
+  yourAccountContents: string,
+  recipientUsername: ?string,
+  recipientFullName: ?string,
+  recipientStellarAddress: ?string,
+  recipientAccountName: ?string,
+  recipientAccountContents: ?string,
+  recipientType: CounterpartyType,
+
+*/
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,

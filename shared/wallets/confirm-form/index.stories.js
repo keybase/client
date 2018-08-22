@@ -8,12 +8,16 @@ import ConfirmSend from '.'
 // good level of connected granularity while implementing
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
-  // TODO mock out meaningful values once type `OwnProps` is defined
-  Available: props => ({}),
-  Body: props => ({}),
-  Footer: props => ({}),
-  Header: props => ({}),
-  Participants: props => ({}),
+  Participants: props => ({
+    yourAccountName: "cecileb's account",
+    yourAccountContents: '280.0871234 XLM',
+    recipientUsername: 'nathunsmitty',
+    recipientFullName: 'Nathan Smith',
+    recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
+    recipientAccountName: 'Secondary Account',
+    recipientAccountContents: '534 XLM',
+    recipientType: 'keybaseUser',
+  }),
 })
 
 const confirmProps = {
@@ -24,15 +28,6 @@ const confirmProps = {
   onBack: Sb.action('onBack'),
   onSendClick: Sb.action('onSendClick'),
   waiting: false,
-  yourUsername: 'cecileb',
-  yourAccountName: "cecileb's account",
-  yourAccountContents: '280.0871234 XLM',
-  recipientUsername: 'nathunsmitty',
-  recipientFullName: 'Nathan Smith',
-  recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
-  recipientAccountName: 'Secondary Account',
-  recipientAccountContents: '534 XLM',
-  recipientType: 'keybaseUser',
 }
 
 const publicMemo = "Here's some lumens!"
@@ -49,8 +44,6 @@ const load = () => {
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
     .add('To User', () => <ConfirmSend {...confirmProps} />)
-    .add('To Other Account', () => <ConfirmSend {...confirmProps} recipientType="otherAccount" />)
-    .add('To Stellar Address', () => <ConfirmSend {...confirmProps} recipientType="stellarPublicKey" />)
     .add('Waiting', () => <ConfirmSend {...confirmProps} waiting={true} />)
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)
