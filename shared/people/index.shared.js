@@ -8,7 +8,7 @@ import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../styles'
 
-export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
+export const itemToComponent: (Types._PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
     case 'todo':
       return <Todo {...item} key={item.todoType} />

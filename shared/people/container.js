@@ -40,13 +40,14 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {
-    newItems: stateProps._newItems.toArray(),
-    oldItems: stateProps._oldItems.toArray(),
-    followSuggestions: stateProps.followSuggestions.toArray(),
+    newItems: stateProps._newItems.toJS(),
+    oldItems: stateProps._oldItems.toJS(),
+    followSuggestions: stateProps.followSuggestions.toJS(),
     myUsername: stateProps.myUsername,
     waiting: stateProps.waiting,
     ...dispatchProps,
   }
 }
 
+// $FlowIssue TODO don't use toJS above, you lose all types
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LoadOnMount)

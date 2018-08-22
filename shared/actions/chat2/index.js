@@ -971,32 +971,46 @@ const desktopNotify = (state: TypedState, action: Chat2Gen.DesktopNotificationPa
   const meta = Constants.getMeta(state, conversationIDKey)
 
   if (
-    !Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) &&
-    !meta.isMuted // ignore muted convos
+    Constants.isUserActivelyLookingAtThisThread(state, conversationIDKey) ||
+    meta.isMuted // ignore muted convos
   ) {
-    logger.info('Sending Chat notification')
-    let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
-    if (meta.teamType === 'big') {
-      title += `#${meta.channelname}`
-    }
-
-    return new Promise((resolve, reject) =>
-      NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, resolve, reject)
-    )
-      .then(() =>
-        Saga.sequentially([
-          Saga.put(
-            Chat2Gen.createSelectConversation({
-              conversationIDKey,
-              reason: 'desktopNotification',
-            })
-          ),
-          Saga.put(RouteTreeGen.createSwitchTo({path: [chatTab]})),
-          Saga.put(ConfigGen.createShowMain()),
-        ])
-      )
-      .catch(_ => {})
+    return
   }
+
+  logger.info('Sending Chat notification')
+  let title = ['small', 'big'].includes(meta.teamType) ? meta.teamname : author
+  if (meta.teamType === 'big') {
+    title += `#${meta.channelname}`
+  }
+
+  return Saga.call(function*() {
+    const actions = yield Saga.call(
+      () =>
+        new Promise(resolve => {
+          const onClick = () => {
+            resolve(
+              Saga.sequentially([
+                Saga.put(
+                  Chat2Gen.createSelectConversation({
+                    conversationIDKey,
+                    reason: 'desktopNotification',
+                  })
+                ),
+                Saga.put(RouteTreeGen.createSwitchTo({path: [chatTab]})),
+                Saga.put(ConfigGen.createShowMain()),
+              ])
+            )
+          }
+          const onClose = () => {
+            resolve()
+          }
+          NotifyPopup(title, {body, sound: state.config.notifySound}, -1, author, onClick, onClose)
+        })
+    )
+    if (actions) {
+      yield actions
+    }
+  })
 }
 
 // Delete a message. We cancel pending messages
@@ -2327,7 +2341,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       mobileChangeSelection
     )
   } else {
-    yield Saga.actionToPromise(Chat2Gen.desktopNotification, desktopNotify)
+    yield Saga.actionToAction(Chat2Gen.desktopNotification, desktopNotify)
   }
 
   // Sometimes change the selection
