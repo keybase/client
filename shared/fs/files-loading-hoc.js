@@ -41,7 +41,13 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<FilesLoadingHocProps> {
     _load = () => {
       const pathLevel = Types.getPathLevel(this.props.path)
-      pathLevel > 2 ? this.props.loadFolderList() : pathLevel === 2 && this.props.loadFavorites()
+      if (pathLevel < 2) {
+        return
+      }
+      pathLevel === 2 && this.props.loadFavorites()
+      // This is needed not only inside in a tlf, but also in tlf list, to get
+      // `writable` for tlf root.
+      this.props.loadFolderList()
     }
     componentDidMount() {
       this._load()

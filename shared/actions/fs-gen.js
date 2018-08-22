@@ -42,6 +42,7 @@ export const newFolderName = 'fs:newFolderName'
 export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
 export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
+export const openAndUpload = 'fs:openAndUpload'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -64,7 +65,6 @@ type _DiscardEditPayload = $ReadOnly<{|editID: Types.EditID|}>
 type _DismissDownloadPayload = $ReadOnly<{|key: string|}>
 type _DismissFsErrorPayload = $ReadOnly<{|key: string|}>
 type _DownloadPayload = $ReadOnly<{|
-  intent: Types.DownloadIntent,
   path: Types.Path,
   key: string,
 |}>
@@ -81,7 +81,10 @@ type _DownloadStartedPayload = $ReadOnly<{|
   intent: Types.DownloadIntent,
   opID: RPCTypes.OpID,
 |}>
-type _DownloadSuccessPayload = $ReadOnly<{|key: string|}>
+type _DownloadSuccessPayload = $ReadOnly<{|
+  key: string,
+  mimeType: string,
+|}>
 type _EditSuccessPayload = $ReadOnly<{|
   editID: Types.EditID,
   parentPath: Types.Path,
@@ -147,6 +150,10 @@ type _NewFolderNamePayload = $ReadOnly<{|
 type _NewFolderRowPayload = $ReadOnly<{|parentPath: Types.Path|}>
 type _NotifySyncActivityPayload = void
 type _NotifyTlfUpdatePayload = $ReadOnly<{|tlfPath: Types.Path|}>
+type _OpenAndUploadPayload = $ReadOnly<{|
+  type: Types.OpenDialogType,
+  parentPath: Types.Path,
+|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
@@ -154,14 +161,14 @@ type _OpenPathItemPayload = $ReadOnly<{|
 |}>
 type _OpenSecurityPreferencesPayload = void
 type _PickAndUploadPayload = $ReadOnly<{|
-  type: Types.OpenDialogType,
+  type: Types.MobilePickType,
   parentPath: Types.Path,
 |}>
 type _PlaceholderActionPayload = void
 type _RefreshLocalHTTPServerInfoPayload = void
 type _SaveMediaPayload = $ReadOnly<{|
   path: Types.Path,
-  routePath?: I.List<string>,
+  key: string,
 |}>
 type _SetFlagsPayload = $ReadOnly<{|
   kbfsOpening?: boolean,
@@ -174,7 +181,7 @@ type _SetFlagsPayload = $ReadOnly<{|
 |}>
 type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,
-  routePath?: I.List<string>,
+  key: string,
 |}>
 type _SortSettingPayload = $ReadOnly<{|
   path: Types.Path,
@@ -222,6 +229,7 @@ export const createNewFolderName = (payload: _NewFolderNamePayload) => ({error: 
 export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: false, payload, type: newFolderRow})
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({error: false, payload, type: notifySyncActivity})
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
+export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({error: false, payload, type: openAndUpload})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -271,6 +279,7 @@ export type NewFolderNamePayload = $Call<typeof createNewFolderName, _NewFolderN
 export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRowPayload>
 export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
 export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
+export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -322,6 +331,7 @@ export type Actions =
   | NewFolderRowPayload
   | NotifySyncActivityPayload
   | NotifyTlfUpdatePayload
+  | OpenAndUploadPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload

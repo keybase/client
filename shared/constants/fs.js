@@ -351,11 +351,16 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
 }
 
 const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
-export const createDownload = (d: {path: Types.Path, intent: Types.DownloadIntent}) =>
-  FsGen.createDownload({
-    ...d,
-    key: makeDownloadKey(d.path),
-  })
+export const createDownload = (d: {path: Types.Path}) =>
+  FsGen.createDownload({...d, key: makeDownloadKey(d.path)})
+export const createShareNative = (d: {path: Types.Path}) =>
+  FsGen.createShareNative({...d, key: makeDownloadKey(d.path)})
+export const createSaveMedia = (d: {path: Types.Path}) =>
+  FsGen.createSaveMedia({...d, key: makeDownloadKey(d.path)})
+export const getDownloadIntentFromAction = (
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+): Types.DownloadIntent =>
+  action.type === FsGen.download ? 'none' : action.type === FsGen.shareNative ? 'share' : 'camera-roll'
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -676,7 +681,9 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
     case FsGen.download:
-      return `Failed to download for ${action.payload.intent}: ${Types.getPathName(action.payload.path)}.`
+      return `Failed to download for ${getDownloadIntentFromAction(action)}: ${Types.getPathName(
+        action.payload.path
+      )}.`
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
     case FsGen.notifySyncActivity:

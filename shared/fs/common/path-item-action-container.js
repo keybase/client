@@ -30,8 +30,8 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   ...(isMobile
     ? {
-        _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
-        _shareNative: () => dispatch(FsGen.createShareNative({path})),
+        _saveMedia: () => dispatch(Constants.createSaveMedia({path})),
+        _shareNative: () => dispatch(Constants.createShareNative({path})),
       }
     : {
         _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
