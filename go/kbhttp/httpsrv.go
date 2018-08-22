@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/gregor/base/log"
 )
 
 // ListenerSource represents where an HTTP server should listen.
@@ -115,7 +114,7 @@ func (h *HTTPSrv) Start() (err error) {
 	h.Lock()
 	defer h.Unlock()
 	if h.active {
-		log.Debug("HTTPSrv: already running, not starting again")
+		h.log.Debug("HTTPSrv: already running, not starting again")
 		// Just bail out of this if we are already running
 		return errHTTPServerAlreadyRunning
 	}
