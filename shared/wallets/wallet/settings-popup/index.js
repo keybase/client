@@ -1,27 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import {
-  Avatar,
-  Box2,
-  ClickableBox,
-  Dropdown,
-  Icon,
-  iconCastPlatformStyles,
-  Text,
-  avatarCastPlatformStyles,
-} from '../../../common-adapters'
-import {
-  collapseStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 
-type Props = {
+export type SettingsPopupProps = {
   accountID: Types.AccountID,
   name: string,
   user: string,
@@ -35,65 +19,72 @@ type Props = {
   refresh: () => void,
 }
 
-const makeDropdownItems = (props: Props) => {
+const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
-    <Box2 centerChildren={true} direction="vertical" key="_header">
-      <Text type="BodySmall" style={styles.dropdownHeader}>
+    <Kb.Box2 centerChildren={true} direction="vertical" key="_header">
+      <Kb.Text type="BodySmall" style={styles.dropdownHeader}>
         Past transactions won't be affected by this change.
-      </Text>
-    </Box2>,
+      </Kb.Text>
+    </Kb.Box2>,
   ]
   // spread the List into an array with [...]
-  return items.concat([...props.currencies].map(s => makeDropdownItem(s, s.code === props.currency.code)))
+  return items.concat([...currencies].map(s => makeDropdownItem(s, s.code === currency.code)))
 }
 
 const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
-  <Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
-    <Text type="Header" style={collapseStyles([styles.centerText, isSelected && styles.itemSelected])}>
+  <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
+    <Kb.Text
+      type="Header"
+      style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
+    >
       {item.description}
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const SettingsPopup = (props: Props) => {
+const SettingsPopup = (props: SettingsPopupProps) => {
   return (
-    <Box2 direction="vertical" style={styles.settingsPage}>
-      <Box2 centerChildren={true} direction="vertical">
-        <Text style={styles.smallPadding} type="Header">
+    <Kb.Box2 direction="vertical" style={styles.settingsPage}>
+      <Kb.Box2 centerChildren={true} direction="vertical">
+        <Kb.Text style={styles.smallPadding} type="Header">
           Settings
-        </Text>
-      </Box2>
-      <Text type="BodySmallSemibold">Account name</Text>
-      <ClickableBox style={styles.nameBox}>
-        <Text type="BodySemibold">{props.name}</Text>
-        <Icon style={iconCastPlatformStyles(styles.icon)} type="iconfont-edit" onClick={props.onEditName} />
-      </ClickableBox>
-      <Text type="BodySmallSemibold">Identity</Text>
-      <Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
-        <Avatar
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
+      <Kb.ClickableBox style={styles.nameBox}>
+        <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
+        <Kb.Icon
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+          type="iconfont-edit"
+          onClick={props.onEditName}
+        />
+      </Kb.ClickableBox>
+      <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
+        <Kb.Avatar
           size={32}
-          style={avatarCastPlatformStyles(styles.avatar)}
+          style={Kb.avatarCastPlatformStyles(styles.avatar)}
           username={props.isDefault ? props.user : ''}
         />
-        <Box2 direction="vertical">
-          <Text type="Header">
+        <Kb.Box2 direction="vertical">
+          <Kb.Text type="Header">
             {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
-          </Text>
-          <Text type="BodySmall">
+          </Kb.Text>
+          <Kb.Text type="BodySmall">
             {props.isDefault
               ? 'All transactions and overall activity are tied to your Keybase identity.'
               : 'Transactions will be tied to your Stellar public address only.'}
-          </Text>
+          </Kb.Text>
           {!props.isDefault && (
-            <Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
+            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
               Set as default Keybase account
-            </Text>
+            </Kb.Text>
           )}
-        </Box2>
-      </Box2>
-      <Text type="BodySmallSemibold">Display currency</Text>
-      <Dropdown
-        items={makeDropdownItems(props)}
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
+      <Kb.Dropdown
+        items={makeDropdownItems(props.currencies, props.currency)}
         selected={makeDropdownItem(props.currency, false)}
         onChanged={(node: React.Node) => {
           // $ForceType doesn't understand key will be string
@@ -104,41 +95,41 @@ const SettingsPopup = (props: Props) => {
         }}
         style={styles.dropdown}
       />
-      <Text type="BodySmall">The display currency appears:</Text>
-      <Text type="BodySmall">- near your Lumens balance</Text>
-      <Text type="BodySmall">- when sending or receiving Lumens</Text>
-      <ClickableBox style={styles.remove} onClick={props.onDelete}>
-        <Icon
+      <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
+      <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
+      <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
+      <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
+        <Kb.Icon
           type="iconfont-trash"
-          style={collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-          color={globalColors.red}
+          style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
+          color={Styles.globalColors.red}
         />
-        <Text
+        <Kb.Text
           type="BodySemibold"
-          style={collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+          style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
           className="hover-underline"
         >
           Remove account
-        </Text>
-      </ClickableBox>
+        </Kb.Text>
+      </Kb.ClickableBox>
       {props.isDefault && (
-        <Text style={styles.centerText} type="BodySmall">
+        <Kb.Text style={styles.centerText} type="BodySmall">
           You can’t remove your default account.
-        </Text>
+        </Kb.Text>
       )}
-    </Box2>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   accountBox: {
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
   },
   avatar: {
-    marginRight: globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xtiny,
   },
   deleteBox: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -147,37 +138,37 @@ const styles = styleSheetCreate({
   },
   dropdownHeader: {
     textAlign: 'center',
-    padding: globalMargins.xsmall,
+    padding: Styles.globalMargins.xsmall,
   },
   centerText: {
     textAlign: 'center',
   },
   itemSelected: {
-    color: globalColors.blue,
+    color: Styles.globalColors.blue,
   },
   icon: {
-    marginLeft: globalMargins.xtiny,
+    marginLeft: Styles.globalMargins.xtiny,
   },
   nameBox: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'stretch',
     justifyContent: 'flex-start',
-    marginBottom: globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
   },
   red: {
-    color: globalColors.red,
+    color: Styles.globalColors.red,
   },
   rightMargin: {
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
-  settingsPage: platformStyles({
+  settingsPage: Styles.platformStyles({
     common: {
-      backgroundColor: globalColors.white,
-      padding: globalMargins.small,
+      backgroundColor: Styles.globalColors.white,
+      padding: Styles.globalMargins.small,
       maxWidth: 560,
     },
     isMobile: {
-      paddingTop: globalMargins.xlarge,
+      paddingTop: Styles.globalMargins.xlarge,
     },
     isElectron: {
       marginBottom: 40,
@@ -187,18 +178,17 @@ const styles = styleSheetCreate({
     },
   }),
   smallPadding: {
-    padding: globalMargins.small,
+    padding: Styles.globalMargins.small,
   },
   dropdown: {
     alignItems: 'center',
   },
   remove: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
 })
 
-export type {Props}
-export {SettingsPopup}
+export default SettingsPopup

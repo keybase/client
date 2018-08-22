@@ -1,5 +1,5 @@
 // @flow
-import {SettingsPopup, type Props} from '.'
+import SettingsPopup, {type SettingsPopupProps} from '.'
 import {
   compose,
   connect,
@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
+const mergeProps = (stateProps, dispatchProps, ownProps): SettingsPopupProps => ({
   ...stateProps,
   refresh: () => dispatchProps._refresh(),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
