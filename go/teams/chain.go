@@ -1603,31 +1603,22 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 func (t *teamSigchainPlayer) roleUpdateChangedHighSet(prevState *TeamSigChainState, roleUpdates chainRoleUpdates) (bool, error) {
 	// The high set of users can be changed by promotion to Admin/Owner or
-	// demotion from Admin/Owner.
+	// demotion from Admin/Owner or any movement between those two roles.
 	for newRole, uvs := range roleUpdates {
 		if newRole.IsAdminOrAbove() {
-			// were any of these users previously NOT an admin or above
-			for _, uv := range uvs {
-				prevRole, err := prevState.GetUserRole(uv)
-				if err != nil {
-					return false, err
-				}
-				if !prevRole.IsAdminOrAbove() {
-					return true, nil
-				}
+			return true, nil
+		}
+		// were any of these users previously an admin or above
+		for _, uv := range uvs {
+			prevRole, err := prevState.GetUserRole(uv)
+			if err != nil {
+				return false, err
 			}
-		} else {
-			// were any of these users previously an admin or above
-			for _, uv := range uvs {
-				prevRole, err := prevState.GetUserRole(uv)
-				if err != nil {
-					return false, err
-				}
-				if prevRole.IsAdminOrAbove() {
-					return true, nil
-				}
+			if prevRole.IsAdminOrAbove() {
+				return true, nil
 			}
 		}
+
 	}
 	return false, nil
 }
