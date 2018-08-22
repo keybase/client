@@ -309,8 +309,10 @@ protocol local {
     KeybaseTransactionID fundingKbTxID;
     RequestStatus status;
   }
-  RequestDetailsLocal getRequestDetailsLocal(KeybaseRequestID reqID);
-  void cancelRequestLocal(KeybaseRequestID reqID);
+  RequestDetailsLocal getRequestDetailsLocal(int sessionID, KeybaseRequestID reqID);
+  void cancelRequestLocal(int sessionID, KeybaseRequestID reqID);
+  KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset, 
+    union { null, OutsideCurrencyCode } currency, string amount, string note);
 
   // -------------------------------------------------------
   // CLI protocol
