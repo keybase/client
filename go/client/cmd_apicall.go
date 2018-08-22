@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/keybase/cli"
@@ -40,12 +41,15 @@ type CmdAPICall struct {
 	appStatuses  []int
 	JSONPayload  []keybase1.StringKVPair
 
+	parsedHost string
+
 	libkb.Contextified
 }
 
 func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "apicall",
+		Name: "apicall",
+		// No "Usage" field makes it hidden in command list.
 		ArgumentHelp: "<endpoint>",
 		Description:  "Send a request to the API Server",
 		Action: func(c *cli.Context) {
@@ -77,11 +81,22 @@ func NewCmdAPICall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Specify an acceptable app status code",
 				Value: &cli.IntSlice{},
 			},
+			cli.BoolFlag{
+				Name:  "url",
+				Usage: "Pass full keybase.io URL with query parameters instead of an endpoint.",
+			},
 		},
 	}
 }
 
 func (c *CmdAPICall) Run() error {
+	if c.parsedHost != "" {
+		if !strings.EqualFold(c.parsedHost, c.G().Env.GetServerURI()) {
+			return fmt.Errorf("Unexpected host in URL mode: %s. This only works for Keybase API.", c.parsedHost)
+		}
+		c.G().Log.Info("Parsed URL as endpoint: %q, args: %+v", c.endpoint, c.args)
+	}
+
 	dui := c.G().UI.GetDumbOutputUI()
 	cli, err := GetAPIServerClient(c.G())
 	if err != nil {
@@ -92,7 +107,7 @@ func (c *CmdAPICall) Run() error {
 	switch c.method {
 	case GET:
 		arg := c.formGetArg()
-		res, err = cli.Get(context.TODO(), arg)
+		res, err = cli.GetWithSession(context.TODO(), arg)
 		if err != nil {
 			return err
 		}
@@ -110,11 +125,11 @@ func (c *CmdAPICall) Run() error {
 		}
 	}
 
-	dui.Printf(res.Body)
+	dui.Printf("%s", res.Body)
 	return nil
 }
 
-func (c *CmdAPICall) formGetArg() (res keybase1.GetArg) {
+func (c *CmdAPICall) formGetArg() (res keybase1.GetWithSessionArg) {
 	res.Endpoint = c.endpoint
 	res.Args = c.args
 	res.HttpStatus = c.httpStatuses
@@ -219,6 +234,51 @@ func (c *CmdAPICall) ParseArgv(ctx *cli.Context) error {
 		}
 	}
 
+	if ctx.Bool("url") {
+		if len(args) != 0 {
+			return fmt.Errorf("--url flag and --arg argument are incompatible")
+		}
+		if c.method == POST {
+			return fmt.Errorf("--url flag is incompatible with POST")
+		}
+		if payload != "" {
+			return fmt.Errorf("--url flag and --json-payload argument are incompatible")
+		}
+		return c.parseEndpointAsURL(ctx)
+	}
+
+	return nil
+}
+
+func (c *CmdAPICall) parseEndpointAsURL(ctx *cli.Context) error {
+	const apiPath string = "/_/api/1.0/"
+
+	u, err := url.Parse(c.endpoint)
+	if err != nil {
+		return err
+	}
+	values, err := url.ParseQuery(u.RawQuery)
+	if err != nil {
+		return err
+	}
+	// Check host later. During ParseArgv, the environment is not
+	// necessarily completely set.
+	c.parsedHost = fmt.Sprintf("%s://%s", u.Scheme, u.Host)
+	// Allow use of 'keybase.io' out of convenience and make it
+	// equivalent to production URI.
+	if strings.EqualFold(c.parsedHost, "https://keybase.io") {
+		c.parsedHost = libkb.ProductionServerURI
+	}
+	if !strings.HasPrefix(u.Path, apiPath) {
+		return fmt.Errorf("URL path has to be API path: %s", apiPath)
+	}
+	c.endpoint = strings.TrimPrefix(u.Path, apiPath)
+	c.endpoint = strings.TrimSuffix(c.endpoint, ".json")
+	for k, vals := range values {
+		for _, v := range vals {
+			c.addArgument(keybase1.StringKVPair{Key: k, Value: v})
+		}
+	}
 	return nil
 }
 
