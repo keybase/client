@@ -30,10 +30,22 @@ const accounts = [
 ]
 
 const defaultProps = {
+  // Account -> Account transactions
   fromAccount: primaryAccount,
   allAccounts: accounts,
+  onChangeFromAccount: Sb.action('onChangeFromAccount'),
+  onChangeToAccount: Sb.action('onChangeToAccount'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
+  // Stellar address
+  onChangeAddress: Sb.action('onChangeAddress'),
+}
+
+const foundUsernameProps = {
+  recipientUsername: 'yen',
+  recipientFullName: 'Addie Stokes',
+  onShowProfile: Sb.action('onShowProfile'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
 }
 
 const load = () => {
@@ -56,14 +68,7 @@ const load = () => {
       />
     ))
     .add('User match', () => (
-      <Participants
-        {...defaultProps}
-        recipientType="keybaseUser"
-        recipientUsername="yen"
-        recipientFullName="Addie Stokes"
-        onShowProfile={Sb.action('onShowProfile')}
-        onRemoveProfile={Sb.action('onRemoveProfile')}
-      />
+      <Participants {...defaultProps} {...foundUsernameProps} recipientType="keybaseUser" />
     ))
 }
 

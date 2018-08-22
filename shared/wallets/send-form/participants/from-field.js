@@ -8,6 +8,7 @@ import type {Account} from '.'
 type FromFieldProps = {|
   initialAccount: Account,
   accounts: Account[],
+  onChangeSelectedAccount: (accountName: string) => void,
 |}
 
 type FromFieldState = {|

@@ -12,9 +12,9 @@ type ToFieldProps = {|
   /* Used for send to stellar address */
   incorrect?: string,
   onChangeAddress?: string => void,
-  stellarAddress?: string,
   /** Used for sending from account to account */
   accounts: Account[],
+  onChangeSelectedAccount: (accountName: string) => void,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
   /* Used to display a keybase profile */
@@ -25,12 +25,12 @@ type ToFieldProps = {|
 |}
 
 type ToFieldState = {|
-  selectedAccount?: Account,
+  selectedAccount: ?Account,
 |}
 
 class ToField extends React.Component<ToFieldProps, ToFieldState> {
   state = {
-    selectedAccount: undefined,
+    selectedAccount: null,
   }
 
   onDropdownChange = (node: React.Node) => {
@@ -43,10 +43,9 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
           this.props.onLinkAccount()
         }
-      } else {
-        this.setState({
-          selectedAccount: element.props.account,
-        })
+      } else if (this.props.onChangeSelectedAccount) {
+        this.setState({selectedAccount: element.props.account})
+        this.props.onChangeSelectedAccount(element.props.account.name)
       }
     }
   }
@@ -155,7 +154,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             : {}
         }
         dividerColor={this.props.incorrect ? Styles.globalColors.red : ''}
-        bottomDivider={false}
+        bottomDivider={!!this.props.incorrect && this.props.recipientType === 'stellarPublicKey'}
       >
         {component}
       </Row>
