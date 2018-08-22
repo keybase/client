@@ -18,7 +18,7 @@ import (
 type NormalizedUsername = kbun.NormalizedUsername
 
 func NewNormalizedUsername(s string) NormalizedUsername {
-	return kbun.NormalizedUsername(s)
+	return kbun.NewNormalizedUsername(s)
 }
 
 //==================================================================
