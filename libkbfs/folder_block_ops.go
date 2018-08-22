@@ -2956,8 +2956,12 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 	numNodesFoundSoFar int) (int, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
-	dirBlock, _, err := fbo.getDirLocked(
-		ctx, lState, kmd, currDir.tailPointer(), currDir, blockRead)
+	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
+	if err != nil {
+		return 0, err
+	}
+	dd := fbo.newDirData(lState, currDir, chargedTo, kmd)
+	entries, err := dd.getEntries(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -2977,7 +2981,7 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 	}
 
 	numNodesFound := 0
-	for name, de := range dirBlock.Children {
+	for name, de := range entries {
 		if _, ok := nodeMap[de.BlockPointer]; ok {
 			childPath := currDir.ChildPath(name, de.BlockPointer)
 			// make a node for every pathnode
@@ -3299,8 +3303,13 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 	kmd KeyMetadataWithRootDirEntry) (
 	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.AssertLocked(lState)
-	dirBlock, _, err := fbo.getDirLocked(
-		ctx, lState, kmd, currDir.tailPointer(), currDir, blockRead)
+
+	chargedTo, err := fbo.getChargedToLocked(ctx, lState, kmd)
+	if err != nil {
+		return nil, nil, err
+	}
+	dd := fbo.newDirData(lState, currDir, chargedTo, kmd)
+	entries, err := dd.getEntries(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -3309,7 +3318,7 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 
 	// TODO: parallelize me?
 	for child := range children[prefix] {
-		entry, ok := dirBlock.Children[child.Name]
+		entry, ok := entries[child.Name]
 		if !ok {
 			fbo.unlinkDuringFastForwardLocked(
 				ctx, lState, kmd, child.BlockPointer.Ref())
