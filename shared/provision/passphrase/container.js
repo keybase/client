@@ -73,4 +73,4 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
     dispatch(ProvisionGen.createSubmitPassphrase({passphrase: new HiddenString(passphrase)})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(_Passphrase)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(_Passphrase)

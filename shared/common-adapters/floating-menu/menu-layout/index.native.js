@@ -1,7 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import {TouchableOpacity} from 'react-native'
-import {Box, Text} from '../..'
+import Box from '../../box'
+import Text from '../../text'
 import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
 import {isIPhoneX} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'

@@ -9,7 +9,6 @@ import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {refreshRouteDef, setInitialRouteDef} from '../actions/route-tree'
-import {setup as setupLocalDebug} from '../local-debug'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
@@ -42,7 +41,6 @@ class Keybase extends Component<any> {
       if (__DEV__) {
         global.DEBUGStore = this.store
       }
-      setupLocalDebug(this.store)
       this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
 
