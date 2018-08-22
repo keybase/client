@@ -32,6 +32,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
@@ -5362,6 +5363,67 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, res)
+}
+
+func TestChatSrvStellarMessages(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+				return
+			}
+
+			ctc := makeChatTestContext(t, "PostLocalNonblock", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+
+			tc := ctc.as(t, users[0])
+			listener := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
+			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+
+			t.Logf("send a request message")
+			body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
+				RequestID: stellar1.KeybaseRequestID("dummy id"),
+				Note:      "Test note",
+			})
+
+			if ephemeralLifetime != nil {
+				_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
+				require.Error(t, err)
+				return
+			}
+
+			_, err := postLocalForTestNoAdvanceClock(t, ctc, users[0], created, body)
+			require.NoError(t, err)
+
+			var unboxed chat1.UIMessage
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_REQUESTPAYMENT)
+
+			t.Logf("delete the message")
+			darg := chat1.PostDeleteNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
+			require.NoError(t, err)
+			_ = res
+		})
+	})
 }
 
 func randSweepChannel() uint64 {
