@@ -5377,10 +5377,12 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			defer ctc.cleanup()
 			users := ctc.users()
 
-			tc := ctc.as(t, users[0])
+			uid := users[0].User.GetUID().ToBytes()
+			tc := ctc.world.Tcs[users[0].Username]
+			ctx := ctc.as(t, users[0]).startCtx
 			listener := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
-			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+			tc.ChatG.Syncer.(*Syncer).isConnected = true
 
 			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 				mt, ctc.as(t, users[1]).user())
@@ -5411,6 +5413,12 @@ func TestChatSrvStellarMessages(t *testing.T) {
 			}
 			consumeNewMsgLocal(t, listener, chat1.MessageType_REQUESTPAYMENT)
 
+			tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_REQUESTPAYMENT, tv.Messages[0].GetMessageType())
+
 			t.Logf("delete the message")
 			darg := chat1.PostDeleteNonblockArg{
 				ConversationID:   created.Id,
@@ -5419,7 +5427,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				Supersedes:       unboxed.GetMessageID(),
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			}
-			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(tc.startCtx, darg)
+			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(ctx, darg)
 			require.NoError(t, err)
 			select {
 			case info := <-listener.newMessageRemote:
@@ -5432,6 +5440,15 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				require.Fail(t, "no event (DELETE) received")
 			}
 			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+
+			tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_DELETE, tv.Messages[0].GetMessageType())
+			for _, msg := range tv.Messages {
+				require.NotEqual(t, chat1.MessageType_REQUESTPAYMENT, msg.GetMessageType())
+			}
 		})
 	})
 }
