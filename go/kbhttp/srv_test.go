@@ -13,10 +13,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestHTTPSrv(t *testing.T) {
+func TestSrv(t *testing.T) {
 	test := func(s ListenerSource) {
 		log := logger.NewTestLogger(t)
-		srv := NewHTTPSrv(log, s)
+		srv := NewSrv(log, s)
 		require.NoError(t, srv.Start())
 		srv.HandleFunc("/test", func(resp http.ResponseWriter, req *http.Request) {
 			fmt.Fprintf(resp, "success")

@@ -36,7 +36,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
-	httpSrv         *kbhttp.HTTPSrv
+	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
@@ -52,7 +52,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         kbhttp.NewHTTPSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000)),
+		httpSrv:         kbhttp.NewSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
 		ri:              ri,
