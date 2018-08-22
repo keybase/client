@@ -31,6 +31,7 @@ const paths = {
 const fontHeight = 1024
 const descentFraction = 16 // Source: https://icomoon.io/#docs/font-metrics
 const descent = fontHeight / descentFraction
+const ascent = fontHeight - descent
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
@@ -48,7 +49,7 @@ const mapPaths = shouldPrintSkipped => path => {
   }
 
   const score = Number(counter)
-  return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
+  return !isNaN(score) ? {filename: path, counter: score, name, size} : null
 }
 const getSvgNames = shouldPrintSkipped =>
   fs
@@ -58,7 +59,7 @@ const getSvgNames = shouldPrintSkipped =>
     .sort((x, y) => x.counter - y.counter)
 
 const getSvgPaths = shouldPrintSkipped =>
-  getSvgNames(shouldPrintSkipped).map(i => path.resolve(paths.iconfont, i.filePath))
+  getSvgNames(shouldPrintSkipped).map(i => path.resolve(paths.iconfont, i.filename))
 
 /*
  * This function will read all of the SVG files specified above, and generate a
@@ -229,24 +230,21 @@ function updateConstants() {
  *
  */
 const setFontMetrics = () => {
-  /*
-   * Arguments:
-   * $1: path to kb.ttf
-   * $2: ascent value
-   * $3: descent value
-   */
   const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
+  const names = getSvgNames(false)
+    .map(({filename}) => `'${filename.replace('.svg', '')}'`)
+    .join(', ')
   let script = `
   Open('${kbTtf}');
-  SetOS2Value('WinAscent', ${fontHeight - descent + 2});
-  SetOS2Value('WinDescent', ${descent * 2 + 20});
-  SetOS2Value('TypoAscent', ${fontHeight - descent});
+  SelectAll();
+  Move(0, -${descent});
+  SetGasp(65535, 1  SetOS2Value('WinAscent', ${ascent});
+  SetOS2Value('WinDescent', ${descent});
+  SetOS2Value('TypoAscent', ${ascent});
+  SetOS2Value('TypoDescent', ${0});
   SetOS2Value('TypoLineGap', ${0});
-  SetOS2Value('TypoDescent', ${-descent});
-  SetOS2Value('HHeadAscent', ${fontHeight - descent + 2});
-  SetOS2Value('HHeadDescent', ${-(descent * 2 + 20)});
-  SetGasp(65535, 3);
-  ScaleToEm(${fontHeight - descent}, ${descent});
+  SetOS2Value('HHeadAscent', ${ascent});
+  SetOS2Value('HHeadDescent', ${-descent});5);
   Generate('${kbTtf}');
   `
   script = script
@@ -257,7 +255,7 @@ const setFontMetrics = () => {
   try {
     execSync(command, {encoding: 'utf8', env: process.env})
   } catch (e) {
-    console.error(e)
+    // console.error(e)
   }
 }
 
