@@ -65,6 +65,9 @@ yarn run rn-gobuild-ios
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
+# Start React Native packager (do NOT use the one spawned by xcode)
+yarn rn-start ios
+
 # Open workspace (not xcodeproj)
 open react-native/ios/Keybase.xcworkspace
 ```
@@ -189,7 +192,7 @@ yarn rn-gobuild-android
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
-# Start the react native publisher (unlike on iOS, have to do this manually).
+# Start the react native packager
 yarn rn-start android
 ```
 

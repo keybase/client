@@ -10,7 +10,7 @@ let isReactNative = process.env.BABEL_ENV === 'RN'
 module.exports = function(api /*: Api */) {
   api.cache(true)
 
-  console.error('babel.config.js config for ', isReactNative ? 'React Native' : 'Electron')
+  console.error('\nbabel.config.js config for ', isReactNative ? 'React Native' : 'Electron')
 
   if (isReactNative) {
     console.error('Babel for RN')

@@ -882,7 +882,6 @@
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
-				DB229EE81BF697160081901A /* Bundle React Native code and images */,
 				A90CD56F1FD70F7E00F97901 /* Embed Frameworks */,
 			);
 			buildRules = (
@@ -1415,20 +1414,6 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Keybase For Tests/Pods-Keybase For Tests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
-		};
-		DB229EE81BF697160081901A /* Bundle React Native code and images */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Bundle React Native code and images";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# uncomment this if you want to skip bundling\n# export SKIP_BUNDLING=1\n../../node_modules/react-native/scripts/react-native-xcode.sh";
 		};
 		DB75391E1D776CC400AFA61B /* Bundle React Native code and images */ = {
 			isa = PBXShellScriptBuildPhase;
