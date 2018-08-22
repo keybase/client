@@ -65,6 +65,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
+    isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,

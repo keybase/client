@@ -27,6 +27,7 @@ export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
+  isRevoked: boolean,
   ordinal: Types.Ordinal,
   measure: null | (() => void),
   message: Types.Message,
@@ -111,6 +112,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 !!props.decorate && (
                   <MenuButtons
                     conversationIDKey={props.conversationIDKey}
+                    isRevoked={props.isRevoked}
                     message={props.message}
                     ordinal={props.ordinal}
                     setAttachmentRef={props.setAttachmentRef}
@@ -139,6 +141,7 @@ const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
+  isRevoked: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
   setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
@@ -147,6 +150,7 @@ type MenuButtonsProps = {
 }
 const MenuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
+    {props.isRevoked && <Icon type="iconfont-exclamation" color={globalColors.blue} fontSize={14} />}
     {!isMobile && (
       <Box className="menu-button" style={styles.menuButtons}>
         <ReactButton
