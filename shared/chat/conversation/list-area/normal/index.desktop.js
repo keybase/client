@@ -210,7 +210,7 @@ class Thread extends React.PureComponent<Props, State> {
     />
   )
 
-  _onCopyCapture(e) {
+  _onCopyCapture = e => {
     // Copy text only, not HTML/styling.
     e.preventDefault()
     this.props.copyToClipboard(window.getSelection().toString())

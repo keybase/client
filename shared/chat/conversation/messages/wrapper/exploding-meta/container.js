@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   explodesAt: stateProps.explodesAt,
   exploding: stateProps.exploding,
   messageKey: stateProps.messageKey,
-  onClick: dispatchProps.onClick,
+  onClick: ownProps.onClick,
   pending: stateProps.pending,
   style: ownProps.style,
 })

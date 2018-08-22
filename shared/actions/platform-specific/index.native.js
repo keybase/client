@@ -21,7 +21,7 @@ import {
   Clipboard,
 } from 'react-native'
 import {getPath} from '../../route-tree'
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 

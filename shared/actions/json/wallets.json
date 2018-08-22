@@ -33,6 +33,19 @@
       "ordinal?": "ChatTypes.Ordinal",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "createNewAccount": {
+      "_description": "Add a new wallet to your account",
+      "name": "string",
+    },
+    "createdNewAccount": {
+      "_description":
+        "The service responded with an error or that the create new account operation succeeded",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",

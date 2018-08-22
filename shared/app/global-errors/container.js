@@ -35,5 +35,5 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(GlobalError)
+const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(GlobalError)
 export default Connected

@@ -103,11 +103,26 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
+        createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
         secretKeyError: '',
         secretKeyValidationState: 'none',
       })
+    case WalletsGen.createdNewAccount:
+      return action.error
+        ? state.set('createNewAccountError', action.payload.error)
+        : state.merge({
+            accountName: '',
+            accountNameError: '',
+            accountNameValidationState: 'none',
+            createNewAccountError: '',
+            linkExistingAccountError: '',
+            secretKey: new HiddenString(''),
+            secretKeyError: '',
+            secretKeyValidationState: 'none',
+            selectedAccount: action.payload.accountID,
+          })
     case WalletsGen.linkedExistingAccount:
       return action.error
         ? state.set('linkExistingAccountError', action.payload.error)
@@ -115,6 +130,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountName: '',
             accountNameError: '',
             accountNameValidationState: 'none',
+            createNewAccountError: '',
             linkExistingAccountError: '',
             secretKey: new HiddenString(''),
             secretKeyError: '',
@@ -127,6 +143,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     // Saga only actions
     case WalletsGen.buildPayment:
     case WalletsGen.cancelRequest:
+    case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:

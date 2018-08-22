@@ -20,6 +20,8 @@ export const cancelRequest = 'wallets:cancelRequest'
 export const clearBuildingPayment = 'wallets:clearBuildingPayment'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearErrors = 'wallets:clearErrors'
+export const createNewAccount = 'wallets:createNewAccount'
+export const createdNewAccount = 'wallets:createdNewAccount'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
@@ -65,6 +67,12 @@ type _CancelRequestPayload = $ReadOnly<{|
 type _ClearBuildingPaymentPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void
+type _CreateNewAccountPayload = $ReadOnly<{|name: string|}>
+type _CreatedNewAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _CreatedNewAccountPayloadError = $ReadOnly<{|
+  name: string,
+  error: string,
+|}>
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|
   name: string,
@@ -130,6 +138,10 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
 |}>
 
 // Action Creators
+/**
+ * Add a new wallet to your account
+ */
+export const createCreateNewAccount = (payload: _CreateNewAccountPayload) => ({error: false, payload, type: createNewAccount})
 /**
  * Ask the service to validate an account name.
  */
@@ -244,6 +256,11 @@ export const createSentPayment = (payload: _SentPaymentPayload) => ({error: fals
 export const createValidatedAccountName = (payload: _ValidatedAccountNamePayload) => ({error: false, payload, type: validatedAccountName})
 export const createValidatedAccountNameError = (payload: _ValidatedAccountNamePayloadError) => ({error: true, payload, type: validatedAccountName})
 /**
+ * The service responded with an error or that the create new account operation succeeded
+ */
+export const createCreatedNewAccount = (payload: _CreatedNewAccountPayload) => ({error: false, payload, type: createdNewAccount})
+export const createCreatedNewAccountError = (payload: _CreatedNewAccountPayloadError) => ({error: true, payload, type: createdNewAccount})
+/**
  * The service responded with an error or that the link existing operation succeeded
  */
 export const createLinkedExistingAccount = (payload: _LinkedExistingAccountPayload) => ({error: false, payload, type: linkedExistingAccount})
@@ -287,6 +304,9 @@ export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequ
 export type ClearBuildingPaymentPayload = $Call<typeof createClearBuildingPayment, _ClearBuildingPaymentPayload>
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
+export type CreateNewAccountPayload = $Call<typeof createCreateNewAccount, _CreateNewAccountPayload>
+export type CreatedNewAccountPayload = $Call<typeof createCreatedNewAccount, _CreatedNewAccountPayload>
+export type CreatedNewAccountPayloadError = $Call<typeof createCreatedNewAccountError, _CreatedNewAccountPayloadError>
 export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _ExportSecretKeyPayload>
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
 export type LinkedExistingAccountPayload = $Call<typeof createLinkedExistingAccount, _LinkedExistingAccountPayload>
@@ -330,6 +350,9 @@ export type Actions =
   | ClearBuildingPaymentPayload
   | ClearBuiltPaymentPayload
   | ClearErrorsPayload
+  | CreateNewAccountPayload
+  | CreatedNewAccountPayload
+  | CreatedNewAccountPayloadError
   | ExportSecretKeyPayload
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload

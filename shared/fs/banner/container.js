@@ -13,6 +13,6 @@ const mapStateToProps = (state: TypedState, {path}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, () => ({}), (s, d, o) => ({...s, ...d, ...o})),
+  connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('Banner')
 )(Banner)
