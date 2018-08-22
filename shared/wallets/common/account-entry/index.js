@@ -12,6 +12,7 @@ type AccountEntryProps = {|
   showWalletIcon: boolean,
 |}
 
+/** A row display of an account, used by the participants components. */
 // TODO AccountEntry is mostly copied from WalletRow, with some row specific
 // properties removed. WalletRow could probably be a wrapper around AccountEntry.
 const AccountEntry = (props: AccountEntryProps) => {
