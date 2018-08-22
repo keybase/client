@@ -3,14 +3,25 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
+// lets not create cycles in flow, lets discuss how to fix this
+// import {type Actions} from '../../actions/fs-gen'
 
 export opaque type Path = ?string
 
 export type PathType = 'folder' | 'file' | 'symlink' | 'unknown'
 export type ProgressType = 'favorite' | 'pending' | 'loaded'
+
+// not naming Error because it has meaning in js.
+export type _FsError = {
+  time: number,
+  error: string,
+  erroredAction: any, // Actions,
+  retriableAction?: any, // Actions,
+}
+export type FsError = I.RecordOf<_FsError>
 
 export type Device = {
   type: Devices.DeviceType,
@@ -135,7 +146,7 @@ export type DownloadMeta = I.RecordOf<_DownloadMeta>
 export type _DownloadState = {
   completePortion: number,
   endEstimate?: number,
-  error?: string,
+  error?: FsError,
   isDone: boolean,
   startedAt: number,
 }
@@ -149,7 +160,7 @@ export type Download = I.RecordOf<_Download>
 
 export type _Uploads = {
   writingToJournal: I.Set<Path>,
-  errors: I.Map<Path, string>,
+  errors: I.Map<Path, FsError>,
 
   totalSyncingBytes: number,
   endEstimate?: number,
@@ -189,6 +200,7 @@ export type _State = {
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
+  errors: I.Map<string, FsError>,
 }
 export type State = I.RecordOf<_State>
 

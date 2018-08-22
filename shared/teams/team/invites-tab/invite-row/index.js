@@ -7,7 +7,7 @@ import {type TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   label: string, // email, sbs, or seitan
-  onCancelInvite: () => void,
+  onCancelInvite: ?() => void,
   role: TeamRoleType,
 }
 

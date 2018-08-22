@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
+import * as ConfigGen from '../actions/config-gen'
 import {Box2} from './box'
-import Button from './button'
-import Text from './text'
 import Icon from './icon'
-import HOCTimers, {type PropsWithTimer} from './hoc-timers'
+import Button from './button'
+import ButtonBar from './button-bar'
+import Text from './text'
 import Toast from './toast'
-import {copyToClipboard} from '../util/clipboard'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {
   collapseStyles,
   type StylesCrossPlatform,
@@ -17,11 +18,13 @@ import {
   platformStyles,
   styleSheetCreate,
 } from '../styles'
+import {compose, connect, setDisplayName} from '../util/container'
 
-type Props = PropsWithTimer<{
+export type Props = PropsWithTimer<{
   containerStyle?: StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
+  copyToClipboard: string => void,
 }>
 
 type State = {
@@ -46,7 +49,7 @@ class _CopyText extends React.Component<Props, State> {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
     )
-    copyToClipboard(this.props.text)
+    this.props.copyToClipboard(this.props.text)
   }
 
   reveal = () => {
@@ -81,30 +84,46 @@ class _CopyText extends React.Component<Props, State> {
             Reveal
           </Text>
         )}
-        <Button type="Primary" style={styles.button} onClick={this.copy}>
-          <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
-        </Button>
+        <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
+          <Button type="Primary" style={styles.button} onClick={this.copy}>
+            <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
+          </Button>
+        </ButtonBar>
       </Box2>
     )
   }
 }
-const CopyText = HOCTimers(_CopyText)
+
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+})
+
+const CopyText = compose(
+  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('CopyText'),
+  HOCTimers
+)(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
 const styles = styleSheetCreate({
+  buttonContainer: {
+    flexGrow: 1,
+    minHeight: 0,
+    width: 'auto',
+  },
   button: platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
-      position: 'absolute',
-      right: 0,
-    },
-    isElectron: {
       height: '100%',
     },
+    isElectron: {
+      paddingBottom: 6,
+      paddingTop: 6,
+    },
     isMobile: {
-      bottom: 0,
-      top: 0,
+      paddingBottom: 10,
+      paddingTop: 10,
     },
   }),
   container: platformStyles({
@@ -112,21 +131,17 @@ const styles = styleSheetCreate({
       alignItems: 'center',
       backgroundColor: globalColors.blue4,
       borderRadius: 100,
-      flex: 1,
+      flexGrow: 1,
       paddingLeft: 16,
       position: 'relative',
     },
     isElectron: {
       maxWidth: 460,
       overflow: 'hidden',
-      paddingBottom: 6,
-      paddingTop: 6,
       width: '100%',
     },
     isMobile: {
       height: 40,
-      paddingBottom: 10,
-      paddingTop: 10,
     },
   }),
   reveal: {
@@ -138,7 +153,6 @@ const styles = styleSheetCreate({
       color: globalColors.blue,
       fontSize: isMobile ? 15 : 13,
       textAlign: 'left',
-      width: '100%',
     },
     isAndroid: {
       position: 'relative',

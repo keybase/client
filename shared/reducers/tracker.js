@@ -92,6 +92,7 @@ export default function(
           name: nonUser.assertion,
           reason: `You opened ${nonUser.folderName}`,
           serviceName: nonUser.socialAssertion.service,
+          type: 'nonUser',
         }
       })
     }
@@ -411,7 +412,6 @@ export default function(
     case TrackerGen.openProofUrl:
     case TrackerGen.parseFriendship:
     case TrackerGen.refollow:
-    case TrackerGen.setupTrackerHandlers:
     case TrackerGen.unfollow:
     case TrackerGen.updateTrackers:
       return state

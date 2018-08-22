@@ -57,6 +57,7 @@ class RpcStats extends React.Component<Props, State> {
     visible: false,
   }
 
+  _mounted = true
   _intervalID: ?IntervalID
 
   _cleanup = () => {
@@ -74,34 +75,39 @@ class RpcStats extends React.Component<Props, State> {
     if (userChanged && this.props.username) {
       if (printRPCStats || whitelist.indexOf(this.props.username) !== -1) {
         visible = true
-        this.setState(p => (p.visible !== visible ? {visible} : undefined))
+        this._mounted && this.setState(p => (p.visible !== visible ? {visible} : undefined))
       }
       whitelist = []
     }
 
     if (visible) {
       this._intervalID = setInterval(() => {
-        this.setState(p => {
-          const smallInCount = this._iterateStats(['in'], s => s.count)
-          const smallOutCount = this._iterateStats(['out'], s => s.count)
+        this._mounted &&
+          this.setState(p => {
+            const smallInCount = this._iterateStats(['in'], s => s.count)
+            const smallOutCount = this._iterateStats(['out'], s => s.count)
 
-          const inDiff = p.smallInCount !== smallInCount
-          const outDiff = p.smallOutCount !== smallOutCount
-          const markDiff = p.markIn || p.markOut
-          if (inDiff || outDiff || markDiff) {
-            return {
-              markIn: inDiff,
-              markOut: outDiff,
-              smallInCount,
-              smallOutCount,
+            const inDiff = p.smallInCount !== smallInCount
+            const outDiff = p.smallOutCount !== smallOutCount
+            const markDiff = p.markIn || p.markOut
+            if (inDiff || outDiff || markDiff) {
+              return {
+                markIn: inDiff,
+                markOut: outDiff,
+                smallInCount,
+                smallOutCount,
+              }
             }
-          }
-        })
+          })
       }, 2000)
     }
   }
 
+  componentWillUnmount() {
+    this._mounted = false
+  }
   componentDidMount() {
+    this._mounted = true
     this._maybeStart(true)
   }
 
@@ -121,9 +127,10 @@ class RpcStats extends React.Component<Props, State> {
   }
 
   _onClick = () => {
-    this.setState(p => ({
-      visible: !p.visible,
-    }))
+    this._mounted &&
+      this.setState(p => ({
+        visible: !p.visible,
+      }))
   }
 
   render() {
@@ -209,4 +216,4 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
-export default connect(mapStateToProps)(RpcStats)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RpcStats)

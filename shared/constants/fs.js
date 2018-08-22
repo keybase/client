@@ -140,6 +140,21 @@ export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
   team: I.Map(),
 })
 
+const placeholderAction = FsGen.createPlaceholderAction()
+
+const _makeError: I.RecordFactory<Types._FsError> = I.Record({
+  time: 0,
+  error: 'unknown error',
+  erroredAction: placeholderAction,
+  retriableAction: undefined,
+})
+
+// Populate `time` with Date.now() if not provided.
+export const makeError = (
+  record?: $Rest<Types._FsError, {time: number}> & {time?: number}
+): I.RecordOf<Types._FsError> =>
+  record && record.time ? _makeError(record) : _makeError({...(record || {}), time: Date.now()})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
@@ -151,6 +166,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
+  errors: I.Map(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -559,6 +575,7 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 }
 
 export const invalidTokenError = new Error('invalid token')
+export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
 
@@ -634,3 +651,13 @@ export const kbfsEnabled = (state: TypedState) =>
       state.fs.fuseStatus.kextStarted &&
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
+
+export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
+  download.meta.path === path && download.meta.intent === intent && !download.state.isDone
+
+export const erroredActionToMessage = (action: FsGen.Actions): string => {
+  switch (action.type) {
+    default:
+      return 'An unexplainable error has occurred.'
+  }
+}

@@ -16,15 +16,16 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
   printRPCStats: false, // Print more detailed stats about rpcs
+  printRPCWaitingSession: false, // session / waiting info
   reduxSagaLogger: false, // Print saga debug info
   reduxSagaLoggerMasked: true, // Print saga debug info masked out
   showDevTools: false, // Show devtools on start
+  skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
   skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
   userTimings: false, // Add user timings api to timeline in chrome
 }
@@ -38,6 +39,7 @@ if (__DEV__) {
   config.printOutstandingRPCs = true
   config.printOutstandingTimerListeners = true
   config.printRPC = true
+  config.printRPCWaitingSession = false
   config.printRPCStats = true
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
@@ -101,16 +103,15 @@ export const {
   printBridgeB64,
   immediateStateLogging,
   isTesting,
-  maskStrings,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
+  printRPCWaitingSession,
   printRPCStats,
   reduxSagaLogger,
   reduxSagaLoggerMasked,
   showDevTools,
+  skipAppFocusActions,
   skipSecondaryDevtools,
   userTimings,
 } = config
-
-export function setup(store: any) {}

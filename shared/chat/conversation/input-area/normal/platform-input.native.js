@@ -88,7 +88,9 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      this.props.onAttach([filename])
+      if (filename) {
+        this.props.onAttach([filename])
+      }
     }
 
     switch (location) {
@@ -335,7 +337,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-end',
     backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_05,
+    borderTopColor: globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,

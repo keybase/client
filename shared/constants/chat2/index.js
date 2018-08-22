@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -23,6 +22,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
   messageMap: I.Map(),
@@ -48,8 +48,8 @@ export const getResolvedPendingConversationIDKey = (state: TypedState) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Constants.noConversationIDKey,
-  targetConversationIDKey: Constants.noConversationIDKey,
+  sourceConversationIDKey: noConversationIDKey,
+  targetConversationIDKey: noConversationIDKey,
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
@@ -185,6 +185,26 @@ export const makeInboxQuery = (
     unreadOnly: false,
   }
 }
+
+export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.commonConversationMembersType.kbfs:
+      return RPCChatTypes.commonConversationMembersType.kbfs
+    case RPCChatTypes.commonConversationMembersType.team:
+      return RPCChatTypes.commonConversationMembersType.team
+    case RPCChatTypes.commonConversationMembersType.impteamnative:
+      return RPCChatTypes.commonConversationMembersType.impteamnative
+    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
+      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    default:
+      return null
+  }
+}
+
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100

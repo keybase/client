@@ -6,7 +6,6 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sort"
 
 	"golang.org/x/net/context"
@@ -1082,45 +1081,4 @@ func (p partitionDeviceList) Less(a, b int) bool {
 
 func (p partitionDeviceList) Swap(a, b int) {
 	p[a], p[b] = p[b], p[a]
-}
-
-func verifyLocalStorage(m libkb.MetaContext, username string, uid keybase1.UID) {
-	m.CDebugf("verifying local storage")
-	defer m.CDebugf("done verifying local storage")
-	normUsername := libkb.NewNormalizedUsername(username)
-
-	// check config.json looks ok
-	verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
-	cr := m.G().Env.GetConfig()
-	if cr.GetUsername() != normUsername {
-		m.CDebugf("config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
-	}
-	if cr.GetUID().NotEqual(uid) {
-		m.CDebugf("config uid %q doesn't match engine uid %q", cr.GetUID(), uid)
-	}
-
-	// check keys in secretkeys.mpack
-	verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
-
-	// check secret stored
-	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
-	if err != nil {
-		m.CDebugf("failed to retrieve secret for %s: %s", username, err)
-	}
-	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("retrieved nil/empty secret for %s", username)
-	}
-}
-
-func verifyRegularFile(m libkb.MetaContext, name, filename string) {
-	info, err := os.Stat(filename)
-	if err != nil {
-		m.CDebugf("stat %s file %q error: %s", name, filename, err)
-		return
-	}
-
-	m.CDebugf("%s file %q size: %d", name, filename, info.Size())
-	if !info.Mode().IsRegular() {
-		m.CDebugf("%s file %q not regular: %s", name, filename, info.Mode())
-	}
 }

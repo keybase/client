@@ -6,6 +6,7 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import GetNewestConvMetas from '../chat/inbox/container/remote'
 
 const windowOpts = {}
 
@@ -51,10 +52,10 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  folderProps: state.favorite.folderState,
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
+  conversations: GetNewestConvMetas(state),
 })
 
 const mergeProps = stateProps => ({
@@ -62,10 +63,10 @@ const mergeProps = stateProps => ({
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  folderProps: stateProps.folderProps,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
+  conversations: stateProps.conversations,
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',
@@ -75,6 +76,8 @@ const mergeProps = stateProps => ({
 // Actions are handled by remote-container
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
+  // flow correctly complains this shouldn't be true. We really want this to never be null before it hits RemoteMenubarWindow but we can't do that with branch. TODO use a wrapper to fix this
+  // $FlowIssue
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,

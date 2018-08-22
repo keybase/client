@@ -95,6 +95,19 @@ func (b *MemBucket) GetReader(ctx context.Context, path string) (io.ReadCloser, 
 	return ioutil.NopCloser(bytes.NewBuffer(obj)), nil
 }
 
+func (b *MemBucket) GetReaderWithRange(ctx context.Context, path string, begin, end int64) (io.ReadCloser, error) {
+	b.Lock()
+	defer b.Unlock()
+	obj, ok := b.objects[path]
+	if !ok {
+		return nil, fmt.Errorf("bucket %q, path %q does not exist", b.name, path)
+	}
+	if end >= int64(len(obj)) {
+		end = int64(len(obj))
+	}
+	return ioutil.NopCloser(bytes.NewBuffer(obj[begin:end])), nil
+}
+
 func (b *MemBucket) PutReader(ctx context.Context, path string, r io.Reader, length int64, contType string, perm ACL, options Options) error {
 	b.Lock()
 	defer b.Unlock()

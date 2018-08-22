@@ -1,6 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
+import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
 import {
   compose,
@@ -13,12 +14,12 @@ import {
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
-import {copyToClipboard} from '../../util/clipboard'
 
 type OwnProps = {
   path: Types.Path,
   actionIconClassName?: string,
   actionIconFontSize?: number,
+  actionIconWhite?: boolean,
 }
 
 const mapStateToProps = (state: TypedState) => ({
@@ -26,13 +27,14 @@ const mapStateToProps = (state: TypedState) => ({
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
   _fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+  _downloads: state.fs.downloads,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path, refreshTag: 'path-item-action-popup'})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
-  copyPath: () => copyToClipboard(Types.pathToString(path)),
+  copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   ...(isMobile
     ? {
         _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
@@ -52,8 +54,8 @@ const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => ({
 type actions = {
   showInFileUI?: () => void,
   ignoreFolder?: () => void,
-  saveMedia?: () => void,
-  shareNative?: () => void,
+  saveMedia?: (() => void) | 'disabled',
+  shareNative?: (() => void) | 'disabled',
   download?: () => void,
   copyPath?: () => void,
 }
@@ -83,13 +85,21 @@ const aIgnore: MenuItemAppender = (menuActions, stateProps, dispatchProps, path)
 const aSave: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   if (isMobile && pathItem.type !== 'folder' && Constants.isMedia(pathItem)) {
-    menuActions.saveMedia = dispatchProps._saveMedia
+    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'camera-roll'))) {
+      menuActions.saveMedia = 'disabled'
+    } else {
+      menuActions.saveMedia = dispatchProps._saveMedia
+    }
   }
 }
 
 const aShareNative: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   if (isMobile && stateProps._pathItems.get(path, Constants.unknownPathItem).type === 'file') {
-    menuActions.shareNative = dispatchProps._shareNative
+    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'share'))) {
+      menuActions.shareNative = 'disabled'
+    } else {
+      menuActions.shareNative = dispatchProps._shareNative
+    }
   }
 }
 
@@ -142,10 +152,11 @@ const getRootMenuActionsByPathLevel = (pathLevel: number, stateProps, dispatchPr
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actionIconFontSize}) => {
-  const pathElements = Types.getPathElements(path)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {_pathItems, _username} = stateProps
   const {loadFolderList, loadMimeType} = dispatchProps
+  const {path, actionIconClassName, actionIconFontSize, actionIconWhite} = ownProps
+  const pathElements = Types.getPathElements(path)
   const pathItem = _pathItems.get(path, Constants.unknownPathItem)
   const type = pathElements.length <= 3 ? 'folder' : pathItem.type
   const {childrenFolders, childrenFiles} =
@@ -181,12 +192,14 @@ const mergeProps = (stateProps, dispatchProps, {path, actionIconClassName, actio
     needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
+    path,
     pathElements,
     itemStyles,
     loadMimeType,
     loadFolderList,
     actionIconClassName,
     actionIconFontSize,
+    actionIconWhite,
     // menu actions
     showInFileUI,
     ignoreFolder,

@@ -1,9 +1,9 @@
 // @flow
 import logger from '../logger'
 import * as I from 'immutable'
-import * as CommonConstants from '../constants/common'
-import * as Types from '../constants/types/route-tree'
 import * as Constants from '../constants/route-tree'
+import * as Types from '../constants/types/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {
   getPath,
   pathToString,
@@ -22,30 +22,19 @@ const initialState = Constants.makeState()
 // So let's actually use the initial routeDef we get
 let firstRouteDef: ?RouteDefNode
 
-function computeLoggedInUserNavigated(navigationSource: Types.NavigationSource, newSelectedTab: ?string) {
-  const validNavigationSource = navigationSource === 'user' || navigationSource === 'initial-restore'
-  if (!validNavigationSource) {
-    return false
-  }
-  return isValidInitialTabString(newSelectedTab)
-}
-
 function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, action) {
   const newLoggedInUserNavigated = (function() {
     switch (action.type) {
-      case CommonConstants.resetStore:
+      case 'common:resetStore':
         return false
 
-      case Constants.navigateTo:
-        return (
-          loggedInUserNavigated ||
-          computeLoggedInUserNavigated(action.payload.navigationSource, newSelectedTab)
-        )
+      case RouteTreeGen.navigateTo:
+        return loggedInUserNavigated || isValidInitialTabString(newSelectedTab)
 
-      case Constants.switchTo:
-      case Constants.navigateAppend:
-      case Constants.navigateUp:
-        return loggedInUserNavigated || computeLoggedInUserNavigated('user', newSelectedTab)
+      case RouteTreeGen.switchTo:
+      case RouteTreeGen.navigateAppend:
+      case RouteTreeGen.navigateUp:
+        return loggedInUserNavigated || isValidInitialTabString(newSelectedTab)
 
       default:
         return loggedInUserNavigated
@@ -66,7 +55,10 @@ function loggedInUserNavigatedReducer(loggedInUserNavigated, newSelectedTab, act
   return newLoggedInUserNavigated
 }
 
-const getCurrentRouteTree = (routeDef: ?RouteDefNode, action: Types.RefreshRouteDef): RouteDefNode => {
+const getCurrentRouteTree = (
+  routeDef: ?RouteDefNode,
+  action: RouteTreeGen.RefreshRouteDefPayload
+): RouteDefNode => {
   let res = action.payload.appRouteTree
   let title = ''
   if (routeDef && routeDef.tags && routeDef.tags.title) {
@@ -88,7 +80,7 @@ const getCurrentRouteTree = (routeDef: ?RouteDefNode, action: Types.RefreshRoute
 
 function routeDefReducer(routeDef: ?RouteDefNode, action) {
   switch (action.type) {
-    case Constants.setInitialRouteDef:
+    case RouteTreeGen.setInitialRouteDef:
       if (firstRouteDef) {
         logger.error('setInitialRouteDef called more than once')
       } else {
@@ -97,10 +89,10 @@ function routeDefReducer(routeDef: ?RouteDefNode, action) {
       }
       return action.payload.routeDef
 
-    case Constants.refreshRouteDef:
+    case RouteTreeGen.refreshRouteDef:
       return getCurrentRouteTree(routeDef, action)
 
-    case Constants.switchRouteDef:
+    case RouteTreeGen.switchRouteDef:
       return action.payload.routeDef
 
     default:
@@ -110,29 +102,29 @@ function routeDefReducer(routeDef: ?RouteDefNode, action) {
 
 function routeStateReducer(routeDef, routeState, action) {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case RouteTreeGen.resetStore:
       return routeSetProps(routeDef, null, [])
 
-    case Constants.setInitialRouteDef: {
+    case RouteTreeGen.setInitialRouteDef: {
       return routeNavigate(action.payload.routeDef, routeState, getPath(routeState))
     }
 
-    case Constants.refreshRouteDef: {
+    case RouteTreeGen.refreshRouteDef: {
       const currentRouteTree = getCurrentRouteTree(routeDef, action)
       return routeNavigate(currentRouteTree, routeState, getPath(routeState))
     }
 
-    case Constants.switchRouteDef: {
-      return routeNavigate(action.payload.routeDef, routeState, [])
+    case RouteTreeGen.switchRouteDef: {
+      return routeNavigate(action.payload.routeDef, routeState, action.payload.path || [])
     }
 
-    case Constants.switchTo:
+    case RouteTreeGen.switchTo:
       return routeSetProps(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
-    case Constants.navigateTo:
+    case RouteTreeGen.navigateTo:
       return routeNavigate(routeDef, routeState, action.payload.path, action.payload.parentPath)
 
-    case Constants.navigateAppend: {
+    case RouteTreeGen.navigateAppend: {
       const parentPath = I.List(action.payload.parentPath)
 
       // Determine the current path to append to, optionally as a sub-path of
@@ -146,15 +138,15 @@ function routeStateReducer(routeDef, routeState, action) {
       return routeNavigate(routeDef, routeState, action.payload.path, basePath)
     }
 
-    case Constants.navigateUp: {
+    case RouteTreeGen.navigateUp: {
       const path = getPath(routeState)
       return routeNavigate(routeDef, routeState, path.skipLast(1))
     }
 
-    case Constants.setRouteState:
+    case RouteTreeGen.setRouteState:
       return routeSetState(routeDef, routeState, action.payload.path, action.payload.partialState)
 
-    case Constants.resetRoute:
+    case RouteTreeGen.resetRoute:
       return routeClear(routeState, action.payload.path)
 
     default:
@@ -164,7 +156,7 @@ function routeStateReducer(routeDef, routeState, action) {
 
 export default function routeTreeReducer(state: Types.State = initialState, action: any): Types.State {
   let {loggedInUserNavigated, routeDef, routeState} = state
-  if (action.type === CommonConstants.resetStore) {
+  if (action.type === RouteTreeGen.resetStore) {
     routeDef = firstRouteDef || initialState.routeDef
     routeState = routeSetProps(routeDef, null, [])
   }
@@ -174,14 +166,14 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
   let newRouteState
   try {
     newRouteDef = routeDefReducer(routeDef, action)
-    newRouteState = routeStateReducer(routeDef, routeState, action)
+    newRouteState = routeStateReducer(newRouteDef, routeState, action)
     newLoggedInUserNavigated = loggedInUserNavigatedReducer(
       loggedInUserNavigated,
       newRouteState && newRouteState.selected,
       action
     )
   } catch (err) {
-    if (action.type === Constants.refreshRouteDef && err && err.messsage.startsWith('RT:')) {
+    if (action.type === RouteTreeGen.refreshRouteDef && err && err.messsage.startsWith('RT:')) {
       logger.warn('New route tree mismatches current state. Not updating (please reload manually if needed).')
     } else {
       logger.error(

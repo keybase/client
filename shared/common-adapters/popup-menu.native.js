@@ -64,7 +64,7 @@ const styleRow = ({
   return {
     ...styleButtonAlert,
     backgroundColor: globalColors.white,
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     ...(index === 1 ? {borderTopWidth: 1} : {}),
   }
 }
@@ -118,7 +118,7 @@ class PopupMenu extends Component<Props> {
               />
             ))}
           </Box>
-          <Box style={{...styleMenuGroup, borderColor: globalColors.black_05, borderTopWidth: 1}}>
+          <Box style={{...styleMenuGroup, borderColor: globalColors.black_10, borderTopWidth: 1}}>
             <MenuRow
               title="Cancel"
               index={0}

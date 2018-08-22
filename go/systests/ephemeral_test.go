@@ -362,6 +362,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
@@ -383,6 +384,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.Error(t, err)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	// Test that user1 and user2 both have access to the currentTeamEK
 	// (whether we recreated or reboxed)
@@ -401,57 +403,4 @@ func TestEphemeralTeamMemberLeaveAndReadd(t *testing.T) {
 
 func TestEphemeralTeamMemberRemoveAndReadd(t *testing.T) {
 	readdToTeamWithEKs(t, false /* leave */)
-}
-
-func TestEphemeralSelfProvision(t *testing.T) {
-	ctx := newSMUContext(t)
-	defer ctx.cleanup()
-
-	ann := ctx.installKeybaseForUser("ann", 10)
-	ann.signup()
-
-	annG := ann.getPrimaryGlobalContext()
-	ephemeral.ServiceInit(annG)
-
-	team := ann.createTeam([]*smuUser{})
-	teamName, err := keybase1.TeamNameFromString(team.name)
-	require.NoError(t, err)
-	teamID := teamName.ToPrivateTeamID()
-
-	ekLib := annG.GetEKLib()
-	teamEK, err := ekLib.GetOrCreateLatestTeamEK(context.Background(), teamID)
-	require.NoError(t, err)
-
-	expectedMetadata := teamEK.Metadata
-	expectedGeneration := expectedMetadata.Generation
-
-	annTeamEK, annErr := getTeamEK(annG, teamID, expectedGeneration)
-	require.NoError(t, annErr)
-	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
-
-	// Now self provision ann and make sure she can still access the teamEK
-	secUI := ann.secretUI()
-	provLoginUI := &libkb.TestLoginUI{Username: ann.username}
-	uis := libkb.UIs{
-		ProvisionUI: &testProvisionUI{},
-		LogUI:       annG.Log,
-		SecretUI:    secUI,
-		LoginUI:     provLoginUI,
-	}
-
-	m := libkb.NewMetaContextForTest(*ann.primaryDevice().tctx).WithUIs(uis)
-	libkb.CreateClonedDevice(*ann.primaryDevice().tctx, m)
-	newName := "uncloneme"
-	eng := engine.NewSelfProvisionEngine(annG, newName)
-	err = engine.RunEngine2(m, eng)
-	require.NoError(t, err)
-
-	annG.GetDeviceEKStorage().ClearCache()
-	annG.GetUserEKBoxStorage().ClearCache()
-	annG.GetTeamEKBoxStorage().ClearCache()
-
-	// TODO rebox the latest userEK as in kex during self provision so we don't
-	// error out here.
-	annTeamEK, annErr = getTeamEK(annG, teamID, expectedGeneration)
-	require.Error(t, annErr)
 }

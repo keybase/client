@@ -49,7 +49,7 @@
     },
     "downloadFinished": {
       "key": "string",
-      "error?": "string"
+      "error?": "Types.FsError"
     },
     "downloadProgress": {
       "key": "string",
@@ -71,7 +71,7 @@
     },
     "uploadWritingFinished": {
       "path": "Types.Path",
-      "error?": "string"
+      "error?": "Types.FsError"
     },
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
@@ -113,7 +113,7 @@
     },
     "favoriteIgnoreError": {
       "path": "Types.Path",
-      "errorText": "string"
+      "error": "Types.FsError"
     },
     "newFolderRow": {
       "parentPath": "Types.Path"
@@ -133,6 +133,12 @@
     },
     "discardEdit": {
       "editID": "Types.EditID"
+    },
+    "fsError": {
+      "error": "Types.FsError"
+    },
+    "dismissFsError": {
+      "key": "string"
     },
 
     "shareNative": {
@@ -156,6 +162,6 @@
       "parentPath": "Types.Path"
     },
 
-    "setupFSHandlers": {}
+    "placeholderAction": {}
   }
 }

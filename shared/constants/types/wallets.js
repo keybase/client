@@ -1,10 +1,11 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // Possible 'types' of things you can send or receive transactions with
-export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'account'
+export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
 // Reserves held against an account's XLM balance
 export type _Reserve = {
@@ -58,6 +59,27 @@ export type _LocalCurrency = {
   symbol: string,
   name: string,
 }
+export type _BuildingPayment = {
+  amount: string,
+  currency: string,
+  from: string,
+  publicMemo: HiddenString,
+  recipientType: ?CounterpartyType,
+  secretNote: HiddenString,
+  to: string,
+}
+
+export type _BuiltPayment = {
+  amountErrMsg: string,
+  banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  publicMemoErrMsg: HiddenString,
+  readyToSend: boolean,
+  secretNoteErrMsg: HiddenString,
+  toErrMsg: string,
+  toUsername: string,
+  worthDescription: string,
+  worthInfo: string,
+}
 
 export type StatusSimplified = 'none' | 'pending' | 'claimable' | 'completed' | 'error' | 'unknown'
 
@@ -66,9 +88,9 @@ export type _Payment = {
   delta: 'none' | 'increase' | 'decrease',
   error: ?string,
   id: StellarRPCTypes.PaymentID,
-  note: string,
-  noteErr: string,
-  publicMemo: string,
+  note: HiddenString,
+  noteErr: HiddenString,
+  publicMemo: HiddenString,
   publicMemoType: string,
   source: string,
   sourceType: string,
@@ -87,6 +109,10 @@ export type Account = I.RecordOf<_Account>
 
 export type Assets = I.RecordOf<_Assets>
 
+export type BuildingPayment = I.RecordOf<_BuildingPayment>
+
+export type BuiltPayment = I.RecordOf<_BuiltPayment>
+
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
@@ -98,6 +124,9 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  buildingPayment: BuildingPayment,
+  builtPayment: BuiltPayment,
+  createNewAccountError: string,
   exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
   secretKey: HiddenString,
@@ -106,9 +135,11 @@ export type _State = {
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
+  pendingMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,
   currencyMap: I.Map<AccountID, Currency>,
 }
+
 export type State = I.RecordOf<_State>

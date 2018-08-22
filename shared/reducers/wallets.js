@@ -16,19 +16,29 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('accountMap', accountMap)
     case WalletsGen.assetsReceived:
       return state.setIn(['assetsMap', action.payload.accountID], I.List(action.payload.assets))
+    case WalletsGen.builtPaymentReceived:
+      return state.set(
+        'builtPayment',
+        state.get('builtPayment').merge(Constants.makeBuiltPayment(action.payload.build))
+      )
+    case WalletsGen.clearBuildingPayment:
+      return state.set('buildingPayment', Constants.makeBuildingPayment())
+    case WalletsGen.clearBuiltPayment:
+      return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      // $FlowIssue state.updateIn not found?
       return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
         payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
           payment.merge({
-            publicNote: action.payload.publicNote,
-            publicNoteType: action.payload.publicNoteType,
+            publicMemo: action.payload.publicMemo,
+            publicMemoType: action.payload.publicMemoType,
             txID: action.payload.txID,
           })
         )
       )
     case WalletsGen.paymentsReceived:
-      return state.setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+      return state
+        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
+        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
@@ -41,6 +51,27 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .set('exportedSecretKey', new HiddenString(''))
         .set('selectedAccount', action.payload.accountID)
+    case WalletsGen.setBuildingAmount:
+      const {amount} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({amount}))
+    case WalletsGen.setBuildingCurrency:
+      const {currency} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({currency}))
+    case WalletsGen.setBuildingFrom:
+      const {from} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({from}))
+    case WalletsGen.setBuildingPublicMemo:
+      const {publicMemo} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({publicMemo}))
+    case WalletsGen.setBuildingRecipientType:
+      const {recipientType} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({recipientType}))
+    case WalletsGen.setBuildingSecretNote:
+      const {secretNote} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({secretNote}))
+    case WalletsGen.setBuildingTo:
+      const {to} = action.payload
+      return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
     case WalletsGen.validateAccountName:
       return state.merge({
         accountName: action.payload.name,
@@ -76,11 +107,26 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
+        createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
         secretKeyError: '',
         secretKeyValidationState: 'none',
       })
+    case WalletsGen.createdNewAccount:
+      return action.error
+        ? state.set('createNewAccountError', action.payload.error)
+        : state.merge({
+            accountName: '',
+            accountNameError: '',
+            accountNameValidationState: 'none',
+            createNewAccountError: '',
+            linkExistingAccountError: '',
+            secretKey: new HiddenString(''),
+            secretKeyError: '',
+            secretKeyValidationState: 'none',
+            selectedAccount: action.payload.accountID,
+          })
     case WalletsGen.linkedExistingAccount:
       return action.error
         ? state.set('linkExistingAccountError', action.payload.error)
@@ -88,6 +134,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             accountName: '',
             accountNameError: '',
             accountNameValidationState: 'none',
+            createNewAccountError: '',
             linkExistingAccountError: '',
             secretKey: new HiddenString(''),
             secretKeyError: '',
@@ -95,6 +142,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     // Saga only actions
+    case WalletsGen.buildPayment:
+    case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:
@@ -107,6 +156,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.deleteAccount:
     case WalletsGen.loadAccounts:
     case WalletsGen.setAccountAsDefault:
+    case WalletsGen.refreshPayments:
+    case WalletsGen.sendPayment:
+    case WalletsGen.sentPayment:
       return state
     default:
       /*::

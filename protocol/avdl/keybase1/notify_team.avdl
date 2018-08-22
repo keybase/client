@@ -39,5 +39,7 @@ protocol NotifyTeam {
 
   void teamExit(TeamID teamID) oneway;
 
+  void newlyAddedToTeam(TeamID teamID) oneway;
+
   void avatarUpdated(string name, array<AvatarFormat> formats) oneway;
 }

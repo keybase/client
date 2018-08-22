@@ -7,6 +7,7 @@ export type Props = {
   children?: any,
   style?: StylesCrossPlatform,
   onClick?: ?(event: SyntheticEvent<Element>) => void,
+  onDoubleClick?: ?(event: SyntheticEvent<Element>) => void,
   onPress?: void,
   onLongPress?: ?(event: SyntheticEvent<Element>) => void,
   underlayColor?: ?string,

@@ -1,5 +1,6 @@
-// @flow
+// @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -35,6 +36,7 @@ export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
+  inboxHasLoaded: boolean, // if we've ever loaded
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread

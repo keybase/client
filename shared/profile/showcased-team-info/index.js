@@ -33,6 +33,10 @@ const TeamInfo = (props: Props) => (
       isElectron: {
         width: 220,
       },
+      isMobile: {
+        paddingBottom: globalMargins.medium,
+        paddingTop: globalMargins.medium,
+      },
     })}
   >
     <Box

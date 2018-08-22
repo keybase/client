@@ -467,11 +467,8 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	uis := libkb.UIs{
-		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
-	}
-	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
-	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()))
+	m := libkb.NewMetaContextBackground(tcs[0].G)
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()), false)
 	require.NoError(t, err)
 	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
@@ -710,10 +707,14 @@ func TestRequestPayment(t *testing.T) {
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
 
-	err = tcs[0].Srv.CancelRequestLocal(context.Background(), reqID)
+	err = tcs[0].Srv.CancelRequestLocal(context.Background(), stellar1.CancelRequestLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), reqID)
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), stellar1.GetRequestDetailsLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
 }

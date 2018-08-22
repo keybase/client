@@ -14,6 +14,7 @@ type SelfProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
+	ekReboxer      *ephemeralKeyReboxer
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -91,6 +92,8 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
+	e.ekReboxer = newEphemeralKeyReboxer(m)
+
 	// Make new device keys and sign them with current device keys
 	if err = e.provision(m, keys); err != nil {
 		return err
@@ -104,6 +107,17 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// Zero out the TX so that we don't abort it in the defer() exit.
 	tx = nil
+
+	// Now we can cleanup old deviceEKs and store the new deviceEK, encrypted
+	// by the new globally set active device.
+	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
+			m.CDebugf("unable to remove old ephemeral keys: %v", err)
+		}
+	}
+	if e.ekReboxer.storeEKs(m); err != nil {
+		m.CDebugf("unable to store ephemeral keys: %v", err)
+	}
 
 	// TODO we should error out here if this fails once we have the active
 	// device setting in a transaction.
@@ -192,6 +206,7 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 		PerUserKeyring:  e.perUserKeyring,
 		EldestKID:       e.User.GetEldestKID(),
 		Signer:          signer,
+		EkReboxer:       e.ekReboxer,
 	}
 
 	eng := NewDeviceWrap(m.G(), args)

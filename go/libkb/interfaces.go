@@ -618,6 +618,11 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type FastTeamLoader interface {
+	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	OnLogout()
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletGated(context.Context) error
@@ -653,6 +658,8 @@ type TeamEKBoxStorage interface {
 	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
+	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
@@ -660,7 +667,8 @@ type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
-	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)

@@ -1,11 +1,13 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalMargins, globalColors, isMobile, platformStyles} from '../../styles'
-import {Box, Button, Text, Checkbox} from '../../common-adapters'
+import {globalStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
+import {Box, Button, Checkbox, Divider, Text} from '../../common-adapters'
 import {isLinux} from '../../constants/platform'
 
 type Props = {
   openAtLogin: boolean,
+  lockdownModeEnabled: ?boolean,
+  onChangeLockdownMode: boolean => void,
   onSetOpenAtLogin: (open: boolean) => void,
   onDBNuke: () => void,
   onTrace: (durationSeconds: number) => void,
@@ -16,22 +18,19 @@ type Props = {
 }
 
 const Advanced = (props: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      flex: 1,
-      padding: globalMargins.medium,
-    }}
-  >
+  <Box style={styles.advancedContainer}>
+    <Box style={styles.checkboxContainer}>
+      <Checkbox
+        checked={!!props.lockdownModeEnabled}
+        disabled={props.lockdownModeEnabled == null}
+        label="Forbid account changes from the website"
+        onCheck={props.onChangeLockdownMode}
+        style={styles.checkbox}
+      />
+    </Box>
     {!isMobile &&
       !isLinux && (
-        <Box
-          style={{
-            ...globalStyles.flexBoxColumn,
-            alignItems: 'left',
-            flex: 1,
-          }}
-        >
+        <Box style={styles.openAtLoginCheckboxContainer}>
           <Checkbox
             label="Open Keybase on startup"
             checked={props.openAtLogin}
@@ -95,32 +94,13 @@ class Developer extends React.Component<Props, DeveloperState> {
   render() {
     const props = this.props
     return (
-      <Box
-        style={{
-          ...globalStyles.flexBoxColumn,
-          alignItems: 'center',
-          paddingTop: globalMargins.xlarge,
-          paddingBottom: globalMargins.medium,
-          flex: 1,
-        }}
-      >
-        <Text
-          type="BodySmallSemibold"
-          onClick={this._onLabelClick}
-          style={platformStyles({
-            common: {
-              textAlign: 'center',
-            },
-            isElectron: {
-              cursor: 'default',
-            },
-          })}
-        >
+      <Box style={styles.developerContainer}>
+        <Text type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
           {isMobile
             ? `Please don't do anything here unless instructed to by a developer.`
             : `Please don't do anything below here unless instructed to by a developer.`}
         </Text>
-        <Box style={{width: '100%', height: 2, backgroundColor: globalColors.grey}} />
+        <Divider style={styles.divider} />
         <Button
           style={{marginTop: globalMargins.small}}
           type="Danger"
@@ -139,15 +119,62 @@ class Developer extends React.Component<Props, DeveloperState> {
               onStart={() => props.onProcessorProfile(processorProfileDurationSeconds)}
               inProgress={props.processorProfileInProgress}
             />
-            <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+            <Text type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Text>
           </React.Fragment>
         )}
-        <Box style={{flex: 1}} />
+        <Box style={styles.filler} />
       </Box>
     )
   }
 }
+
+const styles = styleSheetCreate({
+  advancedContainer: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    paddingBottom: globalMargins.medium,
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
+  },
+  checkbox: {
+    flex: 1,
+    paddingBottom: globalMargins.small,
+    paddingTop: globalMargins.small,
+  },
+  checkboxContainer: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    minHeight: 48,
+  },
+  developerContainer: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    flex: 1,
+    paddingTop: globalMargins.xlarge,
+    paddingBottom: globalMargins.medium,
+  },
+  divider: {
+    marginTop: globalMargins.xsmall,
+    width: '100%',
+  },
+  filler: {
+    flex: 1,
+  },
+  openAtLoginCheckboxContainer: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'flex-start',
+    flex: 1,
+  },
+  text: platformStyles({
+    common: {
+      textAlign: 'center',
+    },
+    isElectron: {
+      cursor: 'default',
+    },
+  }),
+})
 
 export default Advanced
