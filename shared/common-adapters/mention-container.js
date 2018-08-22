@@ -10,7 +10,7 @@ import {isSpecialMention} from '../constants/chat2'
 const mapStateToProps = (
   state: TypedState,
   {username}: OwnProps
-): {theme: $PropertyType<OwnProps, 'theme'>} => {
+): {|theme: $PropertyType<OwnProps, 'theme'>|} => {
   if (isSpecialMention(username)) {
     return {theme: 'highlight'}
   }
