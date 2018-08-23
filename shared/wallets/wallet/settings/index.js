@@ -42,7 +42,7 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   </Kb.Box2>
 )
 
-const SettingsPopup = (props: SettingsPopupProps) => {
+const WalletSettings = (props: SettingsPopupProps) => {
   return (
     <Kb.Box2 direction="vertical" style={styles.settingsPage}>
       <Kb.Box2 centerChildren={true} direction="vertical">
@@ -191,4 +191,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default SettingsPopup
+export default WalletSettings

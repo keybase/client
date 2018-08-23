@@ -7,7 +7,8 @@ import Container from './container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
-import SettingsPopup from './wallet/settings-popup/container'
+import WalletSettings from './wallet/settings/container'
+import SetDefaultAccount from './wallet/settings/set-default/container'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 
@@ -34,7 +35,14 @@ const routeTree = makeRouteDefNode({
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     settings: {
-      component: SettingsPopup,
+      children: {
+        setDefaultAccount: {
+          children: {},
+          component: SetDefaultAccount,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+      },
+      component: WalletSettings,
     },
     sendReceiveForm: {
       children: {

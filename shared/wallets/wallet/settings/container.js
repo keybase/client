@@ -8,6 +8,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
+import {navigateAppend} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -37,11 +38,24 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
       dispatch(WalletsGen.createLoadDisplayCurrencies())
       dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
     },
-    _onDelete: (accountID: Types.AccountID) => dispatch(WalletsGen.createDeleteAccount({accountID})),
+    _onDelete: (accountID: Types.AccountID) =>
+      dispatch(
+        WalletsGen.createDeleteAccount({
+          accountID,
+        })
+      ),
     _onSetDefault: (accountID: Types.AccountID) =>
-      dispatch(WalletsGen.createSetAccountAsDefault({accountID})),
+      dispatch(
+        navigateAppend([
+          {
+            props: {accountID},
+            selected: 'setDefaultAccount',
+          },
+        ])
+      ),
     _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
       dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
+    onAddNew: () => {},
   }
 }
 
