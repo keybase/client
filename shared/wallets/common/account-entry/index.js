@@ -68,6 +68,11 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  amount: {
+    ...rightColumnStyle,
+    color: Styles.globalColors.black_40,
+    fontSize: 11,
+  },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   icon: {
     alignSelf: 'center',
@@ -78,11 +83,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: Styles.globalColors.darkBlue,
-  },
-  amount: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
-    fontSize: 11,
   },
   user: {
     alignItems: 'center',

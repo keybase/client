@@ -82,17 +82,17 @@ const Participants = (props: ParticipantsProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    marginRight: Styles.globalMargins.xxtiny,
+  avatar: {
+    marginRight: 8,
   },
   stellarAddressConfirmText: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
     },
   }),
-  avatar: {
-    marginRight: 8,
+  stellarIcon: {
+    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.xxtiny,
   },
 })
 

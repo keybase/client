@@ -6,17 +6,14 @@ import Participants from '.'
 const provider = Sb.createPropProviderWithCommon()
 
 const defaultProps = {
-  yourUsername: 'cjb',
-  fromAccountName: 'Primary Account',
   fromAccountContents: '2000 XLM',
-
-  recipientUsername: 'yen',
-  recipientFullName: 'Addie Stokes',
-
-  recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I4',
-
-  recipientAccountName: 'Secondary Account',
+  fromAccountName: 'Primary Account',
   recipientAccountAssets: '123 XLM',
+  recipientAccountName: 'Secondary Account',
+  recipientFullName: 'Addie Stokes',
+  recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I4',
+  recipientUsername: 'yen',
+  yourUsername: 'cjb',
 }
 
 const load = () => {

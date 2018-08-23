@@ -35,8 +35,8 @@ const ParticipantsRow = (props: Props) => (
 )
 
 ParticipantsRow.defaultProps = {
-  headingAlignment: 'Left',
   bottomDivider: true,
+  headingAlignment: 'Left',
 }
 
 const styles = Styles.styleSheetCreate({

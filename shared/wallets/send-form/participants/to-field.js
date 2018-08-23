@@ -163,17 +163,14 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
 }
 
 const styles = Styles.styleSheetCreate({
-  keybaseUserRemoveButton: {
-    flex: 1,
-    textAlign: 'right',
-  },
-  stellarIcon: {
-    alignSelf: 'flex-start',
-    marginRight: Styles.globalMargins.xxtiny,
-  },
   avatar: {
     marginRight: 8,
   },
+  createNewAccountButton: Styles.platformStyles({
+    isElectron: {
+      width: 194,
+    },
+  }),
   errorText: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
@@ -183,18 +180,21 @@ const styles = Styles.styleSheetCreate({
       wordWrap: 'break-word',
     },
   }),
-  inputInner: {
-    alignItems: 'flex-start',
-  },
-  inputBox: {flexGrow: 1},
   input: {
     padding: 0,
   },
-  createNewAccountButton: Styles.platformStyles({
-    isElectron: {
-      width: 194,
-    },
-  }),
+  inputBox: {flexGrow: 1},
+  inputInner: {
+    alignItems: 'flex-start',
+  },
+  keybaseUserRemoveButton: {
+    flex: 1,
+    textAlign: 'right',
+  },
+  stellarIcon: {
+    alignSelf: 'flex-start',
+    marginRight: Styles.globalMargins.xxtiny,
+  },
 })
 
 export default ToField

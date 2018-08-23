@@ -10,24 +10,24 @@ import ConfirmSend from '.'
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
   Participants: props => ({
-    yourUsername: 'cecileb',
-    fromAccountName: "cecileb's account",
     fromAccountContents: '280.0871234 XLM',
-    recipientUsername: 'nathunsmitty',
+    fromAccountName: "cecileb's account",
+    recipientAccountAssets: '534 XLM',
+    recipientAccountName: 'Secondary Account',
     recipientFullName: 'Nathan Smith',
     recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
-    recipientAccountName: 'Secondary Account',
-    recipientAccountAssets: '534 XLM',
     recipientType: 'keybaseUser',
+    recipientUsername: 'nathunsmitty',
+    yourUsername: 'cecileb',
   }),
 })
 
 const confirmProps = {
   amount: '1.234 XLM',
-  assetType: 'lumens',
   assetConversion: '$3',
-  onClose: Sb.action('onClose'),
+  assetType: 'lumens',
   onBack: Sb.action('onBack'),
+  onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
   waiting: false,
 }
