@@ -73,11 +73,8 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
-			if err := RunEngine2(m, provisionee); err != nil {
-				return err
-			}
-			return nil
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY, userX.UID(), fakeSalt())
+			return RunEngine2(m, provisionee)
 		})()
 		require.NoError(t, err, "no kex2 provisionee error")
 	}()
@@ -152,11 +149,8 @@ func provisionNewDeviceKex(tcX *libkb.TestContext, userX *FakeUser) (*libkb.Test
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := NewKex2Provisionee(tcY.G, device, secretY, fakeSalt())
-			if err := RunEngine2(m, provisionee); err != nil {
-				return err
-			}
-			return nil
+			provisionee := NewKex2Provisionee(tcY.G, device, secretY, userX.UID(), fakeSalt())
+			return RunEngine2(m, provisionee)
 		})()
 		require.NoError(t, err, "kex2 provisionee")
 	}()
