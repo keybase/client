@@ -55,10 +55,10 @@ protocol teams {
 
   @lint("ignore")
   record PerTeamKey {
-      PerTeamKeyGeneration gen;
-      Seqno seqno;
-      KID sigKID;
-      KID encKID;
+    PerTeamKeyGeneration gen;
+    Seqno seqno;
+    KID sigKID;
+    KID encKID;
   }
 
   fixed PerTeamKeySeed(32);
@@ -127,16 +127,16 @@ protocol teams {
   }
 
   record TeamPlusApplicationKeys {
-      TeamID id;
-      string name;
-      boolean implicit;
-      boolean public;
-      TeamApplication application;
+    TeamID id;
+    string name;
+    boolean implicit;
+    boolean public;
+    TeamApplication application;
 
-      array<UserVersion> writers;
-      array<UserVersion> onlyReaders;
+    array<UserVersion> writers;
+    array<UserVersion> onlyReaders;
 
-      array<TeamApplicationKey> applicationKeys;
+    array<TeamApplicationKey> applicationKeys;
   }
 
   // Snapshot of a loaded team.
@@ -266,6 +266,43 @@ protocol teams {
 
     // This is filled up to lastSeqno.
     map<Seqno, LinkID> linkIDs;
+
+    // For any link where we have it, fill in merkle sequence information.
+    map<Seqno, MerkleRootV2> merkleInfo;
+  }
+
+  record Audit {
+    Time time;
+    // The Maximum Merkle Seqno known globally at the time of the audit.
+    Seqno maxMerkleSeqno;
+    // The maximum Seqno in the chain at the time of the audit.
+    Seqno maxChainSeqno;
+    // The maximum merkle Seqno probed in this audit.
+    Seqno maxMerkleProbe;
+  }
+
+  record Probe {
+    @mpackkey("i")
+    int index;
+    @mpackkey("s")
+    Seqno teamSeqno;
+  }
+
+  record AuditHistory {
+    @lint("ignore")
+    TeamID ID;
+    // Whether this is a public team.
+    boolean public;
+    // The Merkle sequence number signed into the head link of the team chain.
+    Seqno priorMerkleSeqno;
+
+    // When the last audit(s) happened
+    array<Audit> audits;
+    // Probes of before the team was created. The value in the map is the index
+    // of the audit (each audit has a value in the audits array above).
+    map<Seqno,Probe> preProbes;
+    // Probes of after the team was created
+    map<Seqno,Probe> postProbes;
   }
 
   enum TeamInviteCategory {
