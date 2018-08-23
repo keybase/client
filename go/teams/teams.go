@@ -401,6 +401,7 @@ func (t *Team) Rotate(ctx context.Context) (err error) {
 	var admin *SCTeamAdmin
 	admin, err = t.getAdminPermission(ctx)
 	if err != nil {
+		t.G().Log.CDebugf(ctx, "Rotate: unable to get admin permission: %v, attempting without admin section", err)
 		admin = nil
 	}
 
