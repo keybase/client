@@ -11,67 +11,74 @@ import WalletSettings from './wallet/settings/container'
 import {SetDefaultAccountPopup, RemoveAccountPopup, ReallyRemoveAccountPopup} from './wallet/settings/popups'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
+import Wallet from './wallet/container'
+
+const walletChildren = {
+  createNewAccount: {
+    children: {},
+    component: CreateNewAccount,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  exportSecretKey: {
+    children: {},
+    component: ExportSecretKey,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  linkExisting: {
+    children: {},
+    component: LinkExisting,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  receive: {
+    children: {},
+    component: ReceiveModal,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  settings: {
+    children: {
+      setDefaultAccount: {
+        children: {},
+        component: SetDefaultAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      removeAccount: {
+        children: {},
+        component: RemoveAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      reallyRemoveAccount: {
+        children: {},
+        component: ReallyRemoveAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+    },
+    component: WalletSettings,
+  },
+  sendReceiveForm: {
+    children: {
+      confirmForm: {
+        children: {},
+        component: ConfirmForm,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+    },
+    component: SendForm,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  transactionDetails: {
+    component: TransactionDetails,
+  },
+}
 
 const routeTree = makeRouteDefNode({
+  containerComponent: Container,
+  defaultSelected: 'wallet',
   children: {
-    createNewAccount: {
-      children: {},
-      component: CreateNewAccount,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    exportSecretKey: {
-      children: {},
-      component: ExportSecretKey,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    linkExisting: {
-      children: {},
-      component: LinkExisting,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    receive: {
-      children: {},
-      component: ReceiveModal,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    settings: {
-      children: {
-        setDefaultAccount: {
-          children: {},
-          component: SetDefaultAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        removeAccount: {
-          children: {},
-          component: RemoveAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-        reallyRemoveAccount: {
-          children: {},
-          component: ReallyRemoveAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-      },
-      component: WalletSettings,
-    },
-    sendReceiveForm: {
-      children: {
-        confirmForm: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
-      },
-      component: SendForm,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    transactionDetails: {
-      component: TransactionDetails,
+    wallet: {
+      component: Wallet,
+      children: walletChildren,
     },
   },
-  component: Container,
-  defaultSelected: '',
-  tags: makeLeafTags({}),
 })
 
 export default routeTree
