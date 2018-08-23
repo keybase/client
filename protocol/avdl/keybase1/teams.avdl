@@ -357,9 +357,13 @@ protocol teams {
     // Log of the last part of the team name.
     array<TeamNameLogPoint> nameLog;
 
-    // The last link procesed
+    // The last link processed
     Seqno lastSeqno;
     LinkID lastLinkID;
+
+    // The last high link processed
+    Seqno lastHighSeqno;
+    LinkID lastHighLinkID;
 
     // Present if a subteam
     union { null, TeamID } parentID;

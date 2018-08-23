@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   _onSetChannelCreationError: error => {
     dispatch(TeamsGen.createSetChannelCreationError({error}))
   },
@@ -36,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   withStateHandlers(
     {
       channelname: null,

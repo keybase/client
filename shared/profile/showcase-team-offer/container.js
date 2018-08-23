@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
   onBack: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
@@ -46,5 +46,5 @@ export default compose(
     componentDidMount() {
       this.props.loadTeams()
     },
-  }),
+  })
 )(HeaderOnMobile(Render))

@@ -10,9 +10,69 @@ import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {walletsTab} from '../constants/tabs'
 
+const buildPayment = (state: TypedState) =>
+  RPCTypes.localBuildPaymentLocalRpcPromise({
+    amount: state.wallets.buildingPayment.amount,
+    // FIXME: Assumes XLM.
+    from: state.wallets.selectedAccount,
+    fromSeqno: '',
+    publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
+    secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
+    to: state.wallets.buildingPayment.to,
+    toIsAccountID: true,
+  }).then(build =>
+    WalletsGen.createBuiltPaymentReceived({
+      build: Constants.buildPaymentResultToBuiltPayment(build),
+    })
+  )
+
+const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
+  const {name} = action.payload
+  return RPCTypes.localCreateWalletAccountLocalRpcPromise(
+    {
+      name,
+    },
+    Constants.createNewAccountWaitingKey
+  )
+    .then(accountIDString => Types.stringToAccountID(accountIDString))
+    .then(accountID => WalletsGen.createCreatedNewAccount({accountID}))
+    .catch(err => {
+      logger.warn(`Error creating new account: ${err.desc}`)
+      return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
+    })
+}
+
+const sendPayment = (state: TypedState) =>
+  RPCTypes.localSendPaymentLocalRpcPromise(
+    {
+      amount: state.wallets.buildingPayment.amount,
+      // FIXME -- support other assets.
+      asset: {type: 'native', code: '', issuer: ''},
+      from: state.wallets.buildingPayment.from,
+      fromSeqno: '',
+      publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
+      quickReturn: false,
+      secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
+      to: state.wallets.buildingPayment.to,
+      toIsAccountID: !!state.wallets.builtPayment.toUsername,
+      worthAmount: '',
+    },
+    Constants.sendPaymentWaitingKey
+  ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+
+const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
+
+const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+
+const navigateToTop = () =>
+  Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+
 const loadAccounts = (
   state: TypedState,
-  action: WalletsGen.LoadAccountsPayload | WalletsGen.LinkedExistingAccountPayload
+  action:
+    | WalletsGen.LoadAccountsPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   RPCTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
@@ -27,6 +87,7 @@ const loadAssets = (
     | WalletsGen.LoadAssetsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   RPCTypes.localGetAccountAssetsLocalRpcPromise({accountID: action.payload.accountID}).then(res =>
@@ -42,6 +103,7 @@ const loadPayments = (
     | WalletsGen.LoadPaymentsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.RefreshPaymentsPayload
 ) =>
   !action.error &&
   Promise.all([
@@ -50,12 +112,8 @@ const loadPayments = (
   ]).then(([pending, payments]) =>
     WalletsGen.createPaymentsReceived({
       accountID: action.payload.accountID,
-      payments: (payments.payments || [])
-        .map(elem => Constants.paymentResultToPayment(elem))
-        .filter(Boolean),
-      pending: (pending || [])
-        .map(elem => Constants.paymentResultToPayment(elem))
-        .filter(Boolean),
+      payments: (payments.payments || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
+      pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
 
@@ -67,8 +125,8 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
       paymentID: action.payload.paymentID,
-      publicNote: res.publicNote,
-      publicNoteType: res.publicNoteType,
+      publicMemo: new HiddenString(res.publicNote),
+      publicMemoType: res.publicNoteType,
       txID: res.txID,
     })
   )
@@ -111,8 +169,15 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
 }
 
 const navigateToAccount = (
-  action: WalletsGen.SelectAccountPayload | WalletsGen.LinkedExistingAccountPayload
+  action:
+    | WalletsGen.CreatedNewAccountPayload
+    | WalletsGen.LinkedExistingAccountPayload
+    | WalletsGen.SelectAccountPayload
 ) => {
+  if (action.type === WalletsGen.createdNewAccount && action.error) {
+    // Create new account failed, don't nav
+    return
+  }
   if (action.type === WalletsGen.linkedExistingAccount && action.error) {
     // Link existing failed, don't nav
     return
@@ -133,7 +198,7 @@ const exportSecretKey = (state: TypedState, action: WalletsGen.ExportSecretKeyPa
   )
 
 const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, state: TypedState) =>
-  state.wallets.get('selectedAccount') === Types.noAccountID &&
+  state.wallets.selectedAccount === Types.noAccountID &&
   Saga.put(
     WalletsGen.createSelectAccount({
       accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
@@ -141,13 +206,32 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
   )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise([WalletsGen.loadAccounts, WalletsGen.linkedExistingAccount], loadAccounts)
+  yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
   yield Saga.actionToPromise(
-    [WalletsGen.loadAssets, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    [
+      WalletsGen.loadAccounts,
+      WalletsGen.createdNewAccount,
+      WalletsGen.linkedExistingAccount,
+      WalletsGen.refreshPayments,
+    ],
+    loadAccounts
+  )
+  yield Saga.actionToPromise(
+    [
+      WalletsGen.loadAssets,
+      WalletsGen.refreshPayments,
+      WalletsGen.selectAccount,
+      WalletsGen.linkedExistingAccount,
+    ],
     loadAssets
   )
   yield Saga.actionToPromise(
-    [WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    [
+      WalletsGen.loadPayments,
+      WalletsGen.refreshPayments,
+      WalletsGen.selectAccount,
+      WalletsGen.linkedExistingAccount,
+    ],
     loadPayments
   )
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
@@ -156,10 +240,25 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(
-    [WalletsGen.selectAccount, WalletsGen.linkedExistingAccount],
+    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount, WalletsGen.selectAccount],
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
+  yield Saga.actionToPromise(
+    [
+      WalletsGen.setBuildingAmount,
+      WalletsGen.setBuildingCurrency,
+      WalletsGen.setBuildingFrom,
+      WalletsGen.setBuildingPublicMemo,
+      WalletsGen.setBuildingSecretNote,
+      WalletsGen.setBuildingTo,
+    ],
+    buildPayment
+  )
+  yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
 }
 
 export default walletsSaga

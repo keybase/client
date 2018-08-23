@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 import {isMobile} from './platform'
 
 const chatTab = 'tabs:chatTab'

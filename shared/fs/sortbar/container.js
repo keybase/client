@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import SortBar from './sortbar'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -14,10 +14,13 @@ const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
   folderIsPending: state.fs.loadingPaths.has(path),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}) => ({
+const mapDispatchToProps = (dispatch, {path}) => ({
   sortSettingToAction: (sortSetting: Types.SortSetting) => () => {
     dispatch(FsGen.createSortSetting({path, sortSetting}))
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('SortBar'))(SortBar)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('SortBar')
+)(SortBar)

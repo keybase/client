@@ -14,7 +14,6 @@ import notifications from './notifications'
 import provision from './provision'
 import people from './people'
 import pinentry from './pinentry'
-import planBilling from './plan-billing'
 import profile from './profile'
 import push from './push'
 import routeTree from './route-tree'
@@ -27,7 +26,6 @@ import users from './users'
 import waiting from './waiting'
 import wallets from './wallets'
 import {combineReducers} from 'redux'
-import {resetStore} from '../constants/common'
 import {reducerTimer} from '../dev/user-timings'
 
 import type {TypedState} from '../constants/reducer'
@@ -46,7 +44,6 @@ const reducers = {
   notifications,
   people,
   pinentry,
-  planBilling,
   profile,
   provision,
   push,
@@ -65,7 +62,7 @@ const reducer = reducerTimer ? reducerTimer(reducers) : combineReducers(reducers
 
 export default function(state: TypedState | void, action: any): TypedState {
   // Warn if any keys did not change after a resetStore action
-  if (__DEV__ && action.type === resetStore && state) {
+  if (__DEV__ && action.type === 'common:resetStore' && state) {
     // Don't give a false warning if the state is the same cause it's the initial state
     const initialState = reducer(undefined, action)
     const nextState = reducer(state, action)

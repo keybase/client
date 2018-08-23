@@ -1,5 +1,5 @@
 // Used by meta/message/etc
-// @flow
+// @flow strict
 
 export opaque type ConversationIDKey: string = string
 export const stringToConversationIDKey = __DEV__

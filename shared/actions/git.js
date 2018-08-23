@@ -5,13 +5,11 @@ import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import * as RouteTreeTypes from '../constants/types/route-tree'
-import * as RouteTreeConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
 import {isMobile} from '../constants/platform'
-import {navigateTo, setRouteState} from './route-tree'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
 
@@ -101,7 +99,7 @@ const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
   }).then(() => GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null}))
 
 let _wasOnGitTab = false
-const clearBadgesAfterNav = (_, action: RouteTreeTypes.SwitchTo) => {
+const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
   // on the git tab?
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -136,9 +134,9 @@ const navToGit = (_, action: GitGen.NavToGitPayload) => {
   if (!switchTab) {
     parentPath.push(path.pop())
   }
-  const actions = [Saga.put(navigateTo(path, parentPath))]
+  const actions = [Saga.put(RouteTreeGen.createNavigateTo({path, parentPath}))]
   if (routeState) {
-    actions.push(Saga.put(setRouteState(path, routeState)))
+    actions.push(Saga.put(RouteTreeGen.createSetRouteState({path, partialState: routeState})))
   }
   return Saga.all(actions)
 }
@@ -194,7 +192,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
 
   // Badges
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield Saga.actionToPromise(RouteTreeConstants.switchTo, clearBadgesAfterNav)
+  yield Saga.actionToPromise(RouteTreeGen.switchTo, clearBadgesAfterNav)
 
   // Gregor
   yield Saga.actionToAction(GitGen.handleIncomingGregor, handleIncomingGregor)

@@ -21,16 +21,15 @@ const HistoryPlaceholder = () => (
   </Box2>
 )
 
-export default (props: Props) => {
+const Wallet = (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
     if (section.title === 'Your assets') {
       children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
     } else if (item === 'historyPlaceholder') {
-      children.push(<HistoryPlaceholder />)
+      children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
-        // $FlowIssue thinks these props aren't in `Transaction`
         <Transaction
           accountID={props.accountID}
           paymentID={item.paymentID}
@@ -77,3 +76,5 @@ const styles = styleSheetCreate({
     color: globalColors.black_40,
   },
 })
+
+export default Wallet

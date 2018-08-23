@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/people'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of people but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'people:'
 export const getPeopleData = 'people:getPeopleData'
 export const markViewed = 'people:markViewed'
 export const peopleDataProcessed = 'people:peopleDataProcessed'

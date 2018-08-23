@@ -1,13 +1,12 @@
 // @flow
 // Helper to deal with service calls in a saga friendly way
-import {getEngine, Engine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
+import {getEngine} from './require'
 import {sequentially} from '../util/saga'
 import type {CommonResponseHandler, RPCError} from './types'
-import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
-import {isArray} from 'lodash'
+import {isArray} from 'lodash-es'
 
 type EmittedCall = {
   method: string,
@@ -21,8 +20,8 @@ type EmittedFinished = {
   error: ?RPCError,
 }
 
-type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effect | ?Generator<any, any, any>
-type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
+type CallbackWithResponse = (any, CommonResponseHandler) => ?RS.Effect | ?Generator<any, any, any>
+type CallbackNoResponse = any => ?RS.Effect | ?Generator<any, any, any>
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
@@ -36,7 +35,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.error(...args)
     }
@@ -46,7 +45,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.result(...args)
     }
@@ -63,11 +62,10 @@ function* call(p: {
   waitingKey?: string,
 }): Generator<any, any, any> {
   const {method, params, incomingCallMap, waitingKey} = p
-  const engine = getEngine()
 
   // Waiting on the server
   if (waitingKey) {
-    Engine.dispatchWaitingAction(waitingKey, true)
+    getEngine().dispatchWaitingAction(waitingKey, true)
   }
 
   const buffer = RS.buffers.expanding(10)
@@ -79,13 +77,13 @@ function* call(p: {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
-          Engine.dispatchWaitingAction(waitingKey, false)
+          getEngine().dispatchWaitingAction(waitingKey, false)
         }
 
         const response = makeWaitingResponse(_response, waitingKey)
 
         // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
-        const customResponseNeeded = incomingCallMap[method].length === 3
+        const customResponseNeeded = incomingCallMap[method].length === 2
         if (!customResponseNeeded && response) {
           response.result()
         }
@@ -111,7 +109,7 @@ function* call(p: {
       }, 2000)
     }
 
-    engine._rpcOutgoing({
+    getEngine()._rpcOutgoing({
       callback: (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
@@ -154,15 +152,14 @@ function* call(p: {
         // See if its handled
         const cb = incomingCallMap[res.method]
         if (cb) {
-          const state: TypedState = yield RSE.select()
           let actions
 
           if (res.response) {
             const c: CallbackWithResponse = (cb: CallbackWithResponse)
-            actions = yield RSE.call(c, res.params, res.response, state)
+            actions = yield RSE.call(c, res.params, res.response)
           } else {
             const c: CallbackNoResponse = (cb: CallbackNoResponse)
-            actions = yield RSE.call(c, res.params, state)
+            actions = yield RSE.call(c, res.params)
           }
 
           if (actions) {
@@ -187,7 +184,7 @@ function* call(p: {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {
       // No longer waiting
-      Engine.dispatchWaitingAction(waitingKey, false)
+      getEngine().dispatchWaitingAction(waitingKey, false)
     }
 
     if (finalError) {

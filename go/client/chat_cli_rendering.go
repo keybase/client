@@ -553,7 +553,9 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 		return formattingErrorStr
 	}
 
-	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.KeybaseRequestID(body.RequestID))
+	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
+		ReqID: stellar1.KeybaseRequestID(body.RequestID),
+	})
 	if err != nil {
 		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
 		return formattingErrorStr

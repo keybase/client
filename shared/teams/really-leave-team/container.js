@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
@@ -29,6 +29,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   branch(props => props._lastOwner, renderComponent(LastOwnerDialog))
 )(ReallyLeaveTeam)

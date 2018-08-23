@@ -8,7 +8,8 @@ import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 import * as Types from '../constants/types/git'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of git but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'git:'
 export const badgeAppForGit = 'git:badgeAppForGit'
 export const createPersonalRepo = 'git:createPersonalRepo'
 export const createTeamRepo = 'git:createTeamRepo'

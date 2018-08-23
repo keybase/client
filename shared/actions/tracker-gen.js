@@ -8,7 +8,8 @@ import * as Types from '../constants/types/tracker'
 import * as FolderTypes from '../constants/types/folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'tracker:'
 export const cacheIdentify = 'tracker:cacheIdentify'
 export const follow = 'tracker:follow'
 export const getMyProfile = 'tracker:getMyProfile'

@@ -1,0 +1,6 @@
+// @flow strict
+// `days` should be left as 0 unless `type` is expire
+// $FlowIssue https://github.com/facebook/flow/issues/6628
+import * as I from 'immutable'
+export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
+export type RetentionPolicy = I.RecordOf<_RetentionPolicy>

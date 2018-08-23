@@ -66,7 +66,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
@@ -100,7 +100,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('TeamDropdownMenu'),
   lifecycle({
     componentDidMount() {

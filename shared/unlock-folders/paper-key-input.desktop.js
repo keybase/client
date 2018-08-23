@@ -8,7 +8,7 @@ export type Props = {
   onBack: () => void,
   onContinue: (paperkey: string) => void,
   paperkeyError: ?string,
-  waiting: ?boolean,
+  waiting: boolean,
 }
 
 type State = {
