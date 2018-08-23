@@ -4,12 +4,12 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type AccountEntryProps = {|
-  name: string,
-  keybaseUser: string,
-  contents: string,
-  style?: Styles.StylesCrossPlatform,
   center?: boolean,
+  contents: string,
+  keybaseUser: string,
+  name: string,
   showWalletIcon: boolean,
+  style?: Styles.StylesCrossPlatform,
 |}
 
 // A row display of an account, used by the participants components.

@@ -13,6 +13,7 @@ type ParticipantsProps = {|
   // Must have a recipient user, stellar address, or account
   recipientUsername?: string,
   recipientFullName?: string,
+  onShowProfile?: string => void,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
   recipientAccountAssets?: string,
@@ -33,6 +34,7 @@ const Participants = (props: ParticipantsProps) => {
           username={props.recipientUsername}
           metaOne={props.recipientFullName}
           avatarStyle={styles.avatar}
+          onClick={props.onShowProfile}
         />
       )
       break
