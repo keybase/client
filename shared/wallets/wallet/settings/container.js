@@ -23,12 +23,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const currency = Constants.getDisplayCurrency(state, accountID)
   return {
     accountID,
-    name,
-    user,
-    isDefault: account.isDefault,
-    currency,
     currencies,
+    currency,
+    isDefault: account.isDefault,
+    name,
     onEditName: () => {},
+    user,
   }
 }
 
@@ -40,9 +40,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
     },
     _onDelete: (accountID: Types.AccountID) =>
       dispatch(
-        WalletsGen.createDeleteAccount({
-          accountID,
-        })
+        navigateAppend([
+          {
+            props: {accountID},
+            selected: 'removeAccount',
+          },
+        ])
       ),
     _onSetDefault: (accountID: Types.AccountID) =>
       dispatch(

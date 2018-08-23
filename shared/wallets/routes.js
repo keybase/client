@@ -42,14 +42,13 @@ const routeTree = makeRouteDefNode({
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
         removeAccount: {
-          children: {
-            reallyRemoveAccount: {
-              children: {},
-              component: ReallyRemoveAccountPopup,
-              tags: makeLeafTags({layerOnTop: !isMobile}),
-            },
-          },
+          children: {},
           component: RemoveAccountPopup,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+        reallyRemoveAccount: {
+          children: {},
+          component: ReallyRemoveAccountPopup,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
       },

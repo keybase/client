@@ -4,13 +4,12 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import WalletPopup from '../../../../wallet-popup'
 
-export type Props = {
+export type Props = {|
   name: string,
-  currency: string,
-  keys: string,
+  balance: string,
   onDelete: () => void,
   onClose: () => void,
-}
+|}
 
 const RemoveAccountPopup = (props: Props) => {
   const buttons = [
@@ -46,8 +45,7 @@ const RemoveAccountPopup = (props: Props) => {
         Are you sure you want to remove <Kb.Text type="HeaderItalic">{props.name}</Kb.Text> from Keybase?
       </Kb.Text>
       <Kb.Text type="BodySmall">Balance:</Kb.Text>
-      <Kb.Text type="BodySmallExtrabold">{props.currency}</Kb.Text>
-      <Kb.Text type="BodySmallExtrabold">{props.keys}</Kb.Text>
+      <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
     </WalletPopup>
   )
 }
@@ -71,6 +69,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       marginBottom: Styles.globalMargins.tiny,
       textAlign: 'center',
+    },
+    isElectron: {
+      wordBreak: 'break-all',
     },
     isMobile: {
       marginLeft: Styles.globalMargins.small,

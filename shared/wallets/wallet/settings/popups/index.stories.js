@@ -6,17 +6,16 @@ import ReallyRemoveAccountPopup from './really-remove-account'
 import SetDefaultAccountPopup from './set-default'
 
 const warningProps = {
+  balance: '0.00 XLM',
   name: 'awesome account',
-  currency: '0.00 XLM',
-  keys: '2 keys',
-  onDelete: Sb.action('onDelete'),
   onClose: Sb.action('onClose'),
+  onDelete: Sb.action('onDelete'),
 }
 
 const reallyProps = {
   name: 'awesome account',
-  onCopyKey: Sb.action('onCopyKey'),
   onClose: Sb.action('onClose'),
+  onCopyKey: Sb.action('onCopyKey'),
 }
 
 const load = () => {

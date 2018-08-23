@@ -4,11 +4,11 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import WalletPopup from '../../../../wallet-popup'
 
-type Props = Kb.PropsWithTimer<{
+type Props = Kb.PropsWithTimer<{|
   name: string,
   onCopyKey: () => void,
   onClose: () => void,
-}>
+|}>
 
 type State = {
   showingToast: boolean,
@@ -97,8 +97,8 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
   },
   warningText: {
-    textAlign: 'center',
     color: Styles.globalColors.brown_60,
+    textAlign: 'center',
   },
   toastText: {
     color: Styles.globalColors.white,
