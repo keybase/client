@@ -437,6 +437,9 @@
       "_description": "Update the minWriterRole stored with the conversation metadata.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
+    },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
     }
   }
 }

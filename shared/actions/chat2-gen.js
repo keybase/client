@@ -59,6 +59,7 @@ export const muteConversation = 'chat2:muteConversation'
 export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
+export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -258,6 +259,7 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   settings: RPCChatTypes.ConversationNotificationInfo,
 |}>
+type _OpenChatFromWidgetPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey|}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
@@ -460,6 +462,7 @@ export const createMuteConversation = (payload: _MuteConversationPayload) => ({e
 export const createNavigateToInbox = (payload: _NavigateToInboxPayload) => ({error: false, payload, type: navigateToInbox})
 export const createNavigateToThread = (payload: _NavigateToThreadPayload) => ({error: false, payload, type: navigateToThread})
 export const createNotificationSettingsUpdated = (payload: _NotificationSettingsUpdatedPayload) => ({error: false, payload, type: notificationSettingsUpdated})
+export const createOpenChatFromWidget = (payload: _OpenChatFromWidgetPayload) => ({error: false, payload, type: openChatFromWidget})
 export const createOpenFolder = (payload: _OpenFolderPayload) => ({error: false, payload, type: openFolder})
 export const createPreviewConversation = (payload: _PreviewConversationPayload) => ({error: false, payload, type: previewConversation})
 export const createResetChatWithoutThem = (payload: _ResetChatWithoutThemPayload) => ({error: false, payload, type: resetChatWithoutThem})
@@ -521,6 +524,7 @@ export type MuteConversationPayload = $Call<typeof createMuteConversation, _Mute
 export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _NavigateToInboxPayload>
 export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _NavigateToThreadPayload>
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
+export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
@@ -598,6 +602,7 @@ export type Actions =
   | NavigateToInboxPayload
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
+  | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PreviewConversationPayload
   | ResetChatWithoutThemPayload

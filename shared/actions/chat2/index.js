@@ -22,7 +22,7 @@ import logger from '../../logger'
 import type {TypedState} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
-import {getPath} from '../../route-tree'
+import {switchTo, getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -2340,6 +2340,15 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const openChatFromWidget = (state: TypedState, {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidget) =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([chatTab])),
+    ...(conversationIDKey
+      ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
+      : []),
+  ])
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2460,6 +2469,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
   yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
+  yield Saga.actionToAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
   yield Saga.safeTakeEveryPure(
