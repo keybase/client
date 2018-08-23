@@ -13,7 +13,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = dispatch => ({
   _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
-  onViewAll: () => dispatch(FsGen.createOpenFilesFromWidget()),
+  onViewAll: () => dispatch(FsGen.createOpenFilesFromWidget({})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

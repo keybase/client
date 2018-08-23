@@ -616,13 +616,9 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
-const openFilesFromWidget = (state: TypedState, action: FsGen.OpenFilesFromWidgetPayload) => {
-  const {path} = action.payload
+const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
   const pathItem = path ? state.fs.pathItems.get(path) : undefined
-  let selected = 'preview'
-  if (!pathItem || pathItem.type === 'folder') {
-    selected = 'folder'
-  }
+  const selected = (pathItem && pathItem.type !== 'folder') ? 'preview' : 'folder'
   return Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
     Saga.put(switchTo([Tabs.fsTab])),
