@@ -6,14 +6,21 @@
 */
 
 // Cache in the module. This can get called from multiple places and env vars can get lost
-let isElectron = process.env.BABEL_ENV === 'Electron'
+let isElectron = process.env.BABEL_PLATFORM === 'Electron'
+let isReactNative = process.env.BABEL_PLATFORM === 'ReactNative'
+
 module.exports = function(api /*: Api */) {
   api.cache(true)
 
-  console.error('\nbabel.config.js config for', isElectron ? 'Electron' : 'React Native')
+  if (!isElectron && !isReactNative) {
+    throw new Error('MUST have env var BABEL_PLATFORM to all babel')
+  }
+  if (isElectron && isReactNative) {
+    throw new Error('Packager is confused about babel platform')
+  }
 
   if (isElectron) {
-    console.error('Babel for Electron')
+    console.error('KB babel.config.js for Electron')
     return {
       plugins: [
         '@babel/plugin-proposal-object-rest-spread',
@@ -22,8 +29,8 @@ module.exports = function(api /*: Api */) {
       ],
       presets: ['@babel/preset-env', '@babel/preset-react'],
     }
-  } else {
-    console.error('Babel for RN')
+  } else if (isReactNative) {
+    console.error('KB babel.config.js for ReactNative')
     return {}
   }
 }
