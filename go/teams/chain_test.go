@@ -60,20 +60,33 @@ func TestTeamSigChainParse(t *testing.T) {
 	}
 }
 
-func assertHighSeqForTeam(t *testing.T, tc libkb.TestContext, teamID *keybase1.TeamID, expected int) {
+func assertHighSeqForTeam(t *testing.T, tc libkb.TestContext, teamID *keybase1.TeamID, expected keybase1.Seqno) {
 	team, err := Load(context.TODO(), tc.G, keybase1.LoadTeamArg{
 		ID:          *teamID,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
-	actual := int(team.chain().GetLatestHighSeqno())
+	actual := team.chain().GetLatestHighSeqno()
 	require.Equal(t, expected, actual)
+}
+
+func assertHighSeqFromServer(t *testing.T, tc libkb.TestContext, teamID *keybase1.TeamID, seq keybase1.Seqno, expectedHigh keybase1.Seqno) {
+	loaderContext := NewLoaderContextFromG(tc.G)
+	seqnos := []keybase1.Seqno{seq}
+	rawTeam, err := loaderContext.getLinksFromServer(context.TODO(), *teamID, seqnos, nil)
+	require.NoError(t, err)
+	links, err := rawTeam.unpackLinks(context.TODO())
+	require.NoError(t, err)
+	actualHighSeq := links[0].outerLink.HighSeqno
+	require.Equal(t, expectedHigh, *actualHighSeq)
 }
 
 func TestTeamSigChainHighLinks(t *testing.T) {
 	tc := SetupTest(t, "team_sig_chain_high_links", 1)
 	defer tc.Cleanup()
 	ctx := context.TODO()
+	var runningTeamSeqno, teamPrevHighSeqno keybase1.Seqno
+	var runningSubteamSeqno, subteamPrevHighSeqno keybase1.Seqno
 
 	// Create some users. The owner is last so that it has the active session.
 	u2, err := kbtest.CreateAndSignupFakeUser("we", tc.G) //admin
@@ -82,91 +95,114 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("je", tc.G) //owner
 	require.NoError(t, err)
-	t.Logf("create the team...")
+
 	// Create a team. This creates the first high link.
+	t.Logf("create the team...")
 	teamName := u1.Username + "t"
 	teamNameObj, err := keybase1.TeamNameFromString(teamName)
 	require.NoError(t, err)
 	teamID, err := CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 1)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	teamPrevHighSeqno = runningTeamSeqno
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 
-	t.Logf("adding new reader...")
 	// Adding a new reader is not a high link, so the lastest high seq won't change.
+	t.Logf("adding new reader...")
 	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 1)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 
-	t.Logf("adding new admin...")
 	// Adding a new admin IS a high link, so we should jump to 3.
+	t.Logf("adding new admin...")
 	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 3)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	teamPrevHighSeqno = runningTeamSeqno
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 
-	t.Logf("promoting from admin to owner...")
 	// Promoting from admin to owner is a high link.
+	t.Logf("promoting from admin to owner...")
 	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_OWNER)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 4)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	teamPrevHighSeqno = runningTeamSeqno
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 
-	t.Logf("demoting from owner to admin...")
 	// Demoting from owner to admin is a high link.
+	t.Logf("demoting from owner to admin...")
 	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 5)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	teamPrevHighSeqno = runningTeamSeqno
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 
-	t.Logf("adding new subteam...")
 	// Creating a subteam is not a high link for the parent team
 	// but it is for the subteam. The link types are different
 	// "team.root" and "team.subteam_head" so we should check both teams.
+	t.Logf("adding new subteam...")
 	sub := "sub"
 	subteamID, err := CreateSubteam(ctx, tc.G, sub, teamNameObj, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, subteamID, 1)
-	assertHighSeqForTeam(t, tc, teamID, 5)
+	runningTeamSeqno++
+	runningSubteamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
+	// for the subteam
+	assertHighSeqFromServer(t, tc, subteamID, runningSubteamSeqno, subteamPrevHighSeqno)
+	subteamPrevHighSeqno = runningSubteamSeqno
+	assertHighSeqForTeam(t, tc, subteamID, subteamPrevHighSeqno)
 
-	t.Logf("adding new admin to subteam...")
 	// Adding an admin to the subteam is a high link for the subteam but not
 	// the parent. Primarily, we do this to verify that high links advance
 	// the same way on subteams (since there are places that default to a
 	// value of 1 for sequence number). It's overkill to test any more than
 	// just this on the subteam since it should work the same way.
+	t.Logf("adding new admin to subteam...")
 	_, err = AddMemberByID(ctx, tc.G, *subteamID, u3.Username, keybase1.TeamRole_ADMIN)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, subteamID, 2)
-	assertHighSeqForTeam(t, tc, teamID, 5)
+	runningSubteamSeqno++
+	assertHighSeqFromServer(t, tc, subteamID, runningSubteamSeqno, subteamPrevHighSeqno)
+	subteamPrevHighSeqno = runningSubteamSeqno
+	assertHighSeqForTeam(t, tc, subteamID, subteamPrevHighSeqno)
 
+	// Back to the root team... downgrading an admin IS a high link for the root team
+	// but it is not one for the subteam, because the subteam needs to care about it's
+	// parent's high links anyway.
 	t.Logf("demoting admin to writer...")
-	// Back to the root team... downgrading an admin IS a high link for the root team
-	// but it is not one for the subteam, because the subteam needs to care about it's
-	// parent's high links anyway.
 	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 7)
-	assertHighSeqForTeam(t, tc, subteamID, 2)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	teamPrevHighSeqno = runningTeamSeqno
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
+	// no changes to the subteam
+	assertHighSeqForTeam(t, tc, subteamID, subteamPrevHighSeqno)
 
-	t.Logf("demoting admin...")
-	// Back to the root team... downgrading an admin IS a high link for the root team
-	// but it is not one for the subteam, because the subteam needs to care about it's
-	// parent's high links anyway.
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_WRITER)
-	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 7)
-	assertHighSeqForTeam(t, tc, subteamID, 2)
-
-	t.Logf("rotating keys...")
 	// Rotated keys do not create high links.
+	t.Logf("rotating keys...")
 	err = RotateKey(ctx, tc.G, *teamID)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 7)
-	assertHighSeqForTeam(t, tc, subteamID, 2)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
+	// no changes to the subteam
+	assertHighSeqForTeam(t, tc, subteamID, subteamPrevHighSeqno)
 
-	t.Logf("deleting subteam...")
 	// Deleting a subteam will not create a high link.
+	t.Logf("deleting subteam...")
 	subteamName := teamName + "." + sub
 	err = Delete(ctx, tc.G, &teamsUI{}, subteamName)
 	require.NoError(t, err)
-	assertHighSeqForTeam(t, tc, teamID, 7)
+	runningTeamSeqno++
+	assertHighSeqFromServer(t, tc, teamID, runningTeamSeqno, teamPrevHighSeqno)
+	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {

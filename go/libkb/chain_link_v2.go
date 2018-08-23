@@ -198,6 +198,8 @@ type OuterLinkV2 struct {
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+	HighSeqno           *keybase1.Seqno        `codec:"hseqno"`
+	HighPrev            *LinkID                `codec:"hprev"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -243,6 +245,7 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	hPrev HPrevInfo,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
@@ -259,6 +262,14 @@ func MakeSigchainV2OuterSig(
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
 		IgnoreIfUnsupported: ignoreIfUnsupported,
+		HighSeqno:           &hPrev.HighSeqNo,
+		HighPrev:            &hPrev.HighPrev,
+	}
+	if hPrev.IsEmpty() {
+		// this could be a root node or if no high set pointers are known yet
+		// or a user sigchain node for which high pointers aren't a thing yet
+		// the server expects `null` for hprev, and otherwise we'd get `""`
+		outerLink.HighPrev = nil
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
