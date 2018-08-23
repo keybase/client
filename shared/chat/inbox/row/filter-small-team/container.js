@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}) => ({
   onSelectConversation: () =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'})),
 })

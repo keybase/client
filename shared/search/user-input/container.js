@@ -126,7 +126,7 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey}) => ({
+const mapDispatchToProps = (dispatch, {searchKey}) => ({
   onRemoveUser: id => dispatch(SearchGen.createRemoveResultsToUserInput({searchKey, searchResults: [id]})),
   search: (term: string, service) => {
     if (term) {

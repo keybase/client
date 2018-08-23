@@ -96,14 +96,11 @@ const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'keybase.1.homeUI.homeUIRefresh',
     () =>
-      _wasOnPeopleTab
-        ? [
-            PeopleGen.createGetPeopleData({
-              markViewed: false,
-              numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-            }),
-          ]
-        : null
+      _wasOnPeopleTab &&
+      PeopleGen.createGetPeopleData({
+        markViewed: false,
+        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
+      })
   )
 }
 

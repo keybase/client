@@ -1,5 +1,5 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import Downloads, {type DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'

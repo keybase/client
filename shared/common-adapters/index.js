@@ -2,7 +2,7 @@
 import * as React from 'react'
 import Box from './box'
 import PopupDialog from './popup-dialog'
-import {connect, type Dispatch} from '../util/container'
+import {connect} from '../util/container'
 import {collapseStyles, globalColors, isMobile} from '../styles'
 
 const MaybePopup = isMobile
@@ -33,10 +33,10 @@ const MaybePopup = isMobile
 // TODO properly type this
 const DispatchNavUpHoc: any = connect(
   () => ({}),
-  (dispatch: Dispatch, {navigateUp}) => ({
+  (dispatch, {navigateUp}) => ({
     connectedNavigateUp: () => dispatch(navigateUp()),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // TODO properly type this

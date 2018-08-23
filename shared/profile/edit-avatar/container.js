@@ -19,7 +19,7 @@ const mapStateToProps = (
   teamname: routeProps.get('teamname'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => ({
+const mapDispatchToProps = (dispatch, ownProps: Props) => ({
   onClose: () => dispatch(navigateUp()),
   onSaveTeamAvatar: (
     filename: string,
