@@ -10,7 +10,6 @@ import * as RouteTreeConstants from '../constants/route-tree'
 import * as Saga from '../util/saga'
 import * as SettingsConstants from '../constants/settings'
 import * as Tabs from '../constants/tabs'
-import moment from 'moment'
 import {isMobile} from '../constants/platform'
 import {navigateTo, setRouteState} from './route-tree'
 import type {TypedState} from '../util/container'
@@ -55,7 +54,7 @@ const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
     },
     Constants.loadingWaitingKey
   )
-    .then(() => GitGen.createNavToGit({routeState: null}))
+    .then(() => GitGen.createReposModified())
     .catch(error => GitGen.createSetError({error}))
 
 const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
@@ -66,14 +65,14 @@ const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
       parts: action.payload.teamname.split('.'),
     },
   })
-    .then(() => GitGen.createNavToGit({routeState: null}))
+    .then(() => GitGen.createReposModified())
     .catch(error => GitGen.createSetError({error}))
 
 const deletePersonalRepo = (_, action: GitGen.DeletePersonalRepoPayload) =>
   RPCTypes.gitDeletePersonalRepoRpcPromise({
     repoName: action.payload.name,
   })
-    .then(() => GitGen.createNavToGit({routeState: null}))
+    .then(() => GitGen.createReposModified())
     .catch(error => GitGen.createSetError({error}))
 
 const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
@@ -84,7 +83,7 @@ const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
       parts: action.payload.teamname.split('.'),
     },
   })
-    .then(() => GitGen.createNavToGit({routeState: null}))
+    .then(() => GitGen.createReposModified())
     .catch(error => GitGen.createSetError({error}))
 
 const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
@@ -131,35 +130,34 @@ function handleIncomingGregor(_, action: GitGen.HandleIncomingGregorPayload) {
 }
 
 const navToGit = (_, action: GitGen.NavToGitPayload) => {
+  const {switchTab, routeState} = action.payload
   const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
-  const actions = [Saga.put(navigateTo(path, []))]
-  if (action.payload.routeState) {
-    actions.push(Saga.put(setRouteState(path, action.payload.routeState)))
+  const parentPath = []
+  if (!switchTab) {
+    parentPath.push(path.pop())
+  }
+  const actions = [Saga.put(navigateTo(path, parentPath))]
+  if (routeState) {
+    actions.push(Saga.put(setRouteState(path, routeState)))
   }
   return Saga.all(actions)
 }
 
-const isRepoInfoFresh = (lastLoad: ?number, maxAgeMs: number) => lastLoad && lastLoad - Date.now() < maxAgeMs
+const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepoPayload) =>
+  Saga.call(function*() {
+    const {teamname, repoID} = action.payload
+    let id = Constants.repoIDTeamnameToId(state, repoID, teamname)
+    if (!id) {
+      yield Saga.put(GitGen.createLoadGit())
+      yield Saga.take(GitGen.loaded)
+      const nextState = yield Saga.select()
+      id = Constants.repoIDTeamnameToId(nextState, repoID, teamname)
+    }
 
-// Note: Needs to be sequential (& possibly refire) in order to match the repoID + teamname to a unique id
-const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepoPayload) => {
-  // If we haven't loaded the repos yet, or it is too old
-  if (!isRepoInfoFresh(state.git.lastLoad, moment.duration(1, 'hour').asMilliseconds())) {
-    return Saga.sequentially([
-      Saga.put(GitGen.createLoadGit()),
-      Saga.take(GitGen.loaded),
-      // Refire the action
-      Saga.put(action),
-    ])
-  }
-  const {teamname, repoID} = action.payload
-  const idToInfo = state.git.idToInfo
-  const repo = idToInfo.find(val => val.repoID === repoID && val.teamname === teamname)
-  if (!repo) {
-    return
-  }
-  return Saga.put(GitGen.createNavToGit({routeState: {expandedSet: I.Set([repo.id])}}))
-}
+    if (id) {
+      yield Saga.put(GitGen.createNavToGit({routeState: {expandedSet: I.Set([id])}, switchTab: true}))
+    }
+  })
 
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   Saga.put(GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []}))
@@ -176,9 +174,13 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(GitGen.createTeamRepo, createTeamRepo)
   yield Saga.actionToPromise(GitGen.deletePersonalRepo, deletePersonalRepo)
   yield Saga.actionToPromise(GitGen.deleteTeamRepo, deleteTeamRepo)
+  yield Saga.actionToPromise(GitGen.reposModified, load)
 
   // Nav
   yield Saga.actionToAction(GitGen.navToGit, navToGit)
+  yield Saga.actionToAction(GitGen.reposModified, () =>
+    Saga.put(GitGen.createNavToGit({routeState: null, switchTab: false}))
+  )
 
   // Loading
   yield Saga.actionToPromise(GitGen.loadGit, load)

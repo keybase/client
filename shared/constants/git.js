@@ -80,8 +80,16 @@ const parseRepos = (
   }
 }
 
-const getIdToGit = (state: TypedState) => state.git.get('idToInfo')
-const getError = (state: TypedState) => state.git.get('error')
+const repoIDTeamnameToId = (state: TypedState, repoID: string, teamname: string): ?string => {
+  const repo = state.git.idToInfo.find(val => val.repoID === repoID && val.teamname === teamname)
+  if (!repo) {
+    return
+  }
+  return repo.id
+}
+
+const getIdToGit = (state: TypedState) => state.git.idToInfo
+const getError = (state: TypedState) => state.git.error
 const loadingWaitingKey = 'git:loading'
 
-export {getIdToGit, getError, loadingWaitingKey, parseRepos}
+export {getIdToGit, getError, loadingWaitingKey, parseRepos, repoIDTeamnameToId}

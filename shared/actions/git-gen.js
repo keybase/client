@@ -20,6 +20,7 @@ export const loadGitRepo = 'git:loadGitRepo'
 export const loaded = 'git:loaded'
 export const navToGit = 'git:navToGit'
 export const navigateToTeamRepo = 'git:navigateToTeamRepo'
+export const reposModified = 'git:reposModified'
 export const setError = 'git:setError'
 export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 
@@ -47,11 +48,15 @@ type _LoadedPayload = $ReadOnly<{|
   repos: {'[key: string]': Types.GitInfo},
   errors: Array<Error>,
 |}>
-type _NavToGitPayload = $ReadOnly<{|routeState: ?{expandedSet: I.Set<string>}|}>
+type _NavToGitPayload = $ReadOnly<{|
+  switchTab: boolean,
+  routeState: ?{expandedSet: I.Set<string>},
+|}>
 type _NavigateToTeamRepoPayload = $ReadOnly<{|
   repoID: string,
   teamname: string,
 |}>
+type _ReposModifiedPayload = void
 type _SetErrorPayload = $ReadOnly<{|error: ?Error|}>
 type _SetTeamRepoSettingsPayload = $ReadOnly<{|
   chatDisabled: boolean,
@@ -72,6 +77,7 @@ export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: fals
 export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
 export const createNavToGit = (payload: _NavToGitPayload) => ({error: false, payload, type: navToGit})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({error: false, payload, type: navigateToTeamRepo})
+export const createReposModified = (payload: _ReposModifiedPayload) => ({error: false, payload, type: reposModified})
 export const createSetError = (payload: _SetErrorPayload) => ({error: false, payload, type: setError})
 export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) => ({error: false, payload, type: setTeamRepoSettings})
 
@@ -87,6 +93,7 @@ export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPay
 export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
 export type NavToGitPayload = $Call<typeof createNavToGit, _NavToGitPayload>
 export type NavigateToTeamRepoPayload = $Call<typeof createNavigateToTeamRepo, _NavigateToTeamRepoPayload>
+export type ReposModifiedPayload = $Call<typeof createReposModified, _ReposModifiedPayload>
 export type SetErrorPayload = $Call<typeof createSetError, _SetErrorPayload>
 export type SetTeamRepoSettingsPayload = $Call<typeof createSetTeamRepoSettings, _SetTeamRepoSettingsPayload>
 
@@ -104,6 +111,7 @@ export type Actions =
   | LoadedPayload
   | NavToGitPayload
   | NavigateToTeamRepoPayload
+  | ReposModifiedPayload
   | SetErrorPayload
   | SetTeamRepoSettingsPayload
   | {type: 'common:resetStore', payload: void}

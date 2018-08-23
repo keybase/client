@@ -27,6 +27,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.loadGitRepo:
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
+    case GitGen.reposModified:
     case GitGen.setTeamRepoSettings:
       return state
     default:
