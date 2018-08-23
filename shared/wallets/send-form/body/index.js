@@ -6,7 +6,7 @@ import AssetInput from '../asset-input/container'
 import Banner from '../../banner/container'
 import Footer from '../footer/container'
 import NoteAndMemo from '../note-and-memo/container'
-import Participants from '../../participants/container'
+import Participants from '../participants/container'
 
 type Props = {
   bannerInfo?: string,
