@@ -56,9 +56,10 @@ type SigChain struct {
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
-	localChainTail *MerkleTriple
+	localChainTail                 *MerkleTriple
+	localChainNextHighSkipOverride *HighSkip
 
-	// When the local chain was updated.
+	// When the local chains were updated.
 	localChainUpdateTime time.Time
 
 	// The sequence number of the first chain link in the current subchain. For
@@ -211,11 +212,18 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 	return ret
 }
 
-func (sc *SigChain) Bump(mt MerkleTriple) {
+// Bump updates the latest seqno and high skip pointers during
+// multisig posts. isHighDelegator is true iff the sig making
+// causing the bump is high (e.g., for a sibkey).
+func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
 	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = sc.G().Clock().Now()
+	if isHighDelegator {
+		highSkip := NewHighSkip(mt.Seqno, mt.LinkID)
+		sc.localChainNextHighSkipOverride = &highSkip
+	}
 }
 
 func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -322,6 +330,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
 			m.CDebugf("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
+			sc.localChainNextHighSkipOverride = nil
 			sc.localCki = nil
 		}
 	}
@@ -344,12 +353,31 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 
 func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 	defer m.CTrace("SigChain#VerifyChain", func() error { return err })()
+	m.CDebugf("+ SigChain#VerifyChain()")
+	defer func() {
+		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
+	}()
+
+	expectedNextHighSkip := NewInitialHighSkip()
+	firstUnverifiedChainIdx := 0
+outer:
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		m.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
-			m.CDebugf("| short-circuit at link %d", i)
-			break
+			expectedNextHighSkipPre, err := curr.ExpectedNextHighSkip()
+
+			switch err.(type) {
+			case UserReverifyNeededError:
+				m.CDebugf("Continuing verification at link %d due to uncomputed high skip.", i)
+			case nil:
+				m.CDebugf("| short-circuit at link %d", i)
+				expectedNextHighSkip = expectedNextHighSkipPre
+				firstUnverifiedChainIdx = i + 1
+				break outer
+			default:
+				return err
+			}
 		}
 		if err = curr.VerifyLink(); err != nil {
 			return err
@@ -369,6 +397,25 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 			return err
 		}
 		curr.markChainVerified()
+	}
+
+	for i := firstUnverifiedChainIdx; i < len(sc.chainLinks); i++ {
+		curr := sc.chainLinks[i]
+		curr.computedHighSkip = &expectedNextHighSkip
+
+		// If the sigchain claims an HighSkip, make sure it matches our
+		// computation.
+		if highSkip := curr.GetHighSkip(); highSkip != nil {
+			err = highSkip.AssertEqualsExpected(*curr.computedHighSkip)
+			if err != nil {
+				return err
+			}
+		}
+		expectedNextHighSkip, err = curr.ExpectedNextHighSkip()
+		if err != nil {
+			return err
+		}
+>>>>>>> add support for reading and writing user high links
 	}
 
 	return err
@@ -395,6 +442,18 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 		ret = sc.GetLastLoadedID()
 	}
 	return
+}
+
+// GetExpectedNextHighSkip returns the HighSkip expected for a new link to be
+// added to the chain.  It can only be called after VerifyChain is completed.
+func (sc SigChain) GetExpectedNextHighSkip() (HighSkip, error) {
+	if sc.localChainNextHighSkipOverride != nil {
+		return *sc.localChainNextHighSkipOverride, nil
+	}
+	if len(sc.chainLinks) == 0 {
+		return NewInitialHighSkip(), nil
+	}
+	return sc.GetLastLink().ExpectedNextHighSkip()
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {

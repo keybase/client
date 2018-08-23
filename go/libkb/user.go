@@ -148,6 +148,20 @@ func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	return u.sigChain().currentSubchainStart
 }
 
+func (u *User) GetExpectedNextHighSkip() (HighSkip, error) {
+	if u.sigChain() == nil {
+		return NewInitialHighSkip(), nil
+	}
+	return u.sigChain().GetExpectedNextHighSkip()
+}
+
+func (u *User) GetLastLink() *ChainLink {
+	if u.sigChain() == nil {
+		return nil
+	}
+	return u.sigChain().GetLastLink()
+}
+
 func (u *User) ToUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{
 		Uid:         u.GetUID(),
@@ -639,12 +653,16 @@ func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
 	return nil
 }
 
-func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID) {
-	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID})
+// SigChainBump is called during a multikey post to update the correct seqno, hash, and
+// high skip. When a delegator posts a high link, they specify isHighDelegator=true
+// in order to set the new high skip pointer to the delegator's link, so subsequent
+// keys in the multikey will supply the correct high skip.
+func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID, isHighDelegator bool) {
+	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID}, isHighDelegator)
 }
 
-func (u *User) SigChainBumpMT(mt MerkleTriple) {
-	u.sigChain().Bump(mt)
+func (u *User) SigChainBumpMT(mt MerkleTriple, isHighDelegator bool) {
+	u.sigChain().Bump(mt, isHighDelegator)
 }
 
 func (u *User) GetDevice(id keybase1.DeviceID) (*Device, error) {

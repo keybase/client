@@ -198,6 +198,12 @@ type OuterLinkV2 struct {
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+	// -- Links exist in the wild that are missing fields below this line too.
+	// If not provided, both of these are nil, and highSkip in the inner link is set to nil.
+	// Note that a link providing HighSkipSeqno == 0 and HighSkipHash == nil is valid
+	// (and mandatory) for an initial link.
+	HighSkipSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
+	HighSkipHash  *LinkID         `codec:"high_skip_hash"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -234,7 +240,83 @@ type SigHasRevokes bool
 
 func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
+func encodeOuterLink(
+	m MetaContext,
+	v1LinkType LinkType,
+	seqno keybase1.Seqno,
+	innerLinkJSON []byte,
+	prevLinkID LinkID,
+	hasRevokes SigHasRevokes,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
+) ([]byte, error) {
+	var encodedOuterLink []byte
+
+	currLinkID := ComputeLinkID(innerLinkJSON)
+
+	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
+	if err != nil {
+		return encodedOuterLink, err
+	}
+
+	// When 2.3 links are mandatory, it will be invalid for highSkip == nil,
+	// so the featureflag check will be removed and the nil check will result
+	// in an error.
+	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
+	if allowHighSkips && highSkip != nil {
+		highSkipSeqno := &highSkip.Seqno
+		highSkipHash := &highSkip.Hash
+		outerLink := OuterLinkV2{
+			Version:             2,
+			Seqno:               seqno,
+			Prev:                prevLinkID,
+			Curr:                currLinkID,
+			LinkType:            v2LinkType,
+			SeqType:             seqType,
+			IgnoreIfUnsupported: ignoreIfUnsupported,
+			HighSkipSeqno:       highSkipSeqno,
+			HighSkipHash:        highSkipHash,
+		}
+		encodedOuterLink, err = outerLink.Encode()
+	} else {
+		// This is a helper struct. When the code for Sigchain 2.3
+		// is released, it is possible some clients will still post 2.2
+		// links, i.e., without high_skip information. Due to a bug
+		// in Keybase's fork of go-codec, omitempty does not work
+		// for arrays. So, we send up the serialization of the
+		// appropriate struct depending on whether we are making a 2.3 link.
+		// When 2.3 links are mandatory, this struct can be deleted.
+		encodedOuterLink, err = MsgpackEncode(
+			struct {
+				_struct             bool                   `codec:",toarray"`
+				Version             int                    `codec:"version"`
+				Seqno               keybase1.Seqno         `codec:"seqno"`
+				Prev                LinkID                 `codec:"prev"`
+				Curr                LinkID                 `codec:"curr"`
+				LinkType            SigchainV2Type         `codec:"type"`
+				SeqType             keybase1.SeqType       `codec:"seqtype"`
+				IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+			}{
+				Version:             2,
+				Seqno:               seqno,
+				Prev:                prevLinkID,
+				Curr:                currLinkID,
+				LinkType:            v2LinkType,
+				SeqType:             seqType,
+				IgnoreIfUnsupported: ignoreIfUnsupported,
+			})
+	}
+
+	if err != nil {
+		return encodedOuterLink, err
+	}
+
+	return encodedOuterLink, err
+}
+
 func MakeSigchainV2OuterSig(
+	m MetaContext,
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	seqno keybase1.Seqno,
@@ -243,24 +325,10 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
-	currLinkID := ComputeLinkID(innerLinkJSON)
 
-	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
-	if err != nil {
-		return sig, sigid, linkID, err
-	}
-
-	outerLink := OuterLinkV2{
-		Version:             2,
-		Seqno:               seqno,
-		Prev:                prevLinkID,
-		Curr:                currLinkID,
-		LinkType:            v2LinkType,
-		SeqType:             seqType,
-		IgnoreIfUnsupported: ignoreIfUnsupported,
-	}
-	encodedOuterLink, err := outerLink.Encode()
+	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, highSkip)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
@@ -426,6 +494,10 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
+func mismatchError(format string, arg ...interface{}) error {
+	return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
+}
+
 func (o OuterLinkV2) AssertFields(
 	version int,
 	seqno keybase1.Seqno,
@@ -434,31 +506,70 @@ func (o OuterLinkV2) AssertFields(
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	highSkip *HighSkip,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	if !o.Prev.Eq(prev) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
+		return mismatchError("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
 	if !o.Curr.Eq(curr) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
+		return mismatchError("curr pointer: (%s != %s)", o.Curr, curr)
 	}
 	if !(linkType == SigchainV2TypeNone && ignoreIfUnsupported) && o.LinkType != linkType {
-		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+		return mismatchError("link type: (%d != %d)", o.LinkType, linkType)
 	}
 	if o.SeqType != seqType {
-		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
+		return mismatchError("seq type: (%d != %d)", o.SeqType, seqType)
 	}
 	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
-		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
+		return mismatchError("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
+
+	err = o.assertHighSkip(highSkip)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (o OuterLinkV2) assertHighSkip(highSkip *HighSkip) error {
+	if highSkip == nil && o.HighSkipSeqno != nil {
+		return mismatchError("provided HighSkipSeqno (%d) in outer link but not in inner link", o.HighSkipSeqno)
+	}
+	if highSkip == nil && o.HighSkipHash != nil {
+		return mismatchError("provided HighSkipHash (%v) in outer link but not in inner link", o.HighSkipHash)
+	}
+
+	// o.HighSkipHash may be nil even if highSkip is not, so we don't check it
+	if highSkip != nil && o.HighSkipSeqno == nil {
+		return mismatchError("provided HighSkip in inner link but not HighSkipSeqno in outer link")
+	}
+
+	if highSkip == nil {
+		return nil
+	}
+
+	if *o.HighSkipSeqno != highSkip.Seqno {
+		return mismatchError("highSkip.Seqno field outer (%d)/inner (%d) mismatch", *o.HighSkipSeqno, highSkip.Seqno)
+	}
+
+	if o.HighSkipHash == nil && highSkip.Hash != nil {
+		return mismatchError("Provided HighSkip.Hash in outer link but not inner.")
+	}
+	if o.HighSkipHash != nil && highSkip.Hash == nil {
+		return mismatchError("Provided HighSkip.Hash in inner link but not outer.")
+	}
+
+	if o.HighSkipHash != nil && !o.HighSkipHash.Eq(highSkip.Hash) {
+		return mismatchError("highSkip.Hash field outer (%v)/inner (%v) mismatch", o.HighSkipHash, highSkip.Hash)
+	}
+
 	return nil
 }
 
@@ -466,14 +577,11 @@ func (o OuterLinkV2) AssertSomeFields(
 	version int,
 	seqno keybase1.Seqno,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }
