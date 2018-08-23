@@ -9179,7 +9179,7 @@ methods@~1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
 
-metro-babel-register@0.43.6, metro-babel-register@^0.43.5:
+metro-babel-register@0.43.6, metro-babel-register@^0.43.6:
   version "0.43.6"
   resolved "https://registry.yarnpkg.com/metro-babel-register/-/metro-babel-register-0.43.6.tgz#c31a68b78e726dafcb7c8964f9170bb3989c52ab"
   dependencies:
@@ -9220,7 +9220,7 @@ metro-config@0.43.6:
     metro-cache "0.43.6"
     metro-core "0.43.6"
 
-metro-core@0.43.6, metro-core@^0.43.5:
+metro-core@0.43.6, metro-core@^0.43.6:
   version "0.43.6"
   resolved "https://registry.yarnpkg.com/metro-core/-/metro-core-0.43.6.tgz#067471a3d2a992165c73ebc87b674c692566b347"
   dependencies:
@@ -9229,7 +9229,7 @@ metro-core@0.43.6, metro-core@^0.43.5:
     metro-resolver "0.43.6"
     wordwrap "^1.0.0"
 
-metro-memory-fs@^0.43.5:
+metro-memory-fs@^0.43.6:
   version "0.43.6"
   resolved "https://registry.yarnpkg.com/metro-memory-fs/-/metro-memory-fs-0.43.6.tgz#b16cfaa1a84a43b48ae9b94132076b88916c20b3"
 
@@ -9286,7 +9286,7 @@ metro-source-map@0.43.6:
   dependencies:
     source-map "^0.5.6"
 
-metro@0.43.6, metro@^0.43.5:
+metro@0.43.6, metro@^0.43.6:
   version "0.43.6"
   resolved "https://registry.yarnpkg.com/metro/-/metro-0.43.6.tgz#2af2ebc26d9f47b35fb37e65a7399d23d3c524c0"
   dependencies:
@@ -11431,9 +11431,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     fbjs "^0.8.3"
 
-"react-native@git://github.com/keybase/react-native#keybase-fixes-off-57-rc0":
-  version "0.57.0-rc.0"
-  resolved "git://github.com/keybase/react-native#3c9e66fd390305e1ab12a961c2e8854f135262ca"
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-57-rc2":
+  version "0.57.0-rc.2"
+  resolved "git://github.com/keybase/react-native#dbfb664c5d698b3801dc218df548a3dbfb8a2cd5"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
@@ -11456,10 +11456,10 @@ react-native-tab-view@^0.0.67:
     graceful-fs "^4.1.3"
     inquirer "^3.0.6"
     lodash "^4.17.5"
-    metro "^0.43.5"
-    metro-babel-register "^0.43.5"
-    metro-core "^0.43.5"
-    metro-memory-fs "^0.43.5"
+    metro "^0.43.6"
+    metro-babel-register "^0.43.6"
+    metro-core "^0.43.6"
+    metro-memory-fs "^0.43.6"
     mime "^1.3.4"
     minimist "^1.2.0"
     mkdirp "^0.5.1"
