@@ -13,17 +13,17 @@ export type Account = {|
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
-  /* Used for send to other account */
+  // Used for send to other account
   fromAccount: Account,
   allAccounts: Account[],
   onChangeFromAccount: (accountName: string) => void,
   onChangeToAccount: (accountName: string) => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
-  /* Used for send to stellar address */
+  // Used for send to stellar address
   incorrect?: string,
   onChangeAddress: string => void,
-  /* Used to display a keybase profile */
+  // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,

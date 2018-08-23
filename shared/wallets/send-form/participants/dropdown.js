@@ -9,7 +9,7 @@ type DropdownTextProps = {
   text: string,
 }
 
-/** A text selection, e.g., "Create a new account". */
+// A text selection, e.g., "Create a new account".
 export const DropdownText = ({text, ...props}: DropdownTextProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} fullWidth={true}>
     <Kb.Text type="BodySemibold">{text}</Kb.Text>
@@ -20,7 +20,7 @@ type SelectedEntryProps = {
   account: Account,
 }
 
-/** The display of the selected account in the dropdown. */
+// The display of the selected account in the dropdown.
 export const SelectedEntry = ({account, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
     <Kb.Avatar size={16} username={account.user} />
@@ -32,7 +32,7 @@ type DropdownEntryProps = {
   account: Account,
 }
 
-/** The display of an entry in the dropdown popup. */
+// The display of an entry in the dropdown popup.
 export const DropdownEntry = (props: DropdownEntryProps) => (
   <AccountEntry
     keybaseUser={props.account.user}

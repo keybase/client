@@ -9,15 +9,15 @@ import type {CounterpartyType} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
-  /* Used for send to stellar address */
+  // Used for send to stellar address
   incorrect?: string,
   onChangeAddress?: string => void,
-  /** Used for sending from account to account */
+  // Used for sending from account to account
   accounts: Account[],
   onChangeSelectedAccount: (accountName: string) => void,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
-  /* Used to display a keybase profile */
+  // Used to display a keybase profile
   username?: string,
   fullName?: string,
   onShowProfile?: string => void,
