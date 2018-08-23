@@ -105,6 +105,7 @@ const PaymentPopup = (props: Props) => {
   }
   return (
     <Kb.FloatingMenu
+      closeOnSelect={true}
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position={props.position}

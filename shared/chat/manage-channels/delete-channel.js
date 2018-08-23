@@ -47,6 +47,7 @@ class _DeleteChannel extends React.Component<Props, State> {
           color={Styles.globalColors.red}
         />
         <Kb.FloatingMenu
+          closeOnSelect={true}
           header={header}
           items={items}
           attachTo={this.props.attachmentRef}
