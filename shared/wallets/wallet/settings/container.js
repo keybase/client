@@ -1,5 +1,5 @@
 // @flow
-import SettingsPopup, {type SettingsPopupProps} from '.'
+import Settings, {type SettingsProps} from '.'
 import {
   compose,
   connect,
@@ -8,7 +8,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
+import {navigateAppend, navigateUp} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -34,6 +34,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
   return {
+    _onBack: () => dispatch(navigateUp()),
     _refresh: () => {
       dispatch(WalletsGen.createLoadDisplayCurrencies())
       dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
@@ -62,8 +63,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps): SettingsPopupProps => ({
+const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
+  onBack: () => dispatchProps._onBack(),
   refresh: () => dispatchProps._refresh(),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
@@ -78,5 +80,5 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('SettingsPopup')
-)(SettingsPopup)
+  setDisplayName('Settings')
+)(Settings)

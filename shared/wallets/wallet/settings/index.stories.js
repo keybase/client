@@ -51,6 +51,7 @@ const defaultSettingsProps = {
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
+  onBack: Sb.action('onBack'),
   refresh: () => {},
 }
 
@@ -65,6 +66,7 @@ const secondarySettingsProps = {
   onSetDefault: Sb.action('setDefault'),
   onEditName: Sb.action('onEditName'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
+  onBack: Sb.action('onBack'),
   refresh: () => {},
 }
 

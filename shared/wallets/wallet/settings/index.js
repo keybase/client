@@ -5,13 +5,14 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 
-export type SettingsPopupProps = {
+export type SettingsProps = {
   accountID: Types.AccountID,
   name: string,
   user: string,
   isDefault: boolean,
   currency: Types.Currency,
   currencies: I.List<Types.Currency>,
+  onBack: () => void,
   onDelete: () => void,
   onSetDefault: () => void,
   onEditName: () => void,
@@ -42,14 +43,18 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   </Kb.Box2>
 )
 
-const WalletSettings = (props: SettingsPopupProps) => {
+const WalletSettings = (props: SettingsProps) => {
   return (
-    <Kb.Box2 direction="vertical" style={styles.settingsPage}>
-      <Kb.Box2 centerChildren={true} direction="vertical">
-        <Kb.Text style={styles.smallPadding} type="Header">
-          Settings
-        </Kb.Text>
-      </Kb.Box2>
+    <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
+      <Kb.HeaderHocHeader
+        title="Settings"
+        onBack={props.onBack}
+        headerStyle={{
+          borderBottomWidth: 1,
+          borderBottomColor: Styles.globalColors.black_10,
+          borderStyle: 'solid',
+        }}
+      />
       <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
       <Kb.ClickableBox style={styles.nameBox}>
         <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
@@ -163,18 +168,13 @@ const styles = Styles.styleSheetCreate({
   },
   settingsPage: Styles.platformStyles({
     common: {
+      alignSelf: 'flex-start',
       backgroundColor: Styles.globalColors.white,
-      padding: Styles.globalMargins.small,
-      maxWidth: 560,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
     isMobile: {
       paddingTop: Styles.globalMargins.xlarge,
-    },
-    isElectron: {
-      marginBottom: 40,
-      marginLeft: 80,
-      marginRight: 80,
-      marginTop: 40,
     },
   }),
   smallPadding: {
