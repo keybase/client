@@ -1453,7 +1453,6 @@ const changeSelectedConversation = (
 
 const _maybeAutoselectNewestConversation = (
   action:
-    | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
     | Chat2Gen.MessageSendPayload
@@ -2347,7 +2346,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Sometimes change the selection
   yield Saga.safeTakeEveryPure(
     [
-      Chat2Gen.metasReceived,
       Chat2Gen.leaveConversation,
       Chat2Gen.metaDelete,
       Chat2Gen.setPendingMode,
