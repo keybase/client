@@ -76,6 +76,7 @@ class MenubarRender extends React.Component<Props, State> {
             ref={this.attachmentRef}
           />
           <Kb.FloatingMenu
+            closeOnSelect={true}
             visible={this.state.showingMenu}
             attachTo={this.attachmentRef.current}
             items={this._menuItems(this.props.badgeInfo || {})}
@@ -209,6 +210,7 @@ class MenubarRender extends React.Component<Props, State> {
             )}
           </Kb.Box>
           <Kb.FloatingMenu
+            closeOnSelect={true}
             items={this._menuItems(this.props.badgeInfo || {})}
             visible={this.state.showingMenu}
             onHidden={() =>
