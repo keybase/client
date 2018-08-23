@@ -88,8 +88,6 @@ const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
     .add('Default', () => <SettingsPopup {...defaultSettingsProps} />)
     .add('Secondary', () => <SettingsPopup {...secondarySettingsProps} />)
-    .add('Settings, default', () => <SettingsPopup {...defaultSettingsProps} />)
-    .add('Settings, secondary', () => <SettingsPopup {...secondarySettingsProps} />)
     .add('Remove warning', () => <RemoveAccountPopup {...warningProps} />)
     .add('Really remove', () => <RemoveAccountAccountPopup {...reallyProps} />)
   confirmDefaultAccount()
