@@ -17,7 +17,7 @@ const provider = Sb.createPropProviderWithCommon({
     recipientFullName: 'Nathan Smith',
     recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
     recipientAccountName: 'Secondary Account',
-    recipientAccountContents: '534 XLM',
+    recipientAccountAssets: '534 XLM',
     recipientType: 'keybaseUser',
   }),
 })

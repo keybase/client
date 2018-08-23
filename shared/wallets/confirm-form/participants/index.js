@@ -15,7 +15,7 @@ type ParticipantsProps = {|
   recipientFullName?: string,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
-  recipientAccountContents?: string,
+  recipientAccountAssets?: string,
 |}
 
 const Participants = (props: ParticipantsProps) => {
@@ -50,16 +50,16 @@ const Participants = (props: ParticipantsProps) => {
       )
       break
     case 'otherAccount':
-      if (!props.recipientAccountName || !props.recipientAccountContents) {
+      if (!props.recipientAccountName || !props.recipientAccountAssets) {
         throw new Error(
-          'Recipient type otherAccount requires props recipientAccountName and recipientAccountContents'
+          'Recipient type otherAccount requires props recipientAccountName and recipientAccountAssets'
         )
       }
       toFieldContent = (
         <AccountEntry
           keybaseUser={props.yourUsername}
           name={props.recipientAccountName}
-          contents={props.recipientAccountContents}
+          contents={props.recipientAccountAssets}
         />
       )
       break

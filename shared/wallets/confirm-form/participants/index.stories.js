@@ -16,7 +16,7 @@ const defaultProps = {
   recipientStellarAddress: 'GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I4',
 
   recipientAccountName: 'Secondary Account',
-  recipientAccountContents: '123 XLM',
+  recipientAccountAssets: '123 XLM',
 }
 
 const load = () => {
