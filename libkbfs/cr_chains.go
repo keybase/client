@@ -292,14 +292,19 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 
 	// If we get down here, we have an ambiguity, and need to fetch
 	// the block to figure out the file type.
-	dblock, err := fbo.GetDirBlockForReading(ctx, makeFBOLockState(),
-		kmd, parentMostRecent, fbo.folderBranch.Branch, path{})
+	parentPath := path{
+		FolderBranch: fbo.folderBranch,
+		path:         []pathNode{{parentMostRecent, ""}},
+	}
+	parentDD := fbo.newDirDataWithLBC(
+		makeFBOLockState(), parentPath, keybase1.UserOrTeamID(""), kmd, nil)
+	entries, err := parentDD.getEntries(ctx)
 	if err != nil {
 		return err
 	}
 	// We don't have the file name handy, so search for the pointer.
 	found := false
-	for _, entry := range dblock.Children {
+	for _, entry := range entries {
 		if entry.BlockPointer != cc.mostRecent {
 			continue
 		}
