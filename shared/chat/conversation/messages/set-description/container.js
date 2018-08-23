@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {message}) => ({
   timestamp: message.timestamp,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {message}) => ({
+const mapDispatchToProps = (dispatch, {message}) => ({
   onUsernameClicked: () =>
     isMobile
       ? dispatch(createShowUserProfile({username: message.author}))

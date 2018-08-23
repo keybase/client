@@ -410,8 +410,8 @@ function* pollSyncStatusUntilDone(): Saga.SagaGenerator<any, any> {
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => FsGen.createFsActivity())
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => FsGen.createFsActivity())
 }
 
 function refreshLocalHTTPServerInfo() {

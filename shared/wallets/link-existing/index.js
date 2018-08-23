@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {ValidationState} from '../../constants/types/wallets'
-
 type View = 'key' | 'name'
 
 type Props = {
@@ -94,6 +93,7 @@ class LinkWallet extends React.Component<Props, State> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
+    // TODO: Refactor to use WalletPopup
     return <Kb.MaybePopup onClose={this.props.onCancel}>{view}</Kb.MaybePopup>
   }
 }
@@ -171,7 +171,7 @@ const EnterKey = (props: EnterKeyProps) => (
 type EnterNameProps = {
   error: string,
   name: string,
-  onBack: () => void,
+  onBack: ?() => void,
   onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,
@@ -334,5 +334,5 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export {Wrapper}
+export {EnterName, Wrapper}
 export default LinkWallet
