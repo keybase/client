@@ -101,18 +101,18 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                     toggleMessageMenu={props.toggleShowingMenu}
                   />
                 )}
-              {!props.exploded &&
-                !!props.decorate && (
-                  <MenuButtons
-                    conversationIDKey={props.conversationIDKey}
-                    isRevoked={props.isRevoked}
-                    message={props.message}
-                    ordinal={props.ordinal}
-                    setAttachmentRef={props.setAttachmentRef}
-                    setShowingPicker={this._setShowingPicker}
-                    toggleShowingMenu={props.toggleShowingMenu}
-                  />
-                )}
+              {props.decorate && (
+                <MenuButtons
+                  conversationIDKey={props.conversationIDKey}
+                  exploded={props.exploded}
+                  isRevoked={props.isRevoked}
+                  message={props.message}
+                  ordinal={props.ordinal}
+                  setAttachmentRef={props.setAttachmentRef}
+                  setShowingPicker={this._setShowingPicker}
+                  toggleShowingMenu={props.toggleShowingMenu}
+                />
+              )}
             </Box2>
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>
@@ -134,6 +134,7 @@ const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
   isRevoked: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
@@ -143,29 +144,31 @@ type MenuButtonsProps = {
 }
 const MenuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
-    <Box2 direction="horizontal" centerChildren={true}>
-      {props.isRevoked && (
-        <Box style={styles.revokedIconWrapper}>
-          <Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
-        </Box>
-      )}
-      {!Styles.isMobile && (
-        <Box className="menu-button" style={styles.menuButtons}>
-          <ReactButton
-            conversationIDKey={props.conversationIDKey}
-            ordinal={props.ordinal}
-            onShowPicker={props.setShowingPicker}
-            showBorder={false}
-            style={styles.reactButton}
-          />
-          <Box ref={props.setAttachmentRef}>
-            {(props.message.type === 'attachment' || props.message.type === 'text') && (
-              <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
-            )}
+    {!props.exploded && (
+      <Box2 direction="horizontal" centerChildren={true}>
+        {props.isRevoked && (
+          <Box style={styles.revokedIconWrapper}>
+            <Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
           </Box>
-        </Box>
-      )}
-    </Box2>
+        )}
+        {!Styles.isMobile && (
+          <Box className="menu-button" style={styles.menuButtons}>
+            <ReactButton
+              conversationIDKey={props.conversationIDKey}
+              ordinal={props.ordinal}
+              onShowPicker={props.setShowingPicker}
+              showBorder={false}
+              style={styles.reactButton}
+            />
+            <Box ref={props.setAttachmentRef}>
+              {(props.message.type === 'attachment' || props.message.type === 'text') && (
+                <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
+              )}
+            </Box>
+          </Box>
+        )}
+      </Box2>
+    )}
     <ExplodingMeta
       conversationIDKey={props.conversationIDKey}
       onClick={props.toggleShowingMenu}

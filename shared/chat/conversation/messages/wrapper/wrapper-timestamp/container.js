@@ -16,9 +16,6 @@ export type OwnProps = {|
 
 const decoratedMessageTypes: Array<Types.MessageType> = ['attachment', 'text', 'systemLeft']
 const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
-    return false
-  }
   if (decoratedMessageTypes.includes(message.type)) {
     return true
   }
