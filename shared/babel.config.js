@@ -6,16 +6,13 @@
 */
 
 // Cache in the module. This can get called from multiple places and env vars can get lost
-let isReactNative = process.env.BABEL_ENV === 'RN'
+let isElectron = process.env.BABEL_ENV === 'Electron'
 module.exports = function(api /*: Api */) {
   api.cache(true)
 
-  console.error('\nbabel.config.js config for ', isReactNative ? 'React Native' : 'Electron')
+  console.error('\nbabel.config.js config for', isElectron ? 'Electron' : 'React Native')
 
-  if (isReactNative) {
-    console.error('Babel for RN')
-    return {}
-  } else {
+  if (isElectron) {
     console.error('Babel for Electron')
     return {
       plugins: [
@@ -25,5 +22,8 @@ module.exports = function(api /*: Api */) {
       ],
       presets: ['@babel/preset-env', '@babel/preset-react'],
     }
+  } else {
+    console.error('Babel for RN')
+    return {}
   }
 }
