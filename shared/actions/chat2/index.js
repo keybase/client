@@ -1453,6 +1453,7 @@ const changeSelectedConversation = (
 
 const _maybeAutoselectNewestConversation = (
   action:
+    | Chat2Gen.MetasReceivedPayload
     | Chat2Gen.LeaveConversationPayload
     | Chat2Gen.MetaDeletePayload
     | Chat2Gen.MessageSendPayload
@@ -1479,7 +1480,12 @@ const _maybeAutoselectNewestConversation = (
     }
   }
 
-  if (action.type === Chat2Gen.setPendingMode) {
+  if (action.type === Chat2Gen.metasReceived) {
+    // If we have new activity, don't switch to it unless no convo was selected
+    if (selected !== Constants.noConversationIDKey) {
+      return
+    }
+  } else if (action.type === Chat2Gen.setPendingMode) {
     if (Constants.isValidConversationIDKey(selected)) {
       return
     }
@@ -2346,6 +2352,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Sometimes change the selection
   yield Saga.safeTakeEveryPure(
     [
+      Chat2Gen.metasReceived,
       Chat2Gen.leaveConversation,
       Chat2Gen.metaDelete,
       Chat2Gen.setPendingMode,
