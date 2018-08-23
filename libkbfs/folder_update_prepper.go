@@ -827,8 +827,9 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	return blocksToDelete, nil
 }
 
-func (fup *folderUpdatePrepper) makeSyncTree(ctx context.Context,
-	resolvedPaths map[BlockPointer]path, lbc localBcache,
+func (fup *folderUpdatePrepper) makeSyncTree(
+	ctx context.Context, lState *lockState, resolvedPaths map[BlockPointer]path,
+	kmd KeyMetadata, lbc localBcache,
 	newFileBlocks fileBlockMap) *pathTreeNode {
 	var root *pathTreeNode
 	for _, p := range resolvedPaths {
@@ -869,10 +870,19 @@ func (fup *folderUpdatePrepper) makeSyncTree(ctx context.Context,
 			if !ok {
 				continue
 			}
-			dblock, ok := lbc[pnode.BlockPointer]
-			if !ok {
+
+			if _, ok := lbc[pnode.BlockPointer]; !ok {
+				// If the top block of the dir hasn't been dirtied, we
+				// can skip it completely.
 				continue
 			}
+			currPath := path{
+				FolderBranch: p.FolderBranch,
+				path:         p.path[:i+1],
+			}
+			dd := fup.blocks.newDirDataWithLBC(
+				lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
+
 			for name := range blocks {
 				if _, ok := nextNode.children[name]; ok {
 					continue
@@ -880,7 +890,12 @@ func (fup *folderUpdatePrepper) makeSyncTree(ctx context.Context,
 				// Try to lookup the block pointer, but this might be
 				// for a new file.
 				var filePtr BlockPointer
-				if de, ok := dblock.Children[name]; ok {
+				de, err := dd.lookup(ctx, name)
+				_, notExists := errors.Cause(err).(NoSuchNameError)
+				if err != nil && !notExists {
+					fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
+					continue
+				} else if !notExists {
 					filePtr = de.BlockPointer
 				}
 				fup.log.CDebugf(ctx, "Creating child node for name %s for "+
@@ -1056,7 +1071,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 		}
 	} else {
 		// Construct a tree out of the merged paths, and do a sync at each leaf.
-		root := fup.makeSyncTree(ctx, resolvedPaths, lbc, newFileBlocks)
+		root := fup.makeSyncTree(
+			ctx, lState, resolvedPaths, md, lbc, newFileBlocks)
 
 		if root != nil {
 			bps, err = fup.prepTree(ctx, lState, unmergedChains,
