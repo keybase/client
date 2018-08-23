@@ -556,6 +556,8 @@ func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArg
 	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
 	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
