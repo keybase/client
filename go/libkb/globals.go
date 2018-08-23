@@ -65,14 +65,15 @@ type GlobalContext struct {
 	ChatHelper       ChatHelper           // conveniently send chat messages
 	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
 
-	cacheMu          *sync.RWMutex    // protects all caches
-	ProofCache       *ProofCache      // where to cache proof results
-	trackCache       *TrackCache      // cache of IdentifyOutcomes for tracking purposes
-	identify2Cache   Identify2Cacher  // cache of Identify2 results for fast-pathing identify2 RPCS
-	linkCache        *LinkCache       // cache of ChainLinks
-	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
-	teamLoader       TeamLoader       // Play back teams for id/name properties
-	fastTeamLoader   FastTeamLoader   // Play back team in "fast" mode for keys and names only
+	cacheMu          *sync.RWMutex   // protects all caches
+	ProofCache       *ProofCache     // where to cache proof results
+	trackCache       *TrackCache     // cache of IdentifyOutcomes for tracking purposes
+	identify2Cache   Identify2Cacher // cache of Identify2 results for fast-pathing identify2 RPCS
+	linkCache        *LinkCache      // cache of ChainLinks
+	upakLoader       UPAKLoader      // Load flat users with the ability to hit the cache
+	teamLoader       TeamLoader      // Play back teams for id/name properties
+	fastTeamLoader   FastTeamLoader  // Play back team in "fast" mode for keys and names only
+	teamAuditor      TeamAuditor
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -221,6 +222,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
 	g.fastTeamLoader = newNullFastTeamLoader()
+	g.teamAuditor = newNullTeamAuditor()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -289,6 +291,11 @@ func (g *GlobalContext) Logout() error {
 	ftl := g.fastTeamLoader
 	if ftl != nil {
 		ftl.OnLogout()
+	}
+
+	auditor := g.teamAuditor
+	if auditor != nil {
+		auditor.OnLogout()
 	}
 
 	st := g.stellar
@@ -535,6 +542,12 @@ func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.fastTeamLoader
+}
+
+func (g *GlobalContext) GetTeamAuditor() TeamAuditor {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.teamAuditor
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -1031,6 +1044,12 @@ func (g *GlobalContext) SetFastTeamLoader(l FastTeamLoader) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.fastTeamLoader = l
+}
+
+func (g *GlobalContext) SetTeamAuditor(a TeamAuditor) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.teamAuditor = a
 }
 
 func (g *GlobalContext) SetStellar(s Stellar) {
