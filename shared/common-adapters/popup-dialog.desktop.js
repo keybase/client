@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon} from './'
+import Box from './box'
+import Icon from './icon'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 

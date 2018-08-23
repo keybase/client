@@ -29,18 +29,16 @@ function setupEngineListeners() {
     // Stash response
     sessionIDToResponse[String(sessionID)] = response
 
-    return [
-      PinentryGen.createNewPinentry({
-        cancelLabel,
-        prompt,
-        retryLabel,
-        sessionID,
-        showTyping: features.showTyping,
-        submitLabel,
-        type,
-        windowTitle,
-      }),
-    ]
+    return PinentryGen.createNewPinentry({
+      cancelLabel,
+      prompt,
+      retryLabel,
+      sessionID,
+      showTyping: features.showTyping,
+      submitLabel,
+      type,
+      windowTitle,
+    })
   })
 }
 

@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
   onClose: () => dispatch(navigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {

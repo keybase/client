@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(

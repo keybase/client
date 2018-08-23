@@ -47,7 +47,7 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => {
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   return {
     _loadChannelInfo: (teamname: string, conversationIDKey: ConversationIDKey) =>
       dispatch(TeamsGen.createGetChannelInfo({teamname, conversationIDKey})),

@@ -15,6 +15,9 @@ import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
 import {getPath as getRoutePath} from '../../route-tree'
 
+jest.mock('../../engine')
+jest.mock('../../engine/require')
+
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager

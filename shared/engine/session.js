@@ -7,11 +7,10 @@ import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {rpcLog} from './index.platform'
 import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../dev/user-timings'
+import {getEngine} from './require'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
-  // used to deal with waiting, set by engine
-  static _dispatchWaitingAction: (key: string, waiting: boolean) => void
   // Our id
   _id: SessionID
   // Map of methods => callbacks
@@ -83,7 +82,7 @@ class Session {
         type: 'engineInternal',
       })
       if (this._waitingKey) {
-        Session._dispatchWaitingAction(this._waitingKey, waiting)
+        getEngine().dispatchWaitingAction(this._waitingKey, waiting)
       }
 
       // Request is finished, do cleanup

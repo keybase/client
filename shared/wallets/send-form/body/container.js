@@ -1,6 +1,6 @@
 // @flow
 import Body from '.'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({})
 
