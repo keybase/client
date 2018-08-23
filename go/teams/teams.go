@@ -387,7 +387,7 @@ func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
 }
 
-func (t *Team) Rotate(ctx context.Context) error {
+func (t *Team) Rotate(ctx context.Context) (err error) {
 
 	// initialize key manager
 	if _, err := t.SharedSecret(ctx); err != nil {
@@ -397,9 +397,11 @@ func (t *Team) Rotate(ctx context.Context) error {
 	// load an empty member set (no membership changes)
 	memSet := newMemberSet()
 
-	admin, err := t.getAdminPermission(ctx, false)
+	// Try to get the admin perms if they are available, if not, proceed anyway
+	var admin *SCTeamAdmin
+	admin, err = t.getAdminPermission(ctx)
 	if err != nil {
-		return err
+		admin = nil
 	}
 
 	if err := t.ForceMerkleRootUpdate(ctx); err != nil {
@@ -607,8 +609,9 @@ func (t *Team) Leave(ctx context.Context, permanent bool) error {
 		role = keybase1.TeamRole_NONE
 	}
 	if role == keybase1.TeamRole_NONE {
-		_, err := t.getAdminPermission(ctx, false)
-		if err == nil {
+		_, err := t.getAdminPermission(ctx)
+		switch err.(type) {
+		case nil, AdminPermissionRequiredError:
 			return NewImplicitAdminCannotLeaveError()
 		}
 	}
@@ -695,7 +698,7 @@ func (t *Team) deleteSubteam(ctx context.Context, ui keybase1.TeamsUiInterface) 
 		return err
 	}
 
-	admin, err := parentTeam.getAdminPermission(ctx, true)
+	admin, err := parentTeam.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
@@ -1021,7 +1024,7 @@ func (t *Team) postInvite(ctx context.Context, invite SCTeamInvite, role keybase
 }
 
 func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error {
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
@@ -1073,6 +1076,9 @@ func (t *Team) postTeamInvites(ctx context.Context, invites SCTeamInvites) error
 	return nil
 }
 
+// NOTE since this function uses `Load` and not `load2`, readSubteamID cannot
+// be passed through, this call will fail if a user is not a member of the
+// parent team (or child of the parent team) for which the validator validates
 func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool) (targetTeam *Team, err error) {
 	targetTeam = t
 	for {
@@ -1096,7 +1102,7 @@ func (t *Team) traverseUpUntil(ctx context.Context, validator func(t *Team) bool
 	}
 }
 
-func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SCTeamAdmin, err error) {
+func (t *Team) getAdminPermission(ctx context.Context) (admin *SCTeamAdmin, err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
@@ -1109,10 +1115,7 @@ func (t *Team) getAdminPermission(ctx context.Context, required bool) (admin *SC
 		return nil, err
 	}
 	if targetTeam == nil {
-		if required {
-			err = errors.New("Only admins can perform this operation.")
-		}
-		return nil, err
+		return nil, NewAdminPermissionRequiredError()
 	}
 
 	logPoint := targetTeam.chain().GetAdminUserLogPoint(uv)
@@ -1130,7 +1133,7 @@ func (t *Team) changeMembershipSection(ctx context.Context, req keybase1.TeamCha
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return SCTeamSection{}, nil, nil, nil, nil, err
 	}
@@ -1610,7 +1613,7 @@ func (t *Team) PostTeamSettings(ctx context.Context, settings keybase1.TeamSetti
 		return err
 	}
 
-	admin, err := t.getAdminPermission(ctx, true)
+	admin, err := t.getAdminPermission(ctx)
 	if err != nil {
 		return err
 	}
