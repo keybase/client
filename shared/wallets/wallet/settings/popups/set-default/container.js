@@ -5,13 +5,6 @@ import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import SetDefaultAccountPopup from '.'
 
-// type Props = {|
-//   accountName: string,
-//   onAccept: () => void,
-//   onClose: () => void,
-//   username: string,
-// |}
-
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
 
