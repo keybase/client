@@ -123,7 +123,7 @@ function _followIconSize(size: number, followsYou: boolean, following: boolean) 
 let _askQueue = {}
 let _askDispatch = null
 // We queue up the actions across all instances of Avatars so we don't flood the system with tons of actions
-const _askForUserDataQueueUp = (username: string, dispatch: Dispatch) => {
+const _askForUserDataQueueUp = (username: string, dispatch) => {
   _askDispatch = dispatch
   _askQueue[username] = true
   _reallyAskForUserData()
@@ -146,7 +146,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+const mapDispatchToProps = (dispatch, ownProps) => ({
   _askForTeamUserData: (teamname: string) =>
     dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
   _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),

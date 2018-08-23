@@ -5,13 +5,13 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {switchTo} from '../actions/route-tree'
 import {ChatRow} from './chat.desktop'
-import {remoteConnect, compose, type Dispatch} from '../util/container'
+import {remoteConnect, compose} from '../util/container'
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   conversations: state.conversations,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onViewAll: () => {
     dispatch(ConfigGen.createShowMain())
     dispatch(switchTo([Tabs.chatTab]))
@@ -32,6 +32,4 @@ const mergeProps = (stateProps, dispatchProps) => ({
   })),
 })
 
-export default compose(
-  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)
-)(ChatRow)
+export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps))(ChatRow)

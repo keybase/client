@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {ValidationState} from '../../constants/types/wallets'
-
 type View = 'key' | 'name'
 
 type Props = {
@@ -94,6 +93,7 @@ class LinkWallet extends React.Component<Props, State> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
+    // TODO: Refactor to use WalletPopup
     return <Kb.MaybePopup onClose={this.props.onCancel}>{view}</Kb.MaybePopup>
   }
 }

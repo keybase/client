@@ -1,7 +1,7 @@
 // @flow
 import * as Selectors from '../constants/selectors'
 import Mention, {type OwnProps} from './mention'
-import {connect, compose, setDisplayName, type TypedState, type Dispatch} from '../util/container'
+import {connect, compose, setDisplayName, type TypedState} from '../util/container'
 import {createGetProfile} from '../actions/tracker-gen'
 import {isMobile} from '../constants/platform'
 import {createShowUserProfile} from '../actions/profile-gen'
@@ -26,7 +26,7 @@ const mapStateToProps = (
   return {theme: 'nonFollow'}
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {username}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {username}: OwnProps) => ({
   onClick: isSpecialMention(username)
     ? undefined
     : () => {

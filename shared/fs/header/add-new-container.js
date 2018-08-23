@@ -3,7 +3,7 @@ import * as Constants from '../../constants/fs'
 import * as Types from '../../constants/types/fs'
 import * as FsGen from '../../actions/fs-gen'
 import flags from '../../util/feature-flags'
-import {compose, setDisplayName, connect, type Dispatch, type TypedState} from '../../util/container'
+import {compose, setDisplayName, connect, type TypedState} from '../../util/container'
 import AddNew from './add-new'
 import {isDarwin, isMobile, isIOS} from '../../constants/platform'
 
@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _newFolderRow: (parentPath: Types.Path) => dispatch(FsGen.createNewFolderRow({parentPath})),
   _upload: (parentPath: Types.Path, type: Types.OpenDialogType) =>
     dispatch(FsGen.createPickAndUpload({parentPath, type})),
