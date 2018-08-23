@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import WalletPopup from '../../wallet-popup'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import WalletPopup from '../../../../wallet-popup'
 
 export type Props = {
   name: string,

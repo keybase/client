@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import WalletPopup from '../../wallet-popup'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import WalletPopup from '../../../../wallet-popup'
 
 type Props = Kb.PropsWithTimer<{
   name: string,

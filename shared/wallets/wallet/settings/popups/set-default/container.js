@@ -1,9 +1,9 @@
 // @flow
-import {connect, type TypedState} from '../../../../util/container'
-import * as Constants from '../../../../constants/wallets'
-import * as Types from '../../../../constants/types/wallets'
-import * as WalletsGen from '../../../../actions/wallets-gen'
-import SetDefaultAccount from '.'
+import {connect, type TypedState} from '../../../../../util/container'
+import * as Constants from '../../../../../constants/wallets'
+import * as Types from '../../../../../constants/types/wallets'
+import * as WalletsGen from '../../../../../actions/wallets-gen'
+import SetDefaultAccountPopup from '.'
 
 // type Props = {|
 //   accountName: string,
@@ -13,9 +13,7 @@ import SetDefaultAccount from '.'
 // |}
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
-  console.log('nathan test', state)
   const accountID = routeProps.get('accountID')
-  console.log('nathan test', accountID)
 
   return {
     accountID,
@@ -39,4 +37,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SetDefaultAccount)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SetDefaultAccountPopup)

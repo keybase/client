@@ -18,18 +18,18 @@ const provider = Sb.createPropProviderWithCommon({
 
 const confirmProps = {
   amount: '1.234 XLM',
-  assetType: 'lumens',
   assetConversion: '$3',
-  onClose: Sb.action('onClose'),
+  assetType: 'lumens',
   onBack: Sb.action('onBack'),
+  onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
+  receiverFullName: 'Nathan Smith',
+  receiverUsername: 'nathunsmitty',
+  recipientType: 'keybaseUser',
   waiting: false,
   yourUsername: 'cecileb',
-  yourWalletName: "cecileb's wallet",
   yourWalletContents: '280.0871234 XLM',
-  receiverUsername: 'nathunsmitty',
-  receiverFullName: 'Nathan Smith',
-  recipientType: 'keybaseUser',
+  yourWalletName: "cecileb's wallet",
 }
 
 const publicMemo = "Here's some lumens!"
