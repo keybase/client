@@ -368,6 +368,10 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 	if len(arg.reason) > 0 {
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
+
+	fmt.Printf("(%s calls) TeamLoader::load2 %v, reason: %q, repoll: %t, readSubteamID: %+v\n",
+		l.G().Env.GetUsername(), arg.teamID, arg.reason, arg.forceRepoll, arg.readSubteamID)
+
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
