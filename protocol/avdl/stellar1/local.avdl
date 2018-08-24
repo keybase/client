@@ -273,6 +273,7 @@ protocol local {
   );
   record SendPaymentResLocal {
     KeybaseTransactionID kbTxID;
+    TransactionID txID;
     // If (arg.quickReturn && result.pending) then the payment
     //   was recorded but may still be pending on the stellar network
     //   and could still fail.

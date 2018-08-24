@@ -397,12 +397,14 @@ func (o SendBannerLocal) DeepCopy() SendBannerLocal {
 
 type SendPaymentResLocal struct {
 	KbTxID  KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
+	TxID    TransactionID        `codec:"txID" json:"txID"`
 	Pending bool                 `codec:"pending" json:"pending"`
 }
 
 func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 	return SendPaymentResLocal{
 		KbTxID:  o.KbTxID.DeepCopy(),
+		TxID:    o.TxID.DeepCopy(),
 		Pending: o.Pending,
 	}
 }

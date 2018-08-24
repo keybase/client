@@ -1294,6 +1294,7 @@ func (s *Server) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentL
 	return stellar1.SendPaymentResLocal{
 		KbTxID:  sendRes.KbTxID,
 		Pending: sendRes.Pending,
+		TxID:    sendRes.TxID,
 	}, nil
 
 }
