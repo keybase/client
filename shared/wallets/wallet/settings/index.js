@@ -45,75 +45,77 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
 
 const WalletSettings = (props: SettingsProps) => {
   return (
-    <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
-      <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
-      <Kb.ClickableBox style={styles.nameBox}>
-        <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
-        <Kb.Icon
-          style={Kb.iconCastPlatformStyles(styles.icon)}
-          type="iconfont-edit"
-          onClick={props.onEditName}
-        />
-      </Kb.ClickableBox>
-      <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
-        <Kb.Avatar
-          size={32}
-          style={Kb.avatarCastPlatformStyles(styles.avatar)}
-          username={props.isDefault ? props.user : ''}
-        />
-        <Kb.Box2 direction="vertical">
-          <Kb.Text type="Header">
-            {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
-          </Kb.Text>
-          <Kb.Text type="BodySmall">
-            {props.isDefault
-              ? 'All transactions and overall activity are tied to your Keybase identity.'
-              : 'Transactions will be tied to your Stellar public address only.'}
-          </Kb.Text>
-          {!props.isDefault && (
-            <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
-              Set as default Keybase account
+      <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
+        <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
+        <Kb.ClickableBox style={styles.nameBox}>
+          <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
+          <Kb.Icon
+            style={Kb.iconCastPlatformStyles(styles.icon)}
+            type="iconfont-edit"
+            onClick={props.onEditName}
+          />
+        </Kb.ClickableBox>
+        <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
+          <Kb.Avatar
+            size={32}
+            style={Kb.avatarCastPlatformStyles(styles.avatar)}
+            username={props.isDefault ? props.user : ''}
+          />
+          <Kb.Box2 direction="vertical">
+            <Kb.Text type="Header">
+              {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
             </Kb.Text>
-          )}
+            <Kb.Text type="BodySmall">
+              {props.isDefault
+                ? 'All transactions and overall activity are tied to your Keybase identity.'
+                : 'Transactions will be tied to your Stellar public address only.'}
+            </Kb.Text>
+            {!props.isDefault && (
+              <Kb.Text type="BodySmallPrimaryLink" onClick={props.onSetDefault}>
+                Set as default Keybase account
+              </Kb.Text>
+            )}
+          </Kb.Box2>
         </Kb.Box2>
-      </Kb.Box2>
-      <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
-      <Kb.Dropdown
-        items={makeDropdownItems(props.currencies, props.currency)}
-        selected={makeDropdownItem(props.currency, false)}
-        onChanged={(node: React.Node) => {
-          // $ForceType doesn't understand key will be string
-          const selectedCode: Types.CurrencyCode = node.key
-          if (selectedCode !== props.currency.code) {
-            props.onCurrencyChange(selectedCode)
-          }
-        }}
-        style={styles.dropdown}
-      />
-      <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
-      <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
-      <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
-      <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
-        <Kb.Icon
-          type="iconfont-trash"
-          style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-          color={Styles.globalColors.red}
+        <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
+        <Kb.Dropdown
+          items={makeDropdownItems(props.currencies, props.currency)}
+          selected={makeDropdownItem(props.currency, false)}
+          onChanged={(node: React.Node) => {
+            // $ForceType doesn't understand key will be string
+            const selectedCode: Types.CurrencyCode = node.key
+            if (selectedCode !== props.currency.code) {
+              props.onCurrencyChange(selectedCode)
+            }
+          }}
+          style={styles.dropdown}
         />
-        <Kb.Text
-          type="BodySemibold"
-          style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-          className="hover-underline"
-        >
-          Remove account
-        </Kb.Text>
-      </Kb.ClickableBox>
-      {props.isDefault && (
-        <Kb.Text style={styles.centerText} type="BodySmall">
-          You can’t remove your default account.
-        </Kb.Text>
-      )}
+        <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
+        <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
+        <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
+        <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
+          <Kb.Icon
+            type="iconfont-trash"
+            style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
+            color={Styles.globalColors.red}
+          />
+          <Kb.Text
+            type="BodySemibold"
+            style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+            className="hover-underline"
+          >
+            Remove account
+          </Kb.Text>
+        </Kb.ClickableBox>
+        {props.isDefault && (
+          <Kb.Text style={styles.centerText} type="BodySmall">
+            You can’t remove your default account.
+          </Kb.Text>
+        )}
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
