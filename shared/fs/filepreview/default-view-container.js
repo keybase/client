@@ -17,9 +17,9 @@ const mapStateToProps = (state: TypedState, {path}) => {
 }
 
 const mapDispatchToProps = (dispatch, {path, routePath}) => ({
-  download: () => dispatch(Constants.createDownload({path, intent: 'none'})),
-  saveMedia: () => dispatch(Constants.createSaveMedia({path})),
-  shareNative: () => dispatch(Constants.createShareNative({path})),
+  download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
+  saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
+  shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
   showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
 })
 

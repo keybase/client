@@ -351,12 +351,10 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
 }
 
 const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
-export const createDownload = (d: {path: Types.Path}) =>
-  FsGen.createDownload({...d, key: makeDownloadKey(d.path)})
-export const createShareNative = (d: {path: Types.Path}) =>
-  FsGen.createShareNative({...d, key: makeDownloadKey(d.path)})
-export const createSaveMedia = (d: {path: Types.Path}) =>
-  FsGen.createSaveMedia({...d, key: makeDownloadKey(d.path)})
+export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
+  path,
+  key: makeDownloadKey(path),
+})
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>

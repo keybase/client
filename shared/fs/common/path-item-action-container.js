@@ -30,8 +30,8 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   ...(isMobile
     ? {
-        _saveMedia: () => dispatch(Constants.createSaveMedia({path})),
-        _shareNative: () => dispatch(Constants.createShareNative({path})),
+        _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
+        _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
       }
     : {
         _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
@@ -39,7 +39,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 
   ...(!isIOS
     ? {
-        _download: () => dispatch(Constants.createDownload({path, intent: 'none'})),
+        _download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
       }
     : {}),
 })

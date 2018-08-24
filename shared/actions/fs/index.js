@@ -283,7 +283,7 @@ function* download(
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
     if (intent !== 'none') {
-      // If it's normal download, we show a red card for user to dismiss.
+      // If it's a normal download, we show a red card for the user to dismiss.
       // TODO: when we get rid of download cards on Android, check isMobile
       // here.
       yield Saga.put(FsGen.createDismissDownload({key}))
