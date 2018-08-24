@@ -715,7 +715,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	argDetails := stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
-		AccountID: accountIDSender,
+		AccountID: &accountIDSender,
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -723,7 +723,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	argDetails = stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
-		AccountID: accountIDRecip,
+		AccountID: &accountIDRecip,
 	}
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -811,10 +811,10 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
 
 	detailsRes, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
-		// Chat uses empty AccountID because it does not know it. It
+		// Chat uses nil AccountID because it does not know it. It
 		// derives delta and formatting (whether it's a debit or
 		// credit) by checking chat message sender and receiver.
-		AccountID: stellar1.AccountID(""),
+		AccountID: nil,
 		Id:        paymentID,
 	})
 	require.NoError(t, err)

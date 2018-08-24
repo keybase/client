@@ -356,7 +356,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary)
+	// AccountID argument is optional. We use "" internally, but for
+	// API consumers we expose nullable type.
+	var acctID stellar1.AccountID
+	if arg.AccountID != nil {
+		acctID = *arg.AccountID
+	}
+	summary, err := s.transformPaymentSummary(ctx, acctID, details.Summary)
 	if err != nil {
 		return payment, err
 	}
