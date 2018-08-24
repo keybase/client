@@ -55,6 +55,7 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 		return state, proofSet, parentChildOperations, err
 	}
 
+	parentCache := make(parentChainCache)
 	for _, link := range newLinks {
 		if link.isStubbed() {
 			return state, proofSet, parentChildOperations, NewStubbedErrorWithNote(
@@ -63,7 +64,8 @@ func (l *TeamLoader) fillInStubbedLinks(ctx context.Context,
 
 		var signer *SignerX
 		var fullVerifyCutoff keybase1.Seqno // Always fullVerify when inflating. No reasoning has been done on whether it could be skipped.
-		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
+		signer, err = l.verifyLink(ctx, teamID, state, me, link, fullVerifyCutoff, readSubteamID,
+			proofSet, lkc, parentCache)
 		if err != nil {
 			return state, proofSet, parentChildOperations, err
 		}
@@ -193,7 +195,8 @@ func (l *TeamLoader) addProofsForKeyInUserSigchain(ctx context.Context, teamID k
 // Returns the signer, or nil if the link was stubbed
 func (l *TeamLoader) verifyLink(ctx context.Context,
 	teamID keybase1.TeamID, state *keybase1.TeamData, me keybase1.UserVersion, link *ChainLinkUnpacked,
-	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache) (*SignerX, error) {
+	fullVerifyCutoff keybase1.Seqno, readSubteamID keybase1.TeamID, proofSet *proofSetT, lkc *loadKeyCache,
+	cachedChain parentChainCache) (*SignerX, error) {
 	ctx, tbs := l.G().CTimeBuckets(ctx)
 	defer tbs.Record("TeamLoader.verifyLink")()
 
@@ -278,7 +281,7 @@ func (l *TeamLoader) verifyLink(ctx context.Context,
 		// Check for admin permissions if they are not an on-chain reader/writer
 		// because they might be an implicit admin.
 		// Reassigns signer, might set implicitAdmin.
-		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet)
+		signer, err = l.verifyAdminPermissions(ctx, state, me, link, readSubteamID, signerUV, proofSet, cachedChain)
 		if !ShouldSuppressLogging(ctx) {
 			l.G().Log.CDebugf(ctx, "verifyLink: not a %v: %v", minRole, err)
 		}
@@ -307,20 +310,30 @@ func (l *TeamLoader) verifyExplicitPermission(ctx context.Context, state *keybas
 	return (TeamSigChainState{state.Chain}).AssertWasRoleOrAboveAt(uv, atOrAbove, link.SigChainLocation().Sub1())
 }
 
+type parentChainCache map[keybase1.TeamID]*keybase1.TeamData
+
 // Does not return a full TeamData because it might get a subteam-reader version.
 func (l *TeamLoader) walkUpToAdmin(
 	ctx context.Context, team *keybase1.TeamData, me keybase1.UserVersion, readSubteamID keybase1.TeamID,
-	uv keybase1.UserVersion, admin SCTeamAdmin) (*TeamSigChainState, error) {
+	uv keybase1.UserVersion, admin SCTeamAdmin, cachedChain parentChainCache) (*TeamSigChainState, error) {
 
 	target, err := admin.TeamID.ToTeamID()
 	if err != nil {
 		return nil, err
 	}
 
+	if t, ok := cachedChain[target]; ok {
+		return &TeamSigChainState{inner: t.Chain}, nil
+	}
+
 	for team != nil && !team.Chain.Id.Eq(target) {
 		parent := team.Chain.ParentID
 		if parent == nil {
 			return nil, NewAdminNotFoundError(admin)
+		}
+		if t, ok := cachedChain[*parent]; ok {
+			team = t
+			continue
 		}
 		arg := load2ArgT{
 			teamID: *parent,
@@ -338,6 +351,7 @@ func (l *TeamLoader) walkUpToAdmin(
 			return nil, err
 		}
 		team = &load2Res.team
+		cachedChain[*parent] = team
 	}
 	if team == nil {
 		return nil, fmt.Errorf("teamloader fault: nil team after admin walk")
@@ -359,7 +373,7 @@ func (l *TeamLoader) addProofsForAdminPermission(ctx context.Context, teamID key
 // Because this uses the proofSet, if it is called may return success and fail later.
 func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 	state *keybase1.TeamData, me keybase1.UserVersion, link *ChainLinkUnpacked, readSubteamID keybase1.TeamID,
-	uv keybase1.UserVersion, proofSet *proofSetT) (SignerX, error) {
+	uv keybase1.UserVersion, proofSet *proofSetT, cachedChain parentChainCache) (SignerX, error) {
 
 	signer := SignerX{signer: uv}
 	explicitAdmin := link.inner.TeamAdmin()
@@ -374,7 +388,7 @@ func (l *TeamLoader) verifyAdminPermissions(ctx context.Context,
 
 	// The more complicated case is that there's an explicit admin permission given, perhaps
 	// of a parent team.
-	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin)
+	adminTeam, err := l.walkUpToAdmin(ctx, state, me, readSubteamID, uv, *explicitAdmin, cachedChain)
 	if err != nil {
 		return signer, err
 	}
