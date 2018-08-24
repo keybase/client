@@ -38,12 +38,10 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     if (React.isValidElement(node)) {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
-      if (element.type === DropdownText) {
-        if (element.key === 'create-new' && this.props.onCreateNewAccount) {
-          this.props.onCreateNewAccount()
-        } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
-          this.props.onLinkAccount()
-        }
+      if (element.key === 'create-new' && this.props.onCreateNewAccount) {
+        this.props.onCreateNewAccount()
+      } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
+        this.props.onLinkAccount()
       } else if (this.props.onChangeSelectedAccount) {
         this.setState({selectedAccount: element.props.account})
         this.props.onChangeSelectedAccount(element.props.account.name)

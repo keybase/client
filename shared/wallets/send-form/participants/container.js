@@ -1,5 +1,6 @@
 // @flow
 import Participants from '.'
+import * as RouteTree from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {getAccount, getAccountIDs} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
@@ -42,7 +43,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeFromAccount: () => {},
   onChangeToAccount: () => {},
   onCreateNewAccount: () => {},
-  onLinkAccount: () => {},
+  onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
 
