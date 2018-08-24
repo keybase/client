@@ -833,7 +833,7 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer, dir path,
 	rtype blockReqType) (*DirBlock, bool, error) {
 	switch rtype {
-	case blockRead, blockWrite:
+	case blockRead, blockWrite, blockLookup:
 		fbo.blockLock.AssertAnyLocked(lState)
 	case blockReadParallel:
 		// This goroutine might not be the official lock holder, so
@@ -842,8 +842,6 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 			panic("Non-nil lState passed to getFileBlockLocked " +
 				"with blockReadParallel")
 		}
-	case blockLookup:
-		fbo.blockLock.AssertRLocked(lState)
 	default:
 		panic(fmt.Sprintf("Unknown block req type: %d", rtype))
 	}
@@ -975,10 +973,11 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 	lState *lockState, ptr BlockPointer, unrefs []BlockInfo) func() {
 	fbo.blockLock.AssertLocked(lState)
 	oldUnrefs, wasDirty := fbo.dirtyDirs[ptr]
+	oldLen := len(oldUnrefs)
 	fbo.dirtyDirs[ptr] = append(oldUnrefs, unrefs...)
 	return func() {
 		if wasDirty {
-			fbo.dirtyDirs[ptr] = oldUnrefs[:len(oldUnrefs)]
+			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
 			delete(fbo.dirtyDirs, ptr)
 		}

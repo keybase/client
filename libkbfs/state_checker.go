@@ -32,8 +32,7 @@ func NewStateChecker(config Config) *StateChecker {
 }
 
 // findAllFileBlocks adds all file blocks found under this block to
-// the blocksFound map, if the given path represents an indirect
-// block.
+// the blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	file path, blockSizes map[BlockPointer]uint32) error {
@@ -48,9 +47,8 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	return nil
 }
 
-// findAllDirBlocks adds all dir blocks found under this block to
-// the blocksFound map, if the given path represents an indirect
-// block.
+// findAllDirBlocks adds all dir blocks found under this block to the
+// blockSizes map, if the given path represents an indirect block.
 func (sc *StateChecker) findAllDirBlocks(ctx context.Context,
 	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	dir path, blockSizes map[BlockPointer]uint32) error {
