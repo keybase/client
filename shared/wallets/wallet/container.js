@@ -22,8 +22,14 @@ const mergeProps = (stateProps, dispatchProps) => {
   // 3. transactions header and transactions
   // Formatted in a SectionList
   sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
-  const completed = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
-  const pending = stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+  const completed = stateProps.payments
+    .toArray()
+    .sort((a, b) => b.time - a.time)
+    .map(p => ({paymentID: p.id, status: p.statusSimplified}))
+  const pending = stateProps.pending
+    .toArray()
+    .sort((a, b) => b.time - a.time)
+    .map(p => ({paymentID: p.id, status: p.statusSimplified}))
 
   if (pending.length > 0) {
     sections.push({data: pending, title: 'Pending'})

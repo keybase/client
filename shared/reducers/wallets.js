@@ -26,19 +26,25 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], payments =>
-        payments.update(payments.findIndex(p => p.id === action.payload.paymentID), payment =>
-          payment.merge({
-            publicMemo: action.payload.publicMemo,
-            publicMemoType: action.payload.publicMemoType,
-            txID: action.payload.txID,
-          })
-        )
+      return state.updateIn(['paymentsMap', action.payload.accountID], I.Set(), payments =>
+        payments.update(paymentSet => {
+          const target = paymentSet.find(
+            p => Types.paymentIDIsEqual(p.id, action.payload.paymentID),
+            Constants.makePayment()
+          )
+          return paymentSet.remove(target).add(
+            target.merge({
+              publicMemo: action.payload.publicMemo,
+              publicMemoType: action.payload.publicMemoType,
+              txID: action.payload.txID,
+            })
+          )
+        })
       )
     case WalletsGen.paymentsReceived:
       return state
-        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
-        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+        .setIn(['paymentsMap', action.payload.accountID], I.Set(action.payload.payments))
+        .setIn(['pendingMap', action.payload.accountID], I.Set(action.payload.pending))
     case WalletsGen.secretKeyReceived:
       return state.set('exportedSecretKey', action.payload.secretKey)
     case WalletsGen.secretKeySeen:

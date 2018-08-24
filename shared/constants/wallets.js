@@ -244,11 +244,11 @@ const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  state.wallets.paymentsMap.get(accountID, I.Set()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
   makePayment()
 
 const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
-  state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  state.wallets.pendingMap.get(accountID, I.Set()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
   makePayment()
 
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
