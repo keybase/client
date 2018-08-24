@@ -100,7 +100,7 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
         return
       }
       this.setState((prevState, props) => {
-        const isUploading = !!props.files
+        const isUploading = !!props.files || !!props.endEstimate
         const displayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
         const {mode, glueTTL} = prevState
         switch (mode) {

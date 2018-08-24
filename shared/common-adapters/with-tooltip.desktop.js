@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalColors, styleSheetCreate} from '../styles'
+import * as Styles from '../styles'
 import Toast from './toast.desktop'
 import Text from './text'
 import {type Props} from './with-tooltip'
@@ -59,7 +59,7 @@ class WithTooltip extends React.Component<Props, State> {
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
     borderRadius: 20,
   },
@@ -69,9 +69,12 @@ const styles = styleSheetCreate({
     minWidth: 320,
     maxWidth: 320,
   },
-  text: {
-    color: globalColors.white,
-  },
+  text: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.white,
+      wordBreak: 'break-all',
+    },
+  }),
 })
 
 export default WithTooltip
