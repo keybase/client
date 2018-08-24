@@ -46,15 +46,7 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
 const WalletSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
-      <Kb.HeaderHocHeader
-        title="Settings"
-        onBack={props.onBack}
-        headerStyle={{
-          borderBottomWidth: 1,
-          borderBottomColor: Styles.globalColors.black_10,
-          borderStyle: 'solid',
-        }}
-      />
+      <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
       <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
       <Kb.ClickableBox style={styles.nameBox}>
         <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
@@ -133,11 +125,6 @@ const styles = Styles.styleSheetCreate({
   avatar: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  deleteBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   deleteOpacity: {
     opacity: 0.3,
   },
@@ -147,6 +134,12 @@ const styles = Styles.styleSheetCreate({
   },
   centerText: {
     textAlign: 'center',
+  },
+  header: {
+    borderBottomWidth: 1,
+    borderBottomColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
+    marginBottom: Styles.globalMargins.xsmall,
   },
   itemSelected: {
     color: Styles.globalColors.blue,
@@ -177,9 +170,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xlarge,
     },
   }),
-  smallPadding: {
-    padding: Styles.globalMargins.small,
-  },
   dropdown: {
     alignItems: 'center',
   },
