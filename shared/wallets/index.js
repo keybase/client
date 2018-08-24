@@ -22,9 +22,7 @@ const Wallets = (props: Props) => (
 
 const styles = styleSheetCreate({
   walletListContainer: {
-    backgroundColor: globalColors.blue5,
-    borderRightColor: globalColors.black_10,
-    borderRightWidth: 1,
+    backgroundColor: globalColors.blueGrey,
     borderStyle: 'solid',
     flexGrow: 0,
     flexShrink: 0,

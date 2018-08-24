@@ -625,7 +625,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	}
 
 	// Get admin permission, we will use the same one for all sigs.
-	admin, err := team.getAdminPermission(mctx.Ctx(), true)
+	admin, err := team.getAdminPermission(mctx.Ctx())
 	if err != nil {
 		return err
 	}
