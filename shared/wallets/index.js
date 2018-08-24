@@ -26,7 +26,8 @@ const styles = styleSheetCreate({
     borderRightColor: globalColors.black_10,
     borderRightWidth: 1,
     borderStyle: 'solid',
-    flexBasis: 240,
+    flex: 0,
+    width: 240,
   },
 })
 
