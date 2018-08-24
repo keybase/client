@@ -945,9 +945,6 @@ type Reporter interface {
 	NotifyPathUpdated(ctx context.Context, path string)
 	// NotifySyncStatus sends the given path sync status to any sink.
 	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
-	// SuppressNotifications suppresses notifications. See
-	// protocol/avdl/keybase1/simple_fs.avdl for more details.
-	SuppressNotifications(ctx context.Context, suppressDuration time.Duration)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }

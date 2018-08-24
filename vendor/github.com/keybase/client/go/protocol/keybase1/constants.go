@@ -60,6 +60,7 @@ const (
 	StatusCode_SCKeySyncedPGPNotFound             StatusCode = 929
 	StatusCode_SCKeyNoMatchingGPG                 StatusCode = 930
 	StatusCode_SCKeyRevoked                       StatusCode = 931
+	StatusCode_SCSigCannotVerify                  StatusCode = 1002
 	StatusCode_SCSigWrongKey                      StatusCode = 1008
 	StatusCode_SCSigOldSeqno                      StatusCode = 1010
 	StatusCode_SCBadTrackSession                  StatusCode = 1301
@@ -159,6 +160,7 @@ const (
 	StatusCode_SCTeamShowcasePermDenied           StatusCode = 2711
 	StatusCode_SCTeamProvisionalCanKey            StatusCode = 2721
 	StatusCode_SCTeamProvisionalCannotKey         StatusCode = 2722
+	StatusCode_SCTeamFTLOutdated                  StatusCode = 2736
 	StatusCode_SCEphemeralKeyBadGeneration        StatusCode = 2900
 	StatusCode_SCEphemeralKeyUnexpectedBox        StatusCode = 2901
 	StatusCode_SCEphemeralKeyMissingBox           StatusCode = 2902
@@ -250,6 +252,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeySyncedPGPNotFound":             929,
 	"SCKeyNoMatchingGPG":                 930,
 	"SCKeyRevoked":                       931,
+	"SCSigCannotVerify":                  1002,
 	"SCSigWrongKey":                      1008,
 	"SCSigOldSeqno":                      1010,
 	"SCBadTrackSession":                  1301,
@@ -349,6 +352,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCTeamShowcasePermDenied":           2711,
 	"SCTeamProvisionalCanKey":            2721,
 	"SCTeamProvisionalCannotKey":         2722,
+	"SCTeamFTLOutdated":                  2736,
 	"SCEphemeralKeyBadGeneration":        2900,
 	"SCEphemeralKeyUnexpectedBox":        2901,
 	"SCEphemeralKeyMissingBox":           2902,
@@ -438,6 +442,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	929:  "SCKeySyncedPGPNotFound",
 	930:  "SCKeyNoMatchingGPG",
 	931:  "SCKeyRevoked",
+	1002: "SCSigCannotVerify",
 	1008: "SCSigWrongKey",
 	1010: "SCSigOldSeqno",
 	1301: "SCBadTrackSession",
@@ -537,6 +542,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	2711: "SCTeamShowcasePermDenied",
 	2721: "SCTeamProvisionalCanKey",
 	2722: "SCTeamProvisionalCannotKey",
+	2736: "SCTeamFTLOutdated",
 	2900: "SCEphemeralKeyBadGeneration",
 	2901: "SCEphemeralKeyUnexpectedBox",
 	2902: "SCEphemeralKeyMissingBox",

@@ -6,7 +6,6 @@ package simplefs
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -1884,12 +1883,6 @@ func (k *SimpleFS) BatchChanges(
 // TlfHandleChange implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) TlfHandleChange(_ context.Context, _ *libkbfs.TlfHandle) {
 	// TODO: the GUI might eventually care about a handle change.
-}
-
-// SimpleFSSuppressNotifications suppresses FSEvent and FSSyncEvent
-// notifications.
-func (k *SimpleFS) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
-	return errors.New("this rpc is deprecated")
 }
 
 // SimpleFSGetUserQuotaUsage returns the quota usage information for

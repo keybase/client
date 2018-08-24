@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"runtime"
 	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 
@@ -101,12 +100,6 @@ func (r *ReporterSimple) NotifyPathUpdated(_ context.Context, _ string) {
 // NotifySyncStatus implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) NotifySyncStatus(_ context.Context,
 	_ *keybase1.FSPathSyncStatus) {
-	// ignore notifications
-}
-
-// SuppressNotifications implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) SuppressNotifications(
-	_ context.Context, _ time.Duration) {
 	// ignore notifications
 }
 
