@@ -525,7 +525,7 @@ const provider = Sb.createPropProviderWithCommon({
     shouldShow: false,
     users: I.OrderedSet(['']),
   }),
-  Divider: p => ({
+  TeamsDivider: p => ({
     badgeCount: 2,
     showButton: p.showButton,
     hiddenCount: p.smallIDsHidden.length,

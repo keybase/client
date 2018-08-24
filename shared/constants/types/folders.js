@@ -1,8 +1,8 @@
-// @flow
-// TODO(mm) Everytype in this file should be pure...
-import type {DeviceType} from './devices'
+// @flow strict
 import type {Folder as FolderRPC} from './rpc-gen'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
+
+type DeviceType = 'mobile' | 'desktop' | 'backup'
 
 type UserListItem = {
   username: string,

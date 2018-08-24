@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 export const runMode: string = ''
 
 export const isMobile: boolean = false

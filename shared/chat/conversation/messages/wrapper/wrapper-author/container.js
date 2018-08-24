@@ -70,7 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
-  let failureDescription = null
+  let failureDescription = ''
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
   }
@@ -105,7 +105,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry: stateProps.isYou
-      ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      ? () => {
+          message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+        }
       : null,
     ordinal: message.ordinal,
     timestamp: message.timestamp,

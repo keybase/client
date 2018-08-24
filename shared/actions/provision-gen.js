@@ -9,7 +9,8 @@ import HiddenString from '../util/hidden-string'
 import {RPCError} from '../util/errors'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of provision but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'provision:'
 export const addNewDevice = 'provision:addNewDevice'
 export const provisionError = 'provision:provisionError'
 export const showCodePage = 'provision:showCodePage'

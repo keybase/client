@@ -5,7 +5,10 @@ import * as Styles from '../styles'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
-import {type SelectorMap} from './storybook'
+
+type SelectorMap = {
+  [componentDisplayName: string]: (any => any) | Object,
+}
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)

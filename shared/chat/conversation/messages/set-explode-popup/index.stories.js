@@ -8,7 +8,6 @@ const common = {
   attachTo: null,
   onHidden: Sb.action('onHidden'),
   onSelect: Sb.action('onSelect'),
-  position: 'top left',
   selected: 0,
   items: messageExplodeDescriptions,
   visible: true,

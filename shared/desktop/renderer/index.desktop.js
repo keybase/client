@@ -4,7 +4,6 @@
  */
 import '../../dev/user-timings'
 import Main from '../../app/main.desktop'
-import * as DevGen from '../../actions/dev-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as NotificationsGen from '../../actions/notifications-gen'
 import * as React from 'react'
@@ -49,14 +48,9 @@ function setupApp(store) {
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 
-  // Tell the main window some remote window needs its props
-  SafeElectron.getIpcRenderer().on('remoteWindowWantsProps', (event, windowComponent, windowParam) => {
-    store.dispatch({type: 'remote:needProps', payload: {windowComponent, windowParam}})
-  })
-
   // Listen for the menubarWindowID
   SafeElectron.getIpcRenderer().on('updateMenubarWindowID', (event, id) => {
-    store.dispatch({type: 'remote:updateMenubarWindowID', payload: {id}})
+    store.dispatch(ConfigGen.createUpdateMenubarWindowID({id}))
   })
 
   SafeElectron.getIpcRenderer().on('dispatchAction', (event, action) => {
@@ -145,9 +139,6 @@ function setupApp(store) {
       },
     }).catch(_ => {})
   })
-
-  // $FlowIssue doesn't like the require
-  store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))
 }
 
 const FontLoader = () => (
@@ -204,12 +195,6 @@ function setupHMR(store) {
       ['../../app/main.desktop', '../../app/routes-app', '../../app/routes-login'],
       refreshRoutes
     )
-
-  module.hot &&
-    module.hot.accept('../../local-debug-live', () => {
-      // $FlowIssue doesn't like the require
-      store.dispatch(DevGen.createUpdateDebugConfig({config: require('../../local-debug-live')}))
-    })
 
   module.hot && module.hot.accept('../../common-adapters/index.js', () => {})
 

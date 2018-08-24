@@ -1,11 +1,28 @@
 // @flow
 import ConfirmSend from '.'
-import {connect, type TypedState, type Dispatch} from '../../util/container'
+import * as Constants from '../../constants/wallets'
+import * as WalletsGen from '../../actions/wallets-gen'
+import {connect, type TypedState} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = (state: TypedState) => {
+  const build = state.wallets.buildingPayment
+  const built = state.wallets.builtPayment
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+  return {
+    amount: build.amount,
+    assetConversion: built.worthDescription,
+    assetType: build.currency,
+    encryptedNote: build.secretNote.stringValue(),
+    publicMemo: build.publicMemo.stringValue(),
+    waitingKey: Constants.sendPaymentWaitingKey,
+    yourUsername: state.config.username,
+  }
+}
 
-const mergeProps = (stateProps, dispatchProps) => ({})
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+  onBack: () => dispatch(navigateUp()),
+  onClose: () => dispatch(navigateUp()),
+  onSendClick: () => dispatch(WalletsGen.createSendPayment()),
+})
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ConfirmSend)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(ConfirmSend)

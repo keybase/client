@@ -2,6 +2,7 @@
 import {connect, type TypedState} from '../../../util/container'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
 const mapStateToProps = (state: TypedState) => {
@@ -15,7 +16,21 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const nyi = () => console.log('Not yet implemented')
-const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType}))
+    dispatch(WalletsGen.createSetBuildingFrom({from}))
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          selected: 'sendReceiveForm',
+        },
+      ])
+    )
+  },
   _onReceive: (accountID: Types.AccountID) =>
     dispatch(
       ownProps.navigateAppend([
@@ -35,9 +50,6 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSendToAnotherWallet: nyi,
-  onSendToKeybaseUser: nyi,
-  onSendToStellarAddress: nyi,
   onSettings: nyi,
 })
 
@@ -45,6 +57,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
+  onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount'),
+  onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser'),
+  onSendToStellarAddress: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey'),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
 })
 

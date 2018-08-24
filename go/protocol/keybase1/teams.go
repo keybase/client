@@ -1059,6 +1059,8 @@ type TeamSigChainState struct {
 	NameLog          []TeamNameLogPoint                                `codec:"nameLog" json:"nameLog"`
 	LastSeqno        Seqno                                             `codec:"lastSeqno" json:"lastSeqno"`
 	LastLinkID       LinkID                                            `codec:"lastLinkID" json:"lastLinkID"`
+	LastHighSeqno    Seqno                                             `codec:"lastHighSeqno" json:"lastHighSeqno"`
+	LastHighLinkID   LinkID                                            `codec:"lastHighLinkID" json:"lastHighLinkID"`
 	ParentID         *TeamID                                           `codec:"parentID,omitempty" json:"parentID,omitempty"`
 	UserLog          map[UserVersion][]UserLogPoint                    `codec:"userLog" json:"userLog"`
 	SubteamLog       map[TeamID][]SubteamLogPoint                      `codec:"subteamLog" json:"subteamLog"`
@@ -1093,8 +1095,10 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.NameLog),
-		LastSeqno:  o.LastSeqno.DeepCopy(),
-		LastLinkID: o.LastLinkID.DeepCopy(),
+		LastSeqno:      o.LastSeqno.DeepCopy(),
+		LastLinkID:     o.LastLinkID.DeepCopy(),
+		LastHighSeqno:  o.LastHighSeqno.DeepCopy(),
+		LastHighLinkID: o.LastHighLinkID.DeepCopy(),
 		ParentID: (func(x *TeamID) *TeamID {
 			if x == nil {
 				return nil

@@ -32,7 +32,7 @@ Edit a message:
     {"method": "edit", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": "new content"}}}}
 
 React to a message:
-	{"method": "reaction", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": ":+1:"}}}}
+    {"method": "reaction", "params": {"options": {"channel": {"name": "you,them"}, "message_id": 314, "message": {"body": ":+1:"}}}}
 
 Upload an attachment:
     {"method": "attach", "params": {"options": {"channel": {"name": "you,them"}, "filename": "photo.jpg", "title": "Sunset last night"}}}

@@ -1,7 +1,7 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, connect, setDisplayName, type Dispatch, type TypedState} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
 
@@ -41,6 +41,7 @@ const mergeProps = ({_uploads}, {debugToggleShow}) =>
   }: UploadCountdownHOCProps)
 
 export default compose(
+  // $FlowIssue @jzila
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('ConnectedUpload'),
   UploadCountdownHOC

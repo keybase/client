@@ -109,7 +109,11 @@ func (res *ResolveResult) GetDeleted() bool {
 
 func (res ResolveResult) FailOnDeleted() ResolveResult {
 	if res.deleted {
-		res.err = UserDeletedError{Msg: fmt.Sprintf("user %q deleted", res.uid)}
+		label := res.uid.String()
+		if res.resolvedKbUsername != "" {
+			label = res.resolvedKbUsername
+		}
+		res.err = UserDeletedError{Msg: fmt.Sprintf("user %q deleted", label)}
 	}
 	return res
 }

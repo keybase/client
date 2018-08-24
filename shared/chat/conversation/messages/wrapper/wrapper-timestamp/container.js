@@ -50,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     Constants.enoughTimeBetweenMessages(message, previous) ||
     (message.timestamp && (stateProps.orangeLineAbove || !previous))
 
-  const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : null
+  const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
   let type = 'children'
   if (['text', 'attachment'].includes(ownProps.message.type)) {

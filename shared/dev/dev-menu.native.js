@@ -32,5 +32,6 @@ export default connect(
   (dispatch: any) => ({
     onPushDebug: () => dispatch(navigateAppend(['push'])),
     onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )(DevMenu)

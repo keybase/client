@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
 import Joined from '.'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {createGetProfile} from '../../../../actions/tracker-gen'
 

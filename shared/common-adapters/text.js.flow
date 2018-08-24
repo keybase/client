@@ -13,6 +13,7 @@ type Background =
 
 type TextType =
   | 'Body'
+  | 'BodyItalic'
   | 'BodyBig'
   | 'BodyBigLink'
   | 'BodyError'
@@ -41,6 +42,7 @@ type TextType =
   | 'BodyTinySemibold'
   | 'BodyTinyBold'
   | 'Header'
+  | 'HeaderItalic'
   | 'HeaderExtrabold'
   | 'HeaderBig'
   | 'HeaderBigExtrabold'

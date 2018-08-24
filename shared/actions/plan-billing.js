@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../logger'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/plan-billing'

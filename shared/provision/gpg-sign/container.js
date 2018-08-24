@@ -1,6 +1,6 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
-import {connect, type Dispatch} from '../../util/container'
+import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import type {TypedState} from '../../constants/reducer'
 import GPGSign from '.'
@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => ({
   importError: state.provision.gpgImportError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
   onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),

@@ -5,7 +5,7 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants, {type Recipient} from '../participants'
+import Participants from './participants/container'
 import NoteAndMemo from './note-and-memo'
 
 type ConfirmSendProps = {|
@@ -20,14 +20,7 @@ type ConfirmSendProps = {|
   publicMemo?: string,
   bannerBackground?: Background,
   bannerText?: string,
-
-  // TODO: these props are probably one level too high, and should be in Participants' container.
-  yourUsername: string,
-  yourWalletName: string,
-  yourWalletContents: string,
-  receiverUsername: string,
-  receiverFullName: string,
-  recipientType: Recipient,
+  waitingKey?: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -42,15 +35,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Kb.ScrollView style={styles.scrollView}>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
-        <Participants
-          recipientType={props.recipientType}
-          isConfirm={true}
-          recipientUsername={props.receiverUsername}
-          recipientFullName={props.receiverFullName}
-          fromWalletUser={props.yourUsername}
-          fromWallet={props.yourWalletName}
-          fromWalletContents={props.yourWalletContents}
-        />
+        <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
         )}
@@ -64,10 +49,10 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         gapEnd={true}
         style={styles.buttonContainer}
       >
-        <Kb.Button
+        <Kb.WaitingButton
           type="PrimaryGreen"
           onClick={props.onSendClick}
-          waiting={props.waiting}
+          waitingKey={props.waitingKey}
           fullWidth={true}
           style={styles.button}
           children={
@@ -80,7 +65,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
               <Kb.Text type="BodySemibold" style={styles.buttonText}>
                 Send{' '}
                 <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
-                  {props.amount}
+                  {props.amount} {props.assetType}
                 </Kb.Text>
               </Kb.Text>
             </React.Fragment>

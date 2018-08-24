@@ -54,7 +54,7 @@ const styles = styleSheetCreate({
   container: platformStyles({
     isElectron: {
       ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.blue5,
+      backgroundColor: globalColors.blueGrey,
       flexShrink: 0,
       height: 32,
       top: undefined,

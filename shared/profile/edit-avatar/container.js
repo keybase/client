@@ -15,19 +15,19 @@ const mapStateToProps = (
 ) => ({
   createdTeam: routeProps.get('createdTeam'),
   image: routeProps.get('image'),
-  sendChatNotification: routeProps.get('sendChatNotification'),
+  sendChatNotification: routeProps.get('sendChatNotification') || false,
   teamname: routeProps.get('teamname'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: Props) => ({
+const mapDispatchToProps = (dispatch, ownProps: Props) => ({
   onClose: () => dispatch(navigateUp()),
   onSaveTeamAvatar: (
     filename: string,
     teamname: string,
-    sendChatNotification: boolean,
-    crop: RPCTypes.ImageCropRect
+    sendChatNotification,
+    crop?: RPCTypes.ImageCropRect
   ) => dispatch(TeamsGen.createUploadTeamAvatar({crop, filename, sendChatNotification, teamname})),
-  onSaveUserAvatar: (filename: string, crop: RPCTypes.ImageCropRect) =>
+  onSaveUserAvatar: (filename: string, crop?: RPCTypes.ImageCropRect) =>
     dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
@@ -35,9 +35,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
   createdTeam: stateProps.createdTeam,
   image: stateProps.image,
   onClose: dispatchProps.onClose,
-  onSave: (filename: string, crop: RPCTypes.ImageCropRect, teamname: string, sendChatNotification: boolean) =>
+  onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
     stateProps.teamname
-      ? dispatchProps.onSaveTeamAvatar(filename, teamname, sendChatNotification, crop)
+      ? dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)
       : dispatchProps.onSaveUserAvatar(filename, crop),
   sendChatNotification: stateProps.sendChatNotification,
   teamname: stateProps.teamname,

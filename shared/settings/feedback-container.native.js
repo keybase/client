@@ -190,9 +190,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   title: 'Feedback',
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc, HOCTimers)(FeedbackContainer)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  HeaderHoc,
+  HOCTimers
+)(FeedbackContainer)

@@ -16,7 +16,6 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  maskStrings: false, // Replace all hiddenstrings w/ fake values
   printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
@@ -104,7 +103,6 @@ export const {
   printBridgeB64,
   immediateStateLogging,
   isTesting,
-  maskStrings,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
@@ -117,5 +115,3 @@ export const {
   skipSecondaryDevtools,
   userTimings,
 } = config
-
-export function setup(store: any) {}

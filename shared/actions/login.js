@@ -16,23 +16,19 @@ export function setupLoginHMR(cb: () => void) {
 }
 
 const cancelDesc = 'Canceling RPC'
-const cancelOnCallback = (params, response, state) => {
+const cancelOnCallback = (params, response) => {
   response.error({
     code: RPCTypes.constantsStatusCode.scgeneric,
     desc: cancelDesc,
   })
 }
-const ignoreCallback = (params, state) => {}
+const ignoreCallback = params => {}
 
-const getPassphraseHandler = passphrase => (
-  params: RPCTypes.SecretUiGetPassphraseRpcParam,
-  response,
-  state
-) => {
+const getPassphraseHandler = passphrase => (params: RPCTypes.SecretUiGetPassphraseRpcParam, response) => {
   if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
-      cancelOnCallback(params, response, state)
+      cancelOnCallback(params, response)
       return Saga.put(LoginGen.createLoginError({error: new HiddenString(params.pinentry.retryLabel)}))
     } else {
       response.result({
@@ -41,7 +37,7 @@ const getPassphraseHandler = passphrase => (
       })
     }
   } else {
-    cancelOnCallback(params, response, state)
+    cancelOnCallback(params, response)
   }
 }
 

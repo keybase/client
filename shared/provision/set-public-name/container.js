@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
   error: state.provision.error.stringValue(),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onSubmit: (name: string) => dispatch(ProvisionGen.createSubmitDeviceName({name})),
   onBack: () => dispatch(ownProps.navigateUp()),
 })
@@ -24,7 +24,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     deviceName: ownProps.deviceName,
     error: stateProps.error,
-    existingDevices: stateProps._existingDevices,
     onBack: dispatchProps.onBack,
     onChange: ownProps.onChange,
     onSubmit,

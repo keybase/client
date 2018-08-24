@@ -64,7 +64,7 @@ func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func (r *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error) {
+func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
 	if r == nil {
 		return nil, nil
 	}
@@ -72,7 +72,7 @@ func (r *rawTeam) unpackLinks(ctx context.Context) ([]*chainLinkUnpacked, error)
 	if err != nil {
 		return nil, err
 	}
-	var links []*chainLinkUnpacked
+	var links []*ChainLinkUnpacked
 	for _, pLink := range parsedLinks {
 		pLink2 := pLink
 		link, err := unpackChainLink(&pLink2)

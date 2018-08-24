@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState) => ({
   teamnames: getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(

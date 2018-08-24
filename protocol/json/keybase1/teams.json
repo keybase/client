@@ -867,6 +867,14 @@
           "name": "lastLinkID"
         },
         {
+          "type": "Seqno",
+          "name": "lastHighSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastHighLinkID"
+        },
+        {
           "type": [
             null,
             "TeamID"
