@@ -181,7 +181,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     lastWriter: pathItem.lastWriter.username,
     name: pathElements[pathElements.length - 1],
     size: pathItem.size,
-    // The file content could change, resulting mime type change. So just
+    // The file content could change, resulting in a mime type change. So just
     // request it regardless whether we have it or not. The FS saga takes care
     // of preventing the RPC if it's already subscribed.
     needLoadMimeType: type === 'file',

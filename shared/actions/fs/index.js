@@ -107,7 +107,7 @@ function* folderList(
 
     if (refreshTag) {
       if (folderListRefreshTags.get(refreshTag) === rootPath) {
-        // We are alrady subscribed; so don't fire RPC.
+        // We are already subscribed; so don't fire RPC.
         return
       }
 
@@ -412,14 +412,14 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
 }
 
 const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) => {
-  // Trigger folderListLoad and mimeTypeLoad for paths that user might be
-  // looking at. Note that we don't have actual path here, So instead just
+  // Trigger folderListLoad and mimeTypeLoad for paths that the user might be
+  // looking at. Note that we don't have the actual path here, So instead just
   // always re-load them as long as the TLF path matches.
   //
   // Note that this is not merely a filtered mapping from the refresh tags. If
-  // user is in a different TLF, we remove the old tag so next time an action
-  // comes in, we'll fire the RPC. This might not be necessary based on current
-  // design, but just in case.
+  // the user is in a different TLF, we remove the old tag so next time an
+  // action comes in, we'll fire the RPC. This might not be necessary based on
+  // current design, but just in case.
   //
   // It's important to not set the refreshTag in new actions, to make sure the
   // related sagas won't skip the RPC.
@@ -526,7 +526,7 @@ const refreshLocalHTTPServerInfo = (state: TypedState, action: FsGen.RefreshLoca
 function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   if (refreshTag) {
     if (mimeTypeRefreshTags.get(refreshTag) === path) {
-      // We are alrady subscribed; so don't fire RPC.
+      // We are already subscribed; so don't fire RPC.
       return
     }
 
