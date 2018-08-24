@@ -254,6 +254,14 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       return null
   }
 }
+export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
+  const strPath = pathToString(path)
+  const strTlfPath = pathToString(tlfPath)
+  return (
+    strPath.startsWith(strTlfPath) &&
+    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
+  )
+}
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]

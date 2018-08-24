@@ -41,11 +41,7 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<FilesLoadingHocProps> {
     _load = () => {
       const pathLevel = Types.getPathLevel(this.props.path)
-      if (pathLevel < 2) {
-        return
-      }
-      pathLevel === 2 && this.props.loadFavorites()
-      this.props.loadFolderList()
+      pathLevel > 2 ? this.props.loadFolderList() : pathLevel === 2 && this.props.loadFavorites()
     }
     componentDidMount() {
       this._load()

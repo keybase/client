@@ -105,7 +105,14 @@ function* folderList(
         ? {rootPath: action.payload.parentPath, refreshTag: undefined}
         : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
 
-    refreshTag && folderListRefreshTags.set(refreshTag, rootPath)
+    if (refreshTag) {
+      if (folderListRefreshTags.get(refreshTag) === rootPath) {
+        // We are already subscribed; so don't fire RPC.
+        return
+      }
+
+      folderListRefreshTags.set(refreshTag, rootPath)
+    }
 
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
@@ -116,7 +123,7 @@ function* folderList(
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
         filter: RPCTypes.simpleFSListFilter.filterAllHidden,
-        refreshSubscription: false,
+        refreshSubscription: !!refreshTag,
       })
     } else {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRecursiveToDepthRpcPromise, {
@@ -126,7 +133,7 @@ function* folderList(
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
         filter: RPCTypes.simpleFSListFilter.filterAllHidden,
-        refreshSubscription: false,
+        refreshSubscription: !!refreshTag,
         depth: 1,
       })
     }
@@ -355,7 +362,7 @@ const getWaitDuration = (endEstimate: ?number, lower: number, upper: number): nu
 }
 
 let polling = false
-function* pollSyncStatusUntilDone(action: FsGen.FsActivityPayload): Saga.SagaGenerator<any, any> {
+function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga.SagaGenerator<any, any> {
   if (polling) {
     return
   }
@@ -379,14 +386,6 @@ function* pollSyncStatusUntilDone(action: FsGen.FsActivityPayload): Saga.SagaGen
             endEstimate,
           })
         ),
-
-        // Trigger folderListLoad and mimeTypeLoad for paths that user might be
-        // looking at. Note that we are not checking the syncingPaths here,
-        // because we are polling and things can slip through between
-        // SimpleFSSyncStatus calls. So instead just always re-load them on the
-        // same interval we are polling on journal status.
-        ...Array.from(folderListRefreshTags).map(([_, path]) => Saga.put(FsGen.createFolderListLoad({path}))),
-        ...Array.from(mimeTypeRefreshTags).map(([_, path]) => Saga.put(FsGen.createMimeTypeLoad({path}))),
       ])
 
       // It's possible syncingPaths has not been emptied before
@@ -412,9 +411,43 @@ function* pollSyncStatusUntilDone(action: FsGen.FsActivityPayload): Saga.SagaGen
   }
 }
 
+const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) => {
+  // Trigger folderListLoad and mimeTypeLoad for paths that the user might be
+  // looking at. Note that we don't have the actual path here, So instead just
+  // always re-load them as long as the TLF path matches.
+  //
+  // Note that this is not merely a filtered mapping from the refresh tags. If
+  // the user is in a different TLF, we remove the old tag so next time an
+  // action comes in, we'll fire the RPC. This might not be necessary based on
+  // current design, but just in case.
+  //
+  // It's important to not set the refreshTag in new actions, to make sure the
+  // related sagas won't skip the RPC.
+  const actions = []
+  folderListRefreshTags.forEach(
+    (path, refreshTag) =>
+      Types.pathIsInTlfPath(path, action.payload.tlfPath)
+        ? actions.push(Saga.put(FsGen.createFolderListLoad({path})))
+        : folderListRefreshTags.delete(refreshTag)
+  )
+  mimeTypeRefreshTags.forEach(
+    (path, refreshTag) =>
+      Types.pathIsInTlfPath(path, action.payload.tlfPath)
+        ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
+        : folderListRefreshTags.delete(refreshTag)
+  )
+  return actions
+}
+
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => FsGen.createFsActivity())
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => FsGen.createFsActivity())
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () =>
+    FsGen.createNotifySyncActivity()
+  )
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({path}) =>
+    // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
+    // now.
+    FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})
+  )
 }
 
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
@@ -491,7 +524,14 @@ const refreshLocalHTTPServerInfo = (state: TypedState, action: FsGen.RefreshLoca
 // addition triggers a mimeTypeLoaded so the loaded mime type for given path is
 // populated in the store.
 function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
-  refreshTag && mimeTypeRefreshTags.set(refreshTag, path)
+  if (refreshTag) {
+    if (mimeTypeRefreshTags.get(refreshTag) === path) {
+      // We are already subscribed; so don't fire RPC.
+      return
+    }
+
+    mimeTypeRefreshTags.set(refreshTag, path)
+  }
 
   const state = yield Saga.select()
   let localHTTPServerInfo: Types._LocalHTTPServer =
@@ -622,7 +662,8 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   }
 
-  yield Saga.safeTakeEvery(FsGen.fsActivity, pollSyncStatusUntilDone)
+  yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
+  yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
 
   yield Saga.fork(platformSpecificSaga)
 

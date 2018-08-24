@@ -244,7 +244,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.fsActivity:
+    case FsGen.notifySyncActivity:
+    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
