@@ -35,7 +35,7 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
     ))
 
     return (
-      <ParticipantsRow heading="From" headingAlignment="Right">
+      <ParticipantsRow heading="From" headingAlignment="Right" bottomDivider={false}>
         <Kb.Dropdown
           onChanged={this.onDropdownChange}
           items={items}

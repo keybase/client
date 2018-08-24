@@ -25,8 +25,8 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
     <Participants />
-    <Divider />
     <AssetInput />
+    <Divider />
     <NoteAndMemo />
     <Footer onClick={onClick} />
   </Box2>

@@ -158,8 +158,11 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             ? {alignSelf: 'flex-start'}
             : {}
         }
-        dividerColor={this.props.incorrect ? Styles.globalColors.red : ''}
-        bottomDivider={!!this.props.incorrect && this.props.recipientType === 'stellarPublicKey'}
+        dividerColor={
+          this.props.incorrect && this.props.recipientType === 'stellarPublicKey'
+            ? Styles.globalColors.red
+            : ''
+        }
       >
         {component}
       </ParticipantsRow>
