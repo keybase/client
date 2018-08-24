@@ -35,7 +35,14 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
-      "intent": "Types.DownloadIntent",
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "shareNative": {
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "saveMedia": {
       "path": "Types.Path",
       "key": "string"
     },
@@ -48,7 +55,8 @@
       "opID": "RPCTypes.OpID"
     },
     "downloadSuccess": {
-      "key": "string"
+      "key": "string",
+      "mimeType": "string"
     },
     "downloadProgress": {
       "key": "string",
@@ -140,14 +148,6 @@
       "key": "string"
     },
 
-    "shareNative": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
-    "saveMedia": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
     "openPathItem": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
@@ -156,8 +156,12 @@
       "id": "RPCTypes.TeamID",
       "username": "string"
     },
-    "pickAndUpload": {
+    "openAndUpload": {
       "type": "Types.OpenDialogType",
+      "parentPath": "Types.Path"
+    },
+    "pickAndUpload": {
+      "type": "Types.MobilePickType",
       "parentPath": "Types.Path"
     },
 

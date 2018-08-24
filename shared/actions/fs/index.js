@@ -8,29 +8,12 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
-import flags from '../../util/feature-flags'
-import {platformSpecificSaga, platformSpecificIntentEffect} from './platform-specific'
+import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
 import {putActionIfOnPath, navigateAppend} from '../route-tree'
-
-const makeRetriableErrorHandler = (action: FsGen.Actions) => (error): FsGen.FsErrorPayload =>
-  FsGen.createFsError({
-    error: Constants.makeError({
-      error,
-      erroredAction: action,
-      retriableAction: action,
-    }),
-  })
-
-const makeUnretriableErrorHandler = (action: FsGen.Actions) => (error): FsGen.FsErrorPayload =>
-  FsGen.createFsError({
-    error: Constants.makeError({
-      error,
-      erroredAction: action,
-    }),
-  })
+import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -227,8 +210,11 @@ function* monitorDownloadProgress(key: string, opID: RPCTypes.OpID) {
   }
 }
 
-function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> {
-  const {path, intent, key} = action.payload
+function* download(
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+): Saga.SagaGenerator<any, any> {
+  const {path, key} = action.payload
+  const intent = Constants.getDownloadIntentFromAction(action)
   const opID = Constants.makeUUID()
 
   // Figure out the local path we are downloading into.
@@ -293,19 +279,13 @@ function* download(action: FsGen.DownloadPayload): Saga.SagaGenerator<any, any> 
     yield Saga.put(FsGen.createDownloadProgress({key, completePortion: 1}))
 
     const mimeType = yield Saga.call(_loadMimeType, path)
-
-    // Kick off any post-download actions, now that the file is available locally.
-    const intentEffect = platformSpecificIntentEffect(intent, localPath, mimeType)
-    intentEffect && (yield intentEffect)
-    yield Saga.put(FsGen.createDownloadSuccess({key}))
+    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType}))
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
-  } finally {
     if (intent !== 'none') {
-      // If the intent is not 'none', we don't need to wait for user to
-      // dismiss. So just clear them out when we're done.
-      // TODO: errors would be swallowen here, so need to figure out if there
-      // are errors here that we should bring user's attention to.
+      // If it's a normal download, we show a red card for the user to dismiss.
+      // TODO: when we get rid of download cards on Android, check isMobile
+      // here.
       yield Saga.put(FsGen.createDismissDownload({key}))
     }
   }
@@ -650,7 +630,7 @@ const letResetUserBackInResult = () => undefined // Saga.put(FsGen.createLoadRes
 function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.refreshLocalHTTPServerInfo, refreshLocalHTTPServerInfo)
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
-  yield Saga.safeTakeEvery(FsGen.download, download)
+  yield Saga.safeTakeEvery([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   yield Saga.safeTakeEvery(FsGen.upload, upload)
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
@@ -658,18 +638,13 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
-  if (flags.fsWritesEnabled) {
-    yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
-  }
-
+  yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
-
-  yield Saga.fork(platformSpecificSaga)
-
-  // These are saga tasks that may use actions above.
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+
+  yield Saga.fork(platformSpecificSaga)
 }
 
 export default fsSaga

@@ -131,8 +131,7 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type DownloadIntentMobile = 'camera-roll' | 'share'
-export type DownloadIntentWebview = 'web-view-text' | 'web-view'
-export type DownloadIntent = 'none' | DownloadIntentMobile | DownloadIntentWebview
+export type DownloadIntent = 'none' | DownloadIntentMobile
 
 export type _DownloadMeta = {
   entryType: PathType,
@@ -170,6 +169,7 @@ export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
+export type MobilePickType = 'photo' | 'video' | 'mixed'
 
 export type _Flags = {
   kbfsOpening: boolean,

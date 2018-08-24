@@ -254,6 +254,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openPathItem:
     case FsGen.commitEdit:
     case FsGen.letResetUserBackIn:
+    case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
       return state
