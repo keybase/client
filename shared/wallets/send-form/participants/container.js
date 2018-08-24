@@ -1,11 +1,25 @@
 // @flow
 import Participants from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
+import {getAccount, getAccountIDs} from '../../../constants/wallets'
+import {stringToAccountID} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
+
+  const allAccounts = getAccountIDs(state)
+    .map(accountID => {
+      const account = getAccount(state, accountID)
+      return {contents: account.balanceDescription, name: account.name || account.accountID}
+    })
+    .toArray()
+  const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
+  const fromAccount = {
+    contents: fromAccountFromState.balanceDescription,
+    name: fromAccountFromState.name || fromAccountFromState.accountID,
+  }
 
   // Building section
   const recipientType = build.recipientType || 'keybaseUser'
@@ -13,33 +27,22 @@ const mapStateToProps = (state: TypedState) => {
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
 
-  // TODO: Set these to actual values, this is just to make flow happy until we integrate
-  const onLinkAccount = () => {}
-  const onCreateNewAccount = () => {}
-  const onChangeFromAccount = () => {}
-  const onChangeToAccount = () => {}
-  const fromAccount = {
-    user: '',
-    name: '',
-    contents: '',
-  }
-  const allAccounts = []
-
   return {
+    allAccounts,
+    fromAccount,
     incorrect,
     recipientType,
     recipientUsername,
-    onCreateNewAccount,
-    onLinkAccount,
-    onChangeFromAccount,
-    onChangeToAccount,
-    fromAccount,
-    allAccounts,
+    user: state.config.username,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeAddress: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
+  onChangeFromAccount: () => {},
+  onChangeToAccount: () => {},
+  onCreateNewAccount: () => {},
+  onLinkAccount: () => {},
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
 

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
-// import * as Styles from '../../../styles'
+import * as Styles from '../../../styles'
 import {AccountEntry} from '../../common'
 import type {Account} from '.'
 
@@ -18,27 +18,40 @@ export const DropdownText = ({text, ...props}: DropdownTextProps) => (
 
 type SelectedEntryProps = {
   account: Account,
+  user: string,
 }
 
 // The display of the selected account in the dropdown.
-export const SelectedEntry = ({account, ...props}: SelectedEntryProps) => (
+export const SelectedEntry = ({account, user, ...props}: SelectedEntryProps) => (
   <Kb.Box2 {...props} direction="horizontal" centerChildren={true} gap="tiny" fullWidth={true}>
-    <Kb.Avatar size={16} username={account.user} />
-    <Kb.Text type="BodySemibold">{account.name}</Kb.Text>
+    <Kb.Avatar size={16} username={user} />
+    <Kb.Text type="BodySemibold" style={styles.text}>
+      {account.name}
+    </Kb.Text>
   </Kb.Box2>
 )
 
 type DropdownEntryProps = {
   account: Account,
+  user: string,
 }
 
 // The display of an entry in the dropdown popup.
 export const DropdownEntry = (props: DropdownEntryProps) => (
   <AccountEntry
-    keybaseUser={props.account.user}
+    keybaseUser={props.user}
     name={props.account.name}
     contents={props.account.contents}
     showWalletIcon={false}
     center={true}
   />
 )
+
+const styles = Styles.styleSheetCreate({
+  text: Styles.platformStyles({
+    isElectron: {
+      width: '90%',
+      textOverflow: 'break-all',
+    },
+  }),
+})

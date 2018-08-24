@@ -7,13 +7,13 @@ import type {CounterpartyType} from '../../../constants/types/wallets'
 
 export type Account = {|
   name: string,
-  user: string,
   contents: string,
 |}
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
   // Used for send to other account
+  user: string,
   fromAccount: Account,
   allAccounts: Account[],
   onChangeFromAccount: (accountName: string) => void,
@@ -37,20 +37,22 @@ const Participants = (props: ParticipantsProps) => (
         initialAccount={props.fromAccount}
         accounts={props.allAccounts}
         onChangeSelectedAccount={props.onChangeFromAccount}
+        user={props.user}
       />
     )}
     <ToField
-      recipientType={props.recipientType}
       accounts={props.allAccounts}
+      recipientFullName={props.recipientFullName}
       incorrect={props.incorrect}
-      username={props.recipientUsername}
-      fullName={props.recipientFullName}
+      onChangeAddress={props.onChangeAddress}
+      onChangeSelectedAccount={props.onChangeToAccount}
+      onCreateNewAccount={props.onCreateNewAccount}
+      onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
-      onChangeAddress={props.onChangeAddress}
-      onLinkAccount={props.onLinkAccount}
-      onCreateNewAccount={props.onCreateNewAccount}
-      onChangeSelectedAccount={props.onChangeToAccount}
+      recipientType={props.recipientType}
+      user={props.user}
+      recipientUsername={props.recipientUsername}
     />
   </Kb.Box2>
 )

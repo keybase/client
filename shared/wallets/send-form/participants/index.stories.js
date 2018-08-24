@@ -11,7 +11,6 @@ const provider = Sb.createPropProviderWithCommon({
 
 const primaryAccount: Account = {
   name: 'Primary Account',
-  user: 'cjb',
   contents: '2000 XLM',
 }
 
@@ -19,18 +18,17 @@ const accounts = [
   primaryAccount,
   {
     name: 'Secondary Account',
-    user: 'cjb',
     contents: '6435 XLM',
   },
   {
     name: 'third Account',
-    user: 'cjb',
     contents: '10 XLM',
   },
 ]
 
 const defaultProps = {
   // Account -> Account transactions
+  user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
   onChangeFromAccount: Sb.action('onChangeFromAccount'),

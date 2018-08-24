@@ -6,9 +6,10 @@ import {SelectedEntry, DropdownEntry} from './dropdown'
 import type {Account} from '.'
 
 type FromFieldProps = {|
-  initialAccount: Account,
   accounts: Account[],
+  initialAccount: Account,
   onChangeSelectedAccount: (accountName: string) => void,
+  user: string,
 |}
 
 type FromFieldState = {|
@@ -29,14 +30,16 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
   }
 
   render() {
-    const items = this.props.accounts.map((account, index) => <DropdownEntry key={index} account={account} />)
+    const items = this.props.accounts.map((account, index) => (
+      <DropdownEntry key={index} account={account} user={this.props.user} />
+    ))
 
     return (
       <ParticipantsRow heading="From" headingAlignment="Right">
         <Kb.Dropdown
           onChanged={this.onDropdownChange}
           items={items}
-          selected={<SelectedEntry account={this.state.selectedAccount} />}
+          selected={<SelectedEntry account={this.state.selectedAccount} user={this.props.user} />}
         />
       </ParticipantsRow>
     )
