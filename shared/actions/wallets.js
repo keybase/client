@@ -120,12 +120,14 @@ const loadPayments = (
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
-    accountID: action.payload.accountID,
+    accountID: action.payload.accountID || '',
     id: action.payload.paymentID,
   }).then(detail =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
-      detail: Constants.paymentDetailResultToPayment(detail),
+      detail: action.payload.delta
+        ? Constants.paymentDetailResultToPayment(detail)
+        : Constants.paymentDetailResultToPayment(detail, action.payload.delta),
       paymentID: action.payload.paymentID,
     })
   )

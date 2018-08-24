@@ -87,7 +87,8 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadPaymentDetailPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
+  accountID?: Types.AccountID,
+  delta?: increase | decrease,
   paymentID: StellarRPCTypes.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
