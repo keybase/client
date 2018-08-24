@@ -32,13 +32,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             p => Types.paymentIDIsEqual(p.id, action.payload.paymentID),
             Constants.makePayment()
           )
-          return paymentSet.delete(target).add(
-            target.merge({
-              publicMemo: action.payload.publicMemo,
-              publicMemoType: action.payload.publicMemoType,
-              txID: action.payload.txID,
-            })
-          )
+          return paymentSet.delete(target).add(target.merge(action.payload.detail))
         })
       )
     case WalletsGen.paymentsReceived:

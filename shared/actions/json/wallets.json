@@ -74,10 +74,8 @@
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
+      "detail": "Types.Payment",
       "paymentID": "StellarRPCTypes.PaymentID",
-      "publicMemo": "HiddenString",
-      "publicMemoType": "string",
-      "txID": "string",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",

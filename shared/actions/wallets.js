@@ -122,13 +122,11 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
     id: action.payload.paymentID,
-  }).then(res =>
+  }).then(detail =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
+      detail: Constants.paymentDetailResultToPayment(detail),
       paymentID: action.payload.paymentID,
-      publicMemo: new HiddenString(res.publicNote),
-      publicMemoType: res.publicNoteType,
-      txID: res.txID,
     })
   )
 

@@ -165,6 +165,32 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const paymentDetailResultToPayment = (
+  p: RPCTypes.PaymentDetailsLocal,
+  deltaOverride?: 'increase' | 'decrease'
+) => {
+  return makePayment({
+    amountDescription: p.amountDescription,
+    delta: deltaOverride || balanceDeltaToString[p.delta],
+    error: '',
+    id: p.id,
+    note: new HiddenString(p.note),
+    publicMemo: new HiddenString(p.publicNote),
+    publicMemoType: p.publicNoteType,
+    source: p.source,
+    sourceType: partyTypeToString[p.sourceType],
+    statusDescription: p.statusDescription,
+    statusDetail: p.statusDetail,
+    statusSimplified: statusSimplifiedToString[p.statusSimplified],
+    target: p.target,
+    targetType: partyTypeToString[p.targetType],
+    time: p.time,
+    txID: p.txID,
+    worth: p.worth,
+    worthCurrency: p.worthCurrency,
+  })
+}
+
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
   code: '',
   issuerAccountID: Types.noAccountID,
@@ -299,6 +325,7 @@ export {
   makePayment,
   makeReserve,
   makeState,
+  paymentDetailResultToPayment,
   paymentResultToPayment,
   paymentToCounterpartyType,
   paymentToYourRole,
