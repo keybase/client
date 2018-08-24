@@ -50,7 +50,7 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
 const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     isElectron: {
-      width: '90%',
+      maxWidth: 140,
       textOverflow: 'break-all',
     },
   }),
