@@ -26,7 +26,7 @@ const commands = {
   postinstall: {
     code: () => {
       // Inject dummy modules
-      makeShims(['net', 'tls', 'msgpack'])
+      // makeShims(['net', 'tls', 'msgpack'])
       replaceShims(['babel-plugin-react-docgen']) // hopefully they fix this but short term to get storybook working just skip this plugin
     },
     help: 'all: install global eslint. dummy modules',

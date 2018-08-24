@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@babel/cli@^7.0.0-rc.2":
+"@babel/cli@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.0.0-rc.2.tgz#0c64762f27ccd3fa255111570b6c404f81181c85"
   dependencies:
@@ -67,7 +67,7 @@
     semver "^5.4.1"
     source-map "^0.5.0"
 
-"@babel/core@^7.0.0-rc.2":
+"@babel/core@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.0-rc.2.tgz#dcb46b3adb63e35b1e82c35d9130d9c27be58427"
   dependencies:
@@ -487,7 +487,7 @@
     esutils "^2.0.2"
     js-tokens "^4.0.0"
 
-"@babel/node@^7.0.0-rc.2":
+"@babel/node@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/node/-/node-7.0.0-rc.2.tgz#3148d8dafad3eba5bbb5084c1c9462f9eebee300"
   dependencies:
@@ -536,7 +536,7 @@
     "@babel/helper-replace-supers" "7.0.0-beta.56"
     "@babel/plugin-syntax-class-properties" "7.0.0-beta.56"
 
-"@babel/plugin-proposal-class-properties@^7.0.0-rc.2":
+"@babel/plugin-proposal-class-properties@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-class-properties/-/plugin-proposal-class-properties-7.0.0-rc.2.tgz#71f4f2297ec9c0848b57c231ef913bc83d49d85a"
   dependencies:
@@ -568,7 +568,7 @@
     "@babel/helper-plugin-utils" "7.0.0-beta.56"
     "@babel/plugin-syntax-object-rest-spread" "7.0.0-beta.56"
 
-"@babel/plugin-proposal-object-rest-spread@7.0.0-rc.2", "@babel/plugin-proposal-object-rest-spread@^7.0.0-rc.2":
+"@babel/plugin-proposal-object-rest-spread@7.0.0-rc.2", "@babel/plugin-proposal-object-rest-spread@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/plugin-proposal-object-rest-spread/-/plugin-proposal-object-rest-spread-7.0.0-rc.2.tgz#5552e7a4c80cde25f28dfcc6d050831d1d88a01f"
   dependencies:
@@ -833,7 +833,7 @@
     "@babel/helper-plugin-utils" "7.0.0-beta.56"
     "@babel/plugin-syntax-flow" "7.0.0-beta.56"
 
-"@babel/plugin-transform-flow-strip-types@^7.0.0-rc.2":
+"@babel/plugin-transform-flow-strip-types@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/plugin-transform-flow-strip-types/-/plugin-transform-flow-strip-types-7.0.0-rc.2.tgz#87c482c195a3a5e2b8d392928db386a2b034c224"
   dependencies:
@@ -1099,7 +1099,7 @@
     core-js "^2.5.7"
     regenerator-runtime "^0.11.1"
 
-"@babel/preset-env@^7.0.0-rc.2":
+"@babel/preset-env@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.0.0-rc.2.tgz#66f7ed731234b67ee9a6189f1df60203873ac98b"
   dependencies:
@@ -1145,7 +1145,7 @@
     js-levenshtein "^1.1.3"
     semver "^5.3.0"
 
-"@babel/preset-react@^7.0.0-rc.2":
+"@babel/preset-react@^7.0.0-rc.1":
   version "7.0.0-rc.2"
   resolved "https://registry.yarnpkg.com/@babel/preset-react/-/preset-react-7.0.0-rc.2.tgz#5430f089db83095df4cf134b2e8e8c39619ca60c"
   dependencies:
@@ -2902,6 +2902,14 @@ babel-plugin-minify-type-constructors@^0.5.0-alpha.3cc09dcf:
   resolved "https://registry.yarnpkg.com/babel-plugin-minify-type-constructors/-/babel-plugin-minify-type-constructors-0.5.0-alpha.e9f96ffe.tgz#116b76e4b4953c89f2c836769eec9464643e6b46"
   dependencies:
     babel-helper-is-void-0 "^0.5.0-alpha.e9f96ffe"
+
+babel-plugin-react-docgen@:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/babel-plugin-react-docgen/-/babel-plugin-react-docgen-1.9.0.tgz#2e79aeed2f93b53a172398f93324fdcf9f02e01f"
+  dependencies:
+    babel-types "^6.24.1"
+    lodash "^4.17.0"
+    react-docgen "^3.0.0-beta11"
 
 babel-plugin-react-docgen@^2.0.0-rc.1:
   version "2.0.0-rc.2"
@@ -9469,7 +9477,7 @@ lodash@^4.14.0, lodash@^4.17.2, lodash@^4.17.4, lodash@^4.2.0, lodash@^4.3.0, lo
   version "4.17.4"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.4.tgz#78203a4d1c328ae1d86dca6460e369b57f4055ae"
 
-lodash@^4.17.10:
+lodash@^4.17.0, lodash@^4.17.10:
   version "4.17.10"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.10.tgz#1b7793cf7259ea38fb3661d4d38b3260af8ae4e7"
 
@@ -10163,6 +10171,10 @@ ms@2.0.0:
 ms@2.1.1:
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.1.tgz#30a5864eb3ebb0a66f2ebe6d727af06a09d86e0a"
+
+"msgpack@git://github.com/keybase/nullModule", "net@git://github.com/keybase/nullModule", "tls@git://github.com/keybase/nullModule":
+  version "0.0.0"
+  resolved "git://github.com/keybase/nullModule#e0d7d7874eb4d1fd82056f92f146589186fe94f0"
 
 multicast-dns-service-types@^1.1.0:
   version "1.1.0"
@@ -11815,7 +11827,7 @@ react-devtools-core@^3.2.2:
     shell-quote "^1.6.1"
     ws "^3.3.1"
 
-react-docgen@^3.0.0-beta12:
+react-docgen@^3.0.0-beta11, react-docgen@^3.0.0-beta12:
   version "3.0.0-rc.0"
   resolved "https://registry.yarnpkg.com/react-docgen/-/react-docgen-3.0.0-rc.0.tgz#6452afc31649d651c9bafce9b94a470581530b76"
   dependencies:
