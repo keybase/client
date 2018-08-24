@@ -8,7 +8,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import {navigateAppend} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -34,7 +34,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
   return {
-    _onBack: () => dispatch(navigateUp()),
+    _onBack: (accountID: Types.AccountID) =>
+      dispatch(
+        WalletsGen.createSelectAccount({
+          accountID,
+          show: true,
+        })
+      ),
     _refresh: () => {
       dispatch(WalletsGen.createLoadDisplayCurrencies())
       dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
@@ -65,7 +71,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
 
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
-  onBack: () => dispatchProps._onBack(),
+  onBack: () => dispatchProps._onBack(stateProps.accountID),
   refresh: () => dispatchProps._refresh(),
   onDelete: () => dispatchProps._onDelete(stateProps.accountID),
   onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
