@@ -8,7 +8,7 @@ import {
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend} from '../../../actions/route-tree'
+import {navigateAppend, navigateUp} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -34,13 +34,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
 const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
   return {
-    _onBack: (accountID: Types.AccountID) =>
-      dispatch(
-        WalletsGen.createSelectAccount({
-          accountID,
-          show: true,
-        })
-      ),
+    _onBack: (accountID: Types.AccountID) => {
+      dispatch(navigateUp())
+      dispatch(WalletsGen.createRefreshPayments({accountID}))
+    },
     _refresh: () => {
       dispatch(WalletsGen.createLoadDisplayCurrencies())
       dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
