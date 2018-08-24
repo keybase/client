@@ -2,7 +2,7 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as LoginGen from '../../actions/login-gen'
 import SelectOtherDevice from '.'
-import {connect, type TypedState, type Dispatch, compose, safeSubmitPerMount} from '../../util/container'
+import {connect, type TypedState, compose, safeSubmitPerMount} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
@@ -10,7 +10,7 @@ type OwnProps = RouteProps<{}, {}>
 const mapStateToProps = (state: TypedState) => ({
   devices: state.provision.devices,
 })
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onResetAccount: () => {
     dispatch(LoginGen.createLaunchAccountResetWebPage())

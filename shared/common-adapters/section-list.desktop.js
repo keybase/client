@@ -57,6 +57,10 @@ class SectionList extends React.Component<Props, State> {
 
   _itemRenderer = (index, key) => {
     const item = this.state.items[index]
+    if (!item) {
+      // data is switching out from under us. let things settle
+      return null
+    }
     const section = this.props.sections[item.sectionIndex]
     if (!section) {
       // data is switching out from under us. let things settle

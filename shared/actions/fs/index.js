@@ -413,8 +413,8 @@ function* pollSyncStatusUntilDone(action: FsGen.FsActivityPayload): Saga.SagaGen
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => [FsGen.createFsActivity()])
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => [FsGen.createFsActivity()])
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () => FsGen.createFsActivity())
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', () => FsGen.createFsActivity())
 }
 
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {

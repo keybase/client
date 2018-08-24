@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
@@ -54,4 +54,4 @@ class Switcher extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(Switcher)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Switcher)

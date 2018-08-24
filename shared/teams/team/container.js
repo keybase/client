@@ -4,7 +4,7 @@ import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
 import {HeaderHoc} from '../../common-adapters'
-import {connect, lifecycle, compose, type TypedState, type Dispatch} from '../../util/container'
+import {connect, lifecycle, compose, type TypedState} from '../../util/container'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
@@ -28,7 +28,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState}: OwnProps) 
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, setRouteState, routeProps}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {navigateUp, setRouteState, routeProps}: OwnProps) => {
   return {
     _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
     onBack: () => dispatch(navigateUp()),

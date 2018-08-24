@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadAllTeams: () => dispatch(TeamsGen.createGetDetailsForAllTeams()),
   loadTeamList: () => dispatch(TeamsGen.createGetTeams()),
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {

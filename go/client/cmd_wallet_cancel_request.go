@@ -49,7 +49,9 @@ func (c *CmdWalletCancelRequest) Run() error {
 		return err
 	}
 
-	return cli.CancelRequestLocal(context.Background(), requestID)
+	return cli.CancelRequestLocal(context.Background(), stellar1.CancelRequestLocalArg{
+		ReqID: requestID,
+	})
 }
 
 func (c *CmdWalletCancelRequest) GetUsage() libkb.Usage {

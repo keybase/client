@@ -31,7 +31,7 @@ type WrapperState = {|
 
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   const ordinal = ownProps.routeProps.get('ordinal')
   return {

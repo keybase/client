@@ -37,19 +37,17 @@ const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
   engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
     response && response.result()
-    return [GregorGen.createPushState({reason, state})]
+    return GregorGen.createPushState({reason, state})
   })
 
   engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
     response && response.result()
-    const actions = []
     if (oobm && oobm.length) {
       const filteredOOBM = oobm.filter(Boolean)
       if (filteredOOBM.length) {
-        actions.push(GregorGen.createPushOOBM({messages: filteredOOBM}))
+        return GregorGen.createPushOOBM({messages: filteredOOBM})
       }
     }
-    return actions
   })
 
   engine().setIncomingActionCreators(
@@ -58,9 +56,8 @@ const setupEngineListeners = () => {
       // Gregor reachability is only valid if we're logged in
       // TODO remove this when core stops sending us these when we're logged out
       if (getState().config.loggedIn) {
-        return [GregorGen.createUpdateReachability({reachability})]
+        return GregorGen.createUpdateReachability({reachability})
       }
-      return []
     }
   )
 

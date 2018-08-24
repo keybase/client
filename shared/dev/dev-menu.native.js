@@ -33,5 +33,5 @@ export default connect(
     onPushDebug: () => dispatch(navigateAppend(['push'])),
     onTestPopup: () => dispatch(navigateAppend(['testPopup'])),
   }),
-  (s, d, o) => ({...s, ...d, ...o})
+  (s, d, o) => ({...o, ...s, ...d})
 )(DevMenu)

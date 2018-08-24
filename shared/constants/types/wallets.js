@@ -116,6 +116,7 @@ export type _State = {
   accountNameValidationState: ValidationState,
   buildingPayment: BuildingPayment,
   builtPayment: BuiltPayment,
+  createNewAccountError: string,
   exportedSecretKey: HiddenString,
   linkExistingAccountError: string,
   secretKey: HiddenString,

@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => ({
   pending: Constants.getPendingPayments(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   navigateAppend,
 })
 

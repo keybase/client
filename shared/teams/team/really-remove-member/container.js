@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   name: routeProps.get('teamname'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onRemove: () => {
     dispatch(
@@ -26,6 +26,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...s, ...d, ...o}))(
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
   ReallyLeaveTeam
 )
