@@ -31,7 +31,6 @@ const fsCacheSize = 64
 // Server is a local HTTP server for serving KBFS content over HTTP.
 type Server struct {
 	config libkbfs.Config
-	server *libkb.HTTPSrv
 	logger logger.Logger
 	g      *libkb.GlobalContext
 	cancel func()
@@ -39,8 +38,8 @@ type Server struct {
 	tokens *lru.Cache
 	fs     *lru.Cache
 
-	startedLock sync.RWMutex
-	started     bool
+	serverLock sync.RWMutex
+	server     *libkb.HTTPSrv
 }
 
 const tokenByteSize = 16
@@ -159,19 +158,16 @@ const portStart = 16723
 const portEnd = 18000
 const requestPathRoot = "/files/"
 
-func (s *Server) idempotentlyStart() (err error) {
-	s.startedLock.Lock()
-	defer s.startedLock.Unlock()
-	if s.started {
-		return nil
-	}
+func (s *Server) restart() (err error) {
+	s.serverLock.Lock()
+	defer s.serverLock.Unlock()
+	s.server.Stop()
 	// Have to start this first to populate the ServeMux object.
 	if err = s.server.Start(); err != nil {
 		return err
 	}
 	s.server.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
-	s.started = true
 	return nil
 }
 
@@ -182,16 +178,20 @@ func (s *Server) monitorAppState(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case state = <-s.g.AppState.NextUpdate(&state):
-			switch state {
-			case keybase1.AppState_FOREGROUND:
-				s.idempotentlyStart()
-			case keybase1.AppState_BACKGROUND:
-				func() {
-					s.startedLock.Lock()
-					defer s.startedLock.Unlock()
-					s.started = false
-					s.server.Stop()
-				}()
+			// Due to the way NextUpdate is designed, it's possible we miss an
+			// update if processing the last update takes too long. So it's
+			// possible to get consecutive FOREGROUND updates even if there are
+			// other states in-between. Since libkb/appstate.go already
+			// deduplicates, it'll never actually send consecutive identical
+			// states to us. In addition, apart from FOREGROUND/BACKGROUND,
+			// there are other possible states too, and potentially more in the
+			// future. So, we just restart the server under FOREGROUND instead
+			// of trying to listen on all state updates.
+			if state != keybase1.AppState_FOREGROUND {
+				continue
+			}
+			if err := s.restart(); err != nil {
+				s.logger.Warning("(Re)starting server failed: %v", err)
 			}
 		}
 	}
@@ -213,7 +213,7 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 	if s.fs, err = lru.New(fsCacheSize); err != nil {
 		return nil, err
 	}
-	if err = s.idempotentlyStart(); err != nil {
+	if err = s.restart(); err != nil {
 		return nil, err
 	}
 	ctx, cancel := context.WithCancel(context.Background())
@@ -225,14 +225,15 @@ func New(g *libkb.GlobalContext, config libkbfs.Config) (
 
 // Address returns the address that the server is listening on.
 func (s *Server) Address() (string, error) {
-	if err := s.idempotentlyStart(); err != nil {
-		return "", err
-	}
+	s.serverLock.RLock()
+	defer s.serverLock.RUnlock()
 	return s.server.Addr()
 }
 
 // Shutdown shuts down the server.
 func (s *Server) Shutdown() {
+	s.serverLock.Lock()
+	defer s.serverLock.Unlock()
 	s.server.Stop()
 	s.cancel()
 }
