@@ -68,7 +68,8 @@ gradle.projectsEvaluated {
 
                 // Set up the call to the react-native cli
                 workingDir reactRoot
-
+                // KB edition for babel
+                environment "BABEL_PLATFORM", "ReactNative"
                 // Set up dev mode
                 def devEnabled = !targetName.toLowerCase().contains("release")
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
