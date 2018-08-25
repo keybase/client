@@ -204,7 +204,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
-                    !Styles.isMobile && (this.props.showBorder ? {top: 3} : {top: 1}),
+                    !Styles.isMobile && (this.props.showBorder ? {top: 3} : {top: 0}),
                     !this.state.applyClasses &&
                       (iconIndex === this.state.iconIndex
                         ? {transform: 'translateX(-8px)'}
