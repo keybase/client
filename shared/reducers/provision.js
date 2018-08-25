@@ -83,6 +83,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         finalError: null,
         usernameOrEmail: action.payload.usernameOrEmail,
       })
+    case ProvisionGen.switchToGPGSignOnly:
+      return state.set('gpgImportError', action.payload.importError)
+    case ProvisionGen.submitGPGSignOK:
+      return state.set('gpgImportError', null)
     // Saga only actions
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
