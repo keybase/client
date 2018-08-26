@@ -144,3 +144,42 @@ func TestJsonSetAndGetNull(t *testing.T) {
 	isRet = reader.GetNullAtPath(path)
 	require.True(tc.T, isRet)
 }
+
+func TestJsonTxRollback(t *testing.T) {
+	tc := SetupTest(t, "json", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+	G := m.G()
+
+	// Make a tx, write something, then commit. Expecting to be able
+	// to read that back during the transaction and after commit.
+	w := G.Env.GetConfigWriter()
+	tx, err := w.BeginTransaction()
+	require.NoError(t, err)
+	require.NoError(t, w.SetStringAtPath("bbbbar", "world, over?"))
+	i, err := G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
+	require.NoError(t, err)
+	require.Equal(t, "world, over?", i)
+	require.NoError(t, tx.Commit())
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
+	require.NoError(t, err)
+	require.Equal(t, "world, over?", i)
+
+	// Make a tx, write something, then Rollback and Abort. It should
+	// be as the write never happened.
+	w = G.Env.GetConfigWriter()
+	tx, err = w.BeginTransaction()
+	require.NoError(t, err)
+	require.NoError(t, w.SetStringAtPath("fooozzzz", "hello World"))
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("fooozzzz")
+	require.NoError(t, err)
+	require.Equal(t, "hello World", i)
+	require.NoError(t, tx.Rollback())
+	require.NoError(t, tx.Abort())
+	_, err = G.Env.GetConfig().GetInterfaceAtPath("fooozzzz")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no such key")
+	i, err = G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
+	require.NoError(t, err)
+	require.Equal(t, "world, over?", i)
+}

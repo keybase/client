@@ -306,6 +306,17 @@ func (f *jsonFileTransaction) Abort() error {
 	return err
 }
 
+// Rollback reloads config from unchanged config file, bringing its
+// state back to from before the transaction changes. Note that it
+// only works for changes that do not affect UserConfig, which caches
+// values, and has to be reloaded manually.
+func (f *jsonFileTransaction) Rollback() error {
+	f.f.G().Log.Debug("+ Rolling back %s to state from %s", f.f.which, f.f.filename)
+	err := f.f.Load(false)
+	f.f.G().Log.Debug("- Rollback -> %s", ErrToOk(err))
+	return err
+}
+
 func (f *jsonFileTransaction) Commit() (err error) {
 	f.f.G().Log.Debug("+ Commit %s rewrite %s", f.f.which, f.tmpname)
 	defer func() { f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err)) }()
