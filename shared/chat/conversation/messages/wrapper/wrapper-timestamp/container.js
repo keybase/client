@@ -23,9 +23,6 @@ const decoratedMessageTypes: Array<Types.MessageType> = [
   'systemLeft',
 ]
 const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
-    return false
-  }
   if (decoratedMessageTypes.includes(message.type)) {
     return true
   }
@@ -72,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     decorate,
     exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
     isEditing: ownProps.isEditing,
+    isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
     orangeLineAbove: stateProps.orangeLineAbove,

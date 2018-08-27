@@ -1,32 +1,43 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {|
-  heading: string,
-  noBottomDivider?: boolean,
+  heading: 'To' | 'From',
+  headingAlignment: 'Left' | 'Right',
+  bottomDivider?: boolean,
   dividerColor?: string,
   headingStyle?: Styles.StylesCrossPlatform,
   children?: React.Node,
 |}
 
-const Row = (props: Props) => (
+// A row for use in Participants components; provides a blue heading to the left of the content.
+const ParticipantsRow = (props: Props) => (
   <React.Fragment>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text
         type="BodyTinySemibold"
-        style={Styles.collapseStyles([styles.headingText, props.headingStyle])}
+        style={Styles.collapseStyles([
+          styles.headingText,
+          props.headingAlignment === 'Right' ? {textAlign: 'right', width: 32} : {},
+          props.headingStyle,
+        ])}
       >
-        {props.heading}
+        {props.heading}:
       </Kb.Text>
       {props.children}
     </Kb.Box2>
-    {!props.noBottomDivider && (
+    {props.bottomDivider && (
       <Kb.Divider style={props.dividerColor ? {backgroundColor: props.dividerColor} : {}} />
     )}
   </React.Fragment>
 )
+
+ParticipantsRow.defaultProps = {
+  bottomDivider: true,
+  headingAlignment: 'Left',
+}
 
 const styles = Styles.styleSheetCreate({
   headingText: {
@@ -42,4 +53,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Row
+export default ParticipantsRow

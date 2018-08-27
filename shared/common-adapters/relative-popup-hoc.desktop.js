@@ -5,7 +5,7 @@ import {includes, throttle, without} from 'lodash-es'
 import Box from './box'
 import ReactDOM, {findDOMNode} from 'react-dom'
 import EscapeHandler from '../util/escape-handler'
-import {connect, type Dispatch} from '../util/container'
+import {connect} from '../util/container'
 import {type StylesCrossPlatform, collapseStyles} from '../styles'
 import type {Position, RelativePopupHocType, Props} from './relative-popup-hoc.types'
 
@@ -296,7 +296,7 @@ const RelativePopupHoc: RelativePopupHocType<any> = PopupComponent => {
 
   const C: React.ComponentType<Props<any>> = connect(
     () => ({}),
-    (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+    (dispatch, {navigateUp, routeProps}) => ({
       onClosePopup: () => {
         dispatch(navigateUp())
         const onPopupWillClose = routeProps.get('onPopupWillClose')

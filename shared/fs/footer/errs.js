@@ -24,9 +24,11 @@ const Err = (props: ErrProps) => (
         />
       </Kb.WithTooltip>
     )}
-    <Kb.Text type="BodySmall" style={styles.text}>
-      {props.msg}
-    </Kb.Text>
+    <Kb.Box style={styles.textBox}>
+      <Kb.Text type="BodySmall" style={styles.text}>
+        {props.msg}
+      </Kb.Text>
+    </Kb.Box>
     <Kb.Box style={Styles.globalStyles.flexGrow} />
     {!!props.retry && (
       <Kb.Text type="BodySmallSemibold" onClick={props.retry} style={styles.text} underline={true}>
@@ -79,6 +81,9 @@ const styles = Styles.styleSheetCreate({
     borderBottomWidth: 1,
     borderStyle: 'solid',
     borderBottomColor: Styles.globalColors.white_20,
+  },
+  textBox: {
+    flexShrink: 1,
   },
   text: {
     color: Styles.globalColors.white,

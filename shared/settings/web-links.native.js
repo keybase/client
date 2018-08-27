@@ -7,7 +7,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   title: routeProps.get('title'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 

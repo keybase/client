@@ -24,10 +24,12 @@ export const startProvision = 'provision:startProvision'
 export const submitDeviceName = 'provision:submitDeviceName'
 export const submitDeviceSelect = 'provision:submitDeviceSelect'
 export const submitGPGMethod = 'provision:submitGPGMethod'
+export const submitGPGSignOK = 'provision:submitGPGSignOK'
 export const submitPaperkey = 'provision:submitPaperkey'
 export const submitPassphrase = 'provision:submitPassphrase'
 export const submitTextCode = 'provision:submitTextCode'
 export const submitUsernameOrEmail = 'provision:submitUsernameOrEmail'
+export const switchToGPGSignOnly = 'provision:switchToGPGSignOnly'
 
 // Payload Types
 type _AddNewDevicePayload = $ReadOnly<{|otherDeviceType: 'desktop' | 'mobile'|}>
@@ -49,10 +51,12 @@ type _StartProvisionPayload = void
 type _SubmitDeviceNamePayload = $ReadOnly<{|name: string|}>
 type _SubmitDeviceSelectPayload = $ReadOnly<{|name: string|}>
 type _SubmitGPGMethodPayload = $ReadOnly<{|exportKey: boolean|}>
+type _SubmitGPGSignOKPayload = $ReadOnly<{|accepted: boolean|}>
 type _SubmitPaperkeyPayload = $ReadOnly<{|paperkey: HiddenString|}>
 type _SubmitPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _SubmitTextCodePayload = $ReadOnly<{|phrase: HiddenString|}>
 type _SubmitUsernameOrEmailPayload = $ReadOnly<{|usernameOrEmail: string|}>
+type _SwitchToGPGSignOnlyPayload = $ReadOnly<{|importError: string|}>
 
 // Action Creators
 /**
@@ -74,10 +78,12 @@ export const createStartProvision = (payload: _StartProvisionPayload) => ({error
 export const createSubmitDeviceName = (payload: _SubmitDeviceNamePayload) => ({error: false, payload, type: submitDeviceName})
 export const createSubmitDeviceSelect = (payload: _SubmitDeviceSelectPayload) => ({error: false, payload, type: submitDeviceSelect})
 export const createSubmitGPGMethod = (payload: _SubmitGPGMethodPayload) => ({error: false, payload, type: submitGPGMethod})
+export const createSubmitGPGSignOK = (payload: _SubmitGPGSignOKPayload) => ({error: false, payload, type: submitGPGSignOK})
 export const createSubmitPaperkey = (payload: _SubmitPaperkeyPayload) => ({error: false, payload, type: submitPaperkey})
 export const createSubmitPassphrase = (payload: _SubmitPassphrasePayload) => ({error: false, payload, type: submitPassphrase})
 export const createSubmitTextCode = (payload: _SubmitTextCodePayload) => ({error: false, payload, type: submitTextCode})
 export const createSubmitUsernameOrEmail = (payload: _SubmitUsernameOrEmailPayload) => ({error: false, payload, type: submitUsernameOrEmail})
+export const createSwitchToGPGSignOnly = (payload: _SwitchToGPGSignOnlyPayload) => ({error: false, payload, type: switchToGPGSignOnly})
 
 // Action Payloads
 export type AddNewDevicePayload = $Call<typeof createAddNewDevice, _AddNewDevicePayload>
@@ -93,10 +99,12 @@ export type StartProvisionPayload = $Call<typeof createStartProvision, _StartPro
 export type SubmitDeviceNamePayload = $Call<typeof createSubmitDeviceName, _SubmitDeviceNamePayload>
 export type SubmitDeviceSelectPayload = $Call<typeof createSubmitDeviceSelect, _SubmitDeviceSelectPayload>
 export type SubmitGPGMethodPayload = $Call<typeof createSubmitGPGMethod, _SubmitGPGMethodPayload>
+export type SubmitGPGSignOKPayload = $Call<typeof createSubmitGPGSignOK, _SubmitGPGSignOKPayload>
 export type SubmitPaperkeyPayload = $Call<typeof createSubmitPaperkey, _SubmitPaperkeyPayload>
 export type SubmitPassphrasePayload = $Call<typeof createSubmitPassphrase, _SubmitPassphrasePayload>
 export type SubmitTextCodePayload = $Call<typeof createSubmitTextCode, _SubmitTextCodePayload>
 export type SubmitUsernameOrEmailPayload = $Call<typeof createSubmitUsernameOrEmail, _SubmitUsernameOrEmailPayload>
+export type SwitchToGPGSignOnlyPayload = $Call<typeof createSwitchToGPGSignOnly, _SwitchToGPGSignOnlyPayload>
 
 // All Actions
 // prettier-ignore
@@ -114,8 +122,10 @@ export type Actions =
   | SubmitDeviceNamePayload
   | SubmitDeviceSelectPayload
   | SubmitGPGMethodPayload
+  | SubmitGPGSignOKPayload
   | SubmitPaperkeyPayload
   | SubmitPassphrasePayload
   | SubmitTextCodePayload
   | SubmitUsernameOrEmailPayload
+  | SwitchToGPGSignOnlyPayload
   | {type: 'common:resetStore', payload: void}

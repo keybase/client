@@ -13,12 +13,23 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
+import {isArray} from 'lodash-es'
 
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
-import type {TypedState} from '../constants/reducer'
+import type {TypedState, Dispatch} from '../util/container'
+
+// Not the real type here to reduce merge time. This file has a .js.flow for importers
+type TypedActions = {type: string, error: boolean, payload: any}
+
+type IncomingActionCreator = (
+  param: Object,
+  response: ?Object,
+  dispatch: Dispatch,
+  getState: () => TypedState
+) => void | null | TypedActions | Array<TypedActions>
 
 class Engine {
   // Bookkeep old sessions
@@ -29,17 +40,12 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingActionCreators: {
-    [key: MethodKey]: (
-      param: Object,
-      response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => ?Array<Object>,
+    [key: MethodKey]: IncomingActionCreator,
   } = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
-  _onDisconnectHandlers: ?{[key: string]: () => void} = {}
+  _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
-  _onConnectHandlers: ?{[key: string]: () => void} = {}
+  _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Set to true to throw on errors. Used in testing
   _failOnError: boolean = false
   // We generate sessionIDs monotonically
@@ -222,12 +228,8 @@ class Engine {
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
         // TODO remove dispatch and getState, these callbacks should just dispatch actions
         const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
-        const actions = (rawActions || []).reduce((arr, a) => {
-          if (a) {
-            arr.push(a)
-          }
-          return arr
-        }, [])
+        const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
+        const actions = arrayActions.filter(Boolean)
         actions.forEach(a => Engine._dispatch(a))
       } else {
         // Unhandled
@@ -356,15 +358,7 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreators(
-    method: MethodKey,
-    actionCreator: (
-      param: Object,
-      response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => ?Array<Object>
-  ) {
+  setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
     if (this._incomingActionCreators[method]) {
       rpcLog({
         method,

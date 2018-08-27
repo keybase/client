@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   name: routeProps.get('teamname'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onClose: () => dispatch(navigateUp()),
   onRemove: () => {
     dispatch(

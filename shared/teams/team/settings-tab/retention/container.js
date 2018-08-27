@@ -131,7 +131,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (
-  dispatch: Dispatch,
+  dispatch,
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),

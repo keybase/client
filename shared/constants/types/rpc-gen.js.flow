@@ -1872,7 +1872,7 @@ export type TeamSeitanMsg = $ReadOnly<{teamID: TeamID, seitans?: ?Array<TeamSeit
 export type TeamSeitanRequest = $ReadOnly<{inviteID: TeamInviteID, uid: UID, eldestSeqno: Seqno, akey: SeitanAKey, role: TeamRole, unixCTime: Int64}>
 export type TeamSettings = $ReadOnly<{open: Boolean, joinAs: TeamRole}>
 export type TeamShowcase = $ReadOnly<{isShowcased: Boolean, description?: ?String, setByUID?: ?UID, anyMemberShowcase: Boolean}>
-export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
+export type TeamSigChainState = $ReadOnly<{reader: UserVersion, id: TeamID, implicit: Boolean, public: Boolean, rootAncestor: TeamName, nameDepth: Int, nameLog?: ?Array<TeamNameLogPoint>, lastSeqno: Seqno, lastLinkID: LinkID, lastHighSeqno: Seqno, lastHighLinkID: LinkID, parentID?: ?TeamID, userLog: {[key: string]: ?Array<UserLogPoint>}, subteamLog: {[key: string]: ?Array<SubteamLogPoint>}, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, stubbedLinks: {[key: string]: Boolean}, activeInvites: {[key: string]: TeamInvite}, obsoleteInvites: {[key: string]: TeamInvite}, open: Boolean, openTeamJoinAs: TeamRole, tlfID: TLFID, tlfLegacyUpgrade: {[key: string]: TeamLegacyTLFUpgradeChainInfo}}>
 export type TeamStatus =
   | 0 // NONE_0
   | 1 // LIVE_1
@@ -2377,7 +2377,6 @@ export type SimpleFSSimpleFSRemoveRpcParam = $ReadOnly<{opID: OpID, path: Path}>
 export type SimpleFSSimpleFSRenameRpcParam = $ReadOnly<{src: Path, dest: Path}>
 export type SimpleFSSimpleFSSetStatRpcParam = $ReadOnly<{dest: Path, flag: DirentType}>
 export type SimpleFSSimpleFSStatRpcParam = $ReadOnly<{path: Path}>
-export type SimpleFSSimpleFSSuppressNotificationsRpcParam = $ReadOnly<{suppressDurationSec: Int}>
 export type SimpleFSSimpleFSSyncStatusRpcParam = $ReadOnly<{filter: ListFilter}>
 export type SimpleFSSimpleFSUserEditHistoryRpcParam = void
 export type SimpleFSSimpleFSWaitRpcParam = $ReadOnly<{opID: OpID}>
@@ -2581,7 +2580,6 @@ declare export function SimpleFSSimpleFSListRpcPromise(params: SimpleFSSimpleFSL
 declare export function SimpleFSSimpleFSOpenRpcPromise(params: SimpleFSSimpleFSOpenRpcParam, waitingKey?: string): Promise<void>
 declare export function SimpleFSSimpleFSReadListRpcPromise(params: SimpleFSSimpleFSReadListRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSReadListResult>
 declare export function SimpleFSSimpleFSStatRpcPromise(params: SimpleFSSimpleFSStatRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSStatResult>
-declare export function SimpleFSSimpleFSSuppressNotificationsRpcPromise(params: SimpleFSSimpleFSSuppressNotificationsRpcParam, waitingKey?: string): Promise<void>
 declare export function SimpleFSSimpleFSSyncStatusRpcPromise(params: SimpleFSSimpleFSSyncStatusRpcParam, waitingKey?: string): Promise<SimpleFSSimpleFSSyncStatusResult>
 declare export function SimpleFSSimpleFSWaitRpcPromise(params: SimpleFSSimpleFSWaitRpcParam, waitingKey?: string): Promise<void>
 declare export function accountEmailChangeRpcPromise(params: AccountEmailChangeRpcParam, waitingKey?: string): Promise<void>

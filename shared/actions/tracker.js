@@ -13,6 +13,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
 import type {FriendshipUserInfo} from '../constants/types/profile'
+import type {Dispatch} from '../util/container'
 
 // Send a heartbeat while trackers are still open
 function* _trackerTimer(): Generator<any, void, any> {
@@ -571,7 +572,7 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
 const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
     // $FlowIssue we don't allow non generated actions anymore, plus how this works needs to change
-    return [{payload: {uid}, type: 'tracker:_userChanged'}]
+    return {error: false, payload: {uid}, type: 'tracker:_userChanged'}
   })
 
   engine().actionOnConnect('registerIdentifyUi', () => {

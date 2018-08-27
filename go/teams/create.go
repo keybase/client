@@ -339,7 +339,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	admin, err := parentTeam.getAdminPermission(ctx, true)
+	admin, err := parentTeam.getAdminPermission(ctx)
 	if err != nil {
 		return nil, err
 	}

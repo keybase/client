@@ -46,13 +46,11 @@ const setupEngineListeners = () => {
     ({sessionID, problemSetDevices}, response) => {
       logger.info('Asked for rekey')
       response && response.result()
-      return [
-        UnlockFoldersGen.createNewRekeyPopup({
-          devices: problemSetDevices.devices || [],
-          problemSet: problemSetDevices.problemSet,
-          sessionID,
-        }),
-      ]
+      return UnlockFoldersGen.createNewRekeyPopup({
+        devices: problemSetDevices.devices || [],
+        problemSet: problemSetDevices.problemSet,
+        sessionID,
+      })
     }
   )
 

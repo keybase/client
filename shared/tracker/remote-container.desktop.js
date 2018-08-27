@@ -14,11 +14,10 @@ import {
   lifecycle,
   renderNothing,
   withStateHandlers,
-  type Dispatch,
 } from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
+const mapDispatchToProps = (dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
