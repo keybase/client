@@ -29,6 +29,12 @@ export const backendCommonBlockType = {
   git: 2,
 }
 
+export const blockBlockStatus = {
+  unknown: 0,
+  live: 1,
+  archived: 2,
+}
+
 export const commonClientType = {
   none: 0,
   cli: 1,
@@ -814,6 +820,11 @@ export type BlockPingResponse = $ReadOnly<{}>
 export type BlockRefNonce = ?string
 export type BlockReference = $ReadOnly<{bid: BlockIdCombo, nonce: BlockRefNonce, chargedTo: UserOrTeamID}>
 export type BlockReferenceCount = $ReadOnly<{ref: BlockReference, liveCount: Int}>
+export type BlockStatus =
+  | 0 // UNKNOWN_0
+  | 1 // LIVE_1
+  | 2 // ARCHIVED_2
+
 export type BlockType =
   | 0 // DATA_0
   | 1 // MD_1
@@ -1022,7 +1033,7 @@ export type GPGMethod =
 export type GUIEntryArg = $ReadOnly<{windowTitle: String, prompt: String, username: String, submitLabel: String, cancelLabel: String, retryLabel: String, type: PassphraseType, features: GUIEntryFeatures}>
 export type GUIEntryFeatures = $ReadOnly<{showTyping: Feature}>
 export type GcOptions = $ReadOnly<{maxLooseRefs: Int, pruneMinLooseObjects: Int, pruneExpireTime: Time}>
-export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes}>
+export type GetBlockRes = $ReadOnly<{blockKey: String, buf: Bytes, size: Int, status: BlockStatus}>
 export type GetCurrentStatusRes = $ReadOnly<{configured: Boolean, registered: Boolean, loggedIn: Boolean, sessionIsValid: Boolean, user?: ?User}>
 export type GetLockdownResponse = $ReadOnly<{history?: ?Array<LockdownHistory>, status: Boolean}>
 export type GetPassphraseRes = $ReadOnly<{passphrase: String, storeSecret: Boolean}>
@@ -2056,7 +2067,7 @@ export type BlockAuthenticateSessionRpcParam = $ReadOnly<{signature: String}>
 export type BlockBlockPingRpcParam = void
 export type BlockDelReferenceRpcParam = $ReadOnly<{folder: String, ref: BlockReference}>
 export type BlockDelReferenceWithCountRpcParam = $ReadOnly<{folder: String, refs?: ?Array<BlockReference>}>
-export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String}>
+export type BlockGetBlockRpcParam = $ReadOnly<{bid: BlockIdCombo, folder: String, sizeOnly: Boolean}>
 export type BlockGetSessionChallengeRpcParam = void
 export type BlockGetTeamQuotaInfoRpcParam = $ReadOnly<{tid: TeamID}>
 export type BlockGetUserQuotaInfoRpcParam = void
