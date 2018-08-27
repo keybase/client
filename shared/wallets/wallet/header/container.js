@@ -50,9 +50,6 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSendToAnotherWallet: nyi,
-  onSendToKeybaseUser: nyi,
-  onSendToStellarAddress: nyi,
   _onSettings: (accountID: Types.AccountID) =>
     dispatch(
       ownProps.navigateAppend([
