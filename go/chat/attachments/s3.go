@@ -16,7 +16,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const s3PipelineMaxWidth = 25
+const s3PipelineMaxWidth = 10
 
 type s3UploadPipeliner struct {
 	sync.Mutex
@@ -55,9 +55,9 @@ func (s *s3UploadPipeliner) Complete() {
 		} else {
 			s.waiters = nil
 		}
-		if s.width > 0 {
-			s.width--
-		}
+	}
+	if s.width > 0 {
+		s.width--
 	}
 }
 
