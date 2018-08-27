@@ -44,6 +44,8 @@ export const DropdownEntry = (props: DropdownEntryProps) => (
     contents={props.account.contents}
     showWalletIcon={false}
     center={true}
+    fullWidth={true}
+    style={styles.dropdownEntry}
   />
 )
 
@@ -56,4 +58,7 @@ const styles = Styles.styleSheetCreate({
       textOverflow: 'ellipsis',
     },
   }),
+  dropdownEntry: {
+    padding: Styles.globalMargins.xtiny,
+  },
 })

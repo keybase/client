@@ -11,12 +11,12 @@ import ConfirmSend from '.'
 const provider = Sb.createPropProviderWithCommon({
   Participants: props => ({
     fromAccountAssets: '280.0871234 XLM',
-    fromAccountName: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
+    fromAccountName: "cecileb's account",
     recipientAccountAssets: '534 XLM',
-    recipientAccountName: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
+    recipientAccountName: 'Secondary Account',
     recipientFullName: 'Nathan Smith',
     recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
-    recipientType: 'otherAccount',
+    recipientType: 'keybaseUser',
     recipientUsername: 'nathunsmitty',
     yourUsername: 'cecileb',
   }),

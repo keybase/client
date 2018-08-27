@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 
 type AccountEntryProps = {|
   center?: boolean,
+  fullWidth?: boolean,
   contents: string,
   keybaseUser: string,
   name: string,
@@ -22,6 +23,7 @@ const AccountEntry = (props: AccountEntryProps) => {
       direction="horizontal"
       gap="tiny"
       centerChildren={props.center}
+      fullWidth={props.fullWidth}
     >
       {props.showWalletIcon && (
         <Kb.Icon
