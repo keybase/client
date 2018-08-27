@@ -7,10 +7,11 @@ import devices from './devices'
 import entities from './entities'
 import favorite from './favorite'
 import fs from './fs'
+import git from './git'
 import gregor from './gregor'
 import login from './login'
-import provision from './provision'
 import notifications from './notifications'
+import provision from './provision'
 import people from './people'
 import pinentry from './pinentry'
 import profile from './profile'
@@ -37,6 +38,7 @@ const reducers = {
   entities,
   favorite,
   fs,
+  git,
   gregor,
   login,
   notifications,

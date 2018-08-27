@@ -64,10 +64,11 @@ func (r *decodingReadSeeker) getChunksFromCache(chunks []chunkSpec) (res []byte,
 func (r *decodingReadSeeker) writeChunksToCache(pt []byte, chunks []chunkSpec) {
 	start := chunks[0].ptStart
 	for _, c := range chunks {
-		r.Debug(r.ctx, "writeChunksToCache: adding index: %d len: %d", c.index,
-			len(pt[c.ptStart-start:c.ptEnd-start]))
+		stored := make([]byte, len(pt[c.ptStart-start:c.ptEnd-start]))
 		// need to pull the specific chunk out of the plaintext bytes
-		r.chunks.Add(c.index, pt[c.ptStart-start:c.ptEnd-start])
+		copy(stored, pt[c.ptStart-start:c.ptEnd-start])
+		r.Debug(r.ctx, "writeChunksToCache: adding index: %d len: %d", c.index, len(stored))
+		r.chunks.Add(c.index, stored)
 	}
 }
 
