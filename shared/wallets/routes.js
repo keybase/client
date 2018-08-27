@@ -42,13 +42,14 @@ const walletChildren = {
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
       removeAccount: {
-        children: {},
+        children: {
+          reallyRemoveAccount: {
+            children: {},
+            component: ReallyRemoveAccountPopup,
+            tags: makeLeafTags({layerOnTop: !isMobile}),
+          },
+        },
         component: RemoveAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
-      reallyRemoveAccount: {
-        children: {},
-        component: ReallyRemoveAccountPopup,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
     },

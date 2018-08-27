@@ -1,6 +1,5 @@
 // @flow
 import {connect, type TypedState} from '../../../../../util/container'
-import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import RemoveAccountPopup from '.'
@@ -17,14 +16,11 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps) => {
-  console.log('nathan test', ownProps)
-
   return {
     _onClose: () => dispatch(ownProps.navigateUp()),
     _onDelete: (accountID: Types.AccountID) => {
-      dispatch(WalletsGen.createDeleteAccount({accountID}))
       dispatch(
-        ownProps.navigateTo([
+        ownProps.navigateAppend([
           {
             props: {accountID},
             selected: 'reallyRemoveAccount',

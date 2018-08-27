@@ -7,7 +7,8 @@ import WalletPopup from '../../../../wallet-popup'
 type Props = Kb.PropsWithTimer<{|
   name: string,
   onCopyKey: () => void,
-  onClose: () => void,
+  onFinish: () => void,
+  onCancel: () => void,
 |}>
 
 type State = {
@@ -30,7 +31,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   render() {
     return (
       <WalletPopup
-        onClose={this.props.onClose}
+        onClose={this.props.onCancel}
         containerStyle={styles.backgroundColor}
         headerStyle={Styles.collapseStyles([styles.backgroundColor, styles.header])}
         bottomButtons={[
@@ -46,7 +47,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             fullWidth={Styles.isMobile}
             key={1}
             label="Finish"
-            onClick={this.props.onClose}
+            onClick={this.props.onFinish}
             type="Secondary"
           />,
         ]}

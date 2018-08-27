@@ -14,7 +14,8 @@ const warningProps = {
 
 const reallyProps = {
   name: 'awesome account',
-  onClose: Sb.action('onClose'),
+  onCancel: Sb.action('onCancel'),
+  onFinish: Sb.action('onFinish'),
   onCopyKey: Sb.action('onCopyKey'),
 }
 
