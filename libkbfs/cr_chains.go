@@ -1215,12 +1215,12 @@ func (ccs *crChains) revertRenames(oldOps []op) {
 				if rmop, ok := oldOp.(*rmOp); ok &&
 					rmop.OldName == rop.OldName {
 					rop.oldFinalPath = rmop.getFinalPath()
-					if i == len(oldChain.ops)-1 {
-						oldChain.ops = oldChain.ops[:i]
-					} else {
-						oldChain.ops = append(
-							oldChain.ops[:i], oldChain.ops[i+1:]...)
-					}
+					oldChain.ops = append(
+						oldChain.ops[:i], oldChain.ops[i+1:]...)
+					// The first rm should be the one that matches, as
+					// earlier ones should have been collapsed away
+					// from the chain.
+					break
 				}
 			}
 
