@@ -21,6 +21,8 @@ const AccountEntry = (props: AccountEntryProps) => {
       style={Styles.collapseStyles([styles.containerBox, props.style])}
       direction="horizontal"
       gap="tiny"
+      gapStart={true}
+      gapEnd={true}
       centerChildren={props.center}
       fullWidth={true}
     >
@@ -68,6 +70,10 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  containerBox: {
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+  },
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,

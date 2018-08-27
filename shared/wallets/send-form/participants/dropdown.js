@@ -51,7 +51,9 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     isElectron: {
       maxWidth: 140,
-      textOverflow: 'break-all',
+      overflow: 'hidden',
+      whiteSpace: 'nowrap',
+      textOverflow: 'ellipsis',
     },
   }),
 })
