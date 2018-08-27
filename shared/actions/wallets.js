@@ -253,6 +253,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
+      WalletsGen.loadDisplayCurrency,
     ],
     loadAssets
   )
