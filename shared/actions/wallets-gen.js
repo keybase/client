@@ -23,6 +23,7 @@ export const clearErrors = 'wallets:clearErrors'
 export const createNewAccount = 'wallets:createNewAccount'
 export const createdNewAccount = 'wallets:createdNewAccount'
 export const deleteAccount = 'wallets:deleteAccount'
+export const deletedAccount = 'wallets:deletedAccount'
 export const didSetAccountAsDefault = 'wallets:didSetAccountAsDefault'
 export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
@@ -82,6 +83,7 @@ type _CreatedNewAccountPayloadError = $ReadOnly<{|
   error: string,
 |}>
 type _DeleteAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|
@@ -158,6 +160,10 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
  * A response from the service after an account is set as the default
  */
 export const createDidSetAccountAsDefault = (payload: _DidSetAccountAsDefaultPayload) => ({error: false, payload, type: didSetAccountAsDefault})
+/**
+ * A service responde after an account is deleted
+ */
+export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({error: false, payload, type: deletedAccount})
 /**
  * Add a new wallet to your account
  */
@@ -349,6 +355,7 @@ export type CreateNewAccountPayload = $Call<typeof createCreateNewAccount, _Crea
 export type CreatedNewAccountPayload = $Call<typeof createCreatedNewAccount, _CreatedNewAccountPayload>
 export type CreatedNewAccountPayloadError = $Call<typeof createCreatedNewAccountError, _CreatedNewAccountPayloadError>
 export type DeleteAccountPayload = $Call<typeof createDeleteAccount, _DeleteAccountPayload>
+export type DeletedAccountPayload = $Call<typeof createDeletedAccount, _DeletedAccountPayload>
 export type DidSetAccountAsDefaultPayload = $Call<typeof createDidSetAccountAsDefault, _DidSetAccountAsDefaultPayload>
 export type DisplayCurrenciesReceivedPayload = $Call<typeof createDisplayCurrenciesReceived, _DisplayCurrenciesReceivedPayload>
 export type DisplayCurrencyReceivedPayload = $Call<typeof createDisplayCurrencyReceived, _DisplayCurrencyReceivedPayload>
@@ -401,6 +408,7 @@ export type Actions =
   | CreatedNewAccountPayload
   | CreatedNewAccountPayloadError
   | DeleteAccountPayload
+  | DeletedAccountPayload
   | DidSetAccountAsDefaultPayload
   | DisplayCurrenciesReceivedPayload
   | DisplayCurrencyReceivedPayload

@@ -136,7 +136,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             selectedAccount: action.payload.accountID,
           })
     // Saga only actions
-    case WalletsGen.didSetAccountAsDefault: // return maybe?
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
@@ -149,6 +149,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeDisplayCurrency:
     case WalletsGen.changeAccountName:
     case WalletsGen.deleteAccount:
+    case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
     case WalletsGen.setAccountAsDefault:
     case WalletsGen.refreshPayments:

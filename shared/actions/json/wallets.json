@@ -84,6 +84,9 @@
       "_description": "Delete an account",
       "accountID": "Types.AccountID",
     },
+    "deletedAccount": {
+      "_description": "A service responde after an account is deleted",
+    },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
       "accountID": "Types.AccountID",
