@@ -367,8 +367,8 @@ func (e *Kex2Provisioner) skeletonProof(m libkb.MetaContext) (sigBody string, er
 	return string(body), nil
 }
 
-// checkReverseSig verifies that the reverse sig in jw is valid and matches jw.
-// The provisionee is only allowed to pass the following fields to the
+// checkReverseSig verifies that the reverse sig in jw is valid and matches
+// e.proof. The provisionee is only allowed to pass the following fields to the
 // provisioner:
 // body.device
 // body.sibkey.kid
