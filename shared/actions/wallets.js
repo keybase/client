@@ -73,6 +73,7 @@ const loadAccounts = (
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
+    | WalletsGen.DidSetAccountAsDefaultPayload
 ) =>
   !action.error &&
   RPCTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
@@ -143,7 +144,7 @@ const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDispl
 const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
   RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise({
     accountID: action.payload.accountID,
-  })
+  }).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
@@ -201,6 +202,7 @@ const navigateToAccount = (
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.SelectAccountPayload
+    | WalletsGen.DidSetAccountAsDefaultPayload
 ) => {
   if (action.type === WalletsGen.createdNewAccount && action.error) {
     // Create new account failed, don't nav
@@ -241,6 +243,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
+      WalletsGen.didSetAccountAsDefault,
     ],
     loadAccounts
   )
@@ -272,7 +275,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
   yield Saga.safeTakeEveryPure(
-    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount, WalletsGen.selectAccount],
+    [
+      WalletsGen.createdNewAccount,
+      WalletsGen.linkedExistingAccount,
+      WalletsGen.selectAccount,
+      WalletsGen.didSetAccountAsDefault,
+    ],
     navigateToAccount
   )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
