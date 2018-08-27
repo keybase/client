@@ -17,14 +17,17 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.badgeAppForGit:
       return state.set('isNew', I.Set(action.payload.ids))
 
-    // Saga only actions
+    // Clear errors
+    case GitGen.loadGit:
+    case GitGen.loadGitRepo:
     case GitGen.createPersonalRepo:
     case GitGen.createTeamRepo:
     case GitGen.deletePersonalRepo:
     case GitGen.deleteTeamRepo:
+      return state.set('error', null)
+
+    // Saga only actions
     case GitGen.handleIncomingGregor:
-    case GitGen.loadGit:
-    case GitGen.loadGitRepo:
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
     case GitGen.reposModified:

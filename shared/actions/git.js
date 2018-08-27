@@ -160,14 +160,8 @@ const navigateToTeamRepo = (state: TypedState, action: GitGen.NavigateToTeamRepo
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
   Saga.put(GitGen.createBadgeAppForGit({ids: action.payload.badgeState.newGitRepoGlobalUniqueIDs || []}))
 
-const clearError = () => Saga.put(GitGen.createSetError({error: null}))
-
 function* gitSaga(): Saga.SagaGenerator<any, any> {
   // Create / Delete
-  yield Saga.actionToAction(
-    [GitGen.createPersonalRepo, GitGen.createTeamRepo, GitGen.deletePersonalRepo, GitGen.deleteTeamRepo],
-    clearError
-  )
   yield Saga.actionToPromise(GitGen.createPersonalRepo, createPersonalRepo)
   yield Saga.actionToPromise(GitGen.createTeamRepo, createTeamRepo)
   yield Saga.actionToPromise(GitGen.deletePersonalRepo, deletePersonalRepo)
@@ -183,7 +177,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   // Loading
   yield Saga.actionToPromise(GitGen.loadGit, load)
   yield Saga.actionToPromise(GitGen.loadGitRepo, loadGitRepo)
-  yield Saga.actionToAction(GitGen.loadGit, clearError)
   yield Saga.actionToAction(GitGen.loaded, surfaceGlobalErrors)
 
   // Team Repos
