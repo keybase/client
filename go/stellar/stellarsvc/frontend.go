@@ -1376,7 +1376,7 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 			if err != nil {
 				return err
 			}
-			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
+			xlmDesc, err := stellar.FormatAmountXLM(xlms)
 			if err != nil {
 				return err
 			}
