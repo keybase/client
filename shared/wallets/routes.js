@@ -7,7 +7,7 @@ import Container from './container'
 import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
-import WalletSettings from './wallet/settings/container'
+import AccountSettings from './wallet/settings/container'
 import {SetDefaultAccountPopup, RemoveAccountPopup, ReallyRemoveAccountPopup} from './wallet/settings/popups'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
@@ -53,7 +53,7 @@ const walletChildren = {
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
     },
-    component: WalletSettings,
+    component: AccountSettings,
   },
   sendReceiveForm: {
     children: {

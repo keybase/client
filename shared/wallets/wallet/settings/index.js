@@ -43,7 +43,7 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   </Kb.Box2>
 )
 
-const WalletSettings = (props: SettingsProps) => {
+const AccountSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
@@ -183,4 +183,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default WalletSettings
+export default AccountSettings
