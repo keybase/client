@@ -29,7 +29,11 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
+<<<<<<< HEAD
 export const loadRequestDetail = 'wallets:loadRequestDetail'
+=======
+export const makeRequestLocal = 'wallets:makeRequestLocal'
+>>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
@@ -91,7 +95,11 @@ type _LoadPaymentDetailPayload = $ReadOnly<{|
   paymentID: StellarRPCTypes.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+<<<<<<< HEAD
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
+=======
+type _MakeRequestLocalPayload = void
+>>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentID: StellarRPCTypes.PaymentID,
@@ -211,6 +219,10 @@ export const createLoadAssets = (payload: _LoadAssetsPayload) => ({error: false,
  */
 export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: false, payload, type: loadPayments})
 /**
+ * Request payment
+ */
+export const createMakeRequestLocal = (payload: _MakeRequestLocalPayload) => ({error: false, payload, type: makeRequestLocal})
+/**
  * Select an account. Optionally navigate to the account page.
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
@@ -316,6 +328,7 @@ export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayloa
 export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
 export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
+export type MakeRequestLocalPayload = $Call<typeof createMakeRequestLocal, _MakeRequestLocalPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
@@ -361,7 +374,11 @@ export type Actions =
   | LoadAssetsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
+<<<<<<< HEAD
   | LoadRequestDetailPayload
+=======
+  | MakeRequestLocalPayload
+>>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
   | RefreshPaymentsPayload
