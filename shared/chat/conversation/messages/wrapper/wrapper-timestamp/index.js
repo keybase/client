@@ -3,14 +3,7 @@ import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import {Box, Box2, Icon, OverlayParentHOC, type OverlayParentProps} from '../../../../../common-adapters'
 import Timestamp from '../timestamp'
-import {
-  glamorous,
-  globalStyles,
-  globalColors,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../../styles'
+import * as Styles from '../../../../../styles'
 import WrapperAuthor from '../wrapper-author/container'
 import ReactionsRow from '../../reactions-row/container'
 import ReactButton from '../../react-button/container'
@@ -27,6 +20,7 @@ export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
   decorate: boolean,
   exploded: boolean,
+  isRevoked: boolean,
   ordinal: Types.Ordinal,
   measure: null | (() => void),
   message: Types.Message,
@@ -40,9 +34,9 @@ export type Props = {|
   orangeLineAbove: boolean,
 |}
 
-const HoverBox = isMobile
+const HoverBox = Styles.isMobile
   ? LongPressable
-  : glamorous(Box2)(props => ({
+  : Styles.glamorous(Box2)(props => ({
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
@@ -55,7 +49,7 @@ const HoverBox = isMobile
       },
       '&.active, &:hover': props.decorate
         ? {
-            backgroundColor: globalColors.blue5,
+            backgroundColor: Styles.globalColors.blue5,
           }
         : {},
     }))
@@ -85,8 +79,8 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         {!!props.timestamp && <Timestamp timestamp={props.timestamp} />}
         <HoverBox
           className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
-          {...(isMobile && props.decorate
-            ? {onLongPress: props.toggleShowingMenu, underlayColor: globalColors.blue5}
+          {...(Styles.isMobile && props.decorate
+            ? {onLongPress: props.toggleShowingMenu, underlayColor: Styles.globalColors.blue5}
             : {})}
           direction="column"
           decorate={props.decorate}
@@ -107,17 +101,18 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                     toggleMessageMenu={props.toggleShowingMenu}
                   />
                 )}
-              {!props.exploded &&
-                !!props.decorate && (
-                  <MenuButtons
-                    conversationIDKey={props.conversationIDKey}
-                    message={props.message}
-                    ordinal={props.ordinal}
-                    setAttachmentRef={props.setAttachmentRef}
-                    setShowingPicker={this._setShowingPicker}
-                    toggleShowingMenu={props.toggleShowingMenu}
-                  />
-                )}
+              {props.decorate && (
+                <MenuButtons
+                  conversationIDKey={props.conversationIDKey}
+                  exploded={props.exploded}
+                  isRevoked={props.isRevoked}
+                  message={props.message}
+                  ordinal={props.ordinal}
+                  setAttachmentRef={props.setAttachmentRef}
+                  setShowingPicker={this._setShowingPicker}
+                  toggleShowingMenu={props.toggleShowingMenu}
+                />
+              )}
             </Box2>
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>
@@ -139,6 +134,8 @@ const WrapperTimestamp = OverlayParentHOC(_WrapperTimestamp)
 
 type MenuButtonsProps = {
   conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
+  isRevoked: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
   setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
@@ -147,21 +144,30 @@ type MenuButtonsProps = {
 }
 const MenuButtons = (props: MenuButtonsProps) => (
   <Box2 direction="horizontal" gap="tiny" gapEnd={true} style={styles.controls}>
-    {!isMobile && (
-      <Box className="menu-button" style={styles.menuButtons}>
-        <ReactButton
-          conversationIDKey={props.conversationIDKey}
-          ordinal={props.ordinal}
-          onShowPicker={props.setShowingPicker}
-          showBorder={false}
-          style={styles.reactButton}
-        />
-        <Box ref={props.setAttachmentRef}>
-          {(props.message.type === 'attachment' || props.message.type === 'text') && (
-            <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
-          )}
-        </Box>
-      </Box>
+    {!props.exploded && (
+      <Box2 direction="horizontal" centerChildren={true}>
+        {props.isRevoked && (
+          <Box style={styles.revokedIconWrapper}>
+            <Icon type="iconfont-exclamation" color={Styles.globalColors.blue} fontSize={14} />
+          </Box>
+        )}
+        {!Styles.isMobile && (
+          <Box className="menu-button" style={styles.menuButtons}>
+            <ReactButton
+              conversationIDKey={props.conversationIDKey}
+              ordinal={props.ordinal}
+              onShowPicker={props.setShowingPicker}
+              showBorder={false}
+              style={styles.reactButton}
+            />
+            <Box ref={props.setAttachmentRef}>
+              {(props.message.type === 'attachment' || props.message.type === 'text') && (
+                <Icon type="iconfont-ellipsis" onClick={props.toggleShowingMenu} fontSize={16} />
+              )}
+            </Box>
+          </Box>
+        )}
+      </Box2>
     )}
     <ExplodingMeta
       conversationIDKey={props.conversationIDKey}
@@ -171,24 +177,27 @@ const MenuButtons = (props: MenuButtonsProps) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  container: {...globalStyles.flexBoxColumn, width: '100%'},
-  controls: platformStyles({
+const styles = Styles.styleSheetCreate({
+  container: {...Styles.globalStyles.flexBoxColumn, width: '100%'},
+  controls: Styles.platformStyles({
     common: {
       alignItems: 'center',
       alignSelf: 'flex-start',
       marginTop: 2,
     },
   }),
-  menuButtons: platformStyles({
+  menuButtons: Styles.platformStyles({
     isElectron: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
     },
   }),
-  orangeLine: {backgroundColor: globalColors.orange, height: 1, width: '100%'},
+  orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   reactButton: {
     marginTop: -3,
+  },
+  revokedIconWrapper: {
+    marginBottom: 1,
   },
 })
 

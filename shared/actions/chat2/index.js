@@ -2289,6 +2289,10 @@ const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, st
     logger.warn(`toggleMessageReaction: no message found`)
     return
   }
+  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
+    logger.warn(`toggleMessageReaction: message is exploded`)
+    return
+  }
   const messageID = message.id
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
