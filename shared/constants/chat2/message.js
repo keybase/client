@@ -8,7 +8,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
-import {isMobile} from '../platform'
+import {isWindows, isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 
@@ -617,6 +617,7 @@ const outboxUIMessagetoMessage = (
   switch (o.messageType) {
     case RPCChatTypes.commonMessageType.attachment:
       let title = ''
+      let fileName = ''
       let previewURL = ''
       let pre = previewSpecs(null, null)
       if (o.preview) {
@@ -634,6 +635,7 @@ const outboxUIMessagetoMessage = (
         state,
         conversationIDKey,
         title,
+        fileName,
         previewURL,
         pre,
         Types.stringToOutboxID(o.outboxID),
@@ -772,6 +774,7 @@ export const makePendingAttachmentMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   title: string,
+  fileName: string,
   previewURL: string,
   previewSpec: Types.PreviewSpec,
   outboxID: Types.OutboxID,
@@ -790,6 +793,7 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
+    fileName: fileName,
     previewURL: previewURL,
     previewWidth: previewSpec.width,
     previewHeight: previewSpec.height,
@@ -885,3 +889,9 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '7 days', seconds: 86400 * 7},
   {text: 'Never explode (turn off)', seconds: 0},
 ].reverse()
+
+export const getFilename = (path: string) => {
+  const parts = path.split(isWindows ? '\\' : '/')
+  const filename = parts[parts.length - 1]
+  return filename
+}
