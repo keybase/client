@@ -89,7 +89,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isEditing: stateProps.isEditing,
     isExplodingUnreadable: stateProps.isExplodingUnreadable,
     isFollowing: stateProps.isFollowing,
-    isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
     measure: ownProps.measure,
     message,

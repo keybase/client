@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {Avatar, Text, Box} from '../../../../../common-adapters'
 import {
   desktopStyles,
   globalStyles,
@@ -30,7 +30,6 @@ export type Props = {|
   isEditing: boolean,
   isExplodingUnreadable: boolean,
   isFollowing: boolean,
-  isRevoked: boolean,
   isYou: boolean,
   measure: null | (() => void),
   message: Types.MessageText | Types.MessageAttachment,
@@ -168,14 +167,6 @@ const RightSide = props => (
             )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
-        {props.isRevoked && (
-          <Icon
-            type="iconfont-exclamation"
-            style={iconCastPlatformStyles(styles.exclamation)}
-            color={globalColors.blue}
-            fontSize={14}
-          />
-        )}
       </Box>
       {!!props.failureDescription &&
         !props.exploded && (
@@ -222,10 +213,6 @@ class WrapperAuthor extends React.PureComponent<Props> {
 
 const styles = styleSheetCreate({
   edited: {color: globalColors.black_20},
-  exclamation: {
-    paddingBottom: globalMargins.xtiny,
-    paddingTop: globalMargins.xtiny,
-  },
   fail: {color: globalColors.red},
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
