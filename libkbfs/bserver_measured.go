@@ -18,6 +18,7 @@ import (
 type BlockServerMeasured struct {
 	delegate                    BlockServer
 	getTimer                    metrics.Timer
+	getEncodedSizeTimer         metrics.Timer
 	putTimer                    metrics.Timer
 	putAgainTimer               metrics.Timer
 	addBlockReferenceTimer      metrics.Timer
@@ -32,6 +33,8 @@ var _ BlockServer = BlockServerMeasured{}
 // BlockServerMeasured instance with the given delegate and registry.
 func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServerMeasured {
 	getTimer := metrics.GetOrRegisterTimer("BlockServer.Get", r)
+	getEncodedSizeTimer := metrics.GetOrRegisterTimer(
+		"BlockServer.GetEncodedSize", r)
 	putTimer := metrics.GetOrRegisterTimer("BlockServer.Put", r)
 	addBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.AddBlockReference", r)
 	removeBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.RemoveBlockReferences", r)
@@ -40,6 +43,7 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	return BlockServerMeasured{
 		delegate:                    delegate,
 		getTimer:                    getTimer,
+		getEncodedSizeTimer:         getEncodedSizeTimer,
 		putTimer:                    putTimer,
 		addBlockReferenceTimer:      addBlockReferenceTimer,
 		removeBlockReferencesTimer:  removeBlockReferencesTimer,
@@ -56,6 +60,17 @@ func (b BlockServerMeasured) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock
 		buf, serverHalf, err = b.delegate.Get(ctx, tlfID, id, context)
 	})
 	return buf, serverHalf, err
+}
+
+// GetEncodedSize implements the BlockServer interface for BlockServerMeasured.
+func (b BlockServerMeasured) GetEncodedSize(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	size uint32, status keybase1.BlockStatus, err error) {
+	b.getEncodedSizeTimer.Time(func() {
+		size, status, err = b.delegate.GetEncodedSize(ctx, tlfID, id, context)
+	})
+	return size, status, err
 }
 
 // Put implements the BlockServer interface for BlockServerMeasured.

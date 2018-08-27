@@ -7,15 +7,30 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 )
 
 type blockRefStatus int
 
 const (
+	unknownBlockRef  blockRefStatus = 0
 	liveBlockRef     blockRefStatus = 1
 	archivedBlockRef blockRefStatus = 2
 )
+
+func (brf blockRefStatus) toBlockStatus() keybase1.BlockStatus {
+	switch brf {
+	case unknownBlockRef:
+		return keybase1.BlockStatus_UNKNOWN
+	case liveBlockRef:
+		return keybase1.BlockStatus_LIVE
+	case archivedBlockRef:
+		return keybase1.BlockStatus_ARCHIVED
+	default:
+		panic(fmt.Sprintf("Unknown ref status: %d", brf))
+	}
+}
 
 type blockContextMismatchError struct {
 	expected, actual kbfsblock.Context
@@ -58,18 +73,19 @@ func (refs blockRefMap) hasNonArchivedRef() bool {
 	return false
 }
 
-func (refs blockRefMap) checkExists(context kbfsblock.Context) (bool, error) {
+func (refs blockRefMap) checkExists(context kbfsblock.Context) (
+	bool, blockRefStatus, error) {
 	refEntry, ok := refs[context.GetRefNonce()]
 	if !ok {
-		return false, nil
+		return false, unknownBlockRef, nil
 	}
 
 	err := refEntry.checkContext(context)
 	if err != nil {
-		return false, err
+		return false, unknownBlockRef, err
 	}
 
-	return true, nil
+	return true, refEntry.Status, nil
 }
 
 func (refs blockRefMap) getStatuses() map[kbfsblock.RefNonce]blockRefStatus {

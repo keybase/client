@@ -81,7 +81,7 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 				entry.tlfID, tlfID)
 	}
 
-	exists, err := entry.refs.checkExists(context)
+	exists, _, err := entry.refs.checkExists(context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}
@@ -91,6 +91,51 @@ func (b *BlockServerMemory) Get(ctx context.Context, tlfID tlf.ID,
 	}
 
 	return entry.blockData, entry.keyServerHalf, nil
+}
+
+// GetEncodedSize implements the BlockServer interface for
+// BlockServerDisk.
+func (b *BlockServerMemory) GetEncodedSize(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	size uint32, status keybase1.BlockStatus, err error) {
+	if err := checkContext(ctx); err != nil {
+		return 0, 0, err
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx,
+		"BlockServerMemory.GetEncodedSize id=%s tlfID=%s context=%s",
+		id, tlfID, context)
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+
+	if b.m == nil {
+		return 0, 0, errBlockServerMemoryShutdown
+	}
+
+	entry, ok := b.m[id]
+	if !ok {
+		return 0, 0, kbfsblock.ServerErrorBlockNonExistent{
+			Msg: fmt.Sprintf("Block ID %s does not exist.", id)}
+	}
+
+	if entry.tlfID != tlfID {
+		return 0, 0, fmt.Errorf("TLF ID mismatch: expected %s, got %s",
+			entry.tlfID, tlfID)
+	}
+
+	exists, refStatus, err := entry.refs.checkExists(context)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !exists {
+		return 0, 0, blockNonExistentError{id}
+	}
+
+	return uint32(len(entry.blockData)), refStatus.toBlockStatus(), nil
 }
 
 func validateBlockPut(checkNonzeroRef bool, id kbfsblock.ID, context kbfsblock.Context,
@@ -316,7 +361,7 @@ func (b *BlockServerMemory) archiveBlockReference(
 			entry.tlfID, tlfID)
 	}
 
-	exists, err := entry.refs.checkExists(context)
+	exists, _, err := entry.refs.checkExists(context)
 	if err != nil {
 		return err
 	}

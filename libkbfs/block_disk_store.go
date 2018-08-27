@@ -178,7 +178,7 @@ func (s *blockDiskStore) addRefs(id kbfsblock.ID, contexts []kbfsblock.Context,
 	if len(info.Refs) > 0 {
 		// Check existing contexts, if any.
 		for _, context := range contexts {
-			_, err := info.Refs.checkExists(context)
+			_, _, err := info.Refs.checkExists(context)
 			if err != nil {
 				return err
 			}
@@ -253,10 +253,10 @@ func (s *blockDiskStore) hasNonArchivedRef(id kbfsblock.ID) (bool, error) {
 }
 
 func (s *blockDiskStore) hasContext(id kbfsblock.ID, context kbfsblock.Context) (
-	bool, error) {
+	bool, blockRefStatus, error) {
 	info, err := s.getInfo(id)
 	if err != nil {
-		return false, err
+		return false, unknownBlockRef, err
 	}
 
 	return info.Refs.checkExists(context)
@@ -313,7 +313,7 @@ func (s *blockDiskStore) getDataSize(id kbfsblock.ID) (int64, error) {
 
 func (s *blockDiskStore) getDataWithContext(id kbfsblock.ID, context kbfsblock.Context) (
 	[]byte, kbfscrypto.BlockCryptKeyServerHalf, error) {
-	hasContext, err := s.hasContext(id, context)
+	hasContext, _, err := s.hasContext(id, context)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, err
 	}

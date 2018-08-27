@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -83,31 +84,22 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 // GetEncodedSize implements the BlockOps interface for
 // BlockOpsStandard.
 func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
-	blockPtr BlockPointer) (uint32, error) {
+	blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error) {
 	// Check the journal explicitly first, so we don't get stuck in
 	// the block-fetching queue.
 	if journalBServer, ok := b.config.BlockServer().(journalBlockServer); ok {
 		size, found, err := journalBServer.getBlockSizeFromJournal(
 			kmd.TlfID(), blockPtr.ID)
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 		if found {
-			return size, nil
+			return size, keybase1.BlockStatus_LIVE, nil
 		}
 	}
 
-	// Otherwise fetch the entire block from the server, since we
-	// can't trust the server to report the size without being able
-	// to verify the BlockID.
-	block := NewCommonBlock()
-	errCh := b.queue.Request(ctx, defaultOnDemandRequestPriority, kmd,
-		blockPtr, block, NoCacheEntry)
-	err := <-errCh
-	if err != nil {
-		return 0, err
-	}
-	return block.GetEncodedSize(), nil
+	return b.config.BlockServer().GetEncodedSize(
+		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.Context)
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.

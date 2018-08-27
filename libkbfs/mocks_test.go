@@ -4942,11 +4942,12 @@ func (mr *MockBlockOpsMockRecorder) Get(ctx, kmd, blockPtr, block, cacheLifetime
 }
 
 // GetEncodedSize mocks base method
-func (m *MockBlockOps) GetEncodedSize(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (uint32, error) {
+func (m *MockBlockOps) GetEncodedSize(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error) {
 	ret := m.ctrl.Call(m, "GetEncodedSize", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(uint32)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(keybase1.BlockStatus)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // GetEncodedSize indicates an expected call of GetEncodedSize
@@ -5831,6 +5832,20 @@ func (mr *MockBlockServerMockRecorder) Get(ctx, tlfID, id, context interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBlockServer)(nil).Get), ctx, tlfID, id, context)
 }
 
+// GetEncodedSize mocks base method
+func (m *MockBlockServer) GetEncodedSize(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (uint32, keybase1.BlockStatus, error) {
+	ret := m.ctrl.Call(m, "GetEncodedSize", ctx, tlfID, id, context)
+	ret0, _ := ret[0].(uint32)
+	ret1, _ := ret[1].(keybase1.BlockStatus)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetEncodedSize indicates an expected call of GetEncodedSize
+func (mr *MockBlockServerMockRecorder) GetEncodedSize(ctx, tlfID, id, context interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockBlockServer)(nil).GetEncodedSize), ctx, tlfID, id, context)
+}
+
 // Put mocks base method
 func (m *MockBlockServer) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
 	ret := m.ctrl.Call(m, "Put", ctx, tlfID, id, context, buf, serverHalf)
@@ -5986,6 +6001,20 @@ func (m *MockblockServerLocal) Get(ctx context.Context, tlfID tlf.ID, id kbfsblo
 // Get indicates an expected call of Get
 func (mr *MockblockServerLocalMockRecorder) Get(ctx, tlfID, id, context interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockblockServerLocal)(nil).Get), ctx, tlfID, id, context)
+}
+
+// GetEncodedSize mocks base method
+func (m *MockblockServerLocal) GetEncodedSize(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (uint32, keybase1.BlockStatus, error) {
+	ret := m.ctrl.Call(m, "GetEncodedSize", ctx, tlfID, id, context)
+	ret0, _ := ret[0].(uint32)
+	ret1, _ := ret[1].(keybase1.BlockStatus)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetEncodedSize indicates an expected call of GetEncodedSize
+func (mr *MockblockServerLocalMockRecorder) GetEncodedSize(ctx, tlfID, id, context interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEncodedSize", reflect.TypeOf((*MockblockServerLocal)(nil).GetEncodedSize), ctx, tlfID, id, context)
 }
 
 // Put mocks base method

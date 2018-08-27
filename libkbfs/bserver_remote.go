@@ -401,6 +401,36 @@ func (b *BlockServerRemote) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.
 	return kbfsblock.ParseGetBlockRes(res, err)
 }
 
+// GetEncodedSize implements the BlockServer interface for BlockServerRemote.
+func (b *BlockServerRemote) GetEncodedSize(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	size uint32, status keybase1.BlockStatus, err error) {
+	ctx = rpc.WithFireNow(ctx)
+	b.log.LazyTrace(ctx, "BServer: GetEncodedSize %s", id)
+	defer func() {
+		b.log.LazyTrace(
+			ctx, "BServer: GetEncodedSize %s done (err=%v)", id, err)
+		if err != nil {
+			b.deferLog.CWarningf(
+				ctx, "GetEncodedSize id=%s tlf=%s context=%s err=%v",
+				id, tlfID, context, err)
+		} else {
+			b.deferLog.CDebugf(
+				ctx, "Get id=%s tlf=%s context=%s sz=%d status=%s",
+				id, tlfID, context, size, status)
+		}
+	}()
+
+	arg := kbfsblock.MakeGetBlockArg(tlfID, id, context)
+	arg.SizeOnly = true
+	res, err := b.getConn.getClient().GetBlock(ctx, arg)
+	if err != nil {
+		return 0, 0, nil
+	}
+	return uint32(res.Size), res.Status, nil
+}
+
 // Put implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	bContext kbfsblock.Context, buf []byte,

@@ -154,6 +154,48 @@ func (b *BlockServerDisk) Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID
 	return data, keyServerHalf, nil
 }
 
+// GetEncodedSize implements the BlockServer interface for
+// BlockServerDisk.
+func (b *BlockServerDisk) GetEncodedSize(
+	ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+	context kbfsblock.Context) (
+	size uint32, status keybase1.BlockStatus, err error) {
+	if err := checkContext(ctx); err != nil {
+		return 0, 0, err
+	}
+
+	defer func() {
+		err = translateToBlockServerError(err)
+	}()
+	b.log.CDebugf(ctx,
+		"BlockServerDisk.GetEncodedSize id=%s tlfID=%s context=%s",
+		id, tlfID, context)
+	tlfStorage, err := b.getStorage(tlfID)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	tlfStorage.lock.RLock()
+	defer tlfStorage.lock.RUnlock()
+	if tlfStorage.store == nil {
+		return 0, 0, errBlockServerDiskShutdown
+	}
+
+	hasContext, refStatus, err := tlfStorage.store.hasContext(id, context)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !hasContext {
+		return 0, 0, blockNonExistentError{id}
+	}
+
+	size64, err := tlfStorage.store.getDataSize(id)
+	if err != nil {
+		return 0, 0, err
+	}
+	return uint32(size64), refStatus.toBlockStatus(), nil
+}
+
 // Put implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Put(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
 	context kbfsblock.Context, buf []byte,
@@ -334,7 +376,7 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 
 	for id, idContexts := range contexts {
 		for _, context := range idContexts {
-			hasContext, err := tlfStorage.store.hasContext(id, context)
+			hasContext, _, err := tlfStorage.store.hasContext(id, context)
 			if err != nil {
 				return err
 			}

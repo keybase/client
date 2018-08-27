@@ -313,10 +313,10 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	var err error
 	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
-			size, err = bops.GetEncodedSize(ctx, kmd, ptr)
+			size, _, err = bops.GetEncodedSize(ctx, kmd, ptr)
 		})
 	} else {
-		size, err = bops.GetEncodedSize(ctx, kmd, ptr)
+		size, _, err = bops.GetEncodedSize(ctx, kmd, ptr)
 	}
 	if err != nil {
 		return 0, err

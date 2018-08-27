@@ -1449,7 +1449,7 @@ type BlockOps interface {
 	// with the given block pointer (which belongs to the TLF with the
 	// given key metadata).
 	GetEncodedSize(ctx context.Context, kmd KeyMetadata,
-		blockPtr BlockPointer) (uint32, error)
+		blockPtr BlockPointer) (uint32, keybase1.BlockStatus, error)
 
 	// Ready turns the given block (which belongs to the TLF with
 	// the given key metadata) into encoded (and encrypted) data,
@@ -1698,6 +1698,14 @@ type BlockServer interface {
 	// block.
 	Get(ctx context.Context, tlfID tlf.ID, id kbfsblock.ID, context kbfsblock.Context) (
 		[]byte, kbfscrypto.BlockCryptKeyServerHalf, error)
+
+	// GetEncodedSize gets the encoded size of the block associated
+	// with the given block pointer (which belongs to the TLF with the
+	// given key metadata).
+	GetEncodedSize(
+		ctx context.Context, tlfID tlf.ID, id kbfsblock.ID,
+		context kbfsblock.Context) (uint32, keybase1.BlockStatus, error)
+
 	// Put stores the (encrypted) block data under the given ID
 	// and context on the server, along with the server half of
 	// the block key.  context should contain a kbfsblock.RefNonce
