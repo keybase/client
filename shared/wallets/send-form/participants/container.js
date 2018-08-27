@@ -53,7 +53,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     const to = accountIDToString(id)
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount: () => {},
+  onCreateNewAccount: () => dispatch(RouteTree.navigateAppend(['createNewAccount'])),
   onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
