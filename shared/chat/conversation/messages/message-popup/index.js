@@ -9,11 +9,7 @@ import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
   attachTo: ?React.Component<any, any>,
-  message:
-    | Types.MessageText
-    | Types.MessageAttachment
-    | Types.MessageSendPayment
-    | Types.MessageRequestPayment,
+  message: Types.DecoratedMessage,
   onHidden: () => void,
   position: Position,
   visible: boolean,

@@ -12,11 +12,7 @@ import {isMobile} from '../../../../../constants/platform'
 type OwnProps = {|
   isEditing: boolean,
   measure: null | (() => void),
-  message:
-    | Types.MessageText
-    | Types.MessageAttachment
-    | Types.MessageRequestPayment
-    | Types.MessageSendPayment,
+  message: Types.DecoratedMessage,
   previous: ?Types.Message,
   toggleMessageMenu: () => void,
 |}
@@ -75,13 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
-    previous &&
-    previous.author === message.author &&
-    (previous.type === 'text' ||
-      previous.type === 'deleted' ||
-      previous.type === 'attachment' ||
-      previous.type === 'sendPayment' ||
-      previous.type === 'requestPayment')
+    previous && previous.author === message.author && Constants.isUserMessage(message)
 
   const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
