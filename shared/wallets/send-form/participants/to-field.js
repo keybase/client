@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import type {Account} from '.'
-import type {CounterpartyType} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
@@ -15,7 +15,7 @@ type ToFieldProps = {|
   // Used for sending from account to account
   user: string,
   accounts: Account[],
-  onChangeSelectedAccount: (accountName: string) => void,
+  onChangeSelectedAccount: (id: AccountID) => void,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
   // Used to display a keybase profile
@@ -44,7 +44,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         this.props.onLinkAccount()
       } else if (this.props.onChangeSelectedAccount) {
         this.setState({selectedAccount: element.props.account})
-        this.props.onChangeSelectedAccount(element.props.account.name)
+        this.props.onChangeSelectedAccount(element.props.account.id)
       }
     }
   }
@@ -98,8 +98,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         ]
 
         if (this.props.accounts.length > 0) {
-          const walletItems = this.props.accounts.map((account, index) => (
-            <DropdownEntry key={index} account={account} user={this.props.user} />
+          const walletItems = this.props.accounts.map(account => (
+            <DropdownEntry key={account.id} account={account} user={this.props.user} />
           ))
           items = walletItems.concat(items)
         }

@@ -3,11 +3,12 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
 import ToField from './to-field'
-import type {CounterpartyType} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 export type Account = {|
-  name: string,
   contents: string,
+  name: string,
+  id: AccountID,
 |}
 
 type ParticipantsProps = {|
@@ -16,8 +17,8 @@ type ParticipantsProps = {|
   user: string,
   fromAccount: Account,
   allAccounts: Account[],
-  onChangeFromAccount: (accountName: string) => void,
-  onChangeToAccount: (accountName: string) => void,
+  onChangeFromAccount: (id: AccountID) => void,
+  onChangeToAccount: (id: AccountID) => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
   // Used for send to stellar address

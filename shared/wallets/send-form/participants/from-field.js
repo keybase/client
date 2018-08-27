@@ -4,11 +4,12 @@ import * as Kb from '../../../common-adapters'
 import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry} from './dropdown'
 import type {Account} from '.'
+import type {AccountID} from '../../../constants/types/wallets'
 
 type FromFieldProps = {|
   accounts: Account[],
   initialAccount: Account,
-  onChangeSelectedAccount: (accountName: string) => void,
+  onChangeSelectedAccount: (id: AccountID) => void,
   user: string,
 |}
 
@@ -26,12 +27,13 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
       this.setState({selectedAccount: element.props.account})
+      this.props.onChangeSelectedAccount(element.props.account.id)
     }
   }
 
   render() {
-    const items = this.props.accounts.map((account, index) => (
-      <DropdownEntry key={index} account={account} user={this.props.user} />
+    const items = this.props.accounts.map(account => (
+      <DropdownEntry key={account.id} account={account} user={this.props.user} />
     ))
 
     return (

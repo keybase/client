@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
+import {stringToAccountID} from '../../../constants/types/wallets'
 import Participants, {type Account} from '.'
 
 const provider = Sb.createPropProviderWithCommon({
@@ -12,6 +13,7 @@ const provider = Sb.createPropProviderWithCommon({
 const primaryAccount: Account = {
   name: 'Primary Account',
   contents: '2000 XLM',
+  id: stringToAccountID('fakeaccountID'),
 }
 
 const accounts = [
@@ -19,10 +21,12 @@ const accounts = [
   {
     name: 'Secondary Account',
     contents: '6435 XLM',
+    id: stringToAccountID('fakeaccountID2'),
   },
   {
     name: 'third Account',
     contents: '10 XLM',
+    id: stringToAccountID('fakeaccountID3'),
   },
 ]
 

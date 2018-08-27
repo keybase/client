@@ -3,7 +3,7 @@ import Participants from '.'
 import * as RouteTree from '../../../actions/route-tree'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {getAccount, getAccountIDs} from '../../../constants/wallets'
-import {stringToAccountID} from '../../../constants/types/wallets'
+import {stringToAccountID, accountIDToString, type AccountID} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -13,13 +13,18 @@ const mapStateToProps = (state: TypedState) => {
   const allAccounts = getAccountIDs(state)
     .map(accountID => {
       const account = getAccount(state, accountID)
-      return {contents: account.balanceDescription, name: account.name || account.accountID}
+      return {
+        contents: account.balanceDescription,
+        id: account.accountID,
+        name: account.name || account.accountID,
+      }
     })
     .toArray()
   const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
   const fromAccount = {
     contents: fromAccountFromState.balanceDescription,
     name: fromAccountFromState.name || fromAccountFromState.accountID,
+    id: fromAccountFromState.accountID,
   }
 
   // Building section
@@ -40,8 +45,14 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeAddress: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
-  onChangeFromAccount: () => {},
-  onChangeToAccount: () => {},
+  onChangeFromAccount: (id: AccountID) => {
+    const from = accountIDToString(id)
+    dispatch(WalletsGen.createSetBuildingFrom({from}))
+  },
+  onChangeToAccount: (id: AccountID) => {
+    const to = accountIDToString(id)
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+  },
   onCreateNewAccount: () => {},
   onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
