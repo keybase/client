@@ -85,7 +85,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <Box>
+      <>
         <ClickableBox
           style={styles.imageContainer}
           onClick={this._onClick}
@@ -175,7 +175,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             Show in {fileUIName}
           </Text>
         )}
-      </Box>
+      </>
     )
   }
 }
