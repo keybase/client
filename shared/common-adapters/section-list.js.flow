@@ -1,7 +1,31 @@
 // @flow
 import * as React from 'react'
-import {SectionList} from 'react-native'
+import type {StylesCrossPlatform} from '../styles'
 
-export type Props = React.ElementProps<typeof SectionList>
+type SectionItem = any
+
+type Section = {
+  data: $ReadOnlyArray<SectionItem>,
+  key?: string,
+}
+// RN's own types are kind of messed up
+export type Props = {
+  keyboardShouldPersistTaps: 'handled',
+  initialNumToRender: number,
+  sections: $ReadOnlyArray<Section>,
+  stickySectionHeadersEnabled: boolean,
+  renderSectionHeader?: (info: {section: Section}) => ?React.Element<any>,
+  style?: ?StylesCrossPlatform,
+  renderItem?: (info: {
+    item: any,
+    index: number,
+    section: Section,
+    separators: {
+      highlight: () => void,
+      unhighlight: () => void,
+      updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
+    },
+  }) => ?React.Element<any>,
+}
 
 export default class extends SectionList {}

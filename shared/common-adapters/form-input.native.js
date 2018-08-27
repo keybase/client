@@ -118,7 +118,7 @@ class FormInput extends React.Component<Props, State> {
           multiline={this.props.multiline}
           style={[
             inputStyle.common,
-            (this.props.value || this.state.focused) && inputStyle.paddingTop,
+            (this.props.value || this.state.focused) && inputStyle.largePaddingTop,
             this.props.textType && getStyle(this.props.textType, this.props.backgroundMode),
             !this.props.textType && getStyle('BodySemibold', this.props.backgroundMode),
             this.props.inputStyle,

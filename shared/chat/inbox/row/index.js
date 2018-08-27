@@ -70,7 +70,7 @@ const makeRow = (options: MakeRowOptions) => {
         )
     }
   }
-  return new Error(`Unhandled row type ${options.type}`)
+  throw new Error(`Unhandled row type ${options.type}`)
 }
 
 const _bigTeamLabelStyle = {

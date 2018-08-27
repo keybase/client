@@ -28,7 +28,7 @@ class CopyableText<P: Props> extends Component<P, State> {
   }
 
   _handleCopy() {
-    Clipboard.setString(this.props.value)
+    Clipboard.setString(this.props.value || '')
     this.setState({hasCopied: true})
     this.props.clearTimeout(this.lastCopyTimeoutId)
     this.lastCopyTimeoutId = this.props.setTimeout(() => {

@@ -32,6 +32,7 @@ class LoadingWrapper extends React.Component<Props, State> {
     this.setState({loadingActive: true})
 
     this.state.opacity.setValue(1)
+    // $FlowIssue RN doesn't type this correctly
     Animated.parallel(
       [[this.state.opacity, 0]].map(([a, toValue]) => Animated.timing(a, {duration, toValue}))
     ).start(({finished}) => finished && this.setState({loadingActive: false}))

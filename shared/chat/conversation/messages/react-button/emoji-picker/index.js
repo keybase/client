@@ -113,6 +113,7 @@ class EmojiPicker extends React.Component<Props, State> {
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
     return this.state.sections ? (
+      // $FlowIssue RN typedef messed up
       <SectionList
         keyboardShouldPersistTaps="handled"
         initialNumToRender={14}

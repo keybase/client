@@ -114,7 +114,14 @@ class MessageFactory extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}) => {
+type OwnProps = {|
+  ordinal: Types.Ordinal,
+  previous: ?Types.Ordinal,
+  conversationIDKey: Types.ConversationIDKey,
+  measure: ?() => void,
+|}
+
+const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKey}: OwnProps) => {
   const message: ?Types.Message = Constants.getMessage(state, conversationIDKey, ordinal)
   const editInfo = Constants.getEditInfo(state, conversationIDKey)
   const isEditing = !!(message && editInfo && editInfo.ordinal === message.ordinal)
@@ -126,7 +133,7 @@ const mapStateToProps = (state: TypedState, {ordinal, previous, conversationIDKe
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   isEditing: stateProps.isEditing,
   measure: ownProps.measure,
   message: stateProps.message,

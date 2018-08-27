@@ -265,9 +265,6 @@ declare module 'react-list' {
 declare module 'react-measure' {
   declare module.exports: any
 }
-declare module 'react-native' {
-  declare module.exports: any
-}
 declare module 'react-native-camera' {
   declare module.exports: any
 }

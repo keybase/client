@@ -15,6 +15,10 @@ class ConversationList extends React.PureComponent<Props> {
     } else {
       const ordinalIndex = item
       const ordinal = this.props.messageOrdinals.get(ordinalIndex)
+      if (ordinal === undefined) {
+        return null
+      }
+
       const prevOrdinal = ordinalIndex > 0 ? this.props.messageOrdinals.get(ordinalIndex - 1) : null
 
       return (

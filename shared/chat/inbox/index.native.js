@@ -8,6 +8,7 @@ import {
   NativeFlatList,
   ErrorBoundary,
 } from '../../common-adapters/mobile.native'
+import * as Constants from '../../constants/chat2'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
@@ -64,10 +65,11 @@ class Inbox extends React.PureComponent<Props, State> {
     }
 
     return makeRow({
-      channelname: row.channelname,
-      conversationIDKey: row.conversationIDKey,
+      channelname: row.type === 'big' ? row.channelname : '',
+      conversationIDKey:
+        row.type === 'big' || row.type === 'small' ? row.conversationIDKey : Constants.noConversationIDKey,
       filtered: !!this.props.filter,
-      teamname: row.teamname,
+      teamname: row.type === 'big' || row.type === 'bigHeader' ? row.teamname : '',
       type: row.type,
     })
   }
@@ -142,6 +144,10 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _getItemLayout = (data, index) => {
+    if (!data) {
+      return {index: 0, length: 0, offset: 0}
+    }
+
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -161,7 +167,7 @@ class Inbox extends React.PureComponent<Props, State> {
     let offset = smallHeight * (this._dividerIndex - 1) + dividerHeight
 
     for (let i = this._dividerIndex; i < index; ++i) {
-      const h = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+      const h = data[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
       offset += h
     }
     const length = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight

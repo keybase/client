@@ -69,10 +69,20 @@ class SectionList extends React.Component<Props, State> {
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
       <Box key={item.key || key} style={this.props.stickySectionHeadersEnabled && styles.stickySectionHeader}>
-        {this.props.renderSectionHeader({section})}
+        {this.props.renderSectionHeader && this.props.renderSectionHeader({section})}
       </Box>
     ) : (
-      this.props.renderItem({index: indexWithinSection, item: item.item, section})
+      this.props.renderItem &&
+        this.props.renderItem({
+          index: indexWithinSection,
+          item: item.item,
+          section,
+          separators: {
+            highlight: () => {},
+            unhighlight: () => {},
+            updateProps: () => {},
+          },
+        })
     )
   }
 
