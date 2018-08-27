@@ -18,11 +18,11 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
-  const git = state.entities.getIn(['git', 'idToInfo', id], Constants.makeGitInfo())
+  const git = state.git.getIn(['idToInfo', id], Constants.makeGitInfo())
   return {
     git,
     expanded,
-    isNew: !!state.entities.getIn(['git', 'isNew', id], false),
+    isNew: !!state.git.getIn(['isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: state.config.username,
   }
