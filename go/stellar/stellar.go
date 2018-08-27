@@ -934,7 +934,7 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 	return desc, nil
 }
 
-// Example: "157.5000000 XLM"
+// Example: "157.5 XLM"
 func FormatAmountXLM(amount string) (string, error) {
 	return FormatAmountWithSuffix(amount, false, "XLM")
 }
