@@ -168,11 +168,8 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
     })
 }
 
-const navigateToAccount = (
-  action:
-    | WalletsGen.CreatedNewAccountPayload
-    | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.SelectAccountPayload
+const navigateUp = (
+  action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
   if (action.type === WalletsGen.createdNewAccount && action.error) {
     // Create new account failed, don't nav
@@ -182,6 +179,10 @@ const navigateToAccount = (
     // Link existing failed, don't nav
     return
   }
+  return Saga.put(Route.navigateUp())
+}
+
+const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
   if (action.type === WalletsGen.selectAccount && !action.payload.show) {
     // we don't want to show, don't nav
     return
@@ -239,10 +240,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
-  yield Saga.safeTakeEveryPure(
-    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount, WalletsGen.selectAccount],
-    navigateToAccount
-  )
+  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, navigateToAccount)
+  yield Saga.safeTakeEveryPure([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
+
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [
