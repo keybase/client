@@ -52,7 +52,7 @@ const createPersonalRepo = (_, action: GitGen.CreatePersonalRepoPayload) =>
     },
     Constants.loadingWaitingKey
   )
-    .then(() => GitGen.createReposModified())
+    .then(() => GitGen.createRepoCreated())
     .catch(error => GitGen.createSetError({error}))
 
 const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
@@ -63,14 +63,14 @@ const createTeamRepo = (_, action: GitGen.CreateTeamRepoPayload) =>
       parts: action.payload.teamname.split('.'),
     },
   })
-    .then(() => GitGen.createReposModified())
+    .then(() => GitGen.createRepoCreated())
     .catch(error => GitGen.createSetError({error}))
 
 const deletePersonalRepo = (_, action: GitGen.DeletePersonalRepoPayload) =>
   RPCTypes.gitDeletePersonalRepoRpcPromise({
     repoName: action.payload.name,
   })
-    .then(() => GitGen.createReposModified())
+    .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
 const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
@@ -81,7 +81,7 @@ const deleteTeamRepo = (_, action: GitGen.DeleteTeamRepoPayload) =>
       parts: action.payload.teamname.split('.'),
     },
   })
-    .then(() => GitGen.createReposModified())
+    .then(() => GitGen.createRepoDeleted())
     .catch(error => GitGen.createSetError({error}))
 
 const setTeamRepoSettings = (_, action: GitGen.SetTeamRepoSettingsPayload) =>
@@ -166,11 +166,11 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(GitGen.createTeamRepo, createTeamRepo)
   yield Saga.actionToPromise(GitGen.deletePersonalRepo, deletePersonalRepo)
   yield Saga.actionToPromise(GitGen.deleteTeamRepo, deleteTeamRepo)
-  yield Saga.actionToPromise(GitGen.reposModified, load)
+  yield Saga.actionToPromise([GitGen.repoCreated, GitGen.repoDeleted], load)
 
   // Nav
   yield Saga.actionToAction(GitGen.navToGit, navToGit)
-  yield Saga.actionToAction(GitGen.reposModified, () =>
+  yield Saga.actionToAction([GitGen.repoCreated, GitGen.repoDeleted], () =>
     Saga.put(GitGen.createNavToGit({routeState: null, switchTab: false}))
   )
 

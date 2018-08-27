@@ -18,7 +18,8 @@
     "createPersonalRepo": {
       "name": "string"
     },
-    "reposModified": {},
+    "repoDeleted": {},
+    "repoCreated": {},
     "deleteTeamRepo": {
       "name": "string",
       "teamname": "string",

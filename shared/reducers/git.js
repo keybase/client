@@ -30,7 +30,8 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.handleIncomingGregor:
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
-    case GitGen.reposModified:
+    case GitGen.repoCreated:
+    case GitGen.repoDeleted:
     case GitGen.setTeamRepoSettings:
       return state
     default:
