@@ -162,7 +162,7 @@ const ConnectedUserInput = compose(
   HocHelpers.clearSearchHoc,
   HocHelpers.placeholderServiceHoc,
   withProps(props => ({
-    showServiceFilter: props.showServiceFilterIfInputEmpty || !!props.searchText,
+    showServiceFilter: (props.showServiceFilterIfInputEmpty || !!props.searchText) && props.showServiceFilter,
   })),
   withHandlers(() => {
     let input
