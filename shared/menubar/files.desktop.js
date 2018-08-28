@@ -2,7 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import {Avatars, TeamAvatar} from '../chat/inbox/row/avatars'
+import * as FsTypes from '../constants/types/fs'
+import PathItemIcon from '../fs/common/path-item-icon'
 // TODO: uncomment once we make this.
 // import * as RemoteContainer from '../fs/row/remote-container'
 
@@ -11,8 +12,9 @@ type TlfRow = {|
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
   path: string,
   onSelectPath: () => void,
-  teamname: string,
-  participants: Array<string>,
+  iconSpec: FsTypes.PathItemIconSpec,
+  participants: ?Array<string>,
+  teamname: ?string,
 |}
 
 type FilesPreviewProps = {|
@@ -23,21 +25,7 @@ type FilesPreviewProps = {|
 const FileRow = (props: TlfRow) => (
   <Kb.ClickableBox onClick={props.onSelectPath} style={styles.tlfRowContainer}>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
-      {props.teamname ? (
-        <TeamAvatar
-          teamname={props.teamname}
-          isMuted={false}
-          isSelected={false}
-        />
-      ) : (
-        <Avatars
-          backgroundColor={Styles.globalColors.white}
-          isMuted={false}
-          isLocked={false}
-          isSelected={false}
-          participants={props.participants}
-        />
-      )}
+      <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
       <Kb.Text type="Body">
         {props.path}
       </Kb.Text>
@@ -64,6 +52,7 @@ const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.black_60},
   tlfContainer: {
     paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black,
   },
@@ -78,8 +67,11 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.tiny,
   },
   tlfRowContainer: {
-    paddingTop: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+  },
+  tlfRowAvatar: {
+    marginRight: Styles.globalMargins.tiny,
   },
   toggleButton: Styles.platformStyles({
     common: {
