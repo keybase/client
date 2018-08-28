@@ -4,6 +4,7 @@ import * as Types from '../constants/types/wallets'
 import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import * as Chat2Gen from './chat2-gen'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -205,6 +206,20 @@ const maybeSelectDefaultAccount = (action: WalletsGen.AccountsReceivedPayload, s
     })
   )
 
+const loadRequestDetail = (state: TypedState, action: WalletsGen.LoadRequestDetailPayload) =>
+  RPCTypes.localGetRequestDetailsLocalRpcPromise({reqID: action.payload.requestID})
+    .then(request => WalletsGen.createRequestDetailReceived({request}))
+    .catch(err => logger.error(`Error loading request detail: ${err.message}`))
+
+const cancelRequest = (state: TypedState, action: WalletsGen.CancelRequestPayload) => {
+  const {conversationIDKey, ordinal, requestID} = action.payload
+  return RPCTypes.localCancelRequestLocalRpcPromise({reqID: requestID})
+    .then(
+      () => (conversationIDKey && ordinal ? Chat2Gen.createMessageDelete({conversationIDKey, ordinal}) : null)
+    )
+    .catch(err => logger.error(`Error cancelling request: ${err.message}`))
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
   yield Saga.actionToPromise(
@@ -259,6 +274,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
+  yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
+  yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
 }
 
 export default walletsSaga

@@ -97,7 +97,6 @@ type Srv struct {
 
 	listenerSource ListenerSource
 	server         *http.Server
-	active         bool
 }
 
 // NewSrv creates a new HTTP server with the given listener
@@ -113,7 +112,7 @@ func NewSrv(log logger.Logger, listenerSource ListenerSource) *Srv {
 func (h *Srv) Start() (err error) {
 	h.Lock()
 	defer h.Unlock()
-	if h.active {
+	if h.server != nil {
 		h.log.Debug("kbhttp.Srv: already running, not starting again")
 		// Just bail out of this if we are already running
 		return errAlreadyRunning
@@ -128,18 +127,12 @@ func (h *Srv) Start() (err error) {
 		Addr:    address,
 		Handler: h.ServeMux,
 	}
-	go func() {
-		h.Lock()
-		h.active = true
-		h.Unlock()
+	go func(server *http.Server) {
 		h.log.Debug("kbhttp.Srv: server starting on: %s", address)
-		if err := h.server.Serve(listener); err != nil {
+		if err := server.Serve(listener); err != nil {
 			h.log.Debug("kbhttp.Srv: server died: %s", err)
 		}
-		h.Lock()
-		h.active = false
-		h.Unlock()
-	}()
+	}(h.server)
 	return nil
 }
 
@@ -147,7 +140,7 @@ func (h *Srv) Start() (err error) {
 func (h *Srv) Active() bool {
 	h.Lock()
 	defer h.Unlock()
-	return h.active
+	return h.server != nil
 }
 
 // Addr returns the server's address, if it's running.

@@ -137,8 +137,12 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             secretKeyValidationState: 'none',
             selectedAccount: action.payload.accountID,
           })
+    case WalletsGen.requestDetailReceived:
+      const request = Constants.requestResultToRequest(action.payload.request)
+      return request ? state.update('requests', r => r.set(request.id, request)) : state
     // Saga only actions
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
@@ -146,6 +150,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
     case WalletsGen.loadAccounts:
+    case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:

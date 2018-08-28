@@ -709,8 +709,8 @@ func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
 }
 
-func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
-	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
+func NewBadUsernameErrorWithFullMessage(msg string) BadUsernameError {
+	return BadUsernameError{msg: msg}
 }
 
 //=============================================================================
