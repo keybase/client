@@ -4,8 +4,7 @@ import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
 import * as _CopyText from '../common-adapters/copy-text'
-import {action} from '@storybook/addon-actions'
-import {createPropProvider} from './storybook.shared'
+import {createPropProvider, action} from './storybook.shared'
 
 /*
  * Some common prop factory creators.
