@@ -1616,6 +1616,24 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 		}
 	}
+	if hPrevInfo := link.inner.HPrevInfo; hPrevInfo != nil {
+		if hPrevInfo.Seqno != res.newState.inner.LastHighSeqno {
+			return res, fmt.Errorf("Expected HPrevSeqno %d, got %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno)
+		}
+		lastHighLinkID := res.newState.inner.LastHighLinkID
+		if string(lastHighLinkID) == "" {
+			if hPrevInfo.Hash != nil {
+				return res, fmt.Errorf("Expected nil HPrevHash, got %s", hPrevInfo.Hash)
+			}
+		} else {
+			if hPrevInfo.Hash == nil {
+				return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
+			}
+			if *hPrevInfo.Hash != string(lastHighLinkID) {
+				return res, fmt.Errorf("Expected HPrevHash=%s, got %s", lastHighLinkID, *hPrevInfo.Hash)
+			}
+		}
+	}
 	if isHighLink {
 		res.newState.inner.LastHighLinkID = link.LinkID().Export()
 		res.newState.inner.LastHighSeqno = link.Seqno()

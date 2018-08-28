@@ -637,8 +637,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	// a null hPrevHash is valid even when specifying hPrevInfo.
 	var hPrevInfoPtr *HPrevInfo
 	if ol.HPrevSeqno != nil {
-		// TODO: unsure if *ol.hPrevHash will crash on old clients' jsons
-		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, *ol.HPrevHash)
+		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, ol.HPrevHash)
 		hPrevInfoPtr = &hPrevInfo
 	}
 

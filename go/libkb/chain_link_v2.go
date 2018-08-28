@@ -202,7 +202,7 @@ type OuterLinkV2 struct {
 	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
 	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
 	HPrevSeqno *keybase1.Seqno `codec:"hseqno"`
-	HPrevHash  *LinkID         `codec:"hprev"`
+	HPrevHash  LinkID          `codec:"hprev"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -266,12 +266,7 @@ func MakeSigchainV2OuterSig(
 		SeqType:             seqType,
 		IgnoreIfUnsupported: ignoreIfUnsupported,
 		HPrevSeqno:          &hPrevInfo.Seqno,
-		HPrevHash:           &hPrevInfo.Hash,
-	}
-	if hPrevInfo.Hash == nil {
-		// This is so we send null instead of an empty string for HPrevHash.
-		// TODO: don't understand why this is necessary. I think some test breaks.
-		outerLink.HPrevHash = nil
+		HPrevHash:           hPrevInfo.Hash,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -482,10 +477,9 @@ func (o OuterLinkV2) AssertFields(
 	}
 	if o.HPrevSeqno != nil {
 		if *o.HPrevSeqno != hPrevInfo.Seqno {
-			return mkErr("hprevseqno field: (%d != %d)", *o.HPrevSeqno, hPrevInfo.Seqno)
+			return mkErr("hprevseqno field outer (%d)/inner (%d) mismatch", *o.HPrevSeqno, hPrevInfo.Seqno)
 		}
 
-		// TODO Very unclear if this is nil safe...
 		if o.HPrevHash == nil && hPrevInfo.Hash != nil {
 			return mkErr("Provided HPrevHash in outer link but not inner.")
 		}
@@ -493,8 +487,8 @@ func (o OuterLinkV2) AssertFields(
 			return mkErr("Provided HPrevHash in inner link but not outer.")
 		}
 
-		if o.HPrevHash != nil && !(*o.HPrevHash).Eq(hPrevInfo.Hash) {
-			return mkErr("hPrevHash field: ((%v=%s) != (%v=%s))", o.HPrevHash, o.HPrevHash, hPrevInfo.Hash, hPrevInfo.Hash)
+		if o.HPrevHash != nil && !o.HPrevHash.Eq(hPrevInfo.Hash) {
+			return mkErr("hPrevHash field outer (%s)/inner (%s) mismatch", o.HPrevHash, hPrevInfo.Hash)
 		}
 	}
 

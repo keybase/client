@@ -349,10 +349,10 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
-	// If this is a standard user link, arg.Me will
-	// be provided. It is not provided during a
-	// KEX and for team sigs, where it is overriden.
-	// TODO but not for per user keys or stellar?.
+	// If this is a standard user link, arg.Me will be provided. It is not
+	// provided during a provisionee's KEX and for team sigs, where it is
+	// overridden. It is expected to be provided by PerUserKey and
+	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
 	if arg.Me != nil {
 		hPrevInfo = arg.Me.GetSigChainHPrevInfo()
