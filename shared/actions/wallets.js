@@ -5,6 +5,7 @@ import * as RPCTypes from '../constants/types/rpc-stellar-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
 import * as Chat2Gen from './chat2-gen'
+import * as ConfigGen from './config-gen'
 import HiddenString from '../util/hidden-string'
 import * as Route from './route-tree'
 import logger from '../logger'
@@ -87,6 +88,7 @@ const loadAccounts = (
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
+    | ConfigGen.LoggedInPayload
 ) =>
   !action.error &&
   RPCTypes.localGetWalletAccountsLocalRpcPromise().then(res =>
@@ -241,6 +243,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
+      ConfigGen.loggedIn,
     ],
     loadAccounts
   )
