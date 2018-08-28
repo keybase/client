@@ -10,11 +10,11 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
-  onClickRequest: ownProps.isRequest
-    ? () => {
-        dispatch(WalletsGen.createRequestPayment())
-      }
-    : undefined,
+  onClickRequest:
+    ownProps.isRequest &&
+    (() => {
+      dispatch(WalletsGen.createRequestPayment())
+    }),
   onClickSend: () => {
     dispatch(
       Route.navigateAppend([
