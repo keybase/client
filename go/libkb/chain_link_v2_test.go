@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -109,4 +110,52 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 	var o outerLinkV2WithMetadataPointerContainer
 	err = MsgpackDecode(&o, bytes)
 	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
+}
+
+func serdeOuterLink(t *testing.T, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID, addHPrevHash bool) OuterLinkV2 {
+	o := OuterLinkV2{Version: 2, Seqno: keybase1.Seqno(2), Prev: nil, Curr: nil, LinkType: 1, SeqType: 1, IgnoreIfUnsupported: false}
+	if hPrevSeqno != nil {
+		o.HPrevSeqno = hPrevSeqno
+	}
+	if addHPrevHash {
+		o.HPrevHash = hPrevHash
+	}
+
+	s, err := o.Encode()
+	require.NoError(t, err)
+	o2 := OuterLinkV2{}
+	err = MsgpackDecode(&o2, s)
+	require.NoError(t, err)
+	return o2
+}
+
+func hPrevInfoMatch(ol OuterLinkV2, hPrevInfo *HPrevInfo) error {
+	return ol.AssertFields(ol.Version, ol.Seqno, ol.Prev, ol.Curr, ol.LinkType, ol.SeqType, ol.IgnoreIfUnsupported, hPrevInfo)
+}
+
+func TestHPrevBackwardsCompatibility(t *testing.T) {
+	o := serdeOuterLink(t, nil, nil, false)
+	require.True(t, o.HPrevSeqno == nil)
+	require.True(t, o.HPrevHash == nil)
+	require.NoError(t, hPrevInfoMatch(o, nil))
+
+	seqno := keybase1.Seqno(3)
+	o = serdeOuterLink(t, &seqno, nil, false)
+	require.True(t, *o.HPrevSeqno == 3)
+	require.True(t, o.HPrevHash == nil)
+	hPrevInfo := NewHPrevInfo(keybase1.Seqno(3), nil)
+	badHPrevInfo1 := NewHPrevInfo(keybase1.Seqno(3), []byte{0, 5, 2})
+	badHPrevInfo2 := NewHPrevInfo(keybase1.Seqno(4), nil)
+	require.NoError(t, hPrevInfoMatch(o, &hPrevInfo))
+	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo1))
+	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo2))
+
+	hPrevHash := []byte{0, 6, 2, 42, 123}
+	o = serdeOuterLink(t, &seqno, hPrevHash, true)
+	hPrevInfo = NewHPrevInfo(keybase1.Seqno(3), hPrevHash)
+	badHPrevInfo1 = NewHPrevInfo(keybase1.Seqno(3), []byte{0, 5, 2})
+	badHPrevInfo2 = NewHPrevInfo(keybase1.Seqno(3), nil)
+	require.NoError(t, hPrevInfoMatch(o, &hPrevInfo))
+	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo1))
+	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo2))
 }

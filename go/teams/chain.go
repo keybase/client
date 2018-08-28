@@ -637,7 +637,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
-	iRes, err := t.addInnerLink(&state, link, signer, true)
+	iRes, err := t.addInnerLink(&state, link, signer, true, true)
 	if err != nil {
 		return TeamSigChainState{}, err
 	}
@@ -678,7 +678,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		if signer == nil || !signer.signer.Uid.Exists() {
 			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
-		iRes, err := t.addInnerLink(prevState, link, *signer, false)
+		iRes, err := t.addInnerLink(prevState, link, *signer, false, false)
 		if err != nil {
 			return res, err
 		}
@@ -741,7 +741,7 @@ type checkInnerLinkResult struct {
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
-	isInflate bool) (
+	isInflate bool, skipComputingHPrevInfo bool) (
 	res checkInnerLinkResult, err error) {
 
 	if link.inner == nil {
@@ -1616,27 +1616,30 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 		}
 	}
-	if hPrevInfo := link.inner.HPrevInfo; hPrevInfo != nil {
-		if hPrevInfo.Seqno != res.newState.inner.LastHighSeqno {
-			return res, fmt.Errorf("Expected HPrevSeqno %d, got %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno)
+
+	if !skipComputingHPrevInfo {
+		if hPrevInfo := payload.HPrevInfo; hPrevInfo != nil {
+			if hPrevInfo.Seqno != res.newState.inner.LastHighSeqno {
+				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d...%d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
+			}
+			lastHighLinkID := res.newState.inner.LastHighLinkID
+			if string(lastHighLinkID) == "" {
+				if hPrevInfo.Hash != nil {
+					return res, fmt.Errorf("Expected nil HPrevHash, got %s", *hPrevInfo.Hash)
+				}
+			} else {
+				if hPrevInfo.Hash == nil {
+					return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
+				}
+				if *hPrevInfo.Hash != string(lastHighLinkID) {
+					return res, fmt.Errorf("Expected HPrevHash=%s, got %s", string(lastHighLinkID), *hPrevInfo.Hash)
+				}
+			}
 		}
-		lastHighLinkID := res.newState.inner.LastHighLinkID
-		if string(lastHighLinkID) == "" {
-			if hPrevInfo.Hash != nil {
-				return res, fmt.Errorf("Expected nil HPrevHash, got %s", hPrevInfo.Hash)
-			}
-		} else {
-			if hPrevInfo.Hash == nil {
-				return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
-			}
-			if *hPrevInfo.Hash != string(lastHighLinkID) {
-				return res, fmt.Errorf("Expected HPrevHash=%s, got %s", lastHighLinkID, *hPrevInfo.Hash)
-			}
+		if isHighLink {
+			res.newState.inner.LastHighLinkID = link.LinkID().Export()
+			res.newState.inner.LastHighSeqno = link.Seqno()
 		}
-	}
-	if isHighLink {
-		res.newState.inner.LastHighLinkID = link.LinkID().Export()
-		res.newState.inner.LastHighSeqno = link.Seqno()
 	}
 	return res, nil
 }

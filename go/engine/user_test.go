@@ -115,3 +115,27 @@ func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
 		checkSubkey(subkey.GetKID())
 	}
 }
+
+func TestBlankUserHPrevInfo(t *testing.T) {
+	tc := SetupEngineTest(t, "user")
+	defer tc.Cleanup()
+
+	CreateAndSignupFakeUser(tc, "login")
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, me.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(1))
+}
+
+func TestPaperUserHPrevInfo(t *testing.T) {
+	tc := SetupEngineTest(t, "user")
+	defer tc.Cleanup()
+
+	CreateAndSignupFakeUserPaper(tc, "login")
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, me.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(4))
+}

@@ -509,6 +509,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		}
 		hPrevSeqno := keybase1.Seqno(hPrevSeqnoInt)
 		hPrevInfo := HPrevInfo{Seqno: hPrevSeqno}
+
 		if hPrevHashStr, err := jsonparser.GetString(payload, "hprev_info", "hash"); err == nil {
 			hPrevHash, err := LinkIDFromHex(hPrevHashStr)
 			if err != nil {
