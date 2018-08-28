@@ -224,12 +224,14 @@ export {
 
 export {
   allMessageTypes,
+  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getFilename,
   getMessageID,
   isSpecialMention,
+  isUserMessage,
   isVideoAttachment,
   makeMessageAttachment,
   makeMessageDeleted,
@@ -244,6 +246,7 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,
