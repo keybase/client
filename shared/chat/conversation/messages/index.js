@@ -40,6 +40,10 @@ class MessageFactory extends React.PureComponent<Props> {
         return <WrapperTimestamp {...messageWrapperProps} />
       case 'attachment':
         return <WrapperTimestamp {...messageWrapperProps} />
+      case 'requestPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
+      case 'sendPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
       case 'placeholder':
         return (
           <WrapperTimestamp {...messageWrapperProps}>
