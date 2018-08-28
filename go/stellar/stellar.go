@@ -944,6 +944,7 @@ func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (st
 	if err != nil {
 		return "", err
 	}
+	formatted = libkb.StellarSimplifyAmount(formatted)
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
