@@ -1,6 +1,7 @@
 // @flow
 import Footer from '.'
 import * as Route from '../../../actions/route-tree'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -8,7 +9,12 @@ const mapStateToProps = (state: TypedState) => ({
   worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+  onClickRequest: ownProps.isRequest
+    ? () => {
+        dispatch(WalletsGen.createRequestPayment())
+      }
+    : undefined,
   onClickSend: () => {
     dispatch(
       Route.navigateAppend([
