@@ -121,7 +121,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
           // 'EOF from server' error from rpc library thrown when service restarts
           // no need to show to user
           logger.info('Silencing EOF error...')
-          return state.merge({globalError: null})
+          return state
         }
       }
       return state.merge({globalError})
