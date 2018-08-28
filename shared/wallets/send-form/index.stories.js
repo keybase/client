@@ -34,7 +34,9 @@ const load = () => {
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />)
+    .add('Send', () => (
+      <SendForm isRequest={false} onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />
+    ))
 }
 
 export default load

@@ -6,6 +6,7 @@ import Body from './body/container'
 import Header from './header'
 
 type Props = {|
+  isRequest: boolean,
   bannerInfo?: string,
   isProcessing?: boolean,
   onClick: () => void,

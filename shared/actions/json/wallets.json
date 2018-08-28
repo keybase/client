@@ -71,8 +71,12 @@
       "_description": "Load a request's details",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
-    "makeRequestLocal": {
+    "requestPayment": {
       "_description": "Request payment",
+    },
+    "requestedPayment": {
+      "_description": "Successfully request payment",
+      "kbRqID": "HiddenString",
     },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
