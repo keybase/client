@@ -22,8 +22,8 @@ const (
 
 var TorProxy = "localhost:9050"
 
-// TODO: Remove these aliases once everything outside of this repo
-// points to kbconst.RunMode.
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbconst.RunMode.
 
 type RunMode = kbconst.RunMode
 
