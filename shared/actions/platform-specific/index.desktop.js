@@ -121,7 +121,7 @@ const checkRPCOwnership = () =>
       const localAppData = String(process.env.LOCALAPPDATA)
       var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
       const args = ['pipeowner', socketPath]
-      yield Saga.call(
+      const result = yield Saga.call(
         () =>
           new Promise((resolve, reject) => {
             execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
@@ -132,9 +132,9 @@ const checkRPCOwnership = () =>
                 reject(error)
                 return
               }
-              const result = JSON.parse(stdout.toString())
-              if (result.isOwner) {
-                resolve()
+              const resultjs = JSON.parse(stdout.toString())
+              if (resultjs.isOwner) {
+                resolve(resultjs)
                 return
               }
               logger.info(`pipeowner check result: ${stdout.toString()}`)
@@ -142,6 +142,9 @@ const checkRPCOwnership = () =>
             })
           })
       )
+      if (result && result.isOwner) {
+        yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: waitKey}))
+      }
     } catch (e) {
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
