@@ -14,11 +14,11 @@ const nativeBridge: {
   eventName: string,
   start: () => void,
   reset: () => void,
+  +addListener: (eventType: string) => void,
+  +removeListeners: (count: number) => void,
 } =
   NativeModules.KeybaseEngine
-const RNEmitter: {
-  addListener: (string, (string) => void) => void,
-} = new NativeEventEmitter(nativeBridge)
+const RNEmitter = new NativeEventEmitter(nativeBridge)
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {

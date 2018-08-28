@@ -20,7 +20,7 @@ export type Props = {
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
   onOpen?: (path: string) => void,
-  extraRows: Array<React.Node>,
+  extraRows: Array<React.Element<any>>,
   onToggleShowIgnored: () => void,
   showIgnored: boolean,
 }

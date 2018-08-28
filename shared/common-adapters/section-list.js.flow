@@ -10,8 +10,8 @@ type Section = {
 }
 // RN's own types are kind of messed up
 export type Props = {
-  keyboardShouldPersistTaps: 'handled',
-  initialNumToRender: number,
+  keyboardShouldPersistTaps?: 'handled',
+  initialNumToRender?: number,
   sections: $ReadOnlyArray<Section>,
   stickySectionHeadersEnabled: boolean,
   renderSectionHeader?: (info: {section: Section}) => ?React.Element<any>,
@@ -28,4 +28,4 @@ export type Props = {
   }) => ?React.Element<any>,
 }
 
-export default class extends SectionList {}
+export default class extends React.Component<Props> {}

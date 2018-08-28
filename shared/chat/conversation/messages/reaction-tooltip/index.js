@@ -94,35 +94,31 @@ const renderItem = ({item}: {item: ListItem}) => {
   )
 }
 
-const renderSectionHeader = ({
-  section,
-}: {
-  section: {
+const renderSectionHeader = ({section}) => {
+  const s: {
     conversationIDKey: Types.ConversationIDKey,
     data: Array<any>,
     ordinal: Types.Ordinal,
     title: string,
-  },
-}) => (
-  <Box2
-    key={section.title}
-    direction="horizontal"
-    gap="tiny"
-    gapStart={true}
-    gapEnd={true}
-    fullWidth={true}
-    style={styles.buttonContainer}
-  >
-    <ReactButton
-      conversationIDKey={section.conversationIDKey}
-      ordinal={section.ordinal}
-      emoji={section.title}
-    />
-    <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
-      {section.title}
-    </Text>
-  </Box2>
-)
+  } = (section: any)
+
+  return (
+    <Box2
+      key={s.title}
+      direction="horizontal"
+      gap="tiny"
+      gapStart={true}
+      gapEnd={true}
+      fullWidth={true}
+      style={styles.buttonContainer}
+    >
+      <ReactButton conversationIDKey={s.conversationIDKey} ordinal={s.ordinal} emoji={s.title} />
+      <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
+        {s.title}
+      </Text>
+    </Box2>
+  )
+}
 
 const styles = styleSheetCreate({
   addReactionButton: {

@@ -8,8 +8,8 @@ import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrapper
 const patternRequire = require('../../images/upload-pattern-2-600.png')
 
 type UploadState = {
-  backgroundTop: NativeAnimated.AnimatedValue,
-  uploadTop: NativeAnimated.AnimatedValue,
+  backgroundTop: NativeAnimated.Value,
+  uploadTop: NativeAnimated.Value,
   showing: boolean,
 }
 
@@ -31,6 +31,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 
   _startAnimationLoop() {
+    // $FlowIssue flow is confused
     this._animations.loop = NativeAnimated.loop(
       NativeAnimated.timing(this.state.backgroundTop, {
         toValue: -80, // pattern loops on multiples of 80
@@ -41,6 +42,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     this._animations.loop.start()
   }
   _startAnimationIn() {
+    // $FlowIssue flow is confused
     this._animations.in = NativeAnimated.timing(this.state.uploadTop, {
       toValue: 0,
       duration: 300,
@@ -49,6 +51,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
     this._animations.in.start()
   }
   _startAnimationOut(cbIfFinish: () => void) {
+    // $FlowIssue flow is confused
     this._animations.out = NativeAnimated.timing(this.state.uploadTop, {
       toValue: 48,
       duration: 300,
