@@ -228,7 +228,6 @@ export {
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
-  getFilename,
   getMessageID,
   isSpecialMention,
   isUserMessage,

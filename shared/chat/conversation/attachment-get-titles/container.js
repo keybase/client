@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
+import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
 import {connect, type TypedState} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
@@ -35,7 +36,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
   pathToInfo: stateProps.paths.reduce((map, path) => {
-    const filename = Constants.getFilename(path)
+    const filename = FsTypes.getLocalPathName(path)
     map[path] = {
       filename,
       title: '',

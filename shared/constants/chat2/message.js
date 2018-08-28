@@ -8,7 +8,7 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
-import {isWindows, isMobile} from '../platform'
+import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
 
@@ -925,12 +925,6 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '7 days', seconds: 86400 * 7},
   {text: 'Never explode (turn off)', seconds: 0},
 ].reverse()
-
-export const getFilename = (path: string) => {
-  const parts = path.split(isWindows ? '\\' : '/')
-  const filename = parts[parts.length - 1]
-  return filename
-}
 
 // Used to decide whether to show the author wrapper
 export const showAuthorMessageTypes = ['attachment', 'requestPayment', 'sendPayment', 'text']
