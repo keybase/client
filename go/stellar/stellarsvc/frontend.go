@@ -932,9 +932,9 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 	// -------------------- to --------------------
 
 	tracer.Stage("to")
-	var skipRecipient bool
+	skipRecipient := len(arg.To) == 0
 	var minAmountXLM string
-	if arg.ToIsAccountID {
+	if !skipRecipient && arg.ToIsAccountID {
 		_, err := libkb.ParseStellarAccountID(arg.To)
 		if err != nil {
 			res.ToErrMsg = err.Error()

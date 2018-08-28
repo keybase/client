@@ -784,6 +784,24 @@ func TestBuildPaymentLocal(t *testing.T) {
 
 	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
 
+	for _, toIsAccountID := range []bool{false, true} {
+		t.Logf("toIsAccountID: %v", toIsAccountID)
+		bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			From:          senderAccountID,
+			ToIsAccountID: toIsAccountID,
+		})
+		require.NoError(t, err)
+		t.Logf(spew.Sdump(bres))
+		require.Equal(t, false, bres.ReadyToSend)
+		require.Equal(t, "", bres.ToErrMsg)
+		require.Equal(t, "", bres.AmountErrMsg)
+		require.Equal(t, "", bres.SecretNoteErrMsg)
+		require.Equal(t, "", bres.PublicMemoErrMsg)
+		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, worthInfo, bres.WorthInfo)
+		requireBannerSet(t, bres, nil)
+	}
+
 	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From: senderAccountID,
 		To:   tcs[1].Fu.Username,
