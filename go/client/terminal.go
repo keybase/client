@@ -130,9 +130,13 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 		t.G().Log.Error(arg.Err)
 	}
 
-	s := desc + "\n"
-	if t.escapeWrites {
-		s = terminalescaper.Clean(s)
+	s := ""
+	if len(desc) > 0 {
+		d := desc + "\n"
+		if t.escapeWrites {
+			d = terminalescaper.Clean(s)
+		}
+		s += d
 	}
 	s += prompt
 
