@@ -1,6 +1,7 @@
 // @flow
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
+import * as FsUtil from '../util/kbfs'
 import {FilesPreview} from './files.desktop'
 import {remoteConnect, compose} from '../util/container'
 
@@ -21,6 +22,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
   tlfRows: stateProps._tlfRows.map(c => ({
     onSelectPath: () => dispatchProps._onSelectPath(c.path),
     path: FsTypes.pathToString(c.path),
+    ...(FsUtil.tlfToParticipantsOrTeamname(FsTypes.pathToString(c.path))),
   })),
 })
 

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import {Avatars, TeamAvatar} from '../chat/inbox/row/avatars'
 // TODO: uncomment once we make this.
 // import * as RemoteContainer from '../fs/row/remote-container'
 
@@ -10,6 +11,8 @@ type TlfRow = {|
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
   path: string,
   onSelectPath: () => void,
+  teamname: string,
+  participants: Array<string>,
 |}
 
 type FilesPreviewProps = {|
@@ -17,11 +20,28 @@ type FilesPreviewProps = {|
   tlfRows: Array<TlfRow>,
 |}
 
-const FileRow = (r: TlfRow) => (
-  <Kb.ClickableBox onClick={r.onSelectPath}>
-    <Kb.Text type="Body">
-      {r.path}
-    </Kb.Text>
+const FileRow = (props: TlfRow) => (
+  <Kb.ClickableBox onClick={props.onSelectPath} style={styles.tlfRowContainer}>
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      {props.teamname ? (
+        <TeamAvatar
+          teamname={props.teamname}
+          isMuted={false}
+          isSelected={false}
+        />
+      ) : (
+        <Avatars
+          backgroundColor={Styles.globalColors.white}
+          isMuted={false}
+          isLocked={false}
+          isSelected={false}
+          participants={props.participants}
+        />
+      )}
+      <Kb.Text type="Body">
+        {props.path}
+      </Kb.Text>
+    </Kb.Box2>
   </Kb.ClickableBox>
 )
 
@@ -56,6 +76,10 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
+  },
+  tlfRowContainer: {
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
   },
   toggleButton: Styles.platformStyles({
     common: {
