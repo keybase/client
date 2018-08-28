@@ -823,8 +823,8 @@ HANDLE DOKANAPI DokanOpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
  * \param nbRead Number of instances successfully retrieved.
  * \return List retrieved or not.
  */
-BOOL DOKANAPI DokanGetMountPointList(PDOKAN_CONTROL list, ULONG length,
-                                     BOOL uncOnly, PULONG nbRead);
+//BOOL DOKANAPI DokanGetMountPointList(PDOKAN_CONTROL list, ULONG length,
+//                                     BOOL uncOnly, PULONG nbRead);
 
 /**
  * \brief Convert \ref DOKAN_OPERATIONS.ZwCreateFile parameters to <a href="https://msdn.microsoft.com/en-us/library/windows/desktop/aa363858(v=vs.85).aspx">CreateFile</a> parameters.

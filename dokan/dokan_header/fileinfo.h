@@ -1230,19 +1230,21 @@ typedef struct _FILE_NETWORK_PHYSICAL_NAME_INFORMATION {
  * \struct UNICODE_STRING
  * \brief Structure is used to define Unicode strings.
  */
-typedef struct _UNICODE_STRING {
-  /**
-  * The length, in bytes, of the string stored in Buffer.
-  */
-  USHORT Length;
-  /**
-  * The length, in bytes, of Buffer.
-  */
-  USHORT MaximumLength;
-  /**
-  * Pointer to a buffer used to contain a string of wide characters.
-  */
-  PWSTR Buffer;
-} UNICODE_STRING, *PUNICODE_STRING;
+// Already defined in mingw ntdef.h
+//typedef struct _UNICODE_STRING {
+//  /**
+//  * The length, in bytes, of the string stored in Buffer.
+//  */
+//  USHORT Length;
+//  /**
+//  * The length, in bytes, of Buffer.
+//  */
+//  USHORT MaximumLength;
+//  /**
+//  * Pointer to a buffer used to contain a string of wide characters.
+//  */
+//  PWSTR Buffer;
+//} UNICODE_STRING, *PUNICODE_STRING;
+
 
 #endif // FILEINFO_H_
