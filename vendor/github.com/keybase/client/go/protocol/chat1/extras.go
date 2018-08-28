@@ -129,6 +129,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_EDIT,
 	MessageType_ATTACHMENTUPLOADED,
 	MessageType_REACTION,
+	MessageType_REQUESTPAYMENT,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -1557,8 +1558,12 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	if !ok {
 		return false, 0
 	}
-	reactionMessageID, ok := reactions[username]
-	return ok, reactionMessageID
+	reaction, ok := reactions[username]
+	return ok, reaction.ReactionMsgID
+}
+
+func (r MessageReaction) Eq(o MessageReaction) bool {
+	return r.Body == o.Body && r.MessageID == o.MessageID
 }
 
 func (i *ConversationMinWriterRoleInfoLocal) String() string {

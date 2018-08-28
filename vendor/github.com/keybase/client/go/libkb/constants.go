@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/keybase/client/go/kbconst"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
@@ -21,17 +22,18 @@ const (
 
 var TorProxy = "localhost:9050"
 
-type RunMode string
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbconst.RunMode.
+
+type RunMode = kbconst.RunMode
 
 const (
-	DevelRunMode      RunMode = "devel"
-	StagingRunMode    RunMode = "staging"
-	ProductionRunMode RunMode = "prod"
-	RunModeError      RunMode = "error"
-	NoRunMode         RunMode = ""
+	DevelRunMode      RunMode = kbconst.DevelRunMode
+	StagingRunMode    RunMode = kbconst.StagingRunMode
+	ProductionRunMode RunMode = kbconst.ProductionRunMode
+	RunModeError      RunMode = kbconst.RunModeError
+	NoRunMode         RunMode = kbconst.NoRunMode
 )
-
-var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
 
 var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
@@ -41,7 +43,7 @@ var ServerLookup = map[RunMode]string{
 
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
-	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:443"
+	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:4443"
 	ProductionGregorServerURI = "fmprpc+tls://chat-0.core.keybaseapi.com:443"
 )
 
@@ -176,7 +178,7 @@ const (
 	SubkeyExpireIn         = OneYearInSeconds * 16 // 16 years
 	AuthExpireIn           = OneYearInSeconds      // 1 year
 
-	PaperKeyMemoryTimeout = time.Hour
+	ProvisioningKeyMemoryTimeout = time.Hour
 )
 
 // Status codes.  This list should match keybase/lib/status_codes.iced.
@@ -218,6 +220,7 @@ const (
 	SCKeySyncedPGPNotFound             = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCKeyNoMatchingGPG                 = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
 	SCKeyRevoked                       = int(keybase1.StatusCode_SCKeyRevoked)
+	SCSigCannotVerify                  = int(keybase1.StatusCode_SCSigCannotVerify)
 	SCSibkeyAlreadyExists              = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound            = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession                  = int(keybase1.StatusCode_SCBadTrackSession)
@@ -279,6 +282,7 @@ const (
 	SCTeamTarDuplicate                 = int(keybase1.StatusCode_SCTeamTarDuplicate)
 	SCTeamTarNotFound                  = int(keybase1.StatusCode_SCTeamTarNotFound)
 	SCTeamMemberExists                 = int(keybase1.StatusCode_SCTeamMemberExists)
+	SCTeamFTLOutdated                  = int(keybase1.StatusCode_SCTeamFTLOutdated)
 	SCLoginStateTimeout                = int(keybase1.StatusCode_SCLoginStateTimeout)
 	SCRevokeCurrentDevice              = int(keybase1.StatusCode_SCRevokeCurrentDevice)
 	SCRevokeLastDevice                 = int(keybase1.StatusCode_SCRevokeLastDevice)
@@ -565,7 +569,7 @@ const (
 
 const (
 	ServiceLogFileName = "keybase.service.log"
-	KBFSLogFileName    = "keybase.kbfs.log"
+	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"

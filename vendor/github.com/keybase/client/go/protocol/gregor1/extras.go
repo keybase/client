@@ -27,6 +27,7 @@ func (d DeviceID) Eq(other DeviceID) bool {
 }
 func (m MsgID) Bytes() []byte                 { return []byte(m) }
 func (m MsgID) String() string                { return hex.EncodeToString(m) }
+func (m MsgID) Eq(n MsgID) bool               { return m.String() == n.String() }
 func (s System) String() string               { return string(s) }
 func (c Category) String() string             { return string(c) }
 func (b Body) Bytes() []byte                  { return []byte(b) }
@@ -70,6 +71,12 @@ func (m MsgRange) EndTime() gregor.TimeOrOffset {
 }
 func (m MsgRange) Category() gregor.Category {
 	return m.Category_
+}
+func (m MsgRange) SkipMsgIDs() (res []gregor.MsgID) {
+	for _, s := range m.SkipMsgIDs_ {
+		res = append(res, s)
+	}
+	return res
 }
 
 func (d Dismissal) RangesToDismiss() []gregor.MsgRange {
@@ -260,6 +267,12 @@ func (m Message) ToOutOfBandMessage() gregor.OutOfBandMessage {
 		return nil
 	}
 	return *m.Oobm_
+}
+
+func (m Message) Marshal() ([]byte, error) {
+	var b []byte
+	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(m)
+	return b, err
 }
 
 func (m *Message) SetCTime(ctime time.Time) {

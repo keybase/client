@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+	"io"
 
+	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -26,36 +28,47 @@ var PushTeamChannels = "chat.teamchannels"
 var PushKBFSUpgrade = "chat.kbfsupgrade"
 var PushConvRetention = "chat.convretention"
 var PushTeamRetention = "chat.teamretention"
+var PushConvSettings = "chat.convsettings"
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
+}
+
+type NameInfoUntrusted struct {
+	ID            chat1.TLFID
+	CanonicalName string
 }
 
 type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
-	CryptKeys        map[chat1.ConversationMembersType][]CryptKey
 }
 
 func NewNameInfo() *NameInfo {
-	return &NameInfo{
-		CryptKeys: make(map[chat1.ConversationMembersType][]CryptKey),
-	}
+	return &NameInfo{}
 }
 
 type MembershipUpdateRes struct {
 	UserJoinedConvs    []chat1.ConversationLocal
-	UserRemovedConvs   []chat1.ConversationID
-	UserResetConvs     []chat1.ConversationID
+	UserRemovedConvs   []chat1.ConversationMember
+	UserResetConvs     []chat1.ConversationMember
 	OthersJoinedConvs  []chat1.ConversationMember
 	OthersRemovedConvs []chat1.ConversationMember
 	OthersResetConvs   []chat1.ConversationMember
 }
 
+func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
+	for _, cm := range append(m.OthersResetConvs, append(m.OthersJoinedConvs, m.OthersRemovedConvs...)...) {
+		res = append(res, cm.Uid)
+	}
+	return res
+}
+
 type RemoteConversationMetadata struct {
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
+	SnippetDecoration string   `codec:"d"`
 	Headline          string   `codec:"h"`
 	WriterNames       []string `codec:"w"`
 	ResetParticipants []string `codec:"r"`
@@ -72,6 +85,10 @@ func (rc RemoteConversation) GetMtime() gregor1.Time {
 
 func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 	return rc.Conv.GetConvID()
+}
+
+func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
+	return rc.Conv.Metadata.Version
 }
 
 type Inbox struct {
@@ -118,4 +135,60 @@ func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination,
 		Priority:     priority,
 		PostLoadHook: postLoadHook,
 	}
+}
+
+type AttachmentUploaderTaskStatus int
+
+const (
+	AttachmentUploaderTaskStatusUploading AttachmentUploaderTaskStatus = iota
+	AttachmentUploaderTaskStatusSuccess
+	AttachmentUploaderTaskStatusFailed
+)
+
+type AttachmentUploadResult struct {
+	Error    *string
+	Object   chat1.Asset
+	Preview  *chat1.Asset
+	Metadata []byte
+}
+
+type DummyAttachmentFetcher struct{}
+
+func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
+	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
+	progress ProgressReporter) error {
+	return nil
+}
+
+func (d DummyAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error) {
+	return nil, nil
+}
+
+func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,
+	convID chat1.ConversationID, assets []chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (err error) {
+	return nil
+}
+
+func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error {
+	return nil
+}
+
+func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
+	return false, nil
+}
+
+type DummyAttachmentHTTPSrv struct{}
+
+func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
+	preview bool) string {
+	return ""
+}
+
+func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string {
+	return ""
+}
+
+func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
+	return DummyAttachmentFetcher{}
 }

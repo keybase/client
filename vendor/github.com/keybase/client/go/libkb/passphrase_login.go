@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -262,12 +263,7 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	err = secretStore.StoreSecret(m, secret)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return secretStore.StoreSecret(m, secret)
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
