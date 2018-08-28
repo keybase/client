@@ -253,19 +253,19 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 }
 
 type HPrevInfo struct {
-	HighSeqNo keybase1.Seqno
-	HighPrev  LinkID
+	Seqno keybase1.Seqno
+	Hash  LinkID
 }
 
-func NewRootHPrevInfo() HPrevInfo {
+func NewHPrevInfo(hPrevSeqno keybase1.Seqno, hPrevHash LinkID) HPrevInfo {
 	return HPrevInfo{
-		HighSeqNo: keybase1.Seqno(0),
-		HighPrev:  LinkID(nil),
+		Seqno: hPrevSeqno,
+		Hash:  hPrevHash,
 	}
 }
 
-func (hp HPrevInfo) IsEmpty() bool {
-	return (hp.HighPrev.String() == "" && int(hp.HighSeqNo) == int(0))
+func NewInitialHPrevInfo() HPrevInfo {
+	return NewHPrevInfo(keybase1.Seqno(0), nil)
 }
 
 type ProofMetadata struct {
@@ -283,7 +283,10 @@ type ProofMetadata struct {
 	SeqType             keybase1.SeqType
 	MerkleRoot          *MerkleRoot
 	IgnoreIfUnsupported SigIgnoreIfUnsupported
-	HPrevInfo           *HPrevInfo
+	// HPrevInfoOverride is used for teams to provide team chain hPrevInfos and
+	// for a KEX-provisisonee to provide the provisioner's information as the
+	// latest high link.
+	HPrevInfoOverride *HPrevInfo
 }
 
 func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
@@ -346,18 +349,25 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
-	hPrevInfo := jsonw.NewDictionary()
-	if arg.HPrevInfo == nil || arg.HPrevInfo.IsEmpty() {
-		// this could be a root node or if no high set pointers are known yet
-		// or a user sigchain node for which high pointers aren't a thing yet
-		hPrevInfo.SetKey("hash", jsonw.NewNil())
-		hPrevInfo.SetKey("seqno", jsonw.NewInt64(int64(0)))
+	// If this is a standard user link, arg.Me will
+	// be provided. It is not provided during a
+	// KEX and for team sigs, where it is overriden.
+	// TODO but not for per user keys or stellar?.
+	var hPrevInfo HPrevInfo
+	if arg.Me != nil {
+		hPrevInfo = arg.Me.GetSigChainHPrevInfo()
 	} else {
-		hPrevHash := jsonw.NewString(arg.HPrevInfo.HighPrev.String())
-		hPrevInfo.SetKey("hash", hPrevHash)
-		hPrevInfo.SetKey("seqno", jsonw.NewInt64(int64(arg.HPrevInfo.HighSeqNo)))
+		hPrevInfo = *arg.HPrevInfoOverride
 	}
-	ret.SetKey("hprev_info", hPrevInfo)
+
+	hPrevInfoObj := jsonw.NewDictionary()
+	hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
+	if hash := hPrevInfo.Hash; hash != nil {
+		hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
+	} else {
+		hPrevInfoObj.SetKey("hash", jsonw.NewNil())
+	}
+	ret.SetKey("hprev_info", hPrevInfoObj)
 
 	if arg.IgnoreIfUnsupported {
 		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
@@ -460,18 +470,27 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		}
 	}
 
+	// If this is a subkey, the previous link was a sibkey,
+	// so set that as the hPrevInfo for this link.
+	var hPrevInfoOverride *HPrevInfo
+	if arg.DelegationType == DelegationTypeSubkey {
+		hPrevInfo := NewHPrevInfo(arg.Seqno-1, arg.PrevLinkID)
+		hPrevInfoOverride = &hPrevInfo
+	}
+
 	ret, err = ProofMetadata{
-		Me:             arg.Me,
-		SigningUser:    arg.SigningUser,
-		LinkType:       LinkType(arg.DelegationType),
-		ExpireIn:       arg.Expire,
-		SigningKey:     arg.GetSigningKey(),
-		Eldest:         arg.EldestKID,
-		CreationTime:   arg.Ctime,
-		IncludePGPHash: includePGPHash,
-		Seqno:          arg.Seqno,
-		PrevLinkID:     arg.PrevLinkID,
-		MerkleRoot:     arg.MerkleRoot,
+		Me:                arg.Me,
+		SigningUser:       arg.SigningUser,
+		LinkType:          LinkType(arg.DelegationType),
+		ExpireIn:          arg.Expire,
+		SigningKey:        arg.GetSigningKey(),
+		Eldest:            arg.EldestKID,
+		CreationTime:      arg.Ctime,
+		IncludePGPHash:    includePGPHash,
+		Seqno:             arg.Seqno,
+		HPrevInfoOverride: hPrevInfoOverride,
+		PrevLinkID:        arg.PrevLinkID,
+		MerkleRoot:        arg.MerkleRoot,
 	}.ToJSON(m)
 
 	if err != nil {
@@ -550,7 +569,7 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrev := NewRootHPrevInfo()
+		hPrevInfo := me.GetSigChainHPrevInfo()
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
 			signingKey,
 			v1LinkType,
@@ -560,7 +579,7 @@ func MakeSig(
 			hasRevokes,
 			seqType,
 			ignoreIfUnsupported,
-			hPrev,
+			hPrevInfo,
 		)
 	default:
 		err = errors.New("Invalid Signature Version")
@@ -766,7 +785,7 @@ func PerUserKeyProofReverseSigned(m MetaContext, me *User, perUserKeySeed PerUse
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID)
+	me.SigChainBump(linkID, sigID, false)
 	me.localDelegatePerUserKey(keybase1.PerUserKey{
 		Gen:         int(generation),
 		Seqno:       me.GetSigChainLastKnownSeqno(),
@@ -875,7 +894,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	}
 
 	// Update the user locally
-	me.SigChainBump(linkID, sigID)
+	me.SigChainBump(linkID, sigID, false)
 	// TODO: do we need to locally do something like me.localDelegatePerUserKey?
 
 	res := make(JSONPayload)

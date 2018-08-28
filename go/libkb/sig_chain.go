@@ -48,6 +48,11 @@ type SigChain struct {
 	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
+	// hPrevInfo is the last seen high seqno and Link ID after playing the
+	// chain. hPrevInfo is computed across subchains: if the user resets, the
+	// HPrevSeqno of the new eldest will point to somewhere in the last
+	// subchain.
+	hPrevInfo HPrevInfo
 
 	// If we've locally delegated a key, it won't be reflected in our
 	// loaded chain, so we need to make a note of it here.
@@ -211,11 +216,14 @@ func (sc *SigChain) VerifiedChainLinks(fp PGPFingerprint) (ret ChainLinks) {
 	return ret
 }
 
-func (sc *SigChain) Bump(mt MerkleTriple) {
+func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
 	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = sc.G().Clock().Now()
+	if isHighDelegator {
+		sc.hPrevInfo = NewHPrevInfo(mt.Seqno, mt.LinkID)
+	}
 }
 
 func (sc *SigChain) LoadFromServer(m MetaContext, t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -370,6 +378,29 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		curr.chainVerified = true
 	}
 
+	newHPrevInfo := NewInitialHPrevInfo()
+	for i := 0; i < len(sc.chainLinks); i++ {
+		curr := sc.chainLinks[i]
+
+		if hPrevInfo := curr.GetHPrevInfo(); hPrevInfo != nil {
+			if hPrevInfo.Seqno != newHPrevInfo.Seqno {
+				return ChainLinkWrongHPrevSeqnoError{fmt.Sprintf("Expected hPrevSeqno %d, got %d", int(newHPrevInfo.Seqno), int(hPrevInfo.Seqno))}
+			}
+			if !hPrevInfo.Hash.Eq(newHPrevInfo.Hash) {
+				return ChainLinkHPrevHashMismatchError{fmt.Sprintf("Expected hash %s, got %s", newHPrevInfo.Hash.String(), hPrevInfo.Hash.String())}
+			}
+		}
+
+		isHigh, err := curr.IsHighLink()
+		if err != nil {
+			return err
+		}
+		if isHigh {
+			newHPrevInfo = NewHPrevInfo(curr.GetSeqno(), curr.id)
+		}
+	}
+	sc.hPrevInfo = newHPrevInfo
+
 	return err
 }
 
@@ -394,6 +425,10 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 		ret = sc.GetLastLoadedID()
 	}
 	return
+}
+
+func (sc SigChain) GetHPrevInfo() (ret HPrevInfo) {
+	return sc.hPrevInfo
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {
@@ -1031,6 +1066,7 @@ func (l *SigChainLoader) MakeSigChain() error {
 		username:             l.user.GetNormalizedName(),
 		chainLinks:           l.links,
 		currentSubchainStart: l.currentSubchainStart,
+		hPrevInfo:            NewInitialHPrevInfo(),
 		Contextified:         NewContextified(l.G()),
 	}
 	for _, link := range l.links {

@@ -216,8 +216,14 @@ func (d *Delegator) SignAndPost(m MetaContext, jw *jsonw.Wrapper) (err error) {
 	return nil
 }
 
+func (d *Delegator) isHighDelegator() bool {
+	return d.DelegationType == DelegationTypeEldest ||
+		d.DelegationType == DelegationTypeSibkey ||
+		d.DelegationType == DelegationTypePGPUpdate
+}
+
 func (d *Delegator) updateLocalState(linkid LinkID) (err error) {
-	d.Me.SigChainBump(linkid, d.sigID)
+	d.Me.SigChainBump(linkid, d.sigID, d.isHighDelegator())
 	d.merkleTriple = MerkleTriple{LinkID: linkid, SigID: d.sigID}
 	return d.Me.localDelegateKey(d.NewKey, d.sigID, d.getExistingKID(), d.IsSibkeyOrEldest(), d.IsEldest(), d.getMerkleHashMeta(), keybase1.Seqno(0))
 }

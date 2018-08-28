@@ -79,21 +79,18 @@ func (t TeamSigChainState) GetLatestHighLinkID() keybase1.LinkID {
 	return t.inner.LastHighLinkID
 }
 
-func (t TeamSigChainState) GetHPrev() (libkb.HPrevInfo, error) {
-	hprev := libkb.NewRootHPrevInfo()
-	hprev.HighSeqNo = t.GetLatestHighSeqno()
-	hPrevStr := t.GetLatestHighLinkID()
-	if hPrevStr == "" {
-		// this could be a root node or if no high links have been set yet
-		hprev.HighPrev = libkb.LinkID{}
-	} else {
-		highPrevBytes, err := libkb.ImportLinkID(hPrevStr)
+func (t TeamSigChainState) GetHPrevInfo() (libkb.HPrevInfo, error) {
+	var linkID libkb.LinkID
+	linkIDStr := t.GetLatestHighLinkID()
+	if linkIDStr != "" {
+		preLinkID, err := libkb.ImportLinkID(linkIDStr)
 		if err != nil {
-			return hprev, err
+			return libkb.HPrevInfo{}, err
 		}
-		hprev.HighPrev = highPrevBytes
+		linkID = preLinkID
 	}
-	return hprev, nil
+	hPrevInfo := libkb.NewHPrevInfo(t.GetLatestHighSeqno(), linkID)
+	return hPrevInfo, nil
 }
 
 func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {

@@ -1418,6 +1418,26 @@ func (e ChainLinkWrongSeqnoError) Error() string {
 
 //=============================================================================
 
+type ChainLinkHPrevHashMismatchError struct {
+	Msg string
+}
+
+func (e ChainLinkHPrevHashMismatchError) Error() string {
+	return fmt.Sprintf("Chain link HPrevHash mismatch error: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChainLinkWrongHPrevSeqnoError struct {
+	Msg string
+}
+
+func (e ChainLinkWrongHPrevSeqnoError) Error() string {
+	return fmt.Sprintf("Chain link wrong HPrevSeqno error: %s", e.Msg)
+}
+
+//=============================================================================
+
 type CtimeMismatchError struct {
 	Msg string
 }

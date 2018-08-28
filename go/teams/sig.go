@@ -26,16 +26,16 @@ func metaContext(g *libkb.GlobalContext) libkb.MetaContext {
 }
 
 func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, teamSection SCTeamSection) (*jsonw.Wrapper, error) {
-	hPrev := libkb.NewRootHPrevInfo()
+	hPrevInfo := libkb.NewInitialHPrevInfo()
 	ret, err := libkb.ProofMetadata{
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		LinkType:    libkb.LinkTypeTeamRoot,
-		SigningKey:  key,
-		Seqno:       1,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfo:   &hPrev,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		LinkType:          libkb.LinkTypeTeamRoot,
+		SigningKey:        key,
+		Seqno:             1,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -67,20 +67,20 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 	if err != nil {
 		return nil, err
 	}
-	hPrev, err := parentTeam.GetHPrev()
+	hPrevInfo, err := parentTeam.GetHPrevInfo()
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		LinkType:    libkb.LinkTypeNewSubteam,
-		SigningKey:  key,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
-		Seqno:       parentTeam.GetLatestSeqno() + 1,
-		PrevLinkID:  prevLinkID,
-		HPrevInfo:   &hPrev,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		LinkType:          libkb.LinkTypeNewSubteam,
+		SigningKey:        key,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
+		Seqno:             parentTeam.GetLatestSeqno() + 1,
+		PrevLinkID:        prevLinkID,
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -110,16 +110,16 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 }
 
 func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.GenericKey, subteamTeamSection SCTeamSection) (*jsonw.Wrapper, error) {
-	hPrev := libkb.NewRootHPrevInfo()
+	hPrevInfo := libkb.NewInitialHPrevInfo()
 	ret, err := libkb.ProofMetadata{
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		LinkType:    libkb.LinkTypeSubteamHead,
-		SigningKey:  key,
-		Seqno:       1,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(subteamTeamSection.Public),
-		HPrevInfo:   &hPrev,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		LinkType:          libkb.LinkTypeSubteamHead,
+		SigningKey:        key,
+		Seqno:             1,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(subteamTeamSection.Public),
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -144,20 +144,20 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 	if err != nil {
 		return nil, err
 	}
-	hPrev, err := parentTeam.GetHPrev()
+	hPrevInfo, err := parentTeam.GetHPrevInfo()
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		LinkType:    libkb.LinkTypeRenameSubteam,
-		SigningKey:  key,
-		Seqno:       parentTeam.GetLatestSeqno() + 1,
-		PrevLinkID:  prev,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfo:   &hPrev,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		LinkType:          libkb.LinkTypeRenameSubteam,
+		SigningKey:        key,
+		Seqno:             parentTeam.GetLatestSeqno() + 1,
+		PrevLinkID:        prev,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -179,20 +179,20 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 	if err != nil {
 		return nil, err
 	}
-	hPrev, err := subteam.GetHPrev()
+	hPrevInfo, err := subteam.GetHPrevInfo()
 	if err != nil {
 		return nil, err
 	}
 	ret, err := libkb.ProofMetadata{
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		LinkType:    libkb.LinkTypeRenameUpPointer,
-		SigningKey:  key,
-		Seqno:       subteam.GetLatestSeqno() + 1,
-		PrevLinkID:  prev,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfo:   &hPrev,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		LinkType:          libkb.LinkTypeRenameUpPointer,
+		SigningKey:        key,
+		Seqno:             subteam.GetLatestSeqno() + 1,
+		PrevLinkID:        prev,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -231,7 +231,7 @@ func NewInviteID() SCTeamInviteID {
 }
 
 func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
-	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, hPrev libkb.HPrevInfo) (*jsonw.Wrapper, error) {
+	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, hPrevInfo libkb.HPrevInfo) (*jsonw.Wrapper, error) {
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
@@ -239,16 +239,16 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 	}
 
 	ret, err := libkb.ProofMetadata{
-		LinkType:    linkType,
-		SigningUser: me,
-		Eldest:      me.GetEldestKID(),
-		SigningKey:  key,
-		Seqno:       seqno,
-		PrevLinkID:  prev,
-		SigVersion:  libkb.KeybaseSignatureV2,
-		SeqType:     seqTypeForTeamPublicness(teamSection.Public),
-		MerkleRoot:  merkleRoot,
-		HPrevInfo:   &hPrev,
+		LinkType:          linkType,
+		SigningUser:       me,
+		Eldest:            me.GetEldestKID(),
+		SigningKey:        key,
+		Seqno:             seqno,
+		PrevLinkID:        prev,
+		SigVersion:        libkb.KeybaseSignatureV2,
+		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
+		MerkleRoot:        merkleRoot,
+		HPrevInfoOverride: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err

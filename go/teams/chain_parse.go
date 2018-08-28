@@ -159,6 +159,23 @@ func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) 
 	return res, err
 }
 
+type HPrevInfoStr struct {
+	Seqno keybase1.Seqno
+	Hash  *string
+}
+
+func (h HPrevInfoStr) ToLibkbHPrevInfo() (libkb.HPrevInfo, error) {
+	var hash libkb.LinkID
+	if h.Hash != nil {
+		preHash, err := libkb.LinkIDFromHex(*h.Hash)
+		if err != nil {
+			return libkb.HPrevInfo{}, err
+		}
+		hash = preHash
+	}
+	return libkb.NewHPrevInfo(h.Seqno, hash), nil
+}
+
 type SCChainLinkPayload struct {
 	Body                SCPayloadBody                `json:"body,omitempty"`
 	Ctime               int                          `json:"ctime,omitempty"`
@@ -168,6 +185,7 @@ type SCChainLinkPayload struct {
 	Seqno               keybase1.Seqno               `json:"seqno,omitempty"`
 	Tag                 string                       `json:"tag,omitempty"`
 	IgnoreIfUnsupported libkb.SigIgnoreIfUnsupported `json:"ignore_if_unsupported,omitempty"`
+	HPrevInfo           *HPrevInfoStr                `json:"hprev_info,omitempty"`
 }
 
 func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {

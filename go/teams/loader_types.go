@@ -187,6 +187,15 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		useSeqType = l.outerLink.SeqType
 	}
 
+	var hPrevInfoPtr *libkb.HPrevInfo
+	if hPrevInfoStr := l.inner.HPrevInfo; hPrevInfoStr != nil {
+		hPrevInfo, err := hPrevInfoStr.ToLibkbHPrevInfo()
+		if err != nil {
+			return nil
+		}
+		hPrevInfoPtr = &hPrevInfo
+	}
+
 	return l.outerLink.AssertFields(
 		l.inner.Body.Version,
 		l.inner.Seqno,
@@ -194,5 +203,6 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		l.innerLinkID,
 		linkType,
 		useSeqType,
-		l.inner.IgnoreIfUnsupported)
+		l.inner.IgnoreIfUnsupported,
+		hPrevInfoPtr)
 }

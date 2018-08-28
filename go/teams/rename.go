@@ -146,7 +146,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.Use
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
-	hprev, err := parentTeam.GetHPrev()
+	hPrevInfo, err := parentTeam.GetHPrevInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func generateRenameSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.Use
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		hprev,
+		hPrevInfo,
 	)
 	if err != nil {
 		return nil, err
@@ -208,7 +208,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me libkb.
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(teams.subteam.IsPublic())
-	hprev, err := teams.subteam.GetHPrev()
+	hPrevInfo, err := teams.subteam.GetHPrevInfo()
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +221,7 @@ func generateRenameUpPointerSigForSubteamChain(g *libkb.GlobalContext, me libkb.
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		hprev,
+		hPrevInfo,
 	)
 	if err != nil {
 		return nil, err

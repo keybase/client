@@ -93,6 +93,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
+	hPrevInfo                          *HPrevInfo
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
@@ -255,6 +256,10 @@ func (c *ChainLink) getIgnoreIfUnsupportedFromPayload() SigIgnoreIfUnsupported {
 
 func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
 	return c.getIgnoreIfUnsupportedFromPayload()
+}
+
+func (c *ChainLink) getHPrevInfoFromPayload() *HPrevInfo {
+	return c.unpacked.hPrevInfo
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -497,6 +502,23 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		}
 	}
 
+	if _, dataType, _, err := jsonparser.Get(payload, "hprev_info"); err == nil && dataType == jsonparser.Object {
+		hPrevSeqnoInt, err := jsonparser.GetInt(payload, "hprev_info", "seqno")
+		if err != nil {
+			return err
+		}
+		hPrevSeqno := keybase1.Seqno(hPrevSeqnoInt)
+		hPrevInfo := HPrevInfo{Seqno: hPrevSeqno}
+		if hPrevHashStr, err := jsonparser.GetString(payload, "hprev_info", "hash"); err == nil {
+			hPrevHash, err := LinkIDFromHex(hPrevHashStr)
+			if err != nil {
+				return err
+			}
+			hPrevInfo.Hash = hPrevHash
+		}
+		tmp.hPrevInfo = &hPrevInfo
+	}
+
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
 	if err != nil {
 		return err
@@ -609,11 +631,23 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	}
 
 	c.id = ol.LinkID()
+
+	// Because the outer link does not have a hPrevInfo parent object, we check
+	// for the nullity of hPrevSeqno to see if hPrevInfo should be set, since
+	// a null hPrevHash is valid even when specifying hPrevInfo.
+	var hPrevInfoPtr *HPrevInfo
+	if ol.HPrevSeqno != nil {
+		// TODO: unsure if *ol.hPrevHash will crash on old clients' jsons
+		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, *ol.HPrevHash)
+		hPrevInfoPtr = &hPrevInfo
+	}
+
 	c.unpacked = &ChainLinkUnpacked{
 		prev:                ol.Prev,
 		seqno:               ol.Seqno,
 		seqType:             ol.SeqType,
 		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
+		hPrevInfo:           hPrevInfoPtr,
 		sigVersion:          ol.Version,
 		outerLinkV2:         ol,
 		stubbed:             true,
@@ -938,8 +972,9 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
+	hPrevInfo := c.getHPrevInfoFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, hPrevInfo); err != nil {
 		return err
 	}
 
@@ -976,6 +1011,10 @@ func (c *ChainLink) getSeqnoFromPayload() keybase1.Seqno {
 
 func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
+}
+
+func (c *ChainLink) GetHPrevInfo() *HPrevInfo {
+	return c.unpacked.hPrevInfo
 }
 
 func (c *ChainLink) GetSigID() keybase1.SigID {
@@ -1307,4 +1346,27 @@ func (c ChainLink) AllowStubbing() bool {
 		return false
 	}
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
+}
+
+// This logic is defined at
+// https://keybase.atlassian.net/wiki/spaces/GEN/pages/499318820/Sigchain+Playback+Performance+Ideas
+// under Discussion. Note that the SigchainV2Type converter covers all
+// the cases where a link is revoking but it is not a revoke type link.
+func (c ChainLink) IsHighLink() (bool, error) {
+	v2Type, err := c.GetSigchainV2Type(c.GetIgnoreIfSupported())
+	if err != nil {
+		v2Type, err = c.GetSigchainV2TypeFromV2Shell()
+		if err != nil {
+			return false, ChainLinkError{fmt.Sprintf("Could not determine linkType of chain link.")}
+		}
+	}
+
+	isFirstLink := v2Type == SigchainV2TypeEldest || int(c.GetSeqno()) == int(1)
+	isNewHighLink := isFirstLink ||
+		v2Type == SigchainV2TypeRevoke ||
+		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
+		v2Type == SigchainV2TypeCryptocurrencyWithRevoke ||
+		v2Type == SigchainV2TypeSibkey ||
+		v2Type == SigchainV2TypePGPUpdate
+	return isNewHighLink, nil
 }

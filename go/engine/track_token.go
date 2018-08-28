@@ -264,7 +264,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 		return err
 	}
 
-	me.SigChainBump(linkID, sigID)
+	me.SigChainBump(linkID, sigID, false)
 
 	return err
 }

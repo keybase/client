@@ -198,8 +198,11 @@ type OuterLinkV2 struct {
 	// - it can be stubbed for non-admins
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
-	HighSeqno           *keybase1.Seqno        `codec:"hseqno"`
-	HighPrev            *LinkID                `codec:"hprev"`
+	// -- Links exist in the wild that are missing fields below this line too.
+	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
+	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
+	HPrevSeqno *keybase1.Seqno `codec:"hseqno"`
+	HPrevHash  *LinkID         `codec:"hprev"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -245,7 +248,7 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
-	hPrev HPrevInfo,
+	hPrevInfo HPrevInfo,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
@@ -262,14 +265,13 @@ func MakeSigchainV2OuterSig(
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
 		IgnoreIfUnsupported: ignoreIfUnsupported,
-		HighSeqno:           &hPrev.HighSeqNo,
-		HighPrev:            &hPrev.HighPrev,
+		HPrevSeqno:          &hPrevInfo.Seqno,
+		HPrevHash:           &hPrevInfo.Hash,
 	}
-	if hPrev.IsEmpty() {
-		// this could be a root node or if no high set pointers are known yet
-		// or a user sigchain node for which high pointers aren't a thing yet
-		// the server expects `null` for hprev, and otherwise we'd get `""`
-		outerLink.HighPrev = nil
+	if hPrevInfo.Hash == nil {
+		// This is so we send null instead of an empty string for HPrevHash.
+		// TODO: don't understand why this is necessary. I think some test breaks.
+		outerLink.HPrevHash = nil
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {
@@ -445,6 +447,7 @@ func (o OuterLinkV2) AssertFields(
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	hPrevInfo *HPrevInfo,
 ) (err error) {
 	mkErr := func(format string, arg ...interface{}) error {
 		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
@@ -470,6 +473,31 @@ func (o OuterLinkV2) AssertFields(
 	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
 		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
+
+	if o.HPrevSeqno != nil && hPrevInfo == nil {
+		return mkErr("provided HPrevSeqno (%d) in outer link but not in inner link", o.HPrevSeqno)
+	}
+	if o.HPrevSeqno == nil && hPrevInfo != nil {
+		return mkErr("provided HPrevInfo in inner link but not HPrevSeqno in outer link")
+	}
+	if o.HPrevSeqno != nil {
+		if *o.HPrevSeqno != hPrevInfo.Seqno {
+			return mkErr("hprevseqno field: (%d != %d)", *o.HPrevSeqno, hPrevInfo.Seqno)
+		}
+
+		// TODO Very unclear if this is nil safe...
+		if o.HPrevHash == nil && hPrevInfo.Hash != nil {
+			return mkErr("Provided HPrevHash in outer link but not inner.")
+		}
+		if o.HPrevHash != nil && hPrevInfo.Hash == nil {
+			return mkErr("Provided HPrevHash in inner link but not outer.")
+		}
+
+		if o.HPrevHash != nil && !(*o.HPrevHash).Eq(hPrevInfo.Hash) {
+			return mkErr("hPrevHash field: ((%v=%s) != (%v=%s))", o.HPrevHash, o.HPrevHash, hPrevInfo.Hash, hPrevInfo.Hash)
+		}
+	}
+
 	return nil
 }
 
