@@ -11,13 +11,14 @@ import ConnectedUsernames from '../common-adapters/usernames-remote-container'
 type TlfRow = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
-  path: string,
+  tlf: string,
   onSelectPath: () => void,
   iconSpec: FsTypes.PathItemIconSpec,
   writer: string,
   tlfType: FsTypes.TlfType,
   participants: Array<string>,
   teamname: string,
+  timestamp: string,
 |}
 
 type FilesPreviewProps = {|
@@ -39,7 +40,7 @@ const FileRow = (props: TlfRow) => (
           colorBroken={true}
         />
         <Kb.Text type="BodySmall" style={styles.tlfTime}>
-          3:15 PM
+          {props.timestamp}
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -62,7 +63,7 @@ export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {tlfRows.map(r => {
-        return <FileRow key={r.path} {...r} />
+        return <FileRow key={r.tlf} {...r} />
       })}
     </Kb.Box2>
   </Kb.Box2>
