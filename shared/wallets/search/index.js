@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import * as Styles from '../../styles'
 import ResultsList from '../../search/results-list/container'
 import UserInput from '../../search/user-input/container'
-import {Box2, Text} from '../../common-adapters'
+import {Box2} from '../../common-adapters'
+import {ParticipantsRow} from '../common'
 
 export type Props = {|
   onClick: (username: string) => void,
@@ -18,10 +19,7 @@ const placeholder = 'Search Keybase'
 // properly horizontally without wrapping a vertical Box2 around it.
 const Search = (props: Props) => (
   <Box2 direction="vertical">
-    <Box2 direction="horizontal" fullWidth={true} style={styles.inputLine}>
-      <Text style={styles.toText} type="Body">
-        To:
-      </Text>
+    <ParticipantsRow heading="To" style={styles.row}>
       <Box2 direction="vertical" fullWidth={true}>
         <UserInput
           searchKey={searchKey}
@@ -32,7 +30,7 @@ const Search = (props: Props) => (
           showServiceFilter={false}
         />
       </Box2>
-    </Box2>
+    </ParticipantsRow>
     <ResultsList
       searchKey={searchKey}
       onClick={props.onClick}
@@ -42,9 +40,10 @@ const Search = (props: Props) => (
   </Box2>
 )
 
-const styles = styleSheetCreate({
-  toText: {color: globalColors.blue},
-  inputLine: {alignItems: 'center', paddingLeft: globalMargins.small, paddingRight: globalMargins.small},
+const styles = Styles.styleSheetCreate({
+  row: {
+    paddingBottom: 0,
+  },
 })
 
 export default Search
