@@ -17,6 +17,7 @@ const mapStateToProps = (state: TypedState) => {
     fromAccountName: '',
     fromAccountContents: '',
     recipientUsername: built.toUsername,
+    recipientFullName: 'placeholder',
     recipientStellarAddress,
   }
 }
