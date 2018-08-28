@@ -102,7 +102,7 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {searchKey, showServiceFilter}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
@@ -113,7 +113,8 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   )
   const userItems = getUserItems(state, {searchKey})
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
-  const showServiceFilterIfInputEmpty = state.chat2.get('pendingMode') !== 'searchingForUsers'
+  const showServiceFilterIfInputEmpty =
+    state.chat2.get('pendingMode') !== 'searchingForUsers' && showServiceFilter
 
   return {
     clearSearchTextInput,
