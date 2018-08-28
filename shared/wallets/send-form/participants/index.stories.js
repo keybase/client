@@ -103,13 +103,6 @@ const defaultProps = {
   onChangeRecipient: Sb.action('onChangeRecipient'),
 }
 
-const foundUsernameProps = {
-  recipientUsername: 'yen',
-  recipientFullName: 'Addie Stokes',
-  onShowProfile: Sb.action('onShowProfile'),
-  onRemoveProfile: Sb.action('onRemoveProfile'),
-}
-
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
@@ -128,9 +121,6 @@ const load = () => {
         incorrect="Stellar address incorrect"
         recipientType="stellarPublicKey"
       />
-    ))
-    .add('User match', () => (
-      <Participants {...defaultProps} {...foundUsernameProps} recipientType="keybaseUser" />
     ))
 }
 
