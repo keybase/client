@@ -18,6 +18,7 @@ export type OwnProps = {|
   autoFocus?: boolean,
   focusInputCounter?: number,
   placeholder?: string,
+  onChangeSearchText?: (searchText: string) => void,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
   hideAddButton?: boolean,
@@ -149,13 +150,18 @@ export type Props = _Props & {
 }
 
 const ConnectedUserInput = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {
       _onSelectService: () => selectedService => ({selectedService}),
-      onChangeSearchText: () => searchText => ({searchText}),
+      onChangeSearchText: (_, props) => searchText => {
+        if (props.onChangeSearchText) {
+          props.onChangeSearchText(searchText)
+        }
+        return {searchText}
+      },
     }
   ),
   HocHelpers.onChangeSelectedSearchResultHoc,
