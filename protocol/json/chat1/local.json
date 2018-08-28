@@ -556,6 +556,14 @@
         {
           "type": "stellar1.PaymentID",
           "name": "paymentID"
+        },
+        {
+          "type": "stellar1.AccountID",
+          "name": "senderID"
+        },
+        {
+          "type": "stellar1.AccountID",
+          "name": "recipientID"
         }
       ]
     },

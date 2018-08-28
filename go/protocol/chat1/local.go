@@ -801,12 +801,16 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 }
 
 type MessageSendPayment struct {
-	PaymentID stellar1.PaymentID `codec:"paymentID" json:"paymentID"`
+	PaymentID   stellar1.PaymentID `codec:"paymentID" json:"paymentID"`
+	SenderID    stellar1.AccountID `codec:"senderID" json:"senderID"`
+	RecipientID stellar1.AccountID `codec:"recipientID" json:"recipientID"`
 }
 
 func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	return MessageSendPayment{
-		PaymentID: o.PaymentID.DeepCopy(),
+		PaymentID:   o.PaymentID.DeepCopy(),
+		SenderID:    o.SenderID.DeepCopy(),
+		RecipientID: o.RecipientID.DeepCopy(),
 	}
 }
 
