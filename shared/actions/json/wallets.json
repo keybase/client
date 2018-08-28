@@ -71,6 +71,13 @@
       "_description": "Load a request's details",
       "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
+    "requestPayment": {
+      "_description": "Request payment",
+    },
+    "requestedPayment": {
+      "_description": "Successfully request payment",
+      "kbRqID": "HiddenString",
+    },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",

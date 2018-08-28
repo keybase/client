@@ -61,6 +61,19 @@ const sendPayment = (state: TypedState) =>
     Constants.sendPaymentWaitingKey
   ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
 
+const requestPayment = (state: TypedState) =>
+  RPCTypes.localMakeRequestLocalRpcPromise(
+    {
+      amount: state.wallets.buildingPayment.amount,
+      // FIXME -- support other assets.
+      asset: {type: 'native', code: '', issuer: ''},
+      recipient: state.wallets.buildingPayment.to,
+      // TODO -- support currency
+      note: state.wallets.buildingPayment.publicMemo.stringValue(),
+    },
+    Constants.requestPaymentWaitingKey
+  ).then(kbRqID => WalletsGen.createRequestedPayment({kbRqID: new HiddenString(kbRqID)}))
+
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 
 const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
@@ -274,6 +287,12 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, navigateToTop)
+
+  yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuildingPayment)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.requestedPayment, navigateToTop)
+
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
   yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
 }

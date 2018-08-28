@@ -34,6 +34,8 @@ export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
 export const requestDetailReceived = 'wallets:requestDetailReceived'
+export const requestPayment = 'wallets:requestPayment'
+export const requestedPayment = 'wallets:requestedPayment'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
@@ -106,6 +108,8 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
 |}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
+type _RequestPaymentPayload = void
+type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   secretKey: HiddenString,
@@ -211,6 +215,10 @@ export const createLoadAssets = (payload: _LoadAssetsPayload) => ({error: false,
  */
 export const createLoadPayments = (payload: _LoadPaymentsPayload) => ({error: false, payload, type: loadPayments})
 /**
+ * Request payment
+ */
+export const createRequestPayment = (payload: _RequestPaymentPayload) => ({error: false, payload, type: requestPayment})
+/**
  * Select an account. Optionally navigate to the account page.
  */
 export const createSelectAccount = (payload: _SelectAccountPayload) => ({error: false, payload, type: selectAccount})
@@ -246,6 +254,10 @@ export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({error: 
  * Store a request's details
  */
 export const createRequestDetailReceived = (payload: _RequestDetailReceivedPayload) => ({error: false, payload, type: requestDetailReceived})
+/**
+ * Successfully request payment
+ */
+export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({error: false, payload, type: requestedPayment})
 /**
  * Successfully sent a payment
  */
@@ -320,6 +332,8 @@ export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailRecei
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
 export type RequestDetailReceivedPayload = $Call<typeof createRequestDetailReceived, _RequestDetailReceivedPayload>
+export type RequestPaymentPayload = $Call<typeof createRequestPayment, _RequestPaymentPayload>
+export type RequestedPaymentPayload = $Call<typeof createRequestedPayment, _RequestedPaymentPayload>
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
@@ -366,6 +380,8 @@ export type Actions =
   | PaymentsReceivedPayload
   | RefreshPaymentsPayload
   | RequestDetailReceivedPayload
+  | RequestPaymentPayload
+  | RequestedPaymentPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
