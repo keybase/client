@@ -1380,7 +1380,8 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 			if err != nil {
 				return err
 			}
-			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, rate.Currency.String())
+			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount,
+				false /* precisionTwo */, true /* simplify */, rate.Currency.String())
 			if err != nil {
 				return err
 			}
@@ -1388,7 +1389,7 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 			if err != nil {
 				return err
 			}
-			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
+			xlmDesc, err := stellar.FormatAmountXLM(xlms)
 			if err != nil {
 				return err
 			}
@@ -1410,12 +1411,23 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 			code = details.Asset.Code
 		}
 		res.AmountStellar = details.Amount
-		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, code)
-		if err == nil {
-			res.AmountDescription = xlmDesc
-			res.AmountStellarDescription = xlmDesc
+
+		// The "nice" amount description, with zeroes trimmed from fractional
+		// part.
+		amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, /* precisionTwo */
+			true /* simplify */, code)
+		if err != nil {
+			s.G().Log.CDebugf(ctx, "Error formatting amount for AmountDescription: %v", err)
 		} else {
-			s.G().Log.CDebugf(ctx, "error formatting Stellar amount: %v", err)
+			res.AmountDescription = amountDesc
+		}
+		// Full Stellar amount description with all digits present.
+		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, /* precisionTwo */
+			false /* simplify */, code)
+		if err != nil {
+			s.G().Log.CDebugf(ctx, "Error formatting amount for AmountStellarDescription: %v", err)
+		} else {
+			res.AmountStellarDescription = xlmDesc
 		}
 	} else {
 		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")

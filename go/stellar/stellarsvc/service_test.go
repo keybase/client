@@ -718,7 +718,7 @@ func TestRequestPayment(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
 	require.Equal(t, "5.23 XLM", details.AmountDescription)
-	require.Equal(t, "5.23 XLM", details.AmountStellarDescription)
+	require.Equal(t, "5.2300000 XLM", details.AmountStellarDescription)
 	require.Equal(t, "5.23", details.Amount)
 	require.Equal(t, "5.23", details.AmountStellar)
 	require.Nil(t, details.Currency)

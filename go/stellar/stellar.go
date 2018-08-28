@@ -936,15 +936,20 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 
 // Example: "157.5000000 XLM"
 func FormatAmountXLM(amount string) (string, error) {
-	return FormatAmountWithSuffix(amount, false, "XLM")
+	// Do not simplify XLM amounts, all zeroes are important because
+	// that's the exact number of digits that Stellar protocol
+	// supports.
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, "XLM")
 }
 
-func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
 	formatted, err := FormatAmount(amount, precisionTwo)
 	if err != nil {
 		return "", err
 	}
-	formatted = libkb.StellarSimplifyAmount(formatted)
+	if simplify {
+		formatted = libkb.StellarSimplifyAmount(formatted)
+	}
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
