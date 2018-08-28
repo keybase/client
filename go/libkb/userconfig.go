@@ -13,8 +13,8 @@ import (
 
 //==================================================================
 
-// TODO: Remove these aliases once everything outside of this repo
-// points to kbun.
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbun.
 type NormalizedUsername = kbun.NormalizedUsername
 
 func NewNormalizedUsername(s string) NormalizedUsername {
