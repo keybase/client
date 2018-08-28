@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/terminalescaper"
 )
 
 type Terminal struct {
@@ -55,18 +56,12 @@ func (t *Terminal) PromptPassword(s string) (string, error) {
 	if err := t.open(); err != nil {
 		return "", err
 	}
-	if t.escapeWrites {
-		s = terminalescaper.Clean(s)
-	}
 	return t.engine.PromptPassword(s)
 }
 
 func (t *Terminal) Prompt(s string) (string, error) {
 	if err := t.open(); err != nil {
 		return "", err
-	}
-	if t.escapeWrites {
-		s = terminalescaper.Clean(s)
 	}
 	s, err := t.engine.Prompt(s)
 	if err == minterm.ErrPromptInterrupted {
@@ -135,11 +130,17 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 		t.G().Log.Error(arg.Err)
 	}
 
+	s := desc + "\n"
+	if t.escapeWrites {
+		s = terminalescaper.Clean(s)
+	}
+	s += prompt
+
 	var txt string
 	if arg.ShowTyping {
-		txt, err = t.Prompt(desc + "\n" + prompt)
+		txt, err = t.Prompt(s)
 	} else {
-		txt, err = t.PromptPassword(desc + "\n" + prompt)
+		txt, err = t.PromptPassword(s)
 	}
 
 	if err == io.EOF || err == minterm.ErrPromptInterrupted || len(txt) == 0 {
