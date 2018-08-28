@@ -9,8 +9,14 @@ import {remoteConnect, compose} from '../util/container'
 const mapStateToProps = (state) => ({
   _username: state.username,
   _tlfRows: [
-    {path: FsTypes.stringToPath('/keybase/team/zila.test/abc')},
-    {path: FsTypes.stringToPath('/keybase/team/zila.test/def')},
+    {
+      path: FsTypes.stringToPath('/keybase/team/zila.test/abc'),
+      writer: 'jzila',
+    },
+    {
+      path: FsTypes.stringToPath('/keybase/team/zila.test/def'),
+      writer: 'songgao',
+    },
   ],
 })
 
@@ -23,12 +29,15 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onViewAll: dispatchProps.onViewAll,
   tlfRows: stateProps._tlfRows.map(c => {
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(FsTypes.pathToString(c.path))
-    const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname(participants, teamname, stateProps._username)
+    const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
       onSelectPath: () => dispatchProps._onSelectPath(c.path),
       path: FsTypes.pathToString(c.path),
-      participants,
-      teamname,
+      // Default to private visibility--this should never happen though.
+      tlfType: FsTypes.getPathVisibility(c.path) || 'private',
+      writer: c.writer,
+      participants: participants || [],
+      teamname: teamname || '',
       iconSpec,
     }
   }),

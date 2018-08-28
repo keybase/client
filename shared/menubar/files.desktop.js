@@ -4,6 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
 import PathItemIcon from '../fs/common/path-item-icon'
+import ConnectedUsernames from '../common-adapters/usernames-remote-container'
 // TODO: uncomment once we make this.
 // import * as RemoteContainer from '../fs/row/remote-container'
 
@@ -13,8 +14,10 @@ type TlfRow = {|
   path: string,
   onSelectPath: () => void,
   iconSpec: FsTypes.PathItemIconSpec,
-  participants: ?Array<string>,
-  teamname: ?string,
+  writer: string,
+  tlfType: FsTypes.TlfType,
+  participants: Array<string>,
+  teamname: string,
 |}
 
 type FilesPreviewProps = {|
@@ -23,14 +26,31 @@ type FilesPreviewProps = {|
 |}
 
 const FileRow = (props: TlfRow) => (
-  <Kb.ClickableBox onClick={props.onSelectPath} style={styles.tlfRowContainer}>
-    <Kb.Box2 direction="horizontal" fullWidth={true}>
-      <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
-      <Kb.Text type="Body">
-        {props.path}
-      </Kb.Text>
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
+    <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
+        <ConnectedUsernames
+          usernames={[props.writer]}
+          type="BodySemibold"
+          clickable={true}
+          underline={true}
+          colorFollowing={true}
+          colorBroken={true}
+        />
+        <Kb.Text type="BodySmall" style={styles.tlfTime}>
+          3:15 PM
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.ClickableBox onClick={props.onSelectPath}>
+          <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
+            {'in ' + (props.tlfType === 'team' ? props.teamname : props.participants.join(','))}
+          </Kb.Text>
+        </Kb.ClickableBox>
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.ClickableBox>
+  </Kb.Box2>
 )
 
 export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
@@ -72,6 +92,15 @@ const styles = Styles.styleSheetCreate({
   },
   tlfRowAvatar: {
     marginRight: Styles.globalMargins.tiny,
+  },
+  tlfTopLine: {
+    justifyContent: 'space-between',
+  },
+  tlfTime: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  tlfParticipants: {
+    fontSize: 12,
   },
   toggleButton: Styles.platformStyles({
     common: {

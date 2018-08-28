@@ -4,9 +4,7 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import {ChatPreview} from './chat.desktop'
 import {remoteConnect, compose} from '../util/container'
 
-const mapStateToProps = state => ({
-  conversations: state.conversations,
-})
+const mapStateToProps = ({conversations}) => ({conversations})
 
 const mapDispatchToProps = dispatch => ({
   onViewAll: () => dispatch(Chat2Gen.createOpenChatFromWidget({})),
