@@ -6,7 +6,7 @@ import asset from './asset/index.stories'
 import banner from './banner/index.stories'
 import common from './common/index.stories'
 import linkExisting from './link-existing/index.stories'
-import search from './search/index.stories'
+// import search from './search/index.stories'
 import sendForm from './send-form/index.stories'
 import confirmForm from './confirm-form/index.stories'
 import receiveModal from './receive-modal/index.stories'
@@ -23,7 +23,7 @@ const load = () => {
   exportSecretKey()
   linkExisting()
   receiveModal()
-  search()
+  // search()
   sendForm()
   confirmForm()
   walletList()

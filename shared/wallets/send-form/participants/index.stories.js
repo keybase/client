@@ -3,11 +3,73 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import Participants, {type Account} from '.'
+import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
+import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
+import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
 
-const provider = Sb.createPropProviderWithCommon({
-  // TODO mock out meaningful values once type `OwnProps` is defined
-  Participants: props => ({}),
-})
+const connectPropsMap: RowConnectPropsMap = {
+  chris: {
+    leftFullname: 'chris',
+    leftIcon: null,
+    leftIconOpaque: true,
+    leftService: 'Keybase',
+    leftUsername: 'Chris Coyne',
+
+    rightIcon: null,
+    rightIconOpaque: true,
+    rightService: null,
+    rightUsername: null,
+
+    leftFollowingState: 'Following',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
+    userAlreadySelected: false,
+    userIsSelectable: true,
+  },
+  cjb: {
+    leftFullname: 'cjb',
+    leftIcon: null,
+    leftIconOpaque: true,
+    leftService: 'Keybase',
+    leftUsername: 'Chris Ball',
+
+    rightIcon: null,
+    rightIconOpaque: true,
+    rightService: null,
+    rightUsername: null,
+
+    leftFollowingState: 'NotFollowing',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
+    userAlreadySelected: false,
+    userIsSelectable: true,
+  },
+  jzila: {
+    leftFullname: 'jzila',
+    leftIcon: null,
+    leftIconOpaque: true,
+    leftService: 'Keybase',
+    leftUsername: 'John Zila',
+
+    rightIcon: null,
+    rightIconOpaque: true,
+    rightService: null,
+    rightUsername: null,
+
+    leftFollowingState: 'NotFollowing',
+    rightFollowingState: 'NoState',
+    userIsInTeam: false,
+    userAlreadySelected: false,
+    userIsSelectable: true,
+  },
+}
+
+export const participantProviderProperties = {
+  ...makeResultsListSelectorMap(connectPropsMap),
+  ...makeUserInputSelectorMap([]),
+}
+
+const provider = Sb.createPropProviderWithCommon(participantProviderProperties)
 
 const primaryAccount: Account = {
   name: 'Primary Account',

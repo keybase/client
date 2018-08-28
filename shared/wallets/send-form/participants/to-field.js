@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
+import Search from './search'
 import type {Account} from '.'
 import type {CounterpartyType} from '../../../constants/types/wallets'
 
@@ -137,7 +138,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         </Kb.Box2>
       )
     } else {
-      return <Kb.Text type="Header">User</Kb.Text>
+      return <Search onClick={() => {}} onClose={() => {}} onShowTracker={() => {}} />
     }
 
     return (
