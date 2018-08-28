@@ -702,13 +702,11 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return e
 	case SCEphemeralPairwiseMACsMissingUIDs:
-		e := EphemeralPairwiseMACsMissingUIDsError{}
 		uids := []keybase1.UID{}
 		for _, field := range s.Fields {
 			uids = append(uids, keybase1.UID(field.Value))
 		}
-		e.UIDs = uids
-		return e
+		return NewEphemeralPairwiseMACsMissingUIDsError(uids)
 	case SCMerkleClientError:
 		e := MerkleClientError{m: s.Desc}
 		for _, field := range s.Fields {
