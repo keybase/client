@@ -171,16 +171,16 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		if res[0].BalanceDescription == "0 XLM" {
 			return false
 		}
-		if res[0].BalanceDescription == "49.9999800 XLM" {
+		if res[0].BalanceDescription == "49.99998 XLM" {
 			t.Logf("poll-1-%v: received T1 but not T2", i)
 			return false
 		}
-		if res[0].BalanceDescription == "29.9999800 XLM" {
+		if res[0].BalanceDescription == "29.99998 XLM" {
 			t.Logf("poll-1-%v: received T2 but not T1", i)
 			return false
 		}
 		t.Logf("poll-1-%v: received both payments", i)
-		require.Equal(t, "79.9999700 XLM", res[0].BalanceDescription)
+		require.Equal(t, "79.99997 XLM", res[0].BalanceDescription)
 		return true
 	})
 
@@ -209,11 +209,11 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
 		require.NoError(t, err)
 		t.Logf("poll-2-%v: %v", i, res[0].BalanceDescription)
-		if res[0].BalanceDescription == "79.9999700 XLM" {
+		if res[0].BalanceDescription == "79.99997 XLM" {
 			return false
 		}
 		t.Logf("poll-1-%v: received final payment", i)
-		require.Equal(t, "89.9999600 XLM", res[0].BalanceDescription)
+		require.Equal(t, "89.99996 XLM", res[0].BalanceDescription)
 		return true
 	})
 

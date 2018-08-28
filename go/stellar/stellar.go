@@ -937,7 +937,7 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 	return desc, nil
 }
 
-// Example: "157.5000000 XLM"
+// Example: "157.5 XLM"
 func FormatAmountXLM(amount string) (string, error) {
 	return FormatAmountWithSuffix(amount, false, "XLM")
 }
@@ -967,10 +967,15 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("unable to parse amount %s", amount)
 	}
-	if parts[1] == "0000000" {
-		// get rid of all zeros after point if default precision
-		parts = parts[:1]
+
+	if !precisionTwo {
+		parts[1] = strings.TrimRight(parts[1], "0")
+		if len(parts[1]) == 0 {
+			// there were all zeroes after point, remove point entirely
+			parts = parts[:1]
+		}
 	}
+
 	head := parts[0]
 	if len(head) <= 3 {
 		return strings.Join(parts, "."), nil

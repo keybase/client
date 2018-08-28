@@ -526,7 +526,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		verb = "sending"
 	}
 
-	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
+	amountXLM := fmt.Sprintf("%s XLM", details.Amount)
 
 	var amountDescription string
 	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {

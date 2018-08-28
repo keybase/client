@@ -83,20 +83,3 @@ func ParseStellarAccountID(idStr string) (stellar1.AccountID, error) {
 		return "", fmt.Errorf("invalid Stellar account ID")
 	}
 }
-
-// SimplifyAmount
-// Amount must be a decimal amount like "1.0" or "50"
-// Strip trailing zeros after a "."
-// Example: "1.0010000" -> "1.001"
-// Example: "1.0000000" -> "1"
-func StellarSimplifyAmount(amount string) string {
-	sides := strings.Split(amount, ".")
-	if len(sides) != 2 {
-		return amount
-	}
-	simpleRight := strings.TrimRight(sides[1], "0")
-	if len(simpleRight) == 0 {
-		return sides[0]
-	}
-	return sides[0] + "." + simpleRight
-}
