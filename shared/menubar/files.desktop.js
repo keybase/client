@@ -19,23 +19,41 @@ type FilesPreviewProps = {|
 
 export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
-    {tlfRows.map(r => {
-      return (
-        <Kb.ClickableBox key={r.path} onClick={r.onSelectPath}>
-          <Kb.Text type="Body">
-            {r.path}
-          </Kb.Text>
-        </Kb.ClickableBox>
-      )
-    })}
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
+      <Kb.Text type="BodySemibold" style={styles.tlfSectionHeader}>
+        Recent files
+      </Kb.Text>
+    </Kb.Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      {tlfRows.map(r => {
+        return (
+          <Kb.ClickableBox key={r.path} onClick={r.onSelectPath}>
+            <Kb.Text type="Body">
+              {r.path}
+            </Kb.Text>
+          </Kb.ClickableBox>
+        )
+      })}
+    </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.black_60},
   tlfContainer: {
+    paddingTop: Styles.globalMargins.tiny,
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black,
+  },
+  tlfSectionHeaderContainer: {
+    backgroundColor: Styles.globalColors.white,
+  },
+  tlfSectionHeader: {
+    backgroundColor: Styles.globalColors.black_05,
+    color: Styles.globalColors.black_40,
+    paddingTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
   },
   toggleButton: Styles.platformStyles({
     common: {
