@@ -10,7 +10,9 @@ let isElectron = process.env.BABEL_PLATFORM === 'Electron'
 let isReactNative = process.env.BABEL_PLATFORM === 'ReactNative'
 
 module.exports = function(api /*: Api */) {
-  api.cache(true)
+  if (api.env() !== 'test') {
+    api.cache(true)
+  }
 
   if (!isElectron && !isReactNative) {
     throw new Error('MUST have env var BABEL_PLATFORM to all babel')
