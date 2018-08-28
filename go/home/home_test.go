@@ -54,7 +54,12 @@ func TestHome(t *testing.T) {
 	}
 
 	for typ := range keybase1.HomeScreenTodoTypeRevMap {
-		require.NoError(t, home.SkipTodoType(ctx, typ))
+		switch typ {
+		case keybase1.HomeScreenTodoType_NONE:
+			require.Error(t, home.SkipTodoType(ctx, typ))
+		default:
+			require.NoError(t, home.SkipTodoType(ctx, typ))
+		}
 	}
 
 	require.NoError(t, home.MarkViewed(ctx))
