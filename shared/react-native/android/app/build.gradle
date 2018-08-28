@@ -170,6 +170,12 @@ play {
     jsonFile = file(KB_SERVICE_ACCT_JSON)
 }
 
+configurations.all {
+    resolutionStrategy {
+        force 'org.webkit:android-jsc:r216113'
+    }
+}
+
 dependencies {
     def supportLibVersion = project.supportLibVersion
     def googlePlayServicesVersion = project.googlePlayServicesVersion

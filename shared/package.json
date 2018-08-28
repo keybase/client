@@ -224,6 +224,7 @@
     "flow-typed": "^2.5.1",
     "fs-extra": "6.0.1",
     "jest": "23.5.0",
+    "jsc-android": "^216113.0.0",
     "jest-glamor-react": "4.3.1",
     "json5": "1.0.1",
     "klaw-sync": "4.0.0",
