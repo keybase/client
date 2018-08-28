@@ -66,8 +66,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
-            username={this.props.username}
-            metaOne={this.props.fullName}
+            username={this.state.selectedUser}
+            // metaOne={'test'}
             onClick={this.props.onShowProfile}
             avatarStyle={styles.avatar}
           />
@@ -146,7 +146,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     } else {
       return (
         <Search
-          onClick={() => console.log('search', 'onClick')}
+          onClickResult={(id: string) => this.setState({selectedUser: id})}
           onClose={() => console.log('search', 'onClose')}
           onShowTracker={() => console.log('search', 'onShowTracker')}
         />

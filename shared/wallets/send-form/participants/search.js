@@ -7,7 +7,7 @@ import {Box2} from '../../../common-adapters'
 import {ParticipantsRow} from '../../common'
 
 export type SearchProps = {|
-  onClick: (username: string) => void,
+  onClickResult: (username: string) => void,
   onClose: () => void,
   onShowTracker: (username: string) => void,
 |}
@@ -51,7 +51,7 @@ class Search extends React.Component<SearchProps, SearchState> {
         {this.state.displayResultsList && (
           <ResultsList
             searchKey={searchKey}
-            onClick={this.props.onClick}
+            onClick={this.props.onClickResult}
             onShowTracker={this.props.onShowTracker}
             disableListBuilding={true}
             style={styles.list}
