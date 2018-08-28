@@ -55,12 +55,18 @@ func (t *Terminal) PromptPassword(s string) (string, error) {
 	if err := t.open(); err != nil {
 		return "", err
 	}
+	if t.escapeWrites {
+		s = terminalescaper.Clean(s)
+	}
 	return t.engine.PromptPassword(s)
 }
 
 func (t *Terminal) Prompt(s string) (string, error) {
 	if err := t.open(); err != nil {
 		return "", err
+	}
+	if t.escapeWrites {
+		s = terminalescaper.Clean(s)
 	}
 	s, err := t.engine.Prompt(s)
 	if err == minterm.ErrPromptInterrupted {
