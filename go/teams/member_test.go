@@ -32,21 +32,15 @@ func memberSetupMultiple(t *testing.T) (tc libkb.TestContext, owner, otherA, oth
 	tc = SetupTest(t, "team", 1)
 
 	otherA, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	tc.G.Logout()
 
 	otherB, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	tc.G.Logout()
 
 	owner, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	name = createTeam(tc)
 	t.Logf("Created team %q", name)
@@ -65,23 +59,20 @@ func memberSetupSubteam(t *testing.T) (tc libkb.TestContext, owner, otherA, othe
 
 	// add otherA and otherB as admins to rootName
 	_, err := AddMember(context.TODO(), tc.G, root, otherA.Username, keybase1.TeamRole_ADMIN)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	assertRole(tc, root, owner.Username, keybase1.TeamRole_OWNER)
 	assertRole(tc, root, otherA.Username, keybase1.TeamRole_ADMIN)
 	assertRole(tc, root, otherB.Username, keybase1.TeamRole_NONE)
 
 	// create a subteam
 	rootTeamName, err := keybase1.TeamNameFromString(root)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	subPart := "sub"
 	_, err = CreateSubteam(context.TODO(), tc.G, subPart, rootTeamName, keybase1.TeamRole_NONE /* addSelfAs */)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	sub = root + "." + subPart
 
 	// make sure owner, otherA, otherB are not members

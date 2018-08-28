@@ -26,7 +26,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {

@@ -1,7 +1,7 @@
 // @flow
 import Participants from '.'
-import * as WalletsGen from '../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
@@ -9,18 +9,32 @@ const mapStateToProps = (state: TypedState) => {
 
   // Building section
   const recipientType = build.recipientType || 'keybaseUser'
-  const to = build.to
-  const recipientStellarAddress = recipientType === 'stellarPublicKey' ? to : ''
-
   // Built section
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
 
+  // TODO: Set these to actual values, this is just to make flow happy until we integrate
+  const onLinkAccount = () => {}
+  const onCreateNewAccount = () => {}
+  const onChangeFromAccount = () => {}
+  const onChangeToAccount = () => {}
+  const fromAccount = {
+    user: '',
+    name: '',
+    contents: '',
+  }
+  const allAccounts = []
+
   return {
     incorrect,
-    recipientStellarAddress,
     recipientType,
     recipientUsername,
+    onCreateNewAccount,
+    onLinkAccount,
+    onChangeFromAccount,
+    onChangeToAccount,
+    fromAccount,
+    allAccounts,
   }
 }
 

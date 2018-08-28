@@ -1,6 +1,6 @@
 // @flow
 import * as SignupGen from '../../../actions/signup-gen'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import UsernameEmail from '.'
 
 const mapStateToProps = (state: TypedState) => ({

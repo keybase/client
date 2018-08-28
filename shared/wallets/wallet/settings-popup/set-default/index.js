@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import WalletPopup from '../../../wallet-popup'
 
 type Props = {|
   accountName: string,
@@ -10,51 +11,58 @@ type Props = {|
   username: string,
 |}
 
-const SetDefaultAccount = (props: Props) => (
-  <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2
-      gap="mediumLarge"
-      centerChildren={Styles.isMobile}
-      gapStart={!Styles.isMobile}
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      style={styles.container}
+const SetDefaultAccount = (props: Props) => {
+  const buttons = [
+    <Kb.Button
+      key={0}
+      fullWidth={Styles.isMobile}
+      type="Secondary"
+      style={styles.button}
+      onClick={props.onClose}
+      label="Cancel"
+    />,
+    <Kb.Button
+      key={1}
+      fullWidth={Styles.isMobile}
+      type="Wallet"
+      style={styles.button}
+      onClick={props.onAccept}
+      label="Set as default account"
+    />,
+  ]
+
+  return (
+    <WalletPopup
+      onClose={props.onClose}
+      headerStyle={styles.header}
+      bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
     >
-      {Styles.isMobile && <Kb.HeaderHocHeader onCancel={props.onClose} headerStyle={styles.header} />}
-      <Kb.Box style={{position: 'relative'}}>
-        <Kb.Icon type="icon-wallet-48" />
+      <Kb.Box style={styles.avatarAndIcon}>
+        <Kb.Icon type={Styles.isMobile ? 'icon-wallet-64' : 'icon-wallet-48'} />
         <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
       </Kb.Box>
-      <Kb.Text type="Header" style={styles.textAlignCenter}>
-        Set{' '}
-        <Kb.Text type="Header" style={styles.textItalic}>
-          {props.accountName}
-        </Kb.Text>{' '}
-        as your default Keybase account?
+      <Kb.Text type="Header" style={styles.mainText}>
+        Set <Kb.Text type="HeaderItalic">{props.accountName}</Kb.Text> as your default Keybase account?
       </Kb.Text>
       <Kb.Text type="Body" style={styles.textAlignCenter}>
-        All transactions and overall activity with{' '}
-        <Kb.Text type="Body" style={styles.textItalic}>
-          {props.accountName}
-        </Kb.Text>{' '}
+        All transactions and overall activity with <Kb.Text type="BodyItalic">{props.accountName}</Kb.Text>{' '}
         will now be tied to your Keybase identity. Your account's name remains encrypted and only visible to
         you.
       </Kb.Text>
-      <Kb.ButtonBar direction={Styles.isMobile ? 'column' : 'row'} style={styles.buttonBar}>
-        <Kb.Button type="Secondary" style={styles.button} onClick={props.onClose} label="Cancel" />
-        <Kb.Button
-          type="Wallet"
-          style={styles.button}
-          onClick={props.onAccept}
-          label="Set as default account"
-        />
-      </Kb.ButtonBar>
-    </Kb.Box2>
-  </Kb.MaybePopup>
-)
+    </WalletPopup>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
+  avatarAndIcon: Styles.platformStyles({
+    common: {
+      position: 'relative',
+      marginBottom: Styles.globalMargins.large,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.large,
+    },
+  }),
   avatar: Styles.platformStyles({
     common: {
       position: 'absolute',
@@ -65,49 +73,26 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       left: -8,
-      top: 12,
-    },
-  }),
-  button: Styles.platformStyles({
-    isMobile: {
-      width: '100%',
-    },
-  }),
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      bottom: 50,
-      position: 'absolute',
-    },
-    isMobile: {
-      bottom: 16,
-      left: 16,
-      position: 'absolute',
-      right: 1,
-    },
-  }),
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      padding: Styles.globalMargins.medium,
-      position: 'relative',
-    },
-    isElectron: {
-      height: 525,
-      width: 360,
+      bottom: -2,
     },
   }),
   header: {
     borderBottomWidth: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
   },
+  mainText: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+    },
+  }),
   textAlignCenter: {
     textAlign: 'center',
-  },
-  textItalic: {
-    fontStyle: 'italic',
   },
 })
 

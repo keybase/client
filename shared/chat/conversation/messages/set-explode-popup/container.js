@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onSelect: seconds => {
     dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds}))
     ownProps.onAfterSelect && ownProps.onAfterSelect(seconds)

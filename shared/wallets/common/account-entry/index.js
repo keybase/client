@@ -1,31 +1,36 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
-import * as Styles from '../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
-type WalletEntryProps = {|
-  name: string,
-  keybaseUser: string,
+type AccountEntryProps = {|
+  center?: boolean,
   contents: string,
+  keybaseUser: string,
+  name: string,
+  showWalletIcon: boolean,
   style?: Styles.StylesCrossPlatform,
 |}
 
-// WalletEntry is mostly copied from WalletRow, with some row specific
-// properties removed. WalletRow could probably be a wrapper around WalletEntry.
-// TODO Refactor WalletEntry and WalletRow
-const WalletEntry = (props: WalletEntryProps) => {
+// A row display of an account, used by the participants components.
+// TODO AccountEntry is mostly copied from WalletRow, with some row specific
+// properties removed. WalletRow could probably be a wrapper around AccountEntry.
+const AccountEntry = (props: AccountEntryProps) => {
   return (
     <Kb.Box2
       style={Styles.collapseStyles([styles.containerBox, props.style])}
       direction="horizontal"
       gap="tiny"
+      centerChildren={props.center}
       fullWidth={true}
     >
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
-        color={Styles.globalColors.darkBlue}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
+      {props.showWalletIcon && (
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
+          color={Styles.globalColors.darkBlue}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+      )}
       <Kb.Box2 direction="vertical" style={styles.rightColumn}>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
           {props.keybaseUser && (
@@ -39,12 +44,19 @@ const WalletEntry = (props: WalletEntryProps) => {
             {props.name}
           </Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="BodySmall" style={styles.amount}>
+        <Kb.Text
+          type="BodySmall"
+          style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
+        >
           {props.contents}
         </Kb.Text>
       </Kb.Box2>
     </Kb.Box2>
   )
+}
+
+AccountEntry.defaultProps = {
+  showWalletIcon: true,
 }
 
 const rightColumnStyle = Styles.platformStyles({
@@ -56,6 +68,11 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  amount: {
+    ...rightColumnStyle,
+    color: Styles.globalColors.black_40,
+    fontSize: 11,
+  },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   icon: {
     alignSelf: 'center',
@@ -67,14 +84,9 @@ const styles = Styles.styleSheetCreate({
     ...rightColumnStyle,
     color: Styles.globalColors.darkBlue,
   },
-  amount: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
-    fontSize: 11,
-  },
   user: {
     alignItems: 'center',
   },
 })
 
-export default WalletEntry
+export default AccountEntry

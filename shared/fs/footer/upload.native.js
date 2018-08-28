@@ -105,7 +105,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
   }
 
   render() {
-    const {files, timeLeft, debugToggleShow} = this.props
+    const {files, totalSyncingBytes, timeLeft, debugToggleShow} = this.props
     return (
       <React.Fragment>
         {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
@@ -119,7 +119,11 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
             </Box>
             <Box style={stylesBox}>
               <Text key="files" type="BodySmallSemibold" style={stylesText}>
-                {files ? `Encrypting and uploading ${files} files...` : 'Done!'}
+                {files
+                  ? `Encrypting and uploading ${files} files...`
+                  : totalSyncingBytes
+                    ? 'Encrypting and uploading...'
+                    : 'Done!'}
               </Text>
               {!!(timeLeft && timeLeft.length) && (
                 <Text key="left" type="BodyTiny" style={stylesText}>{`${timeLeft} left`}</Text>

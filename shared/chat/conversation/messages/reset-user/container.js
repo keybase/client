@@ -4,7 +4,7 @@ import * as Constants from '../../../../constants/chat2'
 import * as TrackerGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
-import {compose, connect, type TypedState, type Dispatch} from '../../../../util/container'
+import {compose, connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)

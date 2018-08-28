@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState) => ({
   submittedUsernameOrEmail: state.provision.usernameOrEmail,
 })
 
-const dispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onSubmit: (usernameOrEmail: string) =>
     dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),

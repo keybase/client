@@ -79,7 +79,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>

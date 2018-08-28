@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  importError: ?string,
   onSubmit: (exportKey: boolean) => void,
   onBack: () => void,
 }

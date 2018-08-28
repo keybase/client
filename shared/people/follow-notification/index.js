@@ -30,6 +30,7 @@ export type NewFollow = Types.FollowedNotification
 
 export type Props = Types._FollowedNotificationItem & {onClickUser: (username: string) => void}
 
+// TODO remove this any type
 export default (props: any) => {
   if (props.newFollows.length === 1) {
     return <FollowNotification {...props} />
@@ -87,7 +88,13 @@ export const MultiFollowNotification = (props: Props) => {
       }
       when={props.notificationTime}
     >
-      <Text type="Body" style={platformStyles({common: {marginTop: 2, marginBottom: globalMargins.xtiny}, isElectron: {display: 'inline'}})}>
+      <Text
+        type="Body"
+        style={platformStyles({
+          common: {marginTop: 2, marginBottom: globalMargins.xtiny},
+          isElectron: {display: 'inline'},
+        })}
+      >
         <ConnectedUsernames
           containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}

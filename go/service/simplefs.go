@@ -296,15 +296,6 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 	return cli.SimpleFSFolderEditHistory(ctx, path)
 }
 
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
-	cli, err := s.client()
-	if err != nil {
-		return err
-	}
-	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
-}
-
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
 func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
 	keybase1.SimpleFSQuotaUsage, error) {

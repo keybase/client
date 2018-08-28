@@ -102,26 +102,30 @@ func (h *Home) Get(ctx context.Context, markViewed bool, numPeopleWanted int) (r
 	h.Lock()
 	defer h.Unlock()
 
-	inCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
-	if inCache {
-		inCache = h.homeCache.isValid(ctx, h.G())
+	useCache, people := h.peopleCache.isValid(ctx, h.G(), numPeopleWanted)
+	if useCache {
+		useCache = h.homeCache.isValid(ctx, h.G())
 	}
 
-	if inCache {
-		h.G().Log.CDebugf(ctx, "| cache is good; skipping get")
-		if markViewed {
-			h.G().Log.CDebugf(ctx, "| going to server to mark view, anyways")
-			tmpErr := h.markViewedWithLock(ctx)
-			if tmpErr != nil {
-				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", tmpErr.Error())
+	if useCache && markViewed {
+		h.bustHomeCacheIfBadgedFollowers(ctx)
+		useCache = h.homeCache != nil
+		// If we blew up our cache, get out of here and refetch, proceed with
+		// marking the view.
+		if useCache {
+			h.G().Log.CDebugf(ctx, "| cache is good; going to server to mark view")
+			if err := h.markViewedAPICall(ctx); err != nil {
+				h.G().Log.CInfof(ctx, "Error marking home as viewed: %s", err.Error())
 			}
 		}
-	} else {
+	}
+
+	if !useCache {
+		h.G().Log.CDebugf(ctx, "| cache is no good; going fetching from server")
 		// If we've already found the people we need to show in the cache,
 		// there's no reason to reload them.
 		skipLoadPeople := len(people) > 0
-		err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople)
-		if err != nil {
+		if err = h.getToCache(ctx, markViewed, numPeopleWanted, skipLoadPeople); err != nil {
 			return ret, err
 		}
 	}
@@ -223,13 +227,11 @@ func (h *Home) bustHomeCacheIfBadgedFollowers(ctx context.Context) (err error) {
 		if !item.Badged {
 			continue
 		}
-		typ, err := item.Data.T()
-		if err != nil {
+		if typ, err := item.Data.T(); err != nil {
 			bust = true
 			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: bad item: %v", err)
 			break
-		}
-		if typ == keybase1.HomeScreenItemType_PEOPLE {
+		} else if typ == keybase1.HomeScreenItemType_PEOPLE {
 			bust = true
 			h.G().Log.CDebugf(ctx, "| in bustHomeCacheIfBadgedFollowers: found badged home people item @%d", i)
 			break
@@ -341,9 +343,11 @@ func (h *Home) handleUpdate(ctx context.Context, item gregor.Item) (err error) {
 func (h *Home) IsAlive() bool {
 	return true
 }
+
 func (h *Home) Name() string {
 	return "Home"
 }
+
 func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case "home.update":
@@ -355,6 +359,7 @@ func (h *Home) Create(ctx context.Context, cli gregor1.IncomingInterface, catego
 		return false, nil
 	}
 }
+
 func (h *Home) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	return true, nil
 }

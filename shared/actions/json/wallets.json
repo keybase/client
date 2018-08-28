@@ -1,6 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
+    "import * as ChatTypes from '../constants/types/chat2'",
     "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
     "import HiddenString from '../util/hidden-string'",
   ],
@@ -26,6 +27,12 @@
     },
     "clearBuiltPayment": {
       "_description": "Clear a prepared payment once it has been sent or canceled",
+    },
+    "cancelRequest": {
+      "_description": "Cancel a request. Optionally delete an associated message",
+      "conversationIDKey?": "ChatTypes.ConversationIDKey",
+      "ordinal?": "ChatTypes.Ordinal",
+      "requestID": "StellarRPCTypes.KeybaseRequestID",
     },
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
@@ -60,6 +67,10 @@
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
     },
+    "loadRequestDetail": {
+      "_description": "Load a request's details",
+      "requestID": "StellarRPCTypes.KeybaseRequestID",
+    },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
@@ -73,6 +84,10 @@
       "accountID": "Types.AccountID",
       "payments": "Array<Types.Payment>",
       "pending": "Array<Types.Payment>",
+    },
+    "requestDetailReceived": {
+      "_description": "Store a request's details",
+      "request": "StellarRPCTypes.RequestDetailsLocal",
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",

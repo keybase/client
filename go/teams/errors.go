@@ -273,6 +273,14 @@ func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplicati
 	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
 }
 
+type AdminPermissionRequiredError struct{}
+
+func NewAdminPermissionRequiredError() error { return &AdminPermissionRequiredError{} }
+
+func (e AdminPermissionRequiredError) Error() string {
+	return "Only admins can perform this operation."
+}
+
 type ImplicitAdminCannotLeaveError struct{}
 
 func NewImplicitAdminCannotLeaveError() error { return &ImplicitAdminCannotLeaveError{} }
