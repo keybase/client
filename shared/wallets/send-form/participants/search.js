@@ -50,7 +50,8 @@ const styles = Styles.styleSheetCreate({
     top: 100,
     zIndex: 4,
     backgroundColor: Styles.globalColors.white,
-    width: '100%',
+    height: 420,
+    overflow: 'hidden',
   },
 })
 
