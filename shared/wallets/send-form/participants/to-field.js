@@ -27,11 +27,17 @@ type ToFieldProps = {|
 
 type ToFieldState = {|
   selectedAccount: ?Account,
+  selectedUser: ?string,
 |}
 
 class ToField extends React.Component<ToFieldProps, ToFieldState> {
   state = {
     selectedAccount: null,
+    selectedUser: null,
+  }
+
+  onRemoveUser = () => {
+    this.setState({selectedUser: null})
   }
 
   onDropdownChange = (node: React.Node) => {
@@ -54,7 +60,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
   render() {
     let component
 
-    if (this.props.recipientType === 'keybaseUser' && this.props.username) {
+    if (this.state.selectedUser) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
@@ -70,7 +76,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
             fontSize={16}
             color={Styles.globalColors.black_20}
-            onClick={this.props.onRemoveProfile}
+            onClick={this.onRemoveUser}
           />
         </React.Fragment>
       )
@@ -138,7 +144,13 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         </Kb.Box2>
       )
     } else {
-      return <Search onClick={() => {}} onClose={() => {}} onShowTracker={() => {}} />
+      return (
+        <Search
+          onClick={() => console.log('search', 'onClick')}
+          onClose={() => console.log('search', 'onClose')}
+          onShowTracker={() => console.log('search', 'onShowTracker')}
+        />
+      )
     }
 
     return (
