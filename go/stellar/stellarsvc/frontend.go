@@ -1042,6 +1042,18 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 		}
 
+		if minAmountXLM != "" {
+			cmp, err := stellarnet.CompareStellarAmounts(amountX.amountOfAsset, minAmountXLM)
+			switch {
+			case err != nil:
+				log("error comparing amounts", err)
+			case cmp == -1:
+				// amount is less than minAmountXLM
+				readyChecklist.amount = false // block sending
+				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
+			}
+		}
+
 		// Note: When adding support for sending non-XLM assets, check here that the recipient accepts the asset.
 	}
 
