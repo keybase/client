@@ -1,4 +1,7 @@
-package libkb
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package kbhttp
 
 import (
 	"fmt"
@@ -6,15 +9,14 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
 )
 
-func TestHTTPSrv(t *testing.T) {
-	tc := SetupTest(t, "TestAvatarsFullCaching", 1)
-	defer tc.Cleanup()
-
-	test := func(s HTTPSrvListenerSource) {
-		srv := NewHTTPSrv(tc.G, s)
+func TestSrv(t *testing.T) {
+	test := func(s ListenerSource) {
+		log := logger.NewTestLogger(t)
+		srv := NewSrv(log, s)
 		require.NoError(t, srv.Start())
 		srv.HandleFunc("/test", func(resp http.ResponseWriter, req *http.Request) {
 			fmt.Fprintf(resp, "success")
