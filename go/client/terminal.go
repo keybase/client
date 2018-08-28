@@ -134,7 +134,7 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 	if len(desc) > 0 {
 		d := desc + "\n"
 		if t.escapeWrites {
-			d = terminalescaper.Clean(s)
+			d = terminalescaper.Clean(d)
 		}
 		s += d
 	}
