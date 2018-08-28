@@ -5,11 +5,12 @@ import (
 	"os"
 	"strings"
 
-	"github.com/keybase/client/go/terminalescaper"
-	isatty "github.com/mattn/go-isatty"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
+	"github.com/keybase/client/go/terminalescaper"
+
+	isatty "github.com/mattn/go-isatty"
 )
 
 func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bool, dui libkb.DumbOutputUI) {
@@ -21,7 +22,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 	}
 	timeStr := p.Time.Time().Format("2006/01/02 15:04")
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount := fmt.Sprintf("%v XLM", libkb.StellarSimplifyAmount(p.Amount))
+	amount := fmt.Sprintf("%v XLM", stellar.SimplifyAmount(p.Amount))
 	if !p.Asset.IsNativeXLM() {
 		amount = fmt.Sprintf("%v %v/%v", p.Amount, p.Asset.Code, p.Asset.Issuer)
 	}

@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"golang.org/x/net/context"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
@@ -526,7 +527,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		verb = "sending"
 	}
 
-	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
+	amountXLM := fmt.Sprintf("%s XLM", stellar.SimplifyAmount(details.Amount))
 
 	var amountDescription string
 	if details.DisplayAmount != nil && details.DisplayCurrency != nil && len(*details.DisplayAmount) > 0 && len(*details.DisplayAmount) > 0 {
