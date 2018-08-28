@@ -581,8 +581,8 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
 function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
   const {path, routePath} = action.payload
   const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path)
-  if (!pathItem || pathItem.type === 'folder') {
+  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+  if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
     yield Saga.put(
       putActionIfOnPath(
         routePath,
