@@ -29,23 +29,13 @@ export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
-<<<<<<< HEAD
-<<<<<<< HEAD
 export const loadRequestDetail = 'wallets:loadRequestDetail'
-=======
-export const makeRequestLocal = 'wallets:makeRequestLocal'
->>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const refreshPayments = 'wallets:refreshPayments'
 export const requestDetailReceived = 'wallets:requestDetailReceived'
-=======
-export const paymentDetailReceived = 'wallets:paymentDetailReceived'
-export const paymentsReceived = 'wallets:paymentsReceived'
-export const refreshPayments = 'wallets:refreshPayments'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
->>>>>>> 667b23f6c3... Added new actions and config
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
@@ -103,14 +93,7 @@ type _LoadPaymentDetailPayload = $ReadOnly<{|
   paymentID: StellarRPCTypes.PaymentID,
 |}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-<<<<<<< HEAD
-<<<<<<< HEAD
 type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
-=======
-type _MakeRequestLocalPayload = void
->>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
-=======
->>>>>>> 667b23f6c3... Added new actions and config
 type _PaymentDetailReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   paymentID: StellarRPCTypes.PaymentID,
@@ -124,12 +107,9 @@ type _PaymentsReceivedPayload = $ReadOnly<{|
   pending: Array<Types.Payment>,
 |}>
 type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-<<<<<<< HEAD
 type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
-=======
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString|}>
->>>>>>> 667b23f6c3... Added new actions and config
 type _SecretKeyReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   secretKey: HiddenString,
@@ -271,15 +251,13 @@ export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePaylo
  */
 export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({error: false, payload, type: setBuildingTo})
 /**
-<<<<<<< HEAD
  * Store a request's details
  */
 export const createRequestDetailReceived = (payload: _RequestDetailReceivedPayload) => ({error: false, payload, type: requestDetailReceived})
-=======
+/**
  * Successfully request payment
  */
 export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({error: false, payload, type: requestedPayment})
->>>>>>> 667b23f6c3... Added new actions and config
 /**
  * Successfully sent a payment
  */
@@ -349,20 +327,13 @@ export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccounts
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
 export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
-<<<<<<< HEAD
 export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
-export type MakeRequestLocalPayload = $Call<typeof createMakeRequestLocal, _MakeRequestLocalPayload>
 export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
 export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
 export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
 export type RequestDetailReceivedPayload = $Call<typeof createRequestDetailReceived, _RequestDetailReceivedPayload>
-=======
-export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
-export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
-export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
 export type RequestPaymentPayload = $Call<typeof createRequestPayment, _RequestPaymentPayload>
 export type RequestedPaymentPayload = $Call<typeof createRequestedPayment, _RequestedPaymentPayload>
->>>>>>> 667b23f6c3... Added new actions and config
 export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
 export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
 export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
@@ -404,23 +375,13 @@ export type Actions =
   | LoadAssetsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
-<<<<<<< HEAD
-<<<<<<< HEAD
   | LoadRequestDetailPayload
-=======
-  | MakeRequestLocalPayload
->>>>>>> 0726f20aac... Update generated actions with makeRequestLocal
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
   | RefreshPaymentsPayload
   | RequestDetailReceivedPayload
-=======
-  | PaymentDetailReceivedPayload
-  | PaymentsReceivedPayload
-  | RefreshPaymentsPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
->>>>>>> 667b23f6c3... Added new actions and config
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
