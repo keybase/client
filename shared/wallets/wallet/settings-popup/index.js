@@ -53,17 +53,19 @@ const makeDropdownItem = (item: string, isSelected: boolean) => (
 const SettingsPopup = (props: Props) => {
   return (
     <Box2 direction="vertical" style={styles.settingsPage}>
-      <Box2 centerChildren={true} direction="vertical">
-        <Text style={styles.smallPadding} type="Header">
-          Settings
-        </Text>
+      <Box2 centerChildren={true} gap="small" gapStart={true} gapEnd={true} direction="vertical">
+        <Text type="Header">Settings</Text>
       </Box2>
-      <Text type="BodySmallSemibold">Account name</Text>
+      <Box2 style={styles.sectionLabel}>
+        <Text type="BodySmallSemibold">Account name</Text>
+      </Box2>
       <ClickableBox style={styles.nameBox}>
         <Text type="BodySemibold">{props.name}</Text>
         <Icon style={iconCastPlatformStyles(styles.icon)} type="iconfont-edit" onClick={props.onEditName} />
       </ClickableBox>
-      <Text type="BodySmallSemibold">Identity</Text>
+      <Box2 style={styles.sectionLabel}>
+        <Text type="BodySmallSemibold">Identity</Text>
+      </Box2>
       <Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
         <Avatar
           size={32}
@@ -71,7 +73,7 @@ const SettingsPopup = (props: Props) => {
           username={props.isDefault ? props.user : ''}
         />
         <Box2 direction="vertical">
-          <Text type="Header">
+          <Text type="Body">
             {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
           </Text>
           <Text type="BodySmall">
@@ -86,7 +88,9 @@ const SettingsPopup = (props: Props) => {
           )}
         </Box2>
       </Box2>
-      <Text type="BodySmallSemibold">Display currency</Text>
+      <Box2 style={styles.sectionLabel}>
+        <Text type="BodySmallSemibold">Display currency</Text>
+      </Box2>
       <Dropdown
         items={makeDropdownItems(props)}
         selected={makeDropdownItem(props.currency, false)}
@@ -100,25 +104,27 @@ const SettingsPopup = (props: Props) => {
       <Text type="BodySmall">The display currency appears:</Text>
       <Text type="BodySmall">- near your Lumens balance</Text>
       <Text type="BodySmall">- when sending or receiving Lumens</Text>
-      <ClickableBox style={styles.remove} onClick={props.onDelete}>
-        <Icon
-          type="iconfont-trash"
-          style={collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-          color={globalColors.red}
-        />
-        <Text
-          type="BodySemibold"
-          style={collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-          className="hover-underline"
-        >
-          Remove account
-        </Text>
-      </ClickableBox>
-      {props.isDefault && (
-        <Text style={styles.centerText} type="BodySmall">
-          You can’t remove your default account.
-        </Text>
-      )}
+      <Box2 fullWidth={true} style={styles.removeContainer}>
+        <ClickableBox style={styles.remove} onClick={props.onDelete}>
+          <Icon
+            type="iconfont-trash"
+            style={collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
+            color={globalColors.red}
+          />
+          <Text
+            type="BodyBigLink"
+            style={collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+            className="hover-underline"
+          >
+            Remove account
+          </Text>
+        </ClickableBox>
+        {props.isDefault && (
+          <Text style={styles.centerText} type="BodySmall">
+            You can’t remove your default account.
+          </Text>
+        )}
+      </Box2>
     </Box2>
   )
 }
@@ -128,7 +134,7 @@ const styles = styleSheetCreate({
     marginBottom: globalMargins.medium,
   },
   avatar: {
-    marginRight: globalMargins.xtiny,
+    marginRight: globalMargins.tiny,
   },
   deleteBox: {
     ...globalStyles.flexBoxRow,
@@ -160,14 +166,25 @@ const styles = styleSheetCreate({
   red: {
     color: globalColors.red,
   },
+  removeContainer: {
+    borderTopColor: globalColors.black_10,
+    borderTopStyle: 'solid',
+    borderTopWidth: 1,
+    marginTop: globalMargins.medium,
+    paddingTop: globalMargins.small,
+  },
   rightMargin: {
     marginRight: globalMargins.tiny,
+  },
+  sectionLabel: {
+    marginBottom: globalMargins.tiny,
+    alignSelf: 'flex-start',
   },
   settingsPage: platformStyles({
     common: {
       backgroundColor: globalColors.white,
       padding: globalMargins.small,
-      maxWidth: 560,
+      maxWidth: '560px',
     },
     isMobile: {
       paddingTop: globalMargins.xlarge,
@@ -179,17 +196,14 @@ const styles = styleSheetCreate({
       marginTop: 40,
     },
   }),
-  smallPadding: {
-    padding: globalMargins.small,
-  },
   dropdown: {
     alignItems: 'center',
+    marginBottom: globalMargins.xtiny,
   },
   remove: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: globalMargins.small,
   },
 })
 
