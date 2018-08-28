@@ -61,9 +61,10 @@ type SigChain struct {
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
-	localChainTail *MerkleTriple
+	localChainTail  *MerkleTriple
+	localChainHPrev *HPrevInfo
 
-	// When the local chain was updated.
+	// When the local chains were updated.
 	localChainUpdateTime time.Time
 
 	// The sequence number of the first chain link in the current subchain. For
@@ -222,7 +223,8 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	sc.localChainTail = &mt
 	sc.localChainUpdateTime = sc.G().Clock().Now()
 	if isHighDelegator {
-		sc.hPrevInfo = NewHPrevInfo(mt.Seqno, mt.LinkID)
+		hPrevInfo := NewHPrevInfo(mt.Seqno, mt.LinkID)
+		sc.localChainHPrev = &hPrevInfo
 	}
 }
 
@@ -326,6 +328,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
 			m.CDebugf("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
+			sc.localChainHPrev = nil
 			sc.localCki = nil
 		}
 	}
@@ -429,6 +432,13 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 
 func (sc SigChain) GetHPrevInfo() (ret HPrevInfo) {
 	return sc.hPrevInfo
+}
+
+func (sc SigChain) GetLastKnownHPrevInfo() (ret HPrevInfo) {
+	if sc.localChainHPrev != nil {
+		return *sc.localChainHPrev
+	}
+	return sc.GetHPrevInfo()
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {

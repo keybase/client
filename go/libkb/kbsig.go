@@ -355,7 +355,7 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
 	if arg.Me != nil {
-		hPrevInfo = arg.Me.GetSigChainHPrevInfo()
+		hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
 	} else {
 		hPrevInfo = *arg.HPrevInfoOverride
 	}
@@ -569,7 +569,7 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrevInfo := me.GetSigChainHPrevInfo()
+		hPrevInfo := me.GetLastKnownHPrevInfo()
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
 			signingKey,
 			v1LinkType,

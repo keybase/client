@@ -148,6 +148,13 @@ func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	return u.sigChain().currentSubchainStart
 }
 
+func (u *User) GetLastKnownHPrevInfo() HPrevInfo {
+	if u.sigChain() == nil {
+		return NewInitialHPrevInfo()
+	}
+	return u.sigChain().GetLastKnownHPrevInfo()
+}
+
 func (u *User) GetSigChainHPrevInfo() HPrevInfo {
 	if u.sigChain() == nil {
 		return NewInitialHPrevInfo()
