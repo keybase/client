@@ -51,13 +51,6 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
   }
 
   render() {
-    const stellarIcon = (
-      <Kb.Icon
-        type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
-        style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-      />
-    )
-
     let component
 
     if (this.props.recipientType === 'keybaseUser' && this.props.username) {
@@ -115,23 +108,24 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
           />
         )
       }
-    } else {
+    } else if (this.props.recipientType === 'stellarPublicKey') {
       component = (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-            {this.props.recipientType === 'stellarPublicKey' && stellarIcon}
+            <Kb.Icon
+              type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+              style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+            />
             <Kb.NewInput
               type="text"
               onChangeText={this.props.onChangeAddress}
               textType="BodySemibold"
-              placeholder={
-                this.props.recipientType === 'stellarPublicKey' ? 'Stellar address' : 'Search Keybase'
-              }
+              placeholder={'Stellar address'}
               placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
               containerStyle={styles.input}
               multiline={true}
-              rowsMin={this.props.recipientType === 'stellarPublicKey' ? 2 : 1}
+              rowsMin={2}
               rowsMax={3}
             />
           </Kb.Box2>
@@ -142,6 +136,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
           )}
         </Kb.Box2>
       )
+    } else {
+      return <Kb.Text type="Header">User</Kb.Text>
     }
 
     return (
