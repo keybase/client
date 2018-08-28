@@ -172,10 +172,12 @@ const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record(
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
+  amount: '',
   amountDescription: '',
   asset: 'native',
   completed: false,
   completedTransactionID: null,
+  currencyCode: '',
   id: '',
   requestee: '',
   requesteeType: '',
@@ -185,6 +187,7 @@ const makeRequest: I.RecordFactory<Types._Request> = I.Record({
 
 const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   let asset = 'native'
+  let currencyCode = ''
   if (!(r.asset || r.currency)) {
     logger.error('Received requestDetails with no asset or currency code')
     return null
@@ -195,12 +198,15 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     })
   } else if (r.currency) {
     asset = 'currency'
+    currencyCode = r.currency
   }
   return makeRequest({
+    amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
     completed: r.completed,
     completedTransactionID: r.fundingKbTxID,
+    currencyCode,
     id: r.id,
     requestee: r.toAssertion,
     requesteeType: partyTypeToString[r.toUserType],
@@ -298,6 +304,7 @@ export {
   makeBuildingPayment,
   makeBuiltPayment,
   makePayment,
+  makeRequest,
   makeReserve,
   makeState,
   paymentResultToPayment,

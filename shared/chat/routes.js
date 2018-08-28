@@ -19,6 +19,8 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
+import ConfirmForm from '../wallets/confirm-form/container'
+import SendForm from '../wallets/send-form/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -91,6 +93,17 @@ const chatChildren = {
   },
   enterPaperkey: {
     component: EnterPaperkey,
+  },
+  sendReceiveForm: {
+    children: {
+      confirmForm: {
+        children: {},
+        component: ConfirmForm,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+    },
+    component: SendForm,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
   },
 }
 
