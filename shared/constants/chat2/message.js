@@ -936,8 +936,4 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
 
 // Used to decide whether to show the author for sequential messages
 export const isUserMessage = (m: Types.Message) =>
-  m.type === 'text' ||
-  m.type === 'deleted' ||
-  m.type === 'attachment' ||
-  m.type === 'sendPayment' ||
-  m.type === 'requestPayment'
+  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
