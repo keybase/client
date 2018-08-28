@@ -45,14 +45,17 @@ const styles = Styles.styleSheetCreate({
   row: {
     paddingBottom: 0,
   },
-  list: {
-    position: 'absolute',
-    top: 100,
-    zIndex: 4,
-    backgroundColor: Styles.globalColors.white,
-    height: 420,
-    overflow: 'hidden',
-  },
+  list: Styles.platformStyles({
+    isElectron: {
+      position: 'absolute',
+      top: 100,
+      zIndex: 4,
+      backgroundColor: Styles.globalColors.white,
+      height: 420,
+      width: '100%',
+      overflowY: 'scroll',
+    },
+  }),
 })
 
 export default Search
