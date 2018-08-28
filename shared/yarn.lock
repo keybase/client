@@ -2353,11 +2353,12 @@ babel-plugin-minify-type-constructors@^0.5.0-alpha.3cc09dcf:
     babel-helper-is-void-0 "^0.5.0-alpha.e9f96ffe"
 
 babel-plugin-react-docgen@^2.0.0-babel7.0:
-  version "2.0.0-babel7.0"
-  resolved "https://registry.yarnpkg.com/babel-plugin-react-docgen/-/babel-plugin-react-docgen-2.0.0-babel7.0.tgz#ea63443c11426edf81023679181403336b745850"
+  version "2.0.0-rc.2"
+  resolved "https://registry.yarnpkg.com/babel-plugin-react-docgen/-/babel-plugin-react-docgen-2.0.0-rc.2.tgz#6d91c1914cb8a3975037a39f1cbd06e252705886"
   dependencies:
+    babel-types "^6.26.0"
     lodash "^4.17.10"
-    react-docgen "^3.0.0-rc.0"
+    react-docgen "^3.0.0-beta12"
 
 babel-plugin-syntax-async-functions@^6.13.0, babel-plugin-syntax-async-functions@^6.8.0:
   version "6.13.0"
@@ -10485,7 +10486,7 @@ react-devtools-core@^3.2.2:
     shell-quote "^1.6.1"
     ws "^3.3.1"
 
-react-docgen@^3.0.0-rc.0:
+react-docgen@^3.0.0-beta12:
   version "3.0.0-rc.1"
   resolved "https://registry.yarnpkg.com/react-docgen/-/react-docgen-3.0.0-rc.1.tgz#a4e33dba1454459294276afdec87ef3958167eb0"
   dependencies:
