@@ -20,7 +20,7 @@ const buildPayment = (state: TypedState) =>
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
     to: state.wallets.buildingPayment.to,
-    toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser', // Problem line
+    toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
   }).then(build =>
     WalletsGen.createBuiltPaymentReceived({
       build: Constants.buildPaymentResultToBuiltPayment(build),
