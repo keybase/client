@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import WKWebView from 'react-native-wkwebview-reborn'
 import {
   NativeImage,
   NativeDimensions,
@@ -38,18 +37,9 @@ export class ImageRender extends React.Component<Props> {
       const source = {
         uri: `${this.props.videoSrc}&poster=${encodeURIComponent(this.props.src)}`,
       }
-      return isIOS ? (
-        <WKWebView
-          ref={ref => {
-            this.webview = ref
-          }}
-          styles={this.props.style}
-          onLoadEnd={this._allLoads}
-          source={source}
-          scrollEnabled={false}
-        />
-      ) : (
+      return (
         <NativeWebView
+          useWebKit={true}
           ref={ref => {
             this.webview = ref
           }}
