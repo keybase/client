@@ -10,9 +10,9 @@ import type {CounterpartyType} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
+  onChangeRecipient: string => void,
   // Used for send to stellar address
   incorrect?: string,
-  onChangeAddress?: string => void,
   // Used for sending from account to account
   accounts: Account[],
   onChangeSelectedAccount: (accountName: string) => void,
@@ -34,6 +34,11 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
   state = {
     selectedAccount: null,
     selectedUser: null,
+  }
+
+  onSelectUser = (user: string) => {
+    this.setState({selectedUser: user})
+    this.props.onChangeRecipient(user)
   }
 
   onRemoveUser = () => {
@@ -125,7 +130,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             />
             <Kb.NewInput
               type="text"
-              onChangeText={this.props.onChangeAddress}
+              onChangeText={this.props.onChangeRecipient}
               textType="BodySemibold"
               placeholder={'Stellar address'}
               placeholderColor={Styles.globalColors.black_20}
@@ -146,7 +151,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     } else {
       return (
         <Search
-          onClickResult={(id: string) => this.setState({selectedUser: id})}
+          onClickResult={this.onSelectUser}
           onClose={() => console.log('search', 'onClose')}
           onShowTracker={() => console.log('search', 'onShowTracker')}
         />

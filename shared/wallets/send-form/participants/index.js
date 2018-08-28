@@ -22,7 +22,7 @@ type ParticipantsProps = {|
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
-  onChangeAddress: string => void,
+  onChangeRecipient: string => void,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
@@ -47,7 +47,7 @@ const Participants = (props: ParticipantsProps) => (
       fullName={props.recipientFullName}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
-      onChangeAddress={props.onChangeAddress}
+      onChangeRecipient={props.onChangeRecipient}
       onLinkAccount={props.onLinkAccount}
       onCreateNewAccount={props.onCreateNewAccount}
       onChangeSelectedAccount={props.onChangeToAccount}

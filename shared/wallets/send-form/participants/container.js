@@ -39,7 +39,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onChangeAddress: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
+  onChangeRecipient: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
 })
 

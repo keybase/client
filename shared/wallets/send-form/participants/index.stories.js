@@ -100,7 +100,7 @@ const defaultProps = {
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
   // Stellar address
-  onChangeAddress: Sb.action('onChangeAddress'),
+  onChangeRecipient: Sb.action('onChangeRecipient'),
 }
 
 const foundUsernameProps = {
