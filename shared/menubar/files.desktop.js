@@ -17,6 +17,14 @@ type FilesPreviewProps = {|
   tlfRows: Array<TlfRow>,
 |}
 
+const FileRow = (r: TlfRow) => (
+  <Kb.ClickableBox onClick={r.onSelectPath}>
+    <Kb.Text type="Body">
+      {r.path}
+    </Kb.Text>
+  </Kb.ClickableBox>
+)
+
 export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
@@ -26,13 +34,7 @@ export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       {tlfRows.map(r => {
-        return (
-          <Kb.ClickableBox key={r.path} onClick={r.onSelectPath}>
-            <Kb.Text type="Body">
-              {r.path}
-            </Kb.Text>
-          </Kb.ClickableBox>
-        )
+        return <FileRow key={r.path} {...r} />
       })}
     </Kb.Box2>
   </Kb.Box2>
