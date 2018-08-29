@@ -5,7 +5,7 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from '../actions/config-gen'
-import {errors as rpcErrors} from 'framed-msgpack-rpc'
+import {isErrorTransient} from '../util/errors'
 
 const initialState = Constants.makeState()
 
@@ -113,14 +113,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       const {globalError} = action.payload
       if (globalError) {
         logger.error('Error (global):', globalError)
-        if (
-          globalError.code &&
-          globalError.code === rpcErrors['EOF'] &&
-          globalError.message === rpcErrors.msg[globalError.code]
-        ) {
-          // 'EOF from server' error from rpc library thrown when service restarts
-          // no need to show to user
-          logger.info('Silencing EOF error...')
+        if (isErrorTransient(globalError)) {
+          logger.info('globalError silencing:', globalError)
           return state
         }
       }
