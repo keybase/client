@@ -9,7 +9,7 @@ export type MenuItem = {|
   style?: Object,
   subTitle?: string, // subTitle is not used on native
   title: string, // Only used as ID if view is provided for Header
-  view?: React.Node,
+  view?: React.Node, // Required for header
 |}
 
 export type MenuLayoutProps = {
