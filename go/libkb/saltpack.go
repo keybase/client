@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 	"golang.org/x/crypto/ed25519"
@@ -207,7 +208,7 @@ func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 		return ret
 	}
 	p := k.ToKID()
-	return keybase1.KIDFromRawKey(p, byte(KIDNaclDH))
+	return keybase1.KIDFromRawKey(p, byte(kbcrypto.KIDNaclDH))
 }
 
 func checkSaltpackBrand(b string) error {

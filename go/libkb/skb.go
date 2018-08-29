@@ -20,6 +20,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -39,9 +40,9 @@ func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 }
 
 type SKB struct {
-	Priv SKBPriv  `codec:"priv"`
-	Pub  []byte   `codec:"pub"`
-	Type AlgoType `codec:"type,omitempty"`
+	Priv SKBPriv           `codec:"priv"`
+	Pub  []byte            `codec:"pub"`
+	Type kbcrypto.AlgoType `codec:"type,omitempty"`
 
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
@@ -141,9 +142,9 @@ func (s *SKB) ReadKey() (g GenericKey, err error) {
 		var w *Warnings
 		g, w, err = ReadOneKeyFromBytes(s.Pub)
 		w.Warn(s.G())
-	case s.Type == KIDNaclEddsa:
+	case s.Type == kbcrypto.KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
-	case s.Type == KIDNaclDH:
+	case s.Type == kbcrypto.KIDNaclDH:
 		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil)
 	default:
 		err = UnknownKeyTypeError{s.Type}
@@ -289,9 +290,9 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 		var w *Warnings
 		key, w, err = ReadOneKeyFromBytes(unlocked)
 		w.Warn(s.G())
-	case s.Type == KIDNaclEddsa:
+	case s.Type == kbcrypto.KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
-	case s.Type == KIDNaclDH:
+	case s.Type == kbcrypto.KIDNaclDH:
 		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
 	}
 

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/go-crypto/ed25519"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
@@ -105,5 +106,5 @@ func SigningPublicKeyToKeybaseKID(k saltpack.SigningPublicKey) (ret keybase1.KID
 		return ret
 	}
 	p := k.ToKID()
-	return keybase1.KIDFromRawKey(p, byte(KIDNaclEddsa))
+	return keybase1.KIDFromRawKey(p, byte(kbcrypto.KIDNaclEddsa))
 }

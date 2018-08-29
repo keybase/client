@@ -478,18 +478,6 @@ func (t PacketTag) String() string {
 	}
 }
 
-const (
-	KIDPGPBase    AlgoType = 0x00
-	KIDPGPRsa     AlgoType = 0x1
-	KIDPGPElgamal AlgoType = 0x10
-	KIDPGPDsa     AlgoType = 0x11
-	KIDPGPEcdh    AlgoType = 0x12
-	KIDPGPEcdsa   AlgoType = 0x13
-	KIDPGPEddsa   AlgoType = 0x16
-	KIDNaclEddsa  AlgoType = 0x20
-	KIDNaclDH     AlgoType = 0x21
-)
-
 // OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
 const (
 	HashPGPMd5       = 1
@@ -499,10 +487,6 @@ const (
 	HashPGPSha384    = 9
 	HashPGPSha512    = 10
 	HashPGPSha224    = 11
-)
-
-const (
-	SigKbEddsa = KIDNaclEddsa
 )
 
 const (

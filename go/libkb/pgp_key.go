@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
@@ -629,8 +630,8 @@ func (k *PGPKeyBundle) GetKID() keybase1.KID {
 	return k.GetBinaryKID().ToKID()
 }
 
-func (k PGPKeyBundle) GetAlgoType() AlgoType {
-	return AlgoType(k.PrimaryKey.PubKeyAlgo)
+func (k PGPKeyBundle) GetAlgoType() kbcrypto.AlgoType {
+	return kbcrypto.AlgoType(k.PrimaryKey.PubKeyAlgo)
 }
 
 func (k PGPKeyBundle) KeyDescription() string {
@@ -771,9 +772,9 @@ func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (i
 	return
 }
 
-func IsPGPAlgo(algo AlgoType) bool {
+func IsPGPAlgo(algo kbcrypto.AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase, KIDPGPEddsa:
+	case kbcrypto.KIDPGPRsa, kbcrypto.KIDPGPElgamal, kbcrypto.KIDPGPDsa, kbcrypto.KIDPGPEcdh, kbcrypto.KIDPGPEcdsa, kbcrypto.KIDPGPBase, kbcrypto.KIDPGPEddsa:
 		return true
 	}
 	return false
