@@ -292,17 +292,17 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	return statement, latestGeneration, false, nil
 }
 
-func extractUserEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.UserEkStatement, err error) {
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+func extractUserEKStatementFromSig(sig string) (signerKID keybase1.KID, statement *keybase1.UserEkStatement, err error) {
+	signerKID, payload, _, err := libkb.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return signerKey, nil, err
+		return signerKID, nil, err
 	}
 
 	parsedStatement := keybase1.UserEkStatement{}
 	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
-		return signerKey, nil, err
+		return signerKID, nil, err
 	}
-	return signerKey, &parsedStatement, nil
+	return signerKID, &parsedStatement, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the

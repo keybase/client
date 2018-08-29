@@ -409,14 +409,13 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 }
 
 func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
-	var keyInSignature GenericKey
+	var kidInSig keybase1.KID
 	var fullSigBody []byte
-	keyInSignature, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
+	kidInSig, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
 	if err != nil {
 		return
 	}
 
-	kidInSig := keyInSignature.GetKID()
 	kidWanted := k.GetKID()
 	if kidWanted.NotEqual(kidInSig) {
 		err = WrongKidError{kidInSig, kidWanted}
@@ -429,28 +428,28 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string
 
 // NaclVerifyAndExtract interprets the given string as a NaCl-signed messaged, in
 // the keybase NaclSigInfo (v1) format. It will check that the signature verified, and if so,
-// will return the key that was used for the verification, the payload of the signature,
+// will return the KID of the key that was used for the verification, the payload of the signature,
 // the full body of the decoded SignInfo, and an error
-func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []byte, err error) {
+func NaclVerifyAndExtract(s string) (kid keybase1.KID, payload []byte, fullBody []byte, err error) {
 	fullBody, err = base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, err
 	}
 
 	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
 	if err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, err
 	}
 
 	var nk *NaclSigningKeyPublic
 	nk, err = naclSig.Verify()
 	if err != nil {
-		return nil, nil, nil, err
+		return "", nil, nil, err
 	}
 
-	key = NaclSigningKeyPair{Public: *nk}
+	key := NaclSigningKeyPair{Public: *nk}
 	payload = naclSig.Payload
-	return key, payload, fullBody, nil
+	return key.GetKID(), payload, fullBody, nil
 }
 
 func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
