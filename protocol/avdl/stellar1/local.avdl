@@ -104,10 +104,10 @@ protocol local {
     string statusDescription;       // "pending", "completed", "error"
     string statusDetail;
     boolean showCancel;             // true if cancel is an option for this payment
-    string amountDescription;       // "1,323.1234567 XLM"
+    string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string worth;                   // "$123.23"
-    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
+    string worth;                   // "$123.23", amount in local currency at the time of sending, or empty if no OutsideCurrency
+    string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
     string source;                  // keybase username or stellar public key
     ParticipantType sourceType;     // keybase or stellar
@@ -293,23 +293,16 @@ protocol local {
     ParticipantType toUserType; // keybase or SBS
     string toAssertion; // keybase username or sbs assertion.
 
-    // Exactly one of asset or currency below is filled
+    // Raw unformatted amount and asset/currency that come with the
+    // request. Can be used directly to build a payment.
     string amount;
+    // Exactly one of asset or currency below is filled
     union { null, Asset } asset;
     union { null, OutsideCurrencyCode } currency;
 
     // Formatted amount of either outside currency or stellar lumens.
-    string amountDescription; // "123.23 CAD"
+    string amountDescription; // "$123.23 CAD"
 
-    // Amount of Stellar lumens and formatted amount of Stellar
-    // lumens. It's either same as amountDescription, or amount of
-    // stellars after converting from outside currency.
-    string amountStellar; // "123.23"
-    string amountStellarDescription; // "123.23 XLM"
-
-    // Payment ID if funded, empty if not funded.
-    boolean completed;
-    KeybaseTransactionID fundingKbTxID;
     RequestStatus status;
   }
   RequestDetailsLocal getRequestDetailsLocal(int sessionID, KeybaseRequestID reqID);

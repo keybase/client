@@ -199,8 +199,6 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   return makeRequest({
     amountDescription: r.amountDescription,
     asset,
-    completed: r.completed,
-    completedTransactionID: r.fundingKbTxID,
     id: r.id,
     requestee: r.toAssertion,
     requesteeType: partyTypeToString[r.toUserType],

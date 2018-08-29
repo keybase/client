@@ -41,7 +41,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, accountID, accts[0].AccountID, accountID)
 	require.True(t, accts[0].IsDefault)
 	require.Equal(t, "", accts[0].Name) // TODO: once we can set the name on an account, check this
-	require.Equal(t, "10,000 XLM", accts[0].BalanceDescription)
+	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	require.NotEmpty(t, accts[0].Seqno)
 
 	require.False(t, accts[1].IsDefault)
@@ -76,7 +76,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
-	require.Equal(t, "10,000", assets[0].BalanceTotal)
+	require.Equal(t, "10,000.00", assets[0].BalanceTotal)
 	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
