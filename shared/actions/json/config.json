@@ -17,11 +17,13 @@
     },
     "daemonHandshake": {
       "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
-      "firstTimeConnecting": "boolean"
+      "firstTimeConnecting": "boolean",
+      "version": "number",
     },
     "daemonHandshakeWait": {
       "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
       "name": "string",
+      "version": "number",
       "increment": "boolean",
       "failedReason?": "?string",
       "failedFatal?": "true",
@@ -34,10 +36,12 @@
     },
     "logoutHandshake": {
       "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
+      "version": "number",
     },
     "logoutHandshakeWait": {
       "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
       "name": "string",
+      "version": "number",
       "increment": "boolean",
     },
     "installerRan": {
