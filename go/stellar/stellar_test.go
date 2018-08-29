@@ -45,6 +45,7 @@ var fmtTests = []fmtTest{
 	{amount: "-9123123123.1234567", precTwo: false, out: "-9,123,123,123.1234567"},
 	{amount: "-89123123123.1234567", precTwo: false, out: "-89,123,123,123.1234567"},
 	{amount: "-456456456123123123.1234567", precTwo: false, out: "-456,456,456,123,123,123.1234567"},
+	{amount: "123123", precTwo: true, out: "123,123.00"},
 	{amount: "123123", precTwo: false, out: "123,123.00"},
 }
 
