@@ -8,7 +8,7 @@ echo on
 pushd  %GOPATH%\src\github.com\keybase\client\shared
 echo Calling yarn run modules
 :: yarn sometimes exits this console
-cmd /C  yarn install --pure-lockfile --ignore-engines
+cmd /C yarn install --pure-lockfile --ignore-engines --ignore-optional
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
