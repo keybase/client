@@ -4,9 +4,6 @@
 package externals
 
 import (
-	"bytes"
-	"encoding/hex"
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/kbname"
@@ -149,20 +146,12 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 		{"/keybase/private/#alice", nil},
 	}
 
-	deepEq := func(a, b keybase1.ImplicitTeamDisplayName) bool {
-		x, _ := msgpackEncode(a)
-		y, _ := msgpackEncode(b)
-		fmt.Printf("%s\n", hex.EncodeToString(x))
-		fmt.Printf("%s\n", hex.EncodeToString(y))
-		return bytes.Equal(x, y)
-	}
-
 	for _, test := range tests {
 		itn, err := kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), test.input)
 		if test.output == nil {
 			require.Error(t, err)
 		} else {
-			require.True(t, deepEq(itn, *test.output))
+			require.Equal(t, *test.output, itn)
 		}
 	}
 }
