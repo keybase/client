@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
@@ -28,14 +29,14 @@ const (
 type RemoteStatusUpdater interface {
 	// UserChanged is called when the kbfs user is changed.
 	// Either oldName or newName, or both may be empty.
-	UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername)
+	UserChanged(ctx context.Context, oldName, newName kbname.NormalizedUsername)
 }
 
 // RemoteStatus is for maintaining status of various remote connections like keybase
 // service and md-server.
 type RemoteStatus struct {
 	sync.Mutex
-	currentUser       libkb.NormalizedUsername
+	currentUser       kbname.NormalizedUsername
 	failingServices   map[string]error
 	extraFileName     string
 	extraFileContents []byte
@@ -75,8 +76,8 @@ func (r *RemoteStatus) update(ctx context.Context, st libkbfs.KBFSStatus) {
 	r.Lock()
 	defer r.Unlock()
 
-	if newUser := libkb.NormalizedUsername(st.CurrentUser); r.currentUser != newUser {
-		oldUser := libkb.NormalizedUsername(r.currentUser)
+	if newUser := kbname.NormalizedUsername(st.CurrentUser); r.currentUser != newUser {
+		oldUser := kbname.NormalizedUsername(r.currentUser)
 		r.currentUser = newUser
 		if r.callbacks != nil {
 			go r.callbacks.UserChanged(ctx, oldUser, newUser)

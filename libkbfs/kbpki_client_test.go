@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -32,9 +32,9 @@ func makeTestKBPKIClient(t *testing.T) (
 	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser,
 	teams []TeamInfo) {
 	currentUID = keybase1.MakeTestUID(1)
-	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
+	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
-	teamNames := []libkb.NormalizedUsername{"test_team1", "test_team2"}
+	teamNames := []kbname.NormalizedUsername{"test_team1", "test_team2"}
 	teams = MakeLocalTeams(teamNames)
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, users, teams, codec)
@@ -45,7 +45,7 @@ func makeTestKBPKIClient(t *testing.T) (
 func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
 	currentUID = keybase1.MakeTestUID(1)
-	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
+	names := []kbname.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
 	// Give each user a revoked key
 	for i, user := range users {
@@ -83,7 +83,7 @@ func TestKBPKIClientGetNormalizedUsername(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if name == libkb.NormalizedUsername("") {
+	if name == kbname.NormalizedUsername("") {
 		t.Fatal("empty user")
 	}
 }

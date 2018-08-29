@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsgit"
@@ -56,10 +57,10 @@ func start() (startErr *libfs.Error) {
 	kbCtx := env.NewContext()
 
 	switch kbCtx.GetRunMode() {
-	case libkb.ProductionRunMode:
-	case libkb.StagingRunMode:
+	case kbconst.ProductionRunMode:
+	case kbconst.StagingRunMode:
 		fmt.Fprintf(os.Stderr, "Running in staging mode\n")
-	case libkb.DevelRunMode:
+	case kbconst.DevelRunMode:
 		fmt.Fprintf(os.Stderr, "Running in devel mode\n")
 	default:
 		panic(fmt.Sprintf("Unexpected run mode: %s", kbCtx.GetRunMode()))

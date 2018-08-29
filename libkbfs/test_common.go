@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -117,7 +117,7 @@ func newTestRPCLogFactory(t testLogger) rpc.LogFactory {
 // being logged in.
 func MakeTestConfigOrBustLoggedInWithMode(
 	t logger.TestLogBackend, loggedInIndex int,
-	mode InitModeType, users ...libkb.NormalizedUsername) *ConfigLocal {
+	mode InitModeType, users ...kbname.NormalizedUsername) *ConfigLocal {
 	log := logger.NewTestLogger(t)
 	config := newConfigForTest(mode, func(m string) logger.Logger {
 		return log
@@ -209,7 +209,7 @@ func MakeTestConfigOrBustLoggedInWithMode(
 // unit-testing with the given list of users. loggedInIndex specifies the
 // index (in the list) of the user being logged in.
 func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
-	users ...libkb.NormalizedUsername) *ConfigLocal {
+	users ...kbname.NormalizedUsername) *ConfigLocal {
 	return MakeTestConfigOrBustLoggedInWithMode(
 		t, loggedInIndex, InitDefault, users...)
 }
@@ -217,7 +217,7 @@ func MakeTestConfigOrBustLoggedIn(t logger.TestLogBackend, loggedInIndex int,
 // MakeTestConfigOrBust creates and returns a config suitable for
 // unit-testing with the given list of users.
 func MakeTestConfigOrBust(t logger.TestLogBackend,
-	users ...libkb.NormalizedUsername) *ConfigLocal {
+	users ...kbname.NormalizedUsername) *ConfigLocal {
 	return MakeTestConfigOrBustLoggedIn(t, 0, users...)
 }
 
@@ -226,7 +226,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 // enabled in the returned Config, regardless of the journal status in
 // `config`.
 func ConfigAsUserWithMode(config *ConfigLocal,
-	loggedInUser libkb.NormalizedUsername, mode InitModeType) *ConfigLocal {
+	loggedInUser kbname.NormalizedUsername, mode InitModeType) *ConfigLocal {
 	c := newConfigForTest(mode, config.loggerFn)
 	c.SetMetadataVersion(config.MetadataVersion())
 	c.SetRekeyWithPromptWaitTime(config.RekeyWithPromptWaitTime())
@@ -320,7 +320,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 // enabled in the returned Config, regardless of the journal status in
 // `config`.
 func ConfigAsUser(config *ConfigLocal,
-	loggedInUser libkb.NormalizedUsername) *ConfigLocal {
+	loggedInUser kbname.NormalizedUsername) *ConfigLocal {
 	c := ConfigAsUserWithMode(config, loggedInUser, config.Mode().Type())
 	c.mode = config.mode // preserve any unusual test mode wrappers
 	return c
@@ -340,17 +340,17 @@ func NewEmptyTLFReaderKeyBundle() kbfsmd.TLFReaderKeyBundleV2 {
 	}
 }
 
-func keySaltForUserDevice(name libkb.NormalizedUsername,
-	index int) libkb.NormalizedUsername {
+func keySaltForUserDevice(name kbname.NormalizedUsername,
+	index int) kbname.NormalizedUsername {
 	if index > 0 {
 		// We can't include the device index when it's 0, because we
 		// have to match what's done in MakeLocalUsers.
-		return libkb.NormalizedUsername(string(name) + " " + string(index))
+		return kbname.NormalizedUsername(string(name) + " " + string(index))
 	}
 	return name
 }
 
-func makeFakeKeys(name libkb.NormalizedUsername, index int) (
+func makeFakeKeys(name kbname.NormalizedUsername, index int) (
 	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey) {
 	keySalt := keySaltForUserDevice(name, index)
 	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
@@ -559,7 +559,7 @@ func AddTeamKeyForTestOrBust(t logger.TestLogBackend, config Config,
 // AddEmptyTeamsForTest creates teams for the given names with empty
 // membership lists.
 func AddEmptyTeamsForTest(
-	config Config, teams ...libkb.NormalizedUsername) ([]TeamInfo, error) {
+	config Config, teams ...kbname.NormalizedUsername) ([]TeamInfo, error) {
 	teamInfos := MakeLocalTeams(teams)
 
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
@@ -574,7 +574,7 @@ func AddEmptyTeamsForTest(
 // AddEmptyTeamsForTestOrBust is like AddEmptyTeamsForTest, but dies
 // if there's an error.
 func AddEmptyTeamsForTestOrBust(t logger.TestLogBackend,
-	config Config, teams ...libkb.NormalizedUsername) []TeamInfo {
+	config Config, teams ...kbname.NormalizedUsername) []TeamInfo {
 	teamInfos, err := AddEmptyTeamsForTest(config, teams...)
 	if err != nil {
 		t.Fatal(err)

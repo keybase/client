@@ -7,13 +7,13 @@ package tlf
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCanonicalToPreferredName(t *testing.T) {
 	for _, q := range []struct {
-		As     libkb.NormalizedUsername
+		As     kbname.NormalizedUsername
 		Try    CanonicalName
 		Answer PreferredName
 	}{

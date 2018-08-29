@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
@@ -16,14 +17,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-type testNormalizedUsernameGetter map[keybase1.UserOrTeamID]libkb.NormalizedUsername
+type testNormalizedUsernameGetter map[keybase1.UserOrTeamID]kbname.NormalizedUsername
 
 func (g testNormalizedUsernameGetter) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID) (
-	libkb.NormalizedUsername, error) {
+	kbname.NormalizedUsername, error) {
 	name, ok := g[id]
 	if !ok {
-		return libkb.NormalizedUsername(""),
+		return kbname.NormalizedUsername(""),
 			NoSuchUserError{fmt.Sprintf("uid:%s", id)}
 	}
 	return name, nil
@@ -39,12 +40,12 @@ type testIdentifier struct {
 
 func (ti *testIdentifier) Identify(
 	ctx context.Context, assertion, reason string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ei := getExtendedIdentify(ctx)
 	userInfo, ok := ti.assertionsBrokenTracks[assertion]
 	if ok {
 		if !ei.behavior.WarningInsteadOfErrorOnBrokenTracks() {
-			return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+			return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 				libkb.UnmetAssertionError{
 					User:   "imtotalllymakingthisup",
 					Remote: true,
@@ -56,7 +57,7 @@ func (ti *testIdentifier) Identify(
 
 	userInfo, ok = ti.assertions[assertion]
 	if !ok {
-		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			NoSuchUserError{assertion}
 	}
 
@@ -122,8 +123,8 @@ func makeNugAndTIForTest() (testNormalizedUsernameGetter, *testIdentifier) {
 		}
 }
 
-func (g testNormalizedUsernameGetter) uidMap() map[keybase1.UserOrTeamID]libkb.NormalizedUsername {
-	return (map[keybase1.UserOrTeamID]libkb.NormalizedUsername)(g)
+func (g testNormalizedUsernameGetter) uidMap() map[keybase1.UserOrTeamID]kbname.NormalizedUsername {
+	return (map[keybase1.UserOrTeamID]kbname.NormalizedUsername)(g)
 }
 
 func TestIdentify(t *testing.T) {
@@ -196,19 +197,19 @@ func TestIdentifyImplicitTeams(t *testing.T) {
 
 	err := identifyUsersForTLF(
 		context.Background(), nug, ti,
-		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			privID.AsUserOrTeam(): "alice,bob",
 		}, tlf.Private)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(
 		context.Background(), nug, ti,
-		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			pubID.AsUserOrTeam(): "alice,bob",
 		}, tlf.Public)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(
 		context.Background(), nug, ti,
-		map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			suffixID.AsUserOrTeam(): "alice,bob (conflicted copy 2016-03-14 #3)",
 		}, tlf.Private)
 	require.NoError(t, err)

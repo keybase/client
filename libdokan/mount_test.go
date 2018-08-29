@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/ioutil"
@@ -3129,7 +3129,7 @@ func TestKbfsFileInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if dst.LastWriterUnverified != libkb.NormalizedUsername("user1") {
+	if dst.LastWriterUnverified != kbname.NormalizedUsername("user1") {
 		t.Fatalf("Expected user1, %v raw %X", dst, bs)
 	}
 }

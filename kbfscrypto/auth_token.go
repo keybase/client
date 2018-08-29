@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/auth"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -56,7 +56,7 @@ func NewAuthToken(signer Signer, tokenType string, expireIn int,
 // Sign is called to create a new signed authentication token.
 func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 	challengeInfo keybase1.ChallengeInfo, uid keybase1.UID,
-	username libkb.NormalizedUsername, key VerifyingKey) (string, error) {
+	username kbname.NormalizedUsername, key VerifyingKey) (string, error) {
 	// create the token
 	token := auth.NewToken(uid, username, key.KID(), a.tokenType,
 		challengeInfo.Challenge, challengeInfo.Now, a.expireIn,
@@ -81,7 +81,7 @@ func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
 // Sign is called to create a new signed authentication token,
 // including a challenge and username/uid/kid identifiers.
 func (a *AuthToken) Sign(ctx context.Context,
-	currentUsername libkb.NormalizedUsername, currentUID keybase1.UID,
+	currentUsername kbname.NormalizedUsername, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey,
 	challengeInfo keybase1.ChallengeInfo) (string, error) {
 	// make sure we're being asked to sign a legit challenge

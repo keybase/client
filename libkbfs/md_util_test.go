@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -97,7 +97,7 @@ func TestReembedBlockChanges(t *testing.T) {
 }
 
 func TestGetRevisionByTime(t *testing.T) {
-	var u1 libkb.NormalizedUsername = "u1"
+	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 

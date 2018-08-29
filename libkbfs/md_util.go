@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -26,7 +26,7 @@ type mdRange struct {
 
 func makeRekeyReadErrorHelper(
 	err error, kmd KeyMetadata, resolvedHandle *TlfHandle,
-	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	if resolvedHandle.Type() == tlf.Public {
 		panic("makeRekeyReadError called on public folder")
 	}
@@ -47,7 +47,7 @@ func makeRekeyReadErrorHelper(
 
 func makeRekeyReadError(
 	ctx context.Context, err error, kbpki KBPKI, kmd KeyMetadata,
-	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	h := kmd.GetTlfHandle()
 	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil)
 	if resolveErr != nil {

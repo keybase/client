@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 )
@@ -15,7 +15,7 @@ import (
 // Test that Put/Get works for TLF crypt key server halves.
 func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 

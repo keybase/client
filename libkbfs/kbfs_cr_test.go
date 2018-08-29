@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
@@ -20,7 +20,7 @@ import (
 )
 
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
-	name string, expectedData []byte, user libkb.NormalizedUsername) {
+	name string, expectedData []byte, user kbname.NormalizedUsername) {
 	rootNode := GetRootNodeOrBust(ctx, t, config, name, tlf.Private)
 
 	kbfsOps := config.KBFSOps()
@@ -56,7 +56,7 @@ func (t *testCRObserver) TlfHandleChange(ctx context.Context,
 }
 
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
-	staged bool, headWriter libkb.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
+	staged bool, headWriter kbname.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
 	prefix string) {
 	status, _, err := kbfsOps.FolderStatus(ctx, fb)
 	require.NoError(t, err)
@@ -67,7 +67,7 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 
 func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -111,7 +111,7 @@ func TestBasicMDUpdate(t *testing.T) {
 
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -172,7 +172,7 @@ func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 }
 
 func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -270,7 +270,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 // the other user will be unaffected).
 func TestUnmergedAfterRestart(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -410,7 +410,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 // without any problems.
 func TestMultiUserWrite(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -463,7 +463,7 @@ func TestMultiUserWrite(t *testing.T) {
 
 func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -597,7 +597,7 @@ func (md mdServerLocalRecordingRegisterForUpdate) RegisterForUpdate(
 
 func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -682,7 +682,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 // conflict resolution will merge them correctly.
 func TestBasicCRFileConflict(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -775,7 +775,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 // single file.
 func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -861,7 +861,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 // Test that two conflict resolutions work correctly.
 func TestCRDouble(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
@@ -1003,7 +1003,7 @@ func TestCRDouble(t *testing.T) {
 // preserved until rekey.
 func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
@@ -1147,7 +1147,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 // "loser" is the file write.  Regression test for KBFS-773.
 func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
@@ -1282,7 +1282,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	t.Skip("Broken due to KBFS-1193")
 
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
@@ -1413,7 +1413,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 // unmerged operations.  Regression test for KBFS-1133.
 func TestCRCanceledAfterNewOperation(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()
@@ -1529,7 +1529,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 // unmerged writes blocked.
 func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -1671,7 +1671,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 // resolution will fix the resulting weird state.
 func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	// simulate two users
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.MDServer().DisableRekeyUpdatesForTesting()

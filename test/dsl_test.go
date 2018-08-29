@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
@@ -35,7 +35,7 @@ const (
 
 type opt struct {
 	ver                      kbfsmd.MetadataVer
-	usernames                []libkb.NormalizedUsername
+	usernames                []kbname.NormalizedUsername
 	teams                    teamMap
 	implicitTeams            teamMap
 	tlfName                  string
@@ -44,8 +44,8 @@ type opt struct {
 	tlfRevision              kbfsmd.Revision
 	tlfTime                  string
 	tlfRelTime               string
-	users                    map[libkb.NormalizedUsername]User
-	stallers                 map[libkb.NormalizedUsername]*libkbfs.NaïveStaller
+	users                    map[kbname.NormalizedUsername]User
+	stallers                 map[kbname.NormalizedUsername]*libkbfs.NaïveStaller
 	tb                       testing.TB
 	initOnce                 sync.Once
 	engine                   Engine
@@ -183,8 +183,8 @@ func (o *opt) runInitOnce() {
 }
 
 func (o *opt) makeStallers() (
-	stallers map[libkb.NormalizedUsername]*libkbfs.NaïveStaller) {
-	stallers = make(map[libkb.NormalizedUsername]*libkbfs.NaïveStaller)
+	stallers map[kbname.NormalizedUsername]*libkbfs.NaïveStaller) {
+	stallers = make(map[kbname.NormalizedUsername]*libkbfs.NaïveStaller)
 	for username, user := range o.users {
 		stallers[username] = o.engine.MakeNaïveStaller(user)
 	}
@@ -249,7 +249,7 @@ func users(ns ...username) optionOp {
 	return func(o *opt) {
 		var a []string
 		for _, u := range ns {
-			username := libkb.NewNormalizedUsername(string(u))
+			username := kbname.NewNormalizedUsername(string(u))
 			o.usernames = append(o.usernames, username)
 			a = append(a, string(username))
 		}
@@ -260,7 +260,7 @@ func users(ns ...username) optionOp {
 	}
 }
 
-func team(teamName libkb.NormalizedUsername, writers string,
+func team(teamName kbname.NormalizedUsername, writers string,
 	readers string) optionOp {
 	return func(o *opt) {
 		if o.ver < kbfsmd.SegregatedKeyBundlesVer {
@@ -269,13 +269,13 @@ func team(teamName libkb.NormalizedUsername, writers string,
 		if o.teams == nil {
 			o.teams = make(teamMap)
 		}
-		var writerNames, readerNames []libkb.NormalizedUsername
+		var writerNames, readerNames []kbname.NormalizedUsername
 		for _, w := range strings.Split(writers, ",") {
-			writerNames = append(writerNames, libkb.NormalizedUsername(w))
+			writerNames = append(writerNames, kbname.NormalizedUsername(w))
 		}
 		if readers != "" {
 			for _, r := range strings.Split(readers, ",") {
-				readerNames = append(readerNames, libkb.NormalizedUsername(r))
+				readerNames = append(readerNames, kbname.NormalizedUsername(r))
 			}
 		}
 		o.teams[teamName] = teamMembers{writerNames, readerNames}
@@ -291,14 +291,14 @@ func implicitTeam(writers string, readers string) optionOp {
 			o.implicitTeams = make(teamMap)
 		}
 
-		var writerNames, readerNames []libkb.NormalizedUsername
+		var writerNames, readerNames []kbname.NormalizedUsername
 		for _, w := range strings.Split(writers, ",") {
-			writerNames = append(writerNames, libkb.NormalizedUsername(w))
+			writerNames = append(writerNames, kbname.NormalizedUsername(w))
 		}
 		isPublic := false
 		if readers != "" {
 			for _, r := range strings.Split(readers, ",") {
-				readerNames = append(readerNames, libkb.NormalizedUsername(r))
+				readerNames = append(readerNames, kbname.NormalizedUsername(r))
 			}
 			isPublic = len(readerNames) == 1 && readers == "public"
 		}
@@ -310,7 +310,7 @@ func implicitTeam(writers string, readers string) optionOp {
 			teamName = tlf.MakeCanonicalName(
 				writerNames, nil, readerNames, nil, nil)
 		}
-		o.implicitTeams[libkb.NormalizedUsername(teamName)] =
+		o.implicitTeams[kbname.NormalizedUsername(teamName)] =
 			teamMembers{writerNames, readerNames}
 	}
 }
@@ -402,9 +402,9 @@ func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 
 func changeTeamName(oldName, newName string) optionOp {
 	return func(o *opt) {
-		o.teams[libkb.NormalizedUsername(newName)] =
-			o.teams[libkb.NormalizedUsername(oldName)]
-		delete(o.teams, libkb.NormalizedUsername(oldName))
+		o.teams[kbname.NormalizedUsername(newName)] =
+			o.teams[kbname.NormalizedUsername(oldName)]
+		delete(o.teams, kbname.NormalizedUsername(oldName))
 		o.tb.Logf("changeTeamName: %q -> %q", oldName, newName)
 		for _, u := range o.users {
 			err := o.engine.ChangeTeamName(u, oldName, newName)
@@ -428,7 +428,7 @@ const (
 type ctx struct {
 	*opt
 	user       User
-	username   libkb.NormalizedUsername
+	username   kbname.NormalizedUsername
 	rootNode   Node
 	noSyncInit bool
 	staller    *libkbfs.NaïveStaller
@@ -504,7 +504,7 @@ func as(user username, fops ...fileOp) optionOp {
 	return func(o *opt) {
 		o.tb.Log("as:", user)
 		o.runInitOnce()
-		u := libkb.NewNormalizedUsername(string(user))
+		u := kbname.NewNormalizedUsername(string(user))
 		ctx := &ctx{
 			opt:      o,
 			user:     o.users[u],

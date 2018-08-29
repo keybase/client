@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -218,22 +218,22 @@ func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if err := checkContext(ctx); err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	id, err := k.assertionToIDLocked(ctx, assertion)
 	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	if id.IsUser() {
 		u, err := k.localUsers.getLocalUser(id.AsUserOrBust())
 		if err != nil {
-			return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+			return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 		}
 		return u.Name, id, nil
 	}
@@ -241,14 +241,14 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 	// Otherwise it's a team
 	ti, err := k.localTeams.getLocalTeam(id.AsTeamOrBust())
 	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""), err
 	}
 
 	_, ok := k.localImplicitTeams[id.AsTeamOrBust()]
 	if ok {
 		// An implicit team exists, so Resolve shouldn't work.  The
 		// caller should use `ResolveImplicitTeamByID` instead.
-		return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			fmt.Errorf("Team ID %s is an implicit team", id)
 	}
 
@@ -258,17 +258,17 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Identify(
 	ctx context.Context, assertion, _ string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	// The local daemon doesn't need to distinguish resolves from
 	// identifies.
 	return k.Resolve(ctx, assertion)
 }
 
 func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
-	ctx context.Context, name string, r []libkb.NormalizedUsername,
+	ctx context.Context, name string, r []kbname.NormalizedUsername,
 	ur []keybase1.SocialAssertion,
-	resolvedIDs map[libkb.NormalizedUsername]keybase1.UserOrTeamID) (
-	[]libkb.NormalizedUsername, []keybase1.SocialAssertion, error) {
+	resolvedIDs map[kbname.NormalizedUsername]keybase1.UserOrTeamID) (
+	[]kbname.NormalizedUsername, []keybase1.SocialAssertion, error) {
 	id, err := k.assertionToIDLocked(ctx, name)
 	if err == nil {
 		u, err := k.localUsers.getLocalUser(id.AsUserOrBust())
@@ -310,9 +310,9 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	if err != nil {
 		return ImplicitTeamInfo{}, err
 	}
-	var writers, readers []libkb.NormalizedUsername
+	var writers, readers []kbname.NormalizedUsername
 	var unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion
-	resolvedIDs := make(map[libkb.NormalizedUsername]keybase1.UserOrTeamID)
+	resolvedIDs := make(map[kbname.NormalizedUsername]keybase1.UserOrTeamID)
 	for _, w := range writerNames {
 		writers, unresolvedWriters, err = k.resolveForImplicitTeam(
 			ctx, w, writers, unresolvedWriters, resolvedIDs)
@@ -348,10 +348,10 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 
 	// Need to make the team info as well, so get the list of user
 	// names and resolve them.  Auto-generate an implicit team name.
-	implicitName := libkb.NormalizedUsername(
+	implicitName := kbname.NormalizedUsername(
 		fmt.Sprintf("_implicit_%d", len(k.localTeams)))
 	teams := makeLocalTeams(
-		[]libkb.NormalizedUsername{implicitName}, len(k.localTeams), tlfType)
+		[]kbname.NormalizedUsername{implicitName}, len(k.localTeams), tlfType)
 	info := teams[0]
 	info.Writers = make(map[keybase1.UID]bool, len(writerNames))
 	for _, w := range writers {
@@ -381,7 +381,7 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	k.implicitAsserts[key] = tid
 	k.localTeams[tid] = info
 
-	asUserName := libkb.NormalizedUsername(name)
+	asUserName := kbname.NormalizedUsername(name)
 	iteamInfo := ImplicitTeamInfo{
 		// TODO: use the "preferred" canonical format here by listing
 		// the logged-in user first?
@@ -602,7 +602,7 @@ func (k *KeybaseDaemonLocal) changeTeamNameForTest(
 		return keybase1.TeamID(""),
 			fmt.Errorf("No such old team name: %s/%s", oldName, tid)
 	}
-	team.Name = libkb.NormalizedUsername(newName)
+	team.Name = kbname.NormalizedUsername(newName)
 	k.localTeams[tid] = team
 
 	k.asserts[newAssert] = id
@@ -627,7 +627,7 @@ func (k *KeybaseDaemonLocal) removeAssertionForTest(assertion string) {
 	delete(k.asserts, assertion)
 }
 
-type makeKeysFunc func(libkb.NormalizedUsername, int) (
+type makeKeysFunc func(kbname.NormalizedUsername, int) (
 	kbfscrypto.CryptPublicKey, kbfscrypto.VerifyingKey)
 
 func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,

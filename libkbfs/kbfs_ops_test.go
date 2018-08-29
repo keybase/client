@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/env"
@@ -192,7 +192,7 @@ func (mnh modeNoHistory) SendEditNotificationsEnabled() bool {
 
 // kbfsOpsInitNoMocks returns a config that doesn't use any mocks. The
 // shutdown call is kbfsTestShutdownNoMocks.
-func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
+func kbfsOpsInitNoMocks(t *testing.T, users ...kbname.NormalizedUsername) (
 	*ConfigLocal, keybase1.UID, context.Context, context.CancelFunc) {
 	config := MakeTestConfigOrBust(t, users...)
 	// Turn off tlf edit history because it messes with the FBO state
@@ -482,8 +482,8 @@ type failIdentifyKBPKI struct {
 
 func (kbpki failIdentifyKBPKI) Identify(
 	ctx context.Context, assertion, reason string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		kbpki.identifyErr
 }
 
@@ -3504,7 +3504,7 @@ func TestDirtyPathsAfterRemoveDir(t *testing.T) {
 }
 
 func TestKBFSOpsBasicTeamTLF(t *testing.T) {
-	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
+	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, uid1, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2, u3)
 	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
 
@@ -3527,7 +3527,7 @@ func TestKBFSOpsBasicTeamTLF(t *testing.T) {
 	// These are deterministic, and should add the same TeamInfos for
 	// both user configs.
 	t.Log("Add teams")
-	name := libkb.NormalizedUsername("t1")
+	name := kbname.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config1, name)
 	_ = AddEmptyTeamsForTestOrBust(t, config2, name)
 	_ = AddEmptyTeamsForTestOrBust(t, config3, name)
@@ -3682,7 +3682,7 @@ func TestKBFSOpsAutocreateNodesSym(t *testing.T) {
 
 func testKBFSOpsMigrateToImplicitTeam(
 	t *testing.T, ty tlf.Type, initialMDVer kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	config1.SetMetadataVersion(initialMDVer)
@@ -3781,7 +3781,7 @@ func TestKBFSOpsMigratePublicV2ToImplicitTeam(t *testing.T) {
 }
 
 func TestKBFSOpsArchiveBranchType(t *testing.T) {
-	var u1 libkb.NormalizedUsername = "u1"
+	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 

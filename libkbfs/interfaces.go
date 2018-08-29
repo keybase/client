@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -524,14 +524,14 @@ type KeybaseService interface {
 	// assertion before the assertion -> (username, UID) mapping
 	// can be trusted.
 	Resolve(ctx context.Context, assertion string) (
-		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
+		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// Identify, given an assertion, returns a UserInfo struct
 	// with the user that matches that assertion, or an error
 	// otherwise. The reason string is displayed on any tracker
 	// popups spawned.
 	Identify(ctx context.Context, assertion, reason string) (
-		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
+		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
 	// ResolveIdentifyImplicitTeam resolves, and optionally
 	// identifies, an implicit team.  If the implicit team doesn't yet
@@ -653,7 +653,7 @@ type resolver interface {
 	// right for subteams, which can change their name, so this may
 	// need updating.
 	Resolve(ctx context.Context, assertion string) (
-		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
+		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// ResolveImplicitTeam resolves the given implicit team.
 	ResolveImplicitTeam(
 		ctx context.Context, assertions, suffix string, tlfType tlf.Type) (
@@ -676,7 +676,7 @@ type identifier interface {
 	// necessary.  The reason string is displayed on any tracker
 	// popups spawned.
 	Identify(ctx context.Context, assertion, reason string) (
-		libkb.NormalizedUsername, keybase1.UserOrTeamID, error)
+		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 	// IdentifyImplicitTeam identifies (and creates if necessary) the
 	// given implicit team.
 	IdentifyImplicitTeam(
@@ -688,7 +688,7 @@ type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
 	GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (
-		libkb.NormalizedUsername, error)
+		kbname.NormalizedUsername, error)
 }
 
 // CurrentSessionGetter is an interface for objects that can return

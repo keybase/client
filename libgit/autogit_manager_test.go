@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
@@ -69,7 +69,7 @@ func (c *configNoShutdown) Shutdown(_ context.Context) error {
 // server implementations as the given `config`.
 type newConfigger struct {
 	config    *libkbfs.ConfigLocal
-	user      libkb.NormalizedUsername
+	user      kbname.NormalizedUsername
 	newConfig *libkbfs.ConfigLocal
 }
 

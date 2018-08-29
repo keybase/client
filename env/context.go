@@ -13,6 +13,7 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -43,7 +44,7 @@ func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.AppState
 // Context defines the environment for this package
 type Context interface {
 	AppStateUpdater
-	GetRunMode() libkb.RunMode
+	GetRunMode() kbconst.RunMode
 	GetLogDir() string
 	GetDataDir() string
 	GetMountDir() (string, error)
@@ -109,7 +110,7 @@ func (c *KBFSContext) GetMountDir() (string, error) {
 }
 
 // GetRunMode returns run mode
-func (c *KBFSContext) GetRunMode() libkb.RunMode {
+func (c *KBFSContext) GetRunMode() kbconst.RunMode {
 	return c.g.GetRunMode()
 }
 

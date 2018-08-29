@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -269,7 +269,7 @@ func clearFolderListCacheLoop(ctx context.Context, r *Root) {
 }
 
 // update things after user changed.
-func (fl *FolderList) userChanged(ctx context.Context, _, newUser libkb.NormalizedUsername) {
+func (fl *FolderList) userChanged(ctx context.Context, _, newUser kbname.NormalizedUsername) {
 	var fs []*Folder
 	func() {
 		fl.mu.Lock()
@@ -283,7 +283,7 @@ func (fl *FolderList) userChanged(ctx context.Context, _, newUser libkb.Normaliz
 	for _, f := range fs {
 		f.TlfHandleChange(ctx, nil)
 	}
-	if newUser != libkb.NormalizedUsername("") {
+	if newUser != kbname.NormalizedUsername("") {
 		fl.fs.config.KBFSOps().ForceFastForward(ctx)
 	}
 }

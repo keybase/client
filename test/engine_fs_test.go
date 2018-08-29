@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -45,7 +45,7 @@ type fsNode struct {
 
 type fsUser struct {
 	mntDir   string
-	username libkb.NormalizedUsername
+	username kbname.NormalizedUsername
 	config   *libkbfs.ConfigLocal
 	cancel   func()
 	close    func()
@@ -506,7 +506,7 @@ func (e *fsEngine) Shutdown(user User) error {
 	u.shutdown()
 
 	// Get the user name before shutting everything down.
-	var userName libkb.NormalizedUsername
+	var userName kbname.NormalizedUsername
 	if e.journalDir != "" {
 		session, err :=
 			u.config.KBPKI().GetCurrentSession(context.Background())
@@ -658,10 +658,10 @@ func fiTypeString(fi os.FileInfo) string {
 
 func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
-	opTimeout time.Duration, users []libkb.NormalizedUsername,
+	opTimeout time.Duration, users []kbname.NormalizedUsername,
 	teams, implicitTeams teamMap, clock libkbfs.Clock,
-	journal bool) map[libkb.NormalizedUsername]User {
-	res := map[libkb.NormalizedUsername]User{}
+	journal bool) map[kbname.NormalizedUsername]User {
+	res := map[kbname.NormalizedUsername]User{}
 	initSuccess := false
 	defer func() {
 		if !initSuccess {

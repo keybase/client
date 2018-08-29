@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -56,7 +56,7 @@ func SplitName(name string) (writerNames, readerNames []string,
 type CanonicalName string
 
 func getSortedNames(
-	resolved []libkb.NormalizedUsername,
+	resolved []kbname.NormalizedUsername,
 	unresolved []keybase1.SocialAssertion) []string {
 	var names []string
 	for _, name := range resolved {
@@ -69,9 +69,9 @@ func getSortedNames(
 	return names
 }
 
-func makeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
+func makeCanonicalName(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
-	resolvedReaders []libkb.NormalizedUsername,
+	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension, isBackedByTeam bool) CanonicalName {
 	writerNames := getSortedNames(resolvedWriters, unresolvedWriters)
@@ -93,9 +93,9 @@ func makeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
 }
 
 // MakeCanonicalName makes a CanonicalName from components.
-func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
+func MakeCanonicalName(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
-	resolvedReaders []libkb.NormalizedUsername,
+	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) CanonicalName {
 	return makeCanonicalName(
@@ -104,9 +104,9 @@ func MakeCanonicalName(resolvedWriters []libkb.NormalizedUsername,
 }
 
 // MakeCanonicalNameForTeam makes a CanonicalName from components for a team.
-func MakeCanonicalNameForTeam(resolvedWriters []libkb.NormalizedUsername,
+func MakeCanonicalNameForTeam(resolvedWriters []kbname.NormalizedUsername,
 	unresolvedWriters []keybase1.SocialAssertion,
-	resolvedReaders []libkb.NormalizedUsername,
+	resolvedReaders []kbname.NormalizedUsername,
 	unresolvedReaders []keybase1.SocialAssertion,
 	extensions []HandleExtension) CanonicalName {
 	return makeCanonicalName(
@@ -133,7 +133,7 @@ func putUserFirst(uname string, users []string) []string {
 // CanonicalToPreferredName returns the preferred TLF name, given a
 // canonical name and a username. The username may be empty, and
 // results in the canonical name being being returned unmodified.
-func CanonicalToPreferredName(username libkb.NormalizedUsername,
+func CanonicalToPreferredName(username kbname.NormalizedUsername,
 	canon CanonicalName) (PreferredName, error) {
 	tlfname := string(canon)
 	if len(username) == 0 {

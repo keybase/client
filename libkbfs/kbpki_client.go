@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -47,13 +48,13 @@ func (k *KBPKIClient) GetCurrentSession(ctx context.Context) (
 
 // Resolve implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return k.serviceOwner.KeybaseService().Resolve(ctx, assertion)
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
@@ -115,7 +116,7 @@ func (k *KBPKIClient) IdentifyImplicitTeam(
 // KBPKIClient.
 func (k *KBPKIClient) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID) (
-	libkb.NormalizedUsername, error) {
+	kbname.NormalizedUsername, error) {
 	var assertion string
 	if id.IsUser() {
 		assertion = fmt.Sprintf("uid:%s", id)
@@ -124,7 +125,7 @@ func (k *KBPKIClient) GetNormalizedUsername(
 	}
 	username, _, err := k.Resolve(ctx, assertion)
 	if err != nil {
-		return libkb.NormalizedUsername(""), err
+		return kbname.NormalizedUsername(""), err
 	}
 	return username, nil
 }

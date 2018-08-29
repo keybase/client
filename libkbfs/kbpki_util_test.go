@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"sync"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
@@ -28,12 +28,12 @@ func (d *daemonKBPKI) GetCurrentSession(ctx context.Context) (
 }
 
 func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Resolve(ctx, assertion)
 }
 
 func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Identify(ctx, assertion, reason)
 }
 
@@ -47,14 +47,14 @@ func (d *daemonKBPKI) ResolveImplicitTeam(
 
 func (d *daemonKBPKI) GetNormalizedUsername(
 	ctx context.Context, id keybase1.UserOrTeamID) (
-	libkb.NormalizedUsername, error) {
+	kbname.NormalizedUsername, error) {
 	asUser, err := id.AsUser()
 	if err != nil {
-		return libkb.NormalizedUsername(""), err
+		return kbname.NormalizedUsername(""), err
 	}
 	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, asUser, "")
 	if err != nil {
-		return libkb.NormalizedUsername(""), err
+		return kbname.NormalizedUsername(""), err
 	}
 	return userInfo.Name, nil
 }
@@ -65,7 +65,7 @@ func (d *daemonKBPKI) GetNormalizedUsername(
 // TODO: Make tests that use this just use KBPKIClient; need to figure
 // out what to do with other mocked methods of KBPKI.
 func interposeDaemonKBPKI(
-	config *ConfigMock, users ...libkb.NormalizedUsername) {
+	config *ConfigMock, users ...kbname.NormalizedUsername) {
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
@@ -102,7 +102,7 @@ func (ik *identifyCountingKBPKI) getIdentifyCalls() int {
 
 func (ik *identifyCountingKBPKI) Identify(
 	ctx context.Context, assertion, reason string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ik.addIdentifyCall()
 	return ik.KBPKI.Identify(ctx, assertion, reason)
 }

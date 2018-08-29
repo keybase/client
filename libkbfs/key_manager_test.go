@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -877,7 +877,7 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 }
 
 func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -1136,7 +1136,7 @@ func testKeyManagerRekeyAddAndRevokeDevice(t *testing.T, ver kbfsmd.MetadataVer)
 }
 
 func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
+	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -1243,7 +1243,7 @@ func testKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T, ver kbfsmd.Metada
 }
 
 func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -1337,7 +1337,7 @@ func testKeyManagerSelfRekeyAcrossDevices(t *testing.T, ver kbfsmd.MetadataVer) 
 }
 
 func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	session1, err := config1.KBPKI().GetCurrentSession(ctx)
@@ -1426,7 +1426,7 @@ func testKeyManagerReaderRekey(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testKeyManagerReaderRekeyAndRevoke(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -1553,7 +1553,7 @@ func keyManagerTestSimulateSelfRekeyBit(
 // metadata and simply set the rekey bit. Then another participant rekeys the folder and they try to read.
 
 func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
+	var u1, u2, u3 kbname.NormalizedUsername = "u1", "u2", "u3"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3)
 	doShutdown1 := true
 	defer func() {
@@ -1746,7 +1746,7 @@ func testKeyManagerRekeyBit(t *testing.T, ver kbfsmd.MetadataVer) {
 // Test that after this both can still read the latest version of the folder.
 
 func testKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -1904,7 +1904,7 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 }
 
 func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -2017,7 +2017,7 @@ func testKeyManagerRekeyAddDeviceWithPrompt(t *testing.T, ver kbfsmd.MetadataVer
 }
 
 func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -2144,7 +2144,7 @@ func testKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T, ver kbfsmd
 }
 
 func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -2256,7 +2256,7 @@ func testKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T, ver kbf
 }
 
 func testKeyManagerRekeyMinimal(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -2351,7 +2351,7 @@ func (c *protectedContext) maybeReplaceContext(newCtx context.Context) {
 }
 
 func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -2365,7 +2365,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 
 	// These are deterministic, and should add the same TeamInfos for
 	// both user configs.
-	name := libkb.NormalizedUsername("t1")
+	name := kbname.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config1, name)
 	_ = AddEmptyTeamsForTestOrBust(t, config2, name)
 	tid := teamInfos[0].TID
@@ -2377,7 +2377,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
 	h := &TlfHandle{
 		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): name,
 		},
 		name: tlf.CanonicalName(name),
@@ -2415,7 +2415,7 @@ func TestKeyManagerGetTeamTLFCryptKey(t *testing.T) {
 }
 
 func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 
@@ -2431,10 +2431,10 @@ func testKeyManagerGetImplicitTeamTLFCryptKey(t *testing.T, ty tlf.Type) {
 	_ = AddImplicitTeamForTestOrBust(t, config2, iname, "", 1, ty)
 	tlfID := tlf.FakeID(1, ty)
 
-	asUserName := libkb.NormalizedUsername(iname)
+	asUserName := kbname.NormalizedUsername(iname)
 	h := &TlfHandle{
 		tlfType: ty,
-		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			teamID.AsUserOrTeam(): asUserName,
 		},
 		name:  tlf.CanonicalName(asUserName),

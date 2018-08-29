@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -172,7 +172,7 @@ func (e ErrorFileAccessError) Error() string {
 // ReadAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type ReadAccessError struct {
-	User     libkb.NormalizedUsername
+	User     kbname.NormalizedUsername
 	Filename string
 	Tlf      tlf.CanonicalName
 	Type     tlf.Type
@@ -186,7 +186,7 @@ func (e ReadAccessError) Error() string {
 
 // WriteAccessError indicates an error when trying to write a file
 type WriteAccessError struct {
-	User     libkb.NormalizedUsername
+	User     kbname.NormalizedUsername
 	Filename string
 	Tlf      tlf.CanonicalName
 	Type     tlf.Type
@@ -236,7 +236,7 @@ func (e UnsupportedOpInUnlinkedDirError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
+func NewReadAccessError(h *TlfHandle, username kbname.NormalizedUsername, filename string) error {
 	tlfname := h.GetCanonicalName()
 	return ReadAccessError{
 		User:     username,
@@ -247,7 +247,7 @@ func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername, filenam
 }
 
 // NewWriteAccessError is an access error trying to write a file
-func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername, filename string) error {
+func NewWriteAccessError(h *TlfHandle, username kbname.NormalizedUsername, filename string) error {
 	tlfName := tlf.CanonicalName("")
 	t := tlf.Private
 	if h != nil {
@@ -582,7 +582,7 @@ func (e VerifyingKeyNotFoundError) Error() string {
 // verified.
 type UnverifiableTlfUpdateError struct {
 	Tlf  string
-	User libkb.NormalizedUsername
+	User kbname.NormalizedUsername
 	Err  error
 }
 
@@ -835,7 +835,7 @@ var NoCurrentSessionExpectedError = "no current session"
 // RekeyPermissionError indicates that the user tried to rekey a
 // top-level folder in a manner inconsistent with their permissions.
 type RekeyPermissionError struct {
-	User libkb.NormalizedUsername
+	User kbname.NormalizedUsername
 	Dir  string
 }
 
@@ -848,7 +848,7 @@ func (e RekeyPermissionError) Error() string {
 // NewRekeyPermissionError constructs a RekeyPermissionError for the given
 // directory and user.
 func NewRekeyPermissionError(
-	dir *TlfHandle, username libkb.NormalizedUsername) error {
+	dir *TlfHandle, username kbname.NormalizedUsername) error {
 	dirname := dir.GetCanonicalPath()
 	return RekeyPermissionError{username, dirname}
 }
@@ -1019,7 +1019,7 @@ func (e TlfHandleFinalizedError) Error() string {
 // NoSigChainError means that a user we were trying to identify does
 // not have a sigchain.
 type NoSigChainError struct {
-	User libkb.NormalizedUsername
+	User kbname.NormalizedUsername
 }
 
 // Error implements the error interface for NoSigChainError.

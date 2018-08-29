@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	merkle "github.com/keybase/go-merkle-tree"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -946,7 +946,7 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 
 	now := time.Now()
 	finalizedInfo, err := tlf.NewHandleExtension(
-		tlf.HandleExtensionFinalized, 1, libkb.NormalizedUsername("<unknown>"),
+		tlf.HandleExtensionFinalized, 1, kbname.NormalizedUsername("<unknown>"),
 		now)
 	require.NoError(t, err)
 	finalRMDS, err := rmdses[len(rmdses)-1].MakeFinalCopy(
@@ -1097,7 +1097,7 @@ func makeEncryptedMerkleLeafForTesting(
 }
 
 func testMDOpsDecryptMerkleLeafPrivate(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1 libkb.NormalizedUsername = "u1"
+	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)
@@ -1190,7 +1190,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 		t.Skip("Teams not supported")
 	}
 
-	var u1 libkb.NormalizedUsername = "u1"
+	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)
@@ -1221,7 +1221,7 @@ func testMDOpsDecryptMerkleLeafTeam(t *testing.T, ver kbfsmd.MetadataVer) {
 }
 
 func testMDOpsVerifyRevokedDeviceWrite(t *testing.T, ver kbfsmd.MetadataVer) {
-	var u1 libkb.NormalizedUsername = "u1"
+	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)
@@ -1321,7 +1321,7 @@ func testMDOpsVerifyRemovedUserWrite(t *testing.T, ver kbfsmd.MetadataVer) {
 		t.Skip("Teams not supported")
 	}
 
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	config.SetMetadataVersion(ver)

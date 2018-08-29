@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -24,7 +24,7 @@ import (
 )
 
 type nameIDPair struct {
-	name libkb.NormalizedUsername
+	name kbname.NormalizedUsername
 	id   keybase1.UserOrTeamID
 }
 
@@ -83,8 +83,8 @@ func resolveOneUser(
 	errCh <- fmt.Errorf("Resolving %v resulted in empty userInfo and empty socialAssertion", user)
 }
 
-func getNames(idToName map[keybase1.UserOrTeamID]libkb.NormalizedUsername) []libkb.NormalizedUsername {
-	var names []libkb.NormalizedUsername
+func getNames(idToName map[keybase1.UserOrTeamID]kbname.NormalizedUsername) []kbname.NormalizedUsername {
+	var names []kbname.NormalizedUsername
 	for _, name := range idToName {
 		names = append(names, name)
 	}
@@ -123,9 +123,9 @@ func makeTlfHandleHelper(
 	}
 
 	usedWNames :=
-		make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(writers))
+		make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(writers))
 	usedRNames :=
-		make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(readers))
+		make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(readers))
 	usedUnresolvedWriters := make(map[keybase1.SocialAssertion]bool)
 	usedUnresolvedReaders := make(map[keybase1.SocialAssertion]bool)
 	for i := 0; i < len(writers)+len(readers); i++ {
@@ -435,10 +435,10 @@ type partialResolver struct {
 }
 
 func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	if pr.unresolvedAssertions[assertion] {
 		// Force an unresolved assertion.
-		return libkb.NormalizedUsername(""),
+		return kbname.NormalizedUsername(""),
 			keybase1.UserOrTeamID(""), NoSuchUserError{assertion}
 	}
 	return pr.resolver.Resolve(ctx, assertion)
@@ -660,7 +660,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 					"Can't resolve an AND assertion without an identifier")
 		}
 		reason := fmt.Sprintf("You accessed a folder with %s.", ra.assertion)
-		var resName libkb.NormalizedUsername
+		var resName kbname.NormalizedUsername
 		resName, _, err = ra.identifier.Identify(ctx, ra.assertion, reason)
 		if err == nil && resName != name {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID,

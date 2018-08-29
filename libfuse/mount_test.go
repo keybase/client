@@ -22,7 +22,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
@@ -476,8 +476,8 @@ type kbserviceBrokenIdentify struct {
 }
 
 func (k kbserviceBrokenIdentify) Identify(ctx context.Context, assertion,
-	reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	return libkb.NormalizedUsername(""), keybase1.UserOrTeamID(""),
+	reason string) (kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
+	return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 		errors.New("Fake identify error")
 }
 
@@ -3843,7 +3843,7 @@ func TestKbfsFileInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if dst.LastWriterUnverified != libkb.NormalizedUsername("user1") {
+	if dst.LastWriterUnverified != kbname.NormalizedUsername("user1") {
 		t.Fatalf("Expected user1, %v raw %X", dst, bs)
 	}
 }

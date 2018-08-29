@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
@@ -48,10 +48,10 @@ func (k *LibKBFS) Name() string {
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 	blockSize int64, blockChangeSize int64, batchSize int, bwKBps int,
-	opTimeout time.Duration, users []libkb.NormalizedUsername,
+	opTimeout time.Duration, users []kbname.NormalizedUsername,
 	teams, implicitTeams teamMap, clock libkbfs.Clock,
-	journal bool) map[libkb.NormalizedUsername]User {
-	userMap := make(map[libkb.NormalizedUsername]User)
+	journal bool) map[kbname.NormalizedUsername]User {
+	userMap := make(map[kbname.NormalizedUsername]User)
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(k.tb, users...)
 	config.SetMetadataVersion(ver)
@@ -878,7 +878,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 	delete(k.updateChannels, config)
 
 	// Get the user name before shutting everything down.
-	var userName libkb.NormalizedUsername
+	var userName kbname.NormalizedUsername
 	if k.journalDir != "" {
 		var err error
 		session, err :=

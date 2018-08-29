@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/cache"
@@ -279,7 +279,7 @@ func (lu LocalUser) deepCopy() LocalUser {
 
 // MakeLocalUserSigningKeyOrBust returns a unique signing key for this user.
 func MakeLocalUserSigningKeyOrBust(
-	name libkb.NormalizedUsername) kbfscrypto.SigningKey {
+	name kbname.NormalizedUsername) kbfscrypto.SigningKey {
 	return kbfscrypto.MakeFakeSigningKeyOrBust(
 		string(name) + " signing key")
 }
@@ -287,14 +287,14 @@ func MakeLocalUserSigningKeyOrBust(
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
 func MakeLocalUserVerifyingKeyOrBust(
-	name libkb.NormalizedUsername) kbfscrypto.VerifyingKey {
+	name kbname.NormalizedUsername) kbfscrypto.VerifyingKey {
 	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
 }
 
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private
 // encryption key for this user.
 func MakeLocalUserCryptPrivateKeyOrBust(
-	name libkb.NormalizedUsername) kbfscrypto.CryptPrivateKey {
+	name kbname.NormalizedUsername) kbfscrypto.CryptPrivateKey {
 	return kbfscrypto.MakeFakeCryptPrivateKeyOrBust(
 		string(name) + " crypt key")
 }
@@ -302,7 +302,7 @@ func MakeLocalUserCryptPrivateKeyOrBust(
 // MakeLocalUserCryptPublicKeyOrBust returns the public key
 // corresponding to the crypt private key for this user.
 func MakeLocalUserCryptPublicKeyOrBust(
-	name libkb.NormalizedUsername) kbfscrypto.CryptPublicKey {
+	name kbname.NormalizedUsername) kbfscrypto.CryptPublicKey {
 	return MakeLocalUserCryptPrivateKeyOrBust(name).GetPublicKey()
 }
 
@@ -318,7 +318,7 @@ func MakeLocalTLFCryptKeyOrBust(
 
 // MakeLocalUsers is a helper function to generate a list of
 // LocalUsers suitable to use with KeybaseDaemonLocal.
-func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
+func MakeLocalUsers(users []kbname.NormalizedUsername) []LocalUser {
 	localUsers := make([]LocalUser, len(users))
 	for i := 0; i < len(users); i++ {
 		verifyingKey := MakeLocalUserVerifyingKeyOrBust(users[i])
@@ -341,7 +341,7 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 }
 
 func makeLocalTeams(
-	teams []libkb.NormalizedUsername, startingIndex int, ty tlf.Type) (
+	teams []kbname.NormalizedUsername, startingIndex int, ty tlf.Type) (
 	localTeams []TeamInfo) {
 	localTeams = make([]TeamInfo, len(teams))
 	for index := 0; index < len(teams); index++ {
@@ -375,7 +375,7 @@ func makeLocalTeams(
 // MakeLocalTeams is a helper function to generate a list of local
 // teams suitable to use with KeybaseDaemonLocal.  Any subteams must come
 // after their root team names in the `teams` slice.
-func MakeLocalTeams(teams []libkb.NormalizedUsername) []TeamInfo {
+func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
 	return makeLocalTeams(teams, 0, tlf.Private)
 }
 

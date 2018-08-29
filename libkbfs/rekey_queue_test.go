@@ -8,13 +8,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
 )
 
 func TestRekeyQueueBasic(t *testing.T) {
-	var u1, u2, u3, u4 libkb.NormalizedUsername = "u1", "u2", "u3", "u4"
+	var u1, u2, u3, u4 kbname.NormalizedUsername = "u1", "u2", "u3", "u4"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2, u3, u4)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 

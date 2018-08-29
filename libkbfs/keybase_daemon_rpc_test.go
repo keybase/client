@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -163,7 +163,7 @@ func testCurrentSession(
 
 // Test that the session cache works and is invalidated as expected.
 func TestKeybaseDaemonSessionCache(t *testing.T) {
-	name := libkb.NormalizedUsername("fake username")
+	name := kbname.NormalizedUsername("fake username")
 	k := MakeLocalUserCryptPublicKeyOrBust(name)
 	v := MakeLocalUserVerifyingKeyOrBust(name)
 	session := SessionInfo{
@@ -202,7 +202,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 
 func testLoadUserPlusKeys(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	uid keybase1.UID, expectedName libkb.NormalizedUsername,
+	uid keybase1.UID, expectedName kbname.NormalizedUsername,
 	expectedCalled bool) {
 	client.loadUserPlusKeysCalled = false
 
@@ -216,7 +216,7 @@ func testLoadUserPlusKeys(
 
 func testIdentify(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
-	uid keybase1.UID, expectedName libkb.NormalizedUsername,
+	uid keybase1.UID, expectedName kbname.NormalizedUsername,
 	expectedCalled bool) {
 	client.identifyCalled = false
 
@@ -232,8 +232,8 @@ func testIdentify(
 func TestKeybaseDaemonUserCache(t *testing.T) {
 	uid1 := keybase1.UID("uid1")
 	uid2 := keybase1.UID("uid2")
-	name1 := libkb.NewNormalizedUsername("name1")
-	name2 := libkb.NewNormalizedUsername("name2")
+	name1 := kbname.NewNormalizedUsername("name1")
+	name2 := kbname.NewNormalizedUsername("name2")
 	users := map[keybase1.UID]UserInfo{
 		uid1: {Name: name1},
 		uid2: {Name: name2},
@@ -332,7 +332,7 @@ func truncateNotificationTimestamps(
 }
 
 func TestKeybaseDaemonRPCEditList(t *testing.T) {
-	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	var userName1, userName2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, userName1, userName2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.

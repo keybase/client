@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -146,8 +146,8 @@ func TestJournalServerOverQuotaError(t *testing.T) {
 		setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
-	name := libkb.NormalizedUsername("t1")
-	subname := libkb.NormalizedUsername("t1.sub")
+	name := kbname.NormalizedUsername("t1")
+	subname := kbname.NormalizedUsername("t1.sub")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name, subname)
 	teamID := teamInfos[0].TID
 	subteamID := teamInfos[1].TID
@@ -796,7 +796,7 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 	require.Len(t, tlfIDs, 0)
 
 	// Or a team folder, where you're just a reader.
-	teamName := libkb.NormalizedUsername("t1")
+	teamName := kbname.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, teamName)
 	id := teamInfos[0].TID
 	AddTeamWriterForTestOrBust(
@@ -887,7 +887,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
 	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
 
-	name := libkb.NormalizedUsername("t1")
+	name := kbname.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name)
 	id := teamInfos[0].TID
 	session, err := config.KBPKI().GetCurrentSession(ctx)

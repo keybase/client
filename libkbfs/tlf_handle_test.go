@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -56,7 +56,7 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -76,7 +76,7 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -98,9 +98,9 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 func TestParseTlfHandleSingleTeam(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1"})
 	currentUID := localUsers[0].UID
-	localTeams := MakeLocalTeams([]libkb.NormalizedUsername{"t1"})
+	localTeams := MakeLocalTeams([]kbname.NormalizedUsername{"t1"})
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, localTeams, kbfscodec.NewMsgpack())
 
@@ -124,9 +124,9 @@ func TestParseTlfHandleSingleTeam(t *testing.T) {
 func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
-	localTeams := MakeLocalTeams([]libkb.NormalizedUsername{"t1", "t2"})
+	localTeams := MakeLocalTeams([]kbname.NormalizedUsername{"t1", "t2"})
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, localTeams, kbfscodec.NewMsgpack())
 
@@ -165,7 +165,7 @@ func TestParseTlfHandleSingleTeamFailures(t *testing.T) {
 func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	localUsers[2].Asserts = []string{"u3@twitter"}
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
@@ -192,7 +192,7 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -223,7 +223,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -253,7 +253,7 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 func TestTlfHandleAccessorsPrivate(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -324,7 +324,7 @@ func TestTlfHandleAccessorsPrivate(t *testing.T) {
 func TestTlfHandleAccessorsPublic(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -381,7 +381,7 @@ func TestTlfHandleAccessorsPublic(t *testing.T) {
 func TestTlfHandleConflictInfo(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, nil, codec)
@@ -443,7 +443,7 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 func TestTlfHandleFinalizedInfo(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, nil, codec)
@@ -479,7 +479,7 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	codec := kbfscodec.NewMsgpack()
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, nil, codec)
@@ -519,7 +519,7 @@ func TestTlfHandleConflictAndFinalizedInfo(t *testing.T) {
 func TestTlfHandlEqual(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{
 		"u1", "u2", "u3", "u4", "u5",
 	})
 	currentUID := localUsers[0].UID
@@ -601,7 +601,7 @@ func TestTlfHandlEqual(t *testing.T) {
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -632,7 +632,7 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 func TestParseTlfHandleUIDAssertion(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -653,7 +653,7 @@ func TestParseTlfHandleUIDAssertion(t *testing.T) {
 func TestParseTlfHandleAndAssertion(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	localUsers[0].Asserts = []string{"u1@twitter"}
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
@@ -677,7 +677,7 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 func TestParseTlfHandleConflictSuffix(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -703,7 +703,7 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	localUsers[1].Asserts = []string{"u2@twitter"}
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
@@ -740,7 +740,7 @@ func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 func TestResolveAgainBasic(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -766,7 +766,7 @@ func TestResolveAgainBasic(t *testing.T) {
 func TestResolveAgainDoubleAsserts(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -794,7 +794,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 func TestResolveAgainWriterReader(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -820,7 +820,7 @@ func TestResolveAgainWriterReader(t *testing.T) {
 func TestResolveAgainConflict(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -851,7 +851,7 @@ func TestResolveAgainConflict(t *testing.T) {
 func TestTlfHandleResolvesTo(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{
 		"u1", "u2", "u3", "u4", "u5",
 	})
 	currentUID := localUsers[0].UID
@@ -1049,7 +1049,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{
 		"u1", "u2", "u3",
 	})
 	currentUID := localUsers[0].UID
@@ -1176,7 +1176,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())
@@ -1212,7 +1212,7 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 func TestParseTlfHandleImplicitTeams(t *testing.T) {
 	ctx := context.Background()
 
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]kbname.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(
 		currentUID, localUsers, nil, kbfscodec.NewMsgpack())

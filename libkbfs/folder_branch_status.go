@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"sync"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -21,7 +21,7 @@ import (
 type FolderBranchStatus struct {
 	Staged              bool
 	BranchID            string
-	HeadWriter          libkb.NormalizedUsername
+	HeadWriter          kbname.NormalizedUsername
 	DiskUsage           uint64
 	RekeyPending        bool
 	LatestKeyGeneration kbfsmd.KeyGen

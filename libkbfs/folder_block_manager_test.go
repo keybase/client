@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -28,7 +28,7 @@ func totalBlockRefs(m map[kbfsblock.ID]blockRefMap) int {
 // does a few updates, then lets quota reclamation run, and we make
 // sure that all historical blocks have been deleted.
 func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
-	userName libkb.NormalizedUsername) {
+	userName kbname.NormalizedUsername) {
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
@@ -126,7 +126,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 }
 
 func TestQuotaReclamationSimple(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
+	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
@@ -136,7 +136,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 // Just like the simple case, except tests that it unembeds large sets
 // of pointers correctly.
 func TestQuotaReclamationUnembedded(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
+	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
@@ -159,7 +159,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 // Test that a single quota reclamation run doesn't try to reclaim too
 // much quota at once.
 func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
+	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 
@@ -248,7 +248,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 
 // Test that deleted blocks are correctly flushed from the user cache.
 func TestQuotaReclamationDeletedBlocks(t *testing.T) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsInitNoMocks(t, u1, u2)
 	defer kbfsTestShutdownNoMocks(t, config1, ctx, cancel)
 
@@ -497,7 +497,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 // Test that quota reclamation doesn't happen while waiting for a
 // requested rekey.
 func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -587,7 +587,7 @@ func (mtwqr modeTestWithQR) IsTestMode() bool {
 // Test that quota reclamation doesn't run unless the current head is
 // at least the minimum needed age.
 func TestQuotaReclamationMinHeadAge(t *testing.T) {
-	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	var u1, u2 kbname.NormalizedUsername = "u1", "u2"
 	config1, _, ctx, cancel := kbfsOpsConcurInit(t, u1, u2)
 	defer kbfsConcurTestShutdown(t, config1, ctx, cancel)
 	clock := newTestClockNow()
@@ -730,7 +730,7 @@ func TestQuotaReclamationMinHeadAge(t *testing.T) {
 // to make sure clients don't waste time scanning over a bunch of old
 // GCOps when there is nothing to be done.
 func TestQuotaReclamationGCOpsForGCOps(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
+	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
 	clock := newTestClockNow()

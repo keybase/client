@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -21,7 +21,7 @@ func favTestInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	config.mockKbpki.EXPECT().GetCurrentSession(gomock.Any()).AnyTimes().
 		Return(SessionInfo{
-			Name: libkb.NormalizedUsername("tester"),
+			Name: kbname.NormalizedUsername("tester"),
 			UID:  keybase1.MakeTestUID(16),
 		}, nil)
 

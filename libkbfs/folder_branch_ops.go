@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/backoff"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -6001,7 +6002,7 @@ func (fbo *folderBranchOps) locallyFinalizeTLF(ctx context.Context) {
 	// TLF that shouldn't matter.
 	now := fbo.config.Clock().Now()
 	finalizedInfo, err := tlf.NewHandleExtension(
-		tlf.HandleExtensionFinalized, 1, libkb.NormalizedUsername("<unknown>"),
+		tlf.HandleExtensionFinalized, 1, kbname.NormalizedUsername("<unknown>"),
 		now)
 	if err != nil {
 		fbo.log.CErrorf(ctx, "Couldn't make finalized info: %+v", err)
@@ -6656,7 +6657,7 @@ func (fbo *folderBranchOps) TeamNameChanged(
 	fbo.log.CDebugf(ctx, "Starting name change for team %s", tid)
 
 	// First check if this is an implicit team.
-	var newName libkb.NormalizedUsername
+	var newName kbname.NormalizedUsername
 	if fbo.id().Type() != tlf.SingleTeam {
 		iteamInfo, err := fbo.config.KBPKI().ResolveImplicitTeamByID(
 			ctx, tid, fbo.id().Type())

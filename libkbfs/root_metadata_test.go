@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -183,7 +183,7 @@ func makeFakeTlfHandle(
 	id := keybase1.MakeTestUID(x).AsUserOrTeam()
 	return &TlfHandle{
 		tlfType: ty,
-		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			id: "test_user",
 		},
 		unresolvedWriters: unresolvedWriters,
@@ -800,7 +800,7 @@ func TestRootMetadataTeamMembership(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
 	h := &TlfHandle{
 		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
 		},
 		name: "t1",
@@ -884,7 +884,7 @@ func TestRootMetadataTeamMakeSuccessor(t *testing.T) {
 	tlfID := tlf.FakeID(1, tlf.SingleTeam)
 	h := &TlfHandle{
 		tlfType: tlf.SingleTeam,
-		resolvedWriters: map[keybase1.UserOrTeamID]libkb.NormalizedUsername{
+		resolvedWriters: map[keybase1.UserOrTeamID]kbname.NormalizedUsername{
 			tid.AsUserOrTeam(): "t1",
 		},
 		name: "t1",

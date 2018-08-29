@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"bazil.org/fuse"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/logger"
 )
 
@@ -22,7 +22,7 @@ type mounter struct {
 	options StartOptions
 	c       *fuse.Conn
 	log     logger.Logger
-	runMode libkb.RunMode
+	runMode kbconst.RunMode
 }
 
 // fuseMount tries to mount the mountpoint.

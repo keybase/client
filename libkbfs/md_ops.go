@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -73,7 +74,7 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
 		rmds.MD.LastModifyingWriter().AsUserOrTeam())
 	if nameErr != nil {
-		writer = libkb.NormalizedUsername("uid: " +
+		writer = kbname.NormalizedUsername("uid: " +
 			rmds.MD.LastModifyingWriter().String())
 	}
 	md.log.CDebugf(ctx, "Unverifiable update for TLF %s: %+v",

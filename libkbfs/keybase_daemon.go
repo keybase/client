@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -20,7 +20,7 @@ import (
 type keybaseDaemon struct{}
 
 func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error) {
-	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+	localUser := kbname.NewNormalizedUsername(params.LocalUser)
 	if len(localUser) == 0 {
 		err := ctx.ConfigureSocketInfo()
 		if err != nil {
@@ -40,7 +40,7 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 			config, ctx, log, params.Debug, additionalProtocols), nil
 	}
 
-	users := []libkb.NormalizedUsername{
+	users := []kbname.NormalizedUsername{
 		"strib", "max", "chris", "akalin", "jzila", "alness",
 		"jinyang", "songgao", "taru", "zanderz",
 	}
@@ -72,7 +72,7 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 	localUID := localUsers[userIndex].UID
 	codec := config.Codec()
 
-	teams := MakeLocalTeams([]libkb.NormalizedUsername{"kbfs", "core", "dokan"})
+	teams := MakeLocalTeams([]kbname.NormalizedUsername{"kbfs", "core", "dokan"})
 	for i := range teams {
 		teams[i].Writers = make(map[keybase1.UID]bool)
 		teams[i].Readers = make(map[keybase1.UID]bool)
@@ -117,7 +117,7 @@ func (k keybaseDaemon) NewKeybaseService(config Config, params InitParams, ctx C
 
 func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, log logger.Logger) (Crypto, error) {
 	var crypto Crypto
-	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+	localUser := kbname.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {
 		crypto = NewCryptoClientRPC(config, ctx)
 	} else {
@@ -132,7 +132,7 @@ func (k keybaseDaemon) NewCrypto(config Config, params InitParams, ctx Context, 
 func (k keybaseDaemon) NewChat(
 	config Config, params InitParams, ctx Context, log logger.Logger) (
 	chat Chat, err error) {
-	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+	localUser := kbname.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {
 		chat = NewChatRPC(config, ctx)
 	} else {

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -46,7 +47,7 @@ type revokedKeyInfo struct {
 // UserInfo contains all the info about a keybase user that kbfs cares
 // about.
 type UserInfo struct {
-	Name            libkb.NormalizedUsername
+	Name            kbname.NormalizedUsername
 	UID             keybase1.UID
 	VerifyingKeys   []kbfscrypto.VerifyingKey
 	CryptPublicKeys []kbfscrypto.CryptPublicKey
@@ -65,7 +66,7 @@ type TeamInfo struct {
 	// a nice type, unfortunately.  Also note that for implicit teams,
 	// this is an auto-generated name that shouldn't be shown to
 	// users.
-	Name         libkb.NormalizedUsername
+	Name         kbname.NormalizedUsername
 	TID          keybase1.TeamID
 	CryptKeys    map[kbfsmd.KeyGen]kbfscrypto.TLFCryptKey
 	LatestKeyGen kbfsmd.KeyGen
@@ -83,7 +84,7 @@ type TeamInfo struct {
 // resolving/identifying an implicit team.  TeamInfo is used for
 // anything else.
 type ImplicitTeamInfo struct {
-	Name  libkb.NormalizedUsername // The "display" name for the i-team.
+	Name  kbname.NormalizedUsername // The "display" name for the i-team.
 	TID   keybase1.TeamID
 	TlfID tlf.ID
 }
@@ -91,7 +92,7 @@ type ImplicitTeamInfo struct {
 // SessionInfo contains all the info about the keybase session that
 // kbfs cares about.
 type SessionInfo struct {
-	Name           libkb.NormalizedUsername
+	Name           kbname.NormalizedUsername
 	UID            keybase1.UID
 	CryptPublicKey kbfscrypto.CryptPublicKey
 	VerifyingKey   kbfscrypto.VerifyingKey
@@ -675,7 +676,7 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 	cryptPublicKey := kbfscrypto.MakeCryptPublicKey(deviceSubkey.GetKID())
 	verifyingKey := kbfscrypto.MakeVerifyingKey(deviceSibkey.GetKID())
 	return SessionInfo{
-		Name:           libkb.NewNormalizedUsername(session.Username),
+		Name:           kbname.NewNormalizedUsername(session.Username),
 		UID:            keybase1.UID(session.Uid),
 		CryptPublicKey: cryptPublicKey,
 		VerifyingKey:   verifyingKey,
@@ -687,7 +688,7 @@ type NodeMetadata struct {
 	// LastWriterUnverified is the last writer of this
 	// node according to the last writer of the TLF.
 	// A more thorough check is possible in the future.
-	LastWriterUnverified libkb.NormalizedUsername
+	LastWriterUnverified kbname.NormalizedUsername
 	BlockInfo            BlockInfo
 	PrefetchStatus       string
 }

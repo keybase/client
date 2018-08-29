@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -88,7 +88,7 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 
 // Resolve implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
-	name libkb.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
+	name kbname.NormalizedUsername, uid keybase1.UserOrTeamID, err error) {
 	k.resolveTimer.Time(func() {
 		name, uid, err = k.delegate.Resolve(ctx, assertion)
 	})
@@ -97,7 +97,7 @@ func (k KeybaseServiceMeasured) Resolve(ctx context.Context, assertion string) (
 
 // Identify implements the KeybaseService interface for KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason string) (
-	name libkb.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
+	name kbname.NormalizedUsername, id keybase1.UserOrTeamID, err error) {
 	k.identifyTimer.Time(func() {
 		name, id, err = k.delegate.Identify(ctx, assertion, reason)
 	})

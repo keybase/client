@@ -7,7 +7,7 @@ package test
 import (
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libkbfs"
@@ -23,11 +23,11 @@ type Node interface{}
 type username string
 
 type teamMembers struct {
-	writers []libkb.NormalizedUsername
-	readers []libkb.NormalizedUsername
+	writers []kbname.NormalizedUsername
+	readers []kbname.NormalizedUsername
 }
 
-type teamMap map[libkb.NormalizedUsername]teamMembers
+type teamMap map[kbname.NormalizedUsername]teamMembers
 
 // Engine is the interface to the filesystem to be used by the test harness.
 // It may wrap libkbfs directly or it may wrap other users of libkbfs (e.g., libfuse).
@@ -47,9 +47,9 @@ type Engine interface {
 	// default engine timeout, or if it is zero, it has no effect.
 	InitTest(ver kbfsmd.MetadataVer, blockSize int64,
 		blockChangeSize int64, batchSize int, bwKBps int,
-		opTimeout time.Duration, users []libkb.NormalizedUsername,
+		opTimeout time.Duration, users []kbname.NormalizedUsername,
 		teams, implicitTeams teamMap, clock libkbfs.Clock,
-		journal bool) map[libkb.NormalizedUsername]User
+		journal bool) map[kbname.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private

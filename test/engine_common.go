@@ -8,7 +8,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
 )
@@ -46,8 +46,8 @@ func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 }
 
 func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
-	users map[libkb.NormalizedUsername]User) {
-	teamNames := make([]libkb.NormalizedUsername, 0, len(teams))
+	users map[kbname.NormalizedUsername]User) {
+	teamNames := make([]kbname.NormalizedUsername, 0, len(teams))
 	for name := range teams {
 		teamNames = append(teamNames, name)
 	}
@@ -70,7 +70,7 @@ func makeTeams(t testing.TB, config libkbfs.Config, e Engine, teams teamMap,
 }
 
 func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
-	implicitTeams teamMap, users map[libkb.NormalizedUsername]User) {
+	implicitTeams teamMap, users map[kbname.NormalizedUsername]User) {
 	if len(implicitTeams) > 0 {
 		err := libkbfs.EnableImplicitTeamsForTest(config)
 		if err != nil {
@@ -82,7 +82,7 @@ func makeImplicitTeams(t testing.TB, config libkbfs.Config, e Engine,
 	for name, members := range implicitTeams {
 		ty := tlf.Private
 		if len(members.readers) == 1 &&
-			members.readers[0] == libkb.NormalizedUsername("public") {
+			members.readers[0] == kbname.NormalizedUsername("public") {
 			ty = tlf.Public
 		}
 

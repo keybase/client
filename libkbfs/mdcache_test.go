@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -25,7 +25,7 @@ func testMdcacheMakeHandle(t *testing.T, n uint32) *TlfHandle {
 	require.NoError(t, err)
 
 	nug := testNormalizedUsernameGetter{
-		id: libkb.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
+		id: kbname.NormalizedUsername(fmt.Sprintf("fake_user_%d", n)),
 	}
 
 	ctx := context.Background()

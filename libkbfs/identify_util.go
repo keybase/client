@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"sync"
 
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/tlf"
@@ -25,7 +26,7 @@ type extendedIdentify struct {
 	tlfBreaks  *keybase1.TLFBreak
 }
 
-func (ei *extendedIdentify) userBreak(username libkb.NormalizedUsername, uid keybase1.UID, breaks *keybase1.IdentifyTrackBreaks) {
+func (ei *extendedIdentify) userBreak(username kbname.NormalizedUsername, uid keybase1.UID, breaks *keybase1.IdentifyTrackBreaks) {
 	if ei.userBreaks == nil {
 		return
 	}
@@ -155,7 +156,7 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter,
 
 // identifyUser is the preferred way to run identifies.
 func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, name libkb.NormalizedUsername,
+	identifier identifier, name kbname.NormalizedUsername,
 	id keybase1.UserOrTeamID, t tlf.Type) error {
 	// Check to see if identify should be skipped altogether.
 	ei := getExtendedIdentify(ctx)
@@ -186,7 +187,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 			"You accessed a folder for private team %s.", nameAssertion)
 		nameAssertion = "team:" + nameAssertion
 	}
-	var resultName libkb.NormalizedUsername
+	var resultName kbname.NormalizedUsername
 	var resultID keybase1.UserOrTeamID
 	if isImplicit {
 		assertions, extensionSuffix, err := tlf.SplitExtension(name.String())
@@ -228,7 +229,7 @@ func identifyUser(ctx context.Context, nug normalizedUsernameGetter,
 
 // identifyUserToChan calls identifyUser and plugs the result into the error channnel.
 func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
-	identifier identifier, name libkb.NormalizedUsername,
+	identifier identifier, name kbname.NormalizedUsername,
 	id keybase1.UserOrTeamID, t tlf.Type, errChan chan error) {
 	errChan <- identifyUser(ctx, nug, identifier, name, id, t)
 }
@@ -236,7 +237,7 @@ func identifyUserToChan(ctx context.Context, nug normalizedUsernameGetter,
 // identifyUsers identifies the users in the given maps.
 func identifyUsers(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier,
-	names map[keybase1.UserOrTeamID]libkb.NormalizedUsername,
+	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	t tlf.Type) error {
 	eg, ctx := errgroup.WithContext(ctx)
 
@@ -275,7 +276,7 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter,
 // identifyUsersForTLF is a helper for identifyHandle for easier testing.
 func identifyUsersForTLF(ctx context.Context, nug normalizedUsernameGetter,
 	identifier identifier,
-	names map[keybase1.UserOrTeamID]libkb.NormalizedUsername,
+	names map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 	t tlf.Type) error {
 	eg, ctx := errgroup.WithContext(ctx)
 

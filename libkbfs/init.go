@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -119,12 +120,12 @@ type InitParams struct {
 // defaultBServer returns the default value for the -bserver flag.
 func defaultBServer(ctx Context) string {
 	switch ctx.GetRunMode() {
-	case libkb.DevelRunMode:
+	case kbconst.DevelRunMode:
 		return memoryAddr
-	case libkb.StagingRunMode:
+	case kbconst.StagingRunMode:
 		return `
 			bserver-0.dev.keybase.io:443,bserver-1.dev.keybase.io:443`
-	case libkb.ProductionRunMode:
+	case kbconst.ProductionRunMode:
 		return `
 			bserver-0.kbfs.keybaseapi.com:443,bserver-1.kbfs.keybaseapi.com:443;
 			bserver-0.kbfs.keybase.io:443,bserver-1.kbfs.keybase.io:443`
@@ -136,12 +137,12 @@ func defaultBServer(ctx Context) string {
 // defaultMDServer returns the default value for the -mdserver flag.
 func defaultMDServer(ctx Context) string {
 	switch ctx.GetRunMode() {
-	case libkb.DevelRunMode:
+	case kbconst.DevelRunMode:
 		return memoryAddr
-	case libkb.StagingRunMode:
+	case kbconst.StagingRunMode:
 		return `
 			mdserver-0.dev.keybase.io:443,mdserver-1.dev.keybase.io:443`
-	case libkb.ProductionRunMode:
+	case kbconst.ProductionRunMode:
 		return `
 			mdserver-0.kbfs.keybaseapi.com:443,mdserver-1.kbfs.keybaseapi.com:443;
 			mdserver-0.kbfs.keybase.io:443,mdserver-1.kbfs.keybase.io:443`
@@ -153,11 +154,11 @@ func defaultMDServer(ctx Context) string {
 // defaultMetadataVersion returns the default metadata version per run mode.
 func defaultMetadataVersion(ctx Context) kbfsmd.MetadataVer {
 	switch ctx.GetRunMode() {
-	case libkb.DevelRunMode:
+	case kbconst.DevelRunMode:
 		return kbfsmd.ImplicitTeamsVer
-	case libkb.StagingRunMode:
+	case kbconst.StagingRunMode:
 		return kbfsmd.ImplicitTeamsVer
-	case libkb.ProductionRunMode:
+	case kbconst.ProductionRunMode:
 		return kbfsmd.ImplicitTeamsVer
 	default:
 		return kbfsmd.ImplicitTeamsVer

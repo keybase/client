@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/externals"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
@@ -28,8 +28,8 @@ type TlfHandle struct {
 	// If this is not Private, resolvedReaders and unresolvedReaders
 	// should both be nil.
 	tlfType         tlf.Type
-	resolvedWriters map[keybase1.UserOrTeamID]libkb.NormalizedUsername
-	resolvedReaders map[keybase1.UserOrTeamID]libkb.NormalizedUsername
+	resolvedWriters map[keybase1.UserOrTeamID]kbname.NormalizedUsername
+	resolvedReaders map[keybase1.UserOrTeamID]kbname.NormalizedUsername
 	// Both unresolvedWriters and unresolvedReaders are stored in
 	// sorted order.
 	unresolvedWriters []keybase1.SocialAssertion
@@ -106,8 +106,8 @@ func (h TlfHandle) IsReader(user keybase1.UID) bool {
 }
 
 // ResolvedUsersMap returns a map of resolved users from uid to usernames.
-func (h TlfHandle) ResolvedUsersMap() map[keybase1.UserOrTeamID]libkb.NormalizedUsername {
-	m := make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername,
+func (h TlfHandle) ResolvedUsersMap() map[keybase1.UserOrTeamID]kbname.NormalizedUsername {
+	m := make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername,
 		len(h.resolvedReaders)+len(h.resolvedWriters))
 	for k, v := range h.resolvedReaders {
 		m[k] = v
@@ -376,12 +376,12 @@ func (h TlfHandle) deepCopy() *TlfHandle {
 		tlfID:             h.tlfID,
 	}
 
-	hCopy.resolvedWriters = make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(h.resolvedWriters))
+	hCopy.resolvedWriters = make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(h.resolvedWriters))
 	for k, v := range h.resolvedWriters {
 		hCopy.resolvedWriters[k] = v
 	}
 
-	hCopy.resolvedReaders = make(map[keybase1.UserOrTeamID]libkb.NormalizedUsername, len(h.resolvedReaders))
+	hCopy.resolvedReaders = make(map[keybase1.UserOrTeamID]kbname.NormalizedUsername, len(h.resolvedReaders))
 	for k, v := range h.resolvedReaders {
 		hCopy.resolvedReaders[k] = v
 	}
@@ -471,8 +471,8 @@ func splitAndNormalizeTLFName(name string, t tlf.Type) (
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
 func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
-	if libkb.CheckUsername.F(s) {
-		return libkb.NewNormalizedUsername(s).String(), nil
+	if kbname.CheckUsername(s) {
+		return kbname.NewNormalizedUsername(s).String(), nil
 	}
 
 	// TODO: this fails for http and https right now (see CORE-2968).
@@ -586,7 +586,7 @@ func (h TlfHandle) IsConflict() bool {
 // tlf name which will be reordered into the preferred format.
 // An empty username is allowed here and results in the canonical ordering.
 func (h TlfHandle) GetPreferredFormat(
-	username libkb.NormalizedUsername) tlf.PreferredName {
+	username kbname.NormalizedUsername) tlf.PreferredName {
 	s, err := tlf.CanonicalToPreferredName(username, h.GetCanonicalName())
 	if err != nil {
 		panic("TlfHandle.GetPreferredFormat: Parsing canonical username failed!")

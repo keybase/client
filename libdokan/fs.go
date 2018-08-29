@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/dokan/winacl"
@@ -630,7 +630,7 @@ func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
 }
 
 // UserChanged is called from libfs.
-func (f *FS) UserChanged(ctx context.Context, oldName, newName libkb.NormalizedUsername) {
+func (f *FS) UserChanged(ctx context.Context, oldName, newName kbname.NormalizedUsername) {
 	f.log.CDebugf(ctx, "User changed: %q -> %q", oldName, newName)
 	f.root.public.userChanged(ctx, oldName, newName)
 	f.root.private.userChanged(ctx, oldName, newName)

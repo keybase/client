@@ -14,7 +14,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"github.com/kardianos/osext"
-	"github.com/keybase/client/go/libkb"
+	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -117,7 +117,7 @@ func bundleResourcePath(path string) (string, error) {
 // disseminates renames into different TLF's trash.
 type Trash struct {
 	fs         *FS
-	kbusername libkb.NormalizedUsername
+	kbusername kbname.NormalizedUsername
 }
 
 // Lookup implements the fs.NodeRequestLookuper interface for *Trash

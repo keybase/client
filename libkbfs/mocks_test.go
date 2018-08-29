@@ -6,7 +6,7 @@ package libkbfs
 
 import (
 	gomock "github.com/golang/mock/gomock"
-	libkb "github.com/keybase/client/go/libkb"
+	kbun "github.com/keybase/client/go/kbun"
 	logger "github.com/keybase/client/go/logger"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -1878,9 +1878,9 @@ func (mr *MockKeybaseServiceMockRecorder) PutGitMetadata(ctx, folder, repoID, me
 }
 
 // Resolve mocks base method
-func (m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Resolve", ctx, assertion)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -1892,9 +1892,9 @@ func (mr *MockKeybaseServiceMockRecorder) Resolve(ctx, assertion interface{}) *g
 }
 
 // Identify mocks base method
-func (m *MockKeybaseService) Identify(ctx context.Context, assertion, reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *MockKeybaseService) Identify(ctx context.Context, assertion, reason string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Identify", ctx, assertion, reason)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2187,9 +2187,9 @@ func (m *Mockresolver) EXPECT() *MockresolverMockRecorder {
 }
 
 // Resolve mocks base method
-func (m *Mockresolver) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *Mockresolver) Resolve(ctx context.Context, assertion string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Resolve", ctx, assertion)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2263,9 +2263,9 @@ func (m *Mockidentifier) EXPECT() *MockidentifierMockRecorder {
 }
 
 // Identify mocks base method
-func (m *Mockidentifier) Identify(ctx context.Context, assertion, reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *Mockidentifier) Identify(ctx context.Context, assertion, reason string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Identify", ctx, assertion, reason)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2313,9 +2313,9 @@ func (m *MocknormalizedUsernameGetter) EXPECT() *MocknormalizedUsernameGetterMoc
 }
 
 // GetNormalizedUsername mocks base method
-func (m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (libkb.NormalizedUsername, error) {
+func (m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (kbun.NormalizedUsername, error) {
 	ret := m.ctrl.Call(m, "GetNormalizedUsername", ctx, id)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -2547,9 +2547,9 @@ func (mr *MockKBPKIMockRecorder) GetCurrentSession(ctx interface{}) *gomock.Call
 }
 
 // Resolve mocks base method
-func (m *MockKBPKI) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *MockKBPKI) Resolve(ctx context.Context, assertion string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Resolve", ctx, assertion)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2600,9 +2600,9 @@ func (mr *MockKBPKIMockRecorder) ResolveTeamTLFID(ctx, teamID interface{}) *gomo
 }
 
 // Identify mocks base method
-func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (libkb.NormalizedUsername, keybase1.UserOrTeamID, error) {
+func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Identify", ctx, assertion, reason)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
@@ -2627,9 +2627,9 @@ func (mr *MockKBPKIMockRecorder) IdentifyImplicitTeam(ctx, assertions, suffix, t
 }
 
 // GetNormalizedUsername mocks base method
-func (m *MockKBPKI) GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (libkb.NormalizedUsername, error) {
+func (m *MockKBPKI) GetNormalizedUsername(ctx context.Context, id keybase1.UserOrTeamID) (kbun.NormalizedUsername, error) {
 	ret := m.ctrl.Call(m, "GetNormalizedUsername", ctx, id)
-	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret0, _ := ret[0].(kbun.NormalizedUsername)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
