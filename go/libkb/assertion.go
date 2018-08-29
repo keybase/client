@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -138,7 +139,7 @@ func (a AssertionAnd) ToSocialAssertion() (sa keybase1.SocialAssertion, err erro
 type AssertionURL interface {
 	AssertionExpression
 	Keys() []string
-	CheckAndNormalize(ctx AssertionContext) (AssertionURL, error)
+	CheckAndNormalize(ctx kbname.AssertionContext) (AssertionURL, error)
 	IsKeybase() bool
 	IsUID() bool
 	IsTeamID() bool
@@ -303,32 +304,32 @@ type AssertionHTTPS struct{ AssertionURLBase }
 type AssertionDNS struct{ AssertionURLBase }
 type AssertionFingerprint struct{ AssertionURLBase }
 
-func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionHTTP) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionHTTPS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionHTTPS) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionDNS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionDNS) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionWeb) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
 
-func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionKeybase) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if !CheckUsername.F(a.Value) {
 		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
@@ -336,7 +337,7 @@ func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, e
 	return a, nil
 }
 
-func (a AssertionFingerprint) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionFingerprint) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if _, err := hex.DecodeString(a.Value); err != nil {
 		return nil, fmt.Errorf("bad hex string: '%s'", a.Value)
@@ -467,7 +468,7 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 	return "uid", a.Value, nil
 }
 
-func (a AssertionUID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionUID) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	var err error
 	a.uid, err = UIDFromHex(a.Value)
 	a.Value = strings.ToLower(a.Value)
@@ -482,21 +483,21 @@ func (a AssertionTeamName) ToLookup() (key, value string, err error) {
 	return "team", a.Value, nil
 }
 
-func (a AssertionTeamID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionTeamID) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	var err error
 	a.tid, err = keybase1.TeamIDFromString(a.Value)
 	a.Value = strings.ToLower(a.Value)
 	return a, err
 }
 
-func (a AssertionTeamName) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
+func (a AssertionTeamName) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	var err error
 	a.name, err = keybase1.TeamNameFromString(a.Value)
 	a.Value = a.name.String()
 	return a, err
 }
 
-func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
+func (a AssertionSocial) CheckAndNormalize(ctx kbname.AssertionContext) (AssertionURL, error) {
 	var err error
 	a.Value, err = ctx.NormalizeSocialName(a.Key, a.Value)
 	return a, err
@@ -506,7 +507,7 @@ func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
 }
 
-func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
+func ParseAssertionURL(ctx kbname.AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
 	key, val, err := parseToKVPair(s)
 
 	if err != nil {
@@ -515,7 +516,7 @@ func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret Asserti
 	return ParseAssertionURLKeyValue(ctx, key, val, strict)
 }
 
-func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
+func ParseAssertionURLKeyValue(ctx kbname.AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
 
 	if len(key) == 0 {
 		if strict {
@@ -649,7 +650,7 @@ func AssertionIsTeam(au AssertionURL) bool {
 	return au != nil && (au.IsTeamID() || au.IsTeamName())
 }
 
-func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name string, err error) {
+func parseImplicitTeamPart(ctx kbname.AssertionContext, s string) (typ string, name string, err error) {
 	nColons := strings.Count(s, ":")
 	nAts := strings.Count(s, "@")
 	nDelimiters := nColons + nAts
@@ -677,7 +678,7 @@ func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictI
 }
 
 // Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
-func ParseImplicitTeamDisplayName(ctx AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
+func ParseImplicitTeamDisplayName(ctx kbname.AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
 	s = strings.ToLower(s)
 
@@ -761,7 +762,7 @@ func ParseImplicitTeamDisplayNameSuffix(suffix string) (ret *keybase1.ImplicitTe
 	}, nil
 }
 
-func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bool) (ret keybase1.ImplicitTeamUserSet, err error) {
+func parseImplicitTeamUserSet(ctx kbname.AssertionContext, s string, seen map[string]bool) (ret keybase1.ImplicitTeamUserSet, err error) {
 
 	for _, part := range strings.Split(s, ",") {
 		typ, name, err := parseImplicitTeamPart(ctx, part)
@@ -786,7 +787,7 @@ func parseImplicitTeamUserSet(ctx AssertionContext, s string, seen map[string]bo
 }
 
 // Parse a name like "/keybase/private/mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
-func ParseImplicitTeamTLFName(ctx AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
+func ParseImplicitTeamTLFName(ctx kbname.AssertionContext, s string) (keybase1.ImplicitTeamDisplayName, error) {
 	ret := keybase1.ImplicitTeamDisplayName{}
 	s = strings.ToLower(s)
 	parts := strings.Split(s, "/")
