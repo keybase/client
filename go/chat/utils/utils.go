@@ -1182,8 +1182,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			msgBody := rawMsg.Outbox().Msg.MessageBody
 			btyp, err := msgBody.MessageType()
 			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
-				title = rawMsg.Outbox().Msg.MessageBody.Attachment().Object.Title
-				filename = rawMsg.Outbox().Msg.MessageBody.Attachment().Object.Filename
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
 			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
