@@ -435,10 +435,6 @@
           "name": "kbTxID"
         },
         {
-          "type": "TransactionID",
-          "name": "txID"
-        },
-        {
           "type": "boolean",
           "name": "pending"
         }
