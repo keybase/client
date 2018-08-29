@@ -5,7 +5,7 @@ package libkb
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -17,7 +17,7 @@ func BaseProofSet(u *keybase1.UserPlusKeysV2AllIncarnations) *ProofSet {
 		{Key: "uid", Value: u.GetUID().String()},
 	}
 	for _, key := range u.Current.PGPKeys {
-		proofs = append(proofs, Proof{Key: kbconst.PGPAssertionKey, Value: key.Fingerprint.String()})
+		proofs = append(proofs, Proof{Key: kbname.PGPAssertionKey, Value: key.Fingerprint.String()})
 	}
 	return NewProofSet(proofs)
 }
