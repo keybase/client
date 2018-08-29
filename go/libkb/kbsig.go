@@ -367,7 +367,7 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	} else {
 		hPrevInfoObj.SetKey("hash", jsonw.NewNil())
 	}
-	ret.SetKey("hprev_info", hPrevInfoObj)
+	ret.SetKey("high_skip", hPrevInfoObj)
 
 	if arg.IgnoreIfUnsupported {
 		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))

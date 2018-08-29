@@ -185,7 +185,7 @@ type SCChainLinkPayload struct {
 	Seqno               keybase1.Seqno               `json:"seqno,omitempty"`
 	Tag                 string                       `json:"tag,omitempty"`
 	IgnoreIfUnsupported libkb.SigIgnoreIfUnsupported `json:"ignore_if_unsupported,omitempty"`
-	HPrevInfo           *HPrevInfoStr                `json:"hprev_info,omitempty"`
+	HPrevInfo           *HPrevInfoStr                `json:"high_skip,omitempty"`
 }
 
 func (s SCChainLinkPayload) SigChainLocation() keybase1.SigChainLocation {

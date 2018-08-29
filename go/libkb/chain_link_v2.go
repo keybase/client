@@ -201,8 +201,8 @@ type OuterLinkV2 struct {
 	// -- Links exist in the wild that are missing fields below this line too.
 	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
 	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
-	HPrevSeqno *keybase1.Seqno `codec:"hseqno"`
-	HPrevHash  LinkID          `codec:"hprev"`
+	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
+	HPrevHash  LinkID          `codec:"high_skip_hash"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {

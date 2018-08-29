@@ -469,8 +469,8 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 }
 
 func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevInfo, error) {
-	_, dataType, _, err := jsonparser.Get(payload, "hprev_info")
-	// hprev_info is optional, but must be an object if it exists
+	_, dataType, _, err := jsonparser.Get(payload, "high_skip")
+	// high_skip is optional, but must be an object if it exists
 	if err != nil {
 		if err == jsonparser.KeyPathNotFoundError {
 			return nil, nil
@@ -480,10 +480,10 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 	}
 
 	if dataType != jsonparser.Object {
-		return nil, ChainLinkError{fmt.Sprintf("When provided, expected hprev_info to be a JSON object, was %v.", dataType)}
+		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
 	}
 
-	hPrevSeqnoInt, err := jsonparser.GetInt(payload, "hprev_info", "seqno")
+	hPrevSeqnoInt, err := jsonparser.GetInt(payload, "high_skip", "seqno")
 	if err != nil {
 		return nil, err
 	}
@@ -491,17 +491,17 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 	// hPrevHash can either be null (zero-value of a LinkID) or a hexstring.
 	// We call GetString first instead of Get so we only parse the value
 	// twice for the first link.
-	hPrevHashStr, err := jsonparser.GetString(payload, "hprev_info", "hash")
+	hPrevHashStr, err := jsonparser.GetString(payload, "high_skip", "hash")
 	var hPrevHash LinkID
 	if err != nil {
 		// If there was an error parsing as a string, make sure the value is null.
-		_, dataType, _, getErr := jsonparser.Get(payload, "hprev_info", "hash")
+		_, dataType, _, getErr := jsonparser.Get(payload, "high_skip", "hash")
 		if err != nil {
 			return nil, getErr
 		}
 		if dataType != jsonparser.Null {
 			return nil, ChainLinkError{
-				fmt.Sprintf("hprev_info.hash was neither a valid string (%v) nor null.", err.Error()),
+				fmt.Sprintf("high_skip.hash was neither a valid string (%v) nor null.", err.Error()),
 			}
 		}
 	} else {
