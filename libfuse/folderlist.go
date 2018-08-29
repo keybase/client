@@ -281,8 +281,8 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { err = fl.fs.processError(ctx, libkbfs.WriteMode, err) }()
 
-	h, err := libkbfs.ParseTlfHandlePreferred(
-		ctx, fl.fs.config.KBPKI(), fl.fs.config.MDOps(), req.Name, fl.tlfType)
+	h, err := libfs.ParseTlfHandlePreferredQuick(
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.tlfType)
 
 	switch err := errors.Cause(err).(type) {
 	case nil:
