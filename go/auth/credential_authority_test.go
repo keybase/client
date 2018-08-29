@@ -4,18 +4,20 @@ import (
 	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"sync"
+	"testing"
+	"time"
+
+	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"sync"
-	"testing"
-	"time"
 )
 
 type testUser struct {
 	uid      keybase1.UID
-	username libkb.NormalizedUsername
+	username kbun.NormalizedUsername
 	sibkeys  []keybase1.KID
 	subkeys  []keybase1.KID
 }
@@ -103,12 +105,12 @@ func (e userNotFoundError) Error() string {
 }
 
 func (ts *testState) GetUser(_ context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
 	ts.Lock()
 	defer ts.Unlock()
 	u := ts.users[uid]
 	if u == nil {
-		return libkb.NormalizedUsername(""), nil, nil, false, userNotFoundError{}
+		return kbun.NormalizedUsername(""), nil, nil, false, userNotFoundError{}
 	}
 	ts.numGets++
 	return u.username, u.sibkeys, u.subkeys, false, nil

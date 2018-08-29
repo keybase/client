@@ -1,11 +1,13 @@
 package auth
 
 import (
+	"time"
+
+	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const (
@@ -62,7 +64,7 @@ type userKeyAPI struct {
 }
 
 func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
+	un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, isDeleted bool, err error) {
 	u.log.Debug("+ GetUser")
 	defer func() {
 		u.log.Debug("- GetUser -> %v", err)

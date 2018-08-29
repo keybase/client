@@ -3,7 +3,8 @@ package auth
 import (
 	"errors"
 	"fmt"
-	libkb "github.com/keybase/client/go/libkb"
+
+	"github.com/keybase/client/go/kbun"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -16,8 +17,8 @@ var ErrUserDeleted = errors.New("user was deleted")
 // BadUsernameError is raised when the given username disagrees with the expected
 // username
 type BadUsernameError struct {
-	expected libkb.NormalizedUsername
-	received libkb.NormalizedUsername
+	expected kbun.NormalizedUsername
+	received kbun.NormalizedUsername
 }
 
 func (e BadUsernameError) Error() string {

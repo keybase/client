@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	libkb "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbun"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -33,7 +33,7 @@ type CredentialAuthority struct {
 // checkArgs are sent over the checkCh to the core loop of a CredentialAuthority
 type checkArg struct {
 	uid         keybase1.UID
-	username    *libkb.NormalizedUsername
+	username    *kbun.NormalizedUsername
 	kid         *keybase1.KID
 	sibkeys     []keybase1.KID
 	subkeys     []keybase1.KID
@@ -79,7 +79,7 @@ func (ci cleanItem) String() string {
 // are off-limits to the main thread.
 type user struct {
 	uid       keybase1.UID
-	username  libkb.NormalizedUsername
+	username  kbun.NormalizedUsername
 	sibkeys   map[keybase1.KID]struct{}
 	subkeys   map[keybase1.KID]struct{}
 	isOK      bool
@@ -120,7 +120,7 @@ type UserKeyAPIer interface {
 	// GetUser looks up the username and KIDS active for the given user.
 	// Deleted users are loaded by default.
 	GetUser(context.Context, keybase1.UID) (
-		un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error)
+		un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error)
 	// PollForChanges returns the UIDs that have recently changed on the server
 	// side. It will be called in a poll loop. This call should function as
 	// a *long poll*, meaning, it should not return unless there is a change
@@ -430,7 +430,7 @@ func (u *user) check(ca checkArg) {
 // getUserFromServer runs the UserKeyAPIer GetUser() API call while paying
 // attention to any shutdown events that might interrupt it.
 func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
-	un libkb.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error) {
+	un kbun.NormalizedUsername, sibkeys, subkeys []keybase1.KID, deleted bool, err error) {
 	err = v.runWithCancel(func(ctx context.Context) error {
 		var err error
 		un, sibkeys, subkeys, deleted, err = v.api.GetUser(ctx, uid)
@@ -440,7 +440,7 @@ func (v *CredentialAuthority) getUserFromServer(uid keybase1.UID) (
 }
 
 // checkUsername checks that a username is a match for this user.
-func (u *user) checkUsername(un libkb.NormalizedUsername) error {
+func (u *user) checkUsername(un kbun.NormalizedUsername) error {
 	var err error
 	if !u.username.Eq(un) {
 		err = BadUsernameError{u.username, un}
@@ -487,7 +487,7 @@ func (u *user) checkKey(kid keybase1.KID) error {
 // extracted from a signed authentication statement. It returns an error if the
 // check fails, and nil otherwise. If username or kid are nil they aren't checked.
 func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
-	username *libkb.NormalizedUsername, kid *keybase1.KID, loadDeleted bool) (err error) {
+	username *kbun.NormalizedUsername, kid *keybase1.KID, loadDeleted bool) (err error) {
 	v.log.Debug("CheckUserKey uid %s, kid %s", uid, kid)
 	retCh := make(chan error, 1) // buffered in case the ctx is canceled
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, loadDeleted: loadDeleted, retCh: retCh}

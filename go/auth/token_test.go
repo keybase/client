@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -177,7 +178,7 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	}
 }
 
-func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsername,
+func checkToken(token *Token, uid keybase1.UID, username kbun.NormalizedUsername,
 	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string) error {
 	if token.UID() != uid {
 		return fmt.Errorf("UID mismatch, expected: %s, got %s",
