@@ -475,7 +475,7 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 
 		proofsWithType := proofs.Get([]string{ityp})
 
-		var proof *libkb.Proof
+		var proof *kbname.Proof
 		for _, p := range proofsWithType {
 			if p.Value == string(invite.Name) {
 				proof = &p

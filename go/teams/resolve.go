@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -75,7 +76,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		IsPublic: public,
 	}
 	if len(suffix) > 0 {
-		res.ConflictInfo, err = libkb.ParseImplicitTeamDisplayNameSuffix(suffix)
+		res.ConflictInfo, err = kbname.ParseImplicitTeamDisplayNameSuffix(suffix)
 		if err != nil {
 			return res, err
 		}
@@ -116,7 +117,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 //   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
 //   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
 func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
-	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
+	sourceAssertions []kbname.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
 
 	m := libkb.NewMetaContext(ctx, g)
 

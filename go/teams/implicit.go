@@ -5,6 +5,7 @@ import (
 	"sort"
 
 	"github.com/keybase/client/go/kbfs"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -18,7 +19,7 @@ type implicitTeamConflict struct {
 }
 
 func (i *implicitTeamConflict) parse() (*keybase1.ImplicitTeamConflictInfo, error) {
-	return libkb.ParseImplicitTeamDisplayNameSuffix(fmt.Sprintf("(conflicted copy %s #%d)", i.ConflictDate, i.Generation))
+	return kbname.ParseImplicitTeamDisplayNameSuffix(fmt.Sprintf("(conflicted copy %s #%d)", i.ConflictDate, i.Generation))
 }
 
 type implicitTeam struct {
@@ -134,7 +135,7 @@ func lookupImplicitTeamAndConflicts(ctx context.Context, g *libkb.GlobalContext,
 		g.Log.CDebugf(ctx, "| parsed conflict into conflictInfo: %+v", *conflictInfo)
 
 		if impTeamName.ConflictInfo != nil {
-			match := libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo) == libkb.FormatImplicitTeamDisplayNameSuffix(*conflictInfo)
+			match := kbname.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo) == kbname.FormatImplicitTeamDisplayNameSuffix(*conflictInfo)
 			if match {
 				teamID = conflict.TeamID
 				foundSelectedConflict = true
@@ -271,7 +272,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 
 	var suffix string
 	if impTeamName.ConflictInfo != nil && impTeamName.ConflictInfo.IsConflict() {
-		suffix = libkb.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
+		suffix = kbname.FormatImplicitTeamDisplayNameSuffix(*impTeamName.ConflictInfo)
 	}
 
 	if len(writerNames) == 0 {
