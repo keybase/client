@@ -35,7 +35,7 @@ const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.C
 const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
     <Kb.Text
-      type="Header"
+      type="BodyBig"
       style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
     >
       {item.description}

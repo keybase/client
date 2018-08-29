@@ -845,7 +845,23 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
