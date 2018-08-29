@@ -353,7 +353,7 @@ func (b *AssertionURLBase) checkAndNormalizeHost() error {
 
 	b.Value = strings.ToLower(b.Value)
 
-	if !IsValidHostname(b.Value) {
+	if !kbname.IsValidHostname(b.Value) {
 		return fmt.Errorf("Invalid hostname: %s", b.Value)
 	}
 
