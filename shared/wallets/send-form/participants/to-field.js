@@ -11,18 +11,19 @@ import type {CounterpartyType} from '../../../constants/types/wallets'
 type ToFieldProps = {|
   recipientType: CounterpartyType,
   onChangeRecipient: string => void,
-  // Used for send to stellar address
-  incorrect?: string,
-  // Used for sending from account to account
-  user: string,
-  accounts: Account[],
-  onLinkAccount?: () => void,
-  onCreateNewAccount?: () => void,
-  // Used to display a keybase profile
+  // Used to display a keybase profile. We need the recipients' name and callbacks to show the tracker and remove profiles.
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
+  // Used for sending to a stellar address.
+  incorrect?: string,
+  // Used for sending from account to account
+  // We need the users' name, list of accounts, and callbacks to link and create new accounts.
+  user: string,
+  accounts: Account[],
+  onLinkAccount?: () => void,
+  onCreateNewAccount?: () => void,
 |}
 
 type ToFieldState = {|
