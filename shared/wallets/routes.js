@@ -10,23 +10,27 @@ import TransactionDetails from './transaction-details/container'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 
+const createNewAccount = {
+  children: {},
+  component: CreateNewAccount,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
+const linkExisting = {
+  children: {},
+  component: LinkExisting,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
-    createNewAccount: {
-      children: {},
-      component: CreateNewAccount,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    createNewAccount,
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    linkExisting: {
-      children: {},
-      component: LinkExisting,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    linkExisting,
     receive: {
       children: {},
       component: ReceiveModal,
@@ -39,6 +43,8 @@ const routeTree = makeRouteDefNode({
           component: ConfirmForm,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
+        linkExisting,
+        createNewAccount,
       },
       component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),

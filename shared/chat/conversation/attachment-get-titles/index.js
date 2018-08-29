@@ -101,6 +101,7 @@ class GetTitles extends React.Component<Props, State> {
     const paths = Object.keys(this.state.pathToInfo)
     const path = paths[this.state.index]
     const info = this.state.pathToInfo[path]
+    const titleHint = 'Caption (optional)'
     if (!info) return null
 
     return (
@@ -119,16 +120,17 @@ class GetTitles extends React.Component<Props, State> {
             </Box>
             {paths.length > 0 && (
               <Text
-                type="BodySmall"
+                type="Body"
                 style={{color: globalColors.black_40, marginTop: 5, maxWidth: isMobile ? 300 : undefined}}
               >
-                {info.filename} ({this.state.index + 1} of {paths.length})
+                Filename: {info.filename} ({this.state.index + 1} of {paths.length})
               </Text>
             )}
             <Input
               style={isMobile ? stylesInputMobile : stylesInputDesktop}
               autoFocus={true}
-              floatingHintTextOverride="Title"
+              floatingHintTextOverride={titleHint}
+              hintText={titleHint}
               value={info.title}
               onEnterKeyDown={this._onNext}
               ref={this._setRef}
@@ -163,7 +165,7 @@ const stylesDesktop = {
 
 const stylesInputDesktop = {
   flexShrink: 0,
-  marginTop: 70,
+  marginTop: 40,
   width: 460,
 }
 

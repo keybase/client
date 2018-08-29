@@ -104,7 +104,7 @@ export const RoleOptions = ({
 }: RolePickerProps) => (
   <Box style={styles.container}>
     <Box style={styles.headerBox}>
-      <Text style={styles.headerTitle} type="BodySmall">
+      <Text style={styles.headerTitle} type="BodySmallSemibold">
         {headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}
       </Text>
     </Box>

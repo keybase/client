@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 
 type AccountEntryProps = {|
   center?: boolean,
+  fullWidth?: boolean,
   contents: string,
   keybaseUser: string,
   name: string,
@@ -22,7 +23,7 @@ const AccountEntry = (props: AccountEntryProps) => {
       direction="horizontal"
       gap="tiny"
       centerChildren={props.center}
-      fullWidth={true}
+      fullWidth={props.fullWidth}
     >
       {props.showWalletIcon && (
         <Kb.Icon
@@ -68,6 +69,9 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  containerBox: {
+    overflow: 'hidden',
+  },
   amount: {
     ...rightColumnStyle,
     color: Styles.globalColors.black_40,

@@ -119,6 +119,7 @@ protocol constants {
     SCTeamNotFound_2614,
     SCTeamExists_2619,
     SCTeamReadError_2623,
+    SCTeamWritePermDenied_2625,
     SCNoOp_2638,
     SCTeamInviteBadToken_2646,
     SCTeamTarDuplicate_2663,
