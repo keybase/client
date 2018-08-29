@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -1112,7 +1113,7 @@ func TestResolveAndCheck(t *testing.T) {
 		{"foobunny@github", libkb.ResolutionError{}, false},
 		{"foobunny", libkb.NotFoundError{}, false},
 		{"foobunny+foobunny@github", libkb.NotFoundError{}, false},
-		{"t_alice", libkb.UIDMismatchError{}, true},
+		{"t_alice", kbun.UIDMismatchError{}, true},
 		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
 		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
 		// NOTE: Generic proofs are a WIP, this should change to a

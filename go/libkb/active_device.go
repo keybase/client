@@ -6,6 +6,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -521,7 +522,7 @@ func (a *ActiveDevice) CopyCacheToLoginContextIfForUserVersion(m MetaContext, lc
 	a.RLock()
 	defer a.RUnlock()
 	if !a.uv.Eq(uv) {
-		return NewUIDMismatchError(fmt.Sprintf("%s v %s", a.uv, uv))
+		return kbun.NewUIDMismatchError(fmt.Sprintf("%s v %s", a.uv, uv))
 	}
 	if a.passphrase != nil {
 		m.CDebugf("| copying non-nil passphrase cache")

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -490,7 +491,7 @@ func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 	if !g.Env.GetUID().Equal(uv.Uid) {
-		return NewUIDMismatchError("UID switched out from underneath provisioning process")
+		return kbun.NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
 	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName)
 }
