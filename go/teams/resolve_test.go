@@ -42,7 +42,7 @@ func TestVerifyResolveEvilServer(t *testing.T) {
 	t.Logf("check good assertion")
 	assertion, err := externals.AssertionParseAndOnly(tcs[0].G, "t_tracy@rooter")
 	require.NoError(t, err)
-	err = verifyResolveResult(context.TODO(), tcs[0].G, libkb.ResolvedAssertion{
+	err = verifyResolveResult(context.TODO(), tcs[0].G, ResolvedAssertion{
 		Assertion: assertion,
 		UID:       keybase1.UID("eb72f49f2dde6429e5d78003dae0c919"),
 	})
@@ -51,7 +51,7 @@ func TestVerifyResolveEvilServer(t *testing.T) {
 	t.Logf("check bad assertion")
 	assertion, err = externals.AssertionParseAndOnly(tcs[0].G, "beluga@rooter")
 	require.NoError(t, err)
-	err = verifyResolveResult(context.TODO(), tcs[0].G, libkb.ResolvedAssertion{
+	err = verifyResolveResult(context.TODO(), tcs[0].G, ResolvedAssertion{
 		Assertion: assertion,
 		UID:       keybase1.UID("eb72f49f2dde6429e5d78003dae0c919"),
 	})

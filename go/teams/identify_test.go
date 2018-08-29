@@ -3,7 +3,7 @@ package teams
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -19,7 +19,7 @@ func TestIdentifyLite(t *testing.T) {
 	// test identify by assertion only
 	var assertions = []string{"team:" + name, "tid:" + team.ID.String()}
 	for _, assertion := range assertions {
-		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
+		au, err := kbname.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -38,7 +38,7 @@ func TestIdentifyLite(t *testing.T) {
 
 	// test identify by id and assertions
 	for _, assertion := range assertions {
-		au, err := libkb.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
+		au, err := kbname.ParseAssertionURL(tc.G.MakeAssertionContext(), assertion, true)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -56,7 +56,7 @@ func TestIdentifyLite(t *testing.T) {
 	}
 
 	// test identify by id only
-	var empty libkb.AssertionKeybase
+	var empty kbname.AssertionKeybase
 	res, err := IdentifyLite(context.Background(), tc.G, keybase1.IdentifyLiteArg{Id: team.ID.AsUserOrTeam()}, empty)
 	if err != nil {
 		t.Fatal(err)
