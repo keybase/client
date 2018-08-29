@@ -14,13 +14,13 @@ type ToFieldProps = {|
   // Used for send to stellar address
   incorrect?: string,
   // Used for sending from account to account
+  user: string,
   accounts: Account[],
-  onChangeSelectedAccount: (accountName: string) => void,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
   // Used to display a keybase profile
-  username?: string,
-  fullName?: string,
+  recipientUsername?: string,
+  recipientFullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
 |}
@@ -49,15 +49,13 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     if (React.isValidElement(node)) {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
-      if (element.type === DropdownText) {
-        if (element.key === 'create-new' && this.props.onCreateNewAccount) {
-          this.props.onCreateNewAccount()
-        } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
-          this.props.onLinkAccount()
-        }
-      } else if (this.props.onChangeSelectedAccount) {
+      if (element.key === 'create-new' && this.props.onCreateNewAccount) {
+        this.props.onCreateNewAccount()
+      } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
+        this.props.onLinkAccount()
+      } else {
         this.setState({selectedAccount: element.props.account})
-        this.props.onChangeSelectedAccount(element.props.account.name)
+        this.props.onChangeRecipient(element.props.account.id)
       }
     }
   }
@@ -109,8 +107,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         ]
 
         if (this.props.accounts.length > 0) {
-          const walletItems = this.props.accounts.map((account, index) => (
-            <DropdownEntry key={index} account={account} />
+          const walletItems = this.props.accounts.map(account => (
+            <DropdownEntry key={account.id} account={account} user={this.props.user} />
           ))
           items = walletItems.concat(items)
         }
@@ -120,7 +118,11 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             onChanged={this.onDropdownChange}
             items={items}
             selected={
-              this.state.selectedAccount ? <SelectedEntry account={this.state.selectedAccount} /> : undefined
+              this.state.selectedAccount ? (
+                <SelectedEntry account={this.state.selectedAccount} user={this.props.user} />
+              ) : (
+                undefined
+              )
             }
           />
         )
@@ -168,12 +170,15 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         heading="To"
         headingAlignment={this.props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
         headingStyle={
-          this.props.recipientType === 'stellarPublicKey' && !this.props.username
+          this.props.recipientType === 'stellarPublicKey' && !this.props.recipientUsername
             ? {alignSelf: 'flex-start'}
             : {}
         }
-        dividerColor={this.props.incorrect ? Styles.globalColors.red : ''}
-        bottomDivider={!!this.props.incorrect && this.props.recipientType === 'stellarPublicKey'}
+        dividerColor={
+          this.props.incorrect && this.props.recipientType === 'stellarPublicKey'
+            ? Styles.globalColors.red
+            : ''
+        }
       >
         {component}
       </ParticipantsRow>

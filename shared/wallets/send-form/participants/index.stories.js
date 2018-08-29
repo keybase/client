@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
+import {stringToAccountID} from '../../../constants/types/wallets'
 import Participants, {type Account} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
@@ -73,34 +74,33 @@ const provider = Sb.createPropProviderWithCommon(participantProviderProperties)
 
 const primaryAccount: Account = {
   name: 'Primary Account',
-  user: 'cjb',
   contents: '2000 XLM',
+  id: stringToAccountID('fakeaccountID'),
 }
 
 const accounts = [
   primaryAccount,
   {
     name: 'Secondary Account',
-    user: 'cjb',
     contents: '6435 XLM',
+    id: stringToAccountID('fakeaccountID2'),
   },
   {
     name: 'third Account',
-    user: 'cjb',
     contents: '10 XLM',
+    id: stringToAccountID('fakeaccountID3'),
   },
 ]
 
 const defaultProps = {
   // Account -> Account transactions
+  user: 'cjb',
   fromAccount: primaryAccount,
   allAccounts: accounts,
   onChangeFromAccount: Sb.action('onChangeFromAccount'),
-  onChangeToAccount: Sb.action('onChangeToAccount'),
+  onChangeRecipient: Sb.action('onChangeRecipient'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
-  // Stellar address
-  onChangeRecipient: Sb.action('onChangeRecipient'),
   onShowProfile: Sb.action('onShowProfile'),
 }
 

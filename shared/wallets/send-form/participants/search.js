@@ -72,7 +72,7 @@ const styles = Styles.styleSheetCreate({
       top: 100,
       zIndex: 4,
       backgroundColor: Styles.globalColors.white,
-      height: 421,
+      height: 425,
       width: '100%',
       overflowY: 'scroll',
     },
