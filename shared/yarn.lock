@@ -10449,9 +10449,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     prop-types "^15.5.8"
 
-react-native@0.57.0-rc.3:
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-57-rc3":
   version "0.57.0-rc.3"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.57.0-rc.3.tgz#35919f2ff10e0635b616f4e1fcca84f58188660e"
+  resolved "git://github.com/keybase/react-native#a9807a9fb749102d2a64f06a8c21642e9649c559"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
