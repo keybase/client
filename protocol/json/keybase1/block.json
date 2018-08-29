@@ -8,6 +8,15 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "BlockStatus",
+      "symbols": [
+        "UNKNOWN_0",
+        "LIVE_1",
+        "ARCHIVED_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "GetBlockRes",
       "fields": [
@@ -18,6 +27,14 @@
         {
           "type": "bytes",
           "name": "buf"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "BlockStatus",
+          "name": "status"
         }
       ]
     },
@@ -146,6 +163,10 @@
         {
           "name": "folder",
           "type": "string"
+        },
+        {
+          "name": "sizeOnly",
+          "type": "boolean"
         }
       ],
       "response": "GetBlockRes"
