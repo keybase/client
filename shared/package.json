@@ -198,6 +198,7 @@
     "@storybook/channels": "4.0.0-alpha.18",
     "@storybook/react": "4.0.0-alpha.18",
     "@storybook/react-native": "4.0.0-alpha.18",
+    "babel-core": "7.0.0-bridge.0",
     "babel-eslint": "9.0.0",
     "babel-jest": "^23.4.2",
     "babel-loader": "^8.0.0",
@@ -319,6 +320,7 @@
     "**/@babel/register": "7.0.0",
     "**/@babel/template": "7.0.0",
     "**/@babel/traverse": "7.0.0",
-    "**/@babel/types": "7.0.0"
+    "**/@babel/types": "7.0.0",
+    "babel-core": "7.0.0-bridge.0"
   }
 }
