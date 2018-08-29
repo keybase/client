@@ -8,6 +8,9 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
+import * as WalletsGen from '../actions/wallets-gen'
+import {getDefaultAccountID} from '../constants/wallets'
+import type {AccountID} from '../constants/types/wallets'
 import {pathFromFolder} from '../constants/favorite'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
@@ -15,8 +18,8 @@ import Profile from './index'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
-import {navigateAppend, navigateUp, navigateTo} from '../actions/route-tree'
-import {peopleTab, walletsTab} from '../constants/tabs'
+import {navigateAppend, navigateUp} from '../actions/route-tree'
+import {peopleTab} from '../constants/tabs'
 import {connect, type TypedState} from '../util/container'
 import flags from '../util/feature-flags'
 
@@ -52,6 +55,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
+  const myAccountID = getDefaultAccountID(state)
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
@@ -61,6 +65,7 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   return {
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
+    myAccountID,
     myUsername,
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
@@ -117,11 +122,18 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         [peopleTab]
       )
     ),
+  _onSendOrRequestLumens: (to: string, sendingAccount: ?AccountID) => {
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
+    dispatch(WalletsGen.createSetBuildingFrom({from: sendingAccount || ''}))
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(navigateAppend(['sendReceiveForm']))
+  },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  _onSendOrRequestLumens: () => dispatch(navigateTo([walletsTab, 'sendReceiveForm'])),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
@@ -182,7 +194,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(),
+    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, stateProps.myAccountID),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,

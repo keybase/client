@@ -16,6 +16,8 @@ import {isMobile} from '../constants/platform'
 import NonUserProfile from './non-user-profile/container'
 import ShowcaseTeamOffer from './showcase-team-offer/container'
 import ControlledRolePicker from '../teams/role-picker/controlled-container'
+import SendForm from '../wallets/send-form/container'
+import ConfirmForm from '../wallets/confirm-form/container'
 
 const proveEnterUsername = makeRouteDefNode({
   component: ProveEnterUsername,
@@ -86,6 +88,17 @@ const profileRoute = makeRouteDefNode({
     showcaseTeamOffer: {
       children: {},
       component: ShowcaseTeamOffer,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    sendReceiveForm: {
+      children: {
+        confirmForm: {
+          children: {},
+          component: ConfirmForm,
+          tags: makeLeafTags({layerOnTop: !isMobile}),
+        },
+      },
+      component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
   },
