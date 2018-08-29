@@ -1,6 +1,7 @@
 // @flow
 import Participants from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
+import * as TrackerGen from '../../../actions/tracker-gen'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -41,6 +42,9 @@ const mapStateToProps = (state: TypedState) => {
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeRecipient: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
+  onShowProfile: (username: string) => {
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+  },
 })
 
 export default compose(

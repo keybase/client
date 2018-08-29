@@ -60,9 +60,11 @@ const NameWithIconVertical = (props: Props) => {
         />
       )}
       {!isAvatar &&
-      !!props.icon && ( // TODO switch this to collapseStyles when Icon is fixed
+        !!props.icon && (
           <Icon
-            type={props.icon || ''}
+            type={
+              props.icon || '' // TODO switch this to collapseStyles when Icon is fixed
+            }
             style={{height: adapterProps.iconSize, width: adapterProps.iconSize}}
             fontSize={adapterProps.iconSize}
           />
@@ -82,7 +84,7 @@ const NameWithIconVertical = (props: Props) => {
         )}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            clickable={!props.onClick}
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -132,7 +134,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            clickable={!props.onClick}
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}

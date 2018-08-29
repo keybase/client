@@ -62,18 +62,23 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     }
   }
 
+  showProfileOfSelectedUser = () => {
+    if (this.state.selectedUser && this.props.onShowProfile) {
+      this.props.onShowProfile(this.state.selectedUser)
+    }
+  }
+
   render() {
     let component
 
-    if (this.state.selectedUser) {
+    if (this.state.selectedUser && this.props.onShowProfile) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
             username={this.state.selectedUser}
-            // metaOne={'test'}
-            onClick={this.props.onShowProfile}
+            onClick={this.showProfileOfSelectedUser}
             avatarStyle={styles.avatar}
           />
           <Kb.Icon
