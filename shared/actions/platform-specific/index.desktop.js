@@ -148,6 +148,7 @@ const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
           name: waitKey,
+          version: action.payload.version,
         })
       )
     } catch (e) {
