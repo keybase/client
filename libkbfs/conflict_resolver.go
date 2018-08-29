@@ -2225,13 +2225,13 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	kmd := chains.mostRecentChainMDInfo
 
 	file := parentPath.ChildPath(name, ptr)
-	oldInfos, err := cr.fbo.blocks.GetIndirectFileBlockInfos(
+	oldInfos, err := cr.fbo.blocks.getIndirectFileBlockInfosLocked(
 		ctx, lState, kmd, file)
 	if err != nil {
 		return BlockPointer{}, err
 	}
 
-	newPtr, allChildPtrs, err := cr.fbo.blocks.DeepCopyFile(
+	newPtr, allChildPtrs, err := cr.fbo.blocks.deepCopyFileLocked(
 		ctx, lState, kmd, file, dirtyBcache, cr.config.DataVersion())
 	if err != nil {
 		return BlockPointer{}, err
@@ -2300,6 +2300,12 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	// updated merged blocks.  A future phase will update the pointers
 	// in standard Merkle-tree-fashion.
 	doneActions := make(map[BlockPointer]bool)
+	var undoFn func()
+	defer func() {
+		if undoFn != nil {
+			undoFn()
+		}
+	}()
 	for _, unmergedPath := range unmergedPaths {
 		unmergedMostRecent := unmergedPath.tailPointer()
 		unmergedChain, ok :=
@@ -2331,8 +2337,11 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		// Now get the directory blocks.  For unmerged directories, we
 		// can use a nil local block cache, because unmerged blocks
 		// should never be changed during the CR process (since
-		// they're just going away).
-		unmergedDir := cr.fbo.blocks.newDirDataWithLBC(
+		// they're just going away).  This call will lock `blockLock`,
+		// and the subsequent `newDirData` calls can assume it's
+		// locked already.
+		var unmergedDir *dirData
+		unmergedDir, undoFn = cr.fbo.blocks.newDirDataWithLBC(
 			lState, unmergedPath, chargedTo,
 			unmergedChains.mostRecentChainMDInfo, nil)
 
@@ -2355,7 +2364,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 		if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
 			lbc[mergedPath.tailPointer()] = NewDirBlock().(*DirBlock)
 		}
-		mergedDir := cr.fbo.blocks.newDirDataWithLBC(
+		mergedDir := cr.fbo.blocks.newDirDataWithLBCLocked(
 			lState, mergedPath, chargedTo,
 			mergedChains.mostRecentChainMDInfo, lbc)
 		// Force the top block into the `lbc`.  `folderUpdatePrepper`
@@ -2412,7 +2421,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 							path: []pathNode{{
 								newPtr, mergedPath.tailName()}},
 						}
-						uDir = cr.fbo.blocks.newDirDataWithLBC(
+						uDir = cr.fbo.blocks.newDirDataWithLBCLocked(
 							lState, newPath, chargedTo,
 							mergedChains.mostRecentChainMDInfo, nil)
 					}
@@ -2445,6 +2454,8 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 				return err
 			}
 		}
+		undoFn()
+		undoFn = nil
 	}
 	return nil
 }
