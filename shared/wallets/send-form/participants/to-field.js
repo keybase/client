@@ -27,23 +27,25 @@ type ToFieldProps = {|
 |}
 
 type ToFieldState = {|
-  selectedAccount: ?Account,
-  selectedUser: ?string,
+  selectedRecipient: Account | string | null,
 |}
 
 class ToField extends React.Component<ToFieldProps, ToFieldState> {
   state = {
-    selectedAccount: null,
-    selectedUser: null,
+    selectedRecipient: null,
   }
 
-  onSelectUser = (user: string) => {
-    this.setState({selectedUser: user})
-    this.props.onChangeRecipient(user)
+  onSelectRecipient = (recipient: Account | string) => {
+    this.setState({selectedRecipient: recipient})
+    if (typeof recipient === 'string') {
+      this.props.onChangeRecipient(recipient)
+    } else {
+      this.props.onChangeRecipient(recipient.id)
+    }
   }
 
-  onRemoveUser = () => {
-    this.setState({selectedUser: null})
+  onRemoveRecipient = () => {
+    this.setState({selectedRecipient: null})
   }
 
   onDropdownChange = (node: React.Node) => {
@@ -55,28 +57,30 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
       } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
         this.props.onLinkAccount()
       } else {
-        this.setState({selectedAccount: element.props.account})
-        this.props.onChangeRecipient(element.props.account.id)
+        this.onSelectRecipient(element.props.account)
       }
     }
   }
 
   showProfileOfSelectedUser = () => {
-    if (this.state.selectedUser && this.props.onShowProfile) {
-      this.props.onShowProfile(this.state.selectedUser)
+    if (typeof this.state.selectedRecipient === 'string' && this.props.onShowProfile) {
+      this.props.onShowProfile(this.state.selectedRecipient)
     }
   }
 
   render() {
     let component
 
-    if (this.state.selectedUser) {
+    // There are a few different ways the participants form can look:
+    // Case 1: A user has been set, so we display their name and avatar
+    // We can only get this case when the recipient is a stellar address or searched user, not another account.
+    if (typeof this.state.selectedRecipient === 'string' && this.props.recipientType !== 'otherAccount') {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
-            username={this.state.selectedUser}
+            username={this.state.selectedRecipient}
             onClick={this.showProfileOfSelectedUser}
             avatarStyle={styles.avatar}
           />
@@ -85,12 +89,13 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
             fontSize={16}
             color={Styles.globalColors.black_20}
-            onClick={this.onRemoveUser}
+            onClick={this.onRemoveRecipient}
           />
         </React.Fragment>
       )
     } else if (this.props.recipientType === 'otherAccount') {
       if (this.props.accounts.length <= 1 && this.props.onCreateNewAccount) {
+        // Case #2: A user is sending to another account, but has no other accounts. Show a "create new account" button
         component = (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
             <Kb.Button
@@ -102,6 +107,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
           </Kb.Box2>
         )
       } else {
+        // Case #3: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
         let items = [
           <DropdownText key="link-existing" text="Link an existing Stellar account" />,
           <DropdownText key="create-new" text="Create a new account" />,
@@ -119,16 +125,17 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             onChanged={this.onDropdownChange}
             items={items}
             selected={
-              this.state.selectedAccount ? (
-                <SelectedEntry account={this.state.selectedAccount} user={this.props.user} />
+              this.state.selectedRecipient instanceof Object ? (
+                <SelectedEntry account={this.state.selectedRecipient} user={this.props.user} />
               ) : (
-                undefined
+                <DropdownText key="placeholder-select" text="Pick another account" />
               )
             }
           />
         )
       }
     } else if (this.props.recipientType === 'stellarPublicKey') {
+      // Case #4: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar anddress.
       component = (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
@@ -157,9 +164,10 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         </Kb.Box2>
       )
     } else if (this.props.onShowProfile) {
+      // Case #5: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
       return (
         <Search
-          onClickResult={this.onSelectUser}
+          onClickResult={this.onSelectRecipient}
           onClose={() => console.log('search', 'onClose')}
           onShowTracker={this.props.onShowProfile}
         />
