@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -544,7 +545,7 @@ func ParseAssertionURLKeyValue(ctx kbname.AssertionContext, key string, val stri
 		ret = AssertionHTTPS{base}
 	case "dns":
 		ret = AssertionDNS{base}
-	case PGPAssertionKey:
+	case kbconst.PGPAssertionKey:
 		ret = AssertionFingerprint{base}
 	default:
 		ret = AssertionSocial{base}

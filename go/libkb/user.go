@@ -10,6 +10,7 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/keybase/client/go/kbconst"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -599,7 +600,7 @@ func (u *User) BaseProofSet() *ProofSet {
 		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePGPFingerprints(true) {
-		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: fp.String()})
+		proofs = append(proofs, Proof{Key: kbconst.PGPAssertionKey, Value: fp.String()})
 	}
 
 	return NewProofSet(proofs)

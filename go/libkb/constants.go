@@ -594,10 +594,6 @@ const (
 )
 
 const (
-	PGPAssertionKey = "pgp"
-)
-
-const (
 	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
 	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
 	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"

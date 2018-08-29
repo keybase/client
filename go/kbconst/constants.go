@@ -20,5 +20,11 @@ const (
 	NoRunMode RunMode = ""
 )
 
+const (
+	// PGPAssertionKey is the string used to identify a PGP
+	// assertion.
+	PGPAssertionKey = "pgp"
+)
+
 // KBFSLogFileName is the name of the log file for KBFS.
 const KBFSLogFileName = "keybase.kbfs.log"

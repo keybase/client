@@ -14,6 +14,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/kbconst"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
@@ -896,7 +897,7 @@ func (p PGPFingerprint) ToIDString() string {
 }
 
 func (p PGPFingerprint) ToKeyValuePair() (string, string) {
-	return PGPAssertionKey, p.ToIDString()
+	return kbconst.PGPAssertionKey, p.ToIDString()
 }
 
 func (p PGPFingerprint) GetProofState() keybase1.ProofState {
