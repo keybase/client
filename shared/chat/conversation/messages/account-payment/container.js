@@ -106,7 +106,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
       dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
       dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)}))
-      dispatch(Route.createNavigateAppend({path: ['sendReceiveForm']}))
+      dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
     }
   },
   loadTxData: () => {

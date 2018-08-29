@@ -1,4 +1,5 @@
 // @flow
+import * as WalletConstants from '../constants/wallets'
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import AttachmentVideoFullscreen from './conversation/attachment-video-fullscreen/container'
@@ -94,9 +95,9 @@ const chatChildren = {
   enterPaperkey: {
     component: EnterPaperkey,
   },
-  sendReceiveForm: {
+  [WalletConstants.sendReceiveFormRouteKey]: {
     children: {
-      confirmForm: {
+      [WalletConstants.confirmFormRouteKey]: {
         children: {},
         component: ConfirmForm,
         tags: makeLeafTags({layerOnTop: !isMobile}),

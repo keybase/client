@@ -12,6 +12,10 @@ const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
 const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
+const sendReceiveFormRouteKey = 'sendReceiveForm'
+const confirmFormRouteKey = 'confirmForm'
+const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
+
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
   description: '',
@@ -282,6 +286,7 @@ export {
   accountResultToAccount,
   assetsResultToAssets,
   buildPaymentResultToBuiltPayment,
+  confirmFormRouteKey,
   createNewAccountWaitingKey,
   getAccountIDs,
   getAccount,
@@ -311,4 +316,6 @@ export {
   requestResultToRequest,
   requestPaymentWaitingKey,
   sendPaymentWaitingKey,
+  sendReceiveFormRouteKey,
+  sendReceiveFormRoutes,
 }
