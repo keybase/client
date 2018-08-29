@@ -55,11 +55,13 @@ type CounterpartyTextProps = {|
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -77,14 +79,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
     case 'otherAccount':
       return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
+        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
       ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
       )
     default:
       /*::
@@ -133,14 +135,14 @@ const Detail = (props: DetailProps) => {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
-        <Text type={textType}>
+        <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
@@ -149,7 +151,7 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
@@ -157,7 +159,7 @@ const Detail = (props: DetailProps) => {
 
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
-    <Text type={textType}>
+    <Text type={textTypeSemibold}>
       {counterparty} {verbPhrase} {amount}.
     </Text>
   )

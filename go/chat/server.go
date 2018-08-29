@@ -91,6 +91,9 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
+	if err == nil {
+		return nil
+	}
 
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)

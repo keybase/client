@@ -200,7 +200,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		m.CDebugf("Failed to get salt")
 		return err
 	}
-	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), salt)
+	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), e.arg.User.GetUID(), salt)
 
 	var canceler func()
 

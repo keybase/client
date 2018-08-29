@@ -23,16 +23,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.folderListLoaded: {
       let toRemove = new Set()
       const toMerge = action.payload.pathItems.map((item, path) => {
-        const original = state.pathItems.get(path)
+        const original = state.pathItems.get(path, Constants.unknownPathItem)
 
-        if (original && original.type === 'file' && item.type === 'file') {
+        if (original.type === 'file' && item.type === 'file') {
           return Constants.shouldUseOldMimeType(original, item)
             ? item.set('mimeType', original.mimeType)
             : item
         }
 
         if (item.type !== 'folder') return item
-        if (!original || original.type !== 'folder') return item
+        if (original.type !== 'folder') return item
 
         // Make flow happy by referencing them with a new name that's
         // explicitly typed.
@@ -80,12 +80,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
-      const entryType =
-        action.payload.entryType ||
-        (() => {
-          const item = state.pathItems.get(path)
-          return item ? item.type : 'unknown'
-        })()
+      const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
       return state.setIn(
         ['downloads', key],
         Constants.makeDownload({

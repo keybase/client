@@ -8,12 +8,11 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/keybase/client/go/kbun"
 )
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
-
-// Underscores allowed, just not first or doubled.
-var usernameRE = regexp.MustCompile(`^([a-zA-Z0-9]+_?)+$`)
 
 var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
 var badDeviceRE = regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
@@ -26,9 +25,7 @@ var CheckEmail = Checker{
 }
 
 var CheckUsername = Checker{
-	F: func(s string) bool {
-		return len(s) >= 2 && len(s) <= 16 && usernameRE.MatchString(s)
-	},
+	F:    kbun.CheckUsername,
 	Hint: "between 2 and 16 characters long",
 }
 

@@ -95,7 +95,15 @@ func StellarSimplifyAmount(amount string) string {
 		return amount
 	}
 	simpleRight := strings.TrimRight(sides[1], "0")
-	if len(simpleRight) == 0 {
+	if strings.Contains(sides[0], ",") {
+		// If integer part has the thousands separator (comma), always
+		// print the fractional part with at least two digits - this
+		// is to ensure that thousands separator is not confused with
+		// decimal point.
+		for len(simpleRight) < 2 {
+			simpleRight = simpleRight + "0"
+		}
+	} else if len(simpleRight) == 0 {
 		return sides[0]
 	}
 	return sides[0] + "." + simpleRight

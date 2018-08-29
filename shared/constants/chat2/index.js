@@ -224,6 +224,8 @@ export {
 
 export {
   allMessageTypes,
+  authorIsCollapsible,
+  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
@@ -243,6 +245,7 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

@@ -5,10 +5,12 @@ import * as RPCTypes from './types/rpc-stellar-gen'
 import {invert} from 'lodash-es'
 import {type TypedState} from './reducer'
 import HiddenString from '../util/hidden-string'
+import logger from '../logger'
 
 const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
 const partyTypeToString = invert(RPCTypes.localParticipantType)
+const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
@@ -50,6 +52,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
   pendingMap: I.Map(),
+  requests: I.Map(),
   secretKey: new HiddenString(''),
   secretKeyError: '',
   secretKeyMap: I.Map(),
@@ -162,6 +165,48 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   })
 }
 
+const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
+  code: '',
+  issuerAccountID: Types.noAccountID,
+  issuerName: null,
+})
+
+const makeRequest: I.RecordFactory<Types._Request> = I.Record({
+  amountDescription: '',
+  asset: 'native',
+  completed: false,
+  completedTransactionID: null,
+  id: '',
+  requestee: '',
+  requesteeType: '',
+  sender: '',
+  status: 'ok',
+})
+
+const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
+  let asset = 'native'
+  if (!(r.asset || r.currency)) {
+    logger.error('Received requestDetails with no asset or currency code')
+    return null
+  } else if (r.asset && r.asset.type !== 'native') {
+    asset = makeAssetDescription({
+      code: r.asset.code,
+      issuerAccountID: Types.stringToAccountID(r.asset.issuer),
+    })
+  } else if (r.currency) {
+    asset = 'currency'
+  }
+  return makeRequest({
+    amountDescription: r.amountDescription,
+    asset,
+    id: r.id,
+    requestee: r.toAssertion,
+    requesteeType: partyTypeToString[r.toUserType],
+    sender: r.fromAssertion,
+    status: requestStatusToString[r.status],
+  })
+}
+
 const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
   let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
   switch (partyType) {
@@ -185,6 +230,7 @@ const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
+const requestPaymentWaitingKey = 'wallets:requestPayment'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -196,14 +242,24 @@ const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
 
-const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
+  state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  makePayment()
 
-const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: string) =>
-  state.wallets.pendingMap.get(accountID, I.List()).find(p => p.id === paymentID) || makePayment()
+const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
+  state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
+  makePayment()
+
+const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
+  state.wallets.requests.get(requestID, null)
 
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
+
+const getDefaultAccountID = (state: TypedState) => {
+  const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
+  return defaultAccount ? defaultAccount.accountID : null
+}
 
 const getAssets = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID || getSelectedAccount(state), I.List())
@@ -224,11 +280,13 @@ export {
   getAccountIDs,
   getAccount,
   getAssets,
+  getDefaultAccountID,
   getFederatedAddress,
   getPayment,
   getPayments,
   getPendingPayment,
   getPendingPayments,
+  getRequest,
   getSecretKey,
   getSelectedAccount,
   linkExistingWaitingKey,
@@ -243,5 +301,7 @@ export {
   paymentResultToPayment,
   paymentToCounterpartyType,
   paymentToYourRole,
+  requestResultToRequest,
+  requestPaymentWaitingKey,
   sendPaymentWaitingKey,
 }

@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -35,7 +36,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
-	httpSrv         *libkb.HTTPSrv
+	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
@@ -51,7 +52,7 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
+		httpSrv:         kbhttp.NewSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
 		ri:              ri,
@@ -163,22 +164,17 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 	w.WriteHeader(code)
 }
 
-func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset) bool {
-	return strings.HasPrefix(asset.MimeType, "video")
-}
-
-func (r *AttachmentHTTPSrv) getContentStash(ctx context.Context) (*os.File, error) {
-	dir := filepath.Join(r.G().GetCacheDir(), "contentstash")
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return nil, err
+func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset, req *http.Request) bool {
+	noStream := "true" == req.URL.Query().Get("nostream")
+	if noStream {
+		// If we just want the bits without streaming
+		return false
 	}
-	return ioutil.TempFile(dir, "cs")
+	return strings.HasPrefix(asset.MimeType, "video")
 }
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
 	contentForce := "true" == req.URL.Query().Get("contentforce")
-	// Hack for Android video to work
-
 	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
 		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
 		w.Header().Set("Content-Type", "text/html")
@@ -242,7 +238,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	size := asset.Size
 	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
 	w.Header().Set("Content-Type", asset.MimeType)
-	if r.shouldServeContent(ctx, asset) {
+	if r.shouldServeContent(ctx, asset, req) {
 		if r.serveVideoHostPage(ctx, w, req) {
 			// if we served the host page, just bail out
 			return

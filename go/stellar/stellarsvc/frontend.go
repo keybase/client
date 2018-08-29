@@ -356,7 +356,13 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	summary, err := s.transformPaymentSummary(ctx, arg.AccountID, details.Summary)
+	// AccountID argument is optional. We use "" internally, but for
+	// API consumers we expose nullable type.
+	var acctID stellar1.AccountID
+	if arg.AccountID != nil {
+		acctID = *arg.AccountID
+	}
+	summary, err := s.transformPaymentSummary(ctx, acctID, details.Summary)
 	if err != nil {
 		return payment, err
 	}
@@ -1042,6 +1048,18 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 			}
 		}
 
+		if minAmountXLM != "" {
+			cmp, err := stellarnet.CompareStellarAmounts(amountX.amountOfAsset, minAmountXLM)
+			switch {
+			case err != nil:
+				log("error comparing amounts", err)
+			case cmp == -1:
+				// amount is less than minAmountXLM
+				readyChecklist.amount = false // block sending
+				res.AmountErrMsg = fmt.Sprintf("You must send at least *%s* XLM", minAmountXLM)
+			}
+		}
+
 		// Note: When adding support for sending non-XLM assets, check here that the recipient accepts the asset.
 	}
 
@@ -1351,8 +1369,6 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 		Amount:          details.Amount,
 		Asset:           details.Asset,
 		Currency:        details.Currency,
-		Completed:       !details.FundingKbTxID.IsNil(),
-		FundingKbTxID:   details.FundingKbTxID,
 		Status:          details.Status,
 	}
 
@@ -1363,48 +1379,27 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 	}
 
 	if details.Currency != nil {
-		converToXLM := func() error {
-			rate, err := s.remoter.ExchangeRate(ctx, details.Currency.String())
-			if err != nil {
-				return err
-			}
-			amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, rate.Currency.String())
-			if err != nil {
-				return err
-			}
-			xlms, err := stellarnet.ConvertOutsideToXLM(res.Amount, rate.Rate)
-			if err != nil {
-				return err
-			}
-			xlmDesc, err := stellar.FormatAmountWithSuffix(xlms, false, "XLM")
-			if err != nil {
-				return err
-			}
-			res.AmountDescription = amountDesc
-			res.AmountStellar = xlms
-			res.AmountStellarDescription = xlmDesc
-			return nil
+		amountDesc, err := stellar.FormatCurrency(ctx, s.G(), details.Amount, *details.Currency)
+		if err != nil {
+			amountDesc = details.Amount
+			s.G().Log.CDebugf(ctx, "Error formatting external currency: %v", err)
 		}
-
-		if err := converToXLM(); err != nil {
-			s.G().Log.CDebugf(ctx, "error converting outside currency to XLM: %v", err)
-		}
+		res.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
 	} else if details.Asset != nil {
-		// TODO: Pass info about issuer if Asset is not XLM.
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
 		} else {
 			code = details.Asset.Code
 		}
-		res.AmountStellar = details.Amount
-		xlmDesc, err := stellar.FormatAmountWithSuffix(details.Amount, false, code)
-		if err == nil {
-			res.AmountDescription = xlmDesc
-			res.AmountStellarDescription = xlmDesc
-		} else {
-			s.G().Log.CDebugf(ctx, "error formatting Stellar amount: %v", err)
+
+		amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount,
+			false /* precisionTwo */, true /* simplify */, code)
+		if err != nil {
+			amountDesc = fmt.Sprintf("%s %s", details.Amount, code)
+			s.G().Log.CDebugf(ctx, "Error formatting amount for asset: %v", err)
 		}
+		res.AmountDescription = amountDesc
 	} else {
 		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")
 	}

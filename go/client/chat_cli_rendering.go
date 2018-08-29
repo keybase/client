@@ -562,8 +562,7 @@ func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageReque
 	}
 
 	if details.Currency != nil {
-		view = fmt.Sprintf("requested Lumens worth %s (%s)", details.AmountDescription,
-			details.AmountStellarDescription)
+		view = fmt.Sprintf("requested Lumens worth %s", details.AmountDescription)
 	} else {
 		view = fmt.Sprintf("requested %s", details.AmountDescription)
 	}
