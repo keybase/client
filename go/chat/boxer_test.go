@@ -1754,9 +1754,7 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	defer tc.Cleanup()
 	// We need a user for unboxing to work.
 	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	msg := textMsgWithSender(t, text, gregor1.UID(u.User.GetUID().ToBytes()), chat1.MessageBoxedVersion_V3)
 
 	// Set the ephemeral metadata, to indicate that the messages is exploding.
@@ -1767,13 +1765,9 @@ func TestExplodingMessageUnbox(t *testing.T) {
 	// Box it! Note that we pass in the ephemeral/exploding key, and also set
 	// V3 explicitly.
 	boxed, err := boxer.box(context.TODO(), msg, key, &ephemeralKey, getSigningKeyPairForTest(t, tc, u), chat1.MessageBoxedVersion_V3, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	require.Equal(t, chat1.MessageBoxedVersion_V3, boxed.Version)
-	if len(boxed.BodyCiphertext.E) == 0 {
-		t.Error("after boxMessage, BodyCipherText.E is empty")
-	}
+	require.True(t, len(boxed.BodyCiphertext.E) > 0)
 
 	// We need to give it a server header for unboxing...
 	boxed.ServerHeader = &chat1.MessageServerHeader{
@@ -1782,16 +1776,10 @@ func TestExplodingMessageUnbox(t *testing.T) {
 
 	// Unbox it!!!
 	unboxed, err := boxer.unbox(context.TODO(), *boxed, chat1.ConversationMembersType_TEAM, key, &ephemeralKey)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	body := unboxed.MessageBody
-	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
-		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
-	}
-	if body.Text().Body != text {
-		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
-	}
+	require.Equal(t, body.MessageType(), chat1.MessageType_TEXT)
+	require.Equal(t, body.Text().Body, text)
 	require.Nil(t, unboxed.SenderDeviceRevokedAt, "message should not be from revoked device")
 	require.NotNil(t, unboxed.BodyHash)
 	require.True(t, unboxed.IsEphemeral())
