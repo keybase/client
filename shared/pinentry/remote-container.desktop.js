@@ -1,10 +1,10 @@
 // @flow
-import {connect, compose, renderNothing, branch, type Dispatch} from '../util/container'
+import {remoteConnect, compose, renderNothing, branch} from '../util/container'
 import * as PinentryGen from '../actions/pinentry-gen'
 import Pinentry from './index.desktop'
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onCancel: (sessionID: number) => dispatch(PinentryGen.createOnCancel({sessionID})),
   _onSubmit: (passphrase: string, sessionID: number) =>
     dispatch(PinentryGen.createOnSubmit({passphrase, sessionID})),
@@ -17,6 +17,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...ownProps,
 })
 export default compose(
-  connect(state => state, mapDispatchToProps, mergeProps),
+  remoteConnect(state => state, mapDispatchToProps, mergeProps),
   branch(props => !props.type, renderNothing)
 )(Pinentry)

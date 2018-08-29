@@ -77,13 +77,17 @@ const MessagePopupHeader = (props: {
       </Kb.Box>
       <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>
       {deviceRevokedAt && (
-        <PopupHeaderText
-          color={Styles.globalColors.white}
-          backgroundColor={Styles.globalColors.blue}
-          style={Styles.collapseStyles([styles.revokedAtContainer, isLast && styles.revokedAtContainerLast])}
+        <Kb.Box2
+          gap="small"
+          fullWidth={true}
+          gapStart={true}
+          direction="vertical"
+          style={Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-        </PopupHeaderText>
+          <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+          </PopupHeaderText>
+        </Kb.Box2>
       )}
     </Kb.Box>
   )
@@ -98,10 +102,10 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      maxWidth: Styles.isMobile ? '100%' : 240,
       width: '100%',
     },
     isElectron: {
+      maxWidth: 240,
       paddingTop: iconSpacing,
     },
     isMobile: {
@@ -128,14 +132,11 @@ const styles = Styles.styleSheetCreate({
       marginTop: 0,
     },
   }),
-  revokedAtContainer: {
-    marginTop: Styles.globalMargins.small,
-    width: '100%',
-  },
   revokedAtContainerLast: {
     borderBottomLeftRadius: 3,
     borderBottomRightRadius: 3,
     marginBottom: -Styles.globalMargins.small,
+    overflow: 'hidden',
   },
 })
 

@@ -142,11 +142,17 @@ const checkRPCOwnership = () =>
             })
           })
       )
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: false,
+          name: waitKey,
+        })
+      )
     } catch (e) {
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           failedFatal: true,
-          failedReason: e.message,
+          failedReason: e.message || 'windows pipe owner fail',
           increment: false,
           name: waitKey,
         })
@@ -175,14 +181,16 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifyFS.FSActivity',
-    ({notification}, _, __, getState) => [kbfsNotification(notification, NotifyPopup, getState)]
+    ({notification}, _, __, getState) => {
+      kbfsNotification(notification, NotifyPopup, getState)
+    }
   )
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => [
+  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
     RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
       console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-    }),
-  ])
+    })
+  })
 
   getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
     response && response.result()
@@ -197,12 +205,14 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate',
     ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-      return [NotifyPopup('Client out of date!', {body}, 60 * 60)]
+      NotifyPopup('Client out of date!', {body}, 60 * 60)
     }
   )
 
   getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
-    dumpLogs().then(() => response && response.result())
+    dumpLogs().then(() => {
+      response && response.result()
+    })
   })
 }
 
@@ -218,6 +228,10 @@ function* loadStartupDetails() {
   )
 }
 
+const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+  SafeElectron.getClipboard().writeText(action.payload.text)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -225,6 +239,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield Saga.fork(initializeAppSettingsState)
 
   if (isWindows) {

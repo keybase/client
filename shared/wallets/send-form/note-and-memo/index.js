@@ -8,8 +8,8 @@ import {Picker} from 'emoji-mart'
 type Props = {
   memoError?: string,
   noteError?: string,
-  onChangePublicMemo: () => void,
-  onChangeSecretNote: () => void,
+  onChangePublicMemo: string => void,
+  onChangeSecretNote: string => void,
   toSelf: boolean,
 }
 

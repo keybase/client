@@ -249,7 +249,7 @@ func (s *stellarRetryClient) SendPaymentLocal(ctx context.Context, arg stellar1.
 	return res, err
 }
 
-func (s *stellarRetryClient) GetRequestDetailsLocal(ctx context.Context, arg stellar1.KeybaseRequestID) (res stellar1.RequestDetailsLocal, err error) {
+func (s *stellarRetryClient) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetRequestDetailsLocalArg) (res stellar1.RequestDetailsLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.GetRequestDetailsLocal(ctx, arg)
 		if err == nil {
@@ -259,7 +259,7 @@ func (s *stellarRetryClient) GetRequestDetailsLocal(ctx context.Context, arg ste
 	return res, err
 }
 
-func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar1.KeybaseRequestID) (err error) {
+func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequestLocalArg) (err error) {
 	for i := 0; i < retryCount; i++ {
 		err = s.cli.CancelRequestLocal(ctx, arg)
 		if err == nil {
@@ -412,6 +412,16 @@ func (s *stellarRetryClient) GetAvailableLocalCurrencies(ctx context.Context) (r
 func (s *stellarRetryClient) FormatLocalCurrencyString(ctx context.Context, arg stellar1.FormatLocalCurrencyStringArg) (res string, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.FormatLocalCurrencyString(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) MakeRequestLocal(ctx context.Context, arg stellar1.MakeRequestLocalArg) (res stellar1.KeybaseRequestID, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.MakeRequestLocal(ctx, arg)
 		if err == nil {
 			break
 		}

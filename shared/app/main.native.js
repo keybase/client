@@ -61,9 +61,10 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Main)
+const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+export default Connected

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 
-export type Props = {
+export type Props = {|
   attachTo: ?React.Component<any, any>,
   visible: boolean,
   onHidden: () => void,
@@ -10,4 +10,4 @@ export type Props = {
   selected: number,
   onSelect: number => void,
   items: MessageExplodeDescription[],
-}
+|}

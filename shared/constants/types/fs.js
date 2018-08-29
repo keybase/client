@@ -3,10 +3,11 @@ import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
-import type {IconType} from '../../common-adapters'
+import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
-import {type Actions} from '../../actions/fs-gen'
+// lets not create cycles in flow, lets discuss how to fix this
+// import {type Actions} from '../../actions/fs-gen'
 
 export opaque type Path = ?string
 
@@ -17,8 +18,8 @@ export type ProgressType = 'favorite' | 'pending' | 'loaded'
 export type _FsError = {
   time: number,
   error: string,
-  erroredAction: Actions,
-  retriableAction?: Actions,
+  erroredAction: any, // Actions,
+  retriableAction?: any, // Actions,
 }
 export type FsError = I.RecordOf<_FsError>
 
@@ -130,8 +131,7 @@ export type PathUserSetting = I.RecordOf<_PathUserSetting>
 export type LocalPath = string
 
 export type DownloadIntentMobile = 'camera-roll' | 'share'
-export type DownloadIntentWebview = 'web-view-text' | 'web-view'
-export type DownloadIntent = 'none' | DownloadIntentMobile | DownloadIntentWebview
+export type DownloadIntent = 'none' | DownloadIntentMobile
 
 export type _DownloadMeta = {
   entryType: PathType,
@@ -169,6 +169,7 @@ export type Uploads = I.RecordOf<_Uploads>
 
 // 'both' is only supported on macOS
 export type OpenDialogType = 'file' | 'directory' | 'both'
+export type MobilePickType = 'photo' | 'video' | 'mixed'
 
 export type _Flags = {
   kbfsOpening: boolean,
@@ -252,6 +253,14 @@ export const getVisibilityFromElems = (elems: Array<string>) => {
       // be an empty string, so asserting empty will always fail.
       return null
   }
+}
+export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
+  const strPath = pathToString(path)
+  const strTlfPath = pathToString(tlfPath)
+  return (
+    strPath.startsWith(strTlfPath) &&
+    (strPath.length === strTlfPath.length || strPath[strTlfPath.length] === '/')
+  )
 }
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown

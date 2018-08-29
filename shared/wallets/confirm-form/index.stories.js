@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import participants from './participants/index.stories'
 import ConfirmSend from '.'
 
 // TODO some of the state of these child components
@@ -8,28 +9,27 @@ import ConfirmSend from '.'
 // good level of connected granularity while implementing
 // TODO fill these out
 const provider = Sb.createPropProviderWithCommon({
-  // TODO mock out meaningful values once type `OwnProps` is defined
-  Available: props => ({}),
-  Body: props => ({}),
-  Footer: props => ({}),
-  Header: props => ({}),
-  Participants: props => ({}),
+  Participants: props => ({
+    fromAccountAssets: '280.0871234 XLM',
+    fromAccountName: "cecileb's account",
+    recipientAccountAssets: '534 XLM',
+    recipientAccountName: 'Secondary Account',
+    recipientFullName: 'Nathan Smith',
+    recipientStellarAddress: 'G23T5671ASCZZX09235678ASQ511U12O91AQ',
+    recipientType: 'keybaseUser',
+    recipientUsername: 'nathunsmitty',
+    yourUsername: 'cecileb',
+  }),
 })
 
 const confirmProps = {
   amount: '1.234 XLM',
-  assetType: 'lumens',
   assetConversion: '$3',
-  onClose: Sb.action('onClose'),
+  assetType: 'lumens',
   onBack: Sb.action('onBack'),
+  onClose: Sb.action('onClose'),
   onSendClick: Sb.action('onSendClick'),
   waiting: false,
-  yourUsername: 'cecileb',
-  yourWalletName: "cecileb's wallet",
-  yourWalletContents: '280.0871234 XLM',
-  receiverUsername: 'nathunsmitty',
-  receiverFullName: 'Nathan Smith',
-  recipientType: 'keybaseUser',
 }
 
 const publicMemo = "Here's some lumens!"
@@ -43,9 +43,10 @@ const banner = {
 }
 
 const load = () => {
+  participants()
   Sb.storiesOf('Wallets/ConfirmForm', module)
     .addDecorator(provider)
-    .add('Normal', () => <ConfirmSend {...confirmProps} />)
+    .add('To User', () => <ConfirmSend {...confirmProps} />)
     .add('Waiting', () => <ConfirmSend {...confirmProps} waiting={true} />)
     .add('With a public memo', () => <ConfirmSend {...confirmProps} publicMemo={publicMemo} />)
     .add('With an encrypted note', () => <ConfirmSend {...confirmProps} encryptedNote={encryptedNote} />)

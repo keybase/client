@@ -21,7 +21,7 @@ import {type TypedState} from '../../constants/reducer'
 const setupEngineListeners = () => {
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifyTracking.trackingChanged',
-    ({isTracking, username}) => [ConfigGen.createUpdateFollowing({isTracking, username})]
+    ({isTracking, username}) => ConfigGen.createUpdateFollowing({isTracking, username})
   )
 
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -36,7 +36,7 @@ const setupEngineListeners = () => {
       response && response.result()
       // only send this if we think we're not logged in
       if (!getState().config.loggedIn) {
-        return [ConfigGen.createLoggedIn({causedByStartup: false})]
+        return ConfigGen.createLoggedIn({causedByStartup: false})
       }
     }
   )
@@ -44,7 +44,7 @@ const setupEngineListeners = () => {
   getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
     // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
     if (getState().config.loggedIn) {
-      return [ConfigGen.createLoggedOut()]
+      return ConfigGen.createLoggedOut()
     }
   })
 }

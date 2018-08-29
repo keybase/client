@@ -59,11 +59,13 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch) => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => {
     dispatch(setRouteState(path, partialState))
   },
 })
 
-export default hot(module)(connect(mapStateToProps, mapDispatchToProps)(Main))
+export default hot(module)(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+)

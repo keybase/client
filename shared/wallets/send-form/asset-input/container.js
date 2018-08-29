@@ -1,15 +1,22 @@
 // @flow
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   displayUnit: state.wallets.buildingPayment.currency,
+  inputPlaceholder: '0.00',
+  bottomLabel: '', // TODO
+  topLabel: '', // TODO
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  inputPlaceholder: '0.00',
+  onChangeDisplayUnit: () => {}, // TODO
+  onClickInfo: () => {}, // TODO
   onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('AssetInput'))(AssetInput)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('AssetInput')
+)(AssetInput)

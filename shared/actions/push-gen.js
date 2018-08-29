@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/push'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of push but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of push but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'push:'
 export const notification = 'push:notification'
 export const rejectPermissions = 'push:rejectPermissions'
 export const requestPermissions = 'push:requestPermissions'

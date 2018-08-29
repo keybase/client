@@ -1,6 +1,7 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import CreateNewAccount from './create-account/container'
 import LinkExisting from './link-existing/container'
 import Container from './container'
 import ReceiveModal from './receive-modal/container'
@@ -9,18 +10,27 @@ import TransactionDetails from './transaction-details/container'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 
+const createNewAccount = {
+  children: {},
+  component: CreateNewAccount,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
+const linkExisting = {
+  children: {},
+  component: LinkExisting,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const routeTree = makeRouteDefNode({
   children: {
+    createNewAccount,
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    linkExisting: {
-      children: {},
-      component: LinkExisting,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
+    linkExisting,
     receive: {
       children: {},
       component: ReceiveModal,
@@ -33,6 +43,8 @@ const routeTree = makeRouteDefNode({
           component: ConfirmForm,
           tags: makeLeafTags({layerOnTop: !isMobile}),
         },
+        linkExisting,
+        createNewAccount,
       },
       component: SendForm,
       tags: makeLeafTags({layerOnTop: !isMobile}),

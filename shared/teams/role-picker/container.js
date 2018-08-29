@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {connect} from 'react-redux'
+import {connect} from '../../util/container'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
@@ -41,7 +41,7 @@ type DispatchProps = {|
   onCancel: () => void,
 |}
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}): DispatchProps => ({
+const mapDispatchToProps = (dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(
       TeamsGen.createAddToTeam({

@@ -8,10 +8,7 @@ import * as ConfigGen from '../actions/config-gen'
 
 const initialState = Constants.makeState()
 
-export default function(
-  state: Types.State = initialState,
-  action: ConfigGen.Actions | {type: 'remote:updateMenubarWindowID', payload: {id: number}}
-): Types.State {
+export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
   switch (action.type) {
     case ConfigGen.resetStore:
       return initialState.merge({
@@ -25,11 +22,6 @@ export default function(
         menubarWindowID: state.menubarWindowID,
         pushLoaded: state.pushLoaded,
         startupDetailsLoaded: state.startupDetailsLoaded,
-      })
-    // keep current user as default before we make the service call
-    case ConfigGen.logout:
-      return state.merge({
-        defaultUsername: state.username || state.defaultUsername,
       })
     case ConfigGen.restartHandshake:
       return state.merge({
@@ -48,7 +40,7 @@ export default function(
     case ConfigGen.logoutHandshake:
       return state.merge({logoutHandshakeWaiters: I.Map()})
     case ConfigGen.daemonHandshake:
-      return state.merge({daemonHandshakeState: 'waitingForWaiters'})
+      return state.set('daemonHandshakeState', 'waitingForWaiters')
     case ConfigGen.daemonHandshakeWait: {
       if (state.daemonHandshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")
@@ -71,7 +63,7 @@ export default function(
         if (state.daemonHandshakeFailedReason) {
           return newState
         }
-        return newState.merge({daemonHandshakeFailedReason: action.payload.failedReason || ''})
+        return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
       }
     }
     case ConfigGen.logoutHandshakeWait: {
@@ -152,7 +144,7 @@ export default function(
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
       return state.merge({openAtLogin: action.payload.open})
-    case 'remote:updateMenubarWindowID':
+    case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
       return state.merge({
@@ -167,12 +159,15 @@ export default function(
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
+    case ConfigGen.logout:
     case ConfigGen.link:
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
+    case ConfigGen.copyToClipboard:
+    case ConfigGen._avatarQueue:
       return state
     default:
       /*::

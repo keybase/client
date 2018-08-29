@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
   navigateUp: () => dispatch(navigateUp()),
@@ -41,13 +41,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
     publicMemo: tx.publicMemo.stringValue(),
-    publicMemoType: tx.publicMemoType,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
-    timestamp: tx.time,
+    timestamp: new Date(tx.time),
     title: 'Transaction details',
     transactionID: tx.txID,
     yourRole,
+    you: stateProps._you,
   }
 }
 

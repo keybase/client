@@ -2,12 +2,13 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: string,
+  paymentID: StellarRPCTypes.PaymentID,
   status: Types.StatusSimplified,
 }
 
@@ -46,12 +47,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,
-    // $FlowIssue undefined is incompatible with function
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
-    timestamp: tx.time,
+    timestamp: tx.time ? new Date(tx.time) : null,
     yourRole,
   }
 }

@@ -15,7 +15,6 @@ import logger from '../../logger'
 import {spawn, execFileSync} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 type pathType = 'file' | 'directory'
 
@@ -293,30 +292,7 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function platformSpecificIntentEffect(
-  intent: Types.DownloadIntent,
-  localPath: string,
-  mimeType: string
-): ?Saga.Effect {
-  switch (intent) {
-    case 'camera-roll':
-      return Saga.call(saveAttachmentDialog, localPath)
-    case 'share':
-      return Saga.call(showShareActionSheet, {url: localPath, mimeType})
-    case 'none':
-    case 'web-view':
-    case 'web-view-text':
-      return null
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
-      return null
-  }
-}
-
-const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
+const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
@@ -324,23 +300,15 @@ const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
         title: 'Select a file or folder to upload',
         properties: [
           'multiSelections',
-          ...(['file', 'both'].includes(type) ? ['openFile'] : []),
-          ...(['directory', 'both'].includes(type) ? ['openDirectory'] : []),
+          ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
+          ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
       },
       filePaths => {
         return resolve(filePaths)
       }
     )
-  )
-
-const pickAndUploadSuccess = (localPaths, action: FsGen.PickAndUploadPayload) =>
-  localPaths &&
-  Saga.sequentially(
-    localPaths.map(localPath =>
-      Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
-    )
-  )
+  ).then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
@@ -348,7 +316,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.pickAndUpload, pickAndUpload, pickAndUploadSuccess)
+  yield Saga.actionToPromise(FsGen.openAndUpload, openAndUploadToPromise)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {
@@ -357,4 +325,4 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }
 
-export {platformSpecificIntentEffect, platformSpecificSaga}
+export default platformSpecificSaga

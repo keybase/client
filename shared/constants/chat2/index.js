@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -49,8 +48,8 @@ export const getResolvedPendingConversationIDKey = (state: TypedState) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Constants.noConversationIDKey,
-  targetConversationIDKey: Constants.noConversationIDKey,
+  sourceConversationIDKey: noConversationIDKey,
+  targetConversationIDKey: noConversationIDKey,
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
@@ -225,11 +224,13 @@ export {
 
 export {
   allMessageTypes,
+  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
+  isUserMessage,
   isVideoAttachment,
   makeMessageAttachment,
   makeMessageDeleted,
@@ -244,6 +245,7 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

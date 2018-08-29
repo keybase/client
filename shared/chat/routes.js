@@ -69,7 +69,9 @@ const chatChildren = {
   },
   attachmentVideoFullscreen: {
     component: AttachmentVideoFullscreen,
-    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    tags: makeLeafTags(
+      isMobile ? {hideStatusBar: true, underStatusBar: true, fullscreen: true} : {layerOnTop: true}
+    ),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentGetTitles: {

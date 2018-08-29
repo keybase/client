@@ -3,10 +3,10 @@ import logger from '../../logger'
 import {type TypedState} from '../../constants/reducer'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
-import * as GregorGen from '../../actions/gregor-gen'
+import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Tabs from '../../constants/tabs'
-import * as RouteTree from '../../constants/route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
 // this CANNOT be an import *, totally screws up the packager
@@ -18,9 +18,10 @@ import {
   ActionSheetIOS,
   CameraRoll,
   PermissionsAndroid,
+  Clipboard,
 } from 'react-native'
 import {getPath} from '../../route-tree'
-import RNFetchBlob from 'react-native-fetch-blob'
+import RNFetchBlob from 'rn-fetch-blob'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
@@ -71,15 +72,17 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
       throw new Error('Unable to acquire storage permissions')
     }
   }
+  const fetchURL = `${fileURL}&nostream=true`
+  logger.info(logPrefix + `Fetching from URL: ${fetchURL}`)
   const download = await RNFetchBlob.config({
     appendExt: mime.extension(mimeType),
     fileCache: true,
-  }).fetch('GET', fileURL)
+  }).fetch('GET', fetchURL)
   logger.info(logPrefix + 'Fetching success, getting local file path')
   const path = download.path()
   logger.info(logPrefix + `Saving to ${path}`)
   try {
-    logger.info(logPrefix + 'Attempting to save')
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
     logger.info(logPrefix + 'Success')
   } catch (err) {
@@ -281,12 +284,17 @@ const waitForStartupDetails = (state: TypedState) => {
   })
 }
 
+const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+  Clipboard.setString(action.payload.text)
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTree.switchTo, Chat2Gen.selectConversation], persistRouteState)
+  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
   // Start this immediately instead of waiting so we can do more things in parallel

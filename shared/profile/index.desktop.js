@@ -461,6 +461,7 @@ class ProfileRender extends PureComponent<Props, State> {
                   )}
                 {proofMenuContent && (
                   <FloatingMenu
+                    closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
                     attachTo={this.state.selectedProofMenuRowRef}

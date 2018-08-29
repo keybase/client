@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
+import {compose} from '../util/container'
 
 type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
@@ -22,9 +23,11 @@ type Props = {|
   onBack: () => void,
   revokedItems: Array<Item>,
   waiting: boolean,
+  title: string,
+  ...$Exact<Kb.OverlayParentProps>,
 |}
 
-class Devices extends React.PureComponent<Props & Kb.OverlayParentProps, State> {
+class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
   state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
 
@@ -68,6 +71,7 @@ class Devices extends React.PureComponent<Props & Kb.OverlayParentProps, State> 
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.List items={items} renderItem={this._renderRow} />
         <Kb.FloatingMenu
+          closeOnSelect={true}
           attachTo={this.props.attachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
@@ -151,4 +155,4 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default Kb.HeaderOnMobile(Kb.OverlayParentHOC(Devices))
+export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)

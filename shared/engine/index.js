@@ -3,74 +3,33 @@
 import logger from '../logger'
 import * as Constants from '../constants/engine'
 import Session from './session'
+import {initEngine, initEngineSaga} from './require'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
-import {call, race} from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
-import {delay} from 'redux-saga'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
 import {log} from '../native/log/logui'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
+import engineSaga from './saga'
+import {isArray} from 'lodash-es'
 
-import type {Action} from '../constants/types/flux'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
-import type {TypedState} from '../constants/reducer'
+import type {TypedState, Dispatch} from '../util/container'
 
-class EngineChannel {
-  _map: Constants.ChannelMap<any>
-  _sessionID: SessionID
-  _configKeys: Array<string>
+// Not the real type here to reduce merge time. This file has a .js.flow for importers
+type TypedActions = {type: string, error: boolean, payload: any}
 
-  constructor(map: Constants.ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
-    this._map = map
-    this._sessionID = sessionID
-    this._configKeys = configKeys
-  }
-
-  getMap(): Constants.ChannelMap<any> {
-    return this._map
-  }
-
-  close() {
-    Constants.closeChannelMap(this._map)
-    getEngine().cancelSession(this._sessionID)
-  }
-
-  *take(key: string): Generator<any, any, any> {
-    return yield Constants.takeFromChannelMap(this._map, key)
-  }
-
-  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
-    const timeout = options && options.timeout
-    const otherRacers = (options && options.racers) || {}
-    const initMap = {
-      ...(timeout
-        ? {
-            timeout: call(delay, timeout),
-          }
-        : {}),
-      ...otherRacers,
-    }
-
-    const raceMap = this._configKeys.reduce((map, key) => {
-      map[key] = Constants.takeFromChannelMap(this._map, key)
-      return map
-    }, initMap)
-
-    const result = yield race(raceMap)
-
-    if (result.timeout) {
-      this.close()
-    }
-
-    return result
-  }
-}
+type IncomingActionCreator = (
+  param: Object,
+  response: ?Object,
+  dispatch: Dispatch,
+  getState: () => TypedState
+) => void | null | TypedActions | Array<TypedActions>
 
 class Engine {
   // Bookkeep old sessions
@@ -81,17 +40,12 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingActionCreators: {
-    [key: MethodKey]: (
-      param: Object,
-      response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => ?Array<Action>,
+    [key: MethodKey]: IncomingActionCreator,
   } = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
-  _onDisconnectHandlers: ?{[key: string]: () => void} = {}
+  _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
-  _onConnectHandlers: ?{[key: string]: () => void} = {}
+  _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // Set to true to throw on errors. Used in testing
   _failOnError: boolean = false
   // We generate sessionIDs monotonically
@@ -102,7 +56,8 @@ class Engine {
   static _dispatch: Dispatch
   // Temporary helper for incoming call maps
   static _getState: () => TypedState
-  static dispatchWaitingAction = (key: string, waiting: boolean) => {
+
+  dispatchWaitingAction = (key: string, waiting: boolean) => {
     Engine._dispatch(createChangeWaiting({key, increment: waiting}))
   }
 
@@ -110,7 +65,6 @@ class Engine {
     // setup some static vars
     Engine._dispatch = dispatch
     Engine._getState = getState
-    Session._dispatchWaitingAction = Engine.dispatchWaitingAction
     this._setupClient()
     this._setupCoreHandlers()
     this._setupIgnoredHandlers()
@@ -272,13 +226,10 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
+        // TODO remove dispatch and getState, these callbacks should just dispatch actions
         const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
-        const actions = (rawActions || []).reduce((arr, a) => {
-          if (a) {
-            arr.push(a)
-          }
-          return arr
-        }, [])
+        const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
+        const actions = arrayActions.filter(Boolean)
         actions.forEach(a => Engine._dispatch(a))
       } else {
         // Unhandled
@@ -288,7 +239,7 @@ class Engine {
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): EngineChannel {
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, paramsIn: any): any {
     const params = paramsIn || {}
     const channelConfig = Constants.singleFixedChannelConfig(configKeys)
     const channelMap = Constants.createChannelMap(channelConfig)
@@ -305,7 +256,7 @@ class Engine {
     }
 
     const sid = this._rpcOutgoing({method, params, incomingCallMap, callback})
-    return new EngineChannel(channelMap, sid, configKeys)
+    return new Constants.EngineChannel(channelMap, sid, configKeys)
   }
 
   // An outgoing call. ONLY called by the flow-type rpc helpers
@@ -407,15 +358,7 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreators(
-    method: MethodKey,
-    actionCreator: (
-      param: Object,
-      response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => ?Array<Action>
-  ) {
+  setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
     if (this._incomingActionCreators[method]) {
       rpcLog({
         method,
@@ -508,7 +451,7 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?Action
+    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?any
   ) {}
   createSession(
     incomingCallMap: ?IncomingCallMapType,
@@ -523,8 +466,8 @@ class FakeEngine {
       sessionID: 0,
     })
   }
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel {
-    return new EngineChannel({}, 0, [])
+  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): any {
+    return null
   }
   _rpcOutgoing(
     method: string,
@@ -544,6 +487,8 @@ const makeEngine = (dispatch: Dispatch, getState: () => TypedState) => {
 
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE || isTesting ? new FakeEngine() : new Engine(dispatch, getState)
+    initEngine((engine: any))
+    initEngineSaga(engineSaga)
   }
   return engine
 }
@@ -556,4 +501,4 @@ const getEngine = (): Engine | FakeEngine => {
 }
 
 export default getEngine
-export {getEngine, makeEngine, Engine, EngineChannel}
+export {getEngine, makeEngine, Engine}

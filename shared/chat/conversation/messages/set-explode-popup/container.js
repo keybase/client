@@ -21,13 +21,23 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onSelect: seconds => {
     dispatch(Chat2Gen.createSetConvExplodingMode({conversationIDKey: ownProps.conversationIDKey, seconds}))
     ownProps.onAfterSelect && ownProps.onAfterSelect(seconds)
   },
 })
 
-const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps)(SetExplodeTime)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  attachTo: ownProps.attachTo,
+  visible: ownProps.visible,
+  onHidden: ownProps.onHidden,
+  isNew: stateProps.isNew,
+  selected: stateProps.selected,
+  onSelect: dispatchProps.onSelect,
+  items: stateProps.items,
+})
+
+const SetExplodePopup = connect(mapStateToProps, mapDispatchToProps, mergeProps)(SetExplodeTime)
 
 export default SetExplodePopup

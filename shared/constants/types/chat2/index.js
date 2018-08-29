@@ -1,5 +1,6 @@
-// @flow
+// @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -70,6 +71,7 @@ export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.
 export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
+  DecoratedMessage,
   MentionsAt,
   MentionsChannel,
   MentionsChannelName,
@@ -77,6 +79,8 @@ export type {
   MessageAttachment,
   MessageExplodeDescription,
   MessageID,
+  MessageRequestPayment,
+  MessageSendPayment,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

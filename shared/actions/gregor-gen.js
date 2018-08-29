@@ -8,7 +8,8 @@ import * as Types from '../constants/types/gregor'
 import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of gregor but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'gregor:'
 export const checkReachability = 'gregor:checkReachability'
 export const pushOOBM = 'gregor:pushOOBM'
 export const pushState = 'gregor:pushState'
