@@ -1,6 +1,10 @@
 package stellar
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 type fmtTest struct {
 	amount  string
@@ -41,17 +45,14 @@ var fmtTests = []fmtTest{
 	{amount: "-9123123123.1234567", precTwo: false, out: "-9,123,123,123.1234567"},
 	{amount: "-89123123123.1234567", precTwo: false, out: "-89,123,123,123.1234567"},
 	{amount: "-456456456123123123.1234567", precTwo: false, out: "-456,456,456,123,123,123.1234567"},
+	{amount: "123123", precTwo: true, out: "123,123.00"},
+	{amount: "123123", precTwo: false, out: "123,123.00"},
 }
 
 func TestFormatAmount(t *testing.T) {
 	for _, test := range fmtTests {
 		x, err := FormatAmount(test.amount, test.precTwo)
-		if err != nil {
-			t.Errorf("%q (2pt prec %v) => error: %s", test.amount, test.precTwo, err)
-			continue
-		}
-		if x != test.out {
-			t.Errorf("%q (2pt prec %v) => %q, expected: %q", test.amount, test.precTwo, x, test.out)
-		}
+		require.NoError(t, err, "%q (2pt prec %v) => error: %s", test.amount, test.precTwo, err)
+		require.Equal(t, test.out, x, "%q (2pt prec %v) => %q, expected: %q", test.amount, test.precTwo, x, test.out)
 	}
 }
