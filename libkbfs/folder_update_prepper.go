@@ -645,7 +645,7 @@ func addUnrefToFinalResOp(ops opsList, ptr BlockPointer,
 		resOp = newResolutionOp()
 		ops = append(ops, resOp)
 	}
-	resOp.AddUnrefBlock(ptr)
+	resOp.AddUncommittedUnrefBlock(ptr)
 	return ops
 }
 
@@ -702,6 +702,19 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 				unrefs[update.Unref] = true
 				delete(refs, update.Unref)
 				refs[update.Ref] = true
+			}
+		}
+	}
+
+	for _, resOp := range unmergedChains.resOps {
+		for _, ptr := range resOp.CommittedUnrefs() {
+			original, err := unmergedChains.originalFromMostRecentOrSame(ptr)
+			if err != nil {
+				return nil, err
+			}
+			if !unmergedChains.isCreated(original) {
+				fup.log.CDebugf(ctx, "Unref'ing %v from old resOp", ptr)
+				unrefs[ptr] = true
 			}
 		}
 	}

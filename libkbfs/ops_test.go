@@ -407,6 +407,7 @@ func makeFakeResolutionOpFuture(t *testing.T) resolutionOpFuture {
 	rof := resolutionOpFuture{
 		resolutionOp{
 			makeFakeOpCommon(t, true),
+			nil,
 		},
 		kbfscodec.MakeExtraOrBust("resolutionOp", t),
 	}

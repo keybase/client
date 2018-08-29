@@ -1276,6 +1276,7 @@ func (sao *setAttrOp) getDefaultAction(mergedPath path) crAction {
 // place as part of a conflict resolution.
 type resolutionOp struct {
 	OpCommon
+	UncommittedUnrefs []BlockPointer `codec:"uu"`
 }
 
 func newResolutionOp() *resolutionOp {
@@ -1286,7 +1287,24 @@ func newResolutionOp() *resolutionOp {
 func (ro *resolutionOp) deepCopy() op {
 	roCopy := *ro
 	roCopy.OpCommon = ro.OpCommon.deepCopy()
+	roCopy.UncommittedUnrefs = make([]BlockPointer, len(ro.UncommittedUnrefs))
+	copy(roCopy.UncommittedUnrefs, ro.UncommittedUnrefs)
 	return &roCopy
+}
+
+func (ro *resolutionOp) Unrefs() []BlockPointer {
+	return append(ro.OpCommon.Unrefs(), ro.UncommittedUnrefs...)
+}
+
+func (ro *resolutionOp) DelUnrefBlock(ptr BlockPointer) {
+	ro.OpCommon.DelUnrefBlock(ptr)
+	for i, unref := range ro.UncommittedUnrefs {
+		if ptr == unref {
+			ro.UncommittedUnrefs = append(
+				ro.UncommittedUnrefs[:i], ro.UncommittedUnrefs[i+1:]...)
+			break
+		}
+	}
 }
 
 func (ro *resolutionOp) SizeExceptUpdates() uint64 {
@@ -1309,6 +1327,18 @@ func (ro *resolutionOp) StringWithRefs(indent string) string {
 	res := ro.String() + "\n"
 	res += ro.stringWithRefs(indent)
 	return res
+}
+
+// AddUncommittedUnrefBlock adds this block to the list of blocks that should be
+// archived/deleted from the server, but which were never actually
+// committed successfully in an MD.  Therefore, their sizes don't have
+// to be accounted for in any MD size accounting for the TLF.
+func (ro *resolutionOp) AddUncommittedUnrefBlock(ptr BlockPointer) {
+	ro.UncommittedUnrefs = append(ro.UncommittedUnrefs, ptr)
+}
+
+func (ro *resolutionOp) CommittedUnrefs() []BlockPointer {
+	return ro.OpCommon.Unrefs()
 }
 
 func (ro *resolutionOp) checkConflict(
