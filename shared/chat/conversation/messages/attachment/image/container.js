@@ -77,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
     inlineVideoPlayable: message.inlineVideoPlayable,
-    title: message.title || message.fileName,
+    title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,

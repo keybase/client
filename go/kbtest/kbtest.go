@@ -205,11 +205,8 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 				Description: &dname,
 				Type:        libkb.DeviceTypeDesktop,
 			}
-			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, FakeSalt())
-			if err := engine.RunEngine2(m, provisionee); err != nil {
-				return err
-			}
-			return nil
+			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
+			return engine.RunEngine2(m, provisionee)
 		})()
 		require.NoError(t, err, "kex2 provisionee")
 	}()

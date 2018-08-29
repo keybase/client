@@ -239,6 +239,9 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	res = stellarcommon.Recipient{
 		Input: to,
 	}
+	if len(to) == 0 {
+		return res, fmt.Errorf("empty recipient parameter")
+	}
 
 	storeAddress := func(address string) error {
 		_, err := libkb.ParseStellarAccountID(address)

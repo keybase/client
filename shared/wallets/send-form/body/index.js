@@ -9,9 +9,9 @@ import NoteAndMemo from '../note-and-memo/container'
 import Participants from '../participants/container'
 
 type Props = {
+  isRequest: boolean,
   bannerInfo?: string,
   isProcessing?: boolean,
-  onClick: Function,
 }
 
 const Spinner = () => (
@@ -20,7 +20,7 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
+const Body = ({bannerInfo, isProcessing, isRequest}: Props) => (
   <Box2 fullWidth={true} fullHeight={true} direction="vertical">
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
@@ -28,7 +28,7 @@ const Body = ({bannerInfo, isProcessing, onClick}: Props) => (
     <Divider />
     <AssetInput />
     <NoteAndMemo />
-    <Footer onClick={onClick} />
+    <Footer isRequest={isRequest} />
   </Box2>
 )
 
