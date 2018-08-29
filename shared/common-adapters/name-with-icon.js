@@ -60,11 +60,9 @@ const NameWithIconVertical = (props: Props) => {
         />
       )}
       {!isAvatar &&
-        !!props.icon && (
+      !!props.icon && ( // TODO switch this to collapseStyles when Icon is fixed
           <Icon
-            type={
-              props.icon || '' // TODO switch this to collapseStyles when Icon is fixed
-            }
+            type={props.icon || ''}
             style={{height: adapterProps.iconSize, width: adapterProps.iconSize}}
             fontSize={adapterProps.iconSize}
           />
