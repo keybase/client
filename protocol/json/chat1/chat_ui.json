@@ -12,6 +12,11 @@
       "import_as": "gregor1"
     },
     {
+      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -442,6 +447,28 @@
     },
     {
       "type": "record",
+      "name": "UIPaymentInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "stellar1.BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -537,6 +564,13 @@
         {
           "type": "boolean",
           "name": "hasPairwiseMacs"
+        },
+        {
+          "type": [
+            null,
+            "UIPaymentInfo"
+          ],
+          "name": "paymentInfo"
         }
       ]
     },
