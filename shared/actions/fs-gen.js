@@ -57,6 +57,7 @@ export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
+export const uploads = 'fs:uploads'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
@@ -194,6 +195,10 @@ type _UploadPayload = $ReadOnly<{|
 |}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
+type _UploadsPayload = $ReadOnly<{|
+  parentPath: Types.Path,
+  localPaths: Array<string>,
+|}>
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})
@@ -244,6 +249,7 @@ export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload
 export const createUpload = (payload: _UploadPayload) => ({error: false, payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({error: false, payload, type: uploadStarted})
 export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({error: false, payload, type: uploadWritingSuccess})
+export const createUploads = (payload: _UploadsPayload) => ({error: false, payload, type: uploads})
 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
@@ -294,6 +300,7 @@ export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfir
 export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
 export type UploadStartedPayload = $Call<typeof createUploadStarted, _UploadStartedPayload>
 export type UploadWritingSuccessPayload = $Call<typeof createUploadWritingSuccess, _UploadWritingSuccessPayload>
+export type UploadsPayload = $Call<typeof createUploads, _UploadsPayload>
 
 // All Actions
 // prettier-ignore
@@ -346,4 +353,5 @@ export type Actions =
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload
+  | UploadsPayload
   | {type: 'common:resetStore', payload: void}

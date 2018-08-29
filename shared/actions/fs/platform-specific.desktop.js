@@ -308,7 +308,7 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
         return resolve(filePaths)
       }
     )
-  ).then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+  ).then(localPaths => localPaths && FsGen.createUploads({localPaths, parentPath: action.payload.parentPath}))
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)

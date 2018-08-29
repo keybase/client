@@ -73,6 +73,10 @@
       "parentPath": "Types.Path",
       "localPath": "string"
     },
+    "uploads": {
+      "parentPath": "Types.Path",
+      "localPaths": "Array<string>"
+    },
     "uploadStarted": {
       "path": "Types.Path"
     },
