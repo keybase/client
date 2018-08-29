@@ -44,7 +44,7 @@ const makeDropdownItems = (props: Props) => {
 
 const makeDropdownItem = (item: string, isSelected: boolean) => (
   <Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item}>
-    <Text type="Header" style={collapseStyles([styles.centerText, isSelected && styles.itemSelected])}>
+    <Text type="BodyBig" style={collapseStyles([styles.centerText, isSelected && styles.itemSelected])}>
       {item}
     </Text>
   </Box2>

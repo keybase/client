@@ -45,7 +45,7 @@ const getStillRows = (
   names: Array<string>
 ): Array<SortableStillRowItem> =>
   names.reduce((items, name) => {
-    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.makeUnknownPathItem({name}))
+    const item = pathItems.get(Types.pathConcat(parentPath, name), Constants.unknownPathItem)
     return [
       ...items,
       {

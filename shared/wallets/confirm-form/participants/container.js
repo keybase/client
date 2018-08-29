@@ -1,21 +1,25 @@
 // @flow
 import ConfirmSend from '.'
 import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {getAccount} from '../../../constants/wallets'
+import {stringToAccountID} from '../../../constants/types/wallets'
 
 const mapStateToProps = (state: TypedState) => {
   const build = state.wallets.buildingPayment
   const built = state.wallets.builtPayment
 
   const recipientType = build.recipientType || 'keybaseUser'
-  const to = build.to
-  const recipientStellarAddress = recipientType === 'stellarPublicKey' ? to : undefined
+  const fromAccount = getAccount(state, stringToAccountID(build.from))
+  const recipientAccount = getAccount(state, stringToAccountID(build.to))
+  const recipientStellarAddress = build.to
 
   return {
     recipientType,
     yourUsername: state.config.username,
-    // TODO - Integration PR - fill these in
-    fromAccountName: '',
-    fromAccountContents: '',
+    fromAccountAssets: fromAccount.balanceDescription,
+    fromAccountName: fromAccount.name || fromAccount.accountID,
+    recipientAccountAssets: recipientAccount.balanceDescription,
+    recipientAccountName: recipientAccount.name || recipientAccount.accountID,
     recipientUsername: built.toUsername,
     recipientStellarAddress,
   }

@@ -72,15 +72,17 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
       throw new Error('Unable to acquire storage permissions')
     }
   }
+  const fetchURL = `${fileURL}&nostream=true`
+  logger.info(logPrefix + `Fetching from URL: ${fetchURL}`)
   const download = await RNFetchBlob.config({
     appendExt: mime.extension(mimeType),
     fileCache: true,
-  }).fetch('GET', fileURL)
+  }).fetch('GET', fetchURL)
   logger.info(logPrefix + 'Fetching success, getting local file path')
   const path = download.path()
   logger.info(logPrefix + `Saving to ${path}`)
   try {
-    logger.info(logPrefix + 'Attempting to save')
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
     logger.info(logPrefix + 'Success')
   } catch (err) {
