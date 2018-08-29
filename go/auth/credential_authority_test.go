@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/kbun"
-	libkb "github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -57,7 +56,7 @@ func newTestUser(nKeys int) *testUser {
 	un := genUsername()
 	ret := testUser{
 		username: kbun.NewNormalizedUsername(un),
-		uid:      libkb.UsernameToUID(un),
+		uid:      kbun.UsernameToUID(un),
 		sibkeys:  make([]keybase1.KID, nKeys),
 		subkeys:  make([]keybase1.KID, nKeys),
 	}
@@ -286,7 +285,7 @@ func TestCheckUsers(t *testing.T) {
 		users = append(users, u.uid)
 		usersWithDud = append(usersWithDud, u.uid)
 	}
-	usersWithDud = append(usersWithDud, libkb.UsernameToUID(genUsername()))
+	usersWithDud = append(usersWithDud, kbun.UsernameToUID(genUsername()))
 
 	if state.numGets != 0 {
 		t.Fatal("expected 0 gets")
