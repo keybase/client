@@ -638,9 +638,9 @@ type GetPendingPaymentsLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int       `codec:"sessionID" json:"sessionID"`
-	AccountID AccountID `codec:"accountID" json:"accountID"`
-	Id        PaymentID `codec:"id" json:"id"`
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
+	Id        PaymentID  `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {

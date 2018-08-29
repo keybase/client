@@ -122,9 +122,11 @@ protocol local {
   }
 
   // accountID should be the accountID that you want the details for.
-  // This is used for formatting the amountDescription to know if it is a payment that
-  // increases or decreases the balance.
-  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, AccountID accountID, PaymentID id);
+  // This is used for formatting the `amountDescription` to know if it
+  // is a payment that increases or decreases the balance. AccountID
+  // is optional, but then `amountDescription` will not be formatted
+  // with "+" or "-", and also `delta` will always be NONE.
+  PaymentDetailsLocal getPaymentDetailsLocal(int sessionID, union { null, AccountID } accountID, PaymentID id);
 
   record CurrencyLocal {
     string description;  // "USD ($)", "CAD ($)", etc.

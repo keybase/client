@@ -369,7 +369,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	arg := stellar1.SendCLILocalArg{
 		Recipient: strings.ToUpper(tcs[1].Fu.Username),
 		Amount:    "100",
-		Asset:     stellar1.Asset{Type: "native"},
+		Asset:     stellar1.AssetNative(),
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)

@@ -7,7 +7,9 @@ import (
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -713,7 +715,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	argDetails := stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
-		AccountID: accountIDSender,
+		AccountID: &accountIDSender,
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -721,7 +723,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	argDetails = stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
-		AccountID: accountIDRecip,
+		AccountID: &accountIDRecip,
 	}
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -773,6 +775,55 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+}
+
+func TestPaymentDetailsEmptyAccId(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	backend := tcs[0].Backend
+	backend.ImportAccountsForUser(tcs[0])
+	backend.ImportAccountsForUser(tcs[1])
+
+	accID := getPrimaryAccountID(tcs[0])
+	backend.accounts[accID].AddBalance("1000")
+
+	const secretNote string = "pleasure doing business 🤔"
+
+	_, err := tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accID,
+		To:            tcs[1].Fu.Username,
+		ToIsAccountID: false,
+		Amount:        "505.612",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "160.93",
+		WorthCurrency: &usd,
+		SecretNote:    secretNote,
+		PublicMemo:    "",
+	})
+	require.NoError(t, err)
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
+
+	// Imagine this is the receiver reading chat.
+	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
+
+	detailsRes, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+		// Chat uses nil AccountID because it does not know it. It
+		// derives delta and formatting (whether it's a debit or
+		// credit) by checking chat message sender and receiver.
+		AccountID: nil,
+		Id:        paymentID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
+	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
+	require.Equal(t, "$160.93", detailsRes.Worth)
+	require.Equal(t, "USD", detailsRes.WorthCurrency)
+	require.Equal(t, secretNote, detailsRes.Note)
+	require.Equal(t, "", detailsRes.NoteErr)
 }
 
 func TestBuildPaymentLocal(t *testing.T) {
