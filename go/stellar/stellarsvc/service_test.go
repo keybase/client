@@ -717,13 +717,11 @@ func TestRequestPayment(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
-	require.Equal(t, "5.23 XLM", details.AmountDescription)
-	require.Equal(t, "5.2300000 XLM", details.AmountStellarDescription)
 	require.Equal(t, "5.23", details.Amount)
-	require.Equal(t, "5.23", details.AmountStellar)
 	require.Nil(t, details.Currency)
 	require.NotNil(t, details.Asset)
 	require.Equal(t, stellar1.AssetNative(), *details.Asset)
+	require.Equal(t, "5.23 XLM", details.AmountDescription)
 }
 
 func TestRequestPaymentOutsideCurrency(t *testing.T) {
@@ -740,13 +738,12 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 		ReqID: reqID,
 	})
 	require.NoError(t, err)
+	require.Equal(t, stellar1.RequestStatus_OK, details.Status)
 	require.Equal(t, "8.196", details.Amount)
 	require.Nil(t, details.Asset)
 	require.NotNil(t, details.Currency)
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), *details.Currency)
-	require.Equal(t, "8.196 USD", details.AmountDescription)
-	require.Equal(t, "25.7470282", details.AmountStellar) // derived from exchange rate during GetRequestDetails
-	require.Equal(t, "25.7470282 XLM", details.AmountStellarDescription)
+	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
 type TestContext struct {
