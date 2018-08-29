@@ -3314,6 +3314,18 @@
           "type": "MessageID"
         },
         {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
+        },
+        {
           "name": "ephemeralLifetime",
           "type": [
             null,

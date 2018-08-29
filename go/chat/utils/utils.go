@@ -1169,7 +1169,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1179,6 +1179,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = rawMsg.Outbox().Msg.MessageBody.Attachment().Object.Title
+				filename = rawMsg.Outbox().Msg.MessageBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1188,6 +1194,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

@@ -1688,13 +1688,16 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
   // These messages will not send until the upload has both been started and completed.
   const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
-    paths.map(p =>
+    paths.map((p, i) =>
       Saga.call(
         RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise,
         ({
           ...ephemeralData,
           convID: Types.keyToConversationID(conversationIDKey),
           tlfName: meta.tlfname,
+          filename: p,
+          title: titles[i],
+          metadata: Buffer.from([]),
           visibility: RPCTypes.commonTLFVisibility.private,
           clientPrev,
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
