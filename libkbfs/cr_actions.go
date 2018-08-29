@@ -139,22 +139,24 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 func uniquifyName(
 	ctx context.Context, dir *dirData, name string) (string, error) {
 	_, err := dir.lookup(ctx, name)
-	_, notExists := errors.Cause(err).(NoSuchNameError)
-	if err != nil && !notExists {
-		return "", err
-	} else if notExists {
+	switch errors.Cause(err).(type) {
+	case nil:
+	case NoSuchNameError:
 		return name, nil
+	default:
+		return "", err
 	}
 
 	base, ext := splitExtension(name)
 	for i := 1; i <= 100; i++ {
 		newName := fmt.Sprintf("%s (%d)%s", base, i, ext)
 		_, err := dir.lookup(ctx, newName)
-		_, notExists := errors.Cause(err).(NoSuchNameError)
-		if err != nil && !notExists {
-			return "", err
-		} else if notExists {
+		switch errors.Cause(err).(type) {
+		case nil:
+		case NoSuchNameError:
 			return newName, nil
+		default:
+			return "", err
 		}
 	}
 
@@ -186,9 +188,11 @@ func (cuea *copyUnmergedEntryAction) do(
 
 	mergedEntry, err := mergedDir.lookup(ctx, cuea.toName)
 	mergedEntryOk := true
-	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
+	switch errors.Cause(err).(type) {
+	case nil:
+	case NoSuchNameError:
 		mergedEntryOk = false
-	} else if err != nil {
+	default:
 		return err
 	}
 

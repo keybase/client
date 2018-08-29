@@ -891,13 +891,15 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				// for a new file.
 				var filePtr BlockPointer
 				de, err := dd.lookup(ctx, name)
-				_, notExists := errors.Cause(err).(NoSuchNameError)
-				if err != nil && !notExists {
+				switch errors.Cause(err).(type) {
+				case nil:
+					filePtr = de.BlockPointer
+				case NoSuchNameError:
+				default:
 					fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
 					continue
-				} else if !notExists {
-					filePtr = de.BlockPointer
 				}
+
 				fup.log.CDebugf(ctx, "Creating child node for name %s for "+
 					"parent %v", name, pnode.BlockPointer)
 				childPath := path{

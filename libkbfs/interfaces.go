@@ -2231,10 +2231,10 @@ type crAction interface {
 	swapUnmergedBlock(
 		ctx context.Context, unmergedChains, mergedChains *crChains,
 		unmergedDir *dirData) (bool, BlockPointer, error)
-	// do modifies the given merged block in place to resolve the
-	// conflict, and potential uses the provided blockCopyFetchers to
-	// obtain copies of other blocks (along with new BlockPointers)
-	// when requiring a block copy.
+	// do modifies the given merged `dirData` in place to resolve the
+	// conflict, and potential uses the provided
+	// `fileBlockDeepCopier`s to obtain copies of other blocks (along
+	// with new BlockPointers) when requiring a file copy.
 	do(
 		ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
 		unmergedDir, mergedDir *dirData) error
@@ -2254,7 +2254,7 @@ type crAction interface {
 	//   chains.
 	// * updateOps doesn't necessarily result in correct BlockPointers within
 	//   each of those ops; that must happen in a later phase.
-	// * mergedBlock can be nil if the chain is for a file.
+	// * mergedDir can be nil if the chain is for a file.
 	updateOps(
 		ctx context.Context, unmergedMostRecent, mergedMostRecent BlockPointer,
 		unmergedDir, mergedDir *dirData,

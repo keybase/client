@@ -2398,15 +2398,15 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 					cr.log.CDebugf(ctx, "Swapping out dir %v for %v",
 						newPtr, unmergedPath.tailPointer())
 					if newPtr == zeroPtr {
-						// Use this merged block
+						// Use the merged `dirData`.
 						uDir = mergedDir
 					} else {
-						// Use the specified block, and supply a `nil`
-						// local block cache to ensure that a) only
-						// clean blocks are used, as blocks in the
-						// `lbc` might have already been touched by
-						// previous actions, and b) no new blocks are
-						// cached.
+						// Use the specified `dirData`, and supply a
+						// `nil` local block cache to ensure that a)
+						// only clean blocks are used, as blocks in
+						// the `lbc` might have already been touched
+						// by previous actions, and b) no new blocks
+						// are cached.
 						newPath := path{
 							FolderBranch: mergedPath.FolderBranch,
 							path: []pathNode{{
