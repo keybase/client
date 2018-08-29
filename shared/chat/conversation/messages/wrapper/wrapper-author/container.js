@@ -71,7 +71,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
-    previous && previous.author === message.author && Constants.isUserMessage(message)
+    previous && previous.author === message.author && Constants.isUserMessage(previous)
 
   const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
