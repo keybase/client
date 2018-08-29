@@ -6,7 +6,7 @@ package libkb
 import (
 	"encoding/hex"
 
-	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -14,11 +14,11 @@ import (
 //==================================================================
 
 // TODO (CORE-6576): Remove these aliases once everything outside of
-// this repo points to kbun.
-type NormalizedUsername = kbun.NormalizedUsername
+// this repo points to kbname.
+type NormalizedUsername = kbname.NormalizedUsername
 
 func NewNormalizedUsername(s string) NormalizedUsername {
-	return kbun.NewNormalizedUsername(s)
+	return kbname.NewNormalizedUsername(s)
 }
 
 //==================================================================

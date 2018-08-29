@@ -10,7 +10,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
-	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -406,7 +406,7 @@ func (tx *AddMemberTx) AddMemberByAssertion(ctx context.Context, assertion strin
 	g := team.G()
 	m := libkb.NewMetaContext(ctx, g)
 
-	if kbun.NewNormalizedUsername(assertion).IsValid() {
+	if kbname.NewNormalizedUsername(assertion).IsValid() {
 		upak, err := engine.ResolveAndCheck(m, assertion, true /* useTracking */)
 		if err != nil {
 			return "", uv, false, err

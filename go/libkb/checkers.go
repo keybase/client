@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/kbname"
 )
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
@@ -25,7 +25,7 @@ var CheckEmail = Checker{
 }
 
 var CheckUsername = Checker{
-	F:    kbun.CheckUsername,
+	F:    kbname.CheckUsername,
 	Hint: "between 2 and 16 characters long",
 }
 
