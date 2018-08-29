@@ -313,7 +313,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PTK roll that didn't
 	// include a teamEK statement), we'll still return the generation number.
-	signerKey, parsedStatement, err := extractTeamEKStatementFromSig(sig)
+	signerKID, parsedStatement, err := extractTeamEKStatementFromSig(sig)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -333,7 +333,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
-	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+	if !teamSigningKey.GetKID().Equal(signerKID) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
 		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
@@ -346,9 +346,9 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 		if err != nil {
 			return nil, latestGeneration, false, err
 		}
-		if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
+		if !teamSigningKey.GetKID().Equal(signerKID) {
 			return nil, latestGeneration, true, fmt.Errorf("teamEK returned for PTK signing KID %s, but latest is %s",
-				signerKey.GetKID(), teamSigningKey.GetKID())
+				signerKID, teamSigningKey.GetKID())
 		}
 	}
 

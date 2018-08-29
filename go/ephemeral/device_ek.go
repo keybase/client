@@ -211,7 +211,7 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 
 		// Find the device that matches the signing key. This checks
 		// authenticity.
-		matchingDevice, ok := kidToDevice[signerKey.GetKID()]
+		matchingDevice, ok := kidToDevice[signerKID]
 		if !ok {
 			return nil, fmt.Errorf("deviceEK returned for unknown device KID %s", signerKID)
 		}
