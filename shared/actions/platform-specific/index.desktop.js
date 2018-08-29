@@ -138,7 +138,7 @@ const checkRPCOwnership = () =>
                 return
               }
               logger.info(`pipeowner check result: ${stdout.toString()}`)
-              reject(new Error('pipeowner check failed'))
+              throw new Error('pipeowner check failed')
             })
           })
       )
