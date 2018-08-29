@@ -111,10 +111,12 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
-const checkRPCOwnership = () =>
+const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
   Saga.call(function*() {
     const waitKey = 'pipeCheckFail'
-    yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey}))
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+    )
     try {
       logger.info('Checking RPC ownership')
 
@@ -149,6 +151,7 @@ const checkRPCOwnership = () =>
           failedReason: e.message,
           increment: false,
           name: waitKey,
+          version: action.payload.version,
         })
       )
     }
