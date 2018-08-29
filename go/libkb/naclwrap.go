@@ -447,9 +447,8 @@ func NaclVerifyAndExtract(s string) (kid keybase1.KID, payload []byte, fullBody 
 		return "", nil, nil, err
 	}
 
-	key := NaclSigningKeyPair{Public: *nk}
 	payload = naclSig.Payload
-	return key.GetKID(), payload, fullBody, nil
+	return nk.GetKID(), payload, fullBody, nil
 }
 
 func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
