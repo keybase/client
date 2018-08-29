@@ -56,7 +56,7 @@ func genUsername() string {
 func newTestUser(nKeys int) *testUser {
 	un := genUsername()
 	ret := testUser{
-		username: libkb.NewNormalizedUsername(un),
+		username: kbun.NewNormalizedUsername(un),
 		uid:      libkb.UsernameToUID(un),
 		sibkeys:  make([]keybase1.KID, nKeys),
 		subkeys:  make([]keybase1.KID, nKeys),

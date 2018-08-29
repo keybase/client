@@ -20,7 +20,7 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NewNormalizedUsername("alice")
+	name := kbun.NewNormalizedUsername("alice")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	server := "test"
@@ -55,7 +55,7 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NewNormalizedUsername("bob")
+	name := kbun.NewNormalizedUsername("bob")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 0
 	server := "test"
@@ -83,7 +83,7 @@ func TestMaxExpires(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NewNormalizedUsername("charlie")
+	name := kbun.NewNormalizedUsername("charlie")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := testMaxTokenExpireIn + 10
 	server := "test"
@@ -111,7 +111,7 @@ func TestTokenServerInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NewNormalizedUsername("dana")
+	name := kbun.NewNormalizedUsername("dana")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	server := "test"
@@ -147,7 +147,7 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	name := libkb.NewNormalizedUsername("dana")
+	name := kbun.NewNormalizedUsername("dana")
 	uid := libkb.UsernameToUID(name.String())
 	expireIn := 10
 	server := "test"
