@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -142,7 +143,7 @@ func XapiError(err error, u string) *ProofAPIError {
 
 type FailedAssertionError struct {
 	user string
-	bad  []AssertionURL
+	bad  []kbname.AssertionURL
 }
 
 func (u FailedAssertionError) Error() string {
@@ -164,8 +165,8 @@ func (e NeedInputError) Error() string {
 	return e.err
 }
 
-func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
-	return AssertionParseError{
+func NewNeedInputError(s string, a ...interface{}) NeedInputError {
+	return NeedInputError{
 		err: fmt.Sprintf(s, a...),
 	}
 }

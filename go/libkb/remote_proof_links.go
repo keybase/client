@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -109,7 +110,7 @@ func (r *RemoteProofLinks) TrackSet() *TrackSet {
 
 // AddProofsToSet adds the active proofs to an existing ProofSet, if they're one of the
 // given OkStates. If okStates is nil, then we check only against keybase1.ProofState_OK.
-func (r *RemoteProofLinks) AddProofsToSet(existing *ProofSet, okStates []keybase1.ProofState) {
+func (r *RemoteProofLinks) AddProofsToSet(existing *kbname.ProofSet, okStates []keybase1.ProofState) {
 	if okStates == nil {
 		okStates = []keybase1.ProofState{keybase1.ProofState_OK}
 	}
@@ -129,12 +130,12 @@ func (r *RemoteProofLinks) AddProofsToSet(existing *ProofSet, okStates []keybase
 	}
 }
 
-func RemoteProofChainLinkToProof(r RemoteProofChainLink) Proof {
+func RemoteProofChainLinkToProof(r RemoteProofChainLink) kbname.Proof {
 	k, v := r.ToKeyValuePair()
-	return Proof{Key: k, Value: v}
+	return kbname.Proof{Key: k, Value: v}
 }
 
-func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
+func AddToProofSetNoChecks(r RemoteProofChainLink, ps *kbname.ProofSet) {
 	ps.Add(RemoteProofChainLinkToProof(r))
 }
 

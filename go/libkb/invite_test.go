@@ -4,10 +4,17 @@
 package libkb
 
 import (
+	"strings"
 	"testing"
 
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+type testAssertionContext struct{}
+
+func (t testAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	return strings.ToLower(username), nil
+}
 
 func TestInvitationArgs(t *testing.T) {
 	tc := SetupTest(t, "invite", 1)

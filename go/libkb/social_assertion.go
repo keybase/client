@@ -23,7 +23,7 @@ func IsSocialAssertion(ctx kbname.AssertionContext, s string) bool {
 // be lowercased.  Colon assertions (twitter:user) will be
 // transformed to the user@twitter format.
 func NormalizeSocialAssertion(ctx kbname.AssertionContext, s string) (keybase1.SocialAssertion, bool) {
-	url, err := ParseAssertionURL(ctx, s, true)
+	url, err := kbname.ParseAssertionURL(ctx, s, true)
 	if err != nil || !url.IsRemote() {
 		return keybase1.SocialAssertion{}, false
 	}
