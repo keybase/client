@@ -13,22 +13,13 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func UIDFromHex(s string) (keybase1.UID, error) {
-	u, err := keybase1.UIDFromString(s)
-	if err != nil {
-		var nilUID keybase1.UID
-		return nilUID, err
-	}
-	return u, nil
-}
-
 func GetUID(w *jsonw.Wrapper) (keybase1.UID, error) {
 	s, err := w.GetString()
 	var nilUID keybase1.UID
 	if err != nil {
 		return nilUID, err
 	}
-	return UIDFromHex(s)
+	return keybase1.UIDFromString(s)
 }
 
 func GetUIDVoid(w *jsonw.Wrapper, u *keybase1.UID, e *error) {

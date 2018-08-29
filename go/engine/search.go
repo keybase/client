@@ -131,7 +131,7 @@ func (e *SearchEngine) Run(m libkb.MetaContext) error {
 		if err != nil {
 			return err
 		}
-		uid, err := libkb.UIDFromHex(uidString)
+		uid, err := keybase1.UIDFromString(uidString)
 		if err != nil {
 			return err
 		}

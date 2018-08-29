@@ -72,7 +72,7 @@ func NewOneshotUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte,
 
 func (u *UserConfig) Import() (err error) {
 	var tmp keybase1.UID
-	if tmp, err = UIDFromHex(u.ID); err != nil {
+	if tmp, err = keybase1.UIDFromString(u.ID); err != nil {
 		return
 	}
 	u.importedID = tmp

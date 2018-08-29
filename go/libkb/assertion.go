@@ -435,7 +435,7 @@ func (a AssertionDNS) IsRemote() bool              { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
-		if tmp, err := UIDFromHex(a.Value); err == nil {
+		if tmp, err := keybase1.UIDFromString(a.Value); err == nil {
 			a.uid = tmp
 		}
 	}
@@ -470,7 +470,7 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 
 func (a AssertionUID) CheckAndNormalize(_ kbname.AssertionContext) (AssertionURL, error) {
 	var err error
-	a.uid, err = UIDFromHex(a.Value)
+	a.uid, err = keybase1.UIDFromString(a.Value)
 	a.Value = strings.ToLower(a.Value)
 	return a, err
 }
