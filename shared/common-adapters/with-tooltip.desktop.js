@@ -40,6 +40,7 @@ class WithTooltip extends React.Component<Props, State> {
         ref={this._setAttachmentRef}
         onMouseEnter={this._onMouseEnter}
         onMouseLeave={this._onMouseLeave}
+        className={this.props.className}
       >
         {this.props.children}
         {this.state.mouseIn && (
