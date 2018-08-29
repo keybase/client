@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -71,18 +72,18 @@ func (h *IdentifyHandler) IdentifyLite(netCtx context.Context, arg keybase1.Iden
 	netCtx = libkb.WithLogTag(netCtx, "IDL")
 	defer h.G().CTrace(netCtx, "IdentifyHandler#IdentifyLite", func() error { return err })()
 
-	var au libkb.AssertionURL
+	var au kbname.AssertionURL
 	var parseError error
 	if len(arg.Assertion) > 0 {
 		// It's OK to fail this assertion; it will be off in the case of regular lookups
 		// for users like `t_ellen` without a `type` specification
-		au, parseError = libkb.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
+		au, parseError = kbname.ParseAssertionURL(h.G().MakeAssertionContext(), arg.Assertion, true)
 	} else {
 		// empty assertion url required for teams.IdentifyLite
-		au = libkb.AssertionKeybase{}
+		au = kbname.AssertionKeybase{}
 	}
 
-	if arg.Id.IsTeamOrSubteam() || libkb.AssertionIsTeam(au) {
+	if arg.Id.IsTeamOrSubteam() || kbname.AssertionIsTeam(au) {
 		// Now heed the parse error.
 		if parseError != nil {
 			return res, parseError
@@ -175,19 +176,19 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
-	writerAssertions, readerAssertions []libkb.AssertionExpression) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
+	writerAssertions, readerAssertions []kbname.AssertionExpression) (res keybase1.ResolveIdentifyImplicitTeamRes, err error) {
 
 	lookupName := keybase1.ImplicitTeamDisplayName{
 		IsPublic: arg.IsPublic,
 	}
 	if len(arg.Suffix) > 0 {
-		lookupName.ConflictInfo, err = libkb.ParseImplicitTeamDisplayNameSuffix(arg.Suffix)
+		lookupName.ConflictInfo, err = kbname.ParseImplicitTeamDisplayNameSuffix(arg.Suffix)
 		if err != nil {
 			return res, err
 		}
 	}
 
-	var resolvedAssertions []libkb.ResolvedAssertion
+	var resolvedAssertions []teams.ResolvedAssertion
 
 	err = teams.ResolveImplicitTeamSetUntrusted(ctx, h.G(), writerAssertions, &lookupName.Writers, &resolvedAssertions)
 	if err != nil {
@@ -258,7 +259,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 }
 
 func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Context, arg keybase1.ResolveIdentifyImplicitTeamArg,
-	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []libkb.ResolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
+	res keybase1.ResolveIdentifyImplicitTeamRes, resolvedAssertions []teams.ResolvedAssertion) (keybase1.ResolveIdentifyImplicitTeamRes, error) {
 
 	// errgroup collects errors and returns the first non-nil.
 	// subctx is canceled when the group finishes.
