@@ -218,7 +218,7 @@ export type RemoteSubmitRelayClaimResult = RelayClaimResult
 export type RemoteSubmitRelayPaymentResult = PaymentResult
 export type RemoteSubmitRequestResult = KeybaseRequestID
 export type RequestDetails = $ReadOnly<{id: KeybaseRequestID, fromUser: Keybase1.UserVersion, toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, fundingKbTxID: KeybaseTransactionID, status: RequestStatus}>
-export type RequestDetailsLocal = $ReadOnly<{id: KeybaseRequestID, fromAssertion: String, fromCurrentUser: Boolean, toUserType: ParticipantType, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amountDescription: String, amountStellar: String, amountStellarDescription: String, completed: Boolean, fundingKbTxID: KeybaseTransactionID, status: RequestStatus}>
+export type RequestDetailsLocal = $ReadOnly<{id: KeybaseRequestID, fromAssertion: String, fromCurrentUser: Boolean, toUserType: ParticipantType, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amountDescription: String, status: RequestStatus}>
 export type RequestPost = $ReadOnly<{toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode}>
 export type RequestStatus =
   | 0 // OK_0
@@ -257,7 +257,7 @@ export type LocalGetAccountAssetsLocalRpcParam = $ReadOnly<{accountID: AccountID
 export type LocalGetAvailableLocalCurrenciesRpcParam = void
 export type LocalGetDisplayCurrenciesLocalRpcParam = void
 export type LocalGetDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID: AccountID, id: PaymentID}>
+export type LocalGetPaymentDetailsLocalRpcParam = $ReadOnly<{accountID?: ?AccountID, id: PaymentID}>
 export type LocalGetPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID, cursor?: ?PageCursor}>
 export type LocalGetPendingPaymentsLocalRpcParam = $ReadOnly<{accountID: AccountID}>
 export type LocalGetRequestDetailsLocalRpcParam = $ReadOnly<{reqID: KeybaseRequestID}>
