@@ -6,7 +6,6 @@ const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-const mergeProps = (stateProps, dispatchProps) => ({})
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps})
 
-// $FlowIssue TODO
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Body'))(Body)

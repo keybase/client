@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import type {Account} from '.'
-import type {CounterpartyType} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
@@ -13,13 +13,14 @@ type ToFieldProps = {|
   incorrect?: string,
   onChangeAddress?: string => void,
   // Used for sending from account to account
+  user: string,
   accounts: Account[],
-  onChangeSelectedAccount: (accountName: string) => void,
+  onChangeSelectedAccount: (id: AccountID) => void,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
   // Used to display a keybase profile
-  username?: string,
-  fullName?: string,
+  recipientUsername?: string,
+  recipientFullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
 |}
@@ -37,15 +38,13 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     if (React.isValidElement(node)) {
       // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
       const element = (node: React.Element<any>)
-      if (element.type === DropdownText) {
-        if (element.key === 'create-new' && this.props.onCreateNewAccount) {
-          this.props.onCreateNewAccount()
-        } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
-          this.props.onLinkAccount()
-        }
+      if (element.key === 'create-new' && this.props.onCreateNewAccount) {
+        this.props.onCreateNewAccount()
+      } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
+        this.props.onLinkAccount()
       } else if (this.props.onChangeSelectedAccount) {
         this.setState({selectedAccount: element.props.account})
-        this.props.onChangeSelectedAccount(element.props.account.name)
+        this.props.onChangeSelectedAccount(element.props.account.id)
       }
     }
   }
@@ -60,14 +59,14 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
 
     let component
 
-    if (this.props.recipientType === 'keybaseUser' && this.props.username) {
+    if (this.props.recipientType === 'keybaseUser' && this.props.recipientUsername) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
-            username={this.props.username}
-            metaOne={this.props.fullName}
+            recipientUsername={this.props.recipientUsername}
+            metaOne={this.props.recipientFullName}
             onClick={this.props.onShowProfile}
             avatarStyle={styles.avatar}
           />
@@ -99,8 +98,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         ]
 
         if (this.props.accounts.length > 0) {
-          const walletItems = this.props.accounts.map((account, index) => (
-            <DropdownEntry key={index} account={account} />
+          const walletItems = this.props.accounts.map(account => (
+            <DropdownEntry key={account.id} account={account} user={this.props.user} />
           ))
           items = walletItems.concat(items)
         }
@@ -110,7 +109,11 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             onChanged={this.onDropdownChange}
             items={items}
             selected={
-              this.state.selectedAccount ? <SelectedEntry account={this.state.selectedAccount} /> : undefined
+              this.state.selectedAccount ? (
+                <SelectedEntry account={this.state.selectedAccount} user={this.props.user} />
+              ) : (
+                undefined
+              )
             }
           />
         )
@@ -149,12 +152,15 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         heading="To"
         headingAlignment={this.props.recipientType === 'otherAccount' ? 'Right' : 'Left'}
         headingStyle={
-          this.props.recipientType === 'stellarPublicKey' && !this.props.username
+          this.props.recipientType === 'stellarPublicKey' && !this.props.recipientUsername
             ? {alignSelf: 'flex-start'}
             : {}
         }
-        dividerColor={this.props.incorrect ? Styles.globalColors.red : ''}
-        bottomDivider={!!this.props.incorrect && this.props.recipientType === 'stellarPublicKey'}
+        dividerColor={
+          this.props.incorrect && this.props.recipientType === 'stellarPublicKey'
+            ? Styles.globalColors.red
+            : ''
+        }
       >
         {component}
       </ParticipantsRow>
