@@ -650,14 +650,14 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	t.Logf("get the conflict loser")
 	res, err = cli.ResolveIdentifyImplicitTeam(context.Background(), keybase1.ResolveIdentifyImplicitTeamArg{
 		Assertions:       iTeamNameCreate1,
-		Suffix:           libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
+		Suffix:           kbname.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
 		IsPublic:         false,
 		DoIdentifies:     true,
 		Create:           false,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
 	})
 	require.NoError(t, err, "%v %v", err, spew.Sdump(res))
-	require.Equal(t, res.DisplayName, iTeamNameCreate1+" "+libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]))
+	require.Equal(t, res.DisplayName, iTeamNameCreate1+" "+kbname.FormatImplicitTeamDisplayNameSuffix(conflicts[0]))
 	require.Equal(t, res.TeamID, iTeam2.ID)
 	require.True(t, compareUserVersionSets([]keybase1.UserVersion{tt.users[0].userVersion(), wong.userVersion()}, res.Writers))
 	require.Nil(t, res.TrackBreaks, "track breaks")

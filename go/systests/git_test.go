@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/git"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
@@ -134,7 +133,7 @@ func TestGitTeamer(t *testing.T) {
 		require.Len(t, conflicts, 1)
 		t.Logf("check")
 		res, err = aliceTeamer.LookupOrCreate(context.Background(), keybase1.Folder{
-			Name:       iTeamNameCreate1 + " " + libkb.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
+			Name:       iTeamNameCreate1 + " " + kbname.FormatImplicitTeamDisplayNameSuffix(conflicts[0]),
 			Private:    !public,
 			FolderType: folderType,
 		})
