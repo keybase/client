@@ -169,6 +169,7 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
 }
 
 const navigateUp = (
+  state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
   if (action.type === WalletsGen.createdNewAccount && action.error) {
@@ -241,7 +242,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
   yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, navigateToAccount)
-  yield Saga.safeTakeEveryPure([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
+  yield Saga.actionToAction([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
 
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
