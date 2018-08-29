@@ -162,7 +162,7 @@ type staticAssertionContext struct {
 	esc ExternalServicesCollector
 }
 
-func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
+func MakeStaticAssertionContext(s ExternalServicesCollector) kbname.AssertionContext {
 	return staticAssertionContext{esc: s}
 }
 

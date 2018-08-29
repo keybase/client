@@ -9,9 +9,10 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/kbname"
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 
-	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -36,11 +37,11 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 		"/keybase/public/foobar__underscore",
 	}
 	for _, badName := range badNames {
-		_, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), badName)
+		_, err := kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), badName)
 		require.Error(t, err)
 	}
 	goodName := "/keybase/public/dave,twitter:alice,bob@facebook,carol@keybase,echo"
-	name, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
+	name, err := kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
 	require.NoError(t, err)
 	require.Equal(t, name.IsPublic, true)
 	require.Equal(t, len(name.Writers.KeybaseUsers), 3)
@@ -58,7 +59,7 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	require.True(t, secondSocial == aliceExpected || secondSocial == bobExpected)
 
 	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted copy 2017-03-04)"
-	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
+	name, err = kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
 	require.NoError(t, err)
 	require.Equal(t, name.IsPublic, true)
 	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
@@ -67,7 +68,7 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 	require.Equal(t, name.ConflictInfo.Generation, keybase1.ConflictGeneration(1), "right conflict info")
 
 	goodName = "/keybase/public/dave,bob@facebook#alice (conflicted copy 2017-03-04 #2)"
-	name, err = libkb.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
+	name, err = kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), goodName)
 	require.NoError(t, err)
 	require.Equal(t, name.IsPublic, true)
 	require.Equal(t, len(name.Writers.KeybaseUsers), 1)
@@ -149,15 +150,15 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 	}
 
 	deepEq := func(a, b keybase1.ImplicitTeamDisplayName) bool {
-		x, _ := libkb.MsgpackEncode(a)
-		y, _ := libkb.MsgpackEncode(b)
+		x, _ := msgpackEncode(a)
+		y, _ := msgpackEncode(b)
 		fmt.Printf("%s\n", hex.EncodeToString(x))
 		fmt.Printf("%s\n", hex.EncodeToString(y))
 		return bytes.Equal(x, y)
 	}
 
 	for _, test := range tests {
-		itn, err := libkb.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), test.input)
+		itn, err := kbname.ParseImplicitTeamTLFName(MakeAssertionContext(tc.G), test.input)
 		if test.output == nil {
 			require.Error(t, err)
 		} else {
@@ -171,11 +172,11 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 func TestParseImplicitTeamDisplayName(t *testing.T) {
 	tc := libkb.SetupTest(t, "ParseImplicitTeamDisplayName", 1)
 	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
-	_, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), "", false)
+	_, err := kbname.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), "", false)
 	require.Error(t, err)
-	namePrivate, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), goodName, false)
+	namePrivate, err := kbname.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), goodName, false)
 	require.NoError(t, err)
-	namePublic, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), goodName, true)
+	namePublic, err := kbname.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), goodName, true)
 	require.NoError(t, err)
 	require.False(t, namePrivate.IsPublic)
 	require.True(t, namePublic.IsPublic)
