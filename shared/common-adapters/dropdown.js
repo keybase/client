@@ -76,10 +76,15 @@ class Dropdown extends React.Component<Props, State> {
               </Box>
             </PopupDialog>
           )}
-          <Box style={{...globalStyles.flexBoxCenter, minHeight: isMobile ? 40 : 32, width: '100%'}}>
+          <Box style={{...globalStyles.flexBoxCenter, minHeight: isMobile ? 48 : 32, width: '100%'}}>
             {this.props.selected}
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={isMobile ? 12 : 8} />
+          <Icon
+            type="iconfont-caret-down"
+            inheritColor={true}
+            fontSize={isMobile ? 12 : 8}
+            style={{marginTop: isMobile ? 4 : -8}}
+          />
         </ButtonBox>
       </Box>
     )
@@ -105,12 +110,16 @@ const ItemBox = glamorous(Box)({
 const ButtonBox = glamorous(Box)({
   ...globalStyles.flexBoxRow,
   ...(isMobile
-    ? {}
+    ? {
+        paddingRight: globalMargins.large,
+      }
     : {
         ':hover': {
           border: `solid 1px ${globalColors.blue}`,
           color: globalColors.blue,
         },
+        cursor: 'pointer',
+        paddingRight: globalMargins.small,
       }),
   alignItems: 'center',
   borderColor: globalColors.black_10,
@@ -118,8 +127,6 @@ const ButtonBox = glamorous(Box)({
   borderStyle: 'solid',
   borderWidth: 1,
   color: globalColors.black_40,
-  cursor: 'pointer',
-  paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
   width: '100%',
 })
 
