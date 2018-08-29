@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbname"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -398,7 +399,7 @@ func TestIdentify2WithUIDWithUntrackedFastPath(t *testing.T) {
 
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: aliceUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 		eng.testArgs = &Identify2WithUIDTestArgs{
-			cache: tester,
+			cache:                  tester,
 			allowUntrackedFastPath: true,
 		}
 		err := eng.Run(identify2MetaContext(tc, tester))
@@ -456,9 +457,9 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
-			noMe:  true,
-			cache: tester,
-			tcl:   importTrackingLink(t, tc.G),
+			noMe:                   true,
+			cache:                  tester,
+			tcl:                    importTrackingLink(t, tc.G),
 			allowUntrackedFastPath: true,
 		}
 
@@ -840,7 +841,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	}
 
 	// First time we'll cause an ID, so we need to start & finish
-	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@" + libkb.PGPAssertionKey
+	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@" + kbname.PGPAssertionKey
 	run()
 	if n := numTracyLoads(); n != 1 {
 		t.Fatalf("expected 1 full user load; got %d", n)
