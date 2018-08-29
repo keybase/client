@@ -345,7 +345,7 @@ func (a *FakeAccount) Check() bool {
 	case b < 0:
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
 	case b < int64(minimumReserve):
-		require.Fail(a.T, "account has less than the minimum blaance balance", "%v < %v %v",
+		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
 			stellaramount.StringFromInt64(b), stellaramount.String(minimumReserve), a.accountID)
 	default:
 		return true
