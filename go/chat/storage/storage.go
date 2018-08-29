@@ -117,8 +117,8 @@ func decode(data []byte, res interface{}) error {
 
 // SimpleResultCollector aggregates all results in a basic way. It is not thread safe.
 type SimpleResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)
@@ -128,13 +128,14 @@ func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() {
 		s.cur++
 	}
+	s.curScan++
 }
 
 func (s *SimpleResultCollector) Done() bool {
 	if s.target < 0 {
 		return false
 	}
-	return s.cur >= s.target
+	return s.cur >= s.target || s.curScan >= maxFetchNum
 }
 
 func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
@@ -218,9 +219,9 @@ func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 
 // TypedResultCollector aggregates results with a type constraints. It is not thread safe.
 type TypedResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
-	typmap      map[chat1.MessageType]bool
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
+	typmap               map[chat1.MessageType]bool
 }
 
 var _ ResultCollector = (*TypedResultCollector)(nil)
@@ -241,13 +242,14 @@ func (t *TypedResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() && t.typmap[msg.GetMessageType()] {
 		t.cur++
 	}
+	t.curScan++
 }
 
 func (t *TypedResultCollector) Done() bool {
 	if t.target < 0 {
 		return false
 	}
-	return t.cur >= t.target
+	return t.cur >= t.target || t.curScan >= maxFetchNum
 }
 
 func (t *TypedResultCollector) Result() []chat1.MessageUnboxed {

@@ -142,11 +142,17 @@ const checkRPCOwnership = () =>
             })
           })
       )
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: false,
+          name: waitKey,
+        })
+      )
     } catch (e) {
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           failedFatal: true,
-          failedReason: e.message,
+          failedReason: e.message || 'windows pipe owner fail',
           increment: false,
           name: waitKey,
         })
