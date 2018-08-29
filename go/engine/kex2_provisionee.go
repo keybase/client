@@ -38,6 +38,7 @@ type Kex2Provisionee struct {
 	salt         []byte
 	v1Only       bool // only support protocol v1 (for testing)
 	ekReboxer    *ephemeralKeyReboxer
+	expectedUID  keybase1.UID
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
@@ -47,13 +48,15 @@ var _ libkb.UserBasic = (*Kex2Provisionee)(nil)
 var _ libkb.APITokener = (*Kex2Provisionee)(nil)
 
 // NewKex2Provisionee creates a Kex2Provisionee engine.
-func NewKex2Provisionee(g *libkb.GlobalContext, device *libkb.Device, secret kex2.Secret, salt []byte) *Kex2Provisionee {
+func NewKex2Provisionee(g *libkb.GlobalContext, device *libkb.Device, secret kex2.Secret,
+	expectedUID keybase1.UID, salt []byte) *Kex2Provisionee {
 	return &Kex2Provisionee{
 		Contextified: libkb.NewContextified(g),
 		device:       device,
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
 		salt:         salt,
+		expectedUID:  expectedUID,
 	}
 }
 
@@ -183,6 +186,12 @@ func (e *Kex2Provisionee) handleHello(m libkb.MetaContext, uid keybase1.UID, tok
 	e.username, err = jw.AtPath("body.key.username").GetString()
 	if err != nil {
 		return res, err
+	}
+
+	if e.uid != e.expectedUID {
+		m.CDebugf("Unexpected UID in handleHello: wanted %s, got: %s", e.expectedUID, e.uid)
+		m.CDebugf("Username from the signature is: %q", e.username)
+		return res, fmt.Errorf("Provisioner is a different user than we wanted.")
 	}
 
 	e.eddsa, err = libkb.GenerateNaclSigningKeyPair()

@@ -653,6 +653,7 @@ const outboxUIMessagetoMessage = (
   switch (o.messageType) {
     case RPCChatTypes.commonMessageType.attachment:
       let title = ''
+      let fileName = ''
       let previewURL = ''
       let pre = previewSpecs(null, null)
       if (o.preview) {
@@ -670,6 +671,7 @@ const outboxUIMessagetoMessage = (
         state,
         conversationIDKey,
         title,
+        fileName,
         previewURL,
         pre,
         Types.stringToOutboxID(o.outboxID),
@@ -808,6 +810,7 @@ export const makePendingAttachmentMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   title: string,
+  fileName: string,
   previewURL: string,
   previewSpec: Types.PreviewSpec,
   outboxID: Types.OutboxID,
@@ -826,6 +829,7 @@ export const makePendingAttachmentMessage = (
     author: state.config.username || '',
     conversationIDKey,
     deviceName: '',
+    fileName: fileName,
     previewURL: previewURL,
     previewWidth: previewSpec.width,
     previewHeight: previewSpec.height,
@@ -936,8 +940,4 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
 
 // Used to decide whether to show the author for sequential messages
 export const isUserMessage = (m: Types.Message) =>
-  m.type === 'text' ||
-  m.type === 'deleted' ||
-  m.type === 'attachment' ||
-  m.type === 'sendPayment' ||
-  m.type === 'requestPayment'
+  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'
