@@ -30,7 +30,9 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Header: props => ({}),
   NoteAndMemo: props => ({}),
-  Participants: props => ({}),
+  Participants: props => ({
+    onShowProfile: Sb.action('onShowProfile'),
+  }),
   ...participantProviderProperties,
 })
 

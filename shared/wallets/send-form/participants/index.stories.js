@@ -101,6 +101,7 @@ const defaultProps = {
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
   // Stellar address
   onChangeRecipient: Sb.action('onChangeRecipient'),
+  onShowProfile: Sb.action('onShowProfile'),
 }
 
 const load = () => {
