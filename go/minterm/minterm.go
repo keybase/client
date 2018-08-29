@@ -6,6 +6,7 @@ package minterm
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -58,34 +59,42 @@ func (m *MinTerm) Size() (int, int) {
 	return m.width, m.height
 }
 
+// Write writes a string to the terminal.
+func (m *MinTerm) Write(s string) error {
+	_, err := fmt.Fprint(m.getReadWriter(), s)
+	return err
+}
+
 // Prompt gets a line of input from the terminal.  It displays the text in
 // the prompt parameter first.
 func (m *MinTerm) Prompt(prompt string) (string, error) {
-	return m.readLine(prompt)
+	m.Write(prompt)
+	return m.readLine()
 }
 
 // PromptPassword gets a line of input from the terminal, but
 // nothing is echoed to the terminal to hide the text.
 func (m *MinTerm) PromptPassword(prompt string) (string, error) {
+	m.Write(prompt)
 	if !strings.HasSuffix(prompt, ": ") {
-		prompt += ": "
+		m.Write(": ")
 	}
-	return m.readSecret(prompt)
+	return m.readSecret()
 }
 
 func (m *MinTerm) fdIn() int { return int(m.termIn.Fd()) }
 
-func (m *MinTerm) readLine(prompt string) (string, error) {
+func (m *MinTerm) readLine() (string, error) {
 	m.makeRaw()
 	defer m.restore()
-	ret, err := terminal.NewTerminal(m.getReadWriter(), prompt).ReadLine()
+	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadLine()
 	return ret, convertErr(err)
 }
 
-func (m *MinTerm) readSecret(prompt string) (string, error) {
+func (m *MinTerm) readSecret() (string, error) {
 	m.makeRaw()
 	defer m.restore()
-	ret, err := terminal.NewTerminal(m.getReadWriter(), prompt).ReadPassword("")
+	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadPassword("")
 	return ret, convertErr(err)
 }
 
