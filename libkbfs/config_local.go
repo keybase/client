@@ -844,7 +844,7 @@ func (c *ConfigLocal) SetMetadataVersion(mdVer kbfsmd.MetadataVer) {
 
 // DataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DataVersion() DataVer {
-	return AtLeastTwoLevelsOfChildrenDataVer
+	return IndirectDirsDataVer
 }
 
 // DefaultBlockType implements the Config interface for ConfigLocal.
