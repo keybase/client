@@ -190,15 +190,18 @@ func (idwl isDirtyWithLBC) IsDirty(
 // TODO: deal with multiple nodes for indirect blocks
 func (fup *folderUpdatePrepper) prepUpdateForPath(
 	ctx context.Context, lState *lockState, chargedTo keybase1.UserOrTeamID,
-	md *RootMetadata, newBlock Block, dir path, name string,
-	entryType EntryType, mtime bool, ctime bool, stopAt BlockPointer,
-	lbc localBcache) (path, DirEntry, *blockPutState, error) {
+	md *RootMetadata, newBlock Block, newBlockPtr BlockPointer, dir path,
+	name string, entryType EntryType, mtime bool, ctime bool,
+	stopAt BlockPointer, lbc localBcache) (
+	path, DirEntry, *blockPutState, error) {
 	// now ready each dblock and write the DirEntry for the next one
 	// in the path
 	currBlock := newBlock
 	var currDD *dirData
 	if _, isDir := newBlock.(*DirBlock); isDir {
-		currDD = fup.blocks.newDirDataWithLBC(lState, dir, chargedTo, md, lbc)
+		newPath := dir.ChildPath(name, newBlockPtr)
+		currDD = fup.blocks.newDirDataWithLBC(
+			lState, newPath, chargedTo, md, lbc)
 	}
 	currName := name
 	newPath := path{
@@ -223,6 +226,12 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			}
 			for newInfo := range newInfos {
 				md.AddRefBlock(newInfo)
+			}
+
+			dirUnrefs := fup.blocks.GetDirtyDirUnrefs(
+				lState, currDD.rootBlockPointer())
+			for _, unref := range dirUnrefs {
+				md.AddUnrefBlock(unref)
 			}
 		}
 
@@ -286,11 +295,6 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			currBlock = prevDblock
 			currDD = dd
 			nextName = prevDir.tailName()
-			dirUnrefs := fup.blocks.GetDirtyDirUnrefs(
-				lState, prevDir.tailPointer())
-			for _, unref := range dirUnrefs {
-				md.AddUnrefBlock(unref)
-			}
 		}
 
 		if de.Type == Dir {
@@ -480,7 +484,7 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 		// Assume the mtime/ctime are already fixed up in the blocks
 		// in the lbc.
 		_, _, bps, err := fup.prepUpdateForPath(
-			ctx, lState, chargedTo, newMD, block,
+			ctx, lState, chargedTo, newMD, block, node.ptr,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
 			entryType, false, false, stopAt, lbc)
 		if err != nil {

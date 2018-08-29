@@ -983,10 +983,15 @@ func (fbo *folderBlockOps) makeDirDirtyLocked(
 	oldLen := len(oldUnrefs)
 	fbo.dirtyDirs[ptr] = append(oldUnrefs, unrefs...)
 	return func() {
+		dirtyBcache := fbo.config.DirtyBlockCache()
 		if wasDirty {
 			fbo.dirtyDirs[ptr] = oldUnrefs[:oldLen:oldLen]
 		} else {
+			dirtyBcache.Delete(fbo.id(), ptr, fbo.branch())
 			delete(fbo.dirtyDirs, ptr)
+		}
+		for _, unref := range unrefs {
+			dirtyBcache.Delete(fbo.id(), unref.BlockPointer, fbo.branch())
 		}
 	}
 }
@@ -1068,9 +1073,9 @@ func (fbo *folderBlockOps) addDirEntryInCacheLocked(
 
 	undoDirtyFn := fbo.makeDirDirtyLocked(lState, dir.tailPointer(), unrefs)
 	return func() {
+		_, _ = dd.removeEntry(ctx, newName)
 		undoDirtyFn()
 		parentUndo()
-		_, _ = dd.removeEntry(ctx, newName)
 	}, nil
 }
 
@@ -1104,6 +1109,13 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 	if err != nil {
 		return nil, err
 	}
+	if oldDe.Type == Dir {
+		// The parent dir inherits any dirty unrefs from the removed
+		// directory.
+		if childUnrefs, ok := fbo.dirtyDirs[oldDe.BlockPointer]; ok {
+			unrefs = append(unrefs, childUnrefs...)
+		}
+	}
 
 	unlinkUndoFn := fbo.nodeCache.Unlink(
 		oldDe.Ref(), dir.ChildPath(oldName, oldDe.BlockPointer), oldDe)
@@ -1118,10 +1130,10 @@ func (fbo *folderBlockOps) removeDirEntryInCacheLocked(
 
 	undoDirtyFn := fbo.makeDirDirtyLocked(lState, dir.tailPointer(), unrefs)
 	return func() {
+		_, _ = dd.addEntry(ctx, oldName, oldDe)
 		undoDirtyFn()
 		parentUndo()
 		unlinkUndoFn()
-		_, _ = dd.addEntry(ctx, oldName, oldDe)
 	}, nil
 }
 
