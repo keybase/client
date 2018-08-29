@@ -26,7 +26,7 @@ var CheckEmail = Checker{
 
 var CheckUsername = Checker{
 	F:    kbname.CheckUsername,
-	Hint: "between 2 and 16 characters long",
+	Hint: kbname.CheckUsernameHint,
 }
 
 var CheckEmailOrUsername = Checker{
