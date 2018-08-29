@@ -14,16 +14,15 @@ export type OwnProps = {|
   previous: ?Types.Message,
 |}
 
-const decoratedMessageTypes: Array<Types.MessageType> = ['attachment', 'text', 'systemLeft']
 const shouldDecorateMessage = (message: Types.Message, you: string) => {
-  if (decoratedMessageTypes.includes(message.type)) {
-    return true
+  if ((message.type === 'text' || message.type === 'attachment') && message.exploded) {
+    return false
   }
   if (message.type === 'systemJoined') {
     // special case. "You joined #<channel>" messages render with a blue user notice so don't decorate those
     return message.author !== you
   }
-  return false
+  return Constants.decoratedMessageTypes.includes(message.type)
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -50,7 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const timestamp = showTimestamp ? formatTimeForMessages(message.timestamp) : ''
 
   let type = 'children'
-  if (['text', 'attachment'].includes(ownProps.message.type)) {
+  if (Constants.showAuthorMessageTypes.includes(ownProps.message.type)) {
     type = 'wrapper-author'
   }
 

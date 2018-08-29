@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
@@ -22,7 +23,7 @@ func TestAvatarsFullCaching(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	tc.G.SetClock(clock)
 
-	testSrv := libkb.NewHTTPSrv(tc.G, libkb.NewPortRangeListenerSource(7000, 8000))
+	testSrv := kbhttp.NewSrv(tc.G.GetLog(), kbhttp.NewPortRangeListenerSource(7000, 8000))
 	require.NoError(t, testSrv.Start())
 	testSrv.HandleFunc("/p", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "hi")

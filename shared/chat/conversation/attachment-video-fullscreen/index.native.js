@@ -2,10 +2,18 @@
 import React from 'react'
 import {WebView, Box, ClickableBox, Text} from '../../../common-adapters'
 import {globalColors, platformStyles, globalMargins, globalStyles} from '../../../styles'
-import {OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters/mobile.native'
+import {
+  NativeStatusBar,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../common-adapters/mobile.native'
 import type {Props} from './index.types'
 
 class _VideoFullscreen extends React.Component<Props & OverlayParentProps> {
+  componentWillUnmount() {
+    NativeStatusBar.setHidden(false)
+  }
+
   render() {
     return (
       <Box style={stylesContainer}>
@@ -31,7 +39,7 @@ const stylesContainer = platformStyles({
     backgroundColor: globalColors.black,
   },
   isIOS: {
-    marginTop: -20, // top status bar
+    paddingTop: 20, // top status bar
   },
 })
 
