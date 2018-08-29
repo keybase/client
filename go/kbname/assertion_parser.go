@@ -1,14 +1,12 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package kbname
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
-
-	"github.com/keybase/client/go/kbname"
 )
 
 const (
@@ -166,7 +164,7 @@ func NewAssertionKeybaseUsername(username string) AssertionKeybase {
 	return AssertionKeybase{AssertionURLBase: AssertionURLBase{Key: "keybase", Value: username}}
 }
 
-func (p *Parser) Parse(ctx kbname.AssertionContext) AssertionExpression {
+func (p *Parser) Parse(ctx AssertionContext) AssertionExpression {
 	ret := p.parseExpr(ctx)
 	if ret != nil {
 		tok := p.lexer.Get()
@@ -186,7 +184,7 @@ func (p *Parser) Parse(ctx kbname.AssertionContext) AssertionExpression {
 	return ret
 }
 
-func (p *Parser) parseTerm(ctx kbname.AssertionContext) (ret AssertionExpression) {
+func (p *Parser) parseTerm(ctx AssertionContext) (ret AssertionExpression) {
 	factor := p.parseFactor(ctx)
 	tok := p.lexer.Get()
 	if tok.Typ == AND {
@@ -199,7 +197,7 @@ func (p *Parser) parseTerm(ctx kbname.AssertionContext) (ret AssertionExpression
 	return ret
 }
 
-func (p *Parser) parseFactor(ctx kbname.AssertionContext) (ret AssertionExpression) {
+func (p *Parser) parseFactor(ctx AssertionContext) (ret AssertionExpression) {
 	tok := p.lexer.Get()
 	switch tok.Typ {
 	case URL:
@@ -228,7 +226,7 @@ func (p *Parser) parseFactor(ctx kbname.AssertionContext) (ret AssertionExpressi
 	return ret
 }
 
-func (p *Parser) parseExpr(ctx kbname.AssertionContext) (ret AssertionExpression) {
+func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 	term := p.parseTerm(ctx)
 	tok := p.lexer.Get()
 	if tok.Typ != OR {
@@ -243,31 +241,23 @@ func (p *Parser) parseExpr(ctx kbname.AssertionContext) (ret AssertionExpression
 	return ret
 }
 
-func AssertionParse(ctx kbname.AssertionContext, s string) (AssertionExpression, error) {
+func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser{
-		lexer:   lexer,
-		err:     nil,
-		andOnly: false,
-	}
+	parser := Parser{lexer, nil, false}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
 
-func AssertionParseAndOnly(ctx kbname.AssertionContext, s string) (AssertionExpression, error) {
+func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser{
-		lexer:   lexer,
-		err:     nil,
-		andOnly: true,
-	}
+	parser := Parser{lexer, nil, true}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
 
 // Parse an assertion list like "alice,bob&&bob@twitter#char"
 // OR nodes are not allowed (asides from the commas)
-func ParseAssertionsWithReaders(ctx kbname.AssertionContext, assertions string) (writers, readers []AssertionExpression, err error) {
+func ParseAssertionsWithReaders(ctx AssertionContext, assertions string) (writers, readers []AssertionExpression, err error) {
 	if len(assertions) == 0 {
 		return writers, readers, fmt.Errorf("empty assertion")
 	}
@@ -293,7 +283,7 @@ func ParseAssertionsWithReaders(ctx kbname.AssertionContext, assertions string) 
 
 // Parse a string into one or more assertions. Only AND assertions are allowed within each part.
 // like "alice,bob&&bob@twitter"
-func ParseAssertionList(ctx kbname.AssertionContext, assertionsStr string) (res []AssertionExpression, err error) {
+func ParseAssertionList(ctx AssertionContext, assertionsStr string) (res []AssertionExpression, err error) {
 	expr, err := AssertionParse(ctx, assertionsStr)
 	if err != nil {
 		return res, err

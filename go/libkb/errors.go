@@ -156,22 +156,6 @@ func (u FailedAssertionError) Error() string {
 
 //=============================================================================
 
-type AssertionParseError struct {
-	err string
-}
-
-func (e AssertionParseError) Error() string {
-	return e.err
-}
-
-func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
-	return AssertionParseError{
-		err: fmt.Sprintf(s, a...),
-	}
-}
-
-//=============================================================================
-
 type NeedInputError struct {
 	err string
 }
