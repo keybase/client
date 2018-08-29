@@ -245,7 +245,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		ctx, config, nil)
 	additionalProtocols := []rpc.Protocol{
 		keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(ctx.GetGlobalContext(), config)),
+			simplefs.NewSimpleFS(ctx, config)),
 		keybase1.KBFSGitProtocol(gitrpc),
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	}
