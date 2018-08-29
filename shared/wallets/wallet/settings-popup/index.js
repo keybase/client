@@ -56,14 +56,14 @@ const SettingsPopup = (props: Props) => {
       <Box2 centerChildren={true} gap="small" gapStart={true} gapEnd={true} direction="vertical">
         <Text type="Header">Settings</Text>
       </Box2>
-      <Box2 style={styles.sectionLabel}>
+      <Box2 direction="vertical" style={styles.sectionLabel}>
         <Text type="BodySmallSemibold">Account name</Text>
       </Box2>
       <ClickableBox style={styles.nameBox}>
         <Text type="BodySemibold">{props.name}</Text>
         <Icon style={iconCastPlatformStyles(styles.icon)} type="iconfont-edit" onClick={props.onEditName} />
       </ClickableBox>
-      <Box2 style={styles.sectionLabel}>
+      <Box2 direction="vertical" style={styles.sectionLabel}>
         <Text type="BodySmallSemibold">Identity</Text>
       </Box2>
       <Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
@@ -88,7 +88,7 @@ const SettingsPopup = (props: Props) => {
           )}
         </Box2>
       </Box2>
-      <Box2 style={styles.sectionLabel}>
+      <Box2 direction="vertical" style={styles.sectionLabel}>
         <Text type="BodySmallSemibold">Display currency</Text>
       </Box2>
       <Dropdown
@@ -104,7 +104,7 @@ const SettingsPopup = (props: Props) => {
       <Text type="BodySmall">The display currency appears:</Text>
       <Text type="BodySmall">- near your Lumens balance</Text>
       <Text type="BodySmall">- when sending or receiving Lumens</Text>
-      <Box2 fullWidth={true} style={styles.removeContainer}>
+      <Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
         <ClickableBox style={styles.remove} onClick={props.onDelete}>
           <Icon
             type="iconfont-trash"
@@ -167,8 +167,8 @@ const styles = styleSheetCreate({
     color: globalColors.red,
   },
   removeContainer: {
-    borderTopColor: globalColors.black_10,
-    borderTopStyle: 'solid',
+    borderColor: globalColors.black_10,
+    borderStyle: 'solid',
     borderTopWidth: 1,
     marginTop: globalMargins.medium,
     paddingTop: globalMargins.small,
@@ -184,7 +184,7 @@ const styles = styleSheetCreate({
     common: {
       backgroundColor: globalColors.white,
       padding: globalMargins.small,
-      maxWidth: '560px',
+      maxWidth: 560,
     },
     isMobile: {
       paddingTop: globalMargins.xlarge,
