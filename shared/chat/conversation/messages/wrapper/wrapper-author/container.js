@@ -73,8 +73,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    Constants.isUserMessage(message) &&
-    Constants.isUserMessage(previous)
+    Constants.authorIsCollapsible(message) &&
+    Constants.authorIsCollapsible(previous)
 
   const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
