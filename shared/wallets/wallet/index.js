@@ -42,8 +42,7 @@ const Wallet = (props: Props) => {
       // don't put divider after last thing in section
       children.push(<Divider key={`${props.accountID}:${item}:divider`} />)
     }
-    // TODO
-    return children
+    return <React.Fragment>{children}</React.Fragment>
   }
 
   const renderSectionHeader = ({section}) => (

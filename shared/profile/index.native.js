@@ -491,7 +491,7 @@ class Profile extends Component<Props, State> {
     }
   }
 
-  _keyExtractor = (item, index) => index
+  _keyExtractor = (item, index) => String(index)
   _list: any
   _setRef = r => (this._list = r)
 

@@ -36,9 +36,15 @@ const getFilterResults = filter => {
 
 type Section = {
   category: string,
-  data: Array<{emojis: Array<EmojiData>, key: string}>,
-  key: string,
+  data: $ReadOnlyArray<{emojis: Array<EmojiData>, key: string}>,
+  key?: string,
+  renderItem?: ({item: Section}) => null,
+  ItemSeparatorComponent?: null,
 }
+
+const List: SectionList<{
+  sections: $ReadOnlyArray<Section>,
+}> = SectionList
 
 type Props = {
   filter?: string,
@@ -110,35 +116,35 @@ class EmojiPicker extends React.Component<Props, State> {
         </Box2>
       )
     }
+
     // !this.state.sections means we haven't cached any sections yet
     // i.e. we haven't rendered before. let sections be calculated first
     return this.state.sections ? (
-      // $FlowIssue RN typedef messed up
-      <SectionList
+      <List
         keyboardShouldPersistTaps="handled"
         initialNumToRender={14}
-        sections={this.state.sections}
+        sections={this.state.sections || []}
         stickySectionHeadersEnabled={true}
-        renderItem={item => <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />}
+        renderItem={item => <EmojiRow key={item.index} item={item.item} onChoose={this.props.onChoose} />}
         renderSectionHeader={HeaderRow}
       />
     ) : null
   }
 }
 
-const EmojiRow = (props: {item: {emojis: Array<EmojiData>, key: string}, onChoose: EmojiData => void}) => (
+const EmojiRow = props => (
   <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
     {props.item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />)}
   </Box2>
 )
 
-const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData, onChoose: EmojiData => void}) => (
+const EmojiRender = ({emoji, onChoose}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
     <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>
 )
 
-const HeaderRow = ({section}: {section: Section}) => (
+const HeaderRow = ({section}) => (
   <Box2 direction="horizontal" fullWidth={true} style={styles.sectionHeader}>
     <Text type="BodySmallSemibold">{section.category}</Text>
   </Box2>

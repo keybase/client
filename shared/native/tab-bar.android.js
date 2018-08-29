@@ -1,23 +1,9 @@
 // @flow
 import React, {Component} from 'react'
 import {requireNativeComponent} from 'react-native'
+import * as Styles from '../styles'
 
-const tabBarProps = {
-  name: 'TabBar',
-}
-
-const NativeTabBar = requireNativeComponent('TabBar', tabBarProps, {
-  nativeOnly: {
-    onSelect: true,
-    // Silence RN's warnings for missing nativeProps
-    // TODO remove this when react stops complaining
-    rotation: true,
-    scaleX: true,
-    scaleY: true,
-    translateX: true,
-    translateY: true,
-  },
-})
+const NativeTabBar = requireNativeComponent('TabBar', null)
 
 export default class TabBar extends Component<any, any> {
   shouldComponentUpdate(nextProps: any, nextState: any) {
@@ -38,6 +24,14 @@ export default class TabBar extends Component<any, any> {
     return false
   }
 
+  _onSelect = e => {
+    const tabs = this.props.children
+    const selectedTab = tabs[e.nativeEvent.selectedTab]
+    if (selectedTab != null && selectedTab.props.onPress) {
+      selectedTab.props.onPress()
+    }
+  }
+
   render() {
     const tabs = this.props.children
     const titles = tabs.map(t => t.props.title)
@@ -46,22 +40,21 @@ export default class TabBar extends Component<any, any> {
       <NativeTabBar
         titles={titles}
         selectedStates={selectedStates}
-        onSelect={e => {
-          const selectedTab = tabs[e.nativeEvent.selectedTab]
-          if (selectedTab != null && selectedTab.props.onPress) {
-            selectedTab.props.onPress()
-          }
-        }}
-        style={{
-          position: 'absolute',
-          top: 0,
-          bottom: 0,
-          left: 0,
-          right: 0,
-        }}
+        onSelect={this._onSelect}
+        style={styles.tabBar}
       >
         {this.props.children}
       </NativeTabBar>
     )
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  tabBar: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+})

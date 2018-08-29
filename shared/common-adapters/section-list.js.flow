@@ -1,31 +1,58 @@
 // @flow
 import * as React from 'react'
-import type {StylesCrossPlatform} from '../styles'
+import {SectionList} from 'react-native'
 
-type SectionItem = any
+// export type Props = React.ElementProps<typeof SectionList>
+// import type {StylesCrossPlatform} from '../styles'
 
+// type Section<Item> = {
+// data: $ReadOnlyArray<Item>,
+// key?: string,
+// }
+
+// export type Props<Item & OtherParts> = {
+// keyboardShouldPersistTaps?: 'handled',
+// initialNumToRender?: number,
+// sections: $ReadOnlyArray<Section<Item> & OtherParts>,
+// stickySectionHeadersEnabled?: boolean,
+// renderSectionHeader?: (info: {section: Section<Item>}) => ?React.Element<any>,
+// style?: ?StylesCrossPlatform,
+// renderItem?: (info: {
+// item: any,
+// index: number,
+// section: Section<Item> & OtherParts,
+// separators: {
+// highlight: () => void,
+// unhighlight: () => void,
+// updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
+// },
+// }) => ?React.Element<any>,
+// }
+
+// export default class SectionList<Item> extends React.Component<Props<Item>> {}
+export default SectionList
+
+type Item = {
+  names: Array<string>,
+  key: string,
+}
 type Section = {
-  data: $ReadOnlyArray<SectionItem>,
+  data: $ReadOnlyArray<Item>,
   key?: string,
 }
-// RN's own types are kind of messed up
-export type Props = {
-  keyboardShouldPersistTaps?: 'handled',
-  initialNumToRender?: number,
-  sections: $ReadOnlyArray<Section>,
-  stickySectionHeadersEnabled: boolean,
-  renderSectionHeader?: (info: {section: Section}) => ?React.Element<any>,
-  style?: ?StylesCrossPlatform,
-  renderItem?: (info: {
-    item: any,
-    index: number,
-    section: Section,
-    separators: {
-      highlight: () => void,
-      unhighlight: () => void,
-      updateProps: (select: 'leading' | 'trailing', newProps: Object) => void,
-    },
-  }) => ?React.Element<any>,
-}
 
-export default class extends React.Component<Props> {}
+const sections: Array<Section> = [
+  {data: []},
+  {
+    data: [
+      {
+        names: ['on'],
+        key: 'hi',
+      },
+    ],
+  },
+]
+
+const AAA = () => <SectionList sections={sections} />
+
+console.log(<AAA />)

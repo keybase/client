@@ -16,6 +16,7 @@ class List extends React.Component<Props, State> {
     const sections = [
       {
         data: rows.slice(0, 1),
+        header: null,
         key: 'header',
       },
       {

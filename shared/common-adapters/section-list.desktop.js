@@ -20,14 +20,14 @@ import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
 type State = {
   items: any[],
 }
-class SectionList extends React.Component<Props, State> {
+class SectionList<Item> extends React.Component<Props<Item>, State> {
   state = {items: []}
 
   componentDidMount() {
     this._storeItems()
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Props<Item>, prevState: State) {
     if (prevProps.sections !== this.props.sections) {
       this._storeItems()
     }

@@ -3,7 +3,7 @@ import * as React from 'react'
 
 export type Props = {
   rows: Array<any>,
-  renderRow: (row: any) => React.Node,
+  renderRow: (row: any) => React.Element<any>,
 }
 
 export default (props: Props): React.Node => null

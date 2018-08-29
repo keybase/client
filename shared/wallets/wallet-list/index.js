@@ -75,7 +75,7 @@ type Props = {
 type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
 class WalletList extends React.Component<Props> {
-  _renderRow = (i: number, row: Row): React.Node => {
+  _renderRow = (i: number, row: Row) => {
     switch (row.type) {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
