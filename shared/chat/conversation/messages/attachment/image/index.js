@@ -158,10 +158,12 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             )}
           </Box>
           <Box style={styles.progressContainer}>
-            <Text type={'BodySmall'} style={styles.progressLabel}>
-              {this.props.progressLabel ||
-                '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
-            </Text>
+            {!this.props.onShowInFinder && (
+              <Text type={'BodySmall'} style={styles.progressLabel}>
+                {this.props.progressLabel ||
+                  '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
+              </Text>
+            )}
             {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
           </Box>
         </ClickableBox>
