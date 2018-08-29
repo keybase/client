@@ -6,7 +6,9 @@ package libkbfs
 
 import (
 	"fmt"
+	"os"
 	"sort"
+	"strconv"
 
 	"github.com/keybase/kbfs/kbfscodec"
 )
@@ -18,6 +20,18 @@ type BlockSplitterSimple struct {
 	maxPtrsPerBlock         int
 	blockChangeEmbedMaxSize uint64
 	maxDirEntriesPerBlock   int
+}
+
+func getMaxDirEntriesPerBlock() (int, error) {
+	dirEnv := os.Getenv("KEYBASE_BSPLIT_MAX_DIR_ENTRIES")
+	if len(dirEnv) > 0 {
+		maxDirEntriesPerBlock, err := strconv.Atoi(dirEnv)
+		if err != nil {
+			return 0, err
+		}
+		return maxDirEntriesPerBlock, nil
+	}
+	return 0, nil // disabled by default
 }
 
 // NewBlockSplitterSimple creates a new BlockSplittleSimple and
@@ -85,11 +99,16 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 		maxPtrs = 2
 	}
 
+	maxDirEntriesPerBlock, err := getMaxDirEntriesPerBlock()
+	if err != nil {
+		return nil, err
+	}
+
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
 		maxPtrsPerBlock:         maxPtrs,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
-		maxDirEntriesPerBlock:   0, // disabled for now
+		maxDirEntriesPerBlock:   maxDirEntriesPerBlock,
 	}, nil
 }
 
