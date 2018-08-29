@@ -25,8 +25,8 @@ const Body = ({bannerInfo, isProcessing, isRequest}: Props) => (
     {isProcessing && <Spinner />}
     {bannerInfo && <Banner />}
     <Participants />
-    <Divider />
     <AssetInput />
+    <Divider />
     <NoteAndMemo />
     <Footer isRequest={isRequest} />
   </Box2>

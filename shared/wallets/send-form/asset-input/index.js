@@ -34,6 +34,7 @@ const AssetInput = (props: Props) => (
           </Text>
         </Box2>
       }
+      containerStyle={styles.inputContainer}
       style={styles.input}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
@@ -81,6 +82,9 @@ const styles = styleSheetCreate({
     color: globalColors.purple2,
     position: 'relative',
     top: -8,
+  },
+  inputContainer: {
+    borderWidth: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',
