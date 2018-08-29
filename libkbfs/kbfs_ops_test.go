@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -63,7 +64,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetCodec(kbfscodec.NewMsgpack())
 	blockops := &CheckBlockOps{config.mockBops, ctr}
 	config.SetBlockOps(blockops)
-	kbfsops := NewKBFSOpsStandard(testAppStateUpdater{}, config)
+	kbfsops := NewKBFSOpsStandard(env.EmptyAppStateUpdater{}, config)
 	config.SetKBFSOps(kbfsops)
 	config.SetNotifier(kbfsops)
 

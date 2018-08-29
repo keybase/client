@@ -49,7 +49,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (rpc.Protocol, error) {
 		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx.GetGlobalContext(), config)), nil
+			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
 	}
 	// Hook git implementation in.
 	shutdownGit := func() {}

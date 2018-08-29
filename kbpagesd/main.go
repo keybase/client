@@ -127,7 +127,7 @@ func main() {
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
 		rpc.Protocol, error) {
 		return keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(libkbfsCtx.GetGlobalContext(), config)), nil
+			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
 	}
 	params.AdditionalProtocolCreators = []libkbfs.AdditionalProtocolCreator{
 		createSimpleFS,

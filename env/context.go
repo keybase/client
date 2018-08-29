@@ -25,7 +25,19 @@ const (
 // AppStateUpdater is an interface for things that need to listen to
 // app state changes.
 type AppStateUpdater interface {
-	NextAppStateUpdate(lastState *keybase1.AppState) chan keybase1.AppState
+	// NextAppStateUpdate returns a channel that app state changes
+	// are sent to.
+	NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState
+}
+
+// EmptyAppStateUpdater is an implementation of AppStateUpdater that
+// never returns an update, for testing.
+type EmptyAppStateUpdater struct{}
+
+// NextAppStateUpdate implements AppStateUpdater.
+func (easu EmptyAppStateUpdater) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
+	// Receiving on a nil channel blocks forever.
+	return nil
 }
 
 // Context defines the environment for this package
@@ -36,9 +48,6 @@ type Context interface {
 	GetDataDir() string
 	GetMountDir() (string, error)
 	ConfigureSocketInfo() (err error)
-	// TODO: Remove this once kbfs removes all its dependencies on
-	// GlobalContext.
-	GetGlobalContext() *libkb.GlobalContext
 	CheckService() error
 	GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	NewRPCLogFactory() rpc.LogFactory
@@ -104,14 +113,8 @@ func (c *KBFSContext) GetRunMode() libkb.RunMode {
 	return c.g.GetRunMode()
 }
 
-// GetGlobalContext returns the libkb global context.
-func (c *KBFSContext) GetGlobalContext() *libkb.GlobalContext {
-	return c.g
-}
-
-// NextAppStateUpdate returns a channel that triggers when the app
-// state changes.
-func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.AppState) chan keybase1.AppState {
+// NextAppStateUpdate implements AppStateUpdater.
+func (c *KBFSContext) NextAppStateUpdate(lastState *keybase1.AppState) <-chan keybase1.AppState {
 	return c.g.AppState.NextUpdate(lastState)
 }
 

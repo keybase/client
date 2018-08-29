@@ -16,9 +16,9 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
 	"github.com/keybase/kbfs/libfs"
@@ -122,9 +122,9 @@ type handle struct {
 // make sure the interface is implemented
 var _ keybase1.SimpleFSInterface = (*SimpleFS)(nil)
 
-func newSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) *SimpleFS {
+func newSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) *SimpleFS {
 	log := config.MakeLogger("simplefs")
-	localHTTPServer, err := libhttpserver.New(g, config)
+	localHTTPServer, err := libhttpserver.New(appStateUpdater, config)
 	if err != nil {
 		log.Fatalf("initializing localHTTPServer error: %v", err)
 	}
@@ -140,11 +140,8 @@ func newSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) *SimpleFS {
 }
 
 // NewSimpleFS creates a new SimpleFS instance.
-//
-// TODO: Replace g with more specific arguments once HTTPSrv removes
-// its dependency on GlobalContext.
-func NewSimpleFS(g *libkb.GlobalContext, config libkbfs.Config) keybase1.SimpleFSInterface {
-	return newSimpleFS(g, config)
+func NewSimpleFS(appStateUpdater env.AppStateUpdater, config libkbfs.Config) keybase1.SimpleFSInterface {
+	return newSimpleFS(appStateUpdater, config)
 }
 
 func (k *SimpleFS) makeContext(ctx context.Context) context.Context {

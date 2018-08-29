@@ -10,7 +10,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/ioutil"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -57,7 +57,7 @@ func TestServerDefault(t *testing.T) {
 	kbfsConfig, shutdown := makeTestKBFSConfig(t)
 	defer shutdown()
 
-	s, err := New(libkb.NewGlobalContext().Init(), kbfsConfig)
+	s, err := New(env.EmptyAppStateUpdater{}, kbfsConfig)
 	require.NoError(t, err)
 
 	addr, err := s.Address()

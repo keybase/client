@@ -16,9 +16,10 @@ import (
 	"sync"
 
 	"github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/libmime"
@@ -30,16 +31,16 @@ const fsCacheSize = 64
 
 // Server is a local HTTP server for serving KBFS content over HTTP.
 type Server struct {
-	config libkbfs.Config
-	logger logger.Logger
-	g      *libkb.GlobalContext
-	cancel func()
+	config          libkbfs.Config
+	logger          logger.Logger
+	appStateUpdater env.AppStateUpdater
+	cancel          func()
 
 	tokens *lru.Cache
 	fs     *lru.Cache
 
 	serverLock sync.RWMutex
-	server     *libkb.HTTPSrv
+	server     *kbhttp.Srv
 }
 
 const tokenByteSize = 16
@@ -177,7 +178,7 @@ func (s *Server) monitorAppState(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case state = <-s.g.AppState.NextUpdate(&state):
+		case state = <-s.appStateUpdater.NextAppStateUpdate(&state):
 			// Due to the way NextUpdate is designed, it's possible we miss an
 			// update if processing the last update takes too long. So it's
 			// possible to get consecutive FOREGROUND updates even if there are
@@ -198,14 +199,15 @@ func (s *Server) monitorAppState(ctx context.Context) {
 }
 
 // New creates and starts a new server.
-func New(g *libkb.GlobalContext, config libkbfs.Config) (
+func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 	s *Server, err error) {
+	logger := config.MakeLogger("HTTP")
 	s = &Server{
-		g:      g,
-		config: config,
-		logger: config.MakeLogger("HTTP"),
-		server: libkb.NewHTTPSrv(
-			g, libkb.NewPortRangeListenerSource(portStart, portEnd)),
+		appStateUpdater: appStateUpdater,
+		config:          config,
+		logger:          logger,
+		server: kbhttp.NewSrv(
+			logger, kbhttp.NewPortRangeListenerSource(portStart, portEnd)),
 	}
 	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
 		return nil, err
