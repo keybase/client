@@ -468,6 +468,53 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
+func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevInfo, error) {
+	_, dataType, _, err := jsonparser.Get(payload, "hprev_info")
+	// hprev_info is optional, but must be an object if it exists
+	if err != nil {
+		if err == jsonparser.KeyPathNotFoundError {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+
+	if dataType != jsonparser.Object {
+		return nil, ChainLinkError{fmt.Sprintf("When provided, expected hprev_info to be a JSON object, was %v.", dataType)}
+	}
+
+	hPrevSeqnoInt, err := jsonparser.GetInt(payload, "hprev_info", "seqno")
+	if err != nil {
+		return nil, err
+	}
+
+	// hPrevHash can either be null (zero-value of a LinkID) or a hexstring.
+	// We call GetString first instead of Get so we only parse the value
+	// twice for the first link.
+	hPrevHashStr, err := jsonparser.GetString(payload, "hprev_info", "hash")
+	var hPrevHash LinkID
+	if err != nil {
+		// If there was an error parsing as a string, make sure the value is null.
+		_, dataType, _, getErr := jsonparser.Get(payload, "hprev_info", "hash")
+		if err != nil {
+			return nil, getErr
+		}
+		if dataType != jsonparser.Null {
+			return nil, ChainLinkError{
+				fmt.Sprintf("hprev_info.hash was neither a valid string (%v) nor null.", err.Error()),
+			}
+		}
+	} else {
+		hPrevHash, err = LinkIDFromHex(hPrevHashStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	hPrevInfo := NewHPrevInfo(keybase1.Seqno(hPrevSeqnoInt), hPrevHash)
+	return &hPrevInfo, nil
+}
+
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
 	if s, err := jsonparser.GetString(payload, "body", "key", "fingerprint"); err == nil {
 		if tmp.pgpFingerprint, err = PGPFingerprintFromHex(s); err != nil {
@@ -502,23 +549,11 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		}
 	}
 
-	if _, dataType, _, err := jsonparser.Get(payload, "hprev_info"); err == nil && dataType == jsonparser.Object {
-		hPrevSeqnoInt, err := jsonparser.GetInt(payload, "hprev_info", "seqno")
-		if err != nil {
-			return err
-		}
-		hPrevSeqno := keybase1.Seqno(hPrevSeqnoInt)
-		hPrevInfo := HPrevInfo{Seqno: hPrevSeqno}
-
-		if hPrevHashStr, err := jsonparser.GetString(payload, "hprev_info", "hash"); err == nil {
-			hPrevHash, err := LinkIDFromHex(hPrevHashStr)
-			if err != nil {
-				return err
-			}
-			hPrevInfo.Hash = hPrevHash
-		}
-		tmp.hPrevInfo = &hPrevInfo
+	hPrevInfo, err := tmp.parseHPrevInfoFromPayload(payload)
+	if err != nil {
+		return err
 	}
+	tmp.hPrevInfo = hPrevInfo
 
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
 	if err != nil {
@@ -967,7 +1002,7 @@ func (c *ChainLink) verifyPayloadV2() error {
 	prev := c.getPrevFromPayload()
 	curr := c.getPayloadHash()
 	ignoreIfUnsupported := c.getIgnoreIfUnsupportedFromPayload()
-	linkType, err := c.GetSigchainV2Type(SigIgnoreIfUnsupported(ignoreIfUnsupported))
+	linkType, err := c.GetSigchainV2TypeFromInner(SigIgnoreIfUnsupported(ignoreIfUnsupported))
 	if err != nil {
 		return err
 	}
@@ -1161,7 +1196,7 @@ func (c *ChainLink) verifyLinkV2() error {
 	return c.verifyPayloadV2()
 }
 
-func (c *ChainLink) GetSigchainV2Type(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
+func (c *ChainLink) GetSigchainV2TypeFromInner(ignoreIfUnsupported SigIgnoreIfUnsupported) (SigchainV2Type, error) {
 	if c.unpacked == nil || c.unpacked.typ == "" {
 		return SigchainV2TypeNone, errors.New("chain link not unpacked")
 	}
@@ -1176,6 +1211,22 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 		return SigchainV2TypeNone, errors.New("GetSigchainV2TypeFromV2Shell: chain link has no v2 shell")
 	}
 	return c.unpacked.outerLinkV2.LinkType, nil
+}
+
+// Helper function for getting a ChainLink's type. If it is a v2 link (that may
+// or may not be stubbed), return the type from the outer link, otherwise from
+// the inner link.
+func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
+	if c.unpacked == nil {
+		return SigchainV2TypeNone, errors.New("chain link is not unpacked")
+	}
+	if c.unpacked.outerLinkV2 == nil && c.unpacked.typ == "" {
+		return SigchainV2TypeNone, errors.New("chain inner link type is not unpacked, and has no v2 shell")
+	}
+	if c.unpacked.outerLinkV2 != nil {
+		return c.GetSigchainV2TypeFromV2Shell()
+	}
+	return c.GetSigchainV2TypeFromInner(c.GetIgnoreIfSupported())
 }
 
 func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret keybase1.KID, err error) {
@@ -1352,16 +1403,13 @@ func (c ChainLink) AllowStubbing() bool {
 // https://keybase.atlassian.net/wiki/spaces/GEN/pages/499318820/Sigchain+Playback+Performance+Ideas
 // under Discussion. Note that the SigchainV2Type converter covers all
 // the cases where a link is revoking but it is not a revoke type link.
-func (c ChainLink) IsHighLink() (bool, error) {
-	v2Type, err := c.GetSigchainV2Type(c.GetIgnoreIfSupported())
+func (c ChainLink) IsHighUserLink() (bool, error) {
+	v2Type, err := c.GetSigchainV2Type()
 	if err != nil {
-		v2Type, err = c.GetSigchainV2TypeFromV2Shell()
-		if err != nil {
-			return false, ChainLinkError{fmt.Sprintf("Could not determine linkType of chain link.")}
-		}
+		return false, err
 	}
 
-	isFirstLink := v2Type == SigchainV2TypeEldest || int(c.GetSeqno()) == int(1)
+	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == keybase1.Seqno(1)
 	isNewHighLink := isFirstLink ||
 		v2Type == SigchainV2TypeRevoke ||
 		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||

@@ -1496,6 +1496,13 @@ func (i LinkID) Export() keybase1.LinkID {
 	return keybase1.LinkID(i.String())
 }
 
+func (h HPrevInfo) Export() keybase1.HPrevInfo {
+	return keybase1.HPrevInfo{
+		Seqno: h.Seqno,
+		Hash:  h.Hash.Export(),
+	}
+}
+
 func (t TrackChainLink) Export() keybase1.RemoteTrack {
 	return keybase1.RemoteTrack{
 		Uid:      t.whomUID,

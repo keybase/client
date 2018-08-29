@@ -637,7 +637,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
-	iRes, err := t.addInnerLink(&state, link, signer, true, true)
+	iRes, err := t.addInnerLink(&state, link, signer, true)
 	if err != nil {
 		return TeamSigChainState{}, err
 	}
@@ -678,7 +678,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		if signer == nil || !signer.signer.Uid.Exists() {
 			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
-		iRes, err := t.addInnerLink(prevState, link, *signer, false, false)
+		iRes, err := t.addInnerLink(prevState, link, *signer, false)
 		if err != nil {
 			return res, err
 		}
@@ -741,7 +741,7 @@ type checkInnerLinkResult struct {
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
-	isInflate bool, skipComputingHPrevInfo bool) (
+	isInflate bool) (
 	res checkInnerLinkResult, err error) {
 
 	if link.inner == nil {
@@ -1617,7 +1617,9 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 
-	if !skipComputingHPrevInfo {
+	// We only run addInnerLink out of order when inflating. This incorrectly
+	// updates high prev data, so we skip it.
+	if !isInflate {
 		if hPrevInfo := payload.HPrevInfo; hPrevInfo != nil {
 			if hPrevInfo.Seqno != res.newState.inner.LastHighSeqno {
 				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d...%d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)

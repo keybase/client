@@ -394,7 +394,7 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 			}
 		}
 
-		isHigh, err := curr.IsHighLink()
+		isHigh, err := curr.IsHighUserLink()
 		if err != nil {
 			return err
 		}

@@ -434,6 +434,10 @@ func SigchainV2TypeFromV1TypeTeams(s string) (ret SigchainV2Type, err error) {
 	return ret, err
 }
 
+func mismatchError(format string, arg ...interface{}) error {
+	return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
+}
+
 func (o OuterLinkV2) AssertFields(
 	version int,
 	seqno keybase1.Seqno,
@@ -444,52 +448,66 @@ func (o OuterLinkV2) AssertFields(
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	hPrevInfo *HPrevInfo,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	if !o.Prev.Eq(prev) {
-		return mkErr("prev pointer: (%s != !%s)", o.Prev, prev)
+		return mismatchError("prev pointer: (%s != !%s)", o.Prev, prev)
 	}
 	if !o.Curr.Eq(curr) {
-		return mkErr("curr pointer: (%s != %s)", o.Curr, curr)
+		return mismatchError("curr pointer: (%s != %s)", o.Curr, curr)
 	}
 	if !(linkType == SigchainV2TypeNone && ignoreIfUnsupported) && o.LinkType != linkType {
-		return mkErr("link type: (%d != %d)", o.LinkType, linkType)
+		return mismatchError("link type: (%d != %d)", o.LinkType, linkType)
 	}
 	if o.SeqType != seqType {
-		return mkErr("seq type: (%d != %d)", o.SeqType, seqType)
+		return mismatchError("seq type: (%d != %d)", o.SeqType, seqType)
 	}
 	if o.IgnoreIfUnsupported != ignoreIfUnsupported {
-		return mkErr("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
+		return mismatchError("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
 
-	if o.HPrevSeqno != nil && hPrevInfo == nil {
-		return mkErr("provided HPrevSeqno (%d) in outer link but not in inner link", o.HPrevSeqno)
+	err = o.assertHPrevInfo(hPrevInfo)
+	if err != nil {
+		return err
 	}
-	if o.HPrevSeqno == nil && hPrevInfo != nil {
-		return mkErr("provided HPrevInfo in inner link but not HPrevSeqno in outer link")
+
+	return nil
+}
+
+func (o OuterLinkV2) assertHPrevInfo(hPrevInfo *HPrevInfo) error {
+	if hPrevInfo == nil && o.HPrevSeqno != nil {
+		return mismatchError("provided HPrevSeqno (%d) in outer link but not in inner link", o.HPrevSeqno)
 	}
-	if o.HPrevSeqno != nil {
-		if *o.HPrevSeqno != hPrevInfo.Seqno {
-			return mkErr("hprevseqno field outer (%d)/inner (%d) mismatch", *o.HPrevSeqno, hPrevInfo.Seqno)
-		}
+	if hPrevInfo == nil && o.HPrevHash != nil {
+		return mismatchError("provided HPrevHash (%v) in outer link but not in inner link", o.HPrevHash)
+	}
 
-		if o.HPrevHash == nil && hPrevInfo.Hash != nil {
-			return mkErr("Provided HPrevHash in outer link but not inner.")
-		}
-		if o.HPrevHash != nil && hPrevInfo.Hash == nil {
-			return mkErr("Provided HPrevHash in inner link but not outer.")
-		}
+	// o.HPrevHash may be nil even if hPrevInfo is not, so we don't check it
+	if hPrevInfo != nil && o.HPrevSeqno == nil {
+		return mismatchError("provided HPrevInfo in inner link but not HPrevSeqno in outer link")
+	}
 
-		if o.HPrevHash != nil && !o.HPrevHash.Eq(hPrevInfo.Hash) {
-			return mkErr("hPrevHash field outer (%s)/inner (%s) mismatch", o.HPrevHash, hPrevInfo.Hash)
-		}
+	if hPrevInfo == nil {
+		return nil
+	}
+
+	if *o.HPrevSeqno != hPrevInfo.Seqno {
+		return mismatchError("hPrevInfo.Seqno field outer (%d)/inner (%d) mismatch", *o.HPrevSeqno, hPrevInfo.Seqno)
+	}
+
+	if o.HPrevHash == nil && hPrevInfo.Hash != nil {
+		return mismatchError("Provided HPrevInfo.Hash in outer link but not inner.")
+	}
+	if o.HPrevHash != nil && hPrevInfo.Hash == nil {
+		return mismatchError("Provided HPrevInfo.Hash in inner link but not outer.")
+	}
+
+	if o.HPrevHash != nil && !o.HPrevHash.Eq(hPrevInfo.Hash) {
+		return mismatchError("hPrevInfo.Hash field outer (%v)/inner (%v) mismatch", o.HPrevHash, hPrevInfo.Hash)
 	}
 
 	return nil
@@ -499,14 +517,11 @@ func (o OuterLinkV2) AssertSomeFields(
 	version int,
 	seqno keybase1.Seqno,
 ) (err error) {
-	mkErr := func(format string, arg ...interface{}) error {
-		return SigchainV2MismatchedFieldError{fmt.Sprintf(format, arg...)}
-	}
 	if o.Version != version {
-		return mkErr("version field (%d != %d)", o.Version, version)
+		return mismatchError("version field (%d != %d)", o.Version, version)
 	}
 	if o.Seqno != seqno {
-		return mkErr("seqno field: (%d != %d)", o.Seqno, seqno)
+		return mismatchError("seqno field: (%d != %d)", o.Seqno, seqno)
 	}
 	return nil
 }
