@@ -568,7 +568,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 	// well (such as its directory entry or its indirect file block)
 	// if we happened to have come across it before.
 	refSumFetched, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
-		ctx, lState, md.ReadOnly(), refPtrsToFetch, nil, fup.branch())
+		ctx, lState, md.ReadOnly(), refPtrsToFetch, nil, fup.branch(), false)
 	if err != nil {
 		return err
 	}
@@ -614,10 +614,14 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 	// we don't know whether these are files or directories, just look
 	// them up generically.  Ignore any recoverable errors for unrefs.
 	// Note that we can't combine these with the above ref fetches
-	// since they require a different MD.
+	// since they require a different MD.  If the merged changes
+	// didn't changes any blocks (in particular, the root block), we
+	// can assume all the blocks we are unreferencing were live;
+	// otherwise, we need to check with the server to make sure.
+	onlyCountIfLive := len(mergedChains.byOriginal) != 0
 	unrefSumFetched, err := fup.blocks.GetCleanEncodedBlocksSizeSum(
 		ctx, lState, mostRecentMergedMD, unrefPtrsToFetch, unrefs,
-		fup.branch())
+		fup.branch(), onlyCountIfLive)
 	if err != nil {
 		return err
 	}

@@ -270,7 +270,8 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 // locks, and in that case `lState` must be `nil`.
 func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptr BlockPointer, branch BranchName,
-	rtype blockReqType) (uint32, error) {
+	rtype blockReqType, assumeCacheIsLive bool) (
+	size uint32, status keybase1.BlockStatus, err error) {
 	if rtype != blockReadParallel {
 		if rtype == blockWrite {
 			panic("Cannot get the size of a block for writing")
@@ -282,21 +283,37 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	}
 
 	if !ptr.IsValid() {
-		return 0, InvalidBlockRefError{ptr.Ref()}
+		return 0, 0, InvalidBlockRefError{ptr.Ref()}
 	}
 
-	// Try to get the encoded size from the cache before escalating to
-	// the block retriever (even though it's supposed to do a similar
-	// thing with checking caches before checking the data version).
-	// TODO: Figure out how to remove this without breaking journal
-	// tests in kbfs/test.
-	if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
-		return block.GetEncodedSize(), nil
+	if assumeCacheIsLive {
+		if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
+			return block.GetEncodedSize(), keybase1.BlockStatus_LIVE, nil
+		}
 	}
 
 	if err := checkDataVersion(fbo.config, path{}, ptr); err != nil {
-		return 0, err
+		return 0, 0, err
 	}
+
+	defer func() {
+		fbo.log.CDebugf(ctx, "GetEncodedSize ptr=%v size=%d status=%s: %+v",
+			ptr, size, status, err)
+		// In certain testing situations, a block might be represented
+		// with a 0 size in our journal or be missing from our local
+		// data stores, and we need to reconstruct the size using the
+		// cache in order to make the accounting work out for the test.
+		_, isBlockNotFound :=
+			errors.Cause(err).(kbfsblock.ServerErrorBlockNonExistent)
+		if isBlockNotFound || size == 0 {
+			if block, cerr := fbo.config.BlockCache().Get(ptr); cerr == nil {
+				fbo.log.CDebugf(
+					ctx, "Fixing encoded size of %v with cached copy", ptr)
+				size = block.GetEncodedSize()
+				err = nil
+			}
+		}
+	}()
 
 	// Unlock the blockLock while we wait for the network, only if
 	// it's locked for reading by a single goroutine.  If it's locked
@@ -309,20 +326,18 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	// goroutines may be operating on the data assuming they have the
 	// lock.
 	bops := fbo.config.BlockOps()
-	var size uint32
-	var err error
 	if rtype != blockReadParallel && rtype != blockLookup {
 		fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
-			size, _, err = bops.GetEncodedSize(ctx, kmd, ptr)
+			size, status, err = bops.GetEncodedSize(ctx, kmd, ptr)
 		})
 	} else {
-		size, _, err = bops.GetEncodedSize(ctx, kmd, ptr)
+		size, status, err = bops.GetEncodedSize(ctx, kmd, ptr)
 	}
 	if err != nil {
-		return 0, err
+		return 0, 0, err
 	}
 
-	return size, nil
+	return size, status, nil
 }
 
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
@@ -470,10 +485,14 @@ func (fbo *folderBlockOps) GetBlockForReading(ctx context.Context,
 // resolution and state checking, which don't know what kind of block
 // the pointers refer to.  Any downloaded blocks will not be cached,
 // if they weren't in the cache already.
+//
+// If `onlyCountIfLive` is true, the sum includes blocks that the
+// bserver thinks are currently reachable from the merged branch
+// (i.e., un-archived).
 func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 	lState *lockState, kmd KeyMetadata, ptrs []BlockPointer,
 	ignoreRecoverableForRemovalErrors map[BlockPointer]bool,
-	branch BranchName) (uint64, error) {
+	branch BranchName, onlyCountIfLive bool) (uint64, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
@@ -489,11 +508,16 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 		numWorkers = len(ptrs)
 	}
 
+	// If we don't care if something's live or not, there's no reason
+	// not to use the cached block.
+	assumeCacheIsLive := !onlyCountIfLive
+
 	for i := 0; i < numWorkers; i++ {
 		eg.Go(func() error {
 			for ptr := range ptrCh {
-				size, err := fbo.getCleanEncodedBlockSizeLocked(groupCtx, nil,
-					kmd, ptr, branch, blockReadParallel)
+				size, status, err := fbo.getCleanEncodedBlockSizeLocked(
+					groupCtx, nil, kmd, ptr, branch, blockReadParallel,
+					assumeCacheIsLive)
 				// TODO: we might be able to recover the size of the
 				// top-most block of a removed file using the merged
 				// directory entry, the same way we do in
@@ -508,7 +532,11 @@ func (fbo *folderBlockOps) GetCleanEncodedBlocksSizeSum(ctx context.Context,
 				if err != nil {
 					return err
 				}
-				sumCh <- size
+				if onlyCountIfLive && status != keybase1.BlockStatus_LIVE {
+					sumCh <- 0
+				} else {
+					sumCh <- size
+				}
 			}
 			return nil
 		})

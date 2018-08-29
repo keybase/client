@@ -93,7 +93,7 @@ func (b *BlockOpsStandard) GetEncodedSize(ctx context.Context, kmd KeyMetadata,
 		if err != nil {
 			return 0, 0, err
 		}
-		if found {
+		if found && size > 0 {
 			return size, keybase1.BlockStatus_LIVE, nil
 		}
 	}
