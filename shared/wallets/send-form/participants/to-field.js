@@ -71,7 +71,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
   render() {
     let component
 
-    if (this.state.selectedUser && this.props.onShowProfile) {
+    if (this.state.selectedUser) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
@@ -153,12 +153,12 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
           )}
         </Kb.Box2>
       )
-    } else {
+    } else if (this.props.onShowProfile) {
       return (
         <Search
           onClickResult={this.onSelectUser}
           onClose={() => console.log('search', 'onClose')}
-          onShowTracker={() => console.log('search', 'onShowTracker')}
+          onShowTracker={this.props.onShowProfile}
         />
       )
     }
