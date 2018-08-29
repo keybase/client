@@ -1,9 +1,9 @@
 package auth
 
 import (
-	"crypto/rand"
 	"encoding/binary"
 	"fmt"
+	"math/rand"
 	"sync"
 	"testing"
 	"time"
@@ -47,10 +47,7 @@ func genKID() keybase1.KID {
 }
 
 func genUsername() string {
-	w, _ := libkb.SecWordList(1)
-	var buf [4]byte
-	rand.Read(buf[:])
-	return fmt.Sprintf("%s%x", w[0], buf)
+	return fmt.Sprintf("user%d", rand.Intn(1000))
 }
 
 func newTestUser(nKeys int) *testUser {
