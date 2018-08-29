@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/binary"
 	"fmt"
-	"math/rand"
 	"sync"
 	"testing"
 	"time"
@@ -46,8 +45,12 @@ func genKID() keybase1.KID {
 	return keybase1.KIDFromSlice(kid[:])
 }
 
+var userID int
+
 func genUsername() string {
-	return fmt.Sprintf("user%d", rand.Intn(1000))
+	name := fmt.Sprintf("user%d", userID)
+	userID++
+	return name
 }
 
 func newTestUser(nKeys int) *testUser {
