@@ -1,10 +1,9 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package kbname
 
 import (
-	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -12,7 +11,7 @@ import (
 // social assertions.  They do not need to be normalized, so
 // user@twitter and twitter:user will work, as will
 // USER@Twitter.
-func IsSocialAssertion(ctx kbname.AssertionContext, s string) bool {
+func IsSocialAssertion(ctx AssertionContext, s string) bool {
 	_, ok := NormalizeSocialAssertion(ctx, s)
 	return ok
 }
@@ -22,8 +21,8 @@ func IsSocialAssertion(ctx kbname.AssertionContext, s string) bool {
 // If the service is case-insensitive, then the username will also
 // be lowercased.  Colon assertions (twitter:user) will be
 // transformed to the user@twitter format.
-func NormalizeSocialAssertion(ctx kbname.AssertionContext, s string) (keybase1.SocialAssertion, bool) {
-	url, err := kbname.ParseAssertionURL(ctx, s, true)
+func NormalizeSocialAssertion(ctx AssertionContext, s string) (keybase1.SocialAssertion, bool) {
+	url, err := ParseAssertionURL(ctx, s, true)
 	if err != nil || !url.IsRemote() {
 		return keybase1.SocialAssertion{}, false
 	}

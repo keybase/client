@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbname"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -53,7 +54,7 @@ func TestInvitationArgs(t *testing.T) {
 
 	rec.Reset()
 
-	assertion, ok := NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
+	assertion, ok := kbname.NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
 	if !ok {
 		t.Fatal("invalid social assertion")
 	}
