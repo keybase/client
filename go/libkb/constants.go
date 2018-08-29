@@ -277,6 +277,7 @@ const (
 	SCAccountReset                     = int(keybase1.StatusCode_SCAccountReset)
 	SCIdentifiesFailed                 = int(keybase1.StatusCode_SCIdentifiesFailed)
 	SCTeamReadError                    = int(keybase1.StatusCode_SCTeamReadError)
+	SCTeamWritePermDenied              = int(keybase1.StatusCode_SCTeamWritePermDenied)
 	SCNoOp                             = int(keybase1.StatusCode_SCNoOp)
 	SCTeamNotFound                     = int(keybase1.StatusCode_SCTeamNotFound)
 	SCTeamTarDuplicate                 = int(keybase1.StatusCode_SCTeamTarDuplicate)

@@ -9,7 +9,7 @@ type ParticipantsProps = {|
   recipientType: CounterpartyType,
   yourUsername: string,
   fromAccountName: string,
-  fromAccountContents: string,
+  fromAccountAssets: string,
   // Must have a recipient user, stellar address, or account
   recipientUsername?: string,
   recipientFullName?: string,
@@ -73,7 +73,7 @@ const Participants = (props: ParticipantsProps) => {
         <AccountEntry
           keybaseUser={props.yourUsername}
           name={props.fromAccountName}
-          contents={props.fromAccountContents}
+          contents={props.fromAccountAssets}
         />
       </ParticipantsRow>
       <ParticipantsRow heading="To" bottomDivider={false}>

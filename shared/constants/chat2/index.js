@@ -224,13 +224,13 @@ export {
 
 export {
   allMessageTypes,
+  authorIsCollapsible,
   decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
-  isUserMessage,
   isVideoAttachment,
   makeMessageAttachment,
   makeMessageDeleted,

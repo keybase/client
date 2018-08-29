@@ -939,13 +939,19 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 
 // Example: "157.5000000 XLM"
 func FormatAmountXLM(amount string) (string, error) {
-	return FormatAmountWithSuffix(amount, false, "XLM")
+	// Do not simplify XLM amounts, all zeroes are important because
+	// that's the exact number of digits that Stellar protocol
+	// supports.
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, "XLM")
 }
 
-func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
 	formatted, err := FormatAmount(amount, precisionTwo)
 	if err != nil {
 		return "", err
+	}
+	if simplify {
+		formatted = libkb.StellarSimplifyAmount(formatted)
 	}
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
@@ -967,25 +973,34 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("unable to parse amount %s", amount)
 	}
-	if parts[1] == "0000000" {
-		// get rid of all zeros after point if default precision
-		parts = parts[:1]
-	}
+	var hasComma bool
 	head := parts[0]
-	if len(head) <= 3 {
-		return strings.Join(parts, "."), nil
-	}
-	sinceComma := 0
-	var b bytes.Buffer
-	for i := len(head) - 1; i >= 0; i-- {
-		if sinceComma == 3 && head[i] != '-' {
-			b.WriteByte(',')
-			sinceComma = 0
+	if len(head) > 0 {
+		sinceComma := 0
+		var b bytes.Buffer
+		for i := len(head) - 1; i >= 0; i-- {
+			if sinceComma == 3 && head[i] != '-' {
+				b.WriteByte(',')
+				sinceComma = 0
+				hasComma = true
+			}
+			b.WriteByte(head[i])
+			sinceComma++
 		}
-		b.WriteByte(head[i])
-		sinceComma++
+		parts[0] = reverse(b.String())
 	}
-	parts[0] = reverse(b.String())
+	if parts[1] == "0000000" {
+		// Remove decimal part if it's all zeroes in 7-digit precision.
+		if hasComma {
+			// With the exception of big numbers where we inserted
+			// thousands separator - leave fractional part with two
+			// digits so we can have decimal point, but not all the
+			// distracting 7 zeroes.
+			parts[1] = "00"
+		} else {
+			parts = parts[:1]
+		}
+	}
 
 	return strings.Join(parts, "."), nil
 }

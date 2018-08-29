@@ -215,6 +215,7 @@ export const constantsStatusCode = {
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
+  scteamwritepermdenied: 2625,
   scnoop: 2638,
   scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
@@ -1686,6 +1687,7 @@ export type StatusCode =
   | 2614 // SCTeamNotFound_2614
   | 2619 // SCTeamExists_2619
   | 2623 // SCTeamReadError_2623
+  | 2625 // SCTeamWritePermDenied_2625
   | 2638 // SCNoOp_2638
   | 2646 // SCTeamInviteBadToken_2646
   | 2663 // SCTeamTarDuplicate_2663

@@ -400,11 +400,14 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 
 func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Context, err error, name string) error {
 	switch err.(type) {
+	case nil:
+		return nil
 	case teams.TeamDoesNotExistError:
 		return NewUnknownTLFNameError(name)
+	default:
+		t.Debug(ctx, "Lookup: error looking up the team: %v", err)
+		return err
 	}
-	t.Debug(ctx, "Lookup: error looking up the team: %s", err)
-	return err
 }
 
 func (t *ImplicitTeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {

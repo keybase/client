@@ -5,11 +5,12 @@ import {compose, connect, setDisplayName, type TypedState} from '../../../util/c
 import HiddenString from '../../../util/hidden-string'
 
 const mapStateToProps = (state: TypedState) => {
-  const b = state.wallets.builtPayment
+  const recipientType = state.wallets.buildingPayment.recipientType
+  const built = state.wallets.builtPayment
   return {
-    memoError: b.publicMemoErrMsg.stringValue(),
-    noteError: b.secretNoteErrMsg.stringValue(),
-    toSelf: false, // TODO
+    memoError: built.publicMemoErrMsg.stringValue(),
+    noteError: built.secretNoteErrMsg.stringValue(),
+    toSelf: recipientType === 'otherAccount',
   }
 }
 

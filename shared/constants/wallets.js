@@ -204,8 +204,6 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
-    completed: r.completed,
-    completedTransactionID: r.fundingKbTxID,
     currencyCode,
     id: r.id,
     requestee: r.toAssertion,
