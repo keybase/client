@@ -2405,10 +2405,13 @@ func (cr *ConflictResolver) doOneAction(
 				}
 			}
 
-			err = action.do(
+			unrefs, err := action.do(
 				ctx, unmergedFetcher, mergedFetcher, uDir, mergedDir)
 			if err != nil {
 				return err
+			}
+			for _, info := range unrefs {
+				unmergedChains.toUnrefPointers[info.BlockPointer] = true
 			}
 		}
 	}

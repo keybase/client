@@ -724,7 +724,43 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 		}
 	}
 
+	// Unreference (and decrement the size) of any to-unref blocks
+	// that weren't created in the unmerged branch.  (Example: non-top
+	// dir blocks that were changed during the CR process.)
+	for ptr := range unmergedChains.toUnrefPointers {
+		original, err := unmergedChains.originalFromMostRecentOrSame(ptr)
+		if err != nil {
+			return nil, err
+		}
+		if !unmergedChains.isCreated(original) {
+			unrefs[ptr] = true
+		}
+	}
+
 	if isLocalSquash {
+		// Collect any references made in previous resolution ops that
+		// are being squashed together. These must be re-referenced in
+		// the MD object to survive the squash.
+		resToRef := make(map[BlockPointer]bool)
+		for _, resOp := range unmergedChains.resOps {
+			for _, ptr := range resOp.Refs() {
+				if !unrefs[ptr] {
+					resToRef[ptr] = true
+				}
+			}
+			for _, ptr := range resOp.Unrefs() {
+				delete(resToRef, ptr)
+			}
+			for _, update := range resOp.allUpdates() {
+				delete(resToRef, update.Unref)
+			}
+		}
+		for ptr := range resToRef {
+			fup.log.CDebugf(ctx, "Ref'ing %v from old resOp", ptr)
+			refs[ptr] = true
+			md.data.Changes.Ops[0].AddRefBlock(ptr)
+		}
+
 		unmergedUsage := mostRecentUnmergedMD.DiskUsage()
 		mergedUsage := mostRecentMergedMD.DiskUsage()
 
@@ -783,6 +819,18 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	for ptr := range unmergedChains.toUnrefPointers {
 		toUnref[ptr] = true
 	}
+	for _, resOp := range unmergedChains.resOps {
+		for _, ptr := range resOp.Refs() {
+			if !isLocalSquash && !refs[ptr] && !unrefs[ptr] {
+				toUnref[ptr] = true
+			}
+		}
+		for _, ptr := range resOp.Unrefs() {
+			if !refs[ptr] && !unrefs[ptr] {
+				toUnref[ptr] = true
+			}
+		}
+	}
 	deletedRefs := make(map[BlockPointer]bool)
 	deletedUnrefs := make(map[BlockPointer]bool)
 	for ptr := range toUnref {
@@ -839,6 +887,14 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 			for _, unref := range toDelUnref {
 				fup.log.CDebugf(ctx, "Scrubbing unref %v", unref)
 				op.DelUnrefBlock(unref)
+			}
+		}
+		for _, resOp := range unmergedChains.resOps {
+			for _, unref := range resOp.Unrefs() {
+				if deletedUnrefs[unref] {
+					fup.log.CDebugf(ctx, "Scrubbing resOp unref %v", unref)
+					resOp.DelUnrefBlock(unref)
+				}
 			}
 		}
 	}
@@ -1387,8 +1443,16 @@ func (fup *folderUpdatePrepper) prepUpdateForPaths(ctx context.Context,
 			}
 			for _, ptr := range unmergedResOp.Unrefs() {
 				fup.log.CDebugf(ctx, "Unref pointer from old resOp: %v", ptr)
-				md.data.Changes.Ops = addUnrefToFinalResOp(
-					md.data.Changes.Ops, ptr, unmergedChains.doNotUnrefPointers)
+				original, err := unmergedChains.originalFromMostRecentOrSame(
+					ptr)
+				if err != nil {
+					return nil, nil, nil, err
+				}
+				if !unmergedChains.isCreated(original) {
+					md.data.Changes.Ops = addUnrefToFinalResOp(
+						md.data.Changes.Ops, ptr,
+						unmergedChains.doNotUnrefPointers)
+				}
 			}
 		}
 	}

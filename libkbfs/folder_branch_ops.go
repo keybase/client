@@ -4627,7 +4627,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// the deferred writes are re-applied.
 	afterUpdateFn := func() error {
 		// Clear the dirty directories before the afterUpdateFns start
-		// replaying deferred writes, so we don't lose the deferreed
+		// replaying deferred writes, so we don't lose the deferred
 		// write state when we clear.
 		fbo.blocks.clearAllDirtyDirsLocked(ctx, lState, md)
 		var errs []error

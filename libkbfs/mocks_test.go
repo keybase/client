@@ -8117,10 +8117,11 @@ func (mr *MockcrActionMockRecorder) swapUnmergedBlock(ctx, unmergedChains, merge
 }
 
 // do mocks base method
-func (m *MockcrAction) do(ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier, unmergedDir, mergedDir *dirData) error {
+func (m *MockcrAction) do(ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier, unmergedDir, mergedDir *dirData) ([]BlockInfo, error) {
 	ret := m.ctrl.Call(m, "do", ctx, unmergedCopier, mergedCopier, unmergedDir, mergedDir)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].([]BlockInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // do indicates an expected call of do

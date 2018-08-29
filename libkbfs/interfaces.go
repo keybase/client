@@ -2232,12 +2232,14 @@ type crAction interface {
 		ctx context.Context, unmergedChains, mergedChains *crChains,
 		unmergedDir *dirData) (bool, BlockPointer, error)
 	// do modifies the given merged `dirData` in place to resolve the
-	// conflict, and potential uses the provided
+	// conflict, and potentially uses the provided
 	// `fileBlockDeepCopier`s to obtain copies of other blocks (along
-	// with new BlockPointers) when requiring a file copy.
+	// with new BlockPointers) when requiring a block copy.  It
+	// returns a set of block infos that need to be unreferenced as
+	// part of this conflict resolution.
 	do(
 		ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-		unmergedDir, mergedDir *dirData) error
+		unmergedDir, mergedDir *dirData) ([]BlockInfo, error)
 	// updateOps potentially modifies, in place, the slices of
 	// unmerged and merged operations stored in the corresponding
 	// crChains for the given unmerged and merged most recent

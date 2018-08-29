@@ -165,11 +165,11 @@ func uniquifyName(
 
 func (cuea *copyUnmergedEntryAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *dirData) error {
+	unmergedDir, mergedDir *dirData) ([]BlockInfo, error) {
 	// Find the unmerged entry
 	unmergedEntry, err := unmergedDir.lookup(ctx, cuea.fromName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if cuea.symPath != "" {
@@ -181,7 +181,7 @@ func (cuea *copyUnmergedEntryAction) do(
 	if cuea.unique {
 		newName, err := uniquifyName(ctx, mergedDir, cuea.toName)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		cuea.toName = newName
 	}
@@ -193,7 +193,7 @@ func (cuea *copyUnmergedEntryAction) do(
 	case NoSuchNameError:
 		mergedEntryOk = false
 	default:
-		return err
+		return nil, err
 	}
 
 	if cuea.sizeOnly {
@@ -201,8 +201,7 @@ func (cuea *copyUnmergedEntryAction) do(
 			mergedEntry.Size = unmergedEntry.Size
 			mergedEntry.EncodedSize = unmergedEntry.EncodedSize
 			mergedEntry.BlockPointer = unmergedEntry.BlockPointer
-			_, err := mergedDir.setEntry(ctx, cuea.toName, mergedEntry)
-			return err
+			return mergedDir.setEntry(ctx, cuea.toName, mergedEntry)
 		}
 		// copy any attrs that were explicitly set on the unmerged
 		// branch.
@@ -224,8 +223,7 @@ func (cuea *copyUnmergedEntryAction) do(
 		unmergedEntry.PrevRevisions = nil
 	}
 
-	_, err = mergedDir.setEntry(ctx, cuea.toName, unmergedEntry)
-	return err
+	return mergedDir.setEntry(ctx, cuea.toName, unmergedEntry)
 }
 
 func prependOpsToChain(mostRecent BlockPointer, chains *crChains,
@@ -422,16 +420,16 @@ func (cuaa *copyUnmergedAttrAction) swapUnmergedBlock(
 
 func (cuaa *copyUnmergedAttrAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *dirData) error {
+	unmergedDir, mergedDir *dirData) ([]BlockInfo, error) {
 	// Find the unmerged entry
 	unmergedEntry, err := unmergedDir.lookup(ctx, cuaa.fromName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	mergedEntry, err := mergedDir.lookup(ctx, cuaa.toName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	for _, attr := range cuaa.attr {
 		switch attr {
@@ -446,8 +444,7 @@ func (cuaa *copyUnmergedAttrAction) do(
 		}
 	}
 
-	_, err = mergedDir.setEntry(ctx, cuaa.toName, mergedEntry)
-	return err
+	return mergedDir.setEntry(ctx, cuaa.toName, mergedEntry)
 }
 
 func (cuaa *copyUnmergedAttrAction) updateOps(
@@ -489,12 +486,14 @@ func (rmea *rmMergedEntryAction) swapUnmergedBlock(
 
 func (rmea *rmMergedEntryAction) do(
 	ctx context.Context, _, _ fileBlockDeepCopier,
-	_, mergedDir *dirData) error {
-	_, err := mergedDir.removeEntry(ctx, rmea.name)
+	_, mergedDir *dirData) ([]BlockInfo, error) {
+	unrefs, err := mergedDir.removeEntry(ctx, rmea.name)
 	if _, notExists := errors.Cause(err).(NoSuchNameError); notExists {
-		return nil
+		return nil, nil
+	} else if err != nil {
+		return nil, err
 	}
-	return err
+	return unrefs, nil
 }
 
 func (rmea *rmMergedEntryAction) updateOps(
@@ -524,11 +523,11 @@ type renameUnmergedAction struct {
 func crActionCopyFile(
 	ctx context.Context, copier fileBlockDeepCopier,
 	fromName, toName, toSymPath string, fromDir, toDir *dirData) (
-	BlockPointer, string, error) {
+	BlockPointer, string, []BlockInfo, error) {
 	// Find the source entry.
 	fromEntry, err := fromDir.lookup(ctx, fromName)
 	if err != nil {
-		return BlockPointer{}, "", err
+		return BlockPointer{}, "", nil, err
 	}
 
 	if toSymPath != "" {
@@ -539,7 +538,7 @@ func crActionCopyFile(
 	// We only rename files (or make symlinks to directories).
 	if fromEntry.Type == Dir {
 		// Just fill in the last path node, we don't have the full path.
-		return BlockPointer{}, "", NotFileError{path{path: []pathNode{{
+		return BlockPointer{}, "", nil, NotFileError{path{path: []pathNode{{
 			BlockPointer: fromEntry.BlockPointer,
 			Name:         fromName,
 		}}}}
@@ -548,7 +547,7 @@ func crActionCopyFile(
 	// Make sure the name is unique.
 	name, err := uniquifyName(ctx, toDir, toName)
 	if err != nil {
-		return BlockPointer{}, "", err
+		return BlockPointer{}, "", nil, err
 	}
 
 	var ptr BlockPointer
@@ -557,18 +556,18 @@ func crActionCopyFile(
 		var err error
 		ptr, err = copier(ctx, name, fromEntry.BlockPointer)
 		if err != nil {
-			return BlockPointer{}, "", err
+			return BlockPointer{}, "", nil, err
 		}
 	}
 
 	// Set the entry with the new pointer.
 	oldPointer := fromEntry.BlockPointer
 	fromEntry.BlockPointer = ptr
-	_, err = toDir.setEntry(ctx, name, fromEntry)
+	unrefs, err := toDir.setEntry(ctx, name, fromEntry)
 	if err != nil {
-		return BlockPointer{}, "", err
+		return BlockPointer{}, "", nil, err
 	}
-	return oldPointer, name, nil
+	return oldPointer, name, unrefs, nil
 }
 
 func (rua *renameUnmergedAction) swapUnmergedBlock(
@@ -578,15 +577,15 @@ func (rua *renameUnmergedAction) swapUnmergedBlock(
 
 func (rua *renameUnmergedAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *dirData) error {
-	_, name, err := crActionCopyFile(
+	unmergedDir, mergedDir *dirData) ([]BlockInfo, error) {
+	_, name, unrefs, err := crActionCopyFile(
 		ctx, unmergedCopier, rua.fromName, rua.toName, rua.symPath,
 		unmergedDir, mergedDir)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rua.toName = name
-	return nil
+	return unrefs, nil
 }
 
 func (rua *renameUnmergedAction) updateOps(
@@ -760,29 +759,29 @@ func (rma *renameMergedAction) swapUnmergedBlock(
 
 func (rma *renameMergedAction) do(
 	ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-	unmergedDir, mergedDir *dirData) error {
+	unmergedDir, mergedDir *dirData) ([]BlockInfo, error) {
 	// Find the merged entry
 	mergedEntry, err := mergedDir.lookup(ctx, rma.fromName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Make sure this entry is unique.
 	newName, err := uniquifyName(ctx, mergedDir, rma.toName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	rma.toName = newName
 
-	_, err = mergedDir.setEntry(ctx, rma.toName, mergedEntry)
+	unrefs, err := mergedDir.setEntry(ctx, rma.toName, mergedEntry)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// Add the unmerged entry as the new "fromName".
 	unmergedEntry, err := unmergedDir.lookup(ctx, rma.fromName)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if rma.symPath != "" {
 		unmergedEntry.Type = Sym
@@ -790,8 +789,12 @@ func (rma *renameMergedAction) do(
 	}
 	unmergedEntry.PrevRevisions = nil
 
-	_, err = mergedDir.setEntry(ctx, rma.fromName, unmergedEntry)
-	return err
+	moreUnrefs, err := mergedDir.setEntry(ctx, rma.fromName, unmergedEntry)
+	if err != nil {
+		return nil, err
+	}
+	unrefs = append(unrefs, moreUnrefs...)
+	return unrefs, nil
 }
 
 func (rma *renameMergedAction) updateOps(
@@ -881,8 +884,9 @@ func (dua *dropUnmergedAction) swapUnmergedBlock(
 }
 
 func (dua *dropUnmergedAction) do(
-	_ context.Context, _, _ fileBlockDeepCopier, _, _ *dirData) error {
-	return nil
+	_ context.Context, _, _ fileBlockDeepCopier, _, _ *dirData) (
+	[]BlockInfo, error) {
+	return nil, nil
 }
 
 func (dua *dropUnmergedAction) updateOps(
