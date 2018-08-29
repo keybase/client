@@ -48,6 +48,7 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({
         daemonHandshakeState: 'waitingForWaiters',
         daemonHandshakeVersion: action.payload.version,
+        daemonHandshakeWaiters: I.Map(),
       })
     case ConfigGen.daemonHandshakeWait: {
       if (state.daemonHandshakeState !== 'waitingForWaiters') {
