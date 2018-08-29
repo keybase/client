@@ -677,6 +677,18 @@ func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictI
 		conflict.Generation)
 }
 
+type ImplicitTeamDisplayNameError struct {
+	msg string
+}
+
+func (e ImplicitTeamDisplayNameError) Error() string {
+	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
+}
+
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
+}
+
 // Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
 func ParseImplicitTeamDisplayName(ctx kbname.AssertionContext, s string, isPublic bool) (ret keybase1.ImplicitTeamDisplayName, err error) {
 	// Turn the whole string tolower
