@@ -10,7 +10,7 @@ import (
 
 	docopt "github.com/docopt/docopt-go"
 	"github.com/keybase/client/go/chat/signencrypt"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/go-crypto/ed25519"
 )
 
@@ -51,7 +51,7 @@ func zeroSignKey() signencrypt.SignKey {
 	return &key
 }
 
-func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
+func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix kbcrypto.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
 	encoder := signencrypt.NewEncoder(enckey, signkey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		encoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -78,7 +78,7 @@ func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signatur
 	return nil
 }
 
-func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
+func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
 	decoder := signencrypt.NewDecoder(enckey, verifykey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		decoder.ChangePlaintextChunkLenForTesting(chunklen)
@@ -143,10 +143,10 @@ Options:
 		copy(verifykey[:], decodeHexArg(arguments["--verifykey"].(string)))
 	}
 
-	signaturePrefix := libkb.SignaturePrefixTesting
+	signaturePrefix := kbcrypto.SignaturePrefixTesting
 	if arguments["--sigprefix"] != nil {
 		signaturePrefixStr := arguments["--sigprefix"].(string)
-		signaturePrefix = libkb.SignaturePrefix(signaturePrefixStr)
+		signaturePrefix = kbcrypto.SignaturePrefix(signaturePrefixStr)
 	}
 
 	nonce := zeroNonce()

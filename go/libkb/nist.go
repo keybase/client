@@ -5,10 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"github.com/keybase/client/go/protocol/keybase1"
-	context "golang.org/x/net/context"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/kbcrypto"
+	"github.com/keybase/client/go/protocol/keybase1"
+	context "golang.org/x/net/context"
 )
 
 //
@@ -265,7 +267,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	if err != nil {
 		return err
 	}
-	sigInfo, err = naclKey.SignV2(payloadPacked, SignaturePrefixNIST)
+	sigInfo, err = naclKey.SignV2(payloadPacked, kbcrypto.SignaturePrefixNIST)
 	if err != nil {
 		return err
 	}

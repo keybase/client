@@ -21,14 +21,14 @@ import (
 type NaclSignature [ed25519.SignatureSize]byte
 
 type NaclSigInfo struct {
-	Kid      keybase1.BinaryKID `codec:"key"`
-	Payload  []byte             `codec:"payload,omitempty"`
-	Sig      NaclSignature      `codec:"sig"`
-	SigType  kbcrypto.AlgoType  `codec:"sig_type"`
-	HashType int                `codec:"hash_type"`
-	Detached bool               `codec:"detached"`
-	Version  int                `codec:"version,omitempty"`
-	Prefix   SignaturePrefix    `codec:"prefix,omitempty"`
+	Kid      keybase1.BinaryKID       `codec:"key"`
+	Payload  []byte                   `codec:"payload,omitempty"`
+	Sig      NaclSignature            `codec:"sig"`
+	SigType  kbcrypto.AlgoType        `codec:"sig_type"`
+	HashType int                      `codec:"hash_type"`
+	Detached bool                     `codec:"detached"`
+	Version  int                      `codec:"version,omitempty"`
+	Prefix   kbcrypto.SignaturePrefix `codec:"prefix,omitempty"`
 }
 
 type NaclEncryptionInfo struct {
@@ -348,32 +348,21 @@ func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSec
 	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
-type SignaturePrefix string
-
 const encryptionReasonMinLength = 8
 
 type EncryptionReason string
-
-func (p SignaturePrefix) hasNullByte() bool {
-	return bytes.IndexByte([]byte(p), byte(0)) != -1
-}
-
-func (p SignaturePrefix) Prefix(msg []byte) []byte {
-	prefix := append([]byte(p), 0)
-	return append(prefix, msg...)
-}
 
 func (r EncryptionReason) Bytes() []byte {
 	return []byte(r)
 }
 
-func (k NaclSigningKeyPair) SignV2(msg []byte, prefix SignaturePrefix) (ret *NaclSigInfo, err error) {
+func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) (ret *NaclSigInfo, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
 	}
 
-	if prefix.hasNullByte() || len(prefix) == 0 {
+	if prefix.HasNullByte() || len(prefix) == 0 {
 		err = BadSignaturePrefixError{}
 		return
 	}

@@ -6,6 +6,7 @@ package engine
 import (
 	"sync"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
@@ -75,7 +76,7 @@ func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI
 	}
 
 	var sigInfo *libkb.NaclSigInfo
-	sigInfo, err = kp.SignV2(arg.Msg, libkb.SignaturePrefixKBFS)
+	sigInfo, err = kp.SignV2(arg.Msg, kbcrypto.SignaturePrefixKBFS)
 	if err != nil {
 		return
 	}

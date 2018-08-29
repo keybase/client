@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -236,7 +237,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 
 	msg := []byte("test message")
 
-	sig, err := keyPair.SignV2(msg, SignaturePrefixChatMBv1)
+	sig, err := keyPair.SignV2(msg, kbcrypto.SignaturePrefixChatMBv1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,7 +257,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	}
 
 	sig.Version = 2
-	sig.Prefix = SignaturePrefixKBFS
+	sig.Prefix = kbcrypto.SignaturePrefixKBFS
 	_, err = sig.Verify()
 	if err == nil {
 		t.Fatal("expected an error after we jiggled the prefix to the wrong one")
@@ -265,14 +266,14 @@ func TestNaclPrefixedSigs(t *testing.T) {
 		t.Fatal("expected a VerificationError")
 	}
 
-	_, err = keyPair.SignV2(msg, SignaturePrefix("a\x00b"))
+	_, err = keyPair.SignV2(msg, kbcrypto.SignaturePrefix("a\x00b"))
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
 	if _, ok := err.(BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	_, err = keyPair.SignV2(msg, SignaturePrefix(""))
+	_, err = keyPair.SignV2(msg, kbcrypto.SignaturePrefix(""))
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
