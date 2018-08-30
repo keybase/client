@@ -9,6 +9,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/keybase/kbfs/kbfscodec"
 )
@@ -103,6 +104,7 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	if err != nil {
 		return nil, err
 	}
+	// TODO(KBFS-3306): call `SetMaxDirEntriesByBlockSize()` here.
 
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
@@ -110,6 +112,52 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 		blockChangeEmbedMaxSize: blockChangeEmbedMaxSize,
 		maxDirEntriesPerBlock:   maxDirEntriesPerBlock,
 	}, nil
+}
+
+// SetMaxDirEntriesByBlockSize sets the maximum number of directory
+// entries per directory block, based on the maximum block size.  If
+// the `KEYBASE_BSPLIT_MAX_DIR_ENTRIES` is set, this function does
+// nothing.
+func (b *BlockSplitterSimple) SetMaxDirEntriesByBlockSize(
+	codec kbfscodec.Codec) error {
+	dirEnv := os.Getenv("KEYBASE_BSPLIT_MAX_DIR_ENTRIES")
+	if len(dirEnv) > 0 {
+		// Don't override the environment variable.
+		return nil
+	}
+
+	block := NewDirBlock().(*DirBlock)
+	bigName := strings.Repeat("a", maxNameBytesDefault)
+	// Make "typical" DirEntry, though the max dir entry is a bit
+	// bigger than this (can contain a variable-length symlink path,
+	// for example).
+	de := DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				DirectType: DirectBlock,
+			},
+		},
+		EntryInfo: EntryInfo{
+			PrevRevisions: PrevRevisions{
+				{Revision: 0, Count: 0},
+				{Revision: 1, Count: 1},
+				{Revision: 2, Count: 2},
+				{Revision: 3, Count: 3},
+				{Revision: 4, Count: 4},
+			},
+		},
+	}
+	block.Children[bigName] = de
+	encodedBlock, err := codec.Encode(block)
+	if err != nil {
+		return err
+	}
+	oneEntrySize := int64(len(encodedBlock))
+	b.maxDirEntriesPerBlock = int(b.maxSize / oneEntrySize)
+	if b.maxDirEntriesPerBlock == 0 {
+		b.maxDirEntriesPerBlock = 1
+	}
+	return nil
 }
 
 // CopyUntilSplit implements the BlockSplitter interface for

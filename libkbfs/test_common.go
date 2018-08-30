@@ -56,8 +56,13 @@ func newConfigForTest(modeType InitModeType, loggerFn func(module string) logger
 		panic(err)
 	}
 
-	config.SetBlockSplitter(&BlockSplitterSimple{
-		64 * 1024, 64 * 1024 / int(bpSize), 8 * 1024, maxDirEntriesPerBlock})
+	bsplit := &BlockSplitterSimple{
+		64 * 1024, 64 * 1024 / int(bpSize), 8 * 1024, maxDirEntriesPerBlock}
+	err = bsplit.SetMaxDirEntriesByBlockSize(config.Codec())
+	if err != nil {
+		panic(err)
+	}
+	config.SetBlockSplitter(bsplit)
 
 	return config
 }

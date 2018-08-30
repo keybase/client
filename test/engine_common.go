@@ -31,6 +31,10 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 			t.Fatalf("Couldn't make block splitter for block size %d,"+
 				" blockChangeSize %d: %v", blockSize, blockChangeSize, err)
 		}
+		err = bsplit.SetMaxDirEntriesByBlockSize(config.Codec())
+		if err != nil {
+			t.Fatalf("Couldn't set max dir entries: %v", err)
+		}
 		config.SetBlockSplitter(bsplit)
 	}
 }
