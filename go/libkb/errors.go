@@ -746,15 +746,6 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 
 //=============================================================================
 
-type UnmarshalError struct {
-	ExpectedTag PacketTag
-	Tag         PacketTag
-}
-
-func (u UnmarshalError) Error() string {
-	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
-}
-
 type VerificationError struct {
 	Cause error
 }

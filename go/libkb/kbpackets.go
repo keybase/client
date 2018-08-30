@@ -6,106 +6,14 @@ package libkb
 // Code for encoding and decoding Keybase packet types.
 
 import (
-	"bytes"
-	"crypto/sha256"
 	"encoding/base64"
-	"errors"
-	"fmt"
-	"io"
 
-	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/client/go/kbcrypto"
 )
-
-type Packetable interface {
-	GetTagAndVersion() (PacketTag, PacketVersion)
-}
-
-func EncodePacket(p Packetable, encoder *codec.Encoder) error {
-	packet, err := newKeybasePacket(p)
-	if err != nil {
-		return err
-	}
-	return encoder.Encode(packet)
-}
-
-func EncodePacketToBytes(p Packetable) ([]byte, error) {
-	packet, err := newKeybasePacket(p)
-	if err != nil {
-		return nil, err
-	}
-	return packet.encode()
-}
-
-func EncodePacketToArmoredString(p Packetable) (string, error) {
-	packet, err := newKeybasePacket(p)
-	if err != nil {
-		return "", err
-	}
-	return packet.armoredEncode()
-}
-
-func DecodePacket(decoder *codec.Decoder, body Packetable) error {
-	// TODO: Do something with the version too?
-	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
-		Body: body,
-	}
-	err := decoder.Decode(&p)
-	if err != nil {
-		return err
-	}
-
-	if p.Tag != tag {
-		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
-	}
-
-	// TODO: Figure out a way to do the same reencode check as in
-	// DecodePacketFromBytes.
-
-	return p.checkHash()
-}
-
-func DecodePacketFromBytes(data []byte, body Packetable) error {
-	ch := codecHandle()
-	decoder := codec.NewDecoderBytes(data, ch)
-
-	// TODO: Do something with the version too?
-	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
-		Body: body,
-	}
-	err := decoder.Decode(&p)
-	if err != nil {
-		return err
-	}
-
-	if decoder.NumBytesRead() != len(data) {
-		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", len(data)-decoder.NumBytesRead())
-	}
-
-	if p.Tag != tag {
-		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
-	}
-
-	// Test for nonstandard msgpack data (which could be maliciously crafted)
-	// by re-encoding and making sure we get the same thing.
-	// https://github.com/keybase/client/issues/423
-	//
-	// Ideally this should be done at a lower level, but our
-	// msgpack library doesn't sort maps the way we expect. See
-	// https://github.com/ugorji/go/issues/103
-	if reencoded, err := p.encode(); err != nil {
-		return err
-	} else if !bytes.Equal(reencoded, data) {
-		return FishyMsgpackError{data, reencoded}
-	}
-
-	return p.checkHash()
-}
 
 func DecodeSKBPacket(data []byte) (*SKB, error) {
 	var info SKB
-	err := DecodePacketFromBytes(data, &info)
+	err := kbcrypto.DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +30,7 @@ func DecodeArmoredSKBPacket(s string) (*SKB, error) {
 
 func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
 	var info NaclSigInfo
-	err := DecodePacketFromBytes(data, &info)
+	err := kbcrypto.DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return NaclSigInfo{}, err
 	}
@@ -139,7 +47,7 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 
 func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {
 	var info NaclEncryptionInfo
-	err := DecodePacketFromBytes(data, &info)
+	err := kbcrypto.DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return NaclEncryptionInfo{}, err
 	}
@@ -152,125 +60,4 @@ func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error)
 		return NaclEncryptionInfo{}, err
 	}
 	return DecodeNaclEncryptionInfoPacket(b)
-}
-
-type FishyMsgpackError struct {
-	original  []byte
-	reencoded []byte
-}
-
-func (e FishyMsgpackError) Error() string {
-	return fmt.Sprintf("Original msgpack data didn't match re-encoded version: reencoded=%x != original=%x", e.reencoded, e.original)
-}
-
-func codecHandle() *codec.MsgpackHandle {
-	var mh codec.MsgpackHandle
-	mh.WriteExt = true
-	return &mh
-}
-
-const SHA256Code = 8
-
-type KeybasePacketHash struct {
-	Type  int    `codec:"type"`
-	Value []byte `codec:"value"`
-}
-
-type KeybasePacket struct {
-	Body    Packetable         `codec:"body"`
-	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
-	Tag     PacketTag          `codec:"tag"`
-	Version PacketVersion      `codec:"version"`
-}
-
-func newKeybasePacket(body Packetable) (*KeybasePacket, error) {
-	tag, version := body.GetTagAndVersion()
-	ret := KeybasePacket{
-		Body:    body,
-		Tag:     tag,
-		Version: version,
-		Hash: &KeybasePacketHash{
-			Type:  SHA256Code,
-			Value: []byte{},
-		},
-	}
-
-	hashBytes, hashErr := ret.hashSum()
-	if hashErr != nil {
-		return nil, hashErr
-	}
-	ret.Hash.Value = hashBytes
-	return &ret, nil
-}
-
-func (p *KeybasePacket) hashToBytes() ([]byte, error) {
-	// We don't include the Hash field in the encoded bytes that we hash,
-	// because if we did then the result wouldn't be stable. To work around
-	// that, we make a copy of the packet and overwrite the Hash field with
-	// an empty slice.
-	packetCopy := *p
-	packetCopy.Hash = &KeybasePacketHash{
-		Type:  SHA256Code,
-		Value: []byte{},
-	}
-	return packetCopy.hashSum()
-}
-
-func (p *KeybasePacket) hashSum() ([]byte, error) {
-	if len(p.Hash.Value) != 0 {
-		return nil, errors.New("cannot compute hash with Value present")
-	}
-	encoded, err := p.encode()
-	if err != nil {
-		return nil, err
-	}
-	ret := sha256.Sum256(encoded)
-	return ret[:], nil
-}
-
-func (p *KeybasePacket) checkHash() error {
-	var gotten []byte
-	var err error
-	if p.Hash == nil {
-		return nil
-	}
-	given := p.Hash.Value
-	if p.Hash.Type != SHA256Code {
-		err = fmt.Errorf("Bad hash code: %d", p.Hash.Type)
-	} else if gotten, err = p.hashToBytes(); err != nil {
-
-	} else if !FastByteArrayEq(gotten, given) {
-		err = fmt.Errorf("Bad packet hash")
-	}
-	return err
-}
-
-func (p *KeybasePacket) encode() ([]byte, error) {
-	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, codecHandle()).Encode(p)
-	return encoded, err
-}
-
-func (p *KeybasePacket) armoredEncode() (string, error) {
-	var buf bytes.Buffer
-	err := func() (err error) {
-		b64 := base64.NewEncoder(base64.StdEncoding, &buf)
-		defer func() {
-			closeErr := b64.Close()
-			if err == nil {
-				err = closeErr
-			}
-		}()
-		encoder := codec.NewEncoder(b64, codecHandle())
-		return encoder.Encode(p)
-	}()
-	if err != nil {
-		return "", err
-	}
-	return buf.String(), nil
-}
-
-func (p *KeybasePacket) encodeTo(w io.Writer) error {
-	err := codec.NewEncoder(w, codecHandle()).Encode(p)
-	return err
 }

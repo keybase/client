@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -447,36 +446,6 @@ const (
 	HTTPRetryMutliplier     = 1.5
 	HTTPRetryCount          = 6
 )
-
-type PacketVersion int
-
-const (
-	KeybasePacketV1 PacketVersion = 1
-)
-
-// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
-// be backwards compatible with older versions of codec that encoded
-// positive ints as uints.
-type PacketTag uint
-
-const (
-	TagP3skb      PacketTag = 513
-	TagSignature  PacketTag = 514
-	TagEncryption PacketTag = 515
-)
-
-func (t PacketTag) String() string {
-	switch t {
-	case TagP3skb:
-		return "PacketTag(P3skb)"
-	case TagSignature:
-		return "PacketTag(Signature)"
-	case TagEncryption:
-		return "PacketTag(Encryption)"
-	default:
-		return fmt.Sprintf("PacketTag(%d)", uint(t))
-	}
-}
 
 // OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
 const (

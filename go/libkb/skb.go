@@ -132,8 +132,8 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	return NewLKSec(pps, s.uid)
 }
 
-func (s *SKB) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagP3skb, KeybasePacketV1
+func (s *SKB) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
+	return kbcrypto.TagP3skb, kbcrypto.KeybasePacketV1
 }
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
@@ -376,7 +376,7 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 }
 
 func (s *SKB) ArmoredEncode() (ret string, err error) {
-	return EncodePacketToArmoredString(s)
+	return kbcrypto.EncodePacketToArmoredString(s)
 }
 
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {

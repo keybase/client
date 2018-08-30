@@ -388,7 +388,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	body, err := EncodePacketToBytes(naclSig)
+	body, err := kbcrypto.EncodePacketToBytes(naclSig)
 	if err != nil {
 		return
 	}
@@ -469,8 +469,8 @@ func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (
 	return
 }
 
-func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagSignature, KeybasePacketV1
+func (s *NaclSigInfo) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
+	return kbcrypto.TagSignature, kbcrypto.KeybasePacketV1
 }
 
 func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
@@ -518,7 +518,7 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 }
 
 func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
-	return EncodePacketToArmoredString(s)
+	return kbcrypto.EncodePacketToArmoredString(s)
 }
 
 func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
@@ -738,7 +738,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 		return "", err
 	}
 
-	return EncodePacketToArmoredString(info)
+	return kbcrypto.EncodePacketToArmoredString(info)
 }
 
 func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
@@ -820,8 +820,8 @@ func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err
 	return outKey, nil
 }
 
-func (k *NaclEncryptionInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagEncryption, KeybasePacketV1
+func (k *NaclEncryptionInfo) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
+	return kbcrypto.TagEncryption, kbcrypto.KeybasePacketV1
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,
