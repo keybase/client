@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/keybase/client/go/logger"
@@ -533,4 +534,31 @@ func TestDirDataUpdateEntry(t *testing.T) {
 	})
 	require.Equal(t, NoSuchNameError{"foo"}, err)
 
+}
+
+func TestDirDataShifting(t *testing.T) {
+	dd, cleanBcache, dirtyBcache := setupDirDataTest(t, 2, 1)
+	ctx := context.Background()
+	topBlock := NewDirBlock().(*DirBlock)
+	cleanBcache.Put(
+		dd.rootBlockPointer(), dd.tree.file.Tlf, topBlock, TransientEntry)
+
+	for i := 0; i <= 10; i++ {
+		addFakeDirDataEntry(t, ctx, dd, strconv.Itoa(i), uint64(i+1))
+	}
+	testDirDataCheckLookup(t, ctx, dd, "10", 11)
+	expectedLeafs := []testDirDataLeaf{
+		{"", 1, true},
+		{"1", 1, true},
+		{"10", 1, true},
+		{"2", 1, true},
+		{"3", 1, true},
+		{"4", 1, true},
+		{"5", 1, true},
+		{"6", 1, true},
+		{"7", 1, true},
+		{"8", 1, true},
+		{"9", 1, true},
+	}
+	testDirDataCheckLeafs(t, dd, cleanBcache, dirtyBcache, expectedLeafs, 2, 1)
 }

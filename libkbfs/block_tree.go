@@ -684,6 +684,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 		"position", newBlockStartOff, bt.rootBlockPointer())
 
 	// Swap left as needed.
+	loopedOnce := false
 	for {
 		var leftOff Offset
 		var newParents []parentBlockAndChildIndex
@@ -691,6 +692,20 @@ func (bt *blockTree) shiftBlocksToFillHole(
 		if currIndex > 0 {
 			_, leftOff = immedPblock.IndirectPtr(currIndex - 1)
 		} else {
+			if loopedOnce {
+				// Now update the left side if needed, before looking into
+				// swapping across blocks.
+				bt.log.CDebugf(ctx, "Updating on left side")
+				_, newOff := immedPblock.IndirectPtr(currIndex)
+				ndp, nu, err := bt.setParentOffsets(
+					ctx, newOff, parents, currIndex)
+				if err != nil {
+					return nil, nil, 0, err
+				}
+				newDirtyPtrs = append(newDirtyPtrs, ndp...)
+				nu = append(newUnrefs, nu...)
+			}
+
 			// Construct the new set of parents for the shifted block,
 			// by looking for the next left cousin.
 			newParents = make([]parentBlockAndChildIndex, len(parents))
@@ -727,6 +742,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 					childBlock.NumIndirectPtrs() - 1)
 			}
 		}
+		loopedOnce = true
 
 		// We're done!
 		if leftOff.Less(newBlockStartOff) {
@@ -797,18 +813,6 @@ func (bt *blockTree) shiftBlocksToFillHole(
 		}
 		newDirtyPtrs = append(newDirtyPtrs, ndp...)
 		nu = append(newUnrefs, nu...)
-		// Now update the left side, if it was the only block on that
-		// side.
-		if newCurrIndex == 0 {
-			_, newOff := newImmedPblock.IndirectPtr(newCurrIndex)
-			ndp, nu, err := bt.setParentOffsets(
-				ctx, newOff, newParents, newCurrIndex)
-			if err != nil {
-				return nil, nil, 0, err
-			}
-			newDirtyPtrs = append(newDirtyPtrs, ndp...)
-			nu = append(newUnrefs, nu...)
-		}
 
 		immedParent = newImmedParent
 		currIndex = newCurrIndex
