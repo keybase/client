@@ -730,6 +730,7 @@ export type StaleUpdateType =
   | 1 // NEWACTIVITY_1
 
 export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>}>
+export type SubteamRenameUpdate = $ReadOnly<{convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
 export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
 export type SyncAllNotificationType =
