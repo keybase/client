@@ -53,8 +53,8 @@ func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
 
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
-func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
+func (k NaclSigningKeyPrivate) Sign(msg []byte) NaclSignature {
 	var sig NaclSignature
 	copy(sig[:], ed25519.Sign(k[:], msg))
-	return &sig
+	return sig
 }

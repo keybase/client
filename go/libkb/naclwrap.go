@@ -294,7 +294,7 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *kbcrypto.NaclSigInfo, err err
 	ret = &kbcrypto.NaclSigInfo{
 		Kid:      k.GetBinaryKID(),
 		Payload:  msg,
-		Sig:      *k.Private.Sign(msg),
+		Sig:      k.Private.Sign(msg),
 		SigType:  kbcrypto.SigKbEddsa,
 		HashType: HashPGPSha512,
 		Detached: true,
@@ -331,7 +331,7 @@ func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) 
 	ret = &kbcrypto.NaclSigInfo{
 		Kid:      k.GetBinaryKID(),
 		Payload:  msg,
-		Sig:      *k.Private.Sign(prefix.Prefix(msg)),
+		Sig:      k.Private.Sign(prefix.Prefix(msg)),
 		SigType:  kbcrypto.SigKbEddsa,
 		HashType: HashPGPSha512,
 		Detached: true,
