@@ -86,7 +86,7 @@ func (u UnmarshalError) Error() string {
 func DecodePacket(decoder *codec.Decoder, body Packetable) error {
 	// TODO: Do something with the version too?
 	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
+	p := keybasePacket{
 		Body: body,
 	}
 	err := decoder.Decode(&p)
@@ -110,7 +110,7 @@ func DecodePacketFromBytes(data []byte, body Packetable) error {
 
 	// TODO: Do something with the version too?
 	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
+	p := keybasePacket{
 		Body: body,
 	}
 	err := decoder.Decode(&p)
@@ -159,25 +159,25 @@ func CodecHandle() *codec.MsgpackHandle {
 
 const SHA256Code = 8
 
-type KeybasePacketHash struct {
+type keybasePacketHash struct {
 	Type  int    `codec:"type"`
 	Value []byte `codec:"value"`
 }
 
-type KeybasePacket struct {
+type keybasePacket struct {
 	Body    Packetable         `codec:"body"`
-	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
+	Hash    *keybasePacketHash `codec:"hash,omitempty"`
 	Tag     PacketTag          `codec:"tag"`
 	Version PacketVersion      `codec:"version"`
 }
 
-func newKeybasePacket(body Packetable) (*KeybasePacket, error) {
+func newKeybasePacket(body Packetable) (*keybasePacket, error) {
 	tag, version := body.GetTagAndVersion()
-	ret := KeybasePacket{
+	ret := keybasePacket{
 		Body:    body,
 		Tag:     tag,
 		Version: version,
-		Hash: &KeybasePacketHash{
+		Hash: &keybasePacketHash{
 			Type:  SHA256Code,
 			Value: []byte{},
 		},
@@ -191,20 +191,20 @@ func newKeybasePacket(body Packetable) (*KeybasePacket, error) {
 	return &ret, nil
 }
 
-func (p *KeybasePacket) hashToBytes() ([]byte, error) {
+func (p *keybasePacket) hashToBytes() ([]byte, error) {
 	// We don't include the Hash field in the encoded bytes that we hash,
 	// because if we did then the result wouldn't be stable. To work around
 	// that, we make a copy of the packet and overwrite the Hash field with
 	// an empty slice.
 	packetCopy := *p
-	packetCopy.Hash = &KeybasePacketHash{
+	packetCopy.Hash = &keybasePacketHash{
 		Type:  SHA256Code,
 		Value: []byte{},
 	}
 	return packetCopy.hashSum()
 }
 
-func (p *KeybasePacket) hashSum() ([]byte, error) {
+func (p *keybasePacket) hashSum() ([]byte, error) {
 	if len(p.Hash.Value) != 0 {
 		return nil, errors.New("cannot compute hash with Value present")
 	}
@@ -216,7 +216,7 @@ func (p *KeybasePacket) hashSum() ([]byte, error) {
 	return ret[:], nil
 }
 
-func (p *KeybasePacket) checkHash() error {
+func (p *keybasePacket) checkHash() error {
 	var gotten []byte
 	var err error
 	if p.Hash == nil {
@@ -233,13 +233,13 @@ func (p *KeybasePacket) checkHash() error {
 	return err
 }
 
-func (p *KeybasePacket) encode() ([]byte, error) {
+func (p *keybasePacket) encode() ([]byte, error) {
 	var encoded []byte
 	err := codec.NewEncoderBytes(&encoded, CodecHandle()).Encode(p)
 	return encoded, err
 }
 
-func (p *KeybasePacket) armoredEncode() (string, error) {
+func (p *keybasePacket) armoredEncode() (string, error) {
 	var buf bytes.Buffer
 	err := func() (err error) {
 		b64 := base64.NewEncoder(base64.StdEncoding, &buf)
@@ -258,7 +258,7 @@ func (p *KeybasePacket) armoredEncode() (string, error) {
 	return buf.String(), nil
 }
 
-func (p *KeybasePacket) encodeTo(w io.Writer) error {
+func (p *keybasePacket) encodeTo(w io.Writer) error {
 	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
 	return err
 }
