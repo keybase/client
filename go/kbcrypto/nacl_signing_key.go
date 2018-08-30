@@ -4,6 +4,8 @@
 package kbcrypto
 
 import (
+	"encoding/base64"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 )
@@ -71,6 +73,19 @@ func (k NaclSigningKeyPrivate) SignInfoV0(msg []byte, public NaclSigningKeyPubli
 		Detached: true,
 		Version:  0,
 	}
+}
+
+func (k NaclSigningKeyPrivate) SignToStringV0(msg []byte, public NaclSigningKeyPublic) (string, keybase1.SigID, error) {
+	naclSig := k.SignInfoV0(msg, public)
+
+	body, err := EncodePacketToBytes(&naclSig)
+	if err != nil {
+		return "", "", err
+	}
+
+	sig := base64.StdEncoding.EncodeToString(body)
+	id := ComputeSigIDFromSigBody(body)
+	return sig, id, nil
 }
 
 type BadSignaturePrefixError struct{}

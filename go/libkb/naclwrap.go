@@ -311,20 +311,8 @@ func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) 
 	return k.Private.SignInfoV2(msg, k.Public, prefix)
 }
 
-func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
-	naclSig, err := k.Sign(msg)
-	if err != nil {
-		return
-	}
-
-	body, err := kbcrypto.EncodePacketToBytes(&naclSig)
-	if err != nil {
-		return
-	}
-
-	sig = base64.StdEncoding.EncodeToString(body)
-	id = kbcrypto.ComputeSigIDFromSigBody(body)
-	return
+func (k NaclSigningKeyPair) SignToString(msg []byte) (string, keybase1.SigID, error) {
+	return k.Private.SignToStringV0(msg, k.Public)
 }
 
 func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
