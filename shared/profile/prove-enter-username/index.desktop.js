@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Icon, Text, Button, Input, PlatformIcon} from '../../common-adapters'
+import {Box, Box2, Icon, InfoNote, Text, Button, Input, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import {platformText} from './shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
@@ -21,19 +21,16 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
 
   if (platform === 'facebook') {
     return (
-      <Box style={styleBlueBanner}>
-        <Text backgroundMode="Announcements" type="BodySmallSemibold">
-          You can find your Facebook username at <br />
-          <Text
-            backgroundMode="Announcements"
-            type="BodySmallSemiboldPrimaryLink"
-            onClick={() => openURL('https://facebook.com/settings')}
-          >
-            {' '}
-            https://facebook.com/settings
-          </Text>.
-        </Text>
-      </Box>
+      <InfoNote containerStyle={styleInfoNote}>
+        <Box2 direction="vertical" style={{textAlign: 'center'}}>
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            You can find your Facebook username at
+          </Text>
+          <Text type="BodySmallSecondaryLink" onClick={() => openURL('http://www.facebook.com/settings')}>
+            http://www.facebook.com/settings.
+          </Text>
+        </Box2>
+      </InfoNote>
     )
   }
 
@@ -90,7 +87,6 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           overlay={'icon-proof-unfinished'}
           overlayColor={globalColors.grey}
         />
-        <UsernameTips platform={this.props.platform} />
         <Input
           autoFocus={true}
           style={styleInput}
@@ -100,6 +96,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           onChangeText={username => this.handleUsernameChange(username)}
           onEnterKeyDown={() => this.handleContinue()}
         />
+        <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
           <Button
             type="Secondary"
@@ -176,10 +173,9 @@ const styleYellowBanner = {
   paddingRight: globalMargins.small,
 }
 
-const styleBlueBanner = {
-  ...styleYellowBanner,
-  backgroundColor: globalColors.blue,
-  textAlign: 'center',
+const styleInfoNote = {
+  marginBottom: globalMargins.tiny,
+  marginTop: globalMargins.medium,
 }
 
 export default PrivateEnterUsernameRender
