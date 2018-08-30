@@ -162,3 +162,222 @@ func TestReadUnembeddedBlockChanges(t *testing.T) {
 		),
 	)
 }
+
+// alice writes a multi-block directory root dir, and bob reads it.
+func TestWriteMultiblockRootDir(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("b", "b"),
+			mkfile("c", "c"),
+			mkfile("d", "d"),
+			mkfile("e", "e"),
+			mkfile("f", "f"),
+		),
+		as(bob,
+			lsdir("", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "FILE",
+				"e": "FILE",
+				"f": "FILE",
+			}),
+			read("b", "b"),
+			read("c", "c"),
+			read("d", "d"),
+			read("e", "e"),
+			read("f", "f"),
+		),
+	)
+}
+
+// alice writes a multi-block directory in separate batches, and bob reads it.
+func TestWriteMultiblockDirBatches(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "b"),
+			mkfile("a/c", "c"),
+			mkfile("a/d", "d"),
+			mkfile("a/e", "e"),
+			mkfile("a/f", "f"),
+		),
+		as(bob,
+			lsdir("a/", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "FILE",
+				"e": "FILE",
+				"f": "FILE",
+			}),
+			read("a/b", "b"),
+			read("a/c", "c"),
+			read("a/d", "d"),
+			read("a/e", "e"),
+			read("a/f", "f"),
+		),
+	)
+}
+
+// alice writes a multi-block directory in one batch, and bob reads it.
+func TestWriteMultiblockDirAtOnce(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			pwriteBSSync("a/b", []byte("b"), 0, false),
+			pwriteBSSync("a/c", []byte("c"), 0, false),
+			pwriteBSSync("a/d", []byte("d"), 0, false),
+			pwriteBSSync("a/e", []byte("e"), 0, false),
+			pwriteBSSync("a/f", []byte("f"), 0, false),
+		),
+		as(bob,
+			lsdir("a/", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "FILE",
+				"e": "FILE",
+				"f": "FILE",
+			}),
+			read("a/b", "b"),
+			read("a/c", "c"),
+			read("a/d", "d"),
+			read("a/e", "e"),
+			read("a/f", "f"),
+		),
+	)
+}
+
+// alice writes a multi-block directory and removes one entry from it.
+func TestRemoveOneFromMultiblockDir(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "b"),
+			mkfile("a/c", "c"),
+			mkfile("a/d", "d"),
+			mkfile("a/e", "e"),
+			mkfile("a/f", "f"),
+		),
+		as(alice,
+			rm("a/e"),
+		),
+		as(bob,
+			lsdir("a/", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "FILE",
+				"f": "FILE",
+			}),
+			read("a/b", "b"),
+			read("a/c", "c"),
+			read("a/d", "d"),
+			read("a/f", "f"),
+		),
+	)
+}
+
+// alice writes a multi-level, multi-block directory structure.
+func TestRemoveMultilevelMultiblockDir(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "b"),
+			mkfile("a/c", "c"),
+			mkdir("a/d"),
+			mkfile("a/d/e", "e"),
+			mkfile("a/d/f", "f"),
+			mkdir("a/g"),
+			mkfile("a/g/h", "h"),
+			mkfile("a/g/i", "i"),
+		),
+		as(bob,
+			lsdir("a/", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "DIR",
+				"g": "DIR",
+			}),
+			lsdir("a/d", m{
+				"e": "FILE",
+				"f": "FILE",
+			}),
+			lsdir("a/g", m{
+				"h": "FILE",
+				"i": "FILE",
+			}),
+			read("a/b", "b"),
+			read("a/c", "c"),
+			read("a/d/e", "e"),
+			read("a/d/f", "f"),
+			read("a/g/h", "h"),
+			read("a/g/i", "i"),
+		),
+		as(alice,
+			rm("a/g/i"),
+			rm("a/g/h"),
+			rmdir("a/g"),
+			rm("a/d/f"),
+			rm("a/d/e"),
+			rmdir("a/d"),
+			rm("a/c"),
+			rm("a/b"),
+			rmdir("a"),
+		),
+		as(bob,
+			lsdir("", m{}),
+		),
+	)
+}
+
+// alice renames within a multi-block directory.
+func TestRenameWithinMultiblockDir(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "b"),
+			mkfile("a/c", "c"),
+			mkfile("a/d", "d"),
+			mkfile("a/e", "e"),
+			mkfile("a/f", "f"),
+		),
+		as(alice,
+			rename("a/f", "a/g"),
+		),
+		as(bob,
+			lsdir("a/", m{
+				"b": "FILE",
+				"c": "FILE",
+				"d": "FILE",
+				"e": "FILE",
+				"g": "FILE",
+			}),
+			read("a/b", "b"),
+			read("a/c", "c"),
+			read("a/d", "d"),
+			read("a/e", "e"),
+			read("a/g", "f"),
+		),
+	)
+}
+
+// alice renames, creating a multi-block directory.
+func TestRenameCreatesMultiblockDir(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "b"),
+			mkfile("a/c", "c"),
+			mkfile("d/e", "e"),
+		),
+		as(alice,
+			rename("a/c", "d/c"),
+		),
+		as(bob,
+			lsdir("a/", m{"b": "FILE"}),
+			lsdir("d/", m{"c": "FILE", "e": "FILE"}),
+			read("a/b", "b"),
+			read("d/c", "c"),
+			read("d/e", "e"),
+		),
+	)
+}
