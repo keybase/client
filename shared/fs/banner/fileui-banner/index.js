@@ -7,6 +7,7 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 type Props = {
   kbfsEnabled: boolean,
+  driverOutdated: boolean, // windows only
   inProgress: boolean,
   showBanner: boolean,
   path?: Types.Path,
@@ -15,7 +16,7 @@ type Props = {
   openInFileUI?: () => void,
 }
 
-const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
+const Banner = ({kbfsEnabled, driverOutdated, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
   if (!showBanner) {
     return null
   }
@@ -27,6 +28,9 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: P
     alignItems: 'center',
     position: 'relative',
   }
+  const promptText = driverOutdated
+    ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
+    : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
   let bannerContent
   if (kbfsEnabled) {
     bannerContent = (
@@ -48,11 +52,10 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: P
           Enable Keybase in {fileUIName}?
         </Text>
         <Text type="BodySemibold" style={textStyle}>
-          Get access to your files and folders just like you normally do with your local files. It's encrypted
-          and secure.
-        </Text>
+          {promptText}
+        </Text>)
         <Box style={{justifyContent: 'flex-start'}}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} />
+          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} disabled={driverOutdated} />
         </Box>
       </Box>
     )
