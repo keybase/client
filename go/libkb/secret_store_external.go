@@ -8,6 +8,8 @@ package libkb
 import (
 	"errors"
 	"sync"
+
+	"github.com/keybase/client/go/kbcrypto"
 )
 
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
@@ -74,7 +76,7 @@ func SetGlobalExternalKeyStore(s UnsafeExternalKeyStore) {
 	externalKeyStoreInitialized = false
 }
 
-var noExternalKeyStore = errors.New("no external key store available")
+var ErrNoExternalKeyStore = errors.New("no external key store available")
 
 func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 	externalKeyStoreMu.Lock()
@@ -83,7 +85,7 @@ func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 	if externalKeyStore == nil {
 		// perhaps SetGlobalExternalKeyStore has not been called by Android internals yet:
 		m.CDebugf("secret_store_external:getGlobalExternalKeyStore called, but externalKeyStore is nil")
-		return nil, noExternalKeyStore
+		return nil, errNoExternalKeyStore
 	}
 
 	// always check this since perhaps SetGlobalExternalKeyStore called more than once
@@ -156,7 +158,7 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
-		if err == noExternalKeyStore {
+		if err == errNoExternalKeyStore {
 			// this is to match previous behavior of this function,
 			// but perhaps it should return the error instead
 			return nil, nil
@@ -167,7 +169,7 @@ func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []s
 	if err != nil {
 		return nil, err
 	}
-	ch := codecHandle()
+	ch := kbcrypto.CodecHandle()
 	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
 	return users, err
 }
