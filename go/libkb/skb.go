@@ -375,7 +375,7 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 }
 
 func (s *SKB) ArmoredEncode() (ret string, err error) {
-	return PacketToArmoredString(s)
+	return EncodePacketToArmoredString(s)
 }
 
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {
