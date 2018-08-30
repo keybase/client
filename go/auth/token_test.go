@@ -4,22 +4,36 @@
 package auth
 
 import (
+	"crypto/rand"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-crypto/ed25519"
+	"github.com/stretchr/testify/require"
 )
+
+func makeNaclSigningKeyPair(t *testing.T) (kbcrypto.NaclSigningKeyPublic, kbcrypto.NaclSigningKeyPrivate) {
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	require.NoError(t, err)
+
+	var publicArray kbcrypto.NaclSigningKeyPublic
+	var privateArray kbcrypto.NaclSigningKeyPrivate
+
+	copy(publicArray[:], publicKey)
+	copy(privateArray[:], privateKey)
+
+	return publicArray, privateArray
+}
 
 const testMaxTokenExpireIn = 60
 
 func TestTokenVerifyToken(t *testing.T) {
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	public, private := makeNaclSigningKeyPair(t)
 	name := kbun.NewNormalizedUsername("alice")
 	uid := kbun.UsernameToUID(name.String())
 	expireIn := 10
@@ -30,9 +44,9 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+	token := NewToken(uid, name, public.GetKID(), server, challenge,
 		time.Now().Unix(), expireIn, clientName, clientVersion)
-	sig, _, err := keyPair.SignToString(token.Bytes())
+	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +58,7 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = checkToken(token, uid, name, keyPair.GetKID(),
+	if err = checkToken(token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
