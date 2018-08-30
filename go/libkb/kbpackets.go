@@ -345,6 +345,23 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 	return DecodeNaclSigInfoPacket(b)
 }
 
+func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {
+	var info NaclEncryptionInfo
+	err := DecodePacketBody(data, TagEncryption, &info)
+	if err != nil {
+		return NaclEncryptionInfo{}, err
+	}
+	return info, nil
+}
+
+func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error) {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return NaclEncryptionInfo{}, err
+	}
+	return DecodeNaclEncryptionInfoPacket(b)
+}
+
 type Packetable interface {
 	ToPacket() (*KeybasePacket, error)
 }
