@@ -193,6 +193,7 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@babel/types": "^7.0.0",
+    "@storybook/addons": "git://github.com/keybase/storybook-addons-hotfix",
     "@storybook/addon-actions": "4.0.0-alpha.18",
     "@storybook/addon-storyshots": "4.0.0-alpha.18",
     "@storybook/channels": "4.0.0-alpha.18",
