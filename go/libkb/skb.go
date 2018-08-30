@@ -221,7 +221,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever 
 	case LKSecVersion:
 		unlocked, err = s.lksUnlockWithSecretRetriever(m, secretRetriever)
 	default:
-		err = kbcrypto.BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
 	}
 
 	if err == nil {
@@ -276,7 +276,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
 		}
 	default:
-		err = kbcrypto.BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
 		return nil, err
 	}
 	key, err = s.parseUnlocked(unlocked)
@@ -297,7 +297,7 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	}
 
 	if key == nil {
-		err = kbcrypto.BadKeyError{"can't parse secret key after unlock"}
+		err = kbcrypto.BadKeyError{Msg: "can't parse secret key after unlock"}
 	}
 	if err != nil {
 		return

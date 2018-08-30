@@ -543,7 +543,7 @@ func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(kid keybase1.KID, t time.Tim
 	if liveCki == nil || err != nil {
 		// err gets returned.
 	} else if !liveCki.Sibkey {
-		err = kbcrypto.BadKeyError{fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", kid)}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("The key '%s' wasn't delegated as a sibkey", kid)}
 	} else {
 		key, err = ckf.FindKeyWithKIDUnsafe(kid)
 		cki = *liveCki
@@ -561,14 +561,14 @@ func (ckf ComputedKeyFamily) FindActiveEncryptionSubkey(kid keybase1.KID) (ret G
 		return nil, cki, err
 	}
 	if ckip.Sibkey {
-		return nil, cki, kbcrypto.BadKeyError{fmt.Sprintf("The key '%s' was delegated as a sibkey", kid.String())}
+		return nil, cki, kbcrypto.BadKeyError{Msg: fmt.Sprintf("The key '%s' was delegated as a sibkey", kid.String())}
 	}
 	key, err := ckf.FindKeyWithKIDUnsafe(kid)
 	if err != nil {
 		return nil, cki, err
 	}
 	if !CanEncrypt(key) {
-		return nil, cki, kbcrypto.BadKeyError{fmt.Sprintf("The key '%s' cannot encrypt", kid.String())}
+		return nil, cki, kbcrypto.BadKeyError{Msg: fmt.Sprintf("The key '%s' cannot encrypt", kid.String())}
 	}
 	return key, *ckip, nil
 }

@@ -80,12 +80,12 @@ func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 func importNaclKid(bkid []byte, typ byte, bodyLen int) (ret []byte, err error) {
 	l := len(bkid)
 	if l != bodyLen+3 {
-		err = kbcrypto.BadKeyError{fmt.Sprintf("Wrong length; wanted %d, got %d", bodyLen+3, l)}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Wrong length; wanted %d, got %d", bodyLen+3, l)}
 		return
 	}
 
 	if bkid[0] != byte(kbcrypto.KeybaseKIDV1) || bkid[l-1] != byte(kbcrypto.IDSuffixKID) || bkid[1] != typ {
-		err = kbcrypto.BadKeyError{"bad header or trailer bytes"}
+		err = kbcrypto.BadKeyError{Msg: "bad header or trailer bytes"}
 		return
 	}
 	ret = bkid[2:(l - 1)]
@@ -100,7 +100,7 @@ func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigning
 	copy(ret.Public[:], body)
 	if priv == nil {
 	} else if len(priv) != ed25519.PrivateKeySize {
-		err = kbcrypto.BadKeyError{"Secret key was wrong size"}
+		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {
 		ret.Private = &kbcrypto.NaclSigningKeyPrivate{}
 		copy(ret.Private[:], priv)
@@ -112,18 +112,18 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 	kid := k.ToBytes()
 	l := len(kid)
 	if l < 3 {
-		err = kbcrypto.BadKeyError{"KID was way too short"}
+		err = kbcrypto.BadKeyError{Msg: "KID was way too short"}
 		return
 	}
 	if kid[0] != byte(kbcrypto.KeybaseKIDV1) || kid[l-1] != byte(kbcrypto.IDSuffixKID) {
-		err = kbcrypto.BadKeyError{"bad header or trailer found"}
+		err = kbcrypto.BadKeyError{Msg: "bad header or trailer found"}
 		return
 	}
 	raw := kid[2:(l - 1)]
 	switch kid[1] {
 	case byte(kbcrypto.KIDNaclEddsa):
 		if len(raw) != ed25519.PublicKeySize {
-			err = kbcrypto.BadKeyError{"Bad EdDSA key size"}
+			err = kbcrypto.BadKeyError{Msg: "Bad EdDSA key size"}
 		} else {
 			tmp := NaclSigningKeyPair{}
 			copy(tmp.Public[:], raw)
@@ -131,14 +131,14 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 		}
 	case byte(kbcrypto.KIDNaclDH):
 		if len(raw) != NaclDHKeysize {
-			err = kbcrypto.BadKeyError{"Bad DH key size"}
+			err = kbcrypto.BadKeyError{Msg: "Bad DH key size"}
 		} else {
 			tmp := NaclDHKeyPair{}
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
 	default:
-		err = kbcrypto.BadKeyError{fmt.Sprintf("Bad key prefix: %d", kid[1])}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Bad key prefix: %d", kid[1])}
 	}
 	return
 }
@@ -172,7 +172,7 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, e
 	copy(ret.Public[:], body)
 	if priv == nil {
 	} else if len(priv) != NaclDHKeysize {
-		err = kbcrypto.BadKeyError{"Secret key was wrong size"}
+		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {
 		ret.Private = &NaclDHKeyPrivate{}
 		copy(ret.Private[:], priv)

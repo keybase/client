@@ -76,7 +76,7 @@ func SetGlobalExternalKeyStore(s UnsafeExternalKeyStore) {
 	externalKeyStoreInitialized = false
 }
 
-var ErrNoExternalKeyStore = errors.New("no external key store available")
+var errNoExternalKeyStore = errors.New("no external key store available")
 
 func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 	externalKeyStoreMu.Lock()
