@@ -297,23 +297,6 @@ func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag
 	return p.checkHash()
 }
 
-func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
-	b, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil, err
-	}
-	return DecodePacket(b)
-}
-
-func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
-	ret = &KeybasePacket{}
-	err = ret.unmarshalBinary(data)
-	if err != nil {
-		ret = nil
-	}
-	return
-}
-
 func DecodePacketBody(data []byte, tag PacketTag, body interface{}) error {
 	var p KeybasePacket
 	p.Body = body
