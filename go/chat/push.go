@@ -1045,9 +1045,18 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 			g.Debug(ctx, "resolve: unable to find all conversations")
 		}
 
+		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
+		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
 		for _, conv := range inbox.Convs {
-			g.G().ActivityNotifier.SubteamRename(ctx, uid,
-				conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, &conv, uid))
+			uiItem := g.presentUIItem(ctx, &conv, uid)
+			if uiItem != nil {
+				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
+				convIDs[uiItem.TopicType] = append(convIDs[uiItem.TopicType], conv.GetConvID())
+			}
+		}
+		for topicType, items := range convUIItems {
+			cids := convIDs[topicType]
+			g.G().ActivityNotifier.SubteamRename(ctx, uid, cids, topicType, items)
 		}
 	}(bctx)
 

@@ -755,15 +755,11 @@
           "type": "keybase1.UID"
         },
         {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "conv",
-          "type": [
-            null,
-            "InboxUIItem"
-          ]
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          }
         }
       ],
       "response": null,

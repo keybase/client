@@ -936,9 +936,8 @@ type ChatSetConvSettingsArg struct {
 }
 
 type ChatSubteamRenameArg struct {
-	Uid    keybase1.UID   `codec:"uid" json:"uid"`
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	Conv   *InboxUIItem   `codec:"conv,omitempty" json:"conv,omitempty"`
+	Uid   keybase1.UID  `codec:"uid" json:"uid"`
+	Convs []InboxUIItem `codec:"convs" json:"convs"`
 }
 
 type ChatKBFSToImpteamUpgradeArg struct {

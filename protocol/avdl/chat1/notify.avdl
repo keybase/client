@@ -208,7 +208,7 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatSubteamRename(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+  void ChatSubteamRename(keybase1.UID uid, array<InboxUIItem> convs);
 
   @notify("")
   @lint("ignore")

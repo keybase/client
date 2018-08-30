@@ -101,12 +101,7 @@ func TestChatSubteamRename(t *testing.T) {
 		}
 		sort.Sort(utils.ByConvID(u1ExpectedUpdates))
 
-		u1Updates := []chat1.ConversationID{
-			consumeSubteamRename(t, listener1),
-			consumeSubteamRename(t, listener1),
-			consumeSubteamRename(t, listener1),
-			consumeSubteamRename(t, listener1),
-		}
+		u1Updates := consumeSubteamRename(t, listener1)
 		sort.Sort(utils.ByConvID(u1Updates))
 		require.Equal(t, u1ExpectedUpdates, u1Updates)
 
@@ -120,9 +115,7 @@ func TestChatSubteamRename(t *testing.T) {
 			subConv1.Id,
 		}
 
-		u2Updates := []chat1.ConversationID{
-			consumeSubteamRename(t, listener2),
-		}
+		u2Updates := consumeSubteamRename(t, listener2)
 		require.Equal(t, u2ExpectedUpdates, u2Updates)
 
 		select {

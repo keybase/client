@@ -1902,7 +1902,7 @@ type serverChatListener struct {
 	setConvSettings  chan chat1.ConversationID
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
-	subteamRename    chan chat1.ConversationID
+	subteamRename    chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1977,8 +1977,8 @@ func (n *serverChatListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
 }
-func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convID chat1.ConversationID) {
-	n.subteamRename <- convID
+func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
+	n.subteamRename <- convIDs
 }
 func newServerChatListener() *serverChatListener {
 	buf := 100
@@ -2004,7 +2004,7 @@ func newServerChatListener() *serverChatListener {
 		setConvSettings:  make(chan chat1.ConversationID, buf),
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
-		subteamRename:    make(chan chat1.ConversationID, buf),
+		subteamRename:    make(chan []chat1.ConversationID, buf),
 	}
 }
 
@@ -3476,13 +3476,13 @@ func consumeSetConvSettings(t *testing.T, listener *serverChatListener) chat1.Co
 	}
 }
 
-func consumeSubteamRename(t *testing.T, listener *serverChatListener) chat1.ConversationID {
+func consumeSubteamRename(t *testing.T, listener *serverChatListener) []chat1.ConversationID {
 	select {
 	case x := <-listener.subteamRename:
 		return x
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get subteamRename notification")
-		return chat1.ConversationID{}
+		return nil
 	}
 }
 

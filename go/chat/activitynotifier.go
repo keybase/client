@@ -50,8 +50,8 @@ func (n *NotifyRouterActivityRouter) kuid(uid gregor1.UID) keybase1.UID {
 	return keybase1.UID(uid.String())
 }
 
-func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType,
-	activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
+func (n *NotifyRouterActivityRouter) Activity(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType, activity *chat1.ChatActivity, source chat1.ChatActivitySource) {
 	defer n.Trace(ctx, func() error { return nil }, "Activity(%v,%v)", topicType, source)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -67,7 +67,8 @@ func (n *NotifyRouterActivityRouter) TypingUpdate(ctx context.Context, updates [
 	}
 }
 
-func (n *NotifyRouterActivityRouter) JoinedConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+func (n *NotifyRouterActivityRouter) JoinedConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
 	defer n.Trace(ctx, func() error { return nil }, "JoinedConversation(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -75,7 +76,8 @@ func (n *NotifyRouterActivityRouter) JoinedConversation(ctx context.Context, uid
 	}
 }
 
-func (n *NotifyRouterActivityRouter) LeftConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) {
+func (n *NotifyRouterActivityRouter) LeftConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	defer n.Trace(ctx, func() error { return nil }, "LeftConversation(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -83,7 +85,8 @@ func (n *NotifyRouterActivityRouter) LeftConversation(ctx context.Context, uid g
 	}
 }
 
-func (n *NotifyRouterActivityRouter) ResetConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) {
+func (n *NotifyRouterActivityRouter) ResetConversation(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	defer n.Trace(ctx, func() error { return nil }, "ResetConversation(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -91,7 +94,8 @@ func (n *NotifyRouterActivityRouter) ResetConversation(ctx context.Context, uid 
 	}
 }
 
-func (n *NotifyRouterActivityRouter) KBFSToImpteamUpgrade(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) {
+func (n *NotifyRouterActivityRouter) KBFSToImpteamUpgrade(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	defer n.Trace(ctx, func() error { return nil }, "KBFSToImpteamUpgrade(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -99,7 +103,8 @@ func (n *NotifyRouterActivityRouter) KBFSToImpteamUpgrade(ctx context.Context, u
 	}
 }
 
-func (n *NotifyRouterActivityRouter) SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+func (n *NotifyRouterActivityRouter) SetConvRetention(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
 	defer n.Trace(ctx, func() error { return nil }, "SetConvRetention(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -107,7 +112,8 @@ func (n *NotifyRouterActivityRouter) SetConvRetention(ctx context.Context, uid g
 	}
 }
 
-func (n *NotifyRouterActivityRouter) SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
+func (n *NotifyRouterActivityRouter) SetTeamRetention(ctx context.Context, uid gregor1.UID,
+	teamID keybase1.TeamID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
 	defer n.Trace(ctx, func() error { return nil }, "SetTeamRetention(%s,%v)", teamID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -115,7 +121,8 @@ func (n *NotifyRouterActivityRouter) SetTeamRetention(ctx context.Context, uid g
 	}
 }
 
-func (n *NotifyRouterActivityRouter) SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
+func (n *NotifyRouterActivityRouter) SetConvSettings(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
 	defer n.Trace(ctx, func() error { return nil }, "SetConvSettings(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -123,11 +130,12 @@ func (n *NotifyRouterActivityRouter) SetConvSettings(ctx context.Context, uid gr
 	}
 }
 
-func (n *NotifyRouterActivityRouter) SubteamRename(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, conv *chat1.InboxUIItem) {
-	defer n.Trace(ctx, func() error { return nil }, "SubteamRename(%s,%v)", convID, topicType)()
+func (n *NotifyRouterActivityRouter) SubteamRename(ctx context.Context, uid gregor1.UID,
+	convIDs []chat1.ConversationID, topicType chat1.TopicType, convs []chat1.InboxUIItem) {
+	defer n.Trace(ctx, func() error { return nil }, "SubteamRename(%v,%d convs)", topicType, len(convs))()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
-		n.G().NotifyRouter.HandleChatSubteamRename(ctx, n.kuid(uid), convID, topicType, conv)
+		n.G().NotifyRouter.HandleChatSubteamRename(ctx, n.kuid(uid), convIDs, topicType, convs)
 	}
 }
 
@@ -139,7 +147,8 @@ func (n *NotifyRouterActivityRouter) InboxSyncStarted(ctx context.Context, uid g
 	}
 }
 
-func (n *NotifyRouterActivityRouter) InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult) {
+func (n *NotifyRouterActivityRouter) InboxSynced(ctx context.Context, uid gregor1.UID,
+	topicType chat1.TopicType, syncRes chat1.ChatSyncResult) {
 	defer n.Trace(ctx, func() error { return nil }, "InboxSynced(%v)", topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -155,7 +164,8 @@ func (n *NotifyRouterActivityRouter) InboxStale(ctx context.Context, uid gregor1
 	}
 }
 
-func (n *NotifyRouterActivityRouter) ThreadsStale(ctx context.Context, uid gregor1.UID, updates []chat1.ConversationStaleUpdate) {
+func (n *NotifyRouterActivityRouter) ThreadsStale(ctx context.Context, uid gregor1.UID,
+	updates []chat1.ConversationStaleUpdate) {
 	defer n.Trace(ctx, func() error { return nil }, "ThreadsStale")()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -163,7 +173,8 @@ func (n *NotifyRouterActivityRouter) ThreadsStale(ctx context.Context, uid grego
 	}
 }
 
-func (n *NotifyRouterActivityRouter) TLFFinalize(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem) {
+func (n *NotifyRouterActivityRouter) TLFFinalize(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, finalizeInfo chat1.ConversationFinalizeInfo, conv *chat1.InboxUIItem) {
 	defer n.Trace(ctx, func() error { return nil }, "TLFFinalize(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
@@ -171,7 +182,8 @@ func (n *NotifyRouterActivityRouter) TLFFinalize(ctx context.Context, uid gregor
 	}
 }
 
-func (n *NotifyRouterActivityRouter) TLFResolve(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType, resolveInfo chat1.ConversationResolveInfo) {
+func (n *NotifyRouterActivityRouter) TLFResolve(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, topicType chat1.TopicType, resolveInfo chat1.ConversationResolveInfo) {
 	defer n.Trace(ctx, func() error { return nil }, "TLFResolve(%s,%v)", convID, topicType)()
 	ctx = BackgroundContext(ctx, n.G())
 	n.notifyCh <- func() {
