@@ -10,7 +10,6 @@ import {isMobile} from '../../constants/platform'
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',
-  autoFocus: false,
   placeholder: 'Type someone',
   onExitSearch: Sb.action('onExitSearch'),
   onSelectUser: Sb.action('onSelectUser'),
@@ -30,6 +29,7 @@ const inputCommon = {
   onRemoveUser: Sb.action('Remove user'),
   placeholder: 'Type someone',
   selectedSearchId: null,
+  style: undefined,
 }
 
 const maxUsers = [

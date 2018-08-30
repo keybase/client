@@ -3,7 +3,14 @@ import {last} from 'lodash-es'
 import React, {Component} from 'react'
 import {TextInput, Animated} from 'react-native'
 import {Box, Text, Icon, ClickableBox} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, platformStyles} from '../../styles'
+import {
+  globalColors,
+  globalMargins,
+  globalStyles,
+  platformStyles,
+  styleSheetCreate,
+  collapseStyles,
+} from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
@@ -180,15 +187,7 @@ class UserInput extends Component<Props, State> {
     const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     return (
       <ClickableBox feedback={false} onClick={this.focus}>
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            minHeight: 40,
-            marginLeft: globalMargins.xtiny,
-          }}
-        >
+        <Box style={collapseStyles([styles.container, this.props.style])}>
           {userItems.map(item => <UserItem {...item} onRemoveUser={this._onRemoveUser} key={item.id} />)}
           <Box
             style={{
@@ -239,6 +238,16 @@ class UserInput extends Component<Props, State> {
     )
   }
 }
+
+const styles = styleSheetCreate({
+  container: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    minHeight: 40,
+    marginLeft: globalMargins.xtiny,
+  },
+})
 
 const _pillStyle = {
   ...globalStyles.flexBoxRow,

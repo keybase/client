@@ -12,6 +12,7 @@ import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
+import type {StylesCrossPlatform} from '../../styles'
 
 export type OwnProps = {|
   searchKey: string,
@@ -24,6 +25,7 @@ export type OwnProps = {|
   hideAddButton?: boolean,
   disableListBuilding?: boolean,
   showServiceFilter?: boolean,
+  style?: StylesCrossPlatform,
 |}
 
 const UserInputWithServiceFilter = props => (

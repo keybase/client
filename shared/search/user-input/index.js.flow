@@ -2,6 +2,7 @@
 import {Component} from 'react'
 import * as Types from '../../constants/types/search'
 import type {IconType} from '../../common-adapters'
+import type {StylesCrossPlatform} from '../../styles'
 
 export type UserDetails = {
   id: string,
@@ -27,6 +28,7 @@ export type Props = {
   onAddSelectedUser: () => void,
   onEnterEmptyText?: () => void,
   selectedSearchId: ?string,
+  style?: StylesCrossPlatform,
 }
 
 export default class UserInput extends Component<Props> {
