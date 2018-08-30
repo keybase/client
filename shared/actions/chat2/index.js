@@ -1494,8 +1494,9 @@ const _maybeAutoselectNewestConversation = (
       return
     }
   } else if (
-    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
-    action.payload.conversationIDKey === selected
+    action.type === TeamsGen.leaveTeam ||
+    (action.type === Chat2Gen.leaveConversation ||
+      (action.type === Chat2Gen.blockConversation && action.payload.conversationIDKey === selected))
   ) {
     // Intentional fall-through -- force select a new one
   } else if (
