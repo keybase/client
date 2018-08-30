@@ -1403,7 +1403,7 @@ func (vp *VerificationPath) verifyUsername(m MetaContext, userInfo merkleUserInf
 		return
 	}
 	if userInfo.uid.NotEqual(uid2) {
-		err = kbun.UIDMismatchError{fmt.Sprintf("UID %s != %s via merkle tree", uid2, userInfo.uid)}
+		err = kbun.UIDMismatchError{Msg: fmt.Sprintf("UID %s != %s via merkle tree", uid2, userInfo.uid)}
 		return
 	}
 
