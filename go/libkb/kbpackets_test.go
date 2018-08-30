@@ -74,12 +74,12 @@ func (*testPacketable) GetTagAndVersion() (PacketTag, PacketVersion) {
 // ints.
 func TestHardcodedPacketEncode(t *testing.T) {
 	var nilPtr *testPacketable
-	p, err := NewKeybasePacket(nilPtr)
+	p, err := newKeybasePacket(nilPtr)
 	require.NoError(t, err)
 
 	p.Hash = nil
 
-	bytes, err := p.Encode()
+	bytes, err := p.encode()
 	require.NoError(t, err)
 	// In particular, {0xcd, 0x2, 0x2} shouldn't change to
 	// {0xd1, 0x2, 0x2}.
