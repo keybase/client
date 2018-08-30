@@ -35,7 +35,7 @@ class Search extends React.Component<SearchProps, SearchState> {
   render() {
     return (
       <React.Fragment>
-        <ParticipantsRow heading="To" style={styles.row}>
+        <ParticipantsRow heading="To" style={styles.row} headingStyle={styles.rowHeading}>
           <Box2 direction="vertical" fullWidth={true}>
             <UserInput
               searchKey={searchKey}
@@ -66,9 +66,14 @@ class Search extends React.Component<SearchProps, SearchState> {
 const styles = Styles.styleSheetCreate({
   row: {
     paddingBottom: 0,
+    paddingTop: 0,
+  },
+  rowHeading: {
+    marginRight: 0, // Removing the right margin on the heading is to offset some left margin in UserInput
   },
   input: {
     borderWidth: 0,
+    paddingLeft: 0,
   },
   list: Styles.platformStyles({
     isElectron: {
