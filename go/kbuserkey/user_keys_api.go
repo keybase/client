@@ -6,6 +6,7 @@ package kbuserkey
 import (
 	"time"
 
+	"github.com/keybase/client/go/auth"
 	"github.com/keybase/client/go/kbun"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -41,7 +42,7 @@ func (p *pubsubResponse) GetAppStatus() *libkb.AppStatus {
 	return &p.Status
 }
 
-var _ UserKeyAPIer = (*userKeyAPI)(nil)
+var _ auth.UserKeyAPIer = (*userKeyAPI)(nil)
 
 type userKeysResPublicKeys struct {
 	Sibkeys []keybase1.KID `json:"sibkeys"`
@@ -130,6 +131,6 @@ func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, e
 }
 
 // NewUserKeyAPIer returns a UserKeyAPIer implementation.
-func NewUserKeyAPIer(log logger.Logger, api libkb.API) UserKeyAPIer {
+func NewUserKeyAPIer(log logger.Logger, api libkb.API) auth.UserKeyAPIer {
 	return &userKeyAPI{log: log, api: api}
 }
