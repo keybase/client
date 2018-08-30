@@ -20,6 +20,14 @@ type Packetable interface {
 	GetTagAndVersion() (PacketTag, PacketVersion)
 }
 
+func EncodePacketTo(p Packetable, encoder *codec.Encoder) error {
+	packet, err := NewKeybasePacket(p)
+	if err != nil {
+		return err
+	}
+	return encoder.Encode(packet)
+}
+
 func EncodePacket(p Packetable) ([]byte, error) {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
@@ -133,15 +141,23 @@ func (p *KeybasePacket) Encode() ([]byte, error) {
 	return encoded, err
 }
 
-func (p *KeybasePacket) ArmoredEncode() (ret string, err error) {
+func (p *KeybasePacket) ArmoredEncode() (string, error) {
 	var buf bytes.Buffer
-	b64 := base64.NewEncoder(base64.StdEncoding, &buf)
-	err = p.EncodeTo(b64)
-	b64.Close()
-	if err == nil {
-		ret = buf.String()
+	err := func() (err error) {
+		b64 := base64.NewEncoder(base64.StdEncoding, &buf)
+		defer func() {
+			closeErr := b64.Close()
+			if err == nil {
+				err = closeErr
+			}
+		}()
+		encoder := codec.NewEncoder(b64, codecHandle())
+		return encoder.Encode(p)
+	}()
+	if err != nil {
+		return "", err
 	}
-	return
+	return buf.String(), nil
 }
 
 func (p *KeybasePacket) EncodeTo(w io.Writer) error {

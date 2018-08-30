@@ -66,18 +66,38 @@ func (k *SKBKeyringFile) MarkDirty() {
 }
 
 type skbPacket struct {
-	skb SKB
+	skb *SKB
 }
+
+// Okay to panic in Codec{Encode,Decode}Self, since the
+// encoder/decoder catches panics and turns them back into errors.
 
 func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
-	panic("skbPacket.CodecEncodeSelf unexpectedly called")
-}
-
-func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
-	err := DecodePacket(d, &s.skb)
+	err := EncodePacketTo(s.skb, e)
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
+	var skb SKB
+	err := DecodePacket(d, &skb)
+	if err != nil {
+		panic(err)
+	}
+	s.skb = &skb
+}
+
+func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
+	ch := codecHandle()
+	encoder := codec.NewEncoder(w, ch)
+
+	packets := make([]skbPacket, len(skbs))
+	for i := range skbs {
+		packets[i].skb = skbs[i]
+	}
+
+	return encoder.Encode(packets)
 }
 
 func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
@@ -93,25 +113,9 @@ func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
 	skbs := make([]*SKB, len(packets))
 	for i, s := range packets {
 		s.skb.SetGlobalContext(g)
-		skbs[i] = &s.skb
+		skbs[i] = s.skb
 	}
 	return skbs, nil
-}
-
-func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
-	packets := make([]*KeybasePacket, len(skbs))
-	var err error
-	for i, b := range skbs {
-		if packets[i], err = NewKeybasePacket(b); err != nil {
-			return err
-		}
-	}
-
-	encoder := codec.NewEncoder(w, codecHandle())
-	if err = encoder.Encode(packets); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (k *SKBKeyringFile) loadLocked() (err error) {
@@ -366,23 +370,27 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 
 // WriteTo is similar to GetFilename described just above in terms of
 // locking discipline.
-func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
+func (k *SKBKeyringFile) WriteTo(w io.Writer) (n int64, err error) {
 	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
 	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
-	defer b64.Close()
+	defer func() {
+		// explicitly check for error on Close:
+		if closeErr := b64.Close(); closeErr != nil {
+			k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", closeErr)
+			if err == nil {
+				n = 0
+				err = closeErr
+				return
+			}
+		}
+		k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
+	}()
 
 	if err := encodeSKBPacketList(k.Blocks, b64); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-
-	// explicitly check for error on Close:
-	if err := b64.Close(); err != nil {
-		k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", err)
-		return 0, err
-	}
-	k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
 
 	return 0, nil
 }
