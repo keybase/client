@@ -353,7 +353,7 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
 	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
-	packets := make(KeybasePackets, len(k.Blocks))
+	packets := make([]*KeybasePacket, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
 		if packets[i], err = b.ToPacket(); err != nil {
@@ -363,7 +363,8 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
 	defer b64.Close()
 
-	if err = packets.EncodeTo(b64); err != nil {
+	encoder := codec.NewEncoder(b64, codecHandle())
+	if err = encoder.Encode(packets); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}

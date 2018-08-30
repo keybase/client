@@ -48,7 +48,9 @@ type KeybasePacket struct {
 	Version PacketVersion      `codec:"version"`
 }
 
-type KeybasePackets []*KeybasePacket
+type Packetable interface {
+	ToPacket() (*KeybasePacket, error)
+}
 
 func NewKeybasePacket(body interface{}, tag PacketTag, version PacketVersion) (*KeybasePacket, error) {
 	ret := KeybasePacket{
@@ -129,17 +131,6 @@ func (p *KeybasePacket) ArmoredEncode() (ret string, err error) {
 }
 
 func (p *KeybasePacket) EncodeTo(w io.Writer) error {
-	err := codec.NewEncoder(w, codecHandle()).Encode(p)
-	return err
-}
-
-func (p KeybasePackets) Encode() ([]byte, error) {
-	var encoded []byte
-	err := codec.NewEncoderBytes(&encoded, codecHandle()).Encode(p)
-	return encoded, err
-}
-
-func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	err := codec.NewEncoder(w, codecHandle()).Encode(p)
 	return err
 }
@@ -245,10 +236,6 @@ func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error)
 		return NaclEncryptionInfo{}, err
 	}
 	return DecodeNaclEncryptionInfoPacket(b)
-}
-
-type Packetable interface {
-	ToPacket() (*KeybasePacket, error)
 }
 
 func PacketArmoredEncode(p Packetable) (ret string, err error) {
