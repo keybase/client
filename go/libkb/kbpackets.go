@@ -49,6 +49,7 @@ type KeybasePacket struct {
 }
 
 type Packetable interface {
+	GetTagAndVersion() (PacketTag, PacketVersion)
 	ToPacket() (*KeybasePacket, error)
 }
 
@@ -238,10 +239,11 @@ func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error)
 	return DecodeNaclEncryptionInfoPacket(b)
 }
 
-func PacketArmoredEncode(p Packetable) (ret string, err error) {
-	var tmp *KeybasePacket
-	if tmp, err = p.ToPacket(); err == nil {
-		ret, err = tmp.ArmoredEncode()
+func PacketArmoredEncode(p Packetable) (string, error) {
+	tag, version := p.GetTagAndVersion()
+	packet, err := NewKeybasePacket(p, tag, version)
+	if err != nil {
+		return "", err
 	}
-	return
+	return packet.ArmoredEncode()
 }

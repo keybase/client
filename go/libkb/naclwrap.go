@@ -486,6 +486,10 @@ func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (
 	return
 }
 
+func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagSignature, KeybasePacketV1
+}
+
 func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 	return NewKeybasePacket(s, TagSignature, KeybasePacketV1)
 }
@@ -835,6 +839,10 @@ func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err
 	}
 
 	return outKey, nil
+}
+
+func (k *NaclEncryptionInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagEncryption, KeybasePacketV1
 }
 
 // ToPacket implements the Packetable interface.
