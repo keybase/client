@@ -78,10 +78,10 @@ const styles = Styles.styleSheetCreate({
   list: Styles.platformStyles({
     isElectron: {
       position: 'absolute',
-      top: 100,
+      top: 93, // This is the exact height of the header + the input + the divider
       zIndex: 4,
       backgroundColor: Styles.globalColors.white,
-      height: 425,
+      height: 432, // 525 (height of popup) - 93
       width: '100%',
       overflowY: 'scroll',
     },
