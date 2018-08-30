@@ -11,7 +11,6 @@ import (
 
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kbun"
-	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 	"github.com/stretchr/testify/require"
@@ -65,10 +64,7 @@ func TestTokenVerifyToken(t *testing.T) {
 }
 
 func TestTokenExpired(t *testing.T) {
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	public, private := makeNaclSigningKeyPair(t)
 	name := kbun.NewNormalizedUsername("bob")
 	uid := kbun.UsernameToUID(name.String())
 	expireIn := 0
@@ -79,9 +75,9 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+	token := NewToken(uid, name, public.GetKID(), server, challenge,
 		time.Now().Unix(), expireIn, clientName, clientVersion)
-	sig, _, err := keyPair.SignToString(token.Bytes())
+	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,10 +89,7 @@ func TestTokenExpired(t *testing.T) {
 }
 
 func TestMaxExpires(t *testing.T) {
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	public, private := makeNaclSigningKeyPair(t)
 	name := kbun.NewNormalizedUsername("charlie")
 	uid := kbun.UsernameToUID(name.String())
 	expireIn := testMaxTokenExpireIn + 10
@@ -107,9 +100,9 @@ func TestMaxExpires(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+	token := NewToken(uid, name, public.GetKID(), server, challenge,
 		time.Now().Unix(), expireIn, clientName, clientVersion)
-	sig, _, err := keyPair.SignToString(token.Bytes())
+	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,10 +114,7 @@ func TestMaxExpires(t *testing.T) {
 }
 
 func TestTokenServerInvalid(t *testing.T) {
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	public, private := makeNaclSigningKeyPair(t)
 	name := kbun.NewNormalizedUsername("dana")
 	uid := kbun.UsernameToUID(name.String())
 	expireIn := 10
@@ -135,9 +125,9 @@ func TestTokenServerInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+	token := NewToken(uid, name, public.GetKID(), server, challenge,
 		time.Now().Unix(), expireIn, clientName, clientVersion)
-	sig, _, err := keyPair.SignToString(token.Bytes())
+	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -150,17 +140,14 @@ func TestTokenServerInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = checkToken(token, uid, name, keyPair.GetKID(),
+	if err = checkToken(token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestTokenChallengeInvalid(t *testing.T) {
-	keyPair, err := libkb.GenerateNaclSigningKeyPair()
-	if err != nil {
-		t.Fatal(err)
-	}
+	public, private := makeNaclSigningKeyPair(t)
 	name := kbun.NewNormalizedUsername("dana")
 	uid := kbun.UsernameToUID(name.String())
 	expireIn := 10
@@ -171,9 +158,9 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+	token := NewToken(uid, name, public.GetKID(), server, challenge,
 		time.Now().Unix(), expireIn, clientName, clientVersion)
-	sig, _, err := keyPair.SignToString(token.Bytes())
+	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +173,7 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = checkToken(token, uid, name, keyPair.GetKID(),
+	if err = checkToken(token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
