@@ -16,6 +16,26 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
+type Packetable interface {
+	GetTagAndVersion() (PacketTag, PacketVersion)
+}
+
+func EncodePacket(p Packetable) ([]byte, error) {
+	packet, err := NewKeybasePacket(p)
+	if err != nil {
+		return nil, err
+	}
+	return packet.Encode()
+}
+
+func PacketArmoredEncode(p Packetable) (string, error) {
+	packet, err := NewKeybasePacket(p)
+	if err != nil {
+		return "", err
+	}
+	return packet.ArmoredEncode()
+}
+
 type FishyMsgpackError struct {
 	original  []byte
 	reencoded []byte
@@ -43,10 +63,6 @@ type KeybasePacket struct {
 	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
 	Tag     PacketTag          `codec:"tag"`
 	Version PacketVersion      `codec:"version"`
-}
-
-type Packetable interface {
-	GetTagAndVersion() (PacketTag, PacketVersion)
 }
 
 func NewKeybasePacket(body Packetable) (*KeybasePacket, error) {
@@ -238,12 +254,4 @@ func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error)
 		return NaclEncryptionInfo{}, err
 	}
 	return DecodeNaclEncryptionInfoPacket(b)
-}
-
-func PacketArmoredEncode(p Packetable) (string, error) {
-	packet, err := NewKeybasePacket(p)
-	if err != nil {
-		return "", err
-	}
-	return packet.ArmoredEncode()
 }
