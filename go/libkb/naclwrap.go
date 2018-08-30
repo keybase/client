@@ -490,14 +490,6 @@ func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 	return NewKeybasePacket(s, TagSignature, KeybasePacketV1)
 }
 
-func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
-	ret, ok := p.Body.(*NaclSigInfo)
-	if !ok {
-		return nil, UnmarshalError{TagSignature}
-	}
-	return ret, nil
-}
-
 func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
 	if len(bk) != 3+ed25519.PublicKeySize {
 		return nil
