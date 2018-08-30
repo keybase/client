@@ -43,11 +43,11 @@ const setupEngineListeners = () => {
     })
   })
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}) =>
+  getEngine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({param: {badgeState}}) =>
     NotificationsGen.createReceivedBadgeState({badgeState})
   )
 
-  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', ({accountID}) =>
+  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', ({param: {accountID}}) =>
     WalletsGen.createRefreshPayments({accountID})
   )
 }

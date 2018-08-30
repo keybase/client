@@ -183,12 +183,9 @@ const setupEngineListeners = () => {
     SafeElectron.getApp().exit(0)
   })
 
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyFS.FSActivity',
-    ({notification}, _, __, getState) => {
-      kbfsNotification(notification, NotifyPopup, getState)
-    }
-  )
+  getEngine().setIncomingActionCreators('keybase.1.NotifyFS.FSActivity', ({param: {notification}, state}) => {
+    kbfsNotification(notification, NotifyPopup, state)
+  })
 
   getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
     RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
@@ -196,7 +193,7 @@ const setupEngineListeners = () => {
     })
   })
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
+  getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({param: {code}, response}) => {
     response && response.result()
     if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
       console.log('Quitting due to service shutdown')
@@ -207,13 +204,13 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingActionCreators(
     'keybase.1.NotifySession.clientOutOfDate',
-    ({upgradeTo, upgradeURI, upgradeMsg}) => {
+    ({param: {upgradeTo, upgradeURI, upgradeMsg}}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
     }
   )
 
-  getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
+  getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', ({response}) => {
     dumpLogs().then(() => {
       response && response.result()
     })

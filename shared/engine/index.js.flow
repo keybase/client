@@ -1,5 +1,5 @@
 // @flow
-import type {TypedState, TypedActions, Dispatch} from '../util/container'
+import type {TypedState, TypedActions} from '../util/container'
 
 declare export class Engine {
   dispatchWaitingAction: (key: string, waiting: boolean) => void;
@@ -13,12 +13,11 @@ declare export class Engine {
   hasEverConnected(): void;
   setIncomingActionCreators(
     method: string,
-    actionCreator: (
+    actionCreator: ({
       param: Object,
+      state: TypedState,
       response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => null | false | void | TypedActions | Array<TypedActions | null | false | void>
+    }) => null | false | void | TypedActions | Array<TypedActions | null | false | void>
   ): void;
   createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
   _rpcOutgoing({

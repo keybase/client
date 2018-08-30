@@ -17,19 +17,18 @@ import {isArray} from 'lodash-es'
 
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
+import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
 type TypedActions = {type: string, error: boolean, payload: any}
 
-type IncomingActionCreator = (
+type IncomingActionCreator = ({
   param: Object,
   response: ?Object,
-  dispatch: Dispatch,
-  getState: () => TypedState
-) => void | null | TypedActions | Array<TypedActions>
+  state: TypedState,
+}) => void | null | TypedActions | Array<TypedActions>
 
 class Engine {
   // Bookkeep old sessions
@@ -101,8 +100,8 @@ class Engine {
 
   // Default handlers for incoming messages
   _setupCoreHandlers() {
-    this.setIncomingActionCreators('keybase.1.logUi.log', (param, response) => {
-      const logParam: LogUiLogRpcParam = param
+    this.setIncomingActionCreators('keybase.1.logUi.log', ({param, response}) => {
+      const logParam = param
       log(logParam)
       response && response.result && response.result()
     })
@@ -227,7 +226,7 @@ class Engine {
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
         // TODO remove dispatch and getState, these callbacks should just dispatch actions
-        const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
+        const rawActions = creator({param, response, state: Engine._getState()})
         const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
         const actions = arrayActions.filter(Boolean)
         actions.forEach(a => Engine._dispatch(a))
@@ -451,7 +450,7 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?any
+    actionCreator: ({param: Object, response: ?Object, state: any}) => ?any
   ) {}
   createSession(
     incomingCallMap: ?IncomingCallMapType,

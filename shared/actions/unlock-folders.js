@@ -43,7 +43,7 @@ const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
   engine().setIncomingActionCreators(
     'keybase.1.rekeyUI.refresh',
-    ({sessionID, problemSetDevices}, response) => {
+    ({param: {sessionID, problemSetDevices}, response}) => {
       logger.info('Asked for rekey')
       response && response.result()
       return UnlockFoldersGen.createNewRekeyPopup({
@@ -55,7 +55,7 @@ const setupEngineListeners = () => {
   )
 
   // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, dispatch) => {
+  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', ({response}) => {
     // Dangling, never gets closed
     const session = engine().createSession({
       dangling: true,

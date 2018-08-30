@@ -35,27 +35,30 @@ function toNonNullGregorItems(state: GregorState): Array<Types.NonNullGregorItem
 
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
+  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({param: {reason, state}, response}) => {
     response && response.result()
     return GregorGen.createPushState({reason, state})
   })
 
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-    response && response.result()
-    if (oobm && oobm.length) {
-      const filteredOOBM = oobm.filter(Boolean)
-      if (filteredOOBM.length) {
-        return GregorGen.createPushOOBM({messages: filteredOOBM})
+  engine().setIncomingActionCreators(
+    'keybase.1.gregorUI.pushOutOfBandMessages',
+    ({param: {oobm}, response}) => {
+      response && response.result()
+      if (oobm && oobm.length) {
+        const filteredOOBM = oobm.filter(Boolean)
+        if (filteredOOBM.length) {
+          return GregorGen.createPushOOBM({messages: filteredOOBM})
+        }
       }
     }
-  })
+  )
 
   engine().setIncomingActionCreators(
     'keybase.1.reachability.reachabilityChanged',
-    ({reachability}, response, _, getState) => {
+    ({param: {reachability}, state}) => {
       // Gregor reachability is only valid if we're logged in
       // TODO remove this when core stops sending us these when we're logged out
-      if (getState().config.loggedIn) {
+      if (state.config.loggedIn) {
         return GregorGen.createUpdateReachability({reachability})
       }
     }

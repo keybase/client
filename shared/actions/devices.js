@@ -21,9 +21,7 @@ const requestPaperKey = () =>
   Saga.call(function*() {
     yield RPCTypes.loginPaperKeyRpcSaga({
       incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({
-          phrase,
-        }: RPCTypes.LoginUiDisplayPaperKeyPhraseRpcParam) =>
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
           Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
         'keybase.1.loginUi.promptRevokePaperKeys': (_, response, __) => {
           response.result(false)

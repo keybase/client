@@ -1056,51 +1056,36 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamChangedByName',
-    (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
-      const state = getState()
-      logger.info(`Got teamChanged for ${args.teamName} from service`)
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(args.teamName)) {
-        // only reload if that team is selected
-        return getLoadCalls(args.teamName)
-      }
-      return getLoadCalls()
+  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamChangedByName', ({param, state}) => {
+    logger.info(`Got teamChanged for ${param.teamName} from service`)
+    const selectedTeamNames = Constants.getSelectedTeamNames(state)
+    if (selectedTeamNames.includes(param.teamName)) {
+      // only reload if that team is selected
+      return getLoadCalls(param.teamName)
     }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamDeleted',
-    (args: RPCTypes.NotifyTeamTeamDeletedRpcParam, _, __, getState) => {
-      const state = getState()
-      const {teamID} = args
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
-      }
-      return getLoadCalls()
+    return getLoadCalls()
+  })
+  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamDeleted', ({param, state}) => {
+    const {teamID} = param
+    const selectedTeamNames = Constants.getSelectedTeamNames(state)
+    if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+      return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
     }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamExit',
-    (args: RPCTypes.NotifyTeamTeamExitRpcParam, _, __, getState) => {
-      const state = getState()
-      const {teamID} = args
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
-      }
-      return getLoadCalls()
+    return getLoadCalls()
+  })
+  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamExit', ({param, state}) => {
+    const {teamID} = param
+    const selectedTeamNames = Constants.getSelectedTeamNames(state)
+    if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+      return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
     }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.avatarUpdated',
-    ({name}: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => [
-      getState().teams.teamnames.includes(name)
-        ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
-        : ConfigGen.createLoadAvatars({usernames: [name]}),
-    ]
-  )
+    return getLoadCalls()
+  })
+  engine().setIncomingActionCreators('keybase.1.NotifyTeam.avatarUpdated', ({param: {name}, state}) => [
+    state.teams.teamnames.includes(name)
+      ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
+      : ConfigGen.createLoadAvatars({usernames: [name]}),
+  ])
 }
 
 function getLoadCalls(teamname?: string) {

@@ -318,7 +318,7 @@ function _serverCallMap(
               folderName: args.folderName,
               inviteLink: args.inviteLink,
               isPrivate: args.isPrivate,
-              socialAssertion: args.socialAssertion,
+              service: args.socialAssertion.service,
               throttled: args.throttled,
             },
             username: args.assertion,
@@ -570,7 +570,7 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
+  engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({param: {uid}}) => {
     // $FlowIssue we don't allow non generated actions anymore, plus how this works needs to change
     return {error: false, payload: {uid}, type: 'tracker:_userChanged'}
   })
@@ -585,10 +585,9 @@ const setupEngineListeners = () => {
       })
   })
 
-  // TODO get rid of getState here
   engine().setIncomingActionCreators(
     'keybase.1.identifyUi.delegateIdentifyUI',
-    (param: any, response: ?Object, dispatch: Dispatch, getState: () => TypedState) => {
+    ({param: response, state}) => {
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
       let trackerTimeoutError = null

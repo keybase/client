@@ -21,10 +21,10 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', (payload, response) => {
+  engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', ({param, response}) => {
     logger.info('Asked for passphrase')
-    const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
-    const {sessionID} = payload
+    const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry
+    const {sessionID} = param
 
     // Stash response
     sessionIDToResponse[String(sessionID)] = response

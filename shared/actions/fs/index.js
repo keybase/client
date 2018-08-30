@@ -420,7 +420,7 @@ const setupEngineListeners = () => {
   engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () =>
     FsGen.createNotifySyncActivity()
   )
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({path}) =>
+  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({param: {path}}) =>
     // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
     // now.
     FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})
