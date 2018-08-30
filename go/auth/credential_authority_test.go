@@ -153,6 +153,10 @@ func newTestSetup() (*testState, *CredentialAuthority) {
 	return s, c
 }
 
+const (
+	pollWait = 5 * time.Second
+)
+
 func TestSimple(t *testing.T) {
 	state, credentialAuthority := newTestSetup()
 	u0 := state.newTestUser(4)
