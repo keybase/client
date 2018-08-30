@@ -939,5 +939,5 @@ export const decoratedMessageTypes: Array<Types.MessageType> = [
 ]
 
 // Used to decide whether to show the author for sequential messages
-export const isUserMessage = (m: Types.Message) =>
+export const authorIsCollapsible = (m: Types.Message) =>
   m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'

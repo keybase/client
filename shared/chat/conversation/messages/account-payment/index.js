@@ -59,6 +59,7 @@ const AccountPayment = (props: Props) => {
             type="Wallet"
             label={props.sendButtonLabel}
             onClick={props.onSend}
+            small={true}
             style={{alignSelf: 'flex-start'}}
           />
         )}

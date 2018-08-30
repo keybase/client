@@ -1498,7 +1498,11 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (Constants.isValidConversationIDKey(selected)) {
+  } else if (
+    Constants.isValidConversationIDKey(selected) &&
+    !action.payload.findNewConversation &&
+    !action.payload.selectSomethingElse
+  ) {
     // Stay with our existing convo if it was not empty or pending
     return
   }
@@ -2249,10 +2253,16 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (state: TypedState) =>
+const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   !state.chat2.staticConfig &&
   Saga.sequentially([
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
     Saga.call(function*() {
       const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
         (res: RPCChatTypes.StaticConfig) => {
@@ -2279,7 +2289,13 @@ const loadStaticConfig = (state: TypedState) =>
         yield Saga.put(loadAction)
       }
     }),
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
   ])
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {

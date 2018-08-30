@@ -487,22 +487,6 @@
           "name": "amountDescription"
         },
         {
-          "type": "string",
-          "name": "amountStellar"
-        },
-        {
-          "type": "string",
-          "name": "amountStellarDescription"
-        },
-        {
-          "type": "boolean",
-          "name": "completed"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "fundingKbTxID"
-        },
-        {
           "type": "RequestStatus",
           "name": "status"
         }
@@ -749,7 +733,10 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
