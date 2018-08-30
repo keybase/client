@@ -322,6 +322,9 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	}
 
 	unboxed, ierr := b.unbox(ctx, boxed, conv.GetMembersType(), encryptionKey, ephemeralSeed)
+	if ierr == nil {
+		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
+	}
 	if ierr != nil {
 		b.Debug(ctx, "failed to unbox message: msgID: %d err: %s", boxed.ServerHeader.MessageID,
 			ierr.Error())
@@ -329,8 +332,6 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 			return b.makeErrorMessage(ctx, boxed, ierr), nil
 		}
 		return chat1.MessageUnboxed{}, ierr
-	} else {
-		ierr = b.checkInvariants(ctx, conv.GetConvID(), boxed, unboxed)
 	}
 	return chat1.NewMessageUnboxedWithValid(*unboxed), nil
 }
