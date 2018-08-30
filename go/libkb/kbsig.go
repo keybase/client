@@ -300,6 +300,7 @@ func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
 }
 
 func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
+	return nil, fmt.Errorf("shortcircuit")
 	// if only Me exists, then that is the signing user too
 	if arg.SigningUser == nil && arg.Me != nil {
 		arg.SigningUser = arg.Me
@@ -354,13 +355,20 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	// overridden. It is expected to be provided by PerUserKey and
 	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
-	if (arg.Me == nil) == (arg.HPrevInfoOverride == nil) {
-		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfo should be provided.")
-	}
+	// if (arg.Me == nil) == (arg.HPrevInfoOverride == nil) {
+	// 	return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfo should be provided.")
+	// }
+	// if arg.HPrevInfoOverride != nil {
+	// 	hPrevInfo = *arg.HPrevInfoOverride
+	// } else {
+	// 	hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
+	// }
 	if arg.Me != nil {
 		hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
+		return nil, fmt.Errorf("argme %v", hPrevInfo)
 	} else {
 		hPrevInfo = *arg.HPrevInfoOverride
+		return nil, fmt.Errorf("override %v", hPrevInfo)
 	}
 
 	hPrevInfoObj := jsonw.NewDictionary()

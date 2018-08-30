@@ -386,7 +386,6 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		}
 
 		if curr.chainVerified {
-			// still need to check hprevinfo edge condition here and unverify if necessary
 			if len(sc.unverifiedHPrevInfos) > 1 {
 				sc.reverseVerifications(curr.GetSeqno())
 				return ChainLinkWrongSeqnoError{"Future links incorrectly claimed multiple hprevinfos less than or equal to subchain start."}
@@ -424,7 +423,6 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		if err = curr.VerifyLink(); err != nil {
 			return err
 		}
-
 		if i > 0 {
 			prev := sc.chainLinks[i-1]
 			// NB: In a sigchain v2 link, `id` refers to the hash of the
@@ -468,6 +466,7 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 			if curr.GetHPrevInfo() != nil {
 				claimers := sc.unverifiedHPrevInfos[curr.GetHPrevInfo().Seqno]
 				claimers = append(claimers, curr.GetSeqno())
+				// I don't think this actually appends, it should be one line?
 			}
 		} else {
 			hPrevInfo := curr.GetHPrevInfo()
