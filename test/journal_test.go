@@ -817,7 +817,7 @@ func TestJournalDoubleCrRemovalAfterQR(t *testing.T) {
 // identical creates, within an identical, deep directory structure.
 // There's lots of squashing, CR, and journaling going on.  In the
 // end, all of bob's files should be conflicted.
-func TestJournalCoalescingConflictingCreates(t *testing.T) {
+func testJournalCoalescingConflictingCreates(t *testing.T, bSize int64) {
 	var busyWork []fileOp
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	listing := m{}
@@ -830,7 +830,7 @@ func TestJournalCoalescingConflictingCreates(t *testing.T) {
 		listing["^"+crnameEsc(filename, bob)+"$"] = "FILE"
 	}
 
-	test(t, journal(), batchSize(1),
+	test(t, journal(), batchSize(1), blockSize(bSize),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a/b/c/d"),
@@ -880,4 +880,12 @@ func TestJournalCoalescingConflictingCreates(t *testing.T) {
 			lsdir("a/b/c/d", listing),
 		),
 	)
+}
+
+func TestJournalCoalescingConflictingCreates(t *testing.T) {
+	testJournalCoalescingConflictingCreates(t, 0)
+}
+
+func TestJournalCoalescingConflictingCreatesMultiblock(t *testing.T) {
+	testJournalCoalescingConflictingCreates(t, 1024)
 }

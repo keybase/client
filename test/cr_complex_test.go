@@ -469,8 +469,8 @@ func TestCrMergedRenameWithParallelWrite(t *testing.T) {
 }
 
 // bob has two back-to-back resolutions
-func TestCrDoubleResolution(t *testing.T) {
-	test(t,
+func testCrDoubleResolution(t *testing.T, bSize int64) {
+	test(t, blockSize(bSize),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
@@ -521,6 +521,10 @@ func TestCrDoubleResolution(t *testing.T) {
 			read("a/b/d", "goodbye"),
 		),
 	)
+}
+
+func TestCrDoubleResolution(t *testing.T) {
+	testCrDoubleResolution(t, 0)
 }
 
 // Charlie has a resolution that touches a subdirectory that has been
