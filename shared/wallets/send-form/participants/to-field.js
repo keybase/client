@@ -135,7 +135,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
         )
       }
     } else if (this.props.recipientType === 'stellarPublicKey') {
-      // Case #4: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar anddress.
+      // Case #4: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar address.
       component = (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
