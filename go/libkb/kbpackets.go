@@ -243,32 +243,6 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 	return nil
 }
 
-func (p *KeybasePacket) unmarshalBinary(data []byte) error {
-	ch := codecHandle()
-	if err := MsgpackDecodeAll(data, ch, p); err != nil {
-		return err
-	}
-
-	if err := p.unpackBody(ch); err != nil {
-		return err
-	}
-
-	// Test for nonstandard msgpack data (which could be maliciously crafted)
-	// by re-encoding and making sure we get the same thing.
-	// https://github.com/keybase/client/issues/423
-	//
-	// Ideally this should be done at a lower level, like MsgpackDecodeAll, but
-	// our msgpack library doesn't sort maps the way we expect. See
-	// https://github.com/ugorji/go/issues/103
-	if reencoded, err := p.Encode(); err != nil {
-		return err
-	} else if !bytes.Equal(reencoded, data) {
-		return FishyMsgpackError{data, reencoded}
-	}
-
-	return p.checkHash()
-}
-
 func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag, body interface{}) error {
 	ch := codecHandle()
 	p.Body = body
