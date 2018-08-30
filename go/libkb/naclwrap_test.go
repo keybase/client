@@ -128,7 +128,7 @@ func TestVerifyBytesReject(t *testing.T) {
 	var corruptSig kbcrypto.NaclSignature
 	copy(corruptSig[:], sig[:])
 	corruptSig[0] = ^sig[0]
-	if keyPair.Public.Verify(msg, &corruptSig) {
+	if keyPair.Public.Verify(msg, corruptSig) {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
@@ -270,14 +270,14 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	if _, ok := err.(BadSignaturePrefixError); !ok {
+	if _, ok := err.(kbcrypto.BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
 	_, err = keyPair.SignV2(msg, kbcrypto.SignaturePrefix(""))
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	if _, ok := err.(BadSignaturePrefixError); !ok {
+	if _, ok := err.(kbcrypto.BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
 }

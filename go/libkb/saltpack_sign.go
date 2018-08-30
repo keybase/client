@@ -94,7 +94,7 @@ func (s saltSignerPublic) Verify(msg, sig []byte) error {
 
 	var fixed kbcrypto.NaclSignature
 	copy(fixed[:], sig)
-	if !s.key.Verify(msg, &fixed) {
+	if !s.key.Verify(msg, fixed) {
 		return BadSigError{E: "bad signature"}
 	}
 

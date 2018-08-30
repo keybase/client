@@ -12,7 +12,7 @@ type NaclSignature [ed25519.SignatureSize]byte
 
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 
-func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
+func (k NaclSigningKeyPublic) Verify(msg []byte, sig NaclSignature) bool {
 	return ed25519.Verify(k[:], msg, sig[:])
 }
 

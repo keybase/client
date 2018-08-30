@@ -78,11 +78,11 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 
 	switch s.Version {
 	case 0, 1:
-		if !key.Verify(s.Payload, &s.Sig) {
+		if !key.Verify(s.Payload, s.Sig) {
 			return nil, VerificationError{}
 		}
 	case 2:
-		if !key.Verify(s.Prefix.Prefix(s.Payload), &s.Sig) {
+		if !key.Verify(s.Prefix.Prefix(s.Payload), s.Sig) {
 			return nil, VerificationError{}
 		}
 	default:
