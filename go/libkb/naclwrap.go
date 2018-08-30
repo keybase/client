@@ -451,18 +451,6 @@ func (s *NaclSigInfo) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVer
 	return kbcrypto.TagSignature, kbcrypto.KeybasePacketV1
 }
 
-func KIDToNaclSigningKeyPublic(bk []byte) *kbcrypto.NaclSigningKeyPublic {
-	if len(bk) != 3+ed25519.PublicKeySize {
-		return nil
-	}
-	if bk[0] != byte(kbcrypto.KeybaseKIDV1) || bk[1] != byte(kbcrypto.KIDNaclEddsa) || bk[len(bk)-1] != byte(kbcrypto.IDSuffixKID) {
-		return nil
-	}
-	var ret kbcrypto.NaclSigningKeyPublic
-	copy(ret[:], bk[2:len(bk)-1])
-	return &ret
-}
-
 func EncryptionKIDToPublicKeyBytes(bk []byte) ([]byte, error) {
 	if len(bk) != 3+NaclDHKeysize {
 		return []byte{}, fmt.Errorf("invalid DH encryption key kbcrypto.KID (wrong length)")
@@ -474,7 +462,7 @@ func EncryptionKIDToPublicKeyBytes(bk []byte) ([]byte, error) {
 }
 
 func (s NaclSigInfo) Verify() (*kbcrypto.NaclSigningKeyPublic, error) {
-	key := KIDToNaclSigningKeyPublic(s.Kid)
+	key := kbcrypto.KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
 		return nil, BadKeyError{}
 	}

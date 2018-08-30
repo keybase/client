@@ -1770,7 +1770,7 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libk
 	verifyKID []byte, prefix kbcrypto.SignaturePrefix) ([]byte, error) {
 	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 
-	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
+	verifyKey := kbcrypto.KIDToNaclSigningKeyPublic(verifyKID)
 	if verifyKey == nil {
 		return nil, libkb.BadKeyError{}
 	}

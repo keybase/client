@@ -38,3 +38,15 @@ func (k NaclSigningKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 func (k NaclSigningKeyPublic) GetKID() keybase1.KID {
 	return k.GetBinaryKID().ToKID()
 }
+
+func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
+	if len(bk) != 3+ed25519.PublicKeySize {
+		return nil
+	}
+	if bk[0] != byte(KeybaseKIDV1) || bk[1] != byte(KIDNaclEddsa) || bk[len(bk)-1] != byte(IDSuffixKID) {
+		return nil
+	}
+	var ret NaclSigningKeyPublic
+	copy(ret[:], bk[2:len(bk)-1])
+	return &ret
+}
