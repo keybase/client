@@ -323,7 +323,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 	}
 
 	sig = base64.StdEncoding.EncodeToString(body)
-	id = ComputeSigIDFromSigBody(body)
+	id = kbcrypto.ComputeSigIDFromSigBody(body)
 	return
 }
 
@@ -341,7 +341,7 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string
 		return
 	}
 
-	id = ComputeSigIDFromSigBody(fullSigBody)
+	id = kbcrypto.ComputeSigIDFromSigBody(fullSigBody)
 	return
 }
 
@@ -497,7 +497,7 @@ func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID
 	if sig, err = kbcrypto.DecodeNaclSigInfoPacket(byt); err != nil {
 		return nil, kid, sigID, err
 	}
-	sigID = ComputeSigIDFromSigBody(byt)
+	sigID = kbcrypto.ComputeSigIDFromSigBody(byt)
 	kid = sig.Kid.ToKID()
 	payload = sig.Payload
 	return payload, kid, sigID, nil

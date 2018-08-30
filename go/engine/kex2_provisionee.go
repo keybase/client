@@ -379,7 +379,7 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 		return nil, err
 	}
 	res := decodedSig{
-		sigID:  libkb.ComputeSigIDFromSigBody(body),
+		sigID:  kbcrypto.ComputeSigIDFromSigBody(body),
 		linkID: libkb.ComputeLinkID(naclSig.Payload),
 	}
 	res.seqno, err = jw.AtKey("seqno").GetInt()
