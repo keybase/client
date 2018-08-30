@@ -59,6 +59,18 @@ func TestDecodeSKBSequence(t *testing.T) {
 	for _, p3skb := range p3skbs {
 		require.Equal(t, p3skbs[0], p3skb)
 	}
+
+	buf.Reset()
+	func() {
+		encoder := base64.NewEncoder(base64.StdEncoding, buf)
+		defer func() {
+			err := encoder.Close()
+			require.NoError(t, err)
+		}()
+		err = encodeSKBPacketList(p3skbs, encoder)
+		require.NoError(t, err)
+	}()
+	require.Equal(t, seq, buf.String())
 }
 
 func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
