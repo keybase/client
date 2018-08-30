@@ -26,27 +26,18 @@ type Foo struct {
 func TestDecode0(t *testing.T) {
 	data := "gqNiYXIKo2JheqRzaGl0"
 	bytes, err := base64.StdEncoding.DecodeString(data)
+	require.NoError(t, err)
 	var h codec.MsgpackHandle
-	if err != nil {
-		t.Errorf("error decoding: %s", err)
-	}
 	var foo Foo
 	err = MsgpackDecodeAll(bytes, &h, &foo)
-	if err != nil {
-		t.Errorf("Failed to decode packet: %s", err)
-	}
-	if foo.Bar != 10 {
-		t.Errorf("Bad decoding of our FOO")
-	}
-
+	require.NoError(t, err)
+	require.Equal(t, 10, foo.Bar)
 }
 
 func TestDecode1(t *testing.T) {
 	key := "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"
 	_, err := DecodeArmoredSKBPacket(key)
-	if err != nil {
-		t.Errorf("Failed to decode packet: %s", err)
-	}
+	require.NoError(t, err)
 }
 
 func TestDecodeSKBSequence(t *testing.T) {
@@ -76,28 +67,20 @@ func TestDecodeSKBSequence(t *testing.T) {
 
 func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
 	_, pps, err := StretchPassphrase(gc, "makeTestLKSec", []byte("saltsaltsaltsalt"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	lks := NewLKSec(pps, keybase1.UID("00000000000000000000000000000019"))
-	if err := lks.GenerateServerHalf(); err != nil {
-		t.Fatal(err)
-	}
-
+	err = lks.GenerateServerHalf()
+	require.NoError(t, err)
 	return lks
 }
 
 func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (MetaContext, *SKB) {
 	email := "test@keybase.io"
 	entity, err := openpgp.NewEntity("test name", "test comment", email, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	skb, err := lks.ToSKB(NewMetaContextTODO(g), NewGeneratedPGPKeyBundle(entity))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	skb.uid = lks.uid
 
 	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
@@ -105,9 +88,7 @@ func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (Met
 	}
 
 	salt, err := RandBytes(triplesec.SaltLen)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 	m = m.WithNewProvisionalLoginContext()
 	m.LoginContext().CreateLoginSessionWithSalt(email, salt)
 
@@ -121,17 +102,10 @@ func testPromptAndUnlock(t *testing.T, m MetaContext, skb *SKB) {
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
 	ss := NewSecretStore(m.G(), "testusername")
-	if ss == nil {
-		t.Fatal("NewSecretStore returned nil")
-	}
+	require.NotNil(t, ss)
 	key, err := skb.PromptAndUnlock(m, parg, ss, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if key == nil {
-		t.Errorf("PromptAndUnlock returned a nil key")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, key)
 }
 
 func TestBasicSecretStore(t *testing.T) {
@@ -141,9 +115,7 @@ func TestBasicSecretStore(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	m := NewMetaContextForTest(tc)
 	expectedSecret, err := lks.GetSecret(m)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var skb *SKB
 	m, skb = makeTestSKB(t, m, lks, tc.G)
@@ -151,9 +123,7 @@ func TestBasicSecretStore(t *testing.T) {
 	testPromptAndUnlock(t, m, skb)
 
 	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
-	if !secret.Equal(expectedSecret) {
-		t.Errorf("secret doesn't match expected value")
-	}
+	require.True(t, secret.Equal(expectedSecret))
 
 	// Doing the prompt again should retrieve the secret from our
 	// store and not call skb.newLKSecForTest.
@@ -173,9 +143,7 @@ func TestCorruptSecretStore(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	m := NewMetaContextForTest(tc)
 	expectedSecret, err := lks.GetSecret(m)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	var skb *SKB
 	m, skb = makeTestSKB(t, m, lks, tc.G)
@@ -186,9 +154,7 @@ func TestCorruptSecretStore(t *testing.T) {
 	// The corrupt secret value should be overwritten by the new
 	// correct one.
 	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
-	if !secret.Equal(expectedSecret) {
-		t.Errorf("secret doesn't match expected value")
-	}
+	require.True(t, secret.Equal(expectedSecret))
 }
 
 func TestUnusedSecretStore(t *testing.T) {
@@ -212,9 +178,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
 	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
-	if !secret.IsNil() {
-		t.Errorf("secret unexpectedly non-empty")
-	}
+	require.False(t, secret.IsNil())
 }
 
 func TestPromptCancelCache(t *testing.T) {
@@ -231,42 +195,26 @@ func TestPromptCancelCache(t *testing.T) {
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)
-	if _, ok := err.(InputCanceledError); !ok {
-		t.Errorf("PromptAndUnlock returned error %s (%T), expected InputCanceled", err, err)
-	}
-	if ui.CallCount != 1 {
-		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
-	}
+	require.IsType(t, InputCanceledError{}, err)
+	require.Equal(t, 1, ui.CallCount)
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
 	err = testErrUnlock(t, skb, ui)
-	if _, ok := err.(SkipSecretPromptError); !ok {
-		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
-	}
-	if ui.CallCount != 1 {
-		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
-	}
+	require.IsType(t, SkipSecretPromptError{}, err)
+	require.Equal(t, 1, ui.CallCount)
 
 	// wait 10 minutes: should get input canceled and CallCount should go up 1
 	fakeClock.Advance(10 * time.Minute)
 	err = testErrUnlock(t, skb, ui)
-	if _, ok := err.(InputCanceledError); !ok {
-		t.Errorf("PromptAndUnlock returned error %s (%T)", err, err)
-	}
-	if ui.CallCount != 2 {
-		t.Errorf("GetPassphrase call count: %d, expected 2", ui.CallCount)
-	}
+	require.IsType(t, InputCanceledError{}, err)
+	require.Equal(t, 2, ui.CallCount)
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
 	err = testErrUnlock(t, skb, ui)
-	if _, ok := err.(SkipSecretPromptError); !ok {
-		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
-	}
-	if ui.CallCount != 2 {
-		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
-	}
+	require.IsType(t, SkipSecretPromptError{}, err)
+	require.Equal(t, 2, ui.CallCount)
 
 	// wait 10 minutes: enter a passphrase this time
 	fakeClock.Advance(10 * time.Minute)
@@ -275,12 +223,8 @@ func TestPromptCancelCache(t *testing.T) {
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
 	key, err := skb.PromptAndUnlock(NewMetaContextTODO(tc.G), parg, NewSecretStore(tc.G, "testusername"), nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if key == nil {
-		t.Errorf("PromptAndUnlock w/ passphrase failed to return a key")
-	}
+	require.NoError(t, err)
+	require.NotNil(t, key)
 }
 
 func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
@@ -290,11 +234,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		UseCancelCache: true,
 	}
 	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
-	if err == nil {
-		t.Fatal("PromptAndUnlock returned nil error")
-	}
-	if key != nil {
-		t.Errorf("PromptAndUnlock returned a key (%v)", key)
-	}
+	require.NotNil(t, err)
+	require.Nil(t, key)
 	return err
 }
