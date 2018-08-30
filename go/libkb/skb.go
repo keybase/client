@@ -135,10 +135,6 @@ func (s *SKB) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagP3skb, KeybasePacketV1
 }
 
-func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(s, TagP3skb, KeybasePacketV1)
-}
-
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
 	case IsPGPAlgo(s.Type):
