@@ -328,6 +328,23 @@ func DecodeArmoredPacketBody(s string, tag PacketTag, body interface{}) error {
 	return DecodePacketBody(b, tag, body)
 }
 
+func DecodeSKBPacket(data []byte) (*SKB, error) {
+	var info SKB
+	err := DecodePacketBody(data, TagP3skb, &info)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
+func DecodeArmoredSKBPacket(s string) (*SKB, error) {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return nil, err
+	}
+	return DecodeSKBPacket(b)
+}
+
 func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
 	var info NaclSigInfo
 	err := DecodePacketBody(data, TagSignature, &info)

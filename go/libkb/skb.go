@@ -374,14 +374,6 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 	s.Unlock()
 }
 
-func (p KeybasePacket) ToSKB() (*SKB, error) {
-	ret, ok := p.Body.(*SKB)
-	if !ok {
-		return nil, UnmarshalError{TagP3skb}
-	}
-	return ret, nil
-}
-
 func (s *SKB) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
