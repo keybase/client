@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/auth"
+	"github.com/keybase/client/go/kbuserkey"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -32,7 +33,7 @@ func (c *CmdCA) runPromptLoop() error {
 	var s string
 	re := regexp.MustCompile(`(\s|,|:)+`)
 
-	api := auth.NewUserKeyAPIer(c.G().Log, c.G().API)
+	api := kbuserkey.NewUserKeyAPIer(c.G().Log, c.G().API)
 	ca := auth.NewCredentialAuthority(c.G().Log, api)
 
 	for {
