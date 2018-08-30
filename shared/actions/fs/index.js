@@ -413,7 +413,7 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
         ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
         : folderListRefreshTags.delete(refreshTag)
   )
-  return Saga.sequentially(actions)
+  return Saga.all(actions)
 }
 
 const setupEngineListeners = () => {
@@ -619,13 +619,6 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
-const uploadFanOut = (state: TypedState, action: FsGen.UploadsPayload) =>
-  Saga.sequentially(
-    action.payload.localPaths.map(localPath =>
-      Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
-    )
-  )
-
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
 
@@ -636,7 +629,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.cancelDownload, cancelDownload)
   yield Saga.safeTakeEvery([FsGen.download, FsGen.shareNative, FsGen.saveMedia], download)
   yield Saga.safeTakeEvery(FsGen.upload, upload)
-  yield Saga.actionToAction(FsGen.uploads, uploadFanOut)
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)

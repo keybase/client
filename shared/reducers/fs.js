@@ -252,7 +252,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
-    case FsGen.uploads:
       return state
     default:
       /*::
