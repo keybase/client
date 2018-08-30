@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -54,11 +55,10 @@ func TestDecodeSKBSequence(t *testing.T) {
 	buf := bytes.NewBufferString(seq)
 	decoder := base64.NewDecoder(base64.StdEncoding, buf)
 	p3skbs, err := decodeSKBPacketList(decoder, nil)
-	if err != nil {
-		t.Fatalf("Failed to decode packets: %s", err)
-	}
-	if !FastByteArrayEq(p3skbs[1].Pub, p3skbs[0].Pub) {
-		t.Fatalf("Expected a repeat of the same key")
+	require.NoError(t, err)
+	require.Equal(t, 3, len(p3skbs))
+	for _, p3skb := range p3skbs {
+		require.Equal(t, p3skbs[0], p3skb)
 	}
 }
 
