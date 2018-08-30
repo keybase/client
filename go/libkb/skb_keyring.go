@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 type SKBKeyringFile struct {
@@ -64,19 +65,41 @@ func (k *SKBKeyringFile) MarkDirty() {
 	k.dirty = true
 }
 
-func (k *SKBKeyringFile) loadLocked() (err error) {
-	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
-	var packets KeybasePackets
-	var file *os.File
-	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
-		stream := base64.NewDecoder(base64.StdEncoding, file)
-		packets, err = DecodePacketsUnchecked(stream)
-		tmp := file.Close()
-		if err == nil && tmp != nil {
-			err = tmp
-		}
+type skbPacket struct {
+	skb SKB
+}
+
+func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
+	panic("skbPacket.CodecEncodeSelf unexpectedly called")
+}
+
+func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
+	var p KeybasePacket
+	p.unmarshalBinaryStreamWithTagAndBody(d, TagP3skb, &s.skb)
+}
+
+func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
+	ch := codecHandle()
+	decoder := codec.NewDecoder(r, ch)
+
+	var packets []skbPacket
+	err := decoder.Decode(&packets)
+	if err != nil {
+		return nil, err
 	}
 
+	skbs := make([]*SKB, len(packets))
+	for i, s := range packets {
+		s.skb.SetGlobalContext(g)
+		skbs[i] = &s.skb
+	}
+	return skbs, nil
+}
+
+func (k *SKBKeyringFile) loadLocked() (err error) {
+	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
+
+	file, err := os.OpenFile(k.filename, os.O_RDONLY, 0)
 	if err != nil {
 		if os.IsNotExist(err) {
 			k.G().Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
@@ -85,12 +108,25 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 
 			MobilePermissionDeniedCheck(k.G(), err, fmt.Sprintf("skb keyring: %s", k.filename))
 		}
-	} else if err == nil {
-		k.Blocks, err = packets.ToListOfSKBs(k.G())
+		return err
+	}
+	defer func() {
+		closeErr := file.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+
+	stream := base64.NewDecoder(base64.StdEncoding, file)
+	skbs, err := decodeSKBPacketList(stream, k.G())
+	if err != nil {
+		return err
 	}
 
+	k.Blocks = skbs
+
 	k.G().Log.Debug("- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))
-	return
+	return nil
 }
 
 func (k *SKBKeyringFile) addToIndexLocked(g GenericKey, b *SKB) {
