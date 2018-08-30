@@ -41,7 +41,7 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
+	if !publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)) {
 		t.Error(kbcrypto.VerificationError{})
 	}
 }

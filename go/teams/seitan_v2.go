@@ -129,7 +129,7 @@ func (sikey SeitanSIKeyV2) generateKeyPair() (key libkb.NaclSigningKeyPair, err 
 	}
 
 	copy(key.Public[:], pub[:])
-	key.Private = &libkb.NaclSigningKeyPrivate{}
+	key.Private = &kbcrypto.NaclSigningKeyPrivate{}
 	copy(key.Private[:], priv[:])
 	return key, nil
 }
@@ -193,7 +193,7 @@ func GenerateSeitanSignatureMessage(uid keybase1.UID, eldestSeqno keybase1.Seqno
 
 func VerifySeitanSignatureMessage(pubKey SeitanPubKey, msg []byte, sig SeitanSig) error {
 	naclsig := kbcrypto.NaclSignature(sig)
-	valid := kbcrypto.NaclSigningKeyPublic(pubKey).Verify(msg, &naclsig)
+	valid := kbcrypto.NaclSigningKeyPublic(pubKey).Verify(msg, naclsig)
 	if !valid {
 		return libkb.KeyCannotVerifyError{}
 	}
@@ -219,7 +219,7 @@ func (sikey SeitanSIKeyV2) GenerateSignature(uid keybase1.UID, eldestSeqno keyba
 		return sig, encoded, err
 	}
 
-	sig = SeitanSig(*keyPair.Private.Sign(payload))
+	sig = SeitanSig(keyPair.Private.Sign(payload))
 	encoded = base64.StdEncoding.EncodeToString(sig[:])
 	return sig, encoded, nil
 }

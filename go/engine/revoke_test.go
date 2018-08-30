@@ -364,7 +364,7 @@ func TestSignAfterRevoke(t *testing.T) {
 		t.Fatal(err)
 	}
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
+	if !publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)) {
 		t.Error(kbcrypto.VerificationError{})
 	}
 
@@ -414,7 +414,7 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 		t.Fatal(err)
 	}
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
+	if !publicKey.Verify(msg, kbcrypto.NaclSignature(ret.Sig)) {
 		t.Error(kbcrypto.VerificationError{})
 	}
 }
