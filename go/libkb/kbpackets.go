@@ -144,31 +144,6 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func MsgpackDecode(dst interface{}, src []byte) (err error) {
-	ch := codecHandle()
-	return codec.NewDecoderBytes(src, ch).Decode(dst)
-}
-
-func MsgpackEncode(src interface{}) (dst []byte, err error) {
-	ch := codecHandle()
-	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
-	return dst, err
-}
-
-// Decode data into out, but make sure that all bytes in data are
-// used.
-func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
-	buf := bytes.NewBuffer(data)
-	err := codec.NewDecoder(buf, handle).Decode(out)
-	if err != nil {
-		return err
-	}
-	if buf.Len() > 0 {
-		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", buf.Len())
-	}
-	return nil
-}
-
 func (p *KeybasePacket) unmarshalBinaryStreamWithTagAndBody(decoder *codec.Decoder, tag PacketTag, body interface{}) error {
 	p.Body = body
 	err := decoder.Decode(p)
