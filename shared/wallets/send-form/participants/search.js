@@ -45,6 +45,7 @@ class Search extends React.Component<SearchProps, SearchState> {
               onExitSearch={this.closeResultsList}
               disableListBuilding={true}
               showServiceFilter={false}
+              style={styles.input}
             />
           </Box2>
         </ParticipantsRow>
@@ -65,6 +66,9 @@ class Search extends React.Component<SearchProps, SearchState> {
 const styles = Styles.styleSheetCreate({
   row: {
     paddingBottom: 0,
+  },
+  input: {
+    borderWidth: 0,
   },
   list: Styles.platformStyles({
     isElectron: {

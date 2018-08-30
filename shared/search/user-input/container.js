@@ -7,12 +7,17 @@ import ServiceFilter from '../services-filter'
 import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
 import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
 import type {TypedState} from '../../constants/reducer'
-import type {StylesCrossPlatform} from '../../styles'
 
 export type OwnProps = {|
   searchKey: string,
@@ -30,13 +35,16 @@ export type OwnProps = {|
 
 const UserInputWithServiceFilter = props => (
   <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      borderBottomColor: globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      paddingLeft: globalMargins.tiny,
-    }}
+    style={collapseStyles([
+      {
+        ...globalStyles.flexBoxColumn,
+        borderBottomColor: globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingLeft: globalMargins.tiny,
+      },
+      props.style,
+    ])}
   >
     <UserInput
       ref={props.setInputRef}
