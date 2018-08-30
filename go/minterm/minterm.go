@@ -85,7 +85,7 @@ func (m *MinTerm) readLine(prompt string) (string, error) {
 func (m *MinTerm) readSecret(prompt string) (string, error) {
 	m.makeRaw()
 	defer m.restore()
-	ret, err := terminal.NewTerminal(m.getReadWriter(), prompt).ReadPassword("")
+	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadPassword(prompt)
 	return ret, convertErr(err)
 }
 
