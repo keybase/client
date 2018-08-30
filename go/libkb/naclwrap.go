@@ -442,14 +442,8 @@ func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []
 		return nil, nil, nil, err
 	}
 
-	packet, err := DecodePacket(fullBody)
+	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
 	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	naclSig, ok := packet.Body.(*NaclSigInfo)
-	if !ok {
-		err = UnmarshalError{TagSignature}
 		return nil, nil, nil, err
 	}
 
@@ -657,19 +651,13 @@ func KbOpenSig(armored string) ([]byte, error) {
 
 func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
 	var byt []byte
-	var packet *KeybasePacket
-	var sig *NaclSigInfo
-	var ok bool
+	var sig NaclSigInfo
 
 	if byt, err = KbOpenSig(armored); err != nil {
 		return nil, kid, sigID, err
 	}
 
-	if packet, err = DecodePacket(byt); err != nil {
-		return nil, kid, sigID, err
-	}
-	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
-		err = UnmarshalError{TagSignature}
+	if sig, err = DecodeNaclSigInfoPacket(byt); err != nil {
 		return nil, kid, sigID, err
 	}
 	sigID = ComputeSigIDFromSigBody(byt)
