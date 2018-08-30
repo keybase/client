@@ -75,7 +75,7 @@ func SignED25519ForKBFS(ctx context.Context, g *libkb.GlobalContext, getSecretUI
 		return
 	}
 
-	var sigInfo *libkb.NaclSigInfo
+	var sigInfo *kbcrypto.NaclSigInfo
 	sigInfo, err = kp.SignV2(arg.Msg, kbcrypto.SignaturePrefixKBFS)
 	if err != nil {
 		return

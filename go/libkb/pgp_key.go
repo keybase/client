@@ -586,9 +586,9 @@ func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 	if k.PrivateKey == nil {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
-		err = BadKeyError{"PGP key material should be unencrypted"}
+		err = kbcrypto.BadKeyError{"PGP key material should be unencrypted"}
 	} else if !FindPGPPrivateKey(k) && k.GPGFallbackKey == nil {
-		err = BadKeyError{"no private key material or GPGKey"}
+		err = kbcrypto.BadKeyError{"no private key material or GPGKey"}
 	}
 	return
 }

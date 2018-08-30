@@ -261,7 +261,7 @@ func (n *NIST) generate(ctx context.Context, uid keybase1.UID, deviceID keybase1
 	if err != nil {
 		return err
 	}
-	var sigInfo *NaclSigInfo
+	var sigInfo *kbcrypto.NaclSigInfo
 	var payloadPacked []byte
 	payloadPacked, err = MsgpackEncode(payload)
 	if err != nil {

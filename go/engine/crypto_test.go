@@ -42,7 +42,7 @@ func TestCryptoSignED25519(t *testing.T) {
 
 	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
 	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
-		t.Error(libkb.VerificationError{})
+		t.Error(kbcrypto.VerificationError{})
 	}
 }
 
@@ -65,7 +65,7 @@ func TestCryptoSignToString(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, msg2, _, err := libkb.NaclVerifyAndExtract(signature)
+	_, msg2, _, err := kbcrypto.NaclVerifyAndExtract(signature)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -109,7 +109,7 @@ func TestVerifyBytesAccept(t *testing.T) {
 	msg := []byte("test message")
 	sig := keyPair.Private.Sign(msg)
 	if !keyPair.Public.Verify(msg, sig) {
-		t.Error(VerificationError{})
+		t.Error(kbcrypto.VerificationError{})
 	}
 }
 
@@ -252,7 +252,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error after we jiggled the version to 1")
 	}
-	if _, ok := err.(VerificationError); !ok {
+	if _, ok := err.(kbcrypto.VerificationError); !ok {
 		t.Fatal("expected a VerificationError")
 	}
 
@@ -262,7 +262,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error after we jiggled the prefix to the wrong one")
 	}
-	if _, ok := err.(VerificationError); !ok {
+	if _, ok := err.(kbcrypto.VerificationError); !ok {
 		t.Fatal("expected a VerificationError")
 	}
 

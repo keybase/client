@@ -3,8 +3,6 @@
 
 package libkb
 
-// Code for encoding and decoding Keybase packet types.
-
 import (
 	"encoding/base64"
 
@@ -26,23 +24,6 @@ func DecodeArmoredSKBPacket(s string) (*SKB, error) {
 		return nil, err
 	}
 	return DecodeSKBPacket(b)
-}
-
-func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
-	var info NaclSigInfo
-	err := kbcrypto.DecodePacketFromBytes(data, &info)
-	if err != nil {
-		return NaclSigInfo{}, err
-	}
-	return info, nil
-}
-
-func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
-	b, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return NaclSigInfo{}, err
-	}
-	return DecodeNaclSigInfoPacket(b)
 }
 
 func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {

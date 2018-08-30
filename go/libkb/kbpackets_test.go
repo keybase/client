@@ -39,7 +39,7 @@ faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 
 func TestFishyMsgpack(t *testing.T) {
 	// This message has a duplicate key ("detached") in the top-level map
-	info, err := DecodeArmoredNaclSigInfoPacket(`
+	info, err := kbcrypto.DecodeArmoredNaclSigInfoPacket(`
 hKRib2R5hqhkZXRhY2hlZMOoZGV0YWNoZWTCqWhhc2hfdHlwZQqja2V5xCMBIHPpctUn+7QopWm+
 n1CVw28iikWy6ybCMUUdVRijfKQjCqdwYXlsb2FkxQPteyJib2R5Ijp7ImRldmljZSI6eyJpZCI6
 IjA1Nzg0M2MyMDI1MTkyNmFjYzBkNWRiMzEyNjk3OTE4Iiwia2lkIjoiMDEyMTM3OWQ1MzcwYWVi

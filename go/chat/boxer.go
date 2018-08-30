@@ -1772,7 +1772,7 @@ func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libk
 
 	verifyKey := kbcrypto.KIDToNaclSigningKeyPublic(verifyKID)
 	if verifyKey == nil {
-		return nil, libkb.BadKeyError{}
+		return nil, kbcrypto.BadKeyError{}
 	}
 	var verKey [ed25519.PublicKeySize]byte = *verifyKey
 
@@ -1855,7 +1855,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 
 // verify verifies the signature of data using SignatureInfo.
 func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix kbcrypto.SignaturePrefix) bool {
-	sigInfo := libkb.NaclSigInfo{
+	sigInfo := kbcrypto.NaclSigInfo{
 		Version: si.V,
 		Prefix:  prefix,
 		Kid:     si.K,

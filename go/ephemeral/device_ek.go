@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -204,7 +205,7 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 	metadata = map[keybase1.DeviceID]keybase1.DeviceEkMetadata{}
 	for _, sig := range parsedResponse.Sigs {
 		// Verify the sig.
-		signerKID, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+		signerKID, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 		if err != nil {
 			return nil, err
 		}

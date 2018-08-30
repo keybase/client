@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -369,7 +370,7 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 	if err != nil {
 		return nil, err
 	}
-	naclSig, err := libkb.DecodeNaclSigInfoPacket(body)
+	naclSig, err := kbcrypto.DecodeNaclSigInfoPacket(body)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ import (
 	"math"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -97,7 +98,7 @@ func (t Token) String() string {
 
 func VerifyToken(signature, server, challenge string, maxExpireIn int) (*Token, error) {
 	var t *Token
-	kid, token, _, err := libkb.NaclVerifyAndExtract(signature)
+	kid, token, _, err := kbcrypto.NaclVerifyAndExtract(signature)
 	if err != nil {
 		return nil, err
 	}

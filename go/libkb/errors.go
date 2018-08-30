@@ -413,20 +413,6 @@ func (e BadEmailError) Error() string {
 
 //=============================================================================
 
-type BadKeyError struct {
-	Msg string
-}
-
-func (p BadKeyError) Error() string {
-	msg := "Bad key found"
-	if len(p.Msg) != 0 {
-		msg = msg + ": " + p.Msg
-	}
-	return msg
-}
-
-//=============================================================================
-
 type BadFingerprintError struct {
 	fp1, fp2 PGPFingerprint
 }
@@ -743,19 +729,6 @@ func (e NoUsernameError) Error() string {
 }
 
 func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
-
-//=============================================================================
-
-type VerificationError struct {
-	Cause error
-}
-
-func (e VerificationError) Error() string {
-	if e.Cause == nil {
-		return "Verification failed"
-	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
-}
 
 //=============================================================================
 
@@ -1803,14 +1776,6 @@ type BadSignaturePrefixError struct{}
 func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
 
 //=============================================================================
-
-type UnhandledSignatureError struct {
-	version int
-}
-
-func (e UnhandledSignatureError) Error() string {
-	return fmt.Sprintf("unhandled signature version: %d", e.version)
-}
 
 type UserDeletedError struct {
 	Msg string

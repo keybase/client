@@ -108,7 +108,7 @@ func (e *DeviceKeygen) Run(m libkb.MetaContext) (err error) {
 func (e *DeviceKeygen) SigningKeyPublic() (kbcrypto.NaclSigningKeyPublic, error) {
 	s, ok := e.naclSignGen.GetKeyPair().(libkb.NaclSigningKeyPair)
 	if !ok {
-		return kbcrypto.NaclSigningKeyPublic{}, libkb.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", e.naclSignGen.GetKeyPair())}
+		return kbcrypto.NaclSigningKeyPublic{}, kbcrypto.BadKeyError{Msg: fmt.Sprintf("invalid key type %T", e.naclSignGen.GetKeyPair())}
 	}
 	return s.Public, nil
 
