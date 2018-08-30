@@ -151,10 +151,12 @@ func DecodePacket(decoder *codec.Decoder, body Packetable) error {
 	return p.checkHash()
 }
 
-func DecodePacketBytes(data []byte, tag PacketTag, body Packetable) error {
+func DecodePacketBytes(data []byte, body Packetable) error {
 	ch := codecHandle()
 	decoder := codec.NewDecoderBytes(data, ch)
 
+	// TODO: Do something with the version too?
+	tag, _ := body.GetTagAndVersion()
 	p := KeybasePacket{
 		Body: body,
 	}
@@ -189,7 +191,7 @@ func DecodePacketBytes(data []byte, tag PacketTag, body Packetable) error {
 
 func DecodeSKBPacket(data []byte) (*SKB, error) {
 	var info SKB
-	err := DecodePacketBytes(data, TagP3skb, &info)
+	err := DecodePacketBytes(data, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -206,7 +208,7 @@ func DecodeArmoredSKBPacket(s string) (*SKB, error) {
 
 func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
 	var info NaclSigInfo
-	err := DecodePacketBytes(data, TagSignature, &info)
+	err := DecodePacketBytes(data, &info)
 	if err != nil {
 		return NaclSigInfo{}, err
 	}
@@ -223,7 +225,7 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 
 func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {
 	var info NaclEncryptionInfo
-	err := DecodePacketBytes(data, TagEncryption, &info)
+	err := DecodePacketBytes(data, &info)
 	if err != nil {
 		return NaclEncryptionInfo{}, err
 	}
