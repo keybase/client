@@ -160,12 +160,14 @@ func DecodePacket(decoder *codec.Decoder, tag PacketTag, body interface{}) error
 	return p.checkHash()
 }
 
-func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag, body interface{}) error {
+func DecodePacketBytes(data []byte, tag PacketTag, body interface{}) error {
 	ch := codecHandle()
 	decoder := codec.NewDecoderBytes(data, ch)
 
-	p.Body = body
-	err := decoder.Decode(p)
+	p := KeybasePacket{
+		Body: body,
+	}
+	err := decoder.Decode(&p)
 	if err != nil {
 		return err
 	}
@@ -194,23 +196,9 @@ func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag
 	return p.checkHash()
 }
 
-func DecodePacketBody(data []byte, tag PacketTag, body interface{}) error {
-	var p KeybasePacket
-	p.Body = body
-	return p.unmarshalBinaryWithTagAndBody(data, tag, body)
-}
-
-func DecodeArmoredPacketBody(s string, tag PacketTag, body interface{}) error {
-	b, err := base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return err
-	}
-	return DecodePacketBody(b, tag, body)
-}
-
 func DecodeSKBPacket(data []byte) (*SKB, error) {
 	var info SKB
-	err := DecodePacketBody(data, TagP3skb, &info)
+	err := DecodePacketBytes(data, TagP3skb, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -227,7 +215,7 @@ func DecodeArmoredSKBPacket(s string) (*SKB, error) {
 
 func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
 	var info NaclSigInfo
-	err := DecodePacketBody(data, TagSignature, &info)
+	err := DecodePacketBytes(data, TagSignature, &info)
 	if err != nil {
 		return NaclSigInfo{}, err
 	}
@@ -244,7 +232,7 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 
 func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {
 	var info NaclEncryptionInfo
-	err := DecodePacketBody(data, TagEncryption, &info)
+	err := DecodePacketBytes(data, TagEncryption, &info)
 	if err != nil {
 		return NaclEncryptionInfo{}, err
 	}
