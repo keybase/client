@@ -64,10 +64,17 @@ tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
 	require.IsType(t, err, FishyMsgpackError{}, "info=%+v, err+%+v", info, err)
 }
 
+type testPacketable struct{}
+
+func (*testPacketable) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagSignature, KeybasePacketV1
+}
+
 // Guard against unexpected codec encoding changes, in particular for
 // ints.
 func TestHardcodedPacketEncode(t *testing.T) {
-	p, err := NewKeybasePacket(nil, TagSignature, KeybasePacketV1)
+	var nilPtr *testPacketable
+	p, err := NewKeybasePacket(nilPtr)
 	require.NoError(t, err)
 
 	p.Hash = nil

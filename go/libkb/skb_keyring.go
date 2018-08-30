@@ -356,7 +356,7 @@ func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	packets := make([]*KeybasePacket, len(k.Blocks))
 	var err error
 	for i, b := range k.Blocks {
-		if packets[i], err = b.ToPacket(); err != nil {
+		if packets[i], err = NewKeybasePacket(b); err != nil {
 			return 0, err
 		}
 	}

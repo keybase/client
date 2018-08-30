@@ -398,7 +398,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	packet, err := naclSig.ToPacket()
+	packet, err := NewKeybasePacket(naclSig)
 	if err != nil {
 		return
 	}
@@ -488,10 +488,6 @@ func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (
 
 func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagSignature, KeybasePacketV1
-}
-
-func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(s, TagSignature, KeybasePacketV1)
 }
 
 func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
@@ -843,11 +839,6 @@ func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err
 
 func (k *NaclEncryptionInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
 	return TagEncryption, KeybasePacketV1
-}
-
-// ToPacket implements the Packetable interface.
-func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(k, TagEncryption, KeybasePacketV1)
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,

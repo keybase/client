@@ -42,7 +42,7 @@ type KeybasePacketHash struct {
 }
 
 type KeybasePacket struct {
-	Body    interface{}        `codec:"body"`
+	Body    Packetable         `codec:"body"`
 	Hash    *KeybasePacketHash `codec:"hash,omitempty"`
 	Tag     PacketTag          `codec:"tag"`
 	Version PacketVersion      `codec:"version"`
@@ -50,10 +50,10 @@ type KeybasePacket struct {
 
 type Packetable interface {
 	GetTagAndVersion() (PacketTag, PacketVersion)
-	ToPacket() (*KeybasePacket, error)
 }
 
-func NewKeybasePacket(body interface{}, tag PacketTag, version PacketVersion) (*KeybasePacket, error) {
+func NewKeybasePacket(body Packetable) (*KeybasePacket, error) {
+	tag, version := body.GetTagAndVersion()
 	ret := KeybasePacket{
 		Body:    body,
 		Tag:     tag,
@@ -136,7 +136,7 @@ func (p *KeybasePacket) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func DecodePacket(decoder *codec.Decoder, tag PacketTag, body interface{}) error {
+func DecodePacket(decoder *codec.Decoder, tag PacketTag, body Packetable) error {
 	p := KeybasePacket{
 		Body: body,
 	}
@@ -152,7 +152,7 @@ func DecodePacket(decoder *codec.Decoder, tag PacketTag, body interface{}) error
 	return p.checkHash()
 }
 
-func DecodePacketBytes(data []byte, tag PacketTag, body interface{}) error {
+func DecodePacketBytes(data []byte, tag PacketTag, body Packetable) error {
 	ch := codecHandle()
 	decoder := codec.NewDecoderBytes(data, ch)
 
@@ -240,8 +240,7 @@ func DecodeArmoredNaclEncryptionInfoPacket(s string) (NaclEncryptionInfo, error)
 }
 
 func PacketArmoredEncode(p Packetable) (string, error) {
-	tag, version := p.GetTagAndVersion()
-	packet, err := NewKeybasePacket(p, tag, version)
+	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return "", err
 	}
