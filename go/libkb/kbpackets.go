@@ -28,7 +28,7 @@ func EncodePacket(p Packetable, encoder *codec.Encoder) error {
 	return encoder.Encode(packet)
 }
 
-func PacketToBytes(p Packetable) ([]byte, error) {
+func EncodePacketToBytes(p Packetable) ([]byte, error) {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return nil, err
@@ -36,12 +36,68 @@ func PacketToBytes(p Packetable) ([]byte, error) {
 	return packet.Encode()
 }
 
-func PacketToArmoredString(p Packetable) (string, error) {
+func EncodePacketToArmoredString(p Packetable) (string, error) {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return "", err
 	}
 	return packet.ArmoredEncode()
+}
+
+func DecodePacket(decoder *codec.Decoder, body Packetable) error {
+	// TODO: Do something with the version too?
+	tag, _ := body.GetTagAndVersion()
+	p := KeybasePacket{
+		Body: body,
+	}
+	err := decoder.Decode(&p)
+	if err != nil {
+		return err
+	}
+
+	if p.Tag != tag {
+		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
+	}
+
+	return p.checkHash()
+}
+
+func DecodePacketFromBytes(data []byte, body Packetable) error {
+	ch := codecHandle()
+	decoder := codec.NewDecoderBytes(data, ch)
+
+	// TODO: Do something with the version too?
+	tag, _ := body.GetTagAndVersion()
+	p := KeybasePacket{
+		Body: body,
+	}
+	err := decoder.Decode(&p)
+	if err != nil {
+		return err
+	}
+
+	if decoder.NumBytesRead() != len(data) {
+		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", len(data)-decoder.NumBytesRead())
+	}
+
+	if p.Tag != tag {
+		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
+	}
+
+	// Test for nonstandard msgpack data (which could be maliciously crafted)
+	// by re-encoding and making sure we get the same thing.
+	// https://github.com/keybase/client/issues/423
+	//
+	// Ideally this should be done at a lower level, but our
+	// msgpack library doesn't sort maps the way we expect. See
+	// https://github.com/ugorji/go/issues/103
+	if reencoded, err := p.Encode(); err != nil {
+		return err
+	} else if !bytes.Equal(reencoded, data) {
+		return FishyMsgpackError{data, reencoded}
+	}
+
+	return p.checkHash()
 }
 
 type FishyMsgpackError struct {
@@ -165,65 +221,9 @@ func (p *KeybasePacket) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func DecodePacket(decoder *codec.Decoder, body Packetable) error {
-	// TODO: Do something with the version too?
-	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
-		Body: body,
-	}
-	err := decoder.Decode(&p)
-	if err != nil {
-		return err
-	}
-
-	if p.Tag != tag {
-		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
-	}
-
-	return p.checkHash()
-}
-
-func DecodePacketBytes(data []byte, body Packetable) error {
-	ch := codecHandle()
-	decoder := codec.NewDecoderBytes(data, ch)
-
-	// TODO: Do something with the version too?
-	tag, _ := body.GetTagAndVersion()
-	p := KeybasePacket{
-		Body: body,
-	}
-	err := decoder.Decode(&p)
-	if err != nil {
-		return err
-	}
-
-	if decoder.NumBytesRead() != len(data) {
-		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", len(data)-decoder.NumBytesRead())
-	}
-
-	if p.Tag != tag {
-		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
-	}
-
-	// Test for nonstandard msgpack data (which could be maliciously crafted)
-	// by re-encoding and making sure we get the same thing.
-	// https://github.com/keybase/client/issues/423
-	//
-	// Ideally this should be done at a lower level, but our
-	// msgpack library doesn't sort maps the way we expect. See
-	// https://github.com/ugorji/go/issues/103
-	if reencoded, err := p.Encode(); err != nil {
-		return err
-	} else if !bytes.Equal(reencoded, data) {
-		return FishyMsgpackError{data, reencoded}
-	}
-
-	return p.checkHash()
-}
-
 func DecodeSKBPacket(data []byte) (*SKB, error) {
 	var info SKB
-	err := DecodePacketBytes(data, &info)
+	err := DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func DecodeArmoredSKBPacket(s string) (*SKB, error) {
 
 func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
 	var info NaclSigInfo
-	err := DecodePacketBytes(data, &info)
+	err := DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return NaclSigInfo{}, err
 	}
@@ -257,7 +257,7 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 
 func DecodeNaclEncryptionInfoPacket(data []byte) (NaclEncryptionInfo, error) {
 	var info NaclEncryptionInfo
-	err := DecodePacketBytes(data, &info)
+	err := DecodePacketFromBytes(data, &info)
 	if err != nil {
 		return NaclEncryptionInfo{}, err
 	}

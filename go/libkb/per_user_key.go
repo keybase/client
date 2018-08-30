@@ -66,7 +66,7 @@ func NewPerUserKeyBox(contents PerUserKeySeed, receiverKey NaclDHKeyPair, sender
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}
-	boxStr, err := PacketToArmoredString(encInfo)
+	boxStr, err := EncodePacketToArmoredString(encInfo)
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}
