@@ -378,19 +378,6 @@ func (s *SKB) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (p KeybasePackets) ToListOfSKBs(g *GlobalContext) ([]*SKB, error) {
-	ret := make([]*SKB, len(p))
-	for i, e := range p {
-		k, ok := e.Body.(*SKB)
-		if !ok {
-			return nil, fmt.Errorf("Bad SKB sequence; got packet of wrong type %T", e.Body)
-		}
-		k.SetGlobalContext(g)
-		ret[i] = k
-	}
-	return ret, nil
-}
-
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {
 	defer m.CTrace("SKB#UnlockWithStoredSecret()", func() error { return err })()
 	if ret = s.decryptedSecret; ret != nil {
