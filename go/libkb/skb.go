@@ -377,7 +377,7 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 func (p KeybasePacket) ToSKB() (*SKB, error) {
 	ret, ok := p.Body.(*SKB)
 	if !ok {
-		return nil, UnmarshalError{"SKB"}
+		return nil, UnmarshalError{TagP3skb}
 	}
 	return ret, nil
 }

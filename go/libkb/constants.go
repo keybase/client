@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -458,6 +459,19 @@ const (
 	TagSignature  PacketTag = 514
 	TagEncryption PacketTag = 515
 )
+
+func (t PacketTag) String() string {
+	switch t {
+	case TagP3skb:
+		return "PacketTag(P3skb)"
+	case TagSignature:
+		return "PacketTag(Signature)"
+	case TagEncryption:
+		return "PacketTag(Encryption)"
+	default:
+		return fmt.Sprintf("PacketTag(%d)", uint(t))
+	}
+}
 
 const (
 	KIDPGPBase    AlgoType = 0x00

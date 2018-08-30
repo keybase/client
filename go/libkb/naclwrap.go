@@ -449,7 +449,7 @@ func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []
 
 	naclSig, ok := packet.Body.(*NaclSigInfo)
 	if !ok {
-		err = UnmarshalError{"NACL signature"}
+		err = UnmarshalError{TagSignature}
 		return nil, nil, nil, err
 	}
 
@@ -499,7 +499,7 @@ func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
 func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
 	ret, ok := p.Body.(*NaclSigInfo)
 	if !ok {
-		return nil, UnmarshalError{"Signature"}
+		return nil, UnmarshalError{TagSignature}
 	}
 	return ret, nil
 }
@@ -669,7 +669,7 @@ func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID
 		return nil, kid, sigID, err
 	}
 	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
-		err = UnmarshalError{"NaCl Signature"}
+		err = UnmarshalError{TagSignature}
 		return nil, kid, sigID, err
 	}
 	sigID = ComputeSigIDFromSigBody(byt)
@@ -874,7 +874,7 @@ func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender 
 	}
 
 	if nei, ok = kbp.Body.(*NaclEncryptionInfo); !ok {
-		err = UnmarshalError{"NaCl Encryption"}
+		err = UnmarshalError{TagEncryption}
 		return
 	}
 	return k.Decrypt(nei)
