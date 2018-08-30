@@ -258,8 +258,7 @@ func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag
 	}
 
 	if p.Tag != tag {
-		return UnmarshalError{tag}
-		//return fmt.Errorf("Expected tag %d, got %d", tag, p.Tag)
+		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
 	}
 
 	// Test for nonstandard msgpack data (which could be maliciously crafted)
