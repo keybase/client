@@ -853,19 +853,13 @@ func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
 // DecryptFromString decrypts the output of EncryptToString above,
 // and returns the KID of the other end.
 func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
-	var kbp *KeybasePacket
-	var nei *NaclEncryptionInfo
-	var ok bool
+	var nei NaclEncryptionInfo
 
-	if kbp, err = DecodeArmoredPacket(ciphertext); err != nil {
+	if nei, err = DecodeArmoredNaclEncryptionInfoPacket(ciphertext); err != nil {
 		return
 	}
 
-	if nei, ok = kbp.Body.(*NaclEncryptionInfo); !ok {
-		err = UnmarshalError{TagEncryption}
-		return
-	}
-	return k.Decrypt(nei)
+	return k.Decrypt(&nei)
 }
 
 // Decrypt a NaclEncryptionInfo packet, and on success return the plaintext
