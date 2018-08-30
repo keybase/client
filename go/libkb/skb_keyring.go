@@ -74,8 +74,10 @@ func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
 }
 
 func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
-	var p KeybasePacket
-	p.unmarshalBinaryStreamWithTagAndBody(d, TagP3skb, &s.skb)
+	err := DecodePacket(d, TagP3skb, &s.skb)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
