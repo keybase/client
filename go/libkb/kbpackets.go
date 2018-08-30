@@ -243,6 +243,20 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 	return nil
 }
 
+func (p *KeybasePacket) unmarshalBinaryStreamWithTagAndBody(decoder *codec.Decoder, tag PacketTag, body interface{}) error {
+	p.Body = body
+	err := decoder.Decode(p)
+	if err != nil {
+		return err
+	}
+
+	if p.Tag != tag {
+		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
+	}
+
+	return p.checkHash()
+}
+
 func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag, body interface{}) error {
 	ch := codecHandle()
 	decoder := codec.NewDecoderBytes(data, ch)
