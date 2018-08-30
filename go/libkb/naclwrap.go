@@ -398,12 +398,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	packet, err := NewKeybasePacket(naclSig)
-	if err != nil {
-		return
-	}
-
-	body, err := packet.Encode()
+	body, err := EncodePacket(naclSig)
 	if err != nil {
 		return
 	}
