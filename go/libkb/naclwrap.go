@@ -398,7 +398,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	body, err := EncodePacket(naclSig)
+	body, err := PacketToBytes(naclSig)
 	if err != nil {
 		return
 	}
@@ -530,7 +530,7 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 }
 
 func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
-	return PacketArmoredEncode(s)
+	return PacketToArmoredString(s)
 }
 
 func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
@@ -750,7 +750,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 		return "", err
 	}
 
-	return PacketArmoredEncode(info)
+	return PacketToArmoredString(info)
 }
 
 func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {

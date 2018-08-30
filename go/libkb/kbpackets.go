@@ -28,7 +28,7 @@ func EncodePacketTo(p Packetable, encoder *codec.Encoder) error {
 	return encoder.Encode(packet)
 }
 
-func EncodePacket(p Packetable) ([]byte, error) {
+func PacketToBytes(p Packetable) ([]byte, error) {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func EncodePacket(p Packetable) ([]byte, error) {
 	return packet.Encode()
 }
 
-func PacketArmoredEncode(p Packetable) (string, error) {
+func PacketToArmoredString(p Packetable) (string, error) {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return "", err
