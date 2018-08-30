@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../constants/wallets'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
@@ -36,9 +37,9 @@ const routeTree = makeRouteDefNode({
       component: ReceiveModal,
       tags: makeLeafTags({layerOnTop: !isMobile}),
     },
-    sendReceiveForm: {
+    [Constants.sendReceiveFormRouteKey]: {
       children: {
-        confirmForm: {
+        [Constants.confirmFormRouteKey]: {
           children: {},
           component: ConfirmForm,
           tags: makeLeafTags({layerOnTop: !isMobile}),
