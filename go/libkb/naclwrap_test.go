@@ -125,7 +125,7 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt signature.
 
-	var corruptSig NaclSignature
+	var corruptSig kbcrypto.NaclSignature
 	copy(corruptSig[:], sig[:])
 	corruptSig[0] = ^sig[0]
 	if keyPair.Public.Verify(msg, &corruptSig) {

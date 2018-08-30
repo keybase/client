@@ -80,7 +80,7 @@ func (s saltSigner) Sign(msg []byte) ([]byte, error) {
 }
 
 type saltSignerPublic struct {
-	key NaclSigningKeyPublic
+	key kbcrypto.NaclSigningKeyPublic
 }
 
 func (s saltSignerPublic) ToKID() []byte {
@@ -92,7 +92,7 @@ func (s saltSignerPublic) Verify(msg, sig []byte) error {
 		return fmt.Errorf("signature size: %d, expected %d", len(sig), ed25519.SignatureSize)
 	}
 
-	var fixed NaclSignature
+	var fixed kbcrypto.NaclSignature
 	copy(fixed[:], sig)
 	if !s.key.Verify(msg, &fixed) {
 		return BadSigError{E: "bad signature"}

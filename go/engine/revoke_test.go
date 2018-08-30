@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -362,8 +363,8 @@ func TestSignAfterRevoke(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
 
@@ -412,8 +413,8 @@ func TestLogoutAndDeprovisionIfRevokedNoop(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
 }

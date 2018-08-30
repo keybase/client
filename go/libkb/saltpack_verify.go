@@ -8,6 +8,7 @@ import (
 	"crypto/hmac"
 	"io"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/saltpack"
 )
@@ -119,7 +120,7 @@ type echoKeyring struct {
 }
 
 func (e echoKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKey {
-	var k NaclSigningKeyPublic
+	var k kbcrypto.NaclSigningKeyPublic
 	copy(k[:], kid)
 	return saltSignerPublic{key: k}
 }

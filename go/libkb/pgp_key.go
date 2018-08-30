@@ -600,7 +600,7 @@ func (k *PGPKeyBundle) CanSign() bool {
 func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 
 	prefix := []byte{
-		byte(KeybaseKIDV1),
+		byte(kbcrypto.KeybaseKIDV1),
 		byte(k.PrimaryKey.PubKeyAlgo),
 	}
 
@@ -621,7 +621,7 @@ func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 	sum := sha256.Sum256(buf.Bytes()[hdrBytes:])
 
 	out := append(prefix, sum[:]...)
-	out = append(out, byte(IDSuffixKID))
+	out = append(out, byte(kbcrypto.IDSuffixKID))
 
 	return keybase1.BinaryKID(out)
 }

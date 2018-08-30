@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -39,8 +40,8 @@ func TestCryptoSignED25519(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
-	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+	publicKey := kbcrypto.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*kbcrypto.NaclSignature)(&ret.Sig)) {
 		t.Error(libkb.VerificationError{})
 	}
 }

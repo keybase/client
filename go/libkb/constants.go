@@ -167,7 +167,6 @@ const (
 )
 
 const (
-	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
 	SigExpireIn            = OneYearInSeconds * 16 // 16 years
@@ -305,10 +304,6 @@ const (
 	SCTeamProvisionalCannotKey         = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
 	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
 	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
-)
-
-const (
-	IDSuffixKID = 0x0a
 )
 
 const (

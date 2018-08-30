@@ -170,7 +170,7 @@ func (n naclKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKe
 	}
 	keyBytes := [ed25519.PublicKeySize]byte{}
 	copy(keyBytes[:], kid)
-	return saltSignerPublic{NaclSigningKeyPublic(keyBytes)}
+	return saltSignerPublic{kbcrypto.NaclSigningKeyPublic(keyBytes)}
 }
 
 // An empty keyring just for generating ephemeral keys.
