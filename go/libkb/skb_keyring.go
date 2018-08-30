@@ -98,6 +98,22 @@ func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
 	return skbs, nil
 }
 
+func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
+	packets := make([]*KeybasePacket, len(skbs))
+	var err error
+	for i, b := range skbs {
+		if packets[i], err = NewKeybasePacket(b); err != nil {
+			return err
+		}
+	}
+
+	encoder := codec.NewEncoder(w, codecHandle())
+	if err = encoder.Encode(packets); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k *SKBKeyringFile) loadLocked() (err error) {
 	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
 
@@ -353,18 +369,10 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
 	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
 	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
-	packets := make([]*KeybasePacket, len(k.Blocks))
-	var err error
-	for i, b := range k.Blocks {
-		if packets[i], err = NewKeybasePacket(b); err != nil {
-			return 0, err
-		}
-	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
 	defer b64.Close()
 
-	encoder := codec.NewEncoder(b64, codecHandle())
-	if err = encoder.Encode(packets); err != nil {
+	if err := encodeSKBPacketList(k.Blocks, b64); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
