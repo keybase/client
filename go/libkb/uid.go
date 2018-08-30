@@ -40,6 +40,9 @@ func UIDWrapper(uid keybase1.UID) *jsonw.Wrapper {
 	return jsonw.NewString(uid.String())
 }
 
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbconst.RunMode.
+
 func UIDArg(uid keybase1.UID) HTTPValue {
 	return S{Val: uid.String()}
 }
