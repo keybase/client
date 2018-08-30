@@ -9,6 +9,9 @@ const mapStateToProps = (state: TypedState) => {
   const built = state.wallets.builtPayment
 
   const recipientType = build.recipientType || 'keybaseUser'
+  const recipientUsername = built.toUsername
+  const userInfo = state.users.infoMap.get(recipientUsername)
+  const recipientFullName = userInfo ? userInfo.fullname : ''
   const fromAccount = getAccount(state, stringToAccountID(build.from))
   const recipientAccount = getAccount(state, stringToAccountID(build.to))
   const recipientStellarAddress = build.to
@@ -20,8 +23,8 @@ const mapStateToProps = (state: TypedState) => {
     fromAccountName: fromAccount.name || fromAccount.accountID,
     recipientAccountAssets: recipientAccount.balanceDescription,
     recipientAccountName: recipientAccount.name || recipientAccount.accountID,
-    recipientUsername: built.toUsername,
-    recipientFullName: 'placeholder', // TODO: get a way to get full names from usernames
+    recipientUsername,
+    recipientFullName,
     recipientStellarAddress,
   }
 }

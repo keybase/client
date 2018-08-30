@@ -45,9 +45,11 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onChangeRecipient: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
   onChangeFromAccount: (from: string) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
+  },
+  onChangeRecipient: (to: string) => {
+    dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onCreateNewAccount: () => dispatch(RouteTree.navigateAppend(['createNewAccount'])),
   onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
