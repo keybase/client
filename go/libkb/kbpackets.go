@@ -59,6 +59,9 @@ func DecodePacket(decoder *codec.Decoder, body Packetable) error {
 		return UnmarshalError{ExpectedTag: p.Tag, Tag: tag}
 	}
 
+	// TODO: Figure out a way to do the same reencode check as in
+	// DecodePacketFromBytes.
+
 	return p.checkHash()
 }
 
