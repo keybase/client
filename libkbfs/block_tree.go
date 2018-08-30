@@ -703,7 +703,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 					return nil, nil, 0, err
 				}
 				newDirtyPtrs = append(newDirtyPtrs, ndp...)
-				nu = append(newUnrefs, nu...)
+				newUnrefs = append(newUnrefs, nu...)
 			}
 
 			// Construct the new set of parents for the shifted block,
@@ -812,7 +812,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 			return nil, nil, 0, err
 		}
 		newDirtyPtrs = append(newDirtyPtrs, ndp...)
-		nu = append(newUnrefs, nu...)
+		newUnrefs = append(newUnrefs, nu...)
 
 		immedParent = newImmedParent
 		currIndex = newCurrIndex
