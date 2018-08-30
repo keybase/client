@@ -10,8 +10,7 @@ import (
 )
 
 func TestBadMsgpack(t *testing.T) {
-	var info NaclEncryptionInfo
-	err := DecodeArmoredPacketBody(`
+	info, err := DecodeArmoredNaclEncryptionInfoPacket(`
 g6Rib2R5hqhkZXRhY2hlw6loYXNoX3R5cGUKo2tlecQjASBz6XLVJ/u0KKVpvp9QlcNvIopFsusm
 wjFFHVUYo3ykIwqncGF5bG9hZMUD7XsiYm9keSI6eyJkZXZpY2UiOnsiaWQiOiIwNTc4NDNjMjAy
 NTE5MjZhY2MwZDVkYjMxMjY5NzkxOCIsImtpZCI6IjAxMjEzNzlkNTM3MGFlYjRlOWY3YWE0YjUy
@@ -33,7 +32,7 @@ InNlcW5vIjo1NjN9LCJwcmV2IjoiZWUwMDc4NTgyNDZhZGY4ODU1OTc2NmYxNjRkMGIxOTUzMDMy
 MDljYmQ4MmFmYTdmYzZkZWQxOGI0OWI3YjZiMiIsInNlcW5vIjo0LCJ0YWciOiJzaWduYXR1cmUi
 faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 7MHrgCa2r1PEo4C/4ACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==
-`, TagEncryption, &info)
+`)
 	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", info)
 }
 
@@ -84,13 +83,12 @@ func TestHardcodedPacketEncode(t *testing.T) {
 // This is a regression test for
 // https://github.com/ugorji/go/issues/237 .
 func TestMsgpackReencodeNilHash(t *testing.T) {
-	var info NaclEncryptionInfo
 	// This message has a nil hash.
-	err := DecodeArmoredPacketBody(`
+	info, err := DecodeArmoredNaclEncryptionInfoPacket(`
 hKRib2R5hapjaXBoZXJ0ZXh0wKhlbmNfdHlwZQClbm9uY2XArHJlY2VpdmVyX2tlecCqc2VuZGVy
 X2tlecCkaGFzaIKkdHlwZQildmFsdWXEIJZSZH19AzYud7qy9x3yx1hN2MooqnhjsytUSqTK+VMZ
 o3RhZ80CA6d2ZXJzaW9uAQ==
-`, TagEncryption, &info)
+`)
 	// In particular, shouldn't return a FishyMsgpackError.
 	require.NoError(t, err, "info=%+v", info)
 }
