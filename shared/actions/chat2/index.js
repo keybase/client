@@ -1468,14 +1468,16 @@ const _maybeAutoselectNewestConversation = (
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
-  const selected = Constants.getSelectedConversation(state)
-  const selectedExists = Constants.isExistingSelectedConversation(state)
+  let selected = Constants.getSelectedConversation(state)
+  if (!state.chat2.metaMap.get(selected)) {
+    selected = Constants.noConversationIDKey
+  }
   if (action.type === Chat2Gen.metaDelete) {
     if (!action.payload.selectSomethingElse) {
       return
     }
     // only do this if we blocked the current conversation
-    if (selectedExists && selected !== action.payload.conversationIDKey) {
+    if (selected !== action.payload.conversationIDKey) {
       return
     }
     // only select something if we're leaving a pending conversation
@@ -1487,11 +1489,11 @@ const _maybeAutoselectNewestConversation = (
 
   if (action.type === Chat2Gen.metasReceived) {
     // If we have new activity, don't switch to it unless no convo was selected
-    if (selectedExists && selected !== Constants.noConversationIDKey) {
+    if (selected !== Constants.noConversationIDKey) {
       return
     }
   } else if (action.type === Chat2Gen.setPendingMode) {
-    if (selectedExists && Constants.isValidConversationIDKey(selected)) {
+    if (Constants.isValidConversationIDKey(selected)) {
       return
     }
   }

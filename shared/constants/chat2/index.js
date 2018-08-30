@@ -68,9 +68,6 @@ export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.unreadMap.get(id, 0) > 0
 export const getSelectedConversation = (state: TypedState) => state.chat2.selectedConversation
 
-export const isExistingSelectedConversation = (state: TypedState) =>
-  !!state.chat2.metaMap.get(state.chat2.selectedConversation)
-
 export const getEditInfo = (state: TypedState, id: Types.ConversationIDKey) => {
   const ordinal = state.chat2.editingMap.get(id)
   if (!ordinal) {
