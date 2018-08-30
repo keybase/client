@@ -205,17 +205,18 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent           *SigChain
-	id               LinkID
-	hashVerified     bool
-	sigVerified      bool
-	payloadVerified  bool
-	chainVerified    bool
-	storedLocally    bool
-	revoked          bool
-	unsigned         bool
-	dirty            bool
-	revocationsCache *[]keybase1.SigID
+	parent            *SigChain
+	id                LinkID
+	hashVerified      bool
+	sigVerified       bool
+	payloadVerified   bool
+	chainVerified     bool
+	storedLocally     bool
+	revoked           bool
+	unsigned          bool
+	dirty             bool
+	revocationsCache  *[]keybase1.SigID
+	computedHPrevInfo *HPrevInfo
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -1213,9 +1214,9 @@ func (c *ChainLink) GetSigchainV2TypeFromV2Shell() (SigchainV2Type, error) {
 	return c.unpacked.outerLinkV2.LinkType, nil
 }
 
-// Helper function for getting a ChainLink's type. If it is a v2 link (that may
-// or may not be stubbed), return the type from the outer link, otherwise from
-// the inner link.
+// GetSigchainV2Type is a helper function for getting a ChainLink's type. If it
+// is a v2 link (that may or may not be stubbed), return the type from the
+// outer link, otherwise from the inner link.
 func (c *ChainLink) GetSigchainV2Type() (SigchainV2Type, error) {
 	if c.unpacked == nil {
 		return SigchainV2TypeNone, errors.New("chain link is not unpacked")
@@ -1399,10 +1400,9 @@ func (c ChainLink) AllowStubbing() bool {
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
 }
 
-// This logic is defined at
-// https://keybase.atlassian.net/wiki/spaces/GEN/pages/499318820/Sigchain+Playback+Performance+Ideas
-// under Discussion. Note that the SigchainV2Type converter covers all
-// the cases where a link is revoking but it is not a revoke type link.
+// isHighUserLink determines whether a chainlink counts as "high" in a user's chain,
+// which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
+// PGPUpdate, or any link that is revoking.
 func (c ChainLink) IsHighUserLink() (bool, error) {
 	v2Type, err := c.GetSigchainV2Type()
 	if err != nil {

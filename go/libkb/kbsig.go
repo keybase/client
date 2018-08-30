@@ -354,6 +354,9 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	// overridden. It is expected to be provided by PerUserKey and
 	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
+	if (arg.Me == nil) == (arg.HPrevInfoOverride == nil) {
+		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfo should be provided.")
+	}
 	if arg.Me != nil {
 		hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
 	} else {

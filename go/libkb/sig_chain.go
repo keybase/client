@@ -48,6 +48,8 @@ type SigChain struct {
 	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
+
+	// TODO: Remove dead code if not using this strat.
 	// hPrevInfo is the last seen high seqno and Link ID after playing the
 	// chain. hPrevInfo is computed across subchains: if the user resets, the
 	// HPrevSeqno of the new eldest will point to somewhere in the last
@@ -76,6 +78,13 @@ type SigChain struct {
 	// In some cases, it is useful to load all existing subchains for this user.
 	// If so, they will be slotted into this slice.
 	prevSubchains []ChainLinks
+
+	// Utility map to help verify hPrevInfos.
+	// { hPrevInfo.seqno : [ seqnos of links that claim their hPrev to be hPrevInfo.seqno  ] }
+	// During a verifyChain, we maintain the invariant that at the start of each loop,
+	// there are no keys strictly greater than the curr.GetSeqno().
+	unverifiedHPrevInfos map[keybase1.Seqno][]keybase1.Seqno
+	// unverifiedHPrevInfos = make(map[(int, []byte)][]int)
 }
 
 func (sc SigChain) Len() int {
@@ -87,6 +96,14 @@ func (c ChainLinks) EldestSeqno() keybase1.Seqno {
 		return keybase1.Seqno(0)
 	}
 	return c[0].GetSeqno()
+}
+
+func (c ChainLinks) LinkAtSeqno(seqno keybase1.Seqno) *ChainLink {
+	return c[seqno-1]
+}
+
+func (c ChainLinks) LastSeqno() keybase1.Seqno {
+	return keybase1.Seqno(len(c))
 }
 
 func (sc *SigChain) LocalDelegate(kf *KeyFamily, key GenericKey, sigID keybase1.SigID, signingKid keybase1.KID, isSibkey bool, mhm keybase1.HashMeta, fau keybase1.Seqno) (err error) {
@@ -354,16 +371,60 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 	defer func() {
 		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
 	}()
+
+	if sc.unverifiedHPrevInfos == nil {
+		sc.unverifiedHPrevInfos = make(map[keybase1.Seqno][]keybase1.Seqno)
+	}
+
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		m.G().VDL.CLogf(m.Ctx(), VLog1, "| verify link %d (%s)", i, curr.id)
+
+		isHigh, err := curr.IsHighUserLink()
+		if err != nil {
+			return err
+		}
+
 		if curr.chainVerified {
+			// still need to check hprevinfo edge condition here and unverify if necessary
+			if len(sc.unverifiedHPrevInfos) > 1 {
+				sc.reverseVerifications(curr.GetSeqno())
+				return ChainLinkWrongSeqnoError{"Future links incorrectly claimed multiple hprevinfos less than or equal to subchain start."}
+			} else if len(sc.unverifiedHPrevInfos) == 1 {
+				var claimers []keybase1.Seqno
+				var ok bool
+				var hash LinkID
+				if isHigh {
+					claimers, ok = sc.unverifiedHPrevInfos[curr.GetSeqno()]
+					if !ok {
+						sc.reverseVerifications(curr.GetSeqno())
+						return ChainLinkWrongSeqnoError{"Future links claimed hPrevInfos prior to this high link."}
+					}
+					hash = curr.id
+				} else {
+					claimers, ok = sc.unverifiedHPrevInfos[sc.hPrevInfo.Seqno]
+					if !ok {
+						sc.reverseVerifications(curr.GetSeqno())
+						return ChainLinkWrongSeqnoError{"Future links claimed hPrevInfos not equal to the current last high link."}
+					}
+					hash = sc.hPrevInfo.Hash // don't necessarily need the entire hprevinfo, could just be seqno, get this from chainlinks
+				}
+				for claimer := range claimers {
+					// make this a function on chainlinks ChainLinks.GetLinkWithSeqno()...
+					claimedHash := sc.chainLinks[claimer-1].GetHPrevInfo().Hash
+					if !claimedHash.Eq(hash) {
+						sc.reverseVerifications(curr.GetSeqno())
+						return ChainLinkHPrevHashMismatchError{fmt.Sprintf("Expected hash %s, got %s", hash.String(), claimedHash.String())}
+					}
+				}
+			}
 			m.CDebugf("| short-circuit at link %d", i)
 			break
 		}
 		if err = curr.VerifyLink(); err != nil {
 			return err
 		}
+
 		if i > 0 {
 			prev := sc.chainLinks[i-1]
 			// NB: In a sigchain v2 link, `id` refers to the hash of the
@@ -374,6 +435,52 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 			if prev.GetSeqno()+1 != curr.GetSeqno() {
 				return ChainLinkWrongSeqnoError{fmt.Sprintf("Chain seqno mismatch at seqno=%d (previous=%d)", curr.GetSeqno(), prev.GetSeqno())}
 			}
+
+			if isHigh {
+				// Verify higher links that claim that this is their hPrev, if the hash matches..
+				for claimer := range sc.unverifiedHPrevInfos[curr.GetSeqno()] {
+					claimedHash := sc.chainLinks[claimer-1].GetHPrevInfo().Hash
+					if !claimedHash.Eq(curr.id) {
+						sc.reverseVerifications(curr.GetSeqno())
+						return ChainLinkHPrevHashMismatchError{fmt.Sprintf("Expected hash %s, got %s", curr.id.String(), claimedHash.String())}
+					}
+				}
+				// Remove verified links from the queue
+				delete(sc.unverifiedHPrevInfos, curr.GetSeqno())
+
+				// Reject if any higher links claim to have a prior hPrev to this one.
+				// The loop invariant implies unverifiedHPrevInfos contains only links that claim hPrev.Seqno < curr.GetSeqno().
+				if len(sc.unverifiedHPrevInfos) > 0 {
+					// TODO, Add in the bad claimers in err msg
+					sc.reverseVerifications(curr.GetSeqno())
+					return ChainLinkWrongSeqnoError{fmt.Sprintf("There exist higher links that incorrectly claimed to have a hPrev prior to %d.", curr.GetSeqno())}
+				}
+			} else {
+				// Reject if any higher links claim that curr is a high link.
+				claimers, ok := sc.unverifiedHPrevInfos[curr.GetSeqno()]
+				if ok {
+					sc.reverseVerifications(curr.GetSeqno())
+					return ChainLinkWrongHPrevSeqnoError{fmt.Sprintf("%v claimed to have a hPrev at %d, but it was not high.",
+						claimers, curr.GetSeqno())}
+				}
+			}
+			// In the future, this will be an error if a new link does not provide an HPrevInfo.
+			if curr.GetHPrevInfo() != nil {
+				claimers := sc.unverifiedHPrevInfos[curr.GetHPrevInfo().Seqno]
+				claimers = append(claimers, curr.GetSeqno())
+			}
+		} else {
+			hPrevInfo := curr.GetHPrevInfo()
+			if hPrevInfo != nil {
+				if hPrevInfo.Seqno != 0 {
+					sc.reverseVerifications(curr.GetSeqno())
+					return ChainLinkWrongSeqnoError{fmt.Sprintf("Expected 0 seqno for initial link instead of %d.", hPrevInfo.Seqno)}
+				}
+				if hPrevInfo.Hash != nil {
+					sc.reverseVerifications(curr.GetSeqno())
+					return ChainLinkHPrevHashMismatchError{fmt.Sprintf("Expected null hash for initial link instead of %v.", hPrevInfo.Hash)}
+				}
+			}
 		}
 		if err = curr.CheckNameAndID(sc.username, sc.uid); err != nil {
 			return err
@@ -381,30 +488,13 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		curr.chainVerified = true
 	}
 
-	newHPrevInfo := NewInitialHPrevInfo()
-	for i := 0; i < len(sc.chainLinks); i++ {
-		curr := sc.chainLinks[i]
-
-		if hPrevInfo := curr.GetHPrevInfo(); hPrevInfo != nil {
-			if hPrevInfo.Seqno != newHPrevInfo.Seqno {
-				return ChainLinkWrongHPrevSeqnoError{fmt.Sprintf("Expected hPrevSeqno %d, got %d", int(newHPrevInfo.Seqno), int(hPrevInfo.Seqno))}
-			}
-			if !hPrevInfo.Hash.Eq(newHPrevInfo.Hash) {
-				return ChainLinkHPrevHashMismatchError{fmt.Sprintf("Expected hash %s, got %s", newHPrevInfo.Hash.String(), hPrevInfo.Hash.String())}
-			}
-		}
-
-		isHigh, err := curr.IsHighUserLink()
-		if err != nil {
-			return err
-		}
-		if isHigh {
-			newHPrevInfo = NewHPrevInfo(curr.GetSeqno(), curr.id)
-		}
-	}
-	sc.hPrevInfo = newHPrevInfo
-
 	return err
+}
+
+func (sc SigChain) reverseVerifications(lowSeqno keybase1.Seqno) {
+	for seqno := lowSeqno; seqno <= sc.chainLinks.LastSeqno(); seqno++ {
+		sc.chainLinks.LinkAtSeqno(seqno).chainVerified = false
+	}
 }
 
 func (sc SigChain) GetCurrentTailTriple() (ret *MerkleTriple) {
