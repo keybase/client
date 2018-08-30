@@ -38,9 +38,8 @@ faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 }
 
 func TestFishyMsgpack(t *testing.T) {
-	var info NaclSigInfo
 	// This message has a duplicate key ("detached") in the top-level map
-	err := DecodeArmoredPacketBody(`
+	info, err := DecodeArmoredNaclSigInfoPacket(`
 hKRib2R5hqhkZXRhY2hlZMOoZGV0YWNoZWTCqWhhc2hfdHlwZQqja2V5xCMBIHPpctUn+7QopWm+
 n1CVw28iikWy6ybCMUUdVRijfKQjCqdwYXlsb2FkxQPteyJib2R5Ijp7ImRldmljZSI6eyJpZCI6
 IjA1Nzg0M2MyMDI1MTkyNmFjYzBkNWRiMzEyNjk3OTE4Iiwia2lkIjoiMDEyMTM3OWQ1MzcwYWVi
@@ -62,7 +61,7 @@ ZDVlOThiNWZlIiwic2Vxbm8iOjU2M30sInByZXYiOiJlZTAwNzg1ODI0NmFkZjg4NTU5NzY2ZjE2
 NGQwYjE5NTMwMzIwOWNiZDgyYWZhN2ZjNmRlZDE4YjQ5YjdiNmIyIiwic2Vxbm8iOjQsInRhZyI6
 InNpZ25hdHVyZSJ9o3NpZ8RAbe4i3mDpfo1ECOcd0XU1JE7lRgkPUHQq7WLEEh5LbO5IAZHSm2zY
 tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
-`, TagSignature, &info)
+`)
 	require.IsType(t, err, FishyMsgpackError{}, "info=%+v, err+%+v", info, err)
 }
 
