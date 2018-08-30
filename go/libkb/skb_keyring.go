@@ -74,7 +74,7 @@ func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
 }
 
 func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
-	err := DecodePacket(d, TagP3skb, &s.skb)
+	err := DecodePacket(d, &s.skb)
 	if err != nil {
 		panic(err)
 	}
