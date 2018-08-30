@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"os"
 	"path/filepath"
 	"sync"
 	"testing"
@@ -49,7 +50,7 @@ func TestJsonTransaction(t *testing.T) {
 
 func buildNewJSONFile(m MetaContext) (JSONTestReader, JSONTestWriter, *JSONTestFile) {
 	path := filepath.Join(m.G().Env.GetConfigDir(), "test-json-file")
-	jsonFile := JSONTestFile{NewJSONFile(m.G(), path, "device clone state")}
+	jsonFile := JSONTestFile{NewJSONFile(m.G(), path, "test file from buildNewJSONFile")}
 	jsonFile.Load(false)
 	return &jsonFile, &jsonFile, &jsonFile
 }
@@ -182,4 +183,40 @@ func TestJsonTxRollback(t *testing.T) {
 	i, err = G.Env.GetConfig().GetInterfaceAtPath("bbbbar")
 	require.NoError(t, err)
 	require.Equal(t, "world, over?", i)
+}
+
+func TestJsonNonExistingFileRollback(t *testing.T) {
+	tc := SetupTest(t, "json", 1)
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+	reader, writer, rawFile := buildNewJSONFile(m)
+	defer rawFile.Nuke()
+
+	tx, err := rawFile.BeginTransaction()
+	require.NoError(t, err)
+	require.NoError(t, writer.SetStringAtPath("test1", "this is value 1"))
+	require.NoError(t, writer.SetIntAtPath("test two", 2))
+
+	i, err := reader.GetInterfaceAtPath("test1")
+	require.NoError(t, err)
+	require.Equal(t, "this is value 1", i)
+
+	i, err = reader.GetInterfaceAtPath("test two")
+	require.NoError(t, err)
+	require.Equal(t, 2, i)
+
+	require.NoError(t, tx.Rollback())
+	require.NoError(t, tx.Abort())
+
+	_, err = os.Stat(rawFile.filename)
+	require.Error(t, err)
+	require.True(t, os.IsNotExist(err))
+
+	_, err = reader.GetInterfaceAtPath("test1")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no such key")
+
+	_, err = reader.GetInterfaceAtPath("test two")
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no such key")
 }

@@ -48,11 +48,11 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
-	f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
+	f.G().Log.Debug("+ loading %q file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
+			msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
 			if warnOnNotFound {
 				f.G().Log.Warning(msg)
 			} else {
@@ -313,6 +313,12 @@ func (f *jsonFileTransaction) Abort() error {
 func (f *jsonFileTransaction) Rollback() error {
 	f.f.G().Log.Debug("+ Rolling back %s to state from %s", f.f.which, f.f.filename)
 	err := f.f.Load(false)
+	if !f.f.exists {
+		// Before transaction there was no file, so set in-memory
+		// wrapper to clean state as well.
+		f.f.jw = jsonw.NewDictionary()
+		f.f.G().Log.Debug("+ Rolling back to clean state because f.exists is false")
+	}
 	f.f.G().Log.Debug("- Rollback -> %s", ErrToOk(err))
 	return err
 }
