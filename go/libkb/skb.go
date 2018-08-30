@@ -131,6 +131,10 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	return NewLKSec(pps, s.uid)
 }
 
+func (s *SKB) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagP3skb, KeybasePacketV1
+}
+
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 	return NewKeybasePacket(s, TagP3skb, KeybasePacketV1)
 }
