@@ -178,7 +178,7 @@ func TestUnusedSecretStore(t *testing.T) {
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
 	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
-	require.False(t, secret.IsNil())
+	require.True(t, secret.IsNil())
 }
 
 func TestPromptCancelCache(t *testing.T) {
