@@ -56,6 +56,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 	p3skbs, err := decodeSKBPacketList(decoder, nil)
 	require.NoError(t, err)
 	require.Equal(t, 3, len(p3skbs))
+	require.NotEqual(t, SKB{}, *p3skbs[0])
 	for _, p3skb := range p3skbs {
 		require.Equal(t, p3skbs[0], p3skb)
 	}
