@@ -10,23 +10,12 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-// OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
-const (
-	HashPGPMd5       = 1
-	HashPGPSha1      = 2
-	HashPGPRipemd160 = 3
-	HashPGPSha256    = 8
-	HashPGPSha384    = 9
-	HashPGPSha512    = 10
-	HashPGPSha224    = 11
-)
-
 type NaclSigInfo struct {
 	Kid      keybase1.BinaryKID `codec:"key"`
 	Payload  []byte             `codec:"payload,omitempty"`
 	Sig      NaclSignature      `codec:"sig"`
 	SigType  AlgoType           `codec:"sig_type"`
-	HashType int                `codec:"hash_type"`
+	HashType HashType           `codec:"hash_type"`
 	Detached bool               `codec:"detached"`
 	Version  int                `codec:"version,omitempty"`
 	Prefix   SignaturePrefix    `codec:"prefix,omitempty"`
