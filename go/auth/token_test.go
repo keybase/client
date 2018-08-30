@@ -46,15 +46,12 @@ func TestTokenVerifyToken(t *testing.T) {
 	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	require.NoError(t, err)
 	_, err = VerifyToken("nope", server, challenge, testMaxTokenExpireIn)
-	if err == nil {
-		t.Fatal(fmt.Errorf("expected verification failure"))
-	}
+	require.NotNil(t, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	if err = checkToken(token, uid, name, public.GetKID(),
-		server, challenge, expireIn, clientName, clientVersion); err != nil {
-		t.Fatal(err)
-	}
+	err = checkToken(token, uid, name, public.GetKID(),
+		server, challenge, expireIn, clientName, clientVersion)
+	require.NoError(t, err)
 }
 
 func TestTokenExpired(t *testing.T) {
@@ -72,10 +69,7 @@ func TestTokenExpired(t *testing.T) {
 	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	require.NoError(t, err)
 	_, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
-	_, expired := err.(TokenExpiredError)
-	if !expired {
-		t.Fatal(fmt.Errorf("expected token expired error"))
-	}
+	require.IsType(t, TokenExpiredError{}, err)
 }
 
 func TestMaxExpires(t *testing.T) {
@@ -93,10 +87,7 @@ func TestMaxExpires(t *testing.T) {
 	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	require.NoError(t, err)
 	_, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
-	_, maxExpires := err.(MaxTokenExpiresError)
-	if !maxExpires {
-		t.Fatal(fmt.Errorf("expected max token expires error"))
-	}
+	require.IsType(t, MaxTokenExpiresError{}, err)
 }
 
 func TestTokenServerInvalid(t *testing.T) {
@@ -114,16 +105,12 @@ func TestTokenServerInvalid(t *testing.T) {
 	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	require.NoError(t, err)
 	_, err = VerifyToken(sig, "nope", challenge, testMaxTokenExpireIn)
-	_, invalid := err.(InvalidTokenServerError)
-	if !invalid {
-		t.Fatal(fmt.Errorf("expected invalid token server error"))
-	}
+	require.IsType(t, InvalidTokenServerError{}, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	if err = checkToken(token, uid, name, public.GetKID(),
-		server, challenge, expireIn, clientName, clientVersion); err != nil {
-		t.Fatal(err)
-	}
+	err = checkToken(token, uid, name, public.GetKID(),
+		server, challenge, expireIn, clientName, clientVersion)
+	require.NoError(t, err)
 }
 
 func TestTokenChallengeInvalid(t *testing.T) {
@@ -141,16 +128,12 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	sig, _, err := private.SignToStringV0(token.Bytes(), public)
 	require.NoError(t, err)
 	_, err = VerifyToken(sig, server, "nope", testMaxTokenExpireIn)
-	_, invalid := err.(InvalidTokenChallengeError)
-	if !invalid {
-		t.Fatal(fmt.Errorf("expected invalid token server error"))
-	}
+	require.IsType(t, InvalidTokenChallengeError{}, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	if err = checkToken(token, uid, name, public.GetKID(),
-		server, challenge, expireIn, clientName, clientVersion); err != nil {
-		t.Fatal(err)
-	}
+	err = checkToken(token, uid, name, public.GetKID(),
+		server, challenge, expireIn, clientName, clientVersion)
+	require.NoError(t, err)
 }
 
 func checkToken(token *Token, uid keybase1.UID, username kbun.NormalizedUsername,
@@ -197,14 +180,8 @@ func checkToken(token *Token, uid keybase1.UID, username kbun.NormalizedUsername
 func TestIsValidChallenge(t *testing.T) {
 	challenge, err := GenerateChallenge()
 	require.NoError(t, err)
-	if !IsValidChallenge(challenge) {
-		t.Fatal(fmt.Errorf("Invalid challenge: %s", challenge))
-	}
-	if IsValidChallenge("nope") {
-		t.Fatal("Expected invalid challenge")
-	}
+	require.True(t, IsValidChallenge(challenge))
+	require.False(t, IsValidChallenge("nope"))
 	challenge = challenge[len(challenge)/2:]
-	if IsValidChallenge(challenge) {
-		t.Fatal("Expected invalid challenge")
-	}
+	require.False(t, IsValidChallenge(challenge))
 }
