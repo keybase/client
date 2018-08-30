@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar, {castPlatformStyles as avatarCastPlatformStyles} from './avatar'
+import Avatar from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
@@ -39,142 +39,128 @@ type Props = {
 }
 
 // If lineclamping isn't working, try adding a static width in containerStyle
-const NameWithIconVertical = (props: Props) => {
+const NameWithIcon = (props: Props) => {
+  if (props.username && props.teamname) {
+    throw new Error('Can only use username or teamname in NameWithIcon; got both')
+  }
+
   const isAvatar = !!(props.username || props.teamname)
-  const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
+  const commonHeight = isMobile ? 48 : 32
   const BoxComponent = props.onClick ? ClickableBox : Box
+  const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
+
+  const metaOne = (
+    <TextOrComponent
+      textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+      val={props.metaOne}
+      style={props.horizontal ? undefined : styles.fullWidthText}
+    />
+  )
+  const metaTwo = (
+    <TextOrComponent
+      textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+      val={props.metaTwo}
+      style={props.horizontal ? undefined : styles.fullWidthText}
+    />
+  )
+  const metas = props.horizontal ? (
+    <Box style={globalStyles.flexBoxRow}>
+      {metaOne}
+      {props.metaTwo && props.horizontal && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
+      {metaTwo}
+    </Box>
+  ) : (
+    <React.Fragment>
+      {metaOne}
+      {metaTwo}
+    </React.Fragment>
+  )
+
   return (
     <BoxComponent
       onClick={props.onClick}
-      style={collapseStyles([styles.vContainerStyle, props.containerStyle])}
+      style={collapseStyles([
+        props.horizontal ? styles.hContainerStyle : styles.vContainerStyle,
+        props.containerStyle,
+      ])}
     >
       {isAvatar && (
         <Avatar
           editable={props.editableIcon}
           onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-          showFollowingStatus={true}
-          size={adapterProps.iconSize}
+          size={props.horizontal ? commonHeight : adapterProps.iconSize}
+          showFollowingStatus={props.horizontal ? undefined : true}
           username={props.username}
           teamname={props.teamname}
-          style={props.avatarStyle ? avatarCastPlatformStyles(props.avatarStyle) : {}}
+          style={collapseStyles([props.horizontal ? styles.hAvatarStyle : {}, props.avatarStyle])}
         />
       )}
+      {/* TODO switch this to collapseStyles when Icon is fixed */}
       {!isAvatar &&
-      !!props.icon && ( // TODO switch this to collapseStyles when Icon is fixed
+        !!props.icon && (
           <Icon
-            type={props.icon || ''}
-            style={{height: adapterProps.iconSize, width: adapterProps.iconSize}}
-            fontSize={adapterProps.iconSize}
+            type={props.icon}
+            style={
+              props.horizontal
+                ? castPlatformStyles(styles.hIconStyle)
+                : {height: adapterProps.iconSize, width: adapterProps.iconSize}
+            }
+            fontSize={props.horizontal ? (isMobile ? 48 : 32) : adapterProps.iconSize}
           />
         )}
       <Box
-        style={collapseStyles([
-          styles.metaStyle,
-          styles.fullWidthTextContainer,
-          {marginTop: adapterProps.metaMargin},
-          props.metaStyle,
-        ])}
+        style={
+          props.horizontal
+            ? collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])
+            : collapseStyles([
+                styles.metaStyle,
+                styles.fullWidthTextContainer,
+                {marginTop: adapterProps.metaMargin},
+                props.metaStyle,
+              ])
+        }
       >
         {!props.username && (
-          <Text type={adapterProps.titleType} style={props.titleStyle}>
+          <Text
+            type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+            style={props.horizontal ? undefined : props.titleStyle}
+          >
             {props.title}
           </Text>
         )}
         {!!props.username && (
           <ConnectedUsernames
             clickable={true}
-            type={adapterProps.titleType}
-            containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
-            inline={true}
+            type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
+            containerStyle={
+              props.horizontal ? undefined : isMobile ? undefined : styles.vUsernameContainerStyle
+            }
+            inline={!props.horizontal}
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}
           />
         )}
-        <TextOrComponent
-          style={styles.fullWidthText}
-          textType={adapterProps.metaOneType}
-          val={props.metaOne}
-        />
-        <TextOrComponent style={styles.fullWidthText} textType="BodySmall" val={props.metaTwo} />
+        {metas}
       </Box>
     </BoxComponent>
   )
-}
-
-const NameWithIconHorizontal = (props: Props) => {
-  const isAvatar = !!(props.username || props.teamname)
-  const commonHeight = isMobile ? 48 : 32
-  const BoxComponent = props.onClick ? ClickableBox : Box
-  return (
-    <BoxComponent
-      onClick={props.onClick}
-      style={collapseStyles([styles.hContainerStyle, props.containerStyle])}
-    >
-      {isAvatar && (
-        <Avatar
-          editable={props.editableIcon}
-          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-          size={commonHeight}
-          username={props.username}
-          teamname={props.teamname}
-          style={collapseStyles([styles.hAvatarStyle, props.avatarStyle])}
-        />
-      )}
-      {!isAvatar &&
-        !!props.icon && (
-          <Icon
-            type={props.icon}
-            style={castPlatformStyles(styles.hIconStyle)}
-            fontSize={isMobile ? 48 : 32}
-          />
-        )}
-      <Box style={collapseStyles([globalStyles.flexBoxColumn, props.metaStyle])}>
-        {!props.username && <Text type="BodySemibold">{props.title}</Text>}
-        {!!props.username && (
-          <ConnectedUsernames
-            clickable={true}
-            type="BodySemibold"
-            usernames={[props.username]}
-            colorFollowing={props.colorFollowing}
-          />
-        )}
-        <Box style={globalStyles.flexBoxRow}>
-          <TextOrComponent textType="BodySmall" val={props.metaOne} />
-          {props.metaTwo && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
-          <TextOrComponent textType="BodySmall" val={props.metaTwo} />
-        </Box>
-      </Box>
-    </BoxComponent>
-  )
-}
-
-// Delegator
-const NameWithIcon = (props: Props) => {
-  if (props.username && props.teamname) {
-    throw new Error('Can only use username or teamname in NameWithIcon; got both')
-  }
-  return props.horizontal ? <NameWithIconHorizontal {...props} /> : <NameWithIconVertical {...props} />
 }
 
 // Render text if it's text, or identity if otherwise
-const TextOrComponent = ({
-  val,
-  textType,
-  style,
-}: {
+const TextOrComponent = (props: {
   val: string | React.Node,
   textType: TextType,
   style?: StylesCrossPlatform,
 }) => {
-  if (typeof val === 'string') {
+  if (typeof props.val === 'string') {
     return (
-      <Text style={style} lineClamp={1} type={textType}>
-        {val}
+      <Text style={props.style} lineClamp={1} type={props.textType}>
+        {props.val}
       </Text>
     )
   }
   // `return undefined` makes react barf
-  return val || null
+  return props.val || null
 }
 
 const styles = styleSheetCreate({
