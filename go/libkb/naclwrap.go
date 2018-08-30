@@ -283,24 +283,12 @@ func (k NaclDHKeyPair) HasSecretKey() bool {
 func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }
 func (k NaclDHKeyPair) CanSign() bool      { return false }
 
-func (k NaclSigningKeyPair) Sign(msg []byte) (ret *kbcrypto.NaclSigInfo, err error) {
+func (k NaclSigningKeyPair) Sign(msg []byte) (kbcrypto.NaclSigInfo, error) {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
-		return
+		return kbcrypto.NaclSigInfo{}, NoSecretKeyError{}
 	}
 
-	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
-	// Version 1 is the same.
-	ret = &kbcrypto.NaclSigInfo{
-		Kid:      k.GetBinaryKID(),
-		Payload:  msg,
-		Sig:      k.Private.Sign(msg),
-		SigType:  kbcrypto.SigKbEddsa,
-		HashType: HashPGPSha512,
-		Detached: true,
-		Version:  0,
-	}
-	return
+	return k.Private.SignInfoV0(msg, k.Public), nil
 }
 
 func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
@@ -315,30 +303,12 @@ func (r EncryptionReason) Bytes() []byte {
 	return []byte(r)
 }
 
-func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) (ret *kbcrypto.NaclSigInfo, err error) {
+func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) (kbcrypto.NaclSigInfo, error) {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
-		return
+		return kbcrypto.NaclSigInfo{}, NoSecretKeyError{}
 	}
 
-	if prefix.HasNullByte() || len(prefix) == 0 {
-		err = BadSignaturePrefixError{}
-		return
-	}
-
-	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
-	// Version 1 is the same.
-	ret = &kbcrypto.NaclSigInfo{
-		Kid:      k.GetBinaryKID(),
-		Payload:  msg,
-		Sig:      k.Private.Sign(prefix.Prefix(msg)),
-		SigType:  kbcrypto.SigKbEddsa,
-		HashType: HashPGPSha512,
-		Detached: true,
-		Version:  2,
-		Prefix:   prefix,
-	}
-	return
+	return k.Private.SignInfoV2(msg, k.Public, prefix)
 }
 
 func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
@@ -347,7 +317,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	body, err := kbcrypto.EncodePacketToBytes(naclSig)
+	body, err := kbcrypto.EncodePacketToBytes(&naclSig)
 	if err != nil {
 		return
 	}

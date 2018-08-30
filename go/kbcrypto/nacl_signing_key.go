@@ -58,3 +58,40 @@ func (k NaclSigningKeyPrivate) Sign(msg []byte) NaclSignature {
 	copy(sig[:], ed25519.Sign(k[:], msg))
 	return sig
 }
+
+func (k NaclSigningKeyPrivate) SignInfoV0(msg []byte, public NaclSigningKeyPublic) NaclSigInfo {
+	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
+	// Version 1 is the same.
+	return NaclSigInfo{
+		Kid:      public.GetBinaryKID(),
+		Payload:  msg,
+		Sig:      k.Sign(msg),
+		SigType:  SigKbEddsa,
+		HashType: HashPGPSha512,
+		Detached: true,
+		Version:  0,
+	}
+}
+
+type BadSignaturePrefixError struct{}
+
+func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
+
+func (k NaclSigningKeyPrivate) SignInfoV2(msg []byte, public NaclSigningKeyPublic, prefix SignaturePrefix) (NaclSigInfo, error) {
+	if prefix.HasNullByte() || len(prefix) == 0 {
+		return NaclSigInfo{}, BadSignaturePrefixError{}
+	}
+
+	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
+	// Version 1 is the same.
+	return NaclSigInfo{
+		Kid:      public.GetBinaryKID(),
+		Payload:  msg,
+		Sig:      k.Sign(prefix.Prefix(msg)),
+		SigType:  SigKbEddsa,
+		HashType: HashPGPSha512,
+		Detached: true,
+		Version:  2,
+		Prefix:   prefix,
+	}, nil
+}
