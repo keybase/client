@@ -22,6 +22,8 @@ export type _State = {
   daemonHandshakeFailedReason: string,
   daemonHandshakeRetriesLeft: number,
   daemonHandshakeWaiters: I.Map<string, number>,
+  // if we ever restart handshake up this so we can ignore any waiters for old things
+  daemonHandshakeVersion: number,
   debugDump: Array<string>,
   deviceID: DeviceID,
   deviceName: ?string,
@@ -32,6 +34,7 @@ export type _State = {
   justDeletedSelf: string,
   loggedIn: boolean,
   logoutHandshakeWaiters: I.Map<string, number>,
+  logoutHandshakeVersion: number,
   menubarWindowID: number,
   notifySound: boolean,
   openAtLogin: boolean,
