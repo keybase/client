@@ -269,6 +269,33 @@ func (p *KeybasePacket) unmarshalBinary(data []byte) error {
 	return p.checkHash()
 }
 
+func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag, body interface{}) error {
+	ch := codecHandle()
+	p.Body = body
+	if err := MsgpackDecodeAll(data, ch, p); err != nil {
+		return err
+	}
+
+	if p.Tag != tag {
+		return fmt.Errorf("Expected tag %d, got %d", tag, p.Tag)
+	}
+
+	// Test for nonstandard msgpack data (which could be maliciously crafted)
+	// by re-encoding and making sure we get the same thing.
+	// https://github.com/keybase/client/issues/423
+	//
+	// Ideally this should be done at a lower level, like MsgpackDecodeAll, but
+	// our msgpack library doesn't sort maps the way we expect. See
+	// https://github.com/ugorji/go/issues/103
+	if reencoded, err := p.Encode(); err != nil {
+		return err
+	} else if !bytes.Equal(reencoded, data) {
+		return FishyMsgpackError{data, reencoded}
+	}
+
+	return p.checkHash()
+}
+
 func DecodeArmoredPacket(s string) (*KeybasePacket, error) {
 	b, err := base64.StdEncoding.DecodeString(s)
 	if err != nil {
@@ -284,6 +311,20 @@ func DecodePacket(data []byte) (ret *KeybasePacket, err error) {
 		ret = nil
 	}
 	return
+}
+
+func DecodePacketBody(data []byte, tag PacketTag, body interface{}) error {
+	var p KeybasePacket
+	p.Body = body
+	return p.unmarshalBinaryWithTagAndBody(data, tag, body)
+}
+
+func DecodeArmoredPacketBody(s string, tag PacketTag, body interface{}) error {
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		return err
+	}
+	return DecodePacketBody(b, tag, body)
 }
 
 type Packetable interface {

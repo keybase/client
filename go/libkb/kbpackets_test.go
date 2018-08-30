@@ -10,7 +10,8 @@ import (
 )
 
 func TestBadMsgpack(t *testing.T) {
-	p, err := DecodeArmoredPacket(`
+	var info NaclEncryptionInfo
+	err := DecodeArmoredPacketBody(`
 g6Rib2R5hqhkZXRhY2hlw6loYXNoX3R5cGUKo2tlecQjASBz6XLVJ/u0KKVpvp9QlcNvIopFsusm
 wjFFHVUYo3ykIwqncGF5bG9hZMUD7XsiYm9keSI6eyJkZXZpY2UiOnsiaWQiOiIwNTc4NDNjMjAy
 NTE5MjZhY2MwZDVkYjMxMjY5NzkxOCIsImtpZCI6IjAxMjEzNzlkNTM3MGFlYjRlOWY3YWE0YjUy
@@ -32,13 +33,14 @@ InNlcW5vIjo1NjN9LCJwcmV2IjoiZWUwMDc4NTgyNDZhZGY4ODU1OTc2NmYxNjRkMGIxOTUzMDMy
 MDljYmQ4MmFmYTdmYzZkZWQxOGI0OWI3YjZiMiIsInNlcW5vIjo0LCJ0YWciOiJzaWduYXR1cmUi
 faNzaWfEQG3uIt5g6X6NRAjnHdF1NSRO5UYJD1B0Ku1ixBIeS2zuSAGR0pts2Lbl+Cz3BGvu9isq
 7MHrgCa2r1PEo4C/4ACoc2lnX3R5cGUgo3RhZ80CAqd2ZXJzaW9uAQ==
-`)
-	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", p)
+`, TagEncryption, &info)
+	require.Error(t, err, "Malformed msgpack should fail to decode, but decoded to: %#v", info)
 }
 
 func TestFishyMsgpack(t *testing.T) {
+	var info NaclSigInfo
 	// This message has a duplicate key ("detached") in the top-level map
-	p, err := DecodeArmoredPacket(`
+	err := DecodeArmoredPacketBody(`
 hKRib2R5hqhkZXRhY2hlZMOoZGV0YWNoZWTCqWhhc2hfdHlwZQqja2V5xCMBIHPpctUn+7QopWm+
 n1CVw28iikWy6ybCMUUdVRijfKQjCqdwYXlsb2FkxQPteyJib2R5Ijp7ImRldmljZSI6eyJpZCI6
 IjA1Nzg0M2MyMDI1MTkyNmFjYzBkNWRiMzEyNjk3OTE4Iiwia2lkIjoiMDEyMTM3OWQ1MzcwYWVi
@@ -60,8 +62,8 @@ ZDVlOThiNWZlIiwic2Vxbm8iOjU2M30sInByZXYiOiJlZTAwNzg1ODI0NmFkZjg4NTU5NzY2ZjE2
 NGQwYjE5NTMwMzIwOWNiZDgyYWZhN2ZjNmRlZDE4YjQ5YjdiNmIyIiwic2Vxbm8iOjQsInRhZyI6
 InNpZ25hdHVyZSJ9o3NpZ8RAbe4i3mDpfo1ECOcd0XU1JE7lRgkPUHQq7WLEEh5LbO5IAZHSm2zY
 tuX4LPcEa+72KyrsweuAJravU8SjgL/gAKhzaWdfdHlwZSCjdGFnzQICp3ZlcnNpb24B
-`)
-	require.IsType(t, err, FishyMsgpackError{}, "p=%+v", p)
+`, TagSignature, &info)
+	require.IsType(t, err, FishyMsgpackError{}, "info=%+v, err+%+v", info, err)
 }
 
 // Guard against unexpected codec encoding changes, in particular for
@@ -83,12 +85,13 @@ func TestHardcodedPacketEncode(t *testing.T) {
 // This is a regression test for
 // https://github.com/ugorji/go/issues/237 .
 func TestMsgpackReencodeNilHash(t *testing.T) {
+	var info NaclEncryptionInfo
 	// This message has a nil hash.
-	p, err := DecodeArmoredPacket(`
+	err := DecodeArmoredPacketBody(`
 hKRib2R5hapjaXBoZXJ0ZXh0wKhlbmNfdHlwZQClbm9uY2XArHJlY2VpdmVyX2tlecCqc2VuZGVy
 X2tlecCkaGFzaIKkdHlwZQildmFsdWXEIJZSZH19AzYud7qy9x3yx1hN2MooqnhjsytUSqTK+VMZ
 o3RhZ80CA6d2ZXJzaW9uAQ==
-`)
+`, TagEncryption, &info)
 	// In particular, shouldn't return a FishyMsgpackError.
-	require.NoError(t, err, "p=%+v", p)
+	require.NoError(t, err, "info=%+v", info)
 }
