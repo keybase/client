@@ -328,6 +328,15 @@ func DecodeArmoredPacketBody(s string, tag PacketTag, body interface{}) error {
 	return DecodePacketBody(b, tag, body)
 }
 
+func DecodeNaclSigInfoPacket(data []byte) (NaclSigInfo, error) {
+	var info NaclSigInfo
+	err := DecodePacketBody(data, TagSignature, &info)
+	if err != nil {
+		return NaclSigInfo{}, err
+	}
+	return info, nil
+}
+
 type Packetable interface {
 	ToPacket() (*KeybasePacket, error)
 }
