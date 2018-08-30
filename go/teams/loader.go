@@ -369,9 +369,6 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
 
-	fmt.Printf("(%s calls) TeamLoader::load2 %v, reason: %q, repoll: %t, readSubteamID: %+v\n",
-		l.G().Env.GetUsername(), arg.teamID, arg.reason, arg.forceRepoll, arg.readSubteamID)
-
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
@@ -595,7 +592,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	defer preloadCancel()
 
 	tracer.Stage("linkloop (%v)", len(links))
-	chainCache := make(parentChainCache)
+	parentsCache := make(parentChainCache)
 
 	// Don't log in the middle links if there are a great many links.
 	suppressLoggingStart := 5
@@ -632,7 +629,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 
 		var signer *SignerX
 		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
-			readSubteamID, proofSet, lkc, chainCache)
+			readSubteamID, proofSet, lkc, parentsCache)
 		if err != nil {
 			return nil, err
 		}
