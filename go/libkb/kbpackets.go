@@ -245,9 +245,16 @@ func (p *KeybasePacket) unpackBody(ch *codec.MsgpackHandle) error {
 
 func (p *KeybasePacket) unmarshalBinaryWithTagAndBody(data []byte, tag PacketTag, body interface{}) error {
 	ch := codecHandle()
+	decoder := codec.NewDecoderBytes(data, ch)
+
 	p.Body = body
-	if err := MsgpackDecodeAll(data, ch, p); err != nil {
+	err := decoder.Decode(p)
+	if err != nil {
 		return err
+	}
+
+	if decoder.NumBytesRead() != len(data) {
+		return fmt.Errorf("Did not consume entire buffer: %d byte(s) left", len(data)-decoder.NumBytesRead())
 	}
 
 	if p.Tag != tag {
