@@ -59,6 +59,23 @@ func (t *Terminal) PromptPassword(s string) (string, error) {
 	return t.engine.PromptPassword(s)
 }
 
+func (t *Terminal) Write(s string) error {
+	if err := t.open(); err != nil {
+		return err
+	}
+	if t.escapeWrites {
+		return t.engine.Write(terminalescaper.Clean(s))
+	}
+	return t.engine.Write(s)
+}
+
+func (t *Terminal) UnescapedWrite(s string) error {
+	if err := t.open(); err != nil {
+		return err
+	}
+	return t.engine.Write(s)
+}
+
 func (t *Terminal) Prompt(s string) (string, error) {
 	if err := t.open(); err != nil {
 		return "", err
@@ -130,21 +147,17 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 		t.G().Log.Error(arg.Err)
 	}
 
-	s := ""
 	if len(desc) > 0 {
-		d := desc + "\n"
-		if t.escapeWrites {
-			d = terminalescaper.Clean(d)
+		if err = t.Write(desc + "\n"); err != nil {
+			return
 		}
-		s += d
 	}
-	s += prompt
 
 	var txt string
 	if arg.ShowTyping {
-		txt, err = t.Prompt(s)
+		txt, err = t.Prompt(prompt)
 	} else {
-		txt, err = t.PromptPassword(s)
+		txt, err = t.PromptPassword(prompt)
 	}
 
 	if err == io.EOF || err == minterm.ErrPromptInterrupted || len(txt) == 0 {

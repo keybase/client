@@ -208,10 +208,12 @@ const uploadPushToken = (state: TypedState) =>
       logger.error("[PushToken] Couldn't save a push token", e)
     })
 
-const deletePushToken = (state: TypedState) =>
+const deletePushToken = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   Saga.call(function*() {
     const waitKey = 'push:deleteToken'
-    yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey}))
+    yield Saga.put(
+      ConfigGen.createLogoutHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+    )
 
     try {
       const deviceID = state.config.deviceID
@@ -228,7 +230,13 @@ const deletePushToken = (state: TypedState) =>
     } catch (e) {
       logger.error('[PushToken] delete failed', e)
     } finally {
-      yield Saga.put(ConfigGen.createLogoutHandshakeWait({increment: false, name: waitKey}))
+      yield Saga.put(
+        ConfigGen.createLogoutHandshakeWait({
+          increment: false,
+          name: waitKey,
+          version: action.payload.version,
+        })
+      )
     }
   })
 

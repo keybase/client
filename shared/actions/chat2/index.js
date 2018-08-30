@@ -1498,7 +1498,11 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (Constants.isValidConversationIDKey(selected)) {
+  } else if (
+    Constants.isValidConversationIDKey(selected) &&
+    !action.payload.findNewConversation &&
+    !action.payload.selectSomethingElse
+  ) {
     // Stay with our existing convo if it was not empty or pending
     return
   }
@@ -1688,13 +1692,16 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
   // These messages will not send until the upload has both been started and completed.
   const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
-    paths.map(p =>
+    paths.map((p, i) =>
       Saga.call(
         RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise,
         ({
           ...ephemeralData,
           convID: Types.keyToConversationID(conversationIDKey),
           tlfName: meta.tlfname,
+          filename: p,
+          title: titles[i],
+          metadata: Buffer.from([]),
           visibility: RPCTypes.commonTLFVisibility.private,
           clientPrev,
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
@@ -2249,10 +2256,16 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (state: TypedState) =>
+const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   !state.chat2.staticConfig &&
   Saga.sequentially([
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
     Saga.call(function*() {
       const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
         (res: RPCChatTypes.StaticConfig) => {
@@ -2279,7 +2292,13 @@ const loadStaticConfig = (state: TypedState) =>
         yield Saga.put(loadAction)
       }
     }),
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
   ])
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {

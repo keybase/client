@@ -141,6 +141,10 @@ protocol chatUi {
     string body;
     gregor1.Time ctime;
     double ordinal;
+
+    // For attachments
+    string filename;
+    string title;
     union { null, MakePreviewRes } preview;
   }
 

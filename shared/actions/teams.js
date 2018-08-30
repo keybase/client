@@ -532,7 +532,9 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
       name: {parts: teamname.split('.')},
     })
-    const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
+    const subteams = teamTree.entries
+      .map(team => team.name.parts.join('.'))
+      .filter(team => team !== teamname && team.startsWith(teamname))
 
     yield Saga.put(
       TeamsGen.createSetTeamDetails({

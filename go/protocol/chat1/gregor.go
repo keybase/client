@@ -468,6 +468,28 @@ func (o KBFSImpteamUpgradeUpdate) DeepCopy() KBFSImpteamUpgradeUpdate {
 	}
 }
 
+type SubteamRenameUpdate struct {
+	ConvIDs   []ConversationID `codec:"convIDs" json:"convIDs"`
+	InboxVers InboxVers        `codec:"inboxVers" json:"inboxVers"`
+}
+
+func (o SubteamRenameUpdate) DeepCopy() SubteamRenameUpdate {
+	return SubteamRenameUpdate{
+		ConvIDs: (func(x []ConversationID) []ConversationID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvIDs),
+		InboxVers: o.InboxVers.DeepCopy(),
+	}
+}
+
 type GregorInterface interface {
 }
 
