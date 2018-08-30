@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/scrypt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -162,7 +163,7 @@ func (e *PaperKeyGen) makeSigKey(seed []byte) error {
 
 	var key libkb.NaclSigningKeyPair
 	copy(key.Public[:], pub[:])
-	key.Private = &libkb.NaclSigningKeyPrivate{}
+	key.Private = &kbcrypto.NaclSigningKeyPrivate{}
 	copy(key.Private[:], priv[:])
 
 	e.sigKey = key

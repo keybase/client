@@ -39,17 +39,9 @@ const NaclDHNonceSize = 24
 
 const NaclSecretBoxKeySize = 32
 
-type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
-
-func (k NaclSigningKeyPrivate) Sign(msg []byte) *kbcrypto.NaclSignature {
-	var sig kbcrypto.NaclSignature
-	copy(sig[:], ed25519.Sign(k[:], msg))
-	return &sig
-}
-
 type NaclSigningKeyPair struct {
 	Public  kbcrypto.NaclSigningKeyPublic
-	Private *NaclSigningKeyPrivate
+	Private *kbcrypto.NaclSigningKeyPrivate
 }
 
 var _ GenericKey = NaclSigningKeyPair{}
@@ -110,7 +102,7 @@ func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigning
 	} else if len(priv) != ed25519.PrivateKeySize {
 		err = kbcrypto.BadKeyError{"Secret key was wrong size"}
 	} else {
-		ret.Private = &NaclSigningKeyPrivate{}
+		ret.Private = &kbcrypto.NaclSigningKeyPrivate{}
 		copy(ret.Private[:], priv)
 	}
 	return
@@ -436,7 +428,7 @@ func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
 	}
 
 	var publicArray kbcrypto.NaclSigningKeyPublic
-	var privateArray NaclSigningKeyPrivate
+	var privateArray kbcrypto.NaclSigningKeyPrivate
 
 	copy(publicArray[:], publicKey)
 	copy(privateArray[:], privateKey)
