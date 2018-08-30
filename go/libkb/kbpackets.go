@@ -1,12 +1,9 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package libkb
 
-//
-// Code for encoding and decoding SKB-formatted keys. Also works for decoding
-// general Keybase Packet types, but we only have SKB at present
-//
+// Code for encoding and decoding Keybase packet types.
 
 import (
 	"bytes"
