@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -607,6 +608,45 @@ func (bt *blockTree) setParentOffsets(
 		parents[level].pblock.SetIndirectPtrOff(currIndex, newOff)
 	}
 	return newDirtyPtrs, newUnrefs, nil
+}
+
+func (bt *blockTree) String() string {
+	block, _, err := bt.getter(
+		nil, bt.kmd, bt.rootBlockPointer(), bt.file, blockRead)
+	if err != nil {
+		return "ERROR: " + err.Error()
+	}
+
+	level := []BlockWithPtrs{block}
+	res := "\n---------------\n"
+	for len(level) > 0 {
+		var nextLevel []BlockWithPtrs
+		for i, block := range level {
+			if !block.IsIndirect() {
+				continue
+			}
+			for j := 0; j < block.NumIndirectPtrs(); j++ {
+				info, off := block.IndirectPtr(j)
+				res += fmt.Sprintf("\"%s\" ", off)
+				if info.DirectType == DirectBlock {
+					continue
+				}
+				child, _, err := bt.getter(
+					nil, bt.kmd, info.BlockPointer, bt.file, blockRead)
+				if err != nil {
+					return "ERROR: " + err.Error()
+				}
+				nextLevel = append(nextLevel, child)
+			}
+			if i+1 < len(level) {
+				res += "| "
+			}
+		}
+		res += "\n"
+		level = nextLevel
+	}
+	res += "---------------\n"
+	return res
 }
 
 // shiftBlocksToFillHole should be called after newRightBlock when the
