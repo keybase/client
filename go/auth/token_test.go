@@ -5,7 +5,6 @@ package auth
 
 import (
 	"crypto/rand"
-	"fmt"
 	"testing"
 	"time"
 
@@ -49,9 +48,8 @@ func TestTokenVerifyToken(t *testing.T) {
 	require.NotNil(t, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	err = checkToken(token, uid, name, public.GetKID(),
+	checkToken(t, token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion)
-	require.NoError(t, err)
 }
 
 func TestTokenExpired(t *testing.T) {
@@ -108,9 +106,8 @@ func TestTokenServerInvalid(t *testing.T) {
 	require.IsType(t, InvalidTokenServerError{}, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	err = checkToken(token, uid, name, public.GetKID(),
+	checkToken(t, token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion)
-	require.NoError(t, err)
 }
 
 func TestTokenChallengeInvalid(t *testing.T) {
@@ -131,50 +128,21 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	require.IsType(t, InvalidTokenChallengeError{}, err)
 	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	require.NoError(t, err)
-	err = checkToken(token, uid, name, public.GetKID(),
+	checkToken(t, token, uid, name, public.GetKID(),
 		server, challenge, expireIn, clientName, clientVersion)
-	require.NoError(t, err)
 }
 
-func checkToken(token *Token, uid keybase1.UID, username kbun.NormalizedUsername,
-	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string) error {
-	if token.UID() != uid {
-		return fmt.Errorf("UID mismatch, expected: %s, got %s",
-			uid, token.UID())
-	}
-	if token.KID() != kid {
-		return fmt.Errorf("KID mismatch, expected: %s, got %s",
-			kid, token.KID())
-	}
-	if token.Username() != username {
-		return fmt.Errorf("Username mismatch, expected: %s, got %s",
-			username, token.Username())
-	}
-	if token.Type() != TokenType {
-		return fmt.Errorf("TokenType mismatch, expected: %s, got %s",
-			TokenType, token.Type())
-	}
-	if token.Server() != server {
-		return fmt.Errorf("Server mismatch, expected: %s, got %s",
-			server, token.Server())
-	}
-	if token.Challenge() != challenge {
-		return fmt.Errorf("Challenge mismatch, expected: %s, got %s",
-			challenge, token.Challenge())
-	}
-	if token.ExpireIn != expireIn {
-		return fmt.Errorf("ExpireIn mismatch, expected: %d, got %d",
-			expireIn, token.ExpireIn)
-	}
-	if token.ClientName() != clientName {
-		return fmt.Errorf("ClientName mismatch, expected: %s, got %s",
-			clientName, token.ClientName())
-	}
-	if token.ClientVersion() != clientVersion {
-		return fmt.Errorf("ClientVersion mismatch, expected: %s, got %s",
-			clientVersion, token.ClientVersion())
-	}
-	return nil
+func checkToken(t *testing.T, token *Token, uid keybase1.UID, username kbun.NormalizedUsername,
+	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string) {
+	require.Equal(t, uid, token.UID())
+	require.Equal(t, kid, token.KID())
+	require.Equal(t, username, token.Username())
+	require.Equal(t, TokenType, token.Type())
+	require.Equal(t, server, token.Server())
+	require.Equal(t, challenge, token.Challenge())
+	require.Equal(t, expireIn, token.ExpireIn)
+	require.Equal(t, clientName, token.ClientName())
+	require.Equal(t, clientVersion, token.ClientVersion())
 }
 
 func TestIsValidChallenge(t *testing.T) {
