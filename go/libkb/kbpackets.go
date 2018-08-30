@@ -20,7 +20,7 @@ type Packetable interface {
 	GetTagAndVersion() (PacketTag, PacketVersion)
 }
 
-func EncodePacketTo(p Packetable, encoder *codec.Encoder) error {
+func EncodePacket(p Packetable, encoder *codec.Encoder) error {
 	packet, err := NewKeybasePacket(p)
 	if err != nil {
 		return err

@@ -73,7 +73,7 @@ type skbPacket struct {
 // encoder/decoder catches panics and turns them back into errors.
 
 func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
-	err := EncodePacketTo(s.skb, e)
+	err := EncodePacket(s.skb, e)
 	if err != nil {
 		panic(err)
 	}
