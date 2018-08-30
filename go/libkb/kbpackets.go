@@ -144,9 +144,11 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func (p *KeybasePacket) unmarshalBinaryStreamWithTagAndBody(decoder *codec.Decoder, tag PacketTag, body interface{}) error {
-	p.Body = body
-	err := decoder.Decode(p)
+func DecodePacket(decoder *codec.Decoder, tag PacketTag, body interface{}) error {
+	p := KeybasePacket{
+		Body: body,
+	}
+	err := decoder.Decode(&p)
 	if err != nil {
 		return err
 	}
