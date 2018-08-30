@@ -83,6 +83,8 @@ func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
 	var skb SKB
 	err := DecodePacket(d, &skb)
 	if err != nil {
+		// Okay to panic here, since the decoder catches
+		// panics and turns them back into errors.
 		panic(err)
 	}
 	s.skb = &skb
