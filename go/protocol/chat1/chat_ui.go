@@ -517,6 +517,8 @@ type UIMessageOutbox struct {
 	Body        string          `codec:"body" json:"body"`
 	Ctime       gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal     float64         `codec:"ordinal" json:"ordinal"`
+	Filename    string          `codec:"filename" json:"filename"`
+	Title       string          `codec:"title" json:"title"`
 	Preview     *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
@@ -528,6 +530,8 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Body:        o.Body,
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
+		Filename:    o.Filename,
+		Title:       o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

@@ -6,6 +6,7 @@ import * as MessageTypes from '../types/chat2/message'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
+import * as FsTypes from '../types/fs'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
@@ -652,8 +653,8 @@ const outboxUIMessagetoMessage = (
 
   switch (o.messageType) {
     case RPCChatTypes.commonMessageType.attachment:
-      let title = ''
-      let fileName = ''
+      const title = o.title
+      const fileName = o.filename
       let previewURL = ''
       let pre = previewSpecs(null, null)
       if (o.preview) {
@@ -671,7 +672,7 @@ const outboxUIMessagetoMessage = (
         state,
         conversationIDKey,
         title,
-        fileName,
+        FsTypes.getLocalPathName(fileName),
         previewURL,
         pre,
         Types.stringToOutboxID(o.outboxID),
