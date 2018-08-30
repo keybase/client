@@ -133,7 +133,9 @@ func (p *KeybasePacket) EncodeTo(w io.Writer) error {
 	return err
 }
 
-func DecodePacket(decoder *codec.Decoder, tag PacketTag, body Packetable) error {
+func DecodePacket(decoder *codec.Decoder, body Packetable) error {
+	// TODO: Do something with the version too?
+	tag, _ := body.GetTagAndVersion()
 	p := KeybasePacket{
 		Body: body,
 	}
