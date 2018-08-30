@@ -5,14 +5,33 @@ import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles
 import {platformText} from './shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {Props} from '.'
+import openURL from '../../util/open-url'
 
 function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
-      <Box style={styleInfoBanner}>
-        <Text backgroundMode="Information" type="BodySemibold">
+      <Box style={styleYellowBanner}>
+        <Text backgroundMode="Information" type="BodySmallSemibold">
           &bull; You must have karma &ge; 2<br />
           &bull; You must enter your uSeRName with exact case
+        </Text>
+      </Box>
+    )
+  }
+
+  if (platform === 'facebook') {
+    return (
+      <Box style={styleBlueBanner}>
+        <Text backgroundMode="Announcements" type="BodySmallSemibold">
+          You can find your Facebook username at <br />
+          <Text
+            backgroundMode="Announcements"
+            type="BodySmallSemiboldPrimaryLink"
+            onClick={() => openURL('https://facebook.com/settings')}
+          >
+            {' '}
+            https://facebook.com/settings
+          </Text>.
         </Text>
       </Box>
     )
@@ -143,17 +162,24 @@ const styleInput = {
   width: 460,
 }
 
-const styleInfoBanner = {
+const styleYellowBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.yellow,
+  borderRadius: 3,
   marginTop: globalMargins.small,
   marginBottom: -globalMargins.tiny,
+  minWidth: 460,
   paddingTop: globalMargins.xsmall,
   paddingBottom: globalMargins.xsmall,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  borderRadius: 3,
+}
+
+const styleBlueBanner = {
+  ...styleYellowBanner,
+  backgroundColor: globalColors.blue,
+  textAlign: 'center',
 }
 
 export default PrivateEnterUsernameRender
