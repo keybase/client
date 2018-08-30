@@ -200,7 +200,7 @@
     "css-loader": "0.28.11",
     "del": "3.0.0",
     "devtron": "1.4.0",
-    "electron": "2.0.5",
+    "electron": "2.0.8",
     "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "12.1.0",
     "eslint": "5.2.0",
