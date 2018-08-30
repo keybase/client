@@ -734,11 +734,12 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 //=============================================================================
 
 type UnmarshalError struct {
-	Tag PacketTag
+	ExpectedTag PacketTag
+	Tag         PacketTag
 }
 
 func (u UnmarshalError) Error() string {
-	return "Bad " + u.Tag.String() + " packet"
+	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
 }
 
 type VerificationError struct {
