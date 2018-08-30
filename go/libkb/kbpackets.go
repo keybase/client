@@ -156,22 +156,6 @@ func MsgpackEncode(src interface{}) (dst []byte, err error) {
 	return dst, err
 }
 
-// DecodePacketsUnchecked decodes an array of packets from `reader`. It does *not*
-// check that the stream was canonical msgpack.
-func DecodePacketsUnchecked(reader io.Reader) (ret KeybasePackets, err error) {
-	ch := codecHandle()
-	if err = codec.NewDecoder(reader, ch).Decode(&ret); err != nil {
-		return
-	}
-	for _, p := range ret {
-		err = p.unpackBody(ch)
-		if err != nil {
-			return
-		}
-	}
-	return
-}
-
 // Decode data into out, but make sure that all bytes in data are
 // used.
 func MsgpackDecodeAll(data []byte, handle *codec.MsgpackHandle, out interface{}) error {
