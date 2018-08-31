@@ -196,8 +196,7 @@ function analyzeMessages(json, project) {
 
   return Object.keys(json.messages).reduce((map, m) => {
     const message = json.messages[m]
-
-    // lintMessage(m, message)
+    lintMessage(m, message)
 
     const arr = message.request
       .filter(r => r.name !== 'sessionID') // We have the engine handle this under the hood
@@ -322,7 +321,7 @@ function parseUnion(unionTypes) {
 }
 
 function parseRecord(t) {
-  // lintRecord(t)
+  lintRecord(t)
   if (t.typedef) {
     return capitalize(t.typedef)
   }
@@ -430,8 +429,6 @@ ${messageTypesData}
   ]
     .filter(Boolean)
     .join('\n')
-
-  console.log(data)
 
   const notEnabled = `// Not enabled calls. To enable add to enabled-calls.json: ${project.notEnabled.join(
     ' '
