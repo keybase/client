@@ -764,20 +764,6 @@ func (e DisallowedPrefixError) Error() string {
 		e.name, e.prefix)
 }
 
-// FileTooBigError indicates that the user tried to write a file that
-// would be bigger than KBFS's supported size.
-type FileTooBigError struct {
-	p               path
-	size            int64
-	maxAllowedBytes uint64
-}
-
-// Error implements the error interface for FileTooBigError.
-func (e FileTooBigError) Error() string {
-	return fmt.Sprintf("File %s would have increased to %d bytes, which is "+
-		"over the supported limit of %d bytes", e.p, e.size, e.maxAllowedBytes)
-}
-
 // NameTooLongError indicates that the user tried to write a directory
 // entry name that would be bigger than KBFS's supported size.
 type NameTooLongError struct {
@@ -789,21 +775,6 @@ type NameTooLongError struct {
 func (e NameTooLongError) Error() string {
 	return fmt.Sprintf("New directory entry name %s has more than the maximum "+
 		"allowed number of bytes (%d)", e.name, e.maxAllowedBytes)
-}
-
-// DirTooBigError indicates that the user tried to write a directory
-// that would be bigger than KBFS's supported size.
-type DirTooBigError struct {
-	p               path
-	size            uint64
-	maxAllowedBytes uint64
-}
-
-// Error implements the error interface for DirTooBigError.
-func (e DirTooBigError) Error() string {
-	return fmt.Sprintf("Directory %s would have increased to at least %d "+
-		"bytes, which is over the supported limit of %d bytes", e.p,
-		e.size, e.maxAllowedBytes)
 }
 
 // TlfNameNotCanonical indicates that a name isn't a canonical, and

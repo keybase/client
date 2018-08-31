@@ -606,6 +606,10 @@ func doInit(
 	if err != nil {
 		return nil, err
 	}
+	err = bsplitter.SetMaxDirEntriesByBlockSize(config.Codec())
+	if err != nil {
+		return nil, err
+	}
 	config.SetBlockSplitter(bsplitter)
 
 	if registry := config.MetricsRegistry(); registry != nil {

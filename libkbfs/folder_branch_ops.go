@@ -2846,34 +2846,6 @@ func checkDisallowedPrefixes(ctx context.Context, name string) error {
 	return nil
 }
 
-func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
-	lState *lockState, md ReadOnlyRootMetadata,
-	dirPath path, newName string) error {
-	// Check that the directory isn't past capacity already.
-	var currSize uint64
-	if dirPath.hasValidParent() {
-		de, err := fbo.blocks.GetEntry(ctx, lState, md, dirPath)
-		if err != nil {
-			return err
-		}
-		currSize = de.Size
-	} else {
-		// dirPath is just the root.
-		currSize = md.data.Dir.Size
-	}
-	// Just an approximation since it doesn't include the size of the
-	// directory entry itself, but that's ok -- at worst it'll be an
-	// off-by-one-entry error, and since there's a maximum name length
-	// we can't get in too much trouble. TODO(KBFS-3306): remove this
-	// check.
-	if dirPath.tailPointer().DirectType == DirectBlock &&
-		currSize+uint64(len(newName)) > fbo.config.MaxDirBytes() {
-		return DirTooBigError{dirPath, currSize + uint64(len(newName)),
-			fbo.config.MaxDirBytes()}
-	}
-	return nil
-}
-
 // PathType returns path type
 func (fbo *folderBranchOps) PathType() PathType {
 	switch fbo.folderBranch.Tlf.Type() {
@@ -2982,11 +2954,6 @@ func (fbo *folderBranchOps) createEntryLocked(
 	if err == nil {
 		return nil, DirEntry{}, NameExistsError{name}
 	} else if _, notExists := errors.Cause(err).(NoSuchNameError); !notExists {
-		return nil, DirEntry{}, err
-	}
-
-	if err := fbo.checkNewDirSize(
-		ctx, lState, md.ReadOnly(), dirPath, name); err != nil {
 		return nil, DirEntry{}, err
 	}
 
@@ -3429,11 +3396,6 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 
-	if err := fbo.checkNewDirSize(ctx, lState, md.ReadOnly(),
-		dirPath, fromName); err != nil {
-		return DirEntry{}, err
-	}
-
 	parentPtr := dirPath.tailPointer()
 	co, err := newCreateOp(fromName, parentPtr, Sym)
 	if err != nil {
@@ -3788,26 +3750,6 @@ func (fbo *folderBranchOps) renameLocked(
 			ctx, lState, md.ReadOnly(), ro, newParentPath, replacedDe, newName)
 		if err != nil {
 			return err
-		}
-	} else {
-		// If the entry doesn't exist yet, see if the new name will
-		// make the new parent directory too big.  If the entry is
-		// remaining in the same directory, only check the size
-		// difference.
-		checkName := newName
-		if oldParent == newParent {
-			if extra := len(newName) - len(oldName); extra <= 0 {
-				checkName = ""
-			} else {
-				checkName = newName[:extra]
-			}
-		}
-		if len(checkName) > 0 {
-			if err := fbo.checkNewDirSize(
-				ctx, lState, md.ReadOnly(), newParentPath,
-				checkName); err != nil {
-				return err
-			}
 		}
 	}
 

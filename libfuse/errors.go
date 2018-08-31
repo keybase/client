@@ -60,12 +60,8 @@ func filterError(err error) error {
 		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.DisallowedPrefixError:
 		return errorWithErrno{err, syscall.EINVAL}
-	case libkbfs.FileTooBigError:
-		return errorWithErrno{err, syscall.EFBIG}
 	case libkbfs.NameTooLongError:
 		return errorWithErrno{err, syscall.ENAMETOOLONG}
-	case libkbfs.DirTooBigError:
-		return errorWithErrno{err, syscall.EFBIG}
 	case libkbfs.NoCurrentSessionError:
 		return errorWithErrno{err, syscall.EACCES}
 	case libkbfs.NoSuchFolderListError:
