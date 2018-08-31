@@ -287,7 +287,7 @@ function* waitForKBFS(action: ConfigGen.DaemonHandshakePayload) {
   yield Saga.put(FsGen.createFuseStatus())
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({
-      failedReason: connected ? null : "Can't connect to KBFS",
+      failedReason: connected ? null : Constants.noKBFSFailReason,
       increment: false,
       name: 'kbfs.waitingForDaemon',
       version: action.payload.version,

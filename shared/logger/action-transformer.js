@@ -84,7 +84,7 @@ const actionTransformMap = {
   },
   [Chat2Gen.setPendingMode]: fullOutput,
   [Chat2Gen.setPendingConversationUsers]: fullOutput,
-  [GregorGen.updateReachability]: fullOutput,
+  [GregorGen.updateReachable]: fullOutput,
 
   [Chat2Gen.messageSend]: a => ({
     payload: {conversationIDKey: a.payload.conversationIDKey},
