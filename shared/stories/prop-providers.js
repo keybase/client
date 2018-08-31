@@ -22,15 +22,23 @@ const defaultFollowers = ['max', 'akalin']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
-    const {usernames} = ownProps
+    const {usernames, onUsernameClicked, ...props} = ownProps
     const users = (usernames || [])
       .map(username => ({username, following: following.includes(username), you: username === you}))
       .filter(u => !ownProps.skipSelf || !u.you)
 
-    // $FlowIssue
+    let mockedOnUsernameClick
+    if (onUsernameClicked === 'tracker') {
+      mockedOnUsernameClick = action('onUsernameClicked (Tracker)')
+    } else if (onUsernameClicked === 'profile') {
+      mockedOnUsernameClick = action('onUsernameClicked (Profile)')
+    } else if (onUsernameClicked) {
+      mockedOnUsernameClick = onUsernameClicked
+    }
+
     return {
-      ...ownProps,
-      onUsernameClicked: action('onUsernameClicked'),
+      ...props,
+      onUsernameClicked: mockedOnUsernameClick,
       users,
     }
   },
