@@ -1,0 +1,8 @@
+// @flow
+declare class Session {
+  id: number;
+  getId: () => number;
+  end: () => void;
+}
+
+export default Session
