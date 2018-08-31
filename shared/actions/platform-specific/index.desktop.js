@@ -212,6 +212,9 @@ const setupEngineListeners = () => {
     ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
+      // This is from the API server. Consider notifications from API server
+      // always critical.
+      return ConfigGen.createOutOfDate({critical: true})
     }
   )
 
@@ -248,6 +251,21 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
+const checkOutOfDate = () =>
+  Saga.call(function*() {
+    while (1) {
+      const updateInfo = yield Saga.call(RPCTypes.configGetUpdateInfoRpcPromise)
+      if (updateInfo !== RPCTypes.configUpdateInfo.upToDate) {
+        yield Saga.put(
+          ConfigGen.createOutOfDate({critical: updateInfo === RPCTypes.configUpdateInfo.criticallyOutOfDate})
+        )
+      }
+      yield Saga.delay(3600 * 1000) // 1 hr
+    }
+  })
+
+const updateNow = () => RPCTypes.configStartUpdateIfNeededRpcPromise()
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -255,7 +273,9 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, checkOutOfDate)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield Saga.actionToPromise(ConfigGen.updateNow, updateNow)
   yield Saga.fork(initializeAppSettingsState)
   yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 

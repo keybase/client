@@ -1,7 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Storybook from '../stories/storybook'
+import * as Kb from '../common-adapters'
 import Menubar from './index.desktop'
+import OutOfDate from './out-of-date'
 
 const props = {
   badgeInfo: {
@@ -21,6 +23,7 @@ const props = {
   isAsyncWriteHappening: false,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
+  updateNow: Storybook.action('updateNow'),
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
   openApp: Storybook.action('openApp'),
@@ -78,6 +81,12 @@ const load = () => {
       />
     ))
     .add('Async write happening', () => <Menubar {...props} isAsyncWriteHappening={true} />)
+    .add('Out of date banner', () => (
+      <Kb.Box2 fullWidth={true} direction="vertical" gap="small">
+        <OutOfDate outOfDate={true} critical={false} updateNow={Storybook.action('updateNow')} />
+        <OutOfDate outOfDate={true} critical={true} updateNow={Storybook.action('updateNow')} />
+      </Kb.Box2>
+    ))
 }
 
 export default load

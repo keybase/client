@@ -102,5 +102,7 @@
     "updateMenubarWindowID": { "id": "number" },
     "copyToClipboard": {"text": "string"},
     "_avatarQueue": {},
+    "outOfDate": {"critical": "boolean"},
+    "updateNow": {},
   }
 }

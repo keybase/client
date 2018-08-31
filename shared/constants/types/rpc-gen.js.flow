@@ -103,6 +103,12 @@ export const configForkType = {
   systemd: 4,
 }
 
+export const configUpdateInfo = {
+  upToDate: 0,
+  needUpdate: 1,
+  criticallyOutOfDate: 2,
+}
+
 export const constantsStatusCode = {
   scok: 0,
   scinputerror: 100,
@@ -869,6 +875,7 @@ export type ConfigGetConfigResult = Config
 export type ConfigGetCurrentStatusResult = GetCurrentStatusRes
 export type ConfigGetExtendedStatusResult = ExtendedStatus
 export type ConfigGetRememberPassphraseResult = Boolean
+export type ConfigGetUpdateInfoResult = UpdateInfo
 export type ConfigGetValueResult = ConfigValue
 export type ConfigValue = $ReadOnly<{isNull: Boolean, b?: ?Boolean, i?: ?Int, s?: ?String, o?: ?String}>
 export type ConfigWaitForClientResult = Boolean
@@ -1991,6 +1998,11 @@ export type UnboxAnyRes = $ReadOnly<{kid: KID, plaintext: Bytes32, index: Int}>
 export type UninstallResult = $ReadOnly<{componentResults?: ?Array<ComponentResult>, status: Status}>
 export type UnixTime = Long
 export type UpPointer = $ReadOnly<{ourSeqno: Seqno, parentID: TeamID, parentSeqno: Seqno, deletion: Boolean}>
+export type UpdateInfo =
+  | 0 // UP_TO_DATE_0
+  | 1 // NEED_UPDATE_1
+  | 2 // CRITICALLY_OUT_OF_DATE_2
+
 export type User = $ReadOnly<{uid: UID, username: String}>
 export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
@@ -2081,12 +2093,14 @@ export type ConfigGetConfigRpcParam = void
 export type ConfigGetCurrentStatusRpcParam = void
 export type ConfigGetExtendedStatusRpcParam = void
 export type ConfigGetRememberPassphraseRpcParam = void
+export type ConfigGetUpdateInfoRpcParam = void
 export type ConfigGetValueRpcParam = $ReadOnly<{path: String}>
 export type ConfigHelloIAmRpcParam = $ReadOnly<{details: ClientDetails}>
 export type ConfigSetPathRpcParam = $ReadOnly<{path: String}>
 export type ConfigSetRememberPassphraseRpcParam = $ReadOnly<{remember: Boolean}>
 export type ConfigSetUserConfigRpcParam = $ReadOnly<{username: String, key: String, value: String}>
 export type ConfigSetValueRpcParam = $ReadOnly<{path: String, value: ConfigValue}>
+export type ConfigStartUpdateIfNeededRpcParam = void
 export type ConfigWaitForClientRpcParam = $ReadOnly<{clientType: ClientType, timeout: DurationSec}>
 export type CryptoSignED25519ForKBFSRpcParam = $ReadOnly<{msg: Bytes, reason: String}>
 export type CryptoSignED25519RpcParam = $ReadOnly<{msg: Bytes, reason: String}>
@@ -2611,8 +2625,10 @@ declare export function configGetAllProvisionedUsernamesRpcPromise(params: Confi
 declare export function configGetBootstrapStatusRpcPromise(params: ConfigGetBootstrapStatusRpcParam, waitingKey?: string): Promise<ConfigGetBootstrapStatusResult>
 declare export function configGetConfigRpcPromise(params: ConfigGetConfigRpcParam, waitingKey?: string): Promise<ConfigGetConfigResult>
 declare export function configGetRememberPassphraseRpcPromise(params: ConfigGetRememberPassphraseRpcParam, waitingKey?: string): Promise<ConfigGetRememberPassphraseResult>
+declare export function configGetUpdateInfoRpcPromise(params: ConfigGetUpdateInfoRpcParam, waitingKey?: string): Promise<ConfigGetUpdateInfoResult>
 declare export function configHelloIAmRpcPromise(params: ConfigHelloIAmRpcParam, waitingKey?: string): Promise<void>
 declare export function configSetRememberPassphraseRpcPromise(params: ConfigSetRememberPassphraseRpcParam, waitingKey?: string): Promise<void>
+declare export function configStartUpdateIfNeededRpcPromise(params: ConfigStartUpdateIfNeededRpcParam, waitingKey?: string): Promise<void>
 declare export function configWaitForClientRpcPromise(params: ConfigWaitForClientRpcParam, waitingKey?: string): Promise<ConfigWaitForClientResult>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: CryptocurrencyRegisterAddressRpcParam, waitingKey?: string): Promise<CryptocurrencyRegisterAddressResult>
 declare export function ctlDbNukeRpcPromise(params: CtlDbNukeRpcParam, waitingKey?: string): Promise<void>

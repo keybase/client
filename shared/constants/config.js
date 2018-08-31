@@ -43,6 +43,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   menubarWindowID: 0,
   notifySound: false,
   openAtLogin: true,
+  outOfDate: undefined,
   pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,

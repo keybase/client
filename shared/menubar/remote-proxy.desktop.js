@@ -54,6 +54,7 @@ const mapStateToProps = (state: TypedState) => ({
   _externalRemoteWindowID: state.config.menubarWindowID,
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
+  outOfDate: state.config.outOfDate,
   username: state.config.username,
   conversations: GetNewestConvMetas(state),
 })
@@ -65,6 +66,7 @@ const mergeProps = stateProps => ({
     : null,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
+  outOfDate: stateProps.outOfDate,
   username: stateProps.username,
   conversations: stateProps.conversations,
   windowComponent: 'menubar',

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as ConfigTypes from '../constants/types/config'
 import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
@@ -8,14 +9,17 @@ import ChatContainer from './chat-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
+import OutOfDate from './out-of-date'
 
 export type Props = {
   isAsyncWriteHappening: boolean,
   logIn: () => void,
   loggedIn: boolean,
+  updateNow: () => void,
   onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
+  outOfDate?: ConfigTypes.OutOfDate,
   quit: () => void,
   refresh: () => void,
   showBug: () => void,
@@ -64,6 +68,11 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
+        <OutOfDate
+          outOfDate={!!this.props.outOfDate}
+          critical={this.props.outOfDate === 'critically-out-of-date'}
+          updateNow={this.props.updateNow}
+        />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
@@ -178,6 +187,11 @@ class MenubarRender extends React.Component<Props, State> {
 
     return (
       <Kb.Box style={styles.widgetContainer}>
+        <OutOfDate
+          outOfDate={!!this.props.outOfDate}
+          critical={this.props.outOfDate === 'critically-out-of-date'}
+          updateNow={this.props.updateNow}
+        />
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
         <Kb.Box style={styles.topRow}>

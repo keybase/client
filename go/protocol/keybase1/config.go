@@ -355,6 +355,35 @@ func (o OutOfDateInfo) DeepCopy() OutOfDateInfo {
 	}
 }
 
+type UpdateInfo int
+
+const (
+	UpdateInfo_UP_TO_DATE             UpdateInfo = 0
+	UpdateInfo_NEED_UPDATE            UpdateInfo = 1
+	UpdateInfo_CRITICALLY_OUT_OF_DATE UpdateInfo = 2
+)
+
+func (o UpdateInfo) DeepCopy() UpdateInfo { return o }
+
+var UpdateInfoMap = map[string]UpdateInfo{
+	"UP_TO_DATE":             0,
+	"NEED_UPDATE":            1,
+	"CRITICALLY_OUT_OF_DATE": 2,
+}
+
+var UpdateInfoRevMap = map[UpdateInfo]string{
+	0: "UP_TO_DATE",
+	1: "NEED_UPDATE",
+	2: "CRITICALLY_OUT_OF_DATE",
+}
+
+func (e UpdateInfo) String() string {
+	if v, ok := UpdateInfoRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type BootstrapStatus struct {
 	Registered bool     `codec:"registered" json:"registered"`
 	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
@@ -447,6 +476,12 @@ type GetValueArg struct {
 type CheckAPIServerOutOfDateWarningArg struct {
 }
 
+type GetUpdateInfoArg struct {
+}
+
+type StartUpdateIfNeededArg struct {
+}
+
 type WaitForClientArg struct {
 	ClientType ClientType  `codec:"clientType" json:"clientType"`
 	Timeout    DurationSec `codec:"timeout" json:"timeout"`
@@ -481,6 +516,8 @@ type ConfigInterface interface {
 	GetValue(context.Context, string) (ConfigValue, error)
 	// Check whether the API server has told us we're out of date.
 	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
+	GetUpdateInfo(context.Context) (UpdateInfo, error)
+	StartUpdateIfNeeded(context.Context) error
 	// Wait for client type to connect to service.
 	WaitForClient(context.Context, WaitForClientArg) (bool, error)
 	GetBootstrapStatus(context.Context, int) (BootstrapStatus, error)
@@ -663,6 +700,28 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getUpdateInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]GetUpdateInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetUpdateInfo(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"startUpdateIfNeeded": {
+				MakeArg: func() interface{} {
+					ret := make([]StartUpdateIfNeededArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.StartUpdateIfNeeded(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"waitForClient": {
 				MakeArg: func() interface{} {
 					ret := make([]WaitForClientArg, 1)
@@ -798,6 +857,16 @@ func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValu
 // Check whether the API server has told us we're out of date.
 func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res OutOfDateInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res)
+	return
+}
+
+func (c ConfigClient) GetUpdateInfo(ctx context.Context) (res UpdateInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.getUpdateInfo", []interface{}{GetUpdateInfoArg{}}, &res)
+	return
+}
+
+func (c ConfigClient) StartUpdateIfNeeded(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.startUpdateIfNeeded", []interface{}{StartUpdateIfNeededArg{}}, nil)
 	return
 }
 

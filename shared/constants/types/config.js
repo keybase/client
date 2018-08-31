@@ -12,6 +12,8 @@ export type AvatarSizes = {
   '40': string,
 }
 
+export type OutOfDate = 'out-of-date' | 'critically-out-of-date'
+
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
@@ -38,6 +40,7 @@ export type _State = {
   menubarWindowID: number,
   notifySound: boolean,
   openAtLogin: boolean,
+  outOfDate?: OutOfDate,
   pushLoaded: boolean,
   registered: boolean,
   startupDetailsLoaded: boolean,
