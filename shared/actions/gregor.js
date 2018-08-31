@@ -73,22 +73,22 @@ const setupEngineListeners = () => {
       })
   )
 
-  // The startReachibility RPC call both starts and returns the current
+  // The startReachability RPC call both starts and returns the current
   // reachability state. Then we'll get updates of changes from this state
   // via reachabilityChanged.
   // This should be run on app start and service re-connect in case the
   // service somehow crashed or was restarted manually.
-  return Saga.call(function*() {
-    const action = yield RPCTypes.reachabilityStartReachabilityRpcPromise()
+  engine().actionOnConnect('startReachability', () => {
+    const action = RPCTypes.reachabilityStartReachabilityRpcPromise()
       .then(reachability => GregorGen.createUpdateReachability({reachability}))
       .catch(err => {
         logger.warn('error bootstrapping reachability: ', err)
       })
-    if (action) {
-      yield Saga.put(action)
-    }
+    return action
   })
 }
+
+
 
 function* handleTLFUpdate(items: Array<Types.NonNullGregorItem>): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
