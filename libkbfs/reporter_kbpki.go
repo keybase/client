@@ -268,11 +268,13 @@ func (r *ReporterKBPKI) send(ctx context.Context) {
 				return
 			}
 			nt := notification.NotificationType
+			st := notification.StatusCode
 			// Only these notifications are used in frontend:
 			// https://github.com/keybase/client/blob/0d63795105f64289ba4ef20fbefe56aad91bc7e9/shared/util/kbfs-notifications.js#L142-L154
 			if nt != keybase1.FSNotificationType_REKEYING &&
 				nt != keybase1.FSNotificationType_INITIALIZED &&
-				nt != keybase1.FSNotificationType_CONNECTION {
+				nt != keybase1.FSNotificationType_CONNECTION &&
+				st != keybase1.FSStatusCode_ERROR {
 				continue
 			}
 			// Send them right away rather than staging it and waiting for the
