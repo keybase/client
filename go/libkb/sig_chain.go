@@ -61,8 +61,8 @@ type SigChain struct {
 	// If we've made local modifications to our chain, mark it here;
 	// there's a slight lag on the server and we might not get the
 	// new chain tail if we query the server right after an update.
-	localChainTail  *MerkleTriple
-	localChainHPrev *HPrevInfo
+	localChainTail              *MerkleTriple
+	localChainNextHPrevOverride *HPrevInfo
 
 	// When the local chains were updated.
 	localChainUpdateTime time.Time
@@ -224,7 +224,7 @@ func (sc *SigChain) Bump(mt MerkleTriple, isHighDelegator bool) {
 	sc.localChainUpdateTime = sc.G().Clock().Now()
 	if isHighDelegator {
 		hPrevInfo := NewHPrevInfo(mt.Seqno, mt.LinkID)
-		sc.localChainHPrev = &hPrevInfo
+		sc.localChainNextHPrevOverride = &hPrevInfo
 	}
 }
 
@@ -328,7 +328,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		if sc.localChainTail != nil && sc.localChainTail.Less(*dirtyTail) {
 			m.CDebugf("| Clear cached last (%d < %d)", sc.localChainTail.Seqno, dirtyTail.Seqno)
 			sc.localChainTail = nil
-			sc.localChainHPrev = nil
+			sc.localChainNextHPrevOverride = nil
 			sc.localCki = nil
 		}
 	}
@@ -355,13 +355,13 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
 	}()
 
-	expectedHPrevInfo := NewInitialHPrevInfo()
+	expectedNextHPrevInfo := NewInitialHPrevInfo()
 	firstUnverifiedChainIdx := 0
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		m.G().VDL.CLogf(m.Ctx(), VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
-			expectedHPrevInfo, err = curr.ExpectedNextHPrevInfo()
+			expectedNextHPrevInfo, err = curr.ExpectedNextHPrevInfo()
 			if err != nil {
 				return err
 			}
@@ -391,14 +391,17 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 
 	for i := firstUnverifiedChainIdx; i < len(sc.chainLinks); i++ {
 		curr := sc.chainLinks[i]
-		curr.computedHPrevInfo = &expectedHPrevInfo
+		curr.computedHPrevInfo = &expectedNextHPrevInfo
+
+		// If the sigchain claims an HPrevInfo, make sure it matches our
+		// computation.
 		if hPrevInfo := curr.GetHPrevInfo(); hPrevInfo != nil {
-			err = hPrevInfo.AssertEqualToExpected(*curr.computedHPrevInfo)
+			err = hPrevInfo.AssertEqualsExpected(*curr.computedHPrevInfo)
 			if err != nil {
 				return err
 			}
 		}
-		expectedHPrevInfo, err = curr.ExpectedNextHPrevInfo()
+		expectedNextHPrevInfo, err = curr.ExpectedNextHPrevInfo()
 		if err != nil {
 			return err
 		}
@@ -430,20 +433,16 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 	return
 }
 
-func (sc SigChain) GetLastKnownHPrevInfo() (HPrevInfo, error) {
-	if sc.localChainHPrev != nil {
-		return *sc.localChainHPrev, nil
+// GetExpectedNextHPrevInfo returns the HPrevInfo expected for a new link to be
+// added to the chain.  It can only be called after VerifyChain is completed.
+func (sc SigChain) GetExpectedNextHPrevInfo() (HPrevInfo, error) {
+	if sc.localChainNextHPrevOverride != nil {
+		return *sc.localChainNextHPrevOverride, nil
 	}
-	l := last(sc.chainLinks)
-	if l != nil {
-		if l.computedHPrevInfo != nil {
-			return *l.computedHPrevInfo, nil
-		} else {
-			return HPrevInfo{}, fmt.Errorf("HPrevInfo was not computed during verification.")
-		}
-	} else {
+	if len(sc.chainLinks) == 0 {
 		return NewInitialHPrevInfo(), nil
 	}
+	return sc.GetLastLink().ExpectedNextHPrevInfo()
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {

@@ -148,11 +148,11 @@ func (u *User) GetCurrentEldestSeqno() keybase1.Seqno {
 	return u.sigChain().currentSubchainStart
 }
 
-func (u *User) GetLastKnownHPrevInfo() (HPrevInfo, error) {
+func (u *User) GetExpectedNextHPrevInfo() (HPrevInfo, error) {
 	if u.sigChain() == nil {
 		return NewInitialHPrevInfo(), nil
 	}
-	return u.sigChain().GetLastKnownHPrevInfo()
+	return u.sigChain().GetExpectedNextHPrevInfo()
 }
 
 func (u *User) ToUserVersion() keybase1.UserVersion {

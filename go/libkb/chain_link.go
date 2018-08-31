@@ -470,7 +470,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 }
 
 func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevInfo, error) {
-	_, dataType, _, err := jsonparser.Get(payload, "high_skip")
+	hs, dataType, _, err := jsonparser.Get(payload, "high_skip")
 	// high_skip is optional, but must be an object if it exists
 	if err != nil {
 		if err == jsonparser.KeyPathNotFoundError {
@@ -484,7 +484,7 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
 	}
 
-	hPrevSeqnoInt, err := jsonparser.GetInt(payload, "high_skip", "seqno")
+	hPrevSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
 	if err != nil {
 		return nil, err
 	}
@@ -492,11 +492,11 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 	// hPrevHash can either be null (zero-value of a LinkID) or a hexstring.
 	// We call GetString first instead of Get so we only parse the value
 	// twice for the first link.
-	hPrevHashStr, err := jsonparser.GetString(payload, "high_skip", "hash")
+	hPrevHashStr, err := jsonparser.GetString(hs, "hash")
 	var hPrevHash LinkID
 	if err != nil {
 		// If there was an error parsing as a string, make sure the value is null.
-		_, dataType, _, getErr := jsonparser.Get(payload, "high_skip", "hash")
+		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
 		if err != nil {
 			return nil, getErr
 		}
@@ -1402,7 +1402,7 @@ func (c ChainLink) AllowStubbing() bool {
 
 // isHighUserLink determines whether a chainlink counts as "high" in a user's chain,
 // which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
-// PGPUpdate, or any link that is revoking.
+// PGPUpdate, Revoke, or any link that is revoking.
 func (c ChainLink) IsHighUserLink() (bool, error) {
 	v2Type, err := c.GetSigchainV2Type()
 	if err != nil {
@@ -1419,6 +1419,10 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 	return isNewHighLink, nil
 }
 
+// ExpectedNextHPrevInfo returns the expected hPrevInfo of the immediately
+// subsequent link in the chain (which may not exist yet). This function can
+// only be called after VerifyChain has processed the chainLink, and set
+// c.computedHPrevInfo.
 func (c ChainLink) ExpectedNextHPrevInfo() (HPrevInfo, error) {
 	isHigh, err := c.IsHighUserLink()
 	if err != nil {

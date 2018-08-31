@@ -125,7 +125,8 @@ func TestBlankUserHPrevInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, me.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(1))
+	nextExpected, err := me.GetExpectedNextHPrevInfo()
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(1))
 }
 
 func TestPaperUserHPrevInfo(t *testing.T) {
@@ -137,5 +138,6 @@ func TestPaperUserHPrevInfo(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	require.Equal(t, me.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(4))
+	nextExpected, err := me.GetExpectedNextHPrevInfo()
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(4))
 }

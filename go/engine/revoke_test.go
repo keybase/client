@@ -144,11 +144,16 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username)
 	user, err := libkb.LoadUser(arg)
 	require.NoError(t, err)
+
+	var seqno int
 	if upgradePerUserKey {
-		require.Equal(t, user.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(7))
+		seqno = 7
 	} else {
-		require.Equal(t, user.GetSigChainHPrevInfo().Seqno, keybase1.Seqno(5))
+		seqno = 5
 	}
+	nextExpected, err := user.GetExpectedNextHPrevInfo()
+	require.NoError(t, err)
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(seqno))
 }
 
 func TestRevokerPaperDeviceTwice(t *testing.T) {

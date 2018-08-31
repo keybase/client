@@ -268,7 +268,7 @@ func NewInitialHPrevInfo() HPrevInfo {
 	return NewHPrevInfo(keybase1.Seqno(0), nil)
 }
 
-func (h HPrevInfo) AssertEqualToExpected(expected HPrevInfo) error {
+func (h HPrevInfo) AssertEqualsExpected(expected HPrevInfo) error {
 	if expected.Seqno != h.Seqno {
 		return fmt.Errorf("Expected hPrevInfo.Seqno %d, got %d.", expected.Seqno, h.Seqno)
 	}
@@ -359,15 +359,11 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
-	// If this is a standard user link, arg.Me will be provided. It is not
-	// provided during a provisionee's KEX and for team sigs, where it is
-	// overridden. It is expected to be provided by PerUserKey and
-	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
 	if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
-		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil")
+		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
 	} else if arg.Me != nil {
-		hPrevInfo, err = arg.Me.GetLastKnownHPrevInfo()
+		hPrevInfo, err = arg.Me.GetExpectedNextHPrevInfo()
 		if err != nil {
 			return nil, err
 		}
@@ -485,8 +481,8 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		}
 	}
 
-	// If this is a subkey, the previous link was a sibkey,
-	// so set that as the hPrevInfo for this link.
+	// Only set the fallback for subkeys during KEX where arg.Me == nil; it is
+	// otherwise updated using me.SigChainBump().
 	var hPrevInfoFallback *HPrevInfo
 	if arg.Me == nil && arg.DelegationType == DelegationTypeSubkey {
 		hPrevInfo := NewHPrevInfo(arg.Seqno-1, arg.PrevLinkID)
@@ -584,7 +580,7 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrevInfo, err := me.GetLastKnownHPrevInfo()
+		hPrevInfo, err := me.GetExpectedNextHPrevInfo()
 		if err != nil {
 			return sig, sigID, linkID, err
 		}
