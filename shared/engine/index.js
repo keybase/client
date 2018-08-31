@@ -60,6 +60,11 @@ class Engine {
     Engine._dispatch(createChangeWaiting({key, increment: waiting}))
   }
 
+  // TODO deprecate
+  deprecatedGetDispatch = () => {
+    return Engine._dispatch
+  }
+
   constructor(dispatch: Dispatch, getState: () => TypedState) {
     // setup some static vars
     Engine._dispatch = dispatch

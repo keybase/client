@@ -28,7 +28,7 @@ type _CloseDonePayload = void
 type _ClosePopupPayload = void
 type _FinishPayload = void
 type _NewRekeyPopupPayload = $ReadOnly<{|
-  sessionID: number,
+  sessionID: string,
   devices: Array<RPCTypes.Device>,
   problemSet: RPCTypes.ProblemSet,
 |}>

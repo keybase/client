@@ -40,26 +40,23 @@ const setupEngineListeners = () => {
       })
   })
 
+  const dispatch = engine().deprecatedGetDispatch
+
   // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreators(
-    'keybase.1.rekeyUI.refresh',
-    ({param: {sessionID, problemSetDevices}, response}) => {
+  engine().setIncomingActionCreators({
+    'keybase.1.rekeyUI.refresh': ({param: {sessionID, problemSetDevices}, response}) => {
       logger.info('Asked for rekey')
       response && response.result()
-      return UnlockFoldersGen.createNewRekeyPopup({
-        devices: problemSetDevices.devices || [],
-        problemSet: problemSetDevices.problemSet,
-        sessionID,
-      })
-    }
-  )
-
-  // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreators(
-    'keybase.1.rekeyUI.delegateRekeyUI',
-    // $FlowIssue don't dispatch here
-    ({response, deprecated_dispatch}) => {
-      const dispatch = deprecated_dispatch
+      return Saga.put(
+        UnlockFoldersGen.createNewRekeyPopup({
+          devices: problemSetDevices.devices || [],
+          problemSet: problemSetDevices.problemSet,
+          sessionID,
+        })
+      )
+    },
+    // else we get this also as part of delegateRekeyUI
+    'keybase.1.rekeyUI.delegateRekeyUI': ({response}) => {
       // Dangling, never gets closed
       const session = engine().createSession({
         dangling: true,
@@ -77,8 +74,8 @@ const setupEngineListeners = () => {
         },
       })
       response && response.result(session.id)
-    }
-  )
+    },
+  })
 }
 
 function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {

@@ -216,7 +216,7 @@ function analyzeMessages(json, project) {
         : `,response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
       project.incomingMaps[
         methodName
-      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>${r}) => IncomingReturn`
+      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: string}${r}) => IncomingReturn`
     }
 
     const rpcPromise = isUIProtocol ? '' : rpcPromiseGen(methodName, name, false)
