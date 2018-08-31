@@ -226,7 +226,14 @@ class Engine {
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
         // TODO remove dispatch and getState, these callbacks should just dispatch actions
-        const rawActions = creator({param, response, state: Engine._getState()})
+        const rawActions = creator({
+          param,
+          response,
+          state: Engine._getState(),
+          // only used in 2 places
+          deprecated_dispatch: Engine._dispatch,
+          deprecated_getstate: Engine._getState,
+        })
         const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
         const actions = arrayActions.filter(Boolean)
         actions.forEach(a => Engine._dispatch(a))

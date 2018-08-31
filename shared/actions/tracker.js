@@ -587,7 +587,11 @@ const setupEngineListeners = () => {
 
   engine().setIncomingActionCreators(
     'keybase.1.identifyUi.delegateIdentifyUI',
-    ({param: response, state}) => {
+    // $FlowIssue deprecated things aren't in the type
+    ({param: response, state, deprecated_dispatch, deprecated_getstate}) => {
+      // TODO onoly 2 places use this, TODO clean up
+      const dispatch = deprecated_dispatch
+      const getState = deprecated_getstate
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
       let trackerTimeoutError = null

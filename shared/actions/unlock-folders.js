@@ -55,25 +55,30 @@ const setupEngineListeners = () => {
   )
 
   // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', ({response}) => {
-    // Dangling, never gets closed
-    const session = engine().createSession({
-      dangling: true,
-      incomingCallMap: {
-        'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-          dispatch(
-            UnlockFoldersGen.createNewRekeyPopup({
-              devices: problemSetDevices.devices || [],
-              problemSet: problemSetDevices.problemSet,
-              sessionID,
-            })
-          )
+  engine().setIncomingActionCreators(
+    'keybase.1.rekeyUI.delegateRekeyUI',
+    // $FlowIssue don't dispatch here
+    ({response, deprecated_dispatch}) => {
+      const dispatch = deprecated_dispatch
+      // Dangling, never gets closed
+      const session = engine().createSession({
+        dangling: true,
+        incomingCallMap: {
+          'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
+            dispatch(
+              UnlockFoldersGen.createNewRekeyPopup({
+                devices: problemSetDevices.devices || [],
+                problemSet: problemSetDevices.problemSet,
+                sessionID,
+              })
+            )
+          },
+          'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
         },
-        'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
-      },
-    })
-    response && response.result(session.id)
-  })
+      })
+      response && response.result(session.id)
+    }
+  )
 }
 
 function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
