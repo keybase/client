@@ -2095,9 +2095,6 @@ type Config interface {
 	// MaxNameBytes indicates the maximum supported size of a
 	// directory entry name in bytes.
 	MaxNameBytes() uint32
-	// MaxDirBytes indicates the maximum supported plaintext size of a
-	// directory in bytes.
-	MaxDirBytes() uint64
 	// DoBackgroundFlushes says whether we should periodically try to
 	// flush dirty files, even without a sync from the user.  Should
 	// be true except for during some testing.

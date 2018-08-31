@@ -7726,18 +7726,6 @@ func (mr *MockConfigMockRecorder) MaxNameBytes() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxNameBytes", reflect.TypeOf((*MockConfig)(nil).MaxNameBytes))
 }
 
-// MaxDirBytes mocks base method
-func (m *MockConfig) MaxDirBytes() uint64 {
-	ret := m.ctrl.Call(m, "MaxDirBytes")
-	ret0, _ := ret[0].(uint64)
-	return ret0
-}
-
-// MaxDirBytes indicates an expected call of MaxDirBytes
-func (mr *MockConfigMockRecorder) MaxDirBytes() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxDirBytes", reflect.TypeOf((*MockConfig)(nil).MaxDirBytes))
-}
-
 // DoBackgroundFlushes mocks base method
 func (m *MockConfig) DoBackgroundFlushes() bool {
 	ret := m.ctrl.Call(m, "DoBackgroundFlushes")

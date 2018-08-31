@@ -34,13 +34,6 @@ import (
 const (
 	// Max supported size of a directory entry name.
 	maxNameBytesDefault = 255
-	// Maximum supported plaintext size of a directory in KBFS.  Make
-	// it bigger than the default block size because we added the
-	// revision skiplist to the directory entries and we didn't want
-	// to break legacy directories in the case that all of their
-	// entries got updated EntryInfos.  TODO: increase this once we
-	// support levels of indirection for directories.
-	maxDirBytesDefault = MaxBlockSizeBytesDefault * 1.5
 	// Default time after setting the rekey bit before prompting for a
 	// paper key.
 	rekeyWithPromptWaitTimeDefault = 10 * time.Minute
@@ -105,7 +98,6 @@ type ConfigLocal struct {
 	rootNodeWrappers []func(Node) Node
 
 	maxNameBytes  uint32
-	maxDirBytes   uint64
 	rekeyQueue    RekeyQueue
 	storageRoot   string
 	diskCacheMode DiskCacheMode
@@ -426,7 +418,6 @@ func NewConfigLocal(mode InitMode,
 	config.SetUserHistory(kbfsedits.NewUserHistory())
 
 	config.maxNameBytes = maxNameBytesDefault
-	config.maxDirBytes = maxDirBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.delayedCancellationGracePeriod = delayedCancellationGracePeriodDefault
@@ -923,11 +914,6 @@ func (c *ConfigLocal) ReqsBufSize() int {
 // MaxNameBytes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MaxNameBytes() uint32 {
 	return c.maxNameBytes
-}
-
-// MaxDirBytes implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MaxDirBytes() uint64 {
-	return c.maxDirBytes
 }
 
 // StorageRoot implements the Config interface for ConfigLocal.

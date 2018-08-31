@@ -130,7 +130,6 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.noBGFlush = true
 
 	config.maxNameBytes = maxNameBytesDefault
-	config.maxDirBytes = maxDirBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.SetMetadataVersion(defaultClientMetadataVer)
