@@ -170,6 +170,28 @@ function installCachedDokan(): Promise<void> {
   })
 }
 
+function findDokanUninstallString(): Promise<string> {
+  logger.info('findDokanUninstallString')
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
+    try {
+      regedit.list(uninstallRegPath).on('data', function(entry) {
+        const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
+        regedit.list(paths).on('data', function(subentry) {
+            if (subentry.data && subentry.data.values && subentry.data.values.DisplayName && subentry.data.values.DisplayName.value.startsWith('Dokan Library')) {
+                resolve(subentry.data.values.UninstallString.value)
+            }
+        })
+      })
+
+      reject(new Error('Failed to find dokan uninstall string'))
+    } catch (err) {
+      logger.error('findDokanUninstallString error', err)
+    }
+  })
+}
+
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
