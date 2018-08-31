@@ -19,13 +19,15 @@ const mapStateToProps = (state) => ({
       ],
     },
     {
-      tlf: FsTypes.stringToPath('/keybase/private/zila.test'),
+      tlf: FsTypes.stringToPath('/keybase/team/zila.test'),
       writer: 'songgao',
       timestamp: 1535497273,
       updates: [
+        FsTypes.stringToPath('/keybase/team/zila.test/ghi.txt'),
         FsTypes.stringToPath('/keybase/team/zila.test/def'),
         FsTypes.stringToPath('/keybase/team/zila.test/abc'),
       ],
+      moreUpdateCount: 17,
     },
   ],
 })
@@ -50,7 +52,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
       teamname: teamname || '',
       iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
-      updates: c.updates,
+      updates: c.updates.map(u => ({
+        name: FsTypes.getPathName(u),
+        onClick: () => dispatchProps._onSelectPath(u),
+      })),
     }
   }),
 })

@@ -8,6 +8,16 @@ import ConnectedUsernames from '../common-adapters/usernames-remote-container'
 // TODO: uncomment once we make this.
 // import * as RemoteContainer from '../fs/row/remote-container'
 
+type FileUpdateProps = {|
+  name: string,
+  onClick: () => void,
+|}
+
+type FileUpdatesProps = {|
+  updates: Array<FileUpdateProps>,
+  moreUpdateCount?: number,
+|}
+
 type UserTlfUpdateRowProps = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
@@ -19,13 +29,30 @@ type UserTlfUpdateRowProps = {|
   participants: Array<string>,
   teamname: string,
   timestamp: string,
-  updates: Array<FsTypes.Path>,
+  updates: Array<FileUpdateProps>,
+  moreUpdateCount?: number,
 |}
 
 type FilesPreviewProps = {|
   onViewAll: () => void,
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
+
+const FileUpdate = (props: FileUpdateProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
+    <Kb.Text type="BodySecondaryLink" onClick={props.onClick}>
+      {props.name}
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const FileUpdates = ({updates, moreUpdateCount}: FileUpdatesProps) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    {updates.map(u => (
+      <FileUpdate key={u.name} {...u} />
+    ))}
+  </Kb.Box2>
+)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
@@ -45,12 +72,14 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true}>
-        <Kb.ClickableBox onClick={props.onSelectPath}>
-          <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
-            {'in ' + (props.tlfType === 'team' ? props.teamname : props.participants.join(','))}
-          </Kb.Text>
-        </Kb.ClickableBox>
+        <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
+          in&nbsp;
+        </Kb.Text>
+        <Kb.Text type="BodySmallInlineLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+          {props.tlfType === 'team' ? props.teamname : props.participants.join(',')}
+        </Kb.Text>
       </Kb.Box2>
+      <FileUpdates updates={props.updates} moreUpdateCount={props.moreUpdateCount} />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -103,6 +132,8 @@ const styles = Styles.styleSheetCreate({
   },
   tlfParticipants: {
     fontSize: 12,
+  },
+  fileUpdateRow: {
   },
   toggleButton: Styles.platformStyles({
     common: {
