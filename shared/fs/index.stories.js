@@ -4,7 +4,6 @@ import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import * as Sb from '../stories/storybook'
-import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
@@ -174,10 +173,6 @@ const provider = Sb.createPropProviderWithCommon({
   Banner: ({path}: {path: Types.Path}) => ({
     path,
     shouldShowReset: Types.pathToString(path).includes('reset'),
-  }),
-  Usernames: (props: ConnectedUsernamesProps) => ({
-    ...props,
-    users: props.usernames.map(u => ({username: u})),
   }),
   ConnectedAddNew: () => ({
     pathElements: [],
