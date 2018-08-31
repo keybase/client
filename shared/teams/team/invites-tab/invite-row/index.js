@@ -24,24 +24,13 @@ export const TeamInviteRow = (props: Props) => {
         width: '100%',
       }}
     >
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          alignItems: 'center',
-          flexGrow: 1,
-          height: '100%',
-        }}
-      >
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexGrow: 1, height: '100%'}}>
         <Avatar username={label} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, height: '100%', position: 'relative'}}>
-          <Box
-            style={{
-              ...globalStyles.fillAbsolute,
-              ...globalStyles.flexBoxRow,
-            }}
-          >
+          <Box style={{...globalStyles.fillAbsolute, ...globalStyles.flexBoxRow}}>
             <Box style={{...globalStyles.flexBoxColumn, flexGrow: 1, marginLeft: globalMargins.small}}>
               <ConnectedUsernames
+                onUsernameClicked="profile"
                 type="BodySemibold"
                 colorFollowing={true}
                 inline={true}
