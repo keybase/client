@@ -248,6 +248,9 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		if err != nil {
 			return path{}, DirEntry{}, nil, err
 		}
+		if dblock, ok := currBlock.(*DirBlock); ok {
+			plainSize = dblock.totalPlainSizeEstimate(plainSize)
+		}
 
 		// prepend to path and setup next one
 		newPath.path = append([]pathNode{{info.BlockPointer, currName}},
@@ -306,9 +309,6 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 		}
 
 		if de.Type == Dir {
-			// TODO: When we use indirect dir blocks,
-			// we'll have to calculate the size some other
-			// way.
 			de.Size = uint64(plainSize)
 		}
 

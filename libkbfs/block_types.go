@@ -367,6 +367,32 @@ func (db *DirBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
 	db.IPtrs[i].BlockInfo = info
 }
 
+func (db *DirBlock) totalPlainSizeEstimate(plainSize int) int {
+	if !db.IsIndirect() || len(db.IPtrs) == 0 {
+		return plainSize
+	}
+
+	// If the top block is indirect, it's too costly to estimate the
+	// sizes by checking the plain sizes of all the leafs.  Instead
+	// use the following imperfect heuristics:
+	//
+	// * If there are N child pointers, and the first one is a direct
+	//   pointer, assume N-1 of them are full.
+	//
+	// * If there are N child pointers, and the first one is an
+	//   indirect pointer, just give up and max out at N full blocks.
+	//
+	// This isn't great since it overestimates in many cases
+	// (especially when removing entries), and can vastly unerestimate
+	// if there are more than 2 levels of indirection.  But it seems
+	// unlikely that directory byte size matters for anything in real
+	// life.  Famous last words, of course...
+	if db.IPtrs[0].DirectType == DirectBlock {
+		return MaxBlockSizeBytesDefault*len(db.IPtrs) - 1
+	}
+	return MaxBlockSizeBytesDefault * len(db.IPtrs)
+}
+
 // FileBlock is the contents of a file
 type FileBlock struct {
 	CommonBlock
