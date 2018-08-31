@@ -22,6 +22,7 @@ type ChatContext struct {
 	ActivityNotifier    types.ActivityNotifier    // notify clients of chat of new activity
 	AttachmentUploader  types.AttachmentUploader  // upload attachments
 	NativeVideoHelper   types.NativeVideoHelper   // connection to native for doing things with video
+	PaymentLoader       types.PaymentLoader       // for loading stellar payment info
 }
 
 type Context struct {
