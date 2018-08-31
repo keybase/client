@@ -48,11 +48,6 @@ type SigChain struct {
 	idVerified        bool
 	loadedFromLinkOne bool
 	wasFullyCached    bool
-	// hPrevInfo is the last seen high seqno and Link ID after playing the
-	// chain. hPrevInfo is computed across subchains: if the user resets, the
-	// HPrevSeqno of the new eldest will point to somewhere in the last
-	// subchain.
-	hPrevInfo HPrevInfo
 
 	// If we've locally delegated a key, it won't be reflected in our
 	// loaded chain, so we need to make a note of it here.
@@ -1080,7 +1075,6 @@ func (l *SigChainLoader) MakeSigChain() error {
 		username:             l.user.GetNormalizedName(),
 		chainLinks:           l.links,
 		currentSubchainStart: l.currentSubchainStart,
-		hPrevInfo:            NewInitialHPrevInfo(),
 		Contextified:         NewContextified(l.G()),
 	}
 	for _, link := range l.links {
