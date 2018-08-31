@@ -6,7 +6,8 @@ import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalCo
 import {isMobile} from '../constants/platform'
 import {compose, connect, setDisplayName} from '../util/container'
 import {type TypedState} from '../constants/reducer'
-import {createShowUserProfile} from '../actions/profile-gen'
+import * as ProfileGen from '../actions/profile-gen'
+import * as TrackerGen from '../actions/tracker-gen'
 import type {Props, PlaintextProps} from './usernames'
 
 function usernameText({
@@ -168,8 +169,10 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  _onUsernameClicked: (username: string) => dispatch(createShowUserProfile({username})),
+const mapDispatchToProps = dispatch => ({
+  onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onOpenTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -182,13 +185,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     }))
     .filter(u => !ownProps.skipSelf || !u.you)
 
-  const onUsernameClicked =
-    ownProps.onUsernameClicked || (ownProps.clickable ? dispatchProps._onUsernameClicked : undefined)
+  let onUsernameClicked
+  if (ownProps.onUsernameClicked === 'tracker') {
+    onUsernameClicked = dispatchProps.onOpenTracker
+  } else if (ownProps.onUsernameClicked === 'profile') {
+    onUsernameClicked = dispatchProps.onOpenProfile
+  } else {
+    onUsernameClicked = ownProps.onUsernameClicked
+  }
 
   return {
     ...ownProps,
     users: userData,
-    ...(onUsernameClicked ? {onUsernameClicked} : {}),
+    onUsernameClicked,
   }
 }
 

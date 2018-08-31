@@ -27,10 +27,11 @@ export const Usernames = (following: string[] = defaultFollowing, you: string = 
       .map(username => ({username, following: following.includes(username), you: username === you}))
       .filter(u => !ownProps.skipSelf || !u.you)
 
+    // $FlowIssue
     return {
       ...ownProps,
-      users,
       onUsernameClicked: action('onUsernameClicked'),
+      users,
     }
   },
 })

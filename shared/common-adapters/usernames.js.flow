@@ -50,7 +50,7 @@ export type ConnectedProps = {
   colorFollowing?: boolean,
   colorBroken?: boolean,
   colorYou?: boolean | string,
-  onUsernameClicked?: (username: string) => void,
+  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile',
   underline?: boolean,
   usernames: Array<string>,
   clickable?: boolean,
