@@ -63,13 +63,15 @@ const setupEngineListeners = () => {
 
   // Filter this firehose down to the two systems we care about: "git", and "kbfs.favorites"
   // If ever you want to get OOBMs for a different system, then you need to enter it here.
-  RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
-    .then(response => {
-      logger.info('Registered gregor listener')
-    })
-    .catch(error => {
-      logger.warn('error in registering gregor listener: ', error)
-    })
+  engine().actionOnConnect('registerGregorFirehose', () =>
+    RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git', 'kbfs.favorites']})
+      .then(response => {
+        logger.info('Registered gregor listener')
+      })
+      .catch(error => {
+        logger.warn('error in registering gregor listener: ', error)
+      })
+  )
 
   // The startReachibility RPC call both starts and returns the current
   // reachability state. Then we'll get updates of changes from this state

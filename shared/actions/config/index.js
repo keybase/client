@@ -17,6 +17,7 @@ import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
+import * as SafeElectron from '../../util/safe-electron.desktop'
 
 const setupEngineListeners = () => {
   getEngine().setIncomingActionCreators(
@@ -147,6 +148,9 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
     // still waiting for things to finish
   } else {
     if (state.config.daemonHandshakeFailedReason) {
+      if (state.config.daemonHandshakeFailedReason === "Can't connect to KBFS") {
+        SafeElectron.getIpcRenderer().send('kb-service-check')
+      }
       if (state.config.daemonHandshakeRetriesLeft) {
         return Saga.put(ConfigGen.createRestartHandshake())
       }
