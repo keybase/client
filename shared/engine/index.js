@@ -64,6 +64,10 @@ class Engine {
   deprecatedGetDispatch = () => {
     return Engine._dispatch
   }
+  // TODO deprecate
+  deprecatedGetGetState = () => {
+    return Engine._getState
+  }
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
     // setup some static vars
@@ -230,14 +234,10 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
-        // TODO remove dispatch and getState, these callbacks should just dispatch actions
         const rawActions = creator({
           param,
           response,
           state: Engine._getState(),
-          // only used in 2 places
-          deprecated_dispatch: Engine._dispatch,
-          deprecated_getstate: Engine._getState,
         })
         const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
         const actions = arrayActions.filter(Boolean)
@@ -290,7 +290,7 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: IncomingCallMapType,
+    incomingCallMap?: IncomingCallMapType<TypedState>,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
     waitingKey?: string,
@@ -368,8 +368,14 @@ class Engine {
     resetClient(this._rpcClient)
   }
 
-  // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
+  // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
+  setIncomingCallMap(incomingCallMap: any): void {
+    Object.keys(incomingCallMap).forEach(method => {
+      this._setIncomingActionCreators(method, incomingCallMap[method])
+    })
+  }
+
+  _setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
     if (this._incomingActionCreators[method]) {
       rpcLog({
         method,
@@ -465,7 +471,7 @@ class FakeEngine {
     actionCreator: ({param: Object, response: ?Object, state: any}) => ?any
   ) {}
   createSession(
-    incomingCallMap: ?IncomingCallMapType,
+    incomingCallMap: ?IncomingCallMapType<TypedState>,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false

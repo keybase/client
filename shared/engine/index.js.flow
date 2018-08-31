@@ -1,19 +1,22 @@
 // @flow
+import Session from './session'
 import type {TypedActions} from '../util/container'
+import type {TypedState} from '../constants/reducer'
 import type {IncomingCallMapType as KBIncomingCallMap} from '../constants/types/rpc-gen'
 import type {IncomingCallMapType as ChatIncomingCallMap} from '../constants/types/rpc-chat-gen'
 import type {IncomingCallMapType as GregorIncomingCallMap} from '../constants/types/rpc-gregor-gen'
 import type {IncomingCallMapType as SellarIncomingCallMap} from '../constants/types/rpc-stellar-gen'
 
 type IncomingCallMap = {|
-  ...KBIncomingCallMap,
-  ...ChatIncomingCallMap,
-  ...GregorIncomingCallMap,
-  ...SellarIncomingCallMap,
+  ...KBIncomingCallMap<TypedState>,
+  ...ChatIncomingCallMap<TypedState>,
+  ...GregorIncomingCallMap<TypedState>,
+  ...SellarIncomingCallMap<TypedState>,
 |}
 
 declare export class Engine {
-  deprecatedGetDispatch: any; // escape hatch for deprecated code to get dispatch, TODO remove all usages of this
+  deprecatedGetDispatch: () => TypedActions => void; // escape hatch for deprecated code to get dispatch, TODO remove all usages of this
+  deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
   dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
@@ -29,7 +32,7 @@ declare export class Engine {
     waitingKey?: string,
     cancelHandler?: any,
     dangling?: boolean,
-  }): any;
+  }): Session;
   _rpcOutgoing({
     method: string,
     params: ?Object,

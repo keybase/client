@@ -212,11 +212,11 @@ function analyzeMessages(json, project) {
 
     if (isUIProtocol) {
       const r = message.hasOwnProperty('notify')
-        ? ''
-        : `,response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
+        ? 'void'
+        : `response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
       project.incomingMaps[
         methodName
-      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: string}${r}) => IncomingReturn`
+      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: number},${r}, state: TypedState) => IncomingReturn`
     }
 
     const rpcPromise = isUIProtocol ? '' : rpcPromiseGen(methodName, name, false)
@@ -258,7 +258,7 @@ function engineSagaGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>`
+    ? `declare export function ${name}RpcSaga<TypedState> (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>`
     : `export const ${name}RpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})`
 }
 
@@ -399,7 +399,7 @@ type IncomingReturn = Effect | Array<Effect> | null | void
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
   const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
   const incomingMap =
-    `\nexport type IncomingCallMapType = {|` +
+    `\nexport type IncomingCallMapType<TypedState> = {|` +
     Object.keys(project.incomingMaps)
       .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
       .join(',') +

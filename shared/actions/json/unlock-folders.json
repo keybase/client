@@ -14,7 +14,7 @@
     "closeDone": {},
     "finish": {},
     "newRekeyPopup": {
-      "sessionID": "string",
+      "sessionID": "number",
       "devices": "Array<RPCTypes.Device>",
       "problemSet": "RPCTypes.ProblemSet"
     },

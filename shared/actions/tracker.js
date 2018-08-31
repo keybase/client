@@ -570,6 +570,9 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
 }
 
 const setupEngineListeners = () => {
+  // TODO remove this
+  const dispatch = engine().deprecatedGetDispatch()
+  const getState = engine().deprecatedGetGetState()
   engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({param: {uid}}) => {
     // $FlowIssue we don't allow non generated actions anymore, plus how this works needs to change
     return {error: false, payload: {uid}, type: 'tracker:_userChanged'}
@@ -589,9 +592,6 @@ const setupEngineListeners = () => {
     'keybase.1.identifyUi.delegateIdentifyUI',
     // $FlowIssue deprecated things aren't in the type
     ({param: response, state, deprecated_dispatch, deprecated_getstate}) => {
-      // TODO onoly 2 places use this, TODO clean up
-      const dispatch = deprecated_dispatch
-      const getState = deprecated_getstate
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
       let trackerTimeoutError = null
@@ -624,7 +624,7 @@ const setupEngineListeners = () => {
         }
       }
 
-      const session: Session = engine().createSession({
+      const session = engine().createSession({
         cancelHandler,
         incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
       })
