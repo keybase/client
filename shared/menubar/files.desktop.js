@@ -8,7 +8,7 @@ import ConnectedUsernames from '../common-adapters/usernames-remote-container'
 // TODO: uncomment once we make this.
 // import * as RemoteContainer from '../fs/row/remote-container'
 
-type TlfRow = {|
+type UserTlfUpdateRowProps = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
   tlf: string,
@@ -19,14 +19,15 @@ type TlfRow = {|
   participants: Array<string>,
   teamname: string,
   timestamp: string,
+  updates: Array<FsTypes.Path>,
 |}
 
 type FilesPreviewProps = {|
   onViewAll: () => void,
-  tlfRows: Array<TlfRow>,
+  userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
-const FileRow = (props: TlfRow) => (
+const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
     <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
     <Kb.Box2 direction="vertical" fullWidth={true}>
@@ -54,7 +55,7 @@ const FileRow = (props: TlfRow) => (
   </Kb.Box2>
 )
 
-export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
+export const FilesPreview = ({onViewAll, userTlfUpdates}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
       <Kb.Text type="BodySemibold" style={styles.tlfSectionHeader}>
@@ -62,8 +63,8 @@ export const FilesPreview = ({onViewAll, tlfRows}: FilesPreviewProps) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      {tlfRows.map(r => {
-        return <FileRow key={r.tlf} {...r} />
+      {userTlfUpdates.map(r => {
+        return <UserTlfUpdateRow key={r.tlf + r.writer + r.timestamp} {...r} />
       })}
     </Kb.Box2>
   </Kb.Box2>
