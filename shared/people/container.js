@@ -5,7 +5,6 @@ import * as PeopleGen from '../actions/people-gen'
 import {connect, type TypedState} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {navigateAppend} from '../actions/route-tree'
-import {createShowUserProfile} from '../actions/profile-gen'
 import {getPeopleDataWaitingKey} from '../constants/people'
 import * as WaitingConstants from '../constants/waiting'
 import type {Props} from '.'
@@ -35,7 +34,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

@@ -85,6 +85,7 @@ const renderItem = ({item}: {item: ListItem}) => {
   return (
     <NameWithIcon
       key={item.key}
+      onClick="profile"
       colorFollowing={true}
       containerStyle={styles.userContainer}
       horizontal={true}

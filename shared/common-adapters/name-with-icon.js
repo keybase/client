@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Avatar, Box, ClickableBox, Icon, Text, ConnectedUsernames} from '.'
+import {Avatar, Box, Icon, Text, ConnectedUsernames} from '.'
 import {type IconType, castPlatformStyles} from './icon'
 import {type TextType} from './text'
 
@@ -13,13 +13,13 @@ type Props = {
   colorFollowing?: boolean,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
-  horizontal?: boolean,
+  horizontal: boolean,
   icon?: IconType,
-  isYou?: boolean,
+  isYou: boolean,
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
   metaTwo?: string | React.Node,
-  onClick?: any => void,
+  onClick?: (any => void) | 'tracker' | 'profile',
   onEditIcon?: any => void,
   size?: Size,
   teamname?: string,
@@ -35,9 +35,7 @@ const NameWithIcon = (props: Props) => {
   }
 
   const isAvatar = !!(props.username || props.teamname)
-  const commonHeight = Styles.isMobile ? 48 : 32
-  const BoxComponent = props.onClick ? ClickableBox : Box
-  const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
+  const adapterProps = getAdapterProps(props.size || 'default', !!props.username, !!props.horizontal)
 
   let avatarOrIcon
   if (isAvatar) {
@@ -45,7 +43,7 @@ const NameWithIcon = (props: Props) => {
       <Avatar
         editable={props.editableIcon}
         onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
-        size={props.horizontal ? commonHeight : adapterProps.iconSize}
+        size={adapterProps.iconSize}
         showFollowingStatus={props.horizontal ? undefined : true}
         username={props.username}
         teamname={props.teamname}
@@ -61,40 +59,35 @@ const NameWithIcon = (props: Props) => {
             ? castPlatformStyles(styles.hIconStyle)
             : {height: adapterProps.iconSize, width: adapterProps.iconSize}
         }
-        fontSize={props.horizontal ? (Styles.isMobile ? 48 : 32) : adapterProps.iconSize}
+        fontSize={adapterProps.iconSize}
       />
     )
   }
   const usernameOrTitle = props.username ? (
     <ConnectedUsernames
-      onUsernameClicked="profile"
-      type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-      containerStyle={
-        props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
-      }
+      onUsernameClicked={props.onClick}
+      type={adapterProps.titleType}
+      containerStyle={props.horizontal || Styles.isMobile ? undefined : styles.vUsernameContainerStyle}
       inline={!props.horizontal}
       usernames={[props.username]}
       colorFollowing={props.colorFollowing}
     />
   ) : (
-    <Text
-      type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-      style={props.horizontal ? undefined : props.titleStyle}
-    >
+    <Text type={adapterProps.titleType} style={props.horizontal ? undefined : props.titleStyle}>
       {props.title}
     </Text>
   )
 
   const metaOne = (
     <TextOrComponent
-      textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+      textType={adapterProps.metaOneType}
       val={props.metaOne}
       style={props.horizontal ? undefined : styles.fullWidthText}
     />
   )
   const metaTwo = (
     <TextOrComponent
-      textType={props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
+      textType={adapterProps.metaOneType}
       val={props.metaTwo}
       style={props.horizontal ? undefined : styles.fullWidthText}
     />
@@ -113,8 +106,7 @@ const NameWithIcon = (props: Props) => {
   )
 
   return (
-    <BoxComponent
-      onClick={props.onClick}
+    <Box
       style={Styles.collapseStyles([
         props.horizontal ? styles.hContainerStyle : styles.vContainerStyle,
         props.containerStyle,
@@ -136,8 +128,13 @@ const NameWithIcon = (props: Props) => {
         {usernameOrTitle}
         {metas}
       </Box>
-    </BoxComponent>
+    </Box>
   )
+}
+
+NameWithIcon.defaultProps = {
+  horizontal: false,
+  isYou: false,
 }
 
 // Render text if it's text, or identity if otherwise
@@ -187,7 +184,16 @@ const styles = Styles.styleSheetCreate({
 })
 
 // Get props to pass to subcomponents (Text, Avatar, etc.)
-const getAdapterProps = (size: Size, isUser: boolean) => {
+const getAdapterProps = (size: Size, isUser: boolean, horizontal: boolean) => {
+  if (horizontal) {
+    return {
+      iconSize: Styles.isMobile ? 48 : 32,
+      titleType: 'BodySemibold',
+      metaOneType: 'BodySmall',
+      metaMargin: 0,
+    }
+  }
+
   switch (size) {
     case 'small':
       return {
