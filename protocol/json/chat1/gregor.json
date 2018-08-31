@@ -516,6 +516,23 @@
           "name": "topicType"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamRenameUpdate",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        }
+      ]
     }
   ],
   "messages": {},

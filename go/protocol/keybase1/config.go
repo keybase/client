@@ -205,6 +205,7 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 type AllProvisionedUsernames struct {
 	DefaultUsername      string   `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames []string `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	HasProvisionedUser   bool     `codec:"hasProvisionedUser" json:"hasProvisionedUser"`
 }
 
 func (o AllProvisionedUsernames) DeepCopy() AllProvisionedUsernames {
@@ -221,6 +222,7 @@ func (o AllProvisionedUsernames) DeepCopy() AllProvisionedUsernames {
 			}
 			return ret
 		})(o.ProvisionedUsernames),
+		HasProvisionedUser: o.HasProvisionedUser,
 	}
 }
 
