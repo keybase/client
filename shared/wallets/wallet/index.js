@@ -15,7 +15,7 @@ type Props = {
 
 const HistoryPlaceholder = () => (
   <Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.historyPlaceholder}>
-    <Text type="BodyTiny" style={styles.historyPlaceholderText}>
+    <Text type="BodySmall" style={styles.historyPlaceholderText}>
       You don’t have any history with this account.
     </Text>
   </Box2>
