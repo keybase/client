@@ -112,10 +112,10 @@ func CtxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 // block pointer is valid for the given version validator
 func checkDataVersion(versioner dataVersioner, p path, ptr BlockPointer) error {
 	if ptr.DataVer < FirstValidDataVer {
-		return InvalidDataVersionError{ptr.DataVer}
+		return errors.WithStack(InvalidDataVersionError{ptr.DataVer})
 	}
 	if versioner != nil && ptr.DataVer > versioner.DataVersion() {
-		return NewDataVersionError{p, ptr.DataVer}
+		return errors.WithStack(NewDataVersionError{p, ptr.DataVer})
 	}
 	return nil
 }

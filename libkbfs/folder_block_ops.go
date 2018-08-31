@@ -542,10 +542,17 @@ func (fbo *folderBlockOps) getDirBlockHelperLocked(ctx context.Context,
 		fbo.blockLock.AssertAnyLocked(lState)
 	}
 
+	// Check data version explicitly here, with the right path, since
+	// we pass an empty path below.
+	if err := checkDataVersion(fbo.config, p, ptr); err != nil {
+		return nil, err
+	}
+
 	// Pass in an empty notify path because notifications should only
 	// trigger for file reads.
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, kmd, ptr, branch, NewDirBlock, TransientEntry, path{}, rtype)
+		ctx, lState, kmd, ptr, branch, NewDirBlock, TransientEntry,
+		path{}, rtype)
 	if err != nil {
 		return nil, err
 	}
