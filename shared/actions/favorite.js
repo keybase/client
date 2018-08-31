@@ -229,9 +229,31 @@ function _notify(state: Types.FolderState): void {
   previousNotifyState = newNotifyState
 }
 
+// I think this can all go away, cc: @jzila
+// const markTLFCreated = (state: TypedState, action: GregorGen.PushOOBMPayload) => {
+// if (!state.config.username) {
+// return
+// }
+// const messages = action.payload.messages.filter(i => i.system === 'kbfs.favorites')
+// const createdTLFs = messages.map(m => JSON.parse(m.body.toString())).filter(m => m.action === 'create')
+// const folderActions = createdTLFs.reduce((arr, m) => {
+// const folder = m.tlf ? Constants.folderFromPath(state.config.username, m.tlf) : null
+
+// if (folder) {
+// arr.push(Saga.put(FavoriteGen.createMarkTLFCreated({folder})))
+// return arr
+// }
+// logger.warn('Failed to parse tlf for oobm:')
+// logger.debug('Failed to parse tlf for oobm:', m)
+// return arr
+// }, [])
+// return Saga.all(folderActions)
+// }
+
 function* favoriteSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatest(FavoriteGen.favoriteList, _listSaga)
   yield Saga.safeTakeEvery([FavoriteGen.favoriteAdd, FavoriteGen.favoriteIgnore], _addOrIgnoreSaga)
+  // yield Saga.actionToAction(GregorGen.pushOOBM, markTLFCreated)
 }
 
 export default favoriteSaga
