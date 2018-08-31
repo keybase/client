@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../styles'
-import {Avatar, Box, ClickableBox, Icon, Text, ConnectedUsernames} from '.'
+import {Avatar, Box, Icon, Text, ConnectedUsernames} from '.'
 import {type IconType, castPlatformStyles} from './icon'
 import {type TextType} from './text'
 
@@ -19,7 +19,7 @@ type Props = {
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
   metaTwo?: string | React.Node,
-  onClick?: any => void,
+  onClick?: (any => void) | 'tracker' | 'profile',
   onEditIcon?: any => void,
   size?: Size,
   teamname?: string,
@@ -36,7 +36,6 @@ const NameWithIcon = (props: Props) => {
 
   const isAvatar = !!(props.username || props.teamname)
   const commonHeight = Styles.isMobile ? 48 : 32
-  const BoxComponent = props.onClick ? ClickableBox : Box
   const adapterProps = getAdapterProps(props.size || 'default', !!props.username)
 
   let avatarOrIcon
@@ -67,7 +66,7 @@ const NameWithIcon = (props: Props) => {
   }
   const usernameOrTitle = props.username ? (
     <ConnectedUsernames
-      onUsernameClicked="profile"
+      onUsernameClicked={props.onClick}
       type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
       containerStyle={
         props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
@@ -113,8 +112,7 @@ const NameWithIcon = (props: Props) => {
   )
 
   return (
-    <BoxComponent
-      onClick={props.onClick}
+    <Box
       style={Styles.collapseStyles([
         props.horizontal ? styles.hContainerStyle : styles.vContainerStyle,
         props.containerStyle,
@@ -136,7 +134,7 @@ const NameWithIcon = (props: Props) => {
         {usernameOrTitle}
         {metas}
       </Box>
-    </BoxComponent>
+    </Box>
   )
 }
 
