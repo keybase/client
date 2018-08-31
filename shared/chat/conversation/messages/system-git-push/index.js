@@ -18,7 +18,7 @@ type Props = {
 const gitPushType = invert(gitGitPushType)
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',

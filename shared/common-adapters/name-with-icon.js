@@ -67,7 +67,7 @@ const NameWithIcon = (props: Props) => {
   }
   const usernameOrTitle = props.username ? (
     <ConnectedUsernames
-      clickable={true}
+      onUsernameClicked="profile"
       type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
       containerStyle={
         props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
