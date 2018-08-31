@@ -1,5 +1,6 @@
 // @flow
 import * as ConfigGen from './config-gen'
+import * as GregorGen from './gregor-gen'
 import * as Constants from '../constants/git'
 import * as GitGen from './git-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -117,8 +118,9 @@ const clearBadgesAfterNav = (_, action: RouteTreeGen.SwitchToPayload) => {
   return null
 }
 
-function handleIncomingGregor(_, action: GitGen.HandleIncomingGregorPayload) {
-  const msgs = action.payload.messages.map(msg => JSON.parse(msg.body.toString()))
+function handleIncomingGregor(_, action: GregorGen.PushOOBMPayload) {
+  const gitMessages = action.payload.messages.filter(i => i.system === 'git')
+  const msgs = gitMessages.map(msg => JSON.parse(msg.body.toString()))
   for (let body of msgs) {
     const needsLoad = ['delete', 'create', 'update'].includes(body.action)
     if (needsLoad) {
@@ -188,7 +190,7 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(RouteTreeGen.switchTo, clearBadgesAfterNav)
 
   // Gregor
-  yield Saga.actionToAction(GitGen.handleIncomingGregor, handleIncomingGregor)
+  yield Saga.actionToAction(GregorGen.pushOOBM, handleIncomingGregor)
 }
 
 export default gitSaga
