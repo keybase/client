@@ -13,6 +13,7 @@ import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import {walletsTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
+import {getEngine} from '../engine'
 
 const buildPayment = (state: TypedState) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -252,6 +253,13 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
   }
 }
 
+const setupEngineListeners = () => {
+  getEngine().setIncomingCallMap({
+    'stellar.1.notify.paymentNotification': ({accountID}) =>
+      Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)})),
+  })
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -324,6 +332,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)
   yield Saga.actionToPromise(WalletsGen.cancelRequest, cancelRequest)
+
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default walletsSaga

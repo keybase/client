@@ -419,7 +419,7 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
     'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
-    'keybase.1.NotifyFS.FSPathUpdated': ({param: {path}}) =>
+    'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
       // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
       // now.
       Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),

@@ -209,8 +209,9 @@ function analyzeMessages(json, project) {
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
+    const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
 
-    if (isUIProtocol) {
+    if (isUIMethod) {
       const r = message.hasOwnProperty('notify')
         ? 'void'
         : `response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
@@ -219,12 +220,12 @@ function analyzeMessages(json, project) {
       ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: number},${r}, state: TypedState) => IncomingReturn`
     }
 
-    const rpcPromise = isUIProtocol ? '' : rpcPromiseGen(methodName, name, false)
-    const rpcPromiseType = isUIProtocol ? '' : rpcPromiseGen(methodName, name, true)
-    const rpcChannelMap = isUIProtocol ? '' : rpcChannelMapGen(methodName, name, false)
-    const rpcChannelMapType = isUIProtocol ? '' : rpcChannelMapGen(methodName, name, true)
-    const engineSaga = isUIProtocol ? '' : engineSagaGen(methodName, name, false)
-    const engineSagaType = isUIProtocol ? '' : engineSagaGen(methodName, name, true)
+    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
+    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
+    const rpcChannelMap = isUIMethod ? '' : rpcChannelMapGen(methodName, name, false)
+    const rpcChannelMapType = isUIMethod ? '' : rpcChannelMapGen(methodName, name, true)
+    const engineSaga = isUIMethod ? '' : engineSagaGen(methodName, name, false)
+    const engineSagaType = isUIMethod ? '' : engineSagaGen(methodName, name, true)
 
     const cleanName = methodName.substring(1, methodName.length - 1)
     if (!enabledCalls[cleanName]) {
@@ -232,7 +233,7 @@ function analyzeMessages(json, project) {
     }
 
     // Must be an rpc we use
-    if (rpcPromiseType || rpcChannelMapType || engineSagaType || isUIProtocol) {
+    if (rpcPromiseType || rpcChannelMapType || engineSagaType || isUIMethod) {
       map[methodName] = {
         inParam,
         outParam: outParam === 'null' ? 'void' : outParam,
