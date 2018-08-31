@@ -12,6 +12,7 @@ import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import {walletsTab} from '../constants/tabs'
+import flags from '../util/feature-flags'
 
 const buildPayment = (state: TypedState) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -252,6 +253,11 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
+  if (!flags.walletsEnabled) {
+    console.log('Wallets saga disabled')
+    return
+  }
+
   yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
   yield Saga.actionToPromise(
     [
