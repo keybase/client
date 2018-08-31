@@ -73,7 +73,11 @@ const NameWithIcon = (props: Props) => {
       colorFollowing={props.colorFollowing}
     />
   ) : (
-    <Text type={adapterProps.titleType} style={props.horizontal ? undefined : props.titleStyle}>
+    <Text
+      type={adapterProps.titleType}
+      style={props.horizontal ? undefined : props.titleStyle}
+      onClick={typeof props.onClick === 'function' ? props.onClick : undefined}
+    >
       {props.title}
     </Text>
   )
