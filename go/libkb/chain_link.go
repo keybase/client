@@ -1418,3 +1418,17 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 		v2Type == SigchainV2TypePGPUpdate
 	return isNewHighLink, nil
 }
+
+func (c ChainLink) ExpectedNextHPrevInfo() (HPrevInfo, error) {
+	isHigh, err := c.IsHighUserLink()
+	if err != nil {
+		return HPrevInfo{}, err
+	}
+	if isHigh {
+		return NewHPrevInfo(c.GetSeqno(), c.id), nil
+	}
+	if c.computedHPrevInfo == nil {
+		return HPrevInfo{}, fmt.Errorf("Expected to have already computed this link's HPrevInfo, but it was not computed.")
+	}
+	return *c.computedHPrevInfo, nil
+}

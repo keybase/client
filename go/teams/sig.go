@@ -35,7 +35,7 @@ func TeamRootSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb.G
 		Seqno:             1,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -80,7 +80,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		SeqType:           seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:             parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID:        prevLinkID,
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -119,7 +119,7 @@ func SubteamHeadSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libk
 		Seqno:             1,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(subteamTeamSection.Public),
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 		PrevLinkID:        prev,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -192,7 +192,7 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 		PrevLinkID:        prev,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -248,7 +248,7 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
 		MerkleRoot:        merkleRoot,
-		HPrevInfoOverride: &hPrevInfo,
+		HPrevInfoFallback: &hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err

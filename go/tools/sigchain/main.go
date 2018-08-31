@@ -99,22 +99,27 @@ func main() {
 	m := libkb.NewMetaContextBackground(g)
 
 	for i := 0; i < iterations; i++ {
-		start := time.Now()
+		a := time.Now()
 		sc = &libkb.SigChain{Contextified: libkb.NewContextified(g)}
 		sc.SetUIDUsername(keybase1.UID(*uid), *username)
 		if _, err := sc.LoadServerBody(m, raw, 0, nil, ""); err != nil {
 			errout(err.Error())
 		}
 
+		fmt.Printf("%s to LoadServerBody; ", time.Since(a))
+		b := time.Now()
 		if err := sc.VerifyChain(m); err != nil {
 			errout(err.Error())
 		}
 
+		fmt.Printf("%s to VerifyChain; ", time.Since(b))
+		c := time.Now()
 		if err := sc.Store(m); err != nil {
 			errout(err.Error())
 		}
-		elapsed := time.Since(start)
-		fmt.Printf("sig chain load time: %s\n", elapsed)
+		fmt.Printf("%s to Store; ", time.Since(c))
+		elapsed := time.Since(a)
+		fmt.Printf("total sig chain load time: %s\n", elapsed)
 	}
 
 	memstats()

@@ -268,6 +268,16 @@ func NewInitialHPrevInfo() HPrevInfo {
 	return NewHPrevInfo(keybase1.Seqno(0), nil)
 }
 
+func (h HPrevInfo) AssertEqualToExpected(expected HPrevInfo) error {
+	if expected.Seqno != h.Seqno {
+		return fmt.Errorf("Expected hPrevInfo.Seqno %d, got %d.", expected.Seqno, h.Seqno)
+	}
+	if !expected.Hash.Eq(h.Hash) {
+		return fmt.Errorf("Expected hPrevInfo.Hash %s, got %s.", expected.Hash.String(), h.Hash.String())
+	}
+	return nil
+}
+
 type ProofMetadata struct {
 	Me                  *User
 	SigningUser         UserBasic
@@ -283,10 +293,10 @@ type ProofMetadata struct {
 	SeqType             keybase1.SeqType
 	MerkleRoot          *MerkleRoot
 	IgnoreIfUnsupported SigIgnoreIfUnsupported
-	// HPrevInfoOverride is used for teams to provide team chain hPrevInfos and
+	// HPrevInfoFallback is used for teams to provide team chain hPrevInfos and
 	// for a KEX-provisisonee to provide the provisioner's information as the
 	// latest high link.
-	HPrevInfoOverride *HPrevInfo
+	HPrevInfoFallback *HPrevInfo
 }
 
 func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
@@ -300,7 +310,6 @@ func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
 }
 
 func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
-	return nil, fmt.Errorf("shortcircuit")
 	// if only Me exists, then that is the signing user too
 	if arg.SigningUser == nil && arg.Me != nil {
 		arg.SigningUser = arg.Me
@@ -355,20 +364,15 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	// overridden. It is expected to be provided by PerUserKey and
 	// Stellar proofs as well.
 	var hPrevInfo HPrevInfo
-	// if (arg.Me == nil) == (arg.HPrevInfoOverride == nil) {
-	// 	return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfo should be provided.")
-	// }
-	// if arg.HPrevInfoOverride != nil {
-	// 	hPrevInfo = *arg.HPrevInfoOverride
-	// } else {
-	// 	hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
-	// }
-	if arg.Me != nil {
-		hPrevInfo = arg.Me.GetLastKnownHPrevInfo()
-		return nil, fmt.Errorf("argme %v", hPrevInfo)
+	if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
+		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil")
+	} else if arg.Me != nil {
+		hPrevInfo, err = arg.Me.GetLastKnownHPrevInfo()
+		if err != nil {
+			return nil, err
+		}
 	} else {
-		hPrevInfo = *arg.HPrevInfoOverride
-		return nil, fmt.Errorf("override %v", hPrevInfo)
+		hPrevInfo = *arg.HPrevInfoFallback
 	}
 
 	hPrevInfoObj := jsonw.NewDictionary()
@@ -483,10 +487,10 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 
 	// If this is a subkey, the previous link was a sibkey,
 	// so set that as the hPrevInfo for this link.
-	var hPrevInfoOverride *HPrevInfo
-	if arg.DelegationType == DelegationTypeSubkey {
+	var hPrevInfoFallback *HPrevInfo
+	if arg.Me == nil && arg.DelegationType == DelegationTypeSubkey {
 		hPrevInfo := NewHPrevInfo(arg.Seqno-1, arg.PrevLinkID)
-		hPrevInfoOverride = &hPrevInfo
+		hPrevInfoFallback = &hPrevInfo
 	}
 
 	ret, err = ProofMetadata{
@@ -499,7 +503,7 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 		CreationTime:      arg.Ctime,
 		IncludePGPHash:    includePGPHash,
 		Seqno:             arg.Seqno,
-		HPrevInfoOverride: hPrevInfoOverride,
+		HPrevInfoFallback: hPrevInfoFallback,
 		PrevLinkID:        arg.PrevLinkID,
 		MerkleRoot:        arg.MerkleRoot,
 	}.ToJSON(m)
@@ -580,7 +584,10 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrevInfo := me.GetLastKnownHPrevInfo()
+		hPrevInfo, err := me.GetLastKnownHPrevInfo()
+		if err != nil {
+			return sig, sigID, linkID, err
+		}
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
 			signingKey,
 			v1LinkType,
