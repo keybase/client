@@ -109,10 +109,12 @@ class Engine {
 
   // Default handlers for incoming messages
   _setupCoreHandlers() {
-    this.setIncomingActionCreators('keybase.1.logUi.log', ({param, response}) => {
-      const logParam = param
-      log(logParam)
-      response && response.result && response.result()
+    this.setIncomingCallMap({
+      'keybase.1.logUi.log': ({param, response}) => {
+        const logParam = param
+        log(logParam)
+        response && response.result && response.result()
+      },
     })
   }
 
@@ -302,6 +304,7 @@ class Engine {
       cancelHandler,
       dangling,
       endHandler: (session: Session) => this._sessionEnded(session),
+      // $FlowIssue
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback = method => (...args) => {

@@ -1056,37 +1056,49 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   ])
 }
 
+// This is to simplify the changes that setIncomingCallMap created. Could clean this up and remove this
+const arrayOfActionsToSequentially = actions =>
+  Saga.call(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
+
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamChangedByName', ({param, state}) => {
-    logger.info(`Got teamChanged for ${param.teamName} from service`)
-    const selectedTeamNames = Constants.getSelectedTeamNames(state)
-    if (selectedTeamNames.includes(param.teamName)) {
-      // only reload if that team is selected
-      return getLoadCalls(param.teamName)
-    }
-    return getLoadCalls()
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyTeam.teamChangedByName': (param, _, state) => {
+      logger.info(`Got teamChanged for ${param.teamName} from service`)
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(param.teamName)) {
+        // only reload if that team is selected
+        return arrayOfActionsToSequentially(getLoadCalls(param.teamName))
+      }
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.teamDeleted': (param, _, state) => {
+      const {teamID} = param
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+        return arrayOfActionsToSequentially([
+          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+          ...getLoadCalls(),
+        ])
+      }
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.teamExit': (param, _, state) => {
+      const {teamID} = param
+      const selectedTeamNames = Constants.getSelectedTeamNames(state)
+      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+        return arrayOfActionsToSequentially([
+          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+          ...getLoadCalls(),
+        ])
+      }
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.avatarUpdated': ({name}, _, state) => [
+      state.teams.teamnames.includes(name)
+        ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+        : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]})),
+    ],
   })
-  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamDeleted', ({param, state}) => {
-    const {teamID} = param
-    const selectedTeamNames = Constants.getSelectedTeamNames(state)
-    if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-      return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
-    }
-    return getLoadCalls()
-  })
-  engine().setIncomingActionCreators('keybase.1.NotifyTeam.teamExit', ({param, state}) => {
-    const {teamID} = param
-    const selectedTeamNames = Constants.getSelectedTeamNames(state)
-    if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-      return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
-    }
-    return getLoadCalls()
-  })
-  engine().setIncomingActionCreators('keybase.1.NotifyTeam.avatarUpdated', ({param: {name}, state}) => [
-    state.teams.teamnames.includes(name)
-      ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
-      : ConfigGen.createLoadAvatars({usernames: [name]}),
-  ])
 }
 
 function getLoadCalls(teamname?: string) {
