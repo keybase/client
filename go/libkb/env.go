@@ -21,6 +21,7 @@ import (
 type NullConfiguration struct{}
 
 func (n NullConfiguration) GetHome() string                                                { return "" }
+func (n NullConfiguration) GetMobileSharedHome() string                                    { return "" }
 func (n NullConfiguration) GetServerURI() string                                           { return "" }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
@@ -160,12 +161,13 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 }
 
 type TestParameters struct {
-	ConfigFilename string
-	Home           string
-	GPG            string
-	GPGHome        string
-	GPGOptions     []string
-	Debug          bool
+	ConfigFilename   string
+	Home             string
+	MobileSharedHome string
+	GPG              string
+	GPGHome          string
+	GPGOptions       []string
+	Debug            bool
 	// Whether we are in Devel Mode
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
@@ -303,6 +305,7 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 
 	e.HomeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
+		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
 		osname,
 		func() RunMode { return e.GetRunMode() },
 		getLog)
@@ -314,6 +317,14 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 		func() string { return e.Test.Home },
 		func() string { return e.cmd.GetHome() },
 		func() string { return e.GetConfig().GetHome() },
+	)
+}
+
+func (e *Env) getMobileSharedHomeFromCmdOrConfig() string {
+	return e.GetString(
+		func() string { return e.Test.MobileSharedHome },
+		func() string { return e.cmd.GetMobileSharedHome() },
+		func() string { return e.GetConfig().GetMobileSharedHome() },
 	)
 }
 
@@ -1245,6 +1256,7 @@ func (e *Env) GetStoredSecretServiceName() string {
 type AppConfig struct {
 	NullConfiguration
 	HomeDir                        string
+	MobileSharedHomeDir            string
 	LogFile                        string
 	RunMode                        RunMode
 	Debug                          bool
@@ -1275,6 +1287,10 @@ func (c AppConfig) GetRunMode() (RunMode, error) {
 
 func (c AppConfig) GetHome() string {
 	return c.HomeDir
+}
+
+func (c AppConfig) GetMobileSharedHome() string {
+	return c.MobileSharedHomeDir
 }
 
 func (c AppConfig) GetServerURI() string {

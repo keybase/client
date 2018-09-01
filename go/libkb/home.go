@@ -17,10 +17,11 @@ type ConfigGetter func() string
 type RunModeGetter func() RunMode
 
 type Base struct {
-	appName    string
-	getHome    ConfigGetter
-	getRunMode RunModeGetter
-	getLog     LogGetter
+	appName             string
+	getHome             ConfigGetter
+	getMobileSharedHome ConfigGetter
+	getRunMode          RunModeGetter
+	getLog              LogGetter
 }
 
 type HomeFinder interface {
@@ -126,8 +127,20 @@ func (d Darwin) SandboxCacheDir() string {
 	// keybased.sock and kbfsd.sock live in this directory.
 	return d.appDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
 }
-func (d Darwin) ConfigDir() string                { return d.appDir(d.Home(false), "Library", "Application Support") }
-func (d Darwin) DataDir() string                  { return d.ConfigDir() }
+func (d Darwin) ConfigDir() string {
+	homeDir := d.Home(false)
+	if isIOS {
+		// check if we have a shared container path, and if so, that is where the config should go.
+		sharedHome := d.getMobileSharedHome()
+		if len(sharedHome) > 0 {
+			homeDir = sharedHome
+		}
+	}
+	return d.appDir(homeDir, "Library", "Application Support")
+}
+func (d Darwin) DataDir() string {
+	return d.appDir(d.Home(false), "Library", "Application Support")
+}
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
 func (d Darwin) LogDir() string {
@@ -261,8 +274,9 @@ func (w Win32) Home(emptyOk bool) string {
 	return ret
 }
 
-func NewHomeFinder(appName string, getHome ConfigGetter, osname string, getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
-	base := Base{appName, getHome, getRunMode, getLog}
+func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
+	getRunMode RunModeGetter, getLog LogGetter) HomeFinder {
+	base := Base{appName, getHome, getMobileSharedHome, getRunMode, getLog}
 	switch osname {
 	case "windows":
 		return Win32{base}
