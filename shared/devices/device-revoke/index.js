@@ -70,13 +70,7 @@ const DeviceRevoke = (props: Props) => {
       gapEnd={true}
       style={styles.container}
     >
-      <Kb.NameWithIcon
-        onClick="profile"
-        icon={icon}
-        title={props.device.name}
-        titleStyle={styles.headerName}
-        size="small"
-      />
+      <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} size="small" />
       <Kb.Text type="Header" style={styles.centerText}>
         Are you sure you want to revoke{' '}
         {props.device.currentDevice ? (

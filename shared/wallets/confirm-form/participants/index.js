@@ -34,7 +34,7 @@ const Participants = (props: ParticipantsProps) => {
           username={props.recipientUsername}
           metaOne={props.recipientFullName}
           avatarStyle={styles.avatar}
-          onClick="tracker"
+          onClick={props.onShowProfile}
         />
       )
       break

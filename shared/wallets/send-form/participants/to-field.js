@@ -67,7 +67,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             horizontal={true}
             recipientUsername={this.props.recipientUsername}
             metaOne={this.props.recipientFullName}
-            onClick="tracker"
+            onClick={this.props.onShowProfile}
             avatarStyle={styles.avatar}
           />
           <Kb.Icon

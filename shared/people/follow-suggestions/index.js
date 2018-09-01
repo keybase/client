@@ -27,7 +27,7 @@ export default (props: Props) => (
           username={suggestion.username}
           metaOne={suggestion.fullName}
           metaStyle={styles.meta}
-          onClick="profile"
+          onClick={() => props.onClickUser(suggestion.username)}
           colorFollowing={true}
           size="small"
           containerStyle={styles.suggestionContainer}

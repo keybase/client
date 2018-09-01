@@ -107,7 +107,7 @@ const DevicePage = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" gap="medium" gapStart={true} gapEnd={true} fullWidth={true}>
-      <Kb.NameWithIcon onClick="profile" icon={icon} title={props.device.name} metaOne={metaOne} />
+      <Kb.NameWithIcon icon={icon} title={props.device.name} metaOne={metaOne} />
       <Timeline device={props.device} />
       {!props.device.revokedAt && (
         <Kb.Button type="Danger" label={`Revoke this ${revokeName}`} onClick={props.showRevokeDevicePage} />

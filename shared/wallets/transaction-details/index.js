@@ -43,21 +43,12 @@ type CounterpartyProps = {|
 
 const Counterparty = (props: CounterpartyProps) => {
   if (props.isYou) {
-    return (
-      <NameWithIcon
-        onClick="profile"
-        colorFollowing={true}
-        horizontal={true}
-        username={props.you}
-        metaOne="You"
-      />
-    )
+    return <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
   }
 
   if (props.counterpartyType === 'keybaseUser') {
     return (
       <NameWithIcon
-        onClick="profile"
         colorFollowing={true}
         horizontal={true}
         username={props.counterparty}
