@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ConversationViewController : UITableViewController
+@interface ConversationViewController : UITableViewController <UISearchResultsUpdating>
 
 @end

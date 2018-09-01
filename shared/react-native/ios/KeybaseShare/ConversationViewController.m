@@ -9,14 +9,22 @@
 #import "ConversationViewController.h"
 
 @interface ConversationViewController ()
-
+@property UISearchController* searchController;
 @end
 
 @implementation ConversationViewController
-
 - (void)viewDidLoad {
-    [super viewDidLoad];
-    
+  
+  self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
+  self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
+  self.searchController.searchResultsUpdater = self;
+  self.searchController.hidesNavigationBarDuringPresentation = false;
+  self.searchController.dimsBackgroundDuringPresentation = false;
+  self.definesPresentationContext = YES;
+  [self.tableView setTableHeaderView:self.searchController.searchBar];
+  
+  [super viewDidLoad];
+  
     // Uncomment the following line to preserve selection between presentations.
     // self.clearsSelectionOnViewWillAppear = NO;
     
@@ -32,11 +40,11 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 1;
+    return 2;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 2;
+    return 10;
 }
 
 
@@ -47,6 +55,10 @@
   }
   [[cell textLabel] setText:@"MIKE"];
   return cell;
+}
+
+- (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
+  NSLog(@"TEXT: %@\n", searchController.searchBar.text);
 }
 
 

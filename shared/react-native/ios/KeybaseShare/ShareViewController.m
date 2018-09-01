@@ -15,6 +15,11 @@
 
 @implementation ShareViewController
 
+- (void)viewDidLoad {
+  self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
+  [super viewDidLoad];
+}
+
 - (BOOL)isContentValid {
     // Do validation of contentText and/or NSExtensionContext attachments here
     return YES;
