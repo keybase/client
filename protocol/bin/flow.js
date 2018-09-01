@@ -391,7 +391,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
-type IncomingReturn = Effect | Array<Effect> | null | void
+type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
