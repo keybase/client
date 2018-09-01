@@ -120,18 +120,18 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -175,6 +175,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 	config := libkb.AppConfig{
 		HomeDir:                        homeDir,
+		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
 		Debug:                          true,
