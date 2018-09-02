@@ -139,7 +139,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		}
 	}()
 
-	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n".homeDir, mobileSharedHome)
+	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}

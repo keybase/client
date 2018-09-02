@@ -90,18 +90,8 @@ const BOOL isDebug = NO;
 - (BOOL) maybeMigrateDirectory:(NSString*)source dest:(NSString*)dest {
   NSError* error = nil;
   NSFileManager* fm = [NSFileManager defaultManager];
-  
-  // Check to see if dest is empty, and if so, let's migrate from source
-  NSArray<NSString*>* destContents = [fm contentsOfDirectoryAtPath:dest error:&error];
-  if (nil == destContents) {
-    NSLog(@"Failed to get dest contents: %@", error);
-    return NO;
-  }
-  if (0 < [destContents count]) {
-    return YES;
-  }
-  
-  // Do the migration
+
+  // Always do this copy in case it doesn't work on previous attempts. 
   NSArray<NSString*>* sourceContents = [fm contentsOfDirectoryAtPath:source error:&error];
   if (nil == sourceContents) {
     NSLog(@"Error listing app contents directory: %@", error);
@@ -109,11 +99,17 @@ const BOOL isDebug = NO;
   } else {
     for (NSString* file in sourceContents) {
       BOOL isDirectory = NO;
-      if ([fm fileExistsAtPath:file isDirectory:&isDirectory] && isDirectory) {
+      NSString* path = [NSString stringWithFormat:@"%@/%@", source, file];
+      NSString* destPath = [NSString stringWithFormat:@"%@/%@", dest, file];
+      if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
         NSLog(@"skipping directory: %@", file);
         continue;
       }
-      if (![fm copyItemAtPath:file toPath:dest error:&error]) {
+      if (![fm copyItemAtPath:path toPath:destPath error:&error]) {
+        if ([error code] == NSFileWriteFileExistsError) {
+          // Just charge forward if the file is there already
+          continue;
+        }
         NSLog(@"Error copying file: %@ error: %@", file, error);
         return NO;
       }
@@ -127,18 +123,17 @@ const BOOL isDebug = NO;
   NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
   NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
-  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
   [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:appKeybasePath];
   [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
   
-  // Possibly migrate directories to shared home, but if we fail in any way just use the app path.
   if (![self maybeMigrateDirectory:appKeybasePath dest:sharedKeybasePath]) {
     return home;
   }
+  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
+  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   if (![self maybeMigrateDirectory:appEraseableKVPath dest:sharedEraseableKVPath]) {
     return home;
   }
@@ -158,7 +153,6 @@ const BOOL isDebug = NO;
   NSString* home = NSHomeDirectory();
   NSString* sharedHome = [[[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"] relativePath];
   sharedHome = [self setupHome:home sharedHome:sharedHome];
-  NSLog(@"Home Info: home: %@ sharedHome: %@", home, sharedHome);
   
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
