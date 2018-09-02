@@ -87,6 +87,65 @@ const BOOL isDebug = NO;
   }
 }
 
+- (BOOL) maybeMigrateDirectory:(NSString*)source dest:(NSString*)dest {
+  NSError* error = nil;
+  NSFileManager* fm = [NSFileManager defaultManager];
+  
+  // Check to see if dest is empty, and if so, let's migrate from source
+  NSArray<NSString*>* destContents = [fm contentsOfDirectoryAtPath:dest error:&error];
+  if (nil == destContents) {
+    NSLog(@"Failed to get dest contents: %@", error);
+    return NO;
+  }
+  if (0 < [destContents count]) {
+    return YES;
+  }
+  
+  // Do the migration
+  NSArray<NSString*>* sourceContents = [fm contentsOfDirectoryAtPath:source error:&error];
+  if (nil == sourceContents) {
+    NSLog(@"Error listing app contents directory: %@", error);
+    return NO;
+  } else {
+    for (NSString* file in sourceContents) {
+      BOOL isDirectory = NO;
+      if ([fm fileExistsAtPath:file isDirectory:&isDirectory] && isDirectory) {
+        NSLog(@"skipping directory: %@", file);
+        continue;
+      }
+      if (![fm copyItemAtPath:file toPath:dest error:&error]) {
+        NSLog(@"Error copying file: %@ error: %@", file, error);
+        return NO;
+      }
+    }
+  }
+  return YES;
+}
+
+- (NSString*) setupHome:(NSString*)home sharedHome:(NSString*)sharedHome {
+  // Setup all directories
+  NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
+  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
+  [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
+  [self addSkipBackupAttributeToItemAtPath:appKeybasePath];
+  [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
+  
+  // Possibly migrate directories to shared home, but if we fail in any way just use the app path.
+  if (![self maybeMigrateDirectory:appKeybasePath dest:sharedKeybasePath]) {
+    return home;
+  }
+  if (![self maybeMigrateDirectory:appEraseableKVPath dest:sharedEraseableKVPath]) {
+    return home;
+  }
+  
+  return sharedHome;
+}
+
 - (void) setupGo
 {
 #if TESTING
@@ -96,29 +155,26 @@ const BOOL isDebug = NO;
   BOOL securityAccessGroupOverride = isSimulator;
   BOOL skipLogFile = false;
 
-  NSString * home = NSHomeDirectory();
-
-  NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
-  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
-  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-
-  // Make keybasePath if it doesn't exist
-  [self createBackgroundReadableDirectory:keybasePath setAllFiles:YES];
-  [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
+  NSString* home = NSHomeDirectory();
+  NSString* sharedHome = [[[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"] relativePath];
+  sharedHome = [self setupHome:home sharedHome:sharedHome];
+  NSLog(@"Home Info: home: %@ sharedHome: %@", home, sharedHome);
+  
+  // Setup app level directories
+  NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
+  NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString* logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
-  [self createBackgroundReadableDirectory:eraseableKVPath setAllFiles:YES];
 
-  NSError * err;
+  NSError* err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
                                                    @"homedir": home,
+                                                   @"sharedHome": sharedHome,
                                                    @"logFile": serviceLogFile,
                                                    @"serverURI": @"",
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
