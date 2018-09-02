@@ -28,6 +28,7 @@ type HomeFinder interface {
 	CacheDir() string
 	ConfigDir() string
 	Home(emptyOk bool) string
+	MobileSharedHome(emptyOk bool) string
 	DataDir() string
 	RuntimeDir() string
 	Normalize(s string) string
@@ -54,6 +55,10 @@ func (x XdgPosix) Home(emptyOk bool) string {
 		ret = os.Getenv("HOME")
 	}
 	return ret
+}
+
+func (x XdgPosix) MobileSharedHome(emptyOk bool) string {
+	return x.Home(emptyOk)
 }
 
 func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
@@ -174,6 +179,17 @@ func (d Darwin) Home(emptyOk bool) string {
 	return ret
 }
 
+func (d Darwin) MobileSharedHome(emptyOk bool) string {
+	var ret string
+	if d.getMobileSharedHome != nil {
+		ret = d.getMobileSharedHome()
+	}
+	if len(ret) == 0 && !emptyOk {
+		ret = os.Getenv("MOBILE_SHARED_HOME")
+	}
+	return ret
+}
+
 func (d Darwin) Normalize(s string) string { return s }
 
 type Win32 struct {
@@ -272,6 +288,10 @@ func (w Win32) Home(emptyOk bool) string {
 	ret = filepath.Join(ret, packageName)
 
 	return ret
+}
+
+func (w Win32) MobileSharedHome(emptyOk bool) string {
+	return w.Home(emptyOk)
 }
 
 func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome ConfigGetter, osname string,
