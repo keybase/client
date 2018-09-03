@@ -265,6 +265,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
+	// Check to see if the context has been cancelled
+	select {
+	case <-ctx.Done():
+		return m, NewTransientUnboxingError(ctx.Err())
+	default:
+	}
+
 	// If we don't have an rtime, add one.
 	if boxed.ServerHeader.Rtime == nil {
 		now := gregor1.ToTime(b.clock.Now())
