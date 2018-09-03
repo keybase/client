@@ -101,6 +101,7 @@ func (x XdgPosix) LogDir() string {
 
 type Darwin struct {
 	Base
+	forceIOS bool // for testing
 }
 
 func toUpper(s string) string {
@@ -110,6 +111,10 @@ func toUpper(s string) string {
 	a := []rune(s)
 	a[0] = unicode.ToUpper(a[0])
 	return string(a)
+}
+
+func (d Darwin) isIOS() bool {
+	return isIOS || d.forceIOS
 }
 
 func (d Darwin) appDir(dirs ...string) string {
@@ -124,7 +129,7 @@ func (d Darwin) appDir(dirs ...string) string {
 
 func (d Darwin) CacheDir() string { return d.appDir(d.Home(false), "Library", "Caches") }
 func (d Darwin) SandboxCacheDir() string {
-	if isIOS {
+	if d.isIOS() {
 		return ""
 	}
 	// The container name "keybase" is the group name specified in the entitlement for sandboxed extensions
@@ -134,7 +139,7 @@ func (d Darwin) SandboxCacheDir() string {
 }
 func (d Darwin) ConfigDir() string {
 	homeDir := d.Home(false)
-	if isIOS {
+	if d.isIOS() {
 		// check if we have a shared container path, and if so, that is where the config should go.
 		sharedHome := d.getMobileSharedHome()
 		if len(sharedHome) > 0 {
@@ -301,7 +306,7 @@ func NewHomeFinder(appName string, getHome ConfigGetter, getMobileSharedHome Con
 	case "windows":
 		return Win32{base}
 	case "darwin":
-		return Darwin{base}
+		return Darwin{Base: base}
 	default:
 		return XdgPosix{base}
 	}
