@@ -143,6 +143,10 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	return ibox, nil
 }
 
+type sharedInboxItem struct {
+	ConvID string
+}
+
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
 
 }
