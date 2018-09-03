@@ -143,6 +143,10 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	return ibox, nil
 }
 
+func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
+
+}
+
 func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 
 	// Get latest server version
