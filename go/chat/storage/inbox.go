@@ -148,7 +148,10 @@ type sharedInboxItem struct {
 }
 
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
-
+	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
+	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
+		return
+	}
 }
 
 func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
