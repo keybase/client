@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
+import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
 import * as NotificationsGen from '../notifications-gen'
@@ -1468,7 +1469,10 @@ const _maybeAutoselectNewestConversation = (
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
-  const selected = Constants.getSelectedConversation(state)
+  let selected = Constants.getSelectedConversation(state)
+  if (!state.chat2.metaMap.get(selected)) {
+    selected = Constants.noConversationIDKey
+  }
   if (action.type === Chat2Gen.metaDelete) {
     if (!action.payload.selectSomethingElse) {
       return
@@ -1493,14 +1497,6 @@ const _maybeAutoselectNewestConversation = (
     if (Constants.isValidConversationIDKey(selected)) {
       return
     }
-  } else if (
-    (action.type === Chat2Gen.leaveConversation || action.type === Chat2Gen.blockConversation) &&
-    action.payload.conversationIDKey === selected
-  ) {
-    // Intentional fall-through -- force select a new one
-  } else if (Constants.isValidConversationIDKey(selected)) {
-    // Stay with our existing convo if it was not empty or pending
-    return
   }
 
   // If we got here we're auto selecting the newest convo
@@ -1688,13 +1684,16 @@ function* attachmentsUpload(action: Chat2Gen.AttachmentsUploadPayload) {
   // Post initial messages to get the upload in the outbox, and to also get the outbox IDs
   // These messages will not send until the upload has both been started and completed.
   const messageResults: Array<?RPCChatTypes.PostLocalNonblockRes> = yield Saga.sequentially(
-    paths.map(p =>
+    paths.map((p, i) =>
       Saga.call(
         RPCChatTypes.localPostFileAttachmentMessageLocalNonblockRpcPromise,
         ({
           ...ephemeralData,
           convID: Types.keyToConversationID(conversationIDKey),
           tlfName: meta.tlfname,
+          filename: p,
+          title: titles[i],
+          metadata: Buffer.from([]),
           visibility: RPCTypes.commonTLFVisibility.private,
           clientPrev,
           identifyBehavior: getIdentifyBehavior(state, conversationIDKey),
@@ -2162,6 +2161,10 @@ const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes
   ])
 }
 
+const createConversationError = () => {
+  return Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
+}
+
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
   const actions = []
@@ -2249,10 +2252,16 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const loadStaticConfig = (state: TypedState) =>
+const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
   !state.chat2.staticConfig &&
   Saga.sequentially([
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
     Saga.call(function*() {
       const loadAction = yield RPCChatTypes.localGetStaticConfigRpcPromise().then(
         (res: RPCChatTypes.StaticConfig) => {
@@ -2279,7 +2288,13 @@ const loadStaticConfig = (state: TypedState) =>
         yield Saga.put(loadAction)
       }
     }),
-    Saga.put(ConfigGen.createDaemonHandshakeWait({increment: false, name: 'chat.loadStatic'})),
+    Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'chat.loadStatic',
+        version: action.payload.version,
+      })
+    ),
   ])
 
 const toggleMessageReaction = (action: Chat2Gen.ToggleMessageReactionPayload, state: TypedState) => {
@@ -2340,6 +2355,45 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
     convID: Types.keyToConversationID(conversationIDKey),
     role: RPCTypes.teamsTeamRole[role],
   })
+}
+
+const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
+  const actions = []
+  const items = action.payload.state
+
+  const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
+  if (!explodingItems.length) {
+    // No conversations have exploding modes, clear out what is set
+    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []})))
+  } else {
+    logger.info('Got push state with some exploding modes')
+    const modes = explodingItems.reduce((current, i) => {
+      const {category, body} = i.item
+      const secondsString = body.toString()
+      const seconds = parseInt(secondsString, 10)
+      if (isNaN(seconds)) {
+        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+        return current
+      }
+      const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+      const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+      current.push({conversationIDKey, seconds})
+      return current
+    }, [])
+    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes})))
+  }
+
+  const seenExploding = items.find(i => i.item.category === Constants.seenExplodingGregorKey)
+  let isNew = true
+  if (seenExploding) {
+    const body = seenExploding.item.body.toString()
+    const when = parseInt(body, 10)
+    if (!isNaN(when)) {
+      isNew = Date.now() - when < Constants.newExplodingGregorOffset
+    }
+  }
+  actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew})))
+  return Saga.sequentially(actions)
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
@@ -2460,7 +2514,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
-  yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.createConversation,
+    createConversation,
+    createConversationSelectIt,
+    createConversationError
+  )
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 
   // Exploding things
@@ -2477,6 +2536,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
+  yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
 }
 
 export default chat2Saga

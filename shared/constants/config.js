@@ -9,6 +9,7 @@ export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
+export const noKBFSFailReason = "Can't connect to KBFS"
 const defaultTeamPrefix = '/team/'
 
 export const privateFolderWithUsers = (users: Array<string>) =>
@@ -26,6 +27,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   daemonHandshakeFailedReason: '',
   daemonHandshakeRetriesLeft: maxHandshakeTries,
   daemonHandshakeState: 'starting',
+  daemonHandshakeVersion: 1,
   daemonHandshakeWaiters: I.Map(),
   debugDump: [],
   defaultUsername: '',
@@ -36,6 +38,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   globalError: null,
   justDeletedSelf: '',
   loggedIn: false,
+  logoutHandshakeVersion: 1,
   logoutHandshakeWaiters: I.Map(),
   menubarWindowID: 0,
   notifySound: false,

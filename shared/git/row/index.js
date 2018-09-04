@@ -209,7 +209,7 @@ class Row extends React.Component<Props> {
             ...(this.props.expanded
               ? {
                   height: 6,
-                  backgroundColor: Styles.globalColors.blue5,
+                  backgroundColor: Styles.globalColors.blueGrey,
                 }
               : {}),
           }}

@@ -17,8 +17,10 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
         appFocusedCount: state.appFocusedCount,
         configuredAccounts: state.configuredAccounts,
         daemonHandshakeState: state.daemonHandshakeState,
+        daemonHandshakeVersion: state.daemonHandshakeVersion,
         daemonHandshakeWaiters: state.daemonHandshakeWaiters,
         defaultUsername: state.defaultUsername,
+        logoutHandshakeVersion: state.logoutHandshakeVersion,
         logoutHandshakeWaiters: state.logoutHandshakeWaiters,
         menubarWindowID: state.menubarWindowID,
         pushLoaded: state.pushLoaded,
@@ -39,12 +41,28 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
         daemonHandshakeState: 'starting',
       })
     case ConfigGen.logoutHandshake:
-      return state.merge({logoutHandshakeWaiters: I.Map()})
+      return state.merge({
+        logoutHandshakeVersion: action.payload.version,
+        logoutHandshakeWaiters: I.Map(),
+      })
     case ConfigGen.daemonHandshake:
-      return state.set('daemonHandshakeState', 'waitingForWaiters')
+      return state.merge({
+        daemonHandshakeState: 'waitingForWaiters',
+        daemonHandshakeVersion: action.payload.version,
+        daemonHandshakeWaiters: I.Map(),
+      })
     case ConfigGen.daemonHandshakeWait: {
       if (state.daemonHandshakeState !== 'waitingForWaiters') {
         throw new Error("Should only get a wait while we're waiting")
+      }
+
+      if (action.payload.version !== state.daemonHandshakeVersion) {
+        logger.info(
+          'Ignoring handshake wait due to version mismatch',
+          action.payload.version,
+          state.daemonHandshakeVersion
+        )
+        return state
       }
 
       const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
@@ -68,6 +86,14 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       }
     }
     case ConfigGen.logoutHandshakeWait: {
+      if (action.payload.version !== state.logoutHandshakeVersion) {
+        logger.info(
+          'Ignoring logout handshake due to version mismatch',
+          action.payload.version,
+          state.logoutHandshakeVersion
+        )
+        return state
+      }
       const oldCount = state.logoutHandshakeWaiters.get(action.payload.name, 0)
       const newCount = oldCount + (action.payload.increment ? 1 : -1)
       return newCount === 0

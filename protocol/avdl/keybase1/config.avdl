@@ -78,6 +78,7 @@ protocol config {
   record AllProvisionedUsernames {
     string defaultUsername;
     array<string> provisionedUsernames;
+    boolean hasProvisionedUser;
   }
 
   AllProvisionedUsernames getAllProvisionedUsernames(int sessionID);
