@@ -615,7 +615,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageLockedCache(
 	// them up generically.  Ignore any recoverable errors for unrefs.
 	// Note that we can't combine these with the above ref fetches
 	// since they require a different MD.  If the merged changes
-	// didn't changes any blocks (in particular, the root block), we
+	// didn't change any blocks (in particular, the root block), we
 	// can assume all the blocks we are unreferencing were live;
 	// otherwise, we need to check with the server to make sure.
 	onlyCountIfLive := len(mergedChains.byOriginal) != 0
