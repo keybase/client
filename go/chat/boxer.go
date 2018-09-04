@@ -1186,8 +1186,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, c
 	}
 
 	boxCh := make(chan chat1.MessageBoxed)
-	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
-
+	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		defer close(boxCh)
 		for _, msg := range boxed {
