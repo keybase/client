@@ -1,27 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import {Box2} from './box'
-import Icon from './icon'
-import Button from './button'
-import ButtonBar from './button-bar'
-import Text from './text'
-import Toast from './toast'
+import {Box2, Icon, Button, ButtonBar, Text, Toast} from '.'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
-import {
-  collapseStyles,
-  type StylesCrossPlatform,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../styles'
+import * as Styles from '../styles'
 import {compose, connect, setDisplayName} from '../util/container'
 
 export type Props = PropsWithTimer<{
-  containerStyle?: StylesCrossPlatform,
+  containerStyle?: Styles.StylesCrossPlatform,
   withReveal?: boolean,
   text: string,
   copyToClipboard: string => void,
@@ -63,11 +49,11 @@ class _CopyText extends React.Component<Props, State> {
       <Box2
         ref={r => (this._attachmentRef = r)}
         direction="horizontal"
-        style={collapseStyles([styles.container, this.props.containerStyle])}
+        style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
         <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
-          {isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-          <Text type={isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
+          {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+          <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
             Copied to clipboard
           </Text>
         </Toast>
@@ -75,7 +61,7 @@ class _CopyText extends React.Component<Props, State> {
           lineClamp={1}
           type="Body"
           selectable={true}
-          style={collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
+          style={Styles.collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
         >
           {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
@@ -86,7 +72,11 @@ class _CopyText extends React.Component<Props, State> {
         )}
         <ButtonBar direction="row" align="flex-end" style={styles.buttonContainer}>
           <Button type="Primary" style={styles.button} onClick={this.copy}>
-            <Icon type="iconfont-clipboard" color={globalColors.white} fontSize={isMobile ? 20 : 16} />
+            <Icon
+              type="iconfont-clipboard"
+              color={Styles.globalColors.white}
+              fontSize={Styles.isMobile ? 20 : 16}
+            />
           </Button>
         </ButtonBar>
       </Box2>
@@ -105,13 +95,13 @@ const CopyText = compose(
 )(_CopyText)
 
 // border radii aren't literally so big, just sets it to maximum
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   buttonContainer: {
     flexGrow: 1,
     minHeight: 0,
     width: 'auto',
   },
-  button: platformStyles({
+  button: Styles.platformStyles({
     common: {
       paddingLeft: 17,
       paddingRight: 17,
@@ -126,10 +116,10 @@ const styles = styleSheetCreate({
       paddingTop: 10,
     },
   }),
-  container: platformStyles({
+  container: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: globalColors.blue4,
+      backgroundColor: Styles.globalColors.blue4,
       borderRadius: 100,
       flexGrow: 1,
       paddingLeft: 16,
@@ -145,13 +135,13 @@ const styles = styleSheetCreate({
     },
   }),
   reveal: {
-    marginLeft: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      ...globalStyles.fontTerminalSemibold,
-      color: globalColors.blue,
-      fontSize: isMobile ? 15 : 13,
+      ...Styles.globalStyles.fontTerminalSemibold,
+      color: Styles.globalColors.blue,
+      fontSize: Styles.isMobile ? 15 : 13,
       textAlign: 'left',
     },
     isAndroid: {
@@ -165,9 +155,9 @@ const styles = styleSheetCreate({
       height: 15,
     },
   }),
-  toastText: platformStyles({
+  toastText: Styles.platformStyles({
     common: {
-      color: globalColors.white,
+      color: Styles.globalColors.white,
       textAlign: 'center',
     },
     isMobile: {
