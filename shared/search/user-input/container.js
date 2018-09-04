@@ -24,6 +24,7 @@ export type OwnProps = {|
   autoFocus?: boolean,
   focusInputCounter?: number,
   placeholder?: string,
+  onFocus?: () => void,
   onChangeSearchText?: (searchText: string) => void,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
@@ -31,6 +32,9 @@ export type OwnProps = {|
   disableListBuilding?: boolean,
   showServiceFilter?: boolean,
   style?: StylesCrossPlatform,
+  // Defaults to true. Desktop only, as clearSearch isn't used on mobile.
+  // Note that the way that user input is super wonky with all these HOCs. If we ever refactor, we probably won't need this prop.
+  hideClearSearch?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => (
@@ -49,6 +53,7 @@ const UserInputWithServiceFilter = props => (
     <UserInput
       ref={props.setInputRef}
       autoFocus={props.autoFocus}
+      onFocus={props.onFocus}
       userItems={props.userItems}
       onRemoveUser={props.onRemoveUser}
       onClickAddButton={props.onClickAddButton}
@@ -63,6 +68,7 @@ const UserInputWithServiceFilter = props => (
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
       hideAddButton={props.hideAddButton}
+      hideClearSearch={props.hideClearSearch}
     />
     {props.showServiceFilter && (
       <Box

@@ -14,6 +14,7 @@ export type SearchProps = {|
 
 type SearchState = {|
   displayResultsList: boolean,
+  hideClearSearch: boolean,
 |}
 
 const searchKey = 'walletSearch'
@@ -24,13 +25,23 @@ const placeholder = 'Search Keybase'
 class Search extends React.Component<SearchProps, SearchState> {
   state = {
     displayResultsList: false,
+    hideClearSearch: true,
+  }
+
+  onFocus = () => {
+    this.setState({
+      displayResultsList: true,
+      hideClearSearch: false,
+    })
   }
 
   onChangeSearchText = (text: string) => {
-    this.setState({displayResultsList: !!text})
+    if (text) {
+      this.setState({hideClearSearch: true})
+    }
   }
 
-  closeResultsList = () => this.setState({displayResultsList: false})
+  closeResultsList = () => this.setState({displayResultsList: false, hideClearSearch: true})
 
   render() {
     return (
@@ -38,12 +49,13 @@ class Search extends React.Component<SearchProps, SearchState> {
         <ParticipantsRow heading="To" style={styles.row} headingStyle={styles.rowHeading}>
           <Box2 direction="vertical" fullWidth={true}>
             <UserInput
-              searchKey={searchKey}
-              autoFocus={true}
+              disableListBuilding={true}
+              onExitSearch={this.closeResultsList}
+              onFocus={this.onFocus}
               onChangeSearchText={this.onChangeSearchText}
               placeholder={placeholder}
-              onExitSearch={this.closeResultsList}
-              disableListBuilding={true}
+              searchKey={searchKey}
+              hideClearSearch={this.state.hideClearSearch}
               showServiceFilter={false}
               style={styles.input}
             />
