@@ -33,6 +33,70 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
 }
 
+func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID) (res types.CryptKey, ni *types.NameInfo, err error) {
+	ftlRes, err := getKeyViaFTL(m, name, tlfID, 0)
+	if err != nil {
+		return nil, nil, err
+	}
+	ni = &types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: ftlRes.Name.String(),
+	}
+	return ftlRes.ApplicationKeys[0], ni, nil
+}
+
+func decryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGeneration int) (res types.CryptKey, err error) {
+
+	ftlRes, err := getKeyViaFTL(m, name, tlfID, keyGeneration)
+	if err != nil {
+		return nil, err
+	}
+	return ftlRes.ApplicationKeys[0], nil
+}
+
+func getKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGeneration int) (res keybase1.FastTeamLoadRes, err error) {
+	defer m.CTrace(fmt.Sprintf("getKeyViaFTL(%s,%v,%d)", name, tlfID, keyGeneration), func() error { return err })()
+
+	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	if err != nil {
+		return res, err
+	}
+	arg := keybase1.FastTeamLoadArg{
+		ID:           teamID,
+		Public:       false,
+		Applications: []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+	}
+
+	if keyGeneration > 0 {
+		arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(keyGeneration)}
+	} else {
+		arg.NeedLatestKey = true
+	}
+
+	res, err = m.G().GetFastTeamLoader().Load(m, arg)
+	if err != nil {
+		return res, err
+	}
+	err = res.Name.AssertEqString(name)
+	if err != nil {
+		return res, err
+	}
+	n := len(res.ApplicationKeys)
+	if n != 1 {
+		return res, NewFTLError(fmt.Sprintf("wrong number of keys back from FTL; wanted 1, but got %d", n))
+	}
+
+	if keyGeneration > 0 && res.ApplicationKeys[0].KeyGeneration != keybase1.PerTeamKeyGeneration(keyGeneration) {
+		return res, NewFTLError(fmt.Sprintf("wrong generation back from FTL; wanted %d but got %d", keyGeneration, res.ApplicationKeys[0].KeyGeneration))
+	}
+
+	if res.ApplicationKeys[0].Application != keybase1.TeamApplication_CHAT {
+		return res, NewFTLError(fmt.Sprintf("wrong application; wanted %d but got %d", keybase1.TeamApplication_CHAT, res.ApplicationKeys[0].Application))
+	}
+
+	return res, nil
+}
+
 func loadTeamForDecryption(ctx context.Context, loader *TeamLoader, name string, teamID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
 	keyGeneration int, kbfsEncrypted bool) (*teams.Team, error) {
@@ -235,6 +299,11 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
+
+	if !public && membersType == chat1.ConversationMembersType_TEAM {
+		return encryptionKeyViaFTL(libkb.NewMetaContext(ctx, t.G().ExternalG()), name, teamID)
+	}
+
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, ni, err
@@ -257,6 +326,11 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 	keyGeneration int, kbfsEncrypted bool) (res types.CryptKey, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
+
+	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM {
+		return decryptionKeyViaFTL(libkb.NewMetaContext(ctx, t.G().ExternalG()), name, teamID, keyGeneration)
+	}
+
 	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,
 		keyGeneration, kbfsEncrypted)
 	if err != nil {
