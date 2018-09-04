@@ -20,17 +20,11 @@ type State = {
 
 class _CopyText extends React.Component<Props, State> {
   state = {
-    revealed: false,
+    revealed: !this.props.withReveal,
     showingToast: false,
   }
   _attachmentRef = null
   _textRef = null
-
-  componendDidMount() {
-    if (!this.props.withReveal) {
-      this.setState({revealed: true})
-    }
-  }
 
   copy = () => {
     this.setState({showingToast: true}, () =>
