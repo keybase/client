@@ -46,9 +46,6 @@ class _SimpleTopLine extends React.Component<Props> {
         style={{
           ...globalStyles.flexBoxRow,
           alignItems: 'center',
-          flexGrow: 1,
-          height: isMobile ? 21 : 17,
-          maxHeight: isMobile ? 21 : 17,
         }}
       >
         {this.props.showGear && (
@@ -64,15 +61,12 @@ class _SimpleTopLine extends React.Component<Props> {
           style={{
             ...globalStyles.flexBoxRow,
             flexGrow: 1,
-            height: '100%',
-            position: 'relative',
           }}
         >
           <Box
             style={{
-              ...globalStyles.flexBoxColumn,
-              ...globalStyles.fillAbsolute,
-              justifyContent: 'center',
+              ...globalStyles.flexBoxRow,
+              alignItems: 'center',
             }}
           >
             {this.props.teamname && this.props.channelname ? (

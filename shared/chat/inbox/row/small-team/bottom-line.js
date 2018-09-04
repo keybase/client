@@ -76,7 +76,7 @@ class BottomLine extends PureComponent<Props> {
                   color: this.props.isSelected ? globalColors.white : globalColors.black_20,
                 },
                 isMobile: {
-                  marginTop: -10,
+                  marginTop: -8,
                 },
               })}
             />
@@ -131,7 +131,7 @@ class BottomLine extends PureComponent<Props> {
           <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
         <Box style={styles.innerBox}>
-          <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
+          <Box>{content}</Box>
         </Box>
       </Box>
     )
@@ -141,16 +141,11 @@ class BottomLine extends PureComponent<Props> {
 const styles = styleSheetCreate({
   outerBox: {
     ...globalStyles.flexBoxRow,
-    flexGrow: 1,
-    height: isMobile ? 20 : 17,
-    maxHeight: isMobile ? 20 : 17,
   },
   innerBox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
-    height: '100%',
-    position: 'relative',
   },
   rekeyNeededContainer: {
     alignSelf: 'center',
@@ -207,6 +202,7 @@ const styles = styleSheetCreate({
     },
   }),
   contentBox: {
+    alignItems: 'center',
     width: '100%',
   },
   alertMeta: platformStyles({
