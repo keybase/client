@@ -2161,6 +2161,10 @@ const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes
   ])
 }
 
+const createConversationError = () => {
+  return Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
+}
+
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
   const actions = []
@@ -2510,7 +2514,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
-  yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.createConversation,
+    createConversation,
+    createConversationSelectIt,
+    createConversationError
+  )
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 
   // Exploding things
