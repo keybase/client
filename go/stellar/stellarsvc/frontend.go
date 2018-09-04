@@ -296,9 +296,10 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	if err != nil {
 		return page, err
 	}
+	m := libkb.NewMetaContext(ctx, s.G())
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = s.transformPaymentSummary(ctx, arg.AccountID, p)
+		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -326,9 +327,10 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	m := libkb.NewMetaContext(ctx, s.G())
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := s.transformPaymentSummary(ctx, arg.AccountID, p)
+		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -362,7 +364,8 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	if arg.AccountID != nil {
 		acctID = *arg.AccountID
 	}
-	summary, err := s.transformPaymentSummary(ctx, acctID, details.Summary)
+	m := libkb.NewMetaContext(ctx, s.G())
+	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary)
 	if err != nil {
 		return payment, err
 	}

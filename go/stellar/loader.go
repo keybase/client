@@ -88,7 +88,7 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 		return
 	}
 
-	info, err := p.uiInfo(details)
+	info, err := p.uiInfo(ctx, details)
 	if err != nil {
 		p.G().GetLog().CDebugf(ctx, "error getting ui info from details for %s: %s", id.TxID, err)
 		return
@@ -101,8 +101,24 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 	p.sendNotification(ctx, id, info)
 }
 
-func (p *PaymentLoader) uiInfo(details stellar1.PaymentDetails) (*chat1.UIPaymentInfo, error) {
-	return &chat1.UIPaymentInfo{}, nil
+func (p *PaymentLoader) uiInfo(ctx context.Context, details stellar1.PaymentDetails) (*chat1.UIPaymentInfo, error) {
+	m := libkb.NewMetaContext(ctx, p.G())
+	summary, err := TransformPaymentSummary(m, "", details.Summary)
+	if err != nil {
+		return nil, err
+	}
+
+	// don't worry about delta right now
+	info := chat1.UIPaymentInfo{
+		AmountDescription: summary.AmountDescription,
+		Worth:             summary.Worth,
+		Delta:             stellar1.BalanceDelta_NONE, // XXX fix
+		Note:              summary.Note,
+		Status:            summary.StatusSimplified,
+		StatusDescription: summary.StatusDescription,
+	}
+
+	return &info, nil
 }
 
 func (p *PaymentLoader) sendNotification(ctx context.Context, id stellar1.PaymentID, info *chat1.UIPaymentInfo) {
