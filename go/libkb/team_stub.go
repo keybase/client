@@ -69,6 +69,10 @@ func (n nullFastTeamLoader) Load(MetaContext, keybase1.FastTeamLoadArg) (keybase
 	return keybase1.FastTeamLoadRes{}, fmt.Errorf("null fast team loader")
 }
 
+func (n nullFastTeamLoader) HintLatestSeqno(_ MetaContext, _ keybase1.TeamID, _ keybase1.Seqno) error {
+	return nil
+}
+
 func (n nullFastTeamLoader) OnLogout() {}
 
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }

@@ -33,6 +33,17 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
 }
 
+func retryOnErrorViaFTL(m libkb.MetaContext, err error) bool {
+	if err == nil {
+		return false
+	}
+	if _, ok := err.(libkb.TeamFTLOutdatedError); ok {
+		m.CDebugf("Our FTL implementation is too old; falling back to slow loader (%v)", err)
+		return true
+	}
+	return false
+}
+
 func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID) (res types.CryptKey, ni *types.NameInfo, err error) {
 	ftlRes, err := getKeyViaFTL(m, name, tlfID, 0)
 	if err != nil {
@@ -301,7 +312,13 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 
 	if !public && membersType == chat1.ConversationMembersType_TEAM {
-		return encryptionKeyViaFTL(libkb.NewMetaContext(ctx, t.G().ExternalG()), name, teamID)
+		m := libkb.NewMetaContext(ctx, t.G().ExternalG())
+		res, ni, err = encryptionKeyViaFTL(m, name, teamID)
+		if retryOnErrorViaFTL(m, err) {
+			err = nil
+		} else {
+			return res, ni, err
+		}
 	}
 
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
@@ -328,7 +345,13 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 		fmt.Sprintf("DecryptionKeys(%s,%s,%v,%d,%v)", name, teamID, public, keyGeneration, kbfsEncrypted))()
 
 	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM {
-		return decryptionKeyViaFTL(libkb.NewMetaContext(ctx, t.G().ExternalG()), name, teamID, keyGeneration)
+		m := libkb.NewMetaContext(ctx, t.G().ExternalG())
+		res, err = decryptionKeyViaFTL(m, name, teamID, keyGeneration)
+		if retryOnErrorViaFTL(m, err) {
+			err = nil
+		} else {
+			return res, err
+		}
 	}
 
 	team, err := loadTeamForDecryption(ctx, t.loader, name, teamID, membersType, public,

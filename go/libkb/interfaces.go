@@ -623,6 +623,8 @@ type TeamLoader interface {
 
 type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	OnLogout()
 }
 
