@@ -36,7 +36,8 @@ const argv = minimist(process.argv.slice(2), {string: ['appVersion']})
 const appName = 'Keybase'
 const shouldUseAsar = argv.asar || argv.a || false
 const shouldBuildAll = argv.all || false
-const shouldBuildAnArch: string = (argv.arch: any)
+const arch = argv.arch ? argv.arch.toString() : os.arch()
+const platform = argv.platform ? argv.platform.toString() : os.platform()
 const appVersion: string = (argv.appVersion: any) || '0.0.0'
 const comment = argv.comment || ''
 const outDir = argv.outDir || ''
@@ -135,15 +136,9 @@ function startPack() {
                 .catch(postPackError)
             })
           })
-        } else if (shouldBuildAnArch) {
-          // build for a specified arch on current platform only
-          pack(os.platform(), shouldBuildAnArch)
-            .then(postPack(os.platform(), shouldBuildAnArch))
-            .catch(postPackError)
         } else {
-          // build for current platform only
-          pack(os.platform(), os.arch())
-            .then(postPack(os.platform(), os.arch()))
+          pack(platform, arch)
+            .then(postPack(platform, arch))
             .catch(postPackError)
         }
       })
