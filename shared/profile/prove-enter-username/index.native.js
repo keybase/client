@@ -32,13 +32,16 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
           <Text type="BodySmall" style={{textAlign: 'center'}}>
             You can find your Facebook username at
           </Text>
-          <Text
-            type="BodySmallSecondaryLink"
-            onClick={() => Linking.openURL('http://www.facebook.com/settings')}
-            style={{textAlign: 'center'}}
-          >
-            http://www.facebook.com/settings.
-          </Text>
+          <Box2 direction="horizontal">
+            <Text
+              type="BodySmallSecondaryLink"
+              onClick={() => Linking.openURL('http://www.facebook.com/settings')}
+              style={{textAlign: 'center'}}
+            >
+              http://www.facebook.com/settings
+            </Text>
+            <Text type="BodySmall">.</Text>
+          </Box2>
         </Box2>
       </InfoNote>
     )
