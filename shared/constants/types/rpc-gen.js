@@ -63,6 +63,7 @@ export const commonMerkleTreeID = {
 }
 
 export const commonSeqType = {
+  none: 0,
   public: 1,
   private: 2,
   semiprivate: 3,
