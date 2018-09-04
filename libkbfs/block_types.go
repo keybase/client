@@ -367,7 +367,8 @@ func (db *DirBlock) SetIndirectPtrInfo(i int, info BlockInfo) {
 	db.IPtrs[i].BlockInfo = info
 }
 
-func (db *DirBlock) totalPlainSizeEstimate(plainSize int) int {
+func (db *DirBlock) totalPlainSizeEstimate(
+	plainSize int, bsplit BlockSplitter) int {
 	if !db.IsIndirect() || len(db.IPtrs) == 0 {
 		return plainSize
 	}
@@ -380,7 +381,10 @@ func (db *DirBlock) totalPlainSizeEstimate(plainSize int) int {
 	//   pointer, assume N-1 of them are full.
 	//
 	// * If there are N child pointers, and the first one is an
-	//   indirect pointer, just give up and max out at N full blocks.
+	//   indirect pointer, just give up and max out at the maximum
+	//   number of indirect pointers in a block, assuming that at
+	//   least one indirect block is full of pointers when there are
+	//   at least 2 indirect levels in the tree.
 	//
 	// This isn't great since it overestimates in many cases
 	// (especially when removing entries), and can vastly unerestimate
@@ -390,7 +394,7 @@ func (db *DirBlock) totalPlainSizeEstimate(plainSize int) int {
 	if db.IPtrs[0].DirectType == DirectBlock {
 		return MaxBlockSizeBytesDefault * (len(db.IPtrs) - 1)
 	}
-	return MaxBlockSizeBytesDefault * len(db.IPtrs)
+	return MaxBlockSizeBytesDefault * bsplit.MaxPtrsPerBlock()
 }
 
 // FileBlock is the contents of a file

@@ -249,7 +249,8 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			return path{}, DirEntry{}, nil, err
 		}
 		if dblock, ok := currBlock.(*DirBlock); ok {
-			plainSize = dblock.totalPlainSizeEstimate(plainSize)
+			plainSize = dblock.totalPlainSizeEstimate(
+				plainSize, fup.config.BlockSplitter())
 		}
 
 		// prepend to path and setup next one
