@@ -369,13 +369,14 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		}
 	}
 
+	for app := range apps {
+		shoppingList.applications = append(shoppingList.applications, app)
+	}
+
 	if ret {
 		return ret
 	}
 
-	for app := range apps {
-		shoppingList.applications = append(shoppingList.applications, app)
-	}
 	for gen := range gens {
 		shoppingList.generations = append(shoppingList.generations, gen)
 	}
@@ -966,6 +967,7 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 	if err != nil {
 		return err
 	}
+	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
 	return nil
 }
 
