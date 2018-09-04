@@ -745,6 +745,9 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	latestLinkID := team.chain().GetLatestLinkID()
 
 	var readySigs []libkb.SigMultiItem
+
+	// Copy so as not to modify original state
+	var runningState = team.chain().DeepCopyToPtr()
 	for i, section := range sections {
 		var linkType libkb.LinkType
 		switch tx.payloads[i].Tag {
@@ -756,8 +759,12 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", tx.payloads[i].Tag)
 		}
 
+		hPrevInfo, err := runningState.GetHPrevInfo()
+		if err != nil {
+			return err
+		}
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, linkType,
-			nextSeqno, latestLinkID, merkleRoot)
+			nextSeqno, latestLinkID, &hPrevInfo, merkleRoot)
 		if err != nil {
 			return err
 		}
@@ -765,6 +772,10 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q",
 			i, linkType, nextSeqno, linkID)
 
+		runningState, err = team.playSigItem(mctx.Ctx(), runningState, sigMultiItem)
+		if err != nil {
+			return err
+		}
 		nextSeqno++
 		latestLinkID = linkID
 		readySigs = append(readySigs, sigMultiItem)

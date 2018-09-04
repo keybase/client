@@ -287,9 +287,26 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
-
 	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 
+	// As an optimization, AppendChainLink consumes its state.
+	// We don't consume our state parameter.
+	// So clone state before we pass it along to be consumed.
+	if state != nil {
+		state = state.DeepCopyToPtr()
+	}
+
+	for _, sigItem := range sigMultiItems {
+		state, err = playSigItem(ctx, g, me, state, sigItem)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem) (*TeamSigChainState, error) {
 	isAdmin := true
 	if state != nil {
 		role, err := state.GetUserRole(me)
@@ -297,10 +314,6 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 			role = keybase1.TeamRole_NONE
 		}
 		isAdmin = role.IsAdminOrAbove()
-
-		// As an optimization, AppendChainLink consumes its state.
-		// We don't consume our state parameter.
-		// So clone state before we pass it along to be consumed.
 		state = state.DeepCopyToPtr()
 	}
 
@@ -309,34 +322,30 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 		implicitAdmin: !isAdmin,
 	}
 
-	for _, sigItem := range sigMultiItems {
-		outerLink, err := libkb.DecodeOuterLinkV2(sigItem.Sig)
-		if err != nil {
-			return NewPrecheckStructuralError("unpack outer", err)
-		}
-
-		link1 := SCChainLink{
-			Seqno:   outerLink.Seqno,
-			Sig:     sigItem.Sig,
-			Payload: sigItem.SigInner,
-			UID:     me.Uid,
-			Version: 2,
-		}
-		link2, err := unpackChainLink(&link1)
-		if err != nil {
-			return NewPrecheckStructuralError("unpack link", err)
-		}
-
-		if link2.isStubbed() {
-			return NewPrecheckStructuralError("link missing inner", nil)
-		}
-
-		newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
-		if err != nil {
-			return NewPrecheckAppendError(err)
-		}
-		state = &newState
+	outerLink, err := libkb.DecodeOuterLinkV2(sigMultiItem.Sig)
+	if err != nil {
+		return nil, NewPrecheckStructuralError("unpack outer", err)
 	}
 
-	return nil
+	link1 := SCChainLink{
+		Seqno:   outerLink.Seqno,
+		Sig:     sigMultiItem.Sig,
+		Payload: sigMultiItem.SigInner,
+		UID:     me.Uid,
+		Version: 2,
+	}
+	link2, err := unpackChainLink(&link1)
+	if err != nil {
+		return nil, NewPrecheckStructuralError("unpack link", err)
+	}
+
+	if link2.isStubbed() {
+		return nil, NewPrecheckStructuralError("link missing inner", nil)
+	}
+
+	newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
+	if err != nil {
+		return nil, NewPrecheckAppendError(err)
+	}
+	return &newState, nil
 }

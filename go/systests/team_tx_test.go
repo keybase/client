@@ -117,7 +117,7 @@ func TestTeamTxDependency(t *testing.T) {
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
 
 	teamObj := ann.loadTeam(team, true /* admin */)
 	members, err := teamObj.Members()
@@ -149,7 +149,7 @@ func TestTeamTxDependency(t *testing.T) {
 
 	tx := teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberByUsername(context.Background(), tracy.username, keybase1.TeamRole_READER)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
 
 	payloads := tx.DebugPayloads()
 	require.Equal(t, 3, len(payloads))
@@ -164,12 +164,12 @@ func TestTeamTxDependency(t *testing.T) {
 	members, err = teamObj.Members()
 	require.NoError(t, err)
 	require.Equal(t, 1, len(members.Owners))
-	require.Equal(t, 0, len(members.Admins))
-	require.Equal(t, 1, len(members.Writers))
+	require.Equal(t, 1, len(members.Admins))
+	require.Equal(t, 0, len(members.Writers))
 	require.Equal(t, 1, len(members.Readers))
 	require.EqualValues(t, ann.userVersion(), members.Owners[0])
 	require.EqualValues(t, tracy.userVersion(), members.Readers[0])
-	require.EqualValues(t, bob.userVersion(), members.Writers[0])
+	require.EqualValues(t, bob.userVersion(), members.Admins[0])
 	require.Equal(t, 0, teamObj.NumActiveInvites())
 	require.Equal(t, 0, len(teamObj.GetActiveAndObsoleteInvites()))
 
@@ -181,13 +181,14 @@ func TestTeamTxDependency(t *testing.T) {
 
 	tx = teams.CreateAddMemberTx(teamObj)
 	tx.AddMemberByAssertion(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER)
-	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
+	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_ADMIN)
 
 	payloads = tx.DebugPayloads()
 	require.Equal(t, 3, len(payloads))
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
+
 }
 
 func TestTeamTxSweepMembers(t *testing.T) {
@@ -206,7 +207,7 @@ func TestTeamTxSweepMembers(t *testing.T) {
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
-	ann.addTeamMember(team, bob.username, keybase1.TeamRole_WRITER)
+	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
 
 	bob.reset()
 	bob.loginAfterReset()

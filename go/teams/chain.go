@@ -1622,7 +1622,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 	if !isInflate {
 		if hPrevInfo := payload.HPrevInfo; hPrevInfo != nil {
 			if hPrevInfo.Seqno != res.newState.inner.LastHighSeqno {
-				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d...%d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
+				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
 			}
 			lastHighLinkID := res.newState.inner.LastHighLinkID
 			if string(lastHighLinkID) == "" {
