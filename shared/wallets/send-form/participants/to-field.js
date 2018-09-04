@@ -19,24 +19,16 @@ type ToFieldProps = {|
   // Used for sending to a stellar address.
   incorrect?: string,
   // Used for sending from account to account
-  // We need the users' name, list of accounts, and callbacks to link and create new accounts.
+  // We need the users' name, list of accounts, currently selected account, and callbacks to link and create new accounts.
   user: string,
   accounts: Account[],
+  toAccount?: Account,
   onLinkAccount?: () => void,
   onCreateNewAccount?: () => void,
 |}
 
-type ToFieldState = {|
-  selectedRecipient: Account | string | null,
-|}
-
-class ToField extends React.Component<ToFieldProps, ToFieldState> {
-  state = {
-    selectedRecipient: null,
-  }
-
+class ToField extends React.Component<ToFieldProps> {
   onSelectRecipient = (recipient: Account | string) => {
-    this.setState({selectedRecipient: recipient})
     if (typeof recipient === 'string') {
       this.props.onChangeRecipient(recipient)
     } else {
@@ -45,7 +37,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
   }
 
   onRemoveRecipient = () => {
-    this.setState({selectedRecipient: null})
+    this.props.onChangeRecipient('')
   }
 
   onDropdownChange = (node: React.Node) => {
@@ -62,26 +54,19 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
     }
   }
 
-  showProfileOfSelectedUser = () => {
-    if (typeof this.state.selectedRecipient === 'string' && this.props.onShowProfile) {
-      this.props.onShowProfile(this.state.selectedRecipient)
-    }
-  }
-
   render() {
     let component
 
     // There are a few different ways the participants form can look:
     // Case 1: A user has been set, so we display their name and avatar
     // We can only get this case when the recipient is a stellar address or searched user, not another account.
-    if (typeof this.state.selectedRecipient === 'string' && this.props.recipientType !== 'otherAccount') {
+    if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
-            username={this.state.selectedRecipient}
-            onClick={this.showProfileOfSelectedUser}
+            username={this.props.recipientUsername}
             avatarStyle={styles.avatar}
           />
           <Kb.Icon
@@ -125,8 +110,8 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
             onChanged={this.onDropdownChange}
             items={items}
             selected={
-              this.state.selectedRecipient instanceof Object ? (
-                <SelectedEntry account={this.state.selectedRecipient} user={this.props.user} />
+              this.props.toAccount ? (
+                <SelectedEntry account={this.props.toAccount} user={this.props.user} />
               ) : (
                 <DropdownText key="placeholder-select" text="Pick another account" />
               )
@@ -168,7 +153,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
       return (
         <Search
           onClickResult={this.onSelectRecipient}
-          onClose={() => console.log('search', 'onClose')}
+          onClose={() => {}}
           onShowTracker={this.props.onShowProfile}
         />
       )

@@ -24,8 +24,18 @@ const mapStateToProps = (state: TypedState) => {
   const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
   const fromAccount = {
     contents: fromAccountFromState.balanceDescription,
-    name: fromAccountFromState.name || fromAccountFromState.accountID,
     id: fromAccountFromState.accountID,
+    name: fromAccountFromState.name || fromAccountFromState.accountID,
+  }
+
+  let toAccount
+  if (build.to && build.recipientType === 'otherAccount') {
+    const toAccountFromState = getAccount(state, stringToAccountID(build.to))
+    toAccount = {
+      contents: toAccountFromState.balanceDescription,
+      id: toAccountFromState.accountID,
+      name: toAccountFromState.name || toAccountFromState.accountID,
+    }
   }
 
   // Building section
@@ -37,6 +47,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     allAccounts,
     fromAccount,
+    toAccount,
     incorrect,
     recipientType,
     recipientUsername,

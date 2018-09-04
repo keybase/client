@@ -16,6 +16,7 @@ type ParticipantsProps = {|
   // Used for send to other account
   user: string,
   fromAccount: Account,
+  toAccount?: Account,
   allAccounts: Account[],
   onChangeFromAccount: string => void,
   onChangeRecipient: string => void,
@@ -41,6 +42,7 @@ const Participants = (props: ParticipantsProps) => (
       />
     )}
     <ToField
+      toAccount={props.toAccount}
       accounts={props.allAccounts}
       incorrect={props.incorrect}
       onChangeRecipient={props.onChangeRecipient}
