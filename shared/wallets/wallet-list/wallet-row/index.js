@@ -65,7 +65,7 @@ const styles = styleSheetCreate({
   title: {
     ...globalStyles.fontSemibold,
     ...rightColumnStyle,
-    color: globalColors.darkBlue,
+    color: globalColors.black_75,
   },
   titleSelected: {
     ...globalStyles.fontSemibold,
@@ -97,7 +97,7 @@ const WalletRow = (props: Props) => {
       >
         <Icon
           type="icon-wallet-64"
-          color={globalColors.darkBlue}
+          color={globalColors.black_75}
           style={iconCastPlatformStyles(styles.icon)}
         />
         <Box2 direction="vertical" style={styles.rightColumn}>
