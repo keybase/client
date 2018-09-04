@@ -34,6 +34,7 @@ type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 type NameInfoSource interface {
 	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
 	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (*NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
@@ -245,10 +246,12 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
-	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
-		convs []chat1.InboxUIItem)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SubteamRename(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
 	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
