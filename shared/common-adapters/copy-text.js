@@ -24,6 +24,7 @@ class _CopyText extends React.Component<Props, State> {
     showingToast: false,
   }
   _attachmentRef = null
+  _textRef = null
 
   componendDidMount() {
     if (!this.props.withReveal) {
@@ -35,6 +36,7 @@ class _CopyText extends React.Component<Props, State> {
     this.setState({showingToast: true}, () =>
       this.props.setTimeout(() => this.setState({showingToast: false}), 1500)
     )
+    this._textRef && this._textRef.highlightText()
     this.props.copyToClipboard(this.props.text)
   }
 
@@ -62,6 +64,8 @@ class _CopyText extends React.Component<Props, State> {
           type="Body"
           selectable={true}
           style={Styles.collapseStyles([styles.text, !this._isRevealed() && {width: 'auto'}])}
+          allowHighlightText={true}
+          ref={r => (this._textRef = r)}
         >
           {this._isRevealed() ? this.props.text : '••••••••••••'}
         </Text>
