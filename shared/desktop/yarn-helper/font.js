@@ -258,7 +258,7 @@ const setFontMetrics = () => {
   Move(0, ${-descent});
   SelectNone();
   Select(${icon24First}, ${icon24Last});
-  Move(0, ${-21});
+  Move(0, ${-22});
   ScaleToEm(${fontHeight - descent}, ${descent});
   Generate('${kbTtf}');
   `
