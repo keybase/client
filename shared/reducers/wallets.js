@@ -73,7 +73,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const {to} = action.payload
       return state.set('buildingPayment', state.get('buildingPayment').merge({to}))
     case WalletsGen.validateAccountName:
-      return state.merge({accountName: action.payload.name, accountNameValidationState: 'waiting'})
+      return state.merge({
+        accountName: action.payload.name,
+        accountNameValidationState: 'waiting',
+      })
     case WalletsGen.validatedAccountName:
       if (action.payload.name !== state.accountName) {
         // this wasn't from the most recent call
@@ -85,7 +88,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         accountNameValidationState: action.error ? 'error' : 'valid',
       })
     case WalletsGen.validateSecretKey:
-      return state.merge({secretKey: action.payload.secretKey, secretKeyValidationState: 'waiting'})
+      return state.merge({
+        secretKey: action.payload.secretKey,
+        secretKeyValidationState: 'waiting',
+      })
     case WalletsGen.validatedSecretKey:
       if (action.payload.secretKey.stringValue() !== state.secretKey.stringValue()) {
         // this wasn't from the most recent call
