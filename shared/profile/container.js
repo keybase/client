@@ -9,7 +9,8 @@ import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
-import {getDefaultAccountID} from '../constants/wallets'
+import * as Route from '../actions/route-tree-gen'
+import * as WalletConstants from '../constants/wallets'
 import type {AccountID} from '../constants/types/wallets'
 import {pathFromFolder} from '../constants/favorite'
 import {isInSomeTeam} from '../constants/teams'
@@ -55,7 +56,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
-  const myAccountID = getDefaultAccountID(state)
+  const myAccountID = WalletConstants.getDefaultAccountID(state)
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
@@ -128,7 +129,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingFrom({from: sendingAccount || ''}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
-    dispatch(navigateAppend(['sendReceiveForm']))
+    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
   },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))

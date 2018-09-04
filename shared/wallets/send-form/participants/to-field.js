@@ -59,7 +59,7 @@ class ToField extends React.Component<ToFieldProps, ToFieldState> {
 
     let component
 
-    if (this.props.recipientType === 'keybaseUser' && this.props.recipientUsername) {
+    if (this.props.recipientUsername) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
