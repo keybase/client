@@ -73,6 +73,7 @@ export const commonMerkleTreeID = {
 }
 
 export const commonSeqType = {
+  none: 0,
   public: 1,
   private: 2,
   semiprivate: 3,
@@ -1535,6 +1536,7 @@ export type SeitanKeyLabelType = 1 // SMS_1
 export type SeitanPubKey = KID
 export type SelectKeyRes = $ReadOnly<{keyID: String, doSecretPush: Boolean}>
 export type SeqType =
+  | 0 // NONE_0
   | 1 // PUBLIC_1
   | 2 // PRIVATE_2
   | 3 // SEMIPRIVATE_3

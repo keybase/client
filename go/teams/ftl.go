@@ -661,10 +661,18 @@ func (f *FastTeamChainLoader) checkStubs(m libkb.MetaContext, shoppingList shopp
 	return nil
 }
 
+func checkSeqType(m libkb.MetaContext, arg fastLoadArg, link *ChainLinkUnpacked) error {
+	if link.SeqType() != keybase1.SeqType_NONE && ((arg.Public && link.SeqType() != keybase1.SeqType_PUBLIC) || (!arg.Public && link.SeqType() != keybase1.SeqType_SEMIPRIVATE)) {
+		m.CDebugf("Bad seqtype at %v/%d: %d", arg.ID, link.Seqno(), link.SeqType())
+		return NewInvalidLink(link, "bad seqtype")
+	}
+	return nil
+}
+
 // checkPrevs checks the previous pointers on the new links that came down from the server. It
 // only checks prevs for links that are newer than the last link gotten in this chain.
 // We assume the rest are expanding hashes for links we've previously downloaded.
-func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.LinkTriple, newLinks []*ChainLinkUnpacked) (err error) {
+func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, arg fastLoadArg, last *keybase1.LinkTriple, newLinks []*ChainLinkUnpacked) (err error) {
 	if len(newLinks) == 0 {
 		return nil
 	}
@@ -698,11 +706,7 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 			m.CDebugf("Bad sequence violation: %d+1 != %d", prev.Seqno, link.Seqno())
 			return NewInvalidLink(link, "seqno violation")
 		}
-		if prev.Seqno > 0 && prev.SeqType != link.SeqType() {
-			m.CDebugf("Bad seqtype clash at seqno %d: %d != %d", link.Seqno(), prev.SeqType, link.SeqType)
-			return NewInvalidLink(link, "bad seqtype")
-		}
-		return nil
+		return checkSeqType(m, arg, link)
 	}
 
 	cmp := func(prev keybase1.LinkTriple, link *ChainLinkUnpacked) (err error) {
@@ -786,7 +790,7 @@ func readMerkleRoot(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.Mer
 // readUpPointer reads an up pointer out the given link, if it's unstubbed. Up pointers are
 // (1) subteam heads; (2) subteam rename up pointers; and (3) subteam delete up pointers.
 // Will return (nil, non-nil) if we hit any error condition.
-func readUpPointer(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.UpPointer, error) {
+func readUpPointer(m libkb.MetaContext, arg fastLoadArg, link *ChainLinkUnpacked) (*keybase1.UpPointer, error) {
 	if link.inner == nil || link.inner.Body.Team == nil || link.inner.Body.Team.Parent == nil {
 		return nil, nil
 	}
@@ -799,8 +803,10 @@ func readUpPointer(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.UpPo
 	if err != nil {
 		return nil, err
 	}
-	if link.SeqType() != parent.SeqType {
-		return nil, NewInvalidLink(link, "parent has wrong seq type")
+
+	err = checkSeqType(m, arg, link)
+	if err != nil {
+		return nil, err
 	}
 	return &keybase1.UpPointer{
 		OurSeqno:    link.Seqno(),
@@ -881,7 +887,7 @@ func (f *FastTeamChainLoader) putLinks(m libkb.MetaContext, arg fastLoadArg, sta
 		if dp != nil {
 			state.Chain.DownPointers[link.Seqno()] = *dp
 		}
-		up, err := readUpPointer(m, link)
+		up, err := readUpPointer(m, arg, link)
 		if err != nil {
 			return err
 		}
@@ -995,7 +1001,7 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 
 	// check that all chain links sent down form a valid hash chain, and point
 	// to what we already in had in cache.
-	err = f.checkPrevs(m, state.Chain.Last, groceries.newLinks)
+	err = f.checkPrevs(m, arg, state.Chain.Last, groceries.newLinks)
 	if err != nil {
 		return nil, err
 	}
