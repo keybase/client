@@ -314,7 +314,6 @@ func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVe
 			role = keybase1.TeamRole_NONE
 		}
 		isAdmin = role.IsAdminOrAbove()
-		state = state.DeepCopyToPtr()
 	}
 
 	signer := SignerX{

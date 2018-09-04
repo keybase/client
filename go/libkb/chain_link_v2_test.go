@@ -113,7 +113,7 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 }
 
 func serdeOuterLink(t *testing.T, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID, addHPrevHash bool) OuterLinkV2 {
-	o := OuterLinkV2{Version: 2, Seqno: keybase1.Seqno(2), Prev: nil, Curr: nil, LinkType: 1, SeqType: 1, IgnoreIfUnsupported: false}
+	o := OuterLinkV2{Version: 2, Seqno: keybase1.Seqno(20), Prev: nil, Curr: nil, LinkType: SigchainV2TypeEldest, SeqType: keybase1.SeqType_PUBLIC, IgnoreIfUnsupported: false}
 	if hPrevSeqno != nil {
 		o.HPrevSeqno = hPrevSeqno
 	}

@@ -188,7 +188,6 @@ func TestTeamTxDependency(t *testing.T) {
 
 	err = tx.Post(libkb.NewMetaContextForTest(*ann.tc))
 	require.NoError(t, err)
-
 }
 
 func TestTeamTxSweepMembers(t *testing.T) {

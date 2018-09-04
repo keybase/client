@@ -497,7 +497,7 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 	if err != nil {
 		// If there was an error parsing as a string, make sure the value is null.
 		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
-		if err != nil {
+		if getErr != nil {
 			return nil, getErr
 		}
 		if dataType != jsonparser.Null {
