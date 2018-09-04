@@ -4,73 +4,11 @@ import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import Participants, {type Account} from '.'
-import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
-import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
-import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
 
-const connectPropsMap: RowConnectPropsMap = {
-  chris: {
-    leftFullname: 'chris',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'Chris Coyne',
-
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    leftFollowingState: 'Following',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
-    userAlreadySelected: false,
-    userIsSelectable: true,
-  },
-  cjb: {
-    leftFullname: 'cjb',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'Chris Ball',
-
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
-    userAlreadySelected: false,
-    userIsSelectable: true,
-  },
-  jzila: {
-    leftFullname: 'jzila',
-    leftIcon: null,
-    leftIconOpaque: true,
-    leftService: 'Keybase',
-    leftUsername: 'John Zila',
-
-    rightIcon: null,
-    rightIconOpaque: true,
-    rightService: null,
-    rightUsername: null,
-
-    leftFollowingState: 'NotFollowing',
-    rightFollowingState: 'NoState',
-    userIsInTeam: false,
-    userAlreadySelected: false,
-    userIsSelectable: true,
-  },
-}
-
-export const participantProviderProperties = {
-  ...makeResultsListSelectorMap(connectPropsMap),
-  ...makeUserInputSelectorMap([]),
-}
-
-const provider = Sb.createPropProviderWithCommon(participantProviderProperties)
+const provider = Sb.createPropProviderWithCommon({
+  // TODO mock out meaningful values once type `OwnProps` is defined
+  Participants: props => ({}),
+})
 
 const primaryAccount: Account = {
   name: 'Primary Account',
@@ -98,10 +36,18 @@ const defaultProps = {
   fromAccount: primaryAccount,
   allAccounts: accounts,
   onChangeFromAccount: Sb.action('onChangeFromAccount'),
-  onChangeRecipient: Sb.action('onChangeRecipient'),
+  onChangeToAccount: Sb.action('onChangeToAccount'),
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
+  // Stellar address
+  onChangeAddress: Sb.action('onChangeAddress'),
+}
+
+const foundUsernameProps = {
+  recipientUsername: 'yen',
+  recipientFullName: 'Addie Stokes',
   onShowProfile: Sb.action('onShowProfile'),
+  onRemoveProfile: Sb.action('onRemoveProfile'),
 }
 
 const load = () => {
@@ -122,6 +68,9 @@ const load = () => {
         incorrect="Stellar address incorrect"
         recipientType="stellarPublicKey"
       />
+    ))
+    .add('User match', () => (
+      <Participants {...defaultProps} {...foundUsernameProps} recipientType="keybaseUser" />
     ))
 }
 

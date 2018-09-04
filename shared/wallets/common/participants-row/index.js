@@ -8,7 +8,6 @@ type Props = {|
   headingAlignment: 'Left' | 'Right',
   bottomDivider?: boolean,
   dividerColor?: string,
-  style?: Styles.StylesCrossPlatform,
   headingStyle?: Styles.StylesCrossPlatform,
   children?: React.Node,
 |}
@@ -16,7 +15,7 @@ type Props = {|
 // A row for use in Participants components; provides a blue heading to the left of the content.
 const ParticipantsRow = (props: Props) => (
   <React.Fragment>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={Styles.collapseStyles([styles.row, props.style])}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.row}>
       <Kb.Text
         type="BodyTinySemibold"
         style={Styles.collapseStyles([

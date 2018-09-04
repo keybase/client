@@ -18,19 +18,17 @@ const SendForm = (props: Props) => (
       <Header />
       <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} isRequest={props.isRequest} />
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.textContainer}>
-      <Kb.Text type="BodySmallSemibold" style={styles.textColor}>
-        Powered by{' '}
-        <Kb.Text
-          type="BodySmallSemiboldInlineLink"
-          isLink={true}
-          onClickURL="https://stellar.org"
-          style={styles.textColor}
-        >
-          stellar
-        </Kb.Text>
+    <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.text, styles.textColor])}>
+      Powered by{' '}
+      <Kb.Text
+        type="BodySmallSemiboldInlineLink"
+        isLink={true}
+        onClickURL="https://stellar.org"
+        style={styles.textColor}
+      >
+        stellar
       </Kb.Text>
-    </Kb.Box2>
+    </Kb.Text>
   </Kb.MaybePopup>
 )
 
@@ -41,10 +39,10 @@ const styles = Styles.styleSheetCreate({
       width: 360,
     },
   }),
-  textContainer: {
-    position: 'absolute',
+  text: {
+    position: 'relative',
     textAlign: 'center',
-    bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+    top: 20,
   },
   textColor: {
     color: Styles.globalColors.white_40,

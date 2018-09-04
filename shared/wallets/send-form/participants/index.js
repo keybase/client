@@ -16,14 +16,14 @@ type ParticipantsProps = {|
   // Used for send to other account
   user: string,
   fromAccount: Account,
-  toAccount?: Account,
   allAccounts: Account[],
-  onChangeFromAccount: string => void,
-  onChangeRecipient: string => void,
+  onChangeFromAccount: (id: AccountID) => void,
+  onChangeToAccount: (id: AccountID) => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
+  onChangeAddress: string => void,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
@@ -42,18 +42,18 @@ const Participants = (props: ParticipantsProps) => (
       />
     )}
     <ToField
-      toAccount={props.toAccount}
       accounts={props.allAccounts}
+      recipientFullName={props.recipientFullName}
       incorrect={props.incorrect}
-      onChangeRecipient={props.onChangeRecipient}
+      onChangeAddress={props.onChangeAddress}
+      onChangeSelectedAccount={props.onChangeToAccount}
       onCreateNewAccount={props.onCreateNewAccount}
       onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
-      recipientFullName={props.recipientFullName}
       recipientType={props.recipientType}
-      recipientUsername={props.recipientUsername}
       user={props.user}
+      recipientUsername={props.recipientUsername}
     />
   </Kb.Box2>
 )
