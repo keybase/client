@@ -287,8 +287,17 @@ func (fbo *folderBlockOps) getCleanEncodedBlockSizeLocked(ctx context.Context,
 	}
 
 	if assumeCacheIsLive {
+		// If we're assuming all blocks in the cache are live, we just
+		// need to get the block size, which we can do from either one
+		// of the caches.
 		if block, err := fbo.config.BlockCache().Get(ptr); err == nil {
 			return block.GetEncodedSize(), keybase1.BlockStatus_LIVE, nil
+		}
+		if diskBCache := fbo.config.DiskBlockCache(); diskBCache != nil {
+			if buf, _, _, err := diskBCache.Get(
+				ctx, fbo.id(), ptr.ID); err != nil {
+				return uint32(len(buf)), keybase1.BlockStatus_LIVE, nil
+			}
 		}
 	}
 
