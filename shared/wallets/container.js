@@ -8,9 +8,7 @@ const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
-  refresh: () => {
-    dispatch(WalletsGen.createLoadAccounts())
-  },
+  refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
