@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/keybase/client/go/logger"
 	mspipe "github.com/Microsoft/go-winio"
+	"github.com/keybase/client/go/logger"
 )
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
