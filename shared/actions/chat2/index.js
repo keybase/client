@@ -493,6 +493,14 @@ const onChatThreadStale = updates => {
   return actions
 }
 
+const onChatSubteamRename = convs => {
+  const conversationIDKeys = (convs || []).map(c => Types.stringToConversationIDKey(c.convID))
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys,
+    force: true,
+  })
+}
+
 // Some participants are broken/fixed now
 const onChatIdentifyUpdate = update => {
   const usernames = update.CanonicalName.split(',')
@@ -653,6 +661,11 @@ const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatThreadsStale',
     ({updates}: RPCChatTypes.NotifyChatChatThreadsStaleRpcParam) => onChatThreadStale(updates)
+  )
+
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatSubteamRename',
+    ({convs}: RPCChatTypes.NotifyChatChatSubteamRenameRpcParam) => onChatSubteamRename(convs)
   )
 
   engine().setIncomingActionCreators(
