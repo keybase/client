@@ -80,7 +80,7 @@ const Counterparty = (props: CounterpartyProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return globalColors.green2
+      return globalColors.green
     case 'pending':
       return globalColors.black_75
     case 'error':
@@ -201,7 +201,7 @@ const styles = styleSheetCreate({
   },
   counterPartyText: {
     justifyContent: 'center',
-    marginLeft: globalMargins.small,
+    marginLeft: globalMargins.tiny,
   },
   rightContainer: {
     flex: 1,
