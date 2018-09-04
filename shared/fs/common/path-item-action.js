@@ -201,7 +201,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
         />
       </ClickableBox>
       <FloatingMenu
-        closeOnSelect={true}
+        closeOnSelect={false}
         containerStyle={styles.floatingContainer}
         attachTo={props.attachmentRef}
         visible={props.showingMenu}
