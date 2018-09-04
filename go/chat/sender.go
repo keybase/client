@@ -205,12 +205,17 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		// differ so we cannot rely on that.
 		switch conv.GetMembersType() {
 		case chat1.ConversationMembersType_TEAM:
+			// Cannonicalize the given TlfName
+			teamNameParsed, err := keybase1.TeamNameFromString(headerQ.TlfName)
+			if err != nil {
+				return fmt.Errorf("invalid team name: %v", err)
+			}
 			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
 				conv.Metadata.IdTriple.Tlfid,
 				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
 				return err
-			} else if info.CanonicalName != headerQ.TlfName {
-				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", headerQ.TlfName, info.CanonicalName)
+			} else if info.CanonicalName != teamNameParsed.String() {
+				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
 			}
 		default:
 			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
