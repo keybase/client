@@ -5,9 +5,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -143,14 +146,28 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	return ibox, nil
 }
 
-type sharedInboxItem struct {
-	ConvID string
-}
-
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
 		return
+	}
+	var writable []types.RemoteConversation
+	for _, rc := range ibox.Conversations {
+		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
+			// need local metadata for channel names, so skip if we don't have it
+			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
+				rc.GetConvID())
+			continue
+		}
+		writable = append(writable, rc)
+	}
+	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mp")
+	file := encrypteddb.NewFile(i.G().ExternalG(), path,
+		func(ctx context.Context) ([32]byte, error) {
+			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+		})
+	if err := file.Put(ctx, writable); err != nil {
+		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
 	}
 }
 
@@ -172,6 +189,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
 	}
+	i.writeMobileSharedInbox(ctx, ibox)
 	return nil
 }
 
