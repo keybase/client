@@ -1379,7 +1379,7 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 }
 
 func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
-	inOutboxID *chat1.OutboxID, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
+	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
 	if inOutboxID == nil {
 		if outboxID, err = storage.NewOutboxID(); err != nil {
 			return msg, outboxID, err
@@ -1394,6 +1394,13 @@ func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			TlfPublic:   vis == keybase1.TLFVisibility_PUBLIC,
 			OutboxID:    &outboxID,
 		},
+		MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+			Object: chat1.Asset{
+				Title:    title,
+				Filename: filename,
+			},
+			Metadata: md,
+		}),
 	}
 	if ephemeralLifetime != nil {
 		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -1411,7 +1418,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.TlfName, arg.Visibility, nil,
-		arg.EphemeralLifetime)
+		arg.Filename, arg.Title, arg.Metadata, arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
@@ -1450,7 +1457,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	// Get base of message we are going to send
 	uid := h.getUID()
 	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.Arg.TlfName, arg.Arg.Visibility,
-		arg.Arg.OutboxID, arg.Arg.EphemeralLifetime)
+		arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title, arg.Arg.Metadata, arg.Arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}

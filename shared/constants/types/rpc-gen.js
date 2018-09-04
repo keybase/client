@@ -19,6 +19,12 @@ export const backendCommonBlockType = {
   git: 2,
 }
 
+export const blockBlockStatus = {
+  unknown: 0,
+  live: 1,
+  archived: 2,
+}
+
 export const commonClientType = {
   none: 0,
   cli: 1,
@@ -205,6 +211,7 @@ export const constantsStatusCode = {
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
+  scteamwritepermdenied: 2625,
   scnoop: 2638,
   scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,

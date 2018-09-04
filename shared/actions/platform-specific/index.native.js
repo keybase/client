@@ -267,7 +267,7 @@ function* loadStartupDetails() {
   )
 }
 
-const waitForStartupDetails = (state: TypedState) => {
+const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -275,11 +275,19 @@ const waitForStartupDetails = (state: TypedState) => {
   // Else we have to wait for the loadStartupDetails to finish
   return Saga.call(function*() {
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: true, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
     yield Saga.take(ConfigGen.setStartupDetails)
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: false, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
   })
 }

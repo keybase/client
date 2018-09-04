@@ -32,14 +32,13 @@ const mergeProps = (stateProps, dispatchProps) => {
     itemStyles,
     pathItem,
     download,
-    save: saveMedia,
-    share: shareNative,
+    saveMedia,
+    shareNative,
     showInFileUI,
   }
 }
 
 export default compose(
-  // $FlowIssue @jzils new flow errors here
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('FilePreviewDefaultView')
 )(DefaultView)

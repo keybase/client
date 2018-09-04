@@ -65,9 +65,13 @@ type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CopyToClipboardPayload = $ReadOnly<{|text: string|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
-type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean|}>
+type _DaemonHandshakePayload = $ReadOnly<{|
+  firstTimeConnecting: boolean,
+  version: number,
+|}>
 type _DaemonHandshakeWaitPayload = $ReadOnly<{|
   name: string,
+  version: number,
   increment: boolean,
   failedReason?: ?string,
   failedFatal?: true,
@@ -82,9 +86,10 @@ type _LoadTeamAvatarsPayload = $ReadOnly<{|teamnames: Array<string>|}>
 type _LoadedAvatarsPayload = $ReadOnly<{|nameToUrlMap: {[name: string]: ?Object}|}>
 type _LoggedInPayload = $ReadOnly<{|causedByStartup: boolean|}>
 type _LoggedOutPayload = void
-type _LogoutHandshakePayload = void
+type _LogoutHandshakePayload = $ReadOnly<{|version: number|}>
 type _LogoutHandshakeWaitPayload = $ReadOnly<{|
   name: string,
+  version: number,
   increment: boolean,
 |}>
 type _LogoutPayload = void

@@ -1,4 +1,5 @@
 // @flow
+import * as Constants from '../constants/wallets'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import CreateNewAccount from './create-account/container'
@@ -13,25 +14,42 @@ import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
 
+const createNewAccount = {
+  children: {},
+  component: CreateNewAccount,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
+const linkExisting = {
+  children: {},
+  component: LinkExisting,
+  tags: makeLeafTags({layerOnTop: !isMobile}),
+}
+
 const walletChildren = {
-  createNewAccount: {
-    children: {},
-    component: CreateNewAccount,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+  createNewAccount,
   exportSecretKey: {
     children: {},
     component: ExportSecretKey,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
-  linkExisting: {
-    children: {},
-    component: LinkExisting,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
+  linkExisting,
   receive: {
     children: {},
     component: ReceiveModal,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  },
+  [Constants.sendReceiveFormRouteKey]: {
+    children: {
+      [Constants.confirmFormRouteKey]: {
+        children: {},
+        component: ConfirmForm,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      linkExisting,
+      createNewAccount,
+    },
+    component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   settings: {
@@ -55,21 +73,29 @@ const walletChildren = {
     },
     component: AccountSettings,
   },
-  sendReceiveForm: {
-    children: {
-      confirmForm: {
-        children: {},
-        component: ConfirmForm,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
-    },
-    component: SendForm,
-    tags: makeLeafTags({layerOnTop: !isMobile}),
-  },
   transactionDetails: {
     component: TransactionDetails,
   },
 }
+
+// const routeTree = makeRouteDefNode({
+//   children: {
+//     createNewAccount,
+//     exportSecretKey: {
+//       children: {},
+//       component: ExportSecretKey,
+//       tags: makeLeafTags({layerOnTop: !isMobile}),
+//     },
+//     linkExisting,
+//     receive: {
+//       children: {},
+//       component: ReceiveModal,
+//       tags: makeLeafTags({layerOnTop: !isMobile}),
+//     },
+
+//   },
+
+// }
 
 const routeTree = makeRouteDefNode({
   containerComponent: Container,

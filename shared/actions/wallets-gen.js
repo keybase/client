@@ -12,6 +12,7 @@ import HiddenString from '../util/hidden-string'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of wallets but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'wallets:'
+export const abandonPayment = 'wallets:abandonPayment'
 export const accountsReceived = 'wallets:accountsReceived'
 export const assetsReceived = 'wallets:assetsReceived'
 export const buildPayment = 'wallets:buildPayment'
@@ -64,6 +65,7 @@ export const validatedAccountName = 'wallets:validatedAccountName'
 export const validatedSecretKey = 'wallets:validatedSecretKey'
 
 // Payload Types
+type _AbandonPaymentPayload = void
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
 type _AssetsReceivedPayload = $ReadOnly<{|
   accountID: Types.AccountID,
@@ -312,6 +314,10 @@ export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePaylo
  */
 export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({error: false, payload, type: setBuildingTo})
 /**
+ * Signal that a payment being built is abandoned and reset the form fields to their initial states.
+ */
+export const createAbandonPayment = (payload: _AbandonPaymentPayload) => ({error: false, payload, type: abandonPayment})
+/**
  * Store a request's details
  */
 export const createRequestDetailReceived = (payload: _RequestDetailReceivedPayload) => ({error: false, payload, type: requestDetailReceived})
@@ -377,6 +383,7 @@ export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => (
 export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesReceivedPayload) => ({error: false, payload, type: displayCurrenciesReceived})
 
 // Action Payloads
+export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
 export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
 export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
 export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
@@ -435,6 +442,7 @@ export type ValidatedSecretKeyPayloadError = $Call<typeof createValidatedSecretK
 // All Actions
 // prettier-ignore
 export type Actions =
+  | AbandonPaymentPayload
   | AccountsReceivedPayload
   | AssetsReceivedPayload
   | BuildPaymentPayload

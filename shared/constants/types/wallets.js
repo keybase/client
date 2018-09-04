@@ -22,7 +22,7 @@ export opaque type AccountID: string = string
 export const stringToAccountID = __DEV__
   ? (s: string): AccountID => {
       if (!s) {
-        throw new Error('Invalid empty AccountID. Did you mean Constants.noAccountID?')
+        throw new Error('Invalid empty AccountID. Did you mean Types.noAccountID?')
       }
       return s
     }
@@ -118,10 +118,12 @@ export type _AssetDescription = {
 export type AssetDescription = I.RecordOf<_AssetDescription>
 
 export type _Request = {
-  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat)
+  amount: string, // The number alone
+  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
   asset: 'native' | 'currency' | AssetDescription,
   completed: boolean,
   completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
+  currencyCode: string, // set if asset === 'currency'
   id: StellarRPCTypes.KeybaseRequestID,
   requestee: string, // username or assertion
   requesteeType: string,

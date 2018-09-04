@@ -569,6 +569,14 @@
           "name": "ordinal"
         },
         {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
           "type": [
             null,
             "MakePreviewRes"

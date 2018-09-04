@@ -2404,6 +2404,14 @@ func (e TeamInviteBadTokenError) Error() string {
 
 //=============================================================================
 
+type TeamWritePermDeniedError struct{}
+
+func (e TeamWritePermDeniedError) Error() string {
+	return "permission denied to modify team"
+}
+
+//=============================================================================
+
 type TeamInviteTokenReusedError struct{}
 
 func (e TeamInviteTokenReusedError) Error() string {
@@ -2464,6 +2472,12 @@ func (e HexWrongLengthError) Error() string { return e.msg }
 //=============================================================================
 
 type EphemeralPairwiseMACsMissingUIDsError struct{ UIDs []keybase1.UID }
+
+func NewEphemeralPairwiseMACsMissingUIDsError(uids []keybase1.UID) EphemeralPairwiseMACsMissingUIDsError {
+	return EphemeralPairwiseMACsMissingUIDsError{
+		UIDs: uids,
+	}
+}
 
 func (e EphemeralPairwiseMACsMissingUIDsError) Error() string {
 	return fmt.Sprintf("Missing %d uids from pairwise macs", len(e.UIDs))

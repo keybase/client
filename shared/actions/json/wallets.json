@@ -6,6 +6,9 @@
     "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
+    "abandonPayment": {
+      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states.",
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>",

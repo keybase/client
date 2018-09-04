@@ -26,7 +26,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(
       ownProps.navigateAppend([
         {
-          selected: 'sendReceiveForm',
+          selected: Constants.sendReceiveFormRouteKey,
         },
       ])
     )
