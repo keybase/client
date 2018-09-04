@@ -139,10 +139,10 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		}
 
 		for i, msg := range curPage.Messages {
+			numMessages++
 			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
 				continue
 			}
-			numMessages++
 			msgText := msg.Valid().MessageBody.Text().Body
 			matches := re.FindAllString(msgText, -1)
 
