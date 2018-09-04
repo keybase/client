@@ -1056,7 +1056,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, vers chat1.InboxVers, convIDs
 	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
 
-	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %s", vers, len(convIDs))
+	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
 	ibox, err := i.readDiskInbox(ctx)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
