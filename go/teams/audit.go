@@ -164,7 +164,7 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 	return &ret
 }
 
-func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeId int, headMerkle keybase1.MerkleRootV2, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (maxMerkleProbe keybase1.Seqno, err error) {
+func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkle keybase1.MerkleRootV2, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (maxMerkleProbe keybase1.Seqno, err error) {
 	defer m.CTrace("Auditor#doPostProbes", func() error { return err })()
 
 	var low keybase1.Seqno
@@ -185,7 +185,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeId, low, latestMerkleSeqno, 0, params.NumPostProbes)
+	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, params.NumPostProbes)
 	if err != nil {
 		return maxMerkleProbe, err
 	}
@@ -205,7 +205,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 				return maxMerkleProbe, NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
 			}
 		}
-		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: probeId, TeamSeqno: tuple.team}
+		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: probeID, TeamSeqno: tuple.team}
 		if prev != nil && prev.team > tuple.team {
 			return maxMerkleProbe, NewAuditError("team chain unexpected jump: %d > %d via merkle seqno %d", prev.team, tuple.team, tuple.merkle)
 		}
@@ -217,7 +217,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 	return maxMerkleProbe, nil
 }
 
-func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeId int, headMerkle keybase1.MerkleRootV2) (err error) {
+func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkle keybase1.MerkleRootV2) (err error) {
 	defer m.CTrace("Auditor#doPreProbes", func() error { return err })()
 
 	first := m.G().MerkleClient.FirstSeqnoWithSkips(m)
@@ -225,7 +225,7 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 		return NewAuditError("cannot find a first modern merkle sequence")
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeId, *first, headMerkle.Seqno, len(history.PreProbes), params.NumPreProbes)
+	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkle.Seqno, len(history.PreProbes), params.NumPreProbes)
 	if err != nil {
 		return err
 	}
@@ -259,8 +259,8 @@ type probeTuple struct {
 	linkID keybase1.LinkID
 }
 
-func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, probes map[keybase1.Seqno]keybase1.Probe, probeId int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
-	ret, err = a.scheduleProbes(m, probes, probeId, left, right, probesInRange, n)
+func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, probes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
+	ret, err = a.scheduleProbes(m, probes, probeID, left, right, probesInRange, n)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (a *Auditor) computeProbes(m libkb.MetaContext, teamID keybase1.TeamID, pro
 	return ret, err
 }
 
-func (a *Auditor) scheduleProbes(m libkb.MetaContext, probes map[keybase1.Seqno]keybase1.Probe, probeId int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
+func (a *Auditor) scheduleProbes(m libkb.MetaContext, probes map[keybase1.Seqno]keybase1.Probe, probeID int, left keybase1.Seqno, right keybase1.Seqno, probesInRange int, n int) (ret []probeTuple, err error) {
 	defer m.CTrace(fmt.Sprintf("Auditor#scheduleProbes(left=%d,right=%d)", left, right), func() error { return err })()
 	if probesInRange > n {
 		m.CDebugf("no more probes needed; did %d, wanted %d", probesInRange, n)
@@ -289,7 +289,7 @@ func (a *Auditor) scheduleProbes(m libkb.MetaContext, probes map[keybase1.Seqno]
 		}
 		if _, found := probes[x]; !found {
 			ret = append(ret, probeTuple{merkle: x})
-			probes[x] = keybase1.Probe{Index: probeId}
+			probes[x] = keybase1.Probe{Index: probeID}
 		}
 	}
 	sort.SliceStable(ret, func(i, j int) bool {
