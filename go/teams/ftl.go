@@ -369,6 +369,10 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		}
 	}
 
+	if ret {
+		return ret
+	}
+
 	for app := range apps {
 		shoppingList.applications = append(shoppingList.applications, app)
 	}
@@ -451,7 +455,7 @@ func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoa
 		m.CDebugf("state was missing needed encryption keys, or we need the freshest")
 	}
 	if !stateHasDownPointers(m, s, arg, state) {
-		m.CDebugf("state was missing unstubbed args")
+		m.CDebugf("state was missing unstubbed links")
 	}
 }
 
