@@ -57,7 +57,9 @@ const AccountSettings = (props: SettingsProps) => {
             onClick={props.onEditName}
           />
         </Kb.ClickableBox>
-        <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
+          <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
+        </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
           <Kb.Avatar
             size={32}
@@ -65,7 +67,7 @@ const AccountSettings = (props: SettingsProps) => {
             username={props.isDefault ? props.user : ''}
           />
           <Kb.Box2 direction="vertical">
-            <Kb.Text type="Header">
+            <Kb.Text type="Body">
               {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
             </Kb.Text>
             <Kb.Text type="BodySmall">
@@ -80,7 +82,9 @@ const AccountSettings = (props: SettingsProps) => {
             )}
           </Kb.Box2>
         </Kb.Box2>
-        <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
+          <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
+        </Kb.Box2>
         <Kb.Dropdown
           items={makeDropdownItems(props.currencies, props.currency)}
           selected={makeDropdownItem(props.currency, false)}
@@ -96,25 +100,27 @@ const AccountSettings = (props: SettingsProps) => {
         <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
         <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
         <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
-        <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
-          <Kb.Icon
-            type="iconfont-trash"
-            style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-            color={Styles.globalColors.red}
-          />
-          <Kb.Text
-            type="BodySemibold"
-            style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-            className="hover-underline"
-          >
-            Remove account
-          </Kb.Text>
-        </Kb.ClickableBox>
-        {props.isDefault && (
-          <Kb.Text style={styles.centerText} type="BodySmall">
-            You can’t remove your default account.
-          </Kb.Text>
-        )}
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
+          <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
+            <Kb.Icon
+              type="iconfont-trash"
+              style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
+              color={Styles.globalColors.red}
+            />
+            <Kb.Text
+              type="BodySemibold"
+              style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+              className="hover-underline"
+            >
+              Remove account
+            </Kb.Text>
+          </Kb.ClickableBox>
+          {props.isDefault && (
+            <Kb.Text style={styles.centerText} type="BodySmall">
+              You can’t remove your default account.
+            </Kb.Text>
+          )}
+        </Kb.Box2>
       </Kb.Box2>
     </Kb.Box2>
   )
@@ -125,7 +131,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.medium,
   },
   avatar: {
-    marginRight: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   deleteOpacity: {
     opacity: 0.3,
@@ -158,8 +164,19 @@ const styles = Styles.styleSheetCreate({
   red: {
     color: Styles.globalColors.red,
   },
+  removeContainer: {
+    borderColor: Styles.globalColors.black_10,
+    borderStyle: 'solid',
+    borderTopWidth: 1,
+    marginTop: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.small,
+  },
   rightMargin: {
     marginRight: Styles.globalMargins.tiny,
+  },
+  sectionLabel: {
+    marginBottom: Styles.globalMargins.tiny,
+    alignSelf: 'flex-start',
   },
   settingsPage: Styles.platformStyles({
     common: {
@@ -174,12 +191,12 @@ const styles = Styles.styleSheetCreate({
   }),
   dropdown: {
     alignItems: 'center',
+    marginBottom: Styles.globalMargins.xtiny,
   },
   remove: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: Styles.globalMargins.small,
   },
 })
 
