@@ -764,6 +764,13 @@ func (c *ChatRPC) ChatSetConvSettings(
 	return nil
 }
 
+// ChatSubteamRename implements the chat1.NotifyChatInterface for
+// ChatRPC.
+func (c *ChatRPC) ChatSubteamRename(
+	_ context.Context, _ chat1.ChatSubteamRenameArg) error {
+	return nil
+}
+
 // ChatKBFSToImpteamUpgrade implements the chat1.NotifyChatInterface
 // for ChatRPC.
 func (c *ChatRPC) ChatKBFSToImpteamUpgrade(
