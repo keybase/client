@@ -400,6 +400,9 @@ func (f *JSONConfigFile) Reset() {
 func (f *JSONConfigFile) GetHome() string {
 	return f.GetTopLevelString("home")
 }
+func (f *JSONConfigFile) GetMobileSharedHome() string {
+	return f.GetTopLevelString("mobile_shared_home")
+}
 func (f *JSONConfigFile) GetServerURI() string {
 	return f.GetTopLevelString("server")
 }

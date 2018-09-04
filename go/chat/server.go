@@ -176,11 +176,12 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	chatUI := h.getChatUI(arg.SessionID)
 	localizeCb := make(chan NonblockInboxResult, 1)
 
-	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	// Invoke nonblocking inbox read and get remote inbox version to send back
+	// as our result
 	localizer := NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox)
-	_, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
-	if err != nil {
-		// If this is a convID based query, let's go ahead and drop those onto the retrier
+	if _, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination); err != nil {
+		// If this is a convID based query, let's go ahead and drop those onto
+		// the retrier
 		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
