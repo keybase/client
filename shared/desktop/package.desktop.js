@@ -191,9 +191,13 @@ const postPackError = err => {
 }
 
 function postPack(plat, arch) {
-  return filepath => {
+  return appPaths => {
+    if (!appPaths || appPaths.length === 0) {
+      console.log(`${plat}-${arch} finished with no app bundles`)
+      return
+    }
     const subdir = plat === 'darwin' ? 'Keybase.app/Contents/Resources' : 'resources'
-    const dir = path.join(filepath[0], subdir, 'app/desktop/dist')
+    const dir = path.join(appPaths[0], subdir, 'app/desktop/dist')
     const files = ['index', 'main', 'component-loader'].map(p => p + '.bundle.js')
     files.forEach(file => {
       try {
