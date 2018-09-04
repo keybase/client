@@ -4,40 +4,34 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
-import Search from './search'
 import type {Account} from '.'
-import type {CounterpartyType} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 type ToFieldProps = {|
   recipientType: CounterpartyType,
-  onChangeRecipient: string => void,
-  // Used to display a keybase profile. We need the recipients' name and callbacks to show the tracker and remove profiles.
+  // Used for send to stellar address
+  incorrect?: string,
+  onChangeAddress?: string => void,
+  // Used for sending from account to account
+  user: string,
+  accounts: Account[],
+  onChangeSelectedAccount: (id: AccountID) => void,
+  onLinkAccount?: () => void,
+  onCreateNewAccount?: () => void,
+  // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
   onRemoveProfile?: () => void,
-  // Used for sending to a stellar address.
-  incorrect?: string,
-  // Used for sending from account to account
-  // We need the users' name, list of accounts, currently selected account, and callbacks to link and create new accounts.
-  user: string,
-  accounts: Account[],
-  toAccount?: Account,
-  onLinkAccount?: () => void,
-  onCreateNewAccount?: () => void,
 |}
 
-class ToField extends React.Component<ToFieldProps> {
-  onSelectRecipient = (recipient: Account | string) => {
-    if (typeof recipient === 'string') {
-      this.props.onChangeRecipient(recipient)
-    } else {
-      this.props.onChangeRecipient(recipient.id)
-    }
-  }
+type ToFieldState = {|
+  selectedAccount: ?Account,
+|}
 
-  onRemoveRecipient = () => {
-    this.props.onChangeRecipient('')
+class ToField extends React.Component<ToFieldProps, ToFieldState> {
+  state = {
+    selectedAccount: null,
   }
 
   onDropdownChange = (node: React.Node) => {
@@ -48,25 +42,32 @@ class ToField extends React.Component<ToFieldProps> {
         this.props.onCreateNewAccount()
       } else if (element.key === 'link-existing' && this.props.onLinkAccount) {
         this.props.onLinkAccount()
-      } else {
-        this.onSelectRecipient(element.props.account)
+      } else if (this.props.onChangeSelectedAccount) {
+        this.setState({selectedAccount: element.props.account})
+        this.props.onChangeSelectedAccount(element.props.account.id)
       }
     }
   }
 
   render() {
+    const stellarIcon = (
+      <Kb.Icon
+        type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+        style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+      />
+    )
+
     let component
 
-    // There are a few different ways the participants form can look:
-    // Case 1: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a stellar address or searched user, not another account.
-    if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
+    if (this.props.recipientType === 'keybaseUser' && this.props.recipientUsername) {
       component = (
         <React.Fragment>
           <Kb.NameWithIcon
             colorFollowing={true}
             horizontal={true}
-            username={this.props.recipientUsername}
+            recipientUsername={this.props.recipientUsername}
+            metaOne={this.props.recipientFullName}
+            onClick={this.props.onShowProfile}
             avatarStyle={styles.avatar}
           />
           <Kb.Icon
@@ -74,13 +75,12 @@ class ToField extends React.Component<ToFieldProps> {
             boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
             fontSize={16}
             color={Styles.globalColors.black_20}
-            onClick={this.onRemoveRecipient}
+            onClick={this.props.onRemoveProfile}
           />
         </React.Fragment>
       )
     } else if (this.props.recipientType === 'otherAccount') {
       if (this.props.accounts.length <= 1 && this.props.onCreateNewAccount) {
-        // Case #2: A user is sending to another account, but has no other accounts. Show a "create new account" button
         component = (
           <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
             <Kb.Button
@@ -92,7 +92,6 @@ class ToField extends React.Component<ToFieldProps> {
           </Kb.Box2>
         )
       } else {
-        // Case #3: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
         let items = [
           <DropdownText key="link-existing" text="Link an existing Stellar account" />,
           <DropdownText key="create-new" text="Create a new account" />,
@@ -110,34 +109,32 @@ class ToField extends React.Component<ToFieldProps> {
             onChanged={this.onDropdownChange}
             items={items}
             selected={
-              this.props.toAccount ? (
-                <SelectedEntry account={this.props.toAccount} user={this.props.user} />
+              this.state.selectedAccount ? (
+                <SelectedEntry account={this.state.selectedAccount} user={this.props.user} />
               ) : (
-                <DropdownText key="placeholder-select" text="Pick another account" />
+                undefined
               )
             }
           />
         )
       }
-    } else if (this.props.recipientType === 'stellarPublicKey') {
-      // Case #4: A user is sending to a stellar address that is either not associated to a keybase user or not complete. Show input for a stellar address.
+    } else {
       component = (
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-            <Kb.Icon
-              type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
-              style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-            />
+            {this.props.recipientType === 'stellarPublicKey' && stellarIcon}
             <Kb.NewInput
               type="text"
-              onChangeText={this.props.onChangeRecipient}
+              onChangeText={this.props.onChangeAddress}
               textType="BodySemibold"
-              placeholder={'Stellar address'}
+              placeholder={
+                this.props.recipientType === 'stellarPublicKey' ? 'Stellar address' : 'Search Keybase'
+              }
               placeholderColor={Styles.globalColors.black_20}
               hideBorder={true}
               containerStyle={styles.input}
               multiline={true}
-              rowsMin={2}
+              rowsMin={this.props.recipientType === 'stellarPublicKey' ? 2 : 1}
               rowsMax={3}
             />
           </Kb.Box2>
@@ -147,15 +144,6 @@ class ToField extends React.Component<ToFieldProps> {
             </Kb.Text>
           )}
         </Kb.Box2>
-      )
-    } else if (this.props.onShowProfile) {
-      // Case #5: A user is sending to a keybase user but has not selected a keybase user yet. Show search input for keybase users.
-      return (
-        <Search
-          onClickResult={this.onSelectRecipient}
-          onClose={() => {}}
-          onShowTracker={this.props.onShowProfile}
-        />
       )
     }
 
