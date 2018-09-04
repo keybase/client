@@ -60,11 +60,15 @@ func NewFastTeamLoaderAndInstall(g *libkb.GlobalContext) *FastTeamChainLoader {
 
 var _ libkb.FastTeamLoader = (*FastTeamChainLoader)(nil)
 
+func ftlLogTag(m libkb.MetaContext) libkb.MetaContext {
+	return m.WithLogTag("FTL")
+}
+
 // Load fast-loads the given team. Provide some hints as to how to load it. You can specify an application
 // and key generations needed, if you are entering chat. Those links will be returned unstubbed
 // from the server, and then the keys can be output in the result.
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
-	m = m.WithLogTag("FTL")
+	m = ftlLogTag(m)
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 
 	if arg.ID.IsPublic() != arg.Public {
@@ -305,8 +309,8 @@ func (f *FastTeamChainLoader) toResult(m libkb.MetaContext, arg fastLoadArg, sta
 }
 
 // findState in cache finds the team ID's state in an in-memory cache.
-func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, arg fastLoadArg, lru *lru.Cache) (state *keybase1.FastTeamData) {
-	tmp, found := lru.Get(arg.ID)
+func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.TeamID, lru *lru.Cache) (state *keybase1.FastTeamData) {
+	tmp, found := lru.Get(id)
 	if !found {
 		return nil
 	}
@@ -1036,7 +1040,7 @@ func (f *FastTeamChainLoader) updateCache(m libkb.MetaContext, state *keybase1.F
 func (f *FastTeamChainLoader) loadLocked(m libkb.MetaContext, arg fastLoadArg) (res *fastLoadRes, err error) {
 	lru := f.getLRU()
 
-	state := f.findStateInCache(m, arg, lru)
+	state := f.findStateInCache(m, arg.ID, lru)
 
 	var shoppingList shoppingList
 	if state != nil {
@@ -1088,4 +1092,23 @@ func (f *FastTeamChainLoader) getLRU() *lru.Cache {
 // OnLogout is called when the user logs out, which pruges the LRU.
 func (f *FastTeamChainLoader) OnLogout() {
 	f.newLRU()
+}
+
+func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {
+	m = ftlLogTag(m)
+
+	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#HintLatestSeqno(%v->%d)", id, seqno), func() error { return err })()
+
+	// Single-flight lock by team ID.
+	lock := f.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
+	defer lock.Release(m.Ctx())
+
+	lru := f.getLRU()
+	if state := f.findStateInCache(m, id, lru); state != nil {
+		m.CDebugf("Found state in cache; updating")
+		state.LatestSeqnoHint = seqno
+		f.updateCache(m, state, lru)
+	}
+
+	return nil
 }
