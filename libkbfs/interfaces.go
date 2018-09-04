@@ -2239,7 +2239,7 @@ type crAction interface {
 	// part of this conflict resolution.
 	do(
 		ctx context.Context, unmergedCopier, mergedCopier fileBlockDeepCopier,
-		unmergedDir, mergedDir *dirData) ([]BlockInfo, error)
+		unmergedDir, mergedDir *dirData) (unrefs []BlockInfo, err error)
 	// updateOps potentially modifies, in place, the slices of
 	// unmerged and merged operations stored in the corresponding
 	// crChains for the given unmerged and merged most recent
