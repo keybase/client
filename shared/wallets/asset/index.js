@@ -20,7 +20,7 @@ type State = {
   expanded: boolean,
 }
 
-export default class extends React.Component<Props, State> {
+export default class Asset extends React.Component<Props, State> {
   state = {expanded: false}
 
   _toggleExpanded = () => {
