@@ -123,12 +123,22 @@ func main() {
 	params.LogFileConfig.Path = fKBFSLogFile
 	params.LogFileConfig.MaxKeepFiles = 32
 	// Enable simpleFS in case we need to debug.
+	shutdownGit := func() {}
 	createSimpleFS := func(
 		libkbfsCtx libkbfs.Context, config libkbfs.Config) (
 		rpc.Protocol, error) {
+		// Start autogit before the RPC connection to the service is
+		// fully initialized.
+		shutdownGit = libgit.StartAutogit(
+			kbCtx, config, &params, autoGitNumWorkers)
+
 		return keybase1.SimpleFSProtocol(
 			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
 	}
+	defer func() {
+		shutdownGit()
+	}()
+
 	params.AdditionalProtocolCreators = []libkbfs.AdditionalProtocolCreator{
 		createSimpleFS,
 	}
@@ -142,9 +152,6 @@ func main() {
 	if err != nil {
 		logger.Panic("libkbfs.Init", zap.Error(err))
 	}
-
-	shutdown := libgit.StartAutogit(kbCtx, kbConfig, &params, autoGitNumWorkers)
-	defer shutdown()
 
 	var statsReporter libpages.StatsReporter
 	if len(fStathatEZKey) != 0 {
