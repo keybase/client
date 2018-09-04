@@ -388,7 +388,7 @@ func (db *DirBlock) totalPlainSizeEstimate(plainSize int) int {
 	// unlikely that directory byte size matters for anything in real
 	// life.  Famous last words, of course...
 	if db.IPtrs[0].DirectType == DirectBlock {
-		return MaxBlockSizeBytesDefault*len(db.IPtrs) - 1
+		return MaxBlockSizeBytesDefault * (len(db.IPtrs) - 1)
 	}
 	return MaxBlockSizeBytesDefault * len(db.IPtrs)
 }
