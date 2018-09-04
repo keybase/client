@@ -187,18 +187,38 @@ func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string
 }
 
 func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
-	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("Lookup(%s)", name))()
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
 		Public:      public,
 		ForceRepoll: true,
 	})
 	if err != nil {
-		return res, err
+		return nil, err
 	}
 	tlfID, err := chat1.TeamIDToTLFID(team.ID)
 	if err != nil {
-		return res, err
+		return nil, err
+	}
+	return &types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: team.Name().String(),
+	}, nil
+}
+
+func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
+	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	if err != nil {
+		return nil, err
+	}
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      public,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return nil, err
 	}
 	return &types.NameInfo{
 		ID:            tlfID,
@@ -464,6 +484,35 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 		return res, err
 	}
 	return res, nil
+}
+
+func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
+	teamID, err := keybase1.TeamIDFromString(tlfID.String())
+	if err != nil {
+		return nil, err
+	}
+	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
+		ID:          teamID,
+		Public:      public,
+		ForceRepoll: true,
+	})
+	if err != nil {
+		return nil, err
+	}
+	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	if err != nil {
+		return nil, err
+	}
+	idFailures, err := t.identify(ctx, tlfID, impTeamName)
+	if err != nil {
+		return nil, err
+	}
+	return &types.NameInfo{
+		ID:               tlfID,
+		CanonicalName:    impTeamName.String(),
+		IdentifyFailures: idFailures,
+	}, nil
 }
 
 func (t *ImplicitTeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, public bool) (res types.AllCryptKeys, err error) {

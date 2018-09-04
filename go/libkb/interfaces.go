@@ -54,6 +54,7 @@ type configGetter interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
+	GetMobileSharedHome() string
 	GetLinkCacheSize() (int, bool)
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
