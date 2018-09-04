@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -633,6 +635,12 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "recipient: Stellar account ID must be 56 chars long: was 15", err.Error())
 	}
 
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		From:          accountIDSender,
 		To:            tcs[1].Fu.Username,
@@ -687,6 +695,18 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
+
+	// pretend that the chat message was unboxed and call the payment loader to load the info:
+	loader := stellar.NewPaymentLoader(tcs[0].G)
+	defer loader.Shutdown()
+	loader.Load(context.Background(), chat1.ConversationID{}, chat1.MessageID(0), senderPayments[0].Payment.Id)
+
+	// check the chat notification
+	select {
+	case <-listenerSender.paymentInfos:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
 
 	// check the details
 	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
@@ -806,7 +826,6 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
-	require.Nil(t, senderMsgs[0].Body.Sendpayment().UIPaymentInfo)
 
 	// Imagine this is the receiver reading chat.
 	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
@@ -1262,4 +1281,21 @@ func TestGetSendAssetChoices(t *testing.T) {
 		require.False(t, v.Enabled)
 		require.Contains(t, v.Subtext, "Recipient does not accept")
 	}
+}
+
+type chatListener struct {
+	libkb.NoopNotifyListener
+
+	paymentInfos chan chat1.ChatPaymentInfoArg
+}
+
+func newChatListener() *chatListener {
+	x := &chatListener{
+		paymentInfos: make(chan chat1.ChatPaymentInfoArg, 1),
+	}
+	return x
+}
+
+func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+	c.paymentInfos <- chat1.ChatPaymentInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
 }

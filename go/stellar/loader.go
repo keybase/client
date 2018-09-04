@@ -1,7 +1,6 @@
 package stellar
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -103,7 +102,7 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 }
 
 func (p *PaymentLoader) uiInfo(details stellar1.PaymentDetails) (*chat1.UIPaymentInfo, error) {
-	return nil, errors.New("not yet implemented")
+	return &chat1.UIPaymentInfo{}, nil
 }
 
 func (p *PaymentLoader) sendNotification(ctx context.Context, id stellar1.PaymentID, info *chat1.UIPaymentInfo) {
@@ -117,6 +116,6 @@ func (p *PaymentLoader) sendNotification(ctx context.Context, id stellar1.Paymen
 	}
 
 	p.G().GetLog().CDebugf(ctx, "sending chat notification for payment %s to %s, %s", id.TxID, pair.convID, pair.msgID)
-
-	// XXX actually send it
+	uid := p.G().ActiveDevice.UID()
+	p.G().NotifyRouter.HandleChatPaymentInfo(ctx, uid, pair.convID, pair.msgID, *info)
 }
