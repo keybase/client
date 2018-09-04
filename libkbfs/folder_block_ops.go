@@ -955,17 +955,17 @@ func (fbo *folderBlockOps) newDirDataWithLBCLocked(lState *lockState,
 				return block, true, nil
 			}
 
-			lState := lState
+			localLState := lState
 			getRtype := rtype
 			switch rtype {
 			case blockReadParallel:
-				lState = nil
+				localLState = nil
 			case blockWrite:
 				getRtype = blockRead
 			}
 
 			block, wasDirty, err := fbo.getDirLocked(
-				ctx, lState, kmd, ptr, dir, getRtype)
+				ctx, localLState, kmd, ptr, dir, getRtype)
 			if err != nil {
 				return nil, false, err
 			}
