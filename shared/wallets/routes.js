@@ -78,25 +78,6 @@ const walletChildren = {
   },
 }
 
-// const routeTree = makeRouteDefNode({
-//   children: {
-//     createNewAccount,
-//     exportSecretKey: {
-//       children: {},
-//       component: ExportSecretKey,
-//       tags: makeLeafTags({layerOnTop: !isMobile}),
-//     },
-//     linkExisting,
-//     receive: {
-//       children: {},
-//       component: ReceiveModal,
-//       tags: makeLeafTags({layerOnTop: !isMobile}),
-//     },
-
-//   },
-
-// }
-
 const routeTree = makeRouteDefNode({
   containerComponent: Container,
   defaultSelected: 'wallet',
