@@ -806,6 +806,7 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
+	require.Nil(t, senderMsgs[0].Body.Sendpayment().UIPaymentInfo)
 
 	// Imagine this is the receiver reading chat.
 	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID

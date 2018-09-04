@@ -464,6 +464,14 @@
         {
           "type": "string",
           "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
         }
       ]
     },

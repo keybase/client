@@ -7,7 +7,6 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -19,7 +18,7 @@ type msgPair struct {
 }
 
 type PaymentLoader struct {
-	globals.Contextified
+	libkb.Contextified
 	payments map[stellar1.PaymentID]*chat1.UIPaymentInfo
 	messages map[stellar1.PaymentID]msgPair
 	queue    chan stellar1.PaymentID
@@ -27,9 +26,9 @@ type PaymentLoader struct {
 	shutdownOnce sync.Once
 }
 
-func NewPaymentLoader(g *globals.Context) *PaymentLoader {
+func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	p := &PaymentLoader{
-		Contextified: globals.NewContextified(g),
+		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*chat1.UIPaymentInfo),
 		messages:     make(map[stellar1.PaymentID]msgPair),
 		queue:        make(chan stellar1.PaymentID, 50),
@@ -83,7 +82,7 @@ func (p *PaymentLoader) run() {
 
 func (p *PaymentLoader) load(id stellar1.PaymentID) {
 	ctx := context.Background()
-	s := getGlobal(p.G().ExternalG())
+	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, id.TxID.String())
 	if err != nil {
 		p.G().GetLog().CDebugf(ctx, "error getting payment details for %s: %s", id.TxID, err)

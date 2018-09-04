@@ -959,6 +959,13 @@ type ChatAttachmentUploadProgressArg struct {
 	BytesTotal    int64          `codec:"bytesTotal" json:"bytesTotal"`
 }
 
+type ChatPaymentInfoArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Info   UIPaymentInfo  `codec:"info" json:"info"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -979,6 +986,7 @@ type NotifyChatInterface interface {
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
+	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1289,6 +1297,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatPaymentInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatPaymentInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatPaymentInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatPaymentInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatPaymentInfo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1393,5 +1417,10 @@ func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg C
 
 func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPaymentInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg})
 	return
 }
