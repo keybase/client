@@ -992,8 +992,9 @@ func (fbo *folderBlockOps) newDirDataWithLBC(
 	// Lock and fetch for reading only, we want any dirty
 	// blocks to go into the lbc.
 	fbo.blockLock.RLock(lState)
-	undoFn := func() { fbo.blockLock.RUnlock(lState) }
-	return fbo.newDirDataWithLBCLocked(lState, dir, chargedTo, kmd, lbc), undoFn
+	cleanupFn := func() { fbo.blockLock.RUnlock(lState) }
+	return fbo.newDirDataWithLBCLocked(lState, dir, chargedTo, kmd, lbc),
+		cleanupFn
 }
 
 func (fbo *folderBlockOps) makeDirDirtyLocked(

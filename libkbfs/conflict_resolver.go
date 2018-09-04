@@ -2317,10 +2317,10 @@ func (cr *ConflictResolver) doOneAction(
 	// and the subsequent `newDirData` calls can assume it's
 	// locked already.
 	var unmergedDir *dirData
-	unmergedDir, undoFn := cr.fbo.blocks.newDirDataWithLBC(
+	unmergedDir, cleanupFn := cr.fbo.blocks.newDirDataWithLBC(
 		lState, unmergedPath, chargedTo,
 		unmergedChains.mostRecentChainMDInfo, nil)
-	defer undoFn()
+	defer cleanupFn()
 
 	if unmergedPath.tailPointer() == mergedPath.tailPointer() {
 		// recreateOps update the merged paths using original

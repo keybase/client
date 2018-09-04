@@ -198,15 +198,15 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 	// in the path
 	currBlock := newBlock
 	var currDD *dirData
-	var undoFn func()
+	var cleanupFn func()
 	defer func() {
-		if undoFn != nil {
-			undoFn()
+		if cleanupFn != nil {
+			cleanupFn()
 		}
 	}()
 	if _, isDir := newBlock.(*DirBlock); isDir {
 		newPath := dir.ChildPath(name, newBlockPtr)
-		currDD, undoFn = fup.blocks.newDirDataWithLBC(
+		currDD, cleanupFn = fup.blocks.newDirDataWithLBC(
 			lState, newPath, chargedTo, md, lbc)
 	}
 	currName := name
@@ -233,13 +233,13 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 				md.AddRefBlock(newInfo)
 			}
 
-			dirUnrefs := fup.blocks.GetDirtyDirUnrefs(
+			dirUnrefs := fup.blocks.getDirtyDirUnrefsLocked(
 				lState, currDD.rootBlockPointer())
 			for _, unref := range dirUnrefs {
 				md.AddUnrefBlock(unref)
 			}
-			undoFn()
-			undoFn = nil
+			cleanupFn()
+			cleanupFn = nil
 		}
 
 		info, plainSize, err := fup.readyBlockMultiple(
@@ -268,7 +268,7 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			}
 
 			var dd *dirData
-			dd, undoFn = fup.blocks.newDirDataWithLBC(
+			dd, cleanupFn = fup.blocks.newDirDataWithLBC(
 				lState, prevDir, chargedTo, md, lbc)
 			de, err = dd.lookup(ctx, currName)
 			if _, noExists := errors.Cause(err).(NoSuchNameError); noExists {
@@ -303,14 +303,6 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			currBlock = prevDblock
 			currDD = dd
 			nextName = prevDir.tailName()
-<<<<<<< bd552cd6c38fe50663b1020744cbfc880b69b276
-=======
-			dirUnrefs := fup.blocks.getDirtyDirUnrefsLocked(
-				lState, prevDir.tailPointer())
-			for _, unref := range dirUnrefs {
-				md.AddUnrefBlock(unref)
-			}
->>>>>>> folder_block_ops: improve locking situation with dirData
 		}
 
 		if de.Type == Dir {
@@ -862,10 +854,10 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 	kmd KeyMetadata, lbc localBcache,
 	newFileBlocks fileBlockMap) *pathTreeNode {
 	var root *pathTreeNode
-	var undoFn func()
+	var cleanupFn func()
 	defer func() {
-		if undoFn != nil {
-			undoFn()
+		if cleanupFn != nil {
+			cleanupFn()
 		}
 	}()
 	for _, p := range resolvedPaths {
@@ -917,7 +909,7 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				path:         p.path[:i+1],
 			}
 			var dd *dirData
-			dd, undoFn = fup.blocks.newDirDataWithLBC(
+			dd, cleanupFn = fup.blocks.newDirDataWithLBC(
 				lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
 
 			for name := range blocks {
@@ -953,8 +945,8 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				}
 				nextNode.children[name] = childNode
 			}
-			undoFn()
-			undoFn = nil
+			cleanupFn()
+			cleanupFn = nil
 		}
 	}
 	return root
