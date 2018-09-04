@@ -849,6 +849,50 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 	return blocksToDelete, nil
 }
 
+func (fup *folderUpdatePrepper) setChildrenNodes(
+	ctx context.Context, lState *lockState, kmd KeyMetadata, p path,
+	indexInPath int, lbc localBcache, nextNode *pathTreeNode, currPath path,
+	blocks map[string]*FileBlock) {
+	dd, cleanupFn := fup.blocks.newDirDataWithLBC(
+		lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
+	defer cleanupFn()
+
+	pnode := p.path[indexInPath]
+	for name := range blocks {
+		if _, ok := nextNode.children[name]; ok {
+			continue
+		}
+		// Try to lookup the block pointer, but this might be
+		// for a new file.
+		var filePtr BlockPointer
+		de, err := dd.lookup(ctx, name)
+		switch errors.Cause(err).(type) {
+		case nil:
+			filePtr = de.BlockPointer
+		case NoSuchNameError:
+		default:
+			fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
+			continue
+		}
+
+		fup.log.CDebugf(ctx, "Creating child node for name %s for "+
+			"parent %v", name, pnode.BlockPointer)
+		childPath := path{
+			FolderBranch: p.FolderBranch,
+			path:         make([]pathNode, indexInPath+2),
+		}
+		copy(childPath.path[0:indexInPath+1], p.path[0:indexInPath+1])
+		childPath.path[indexInPath+1] = pathNode{Name: name}
+		childNode := &pathTreeNode{
+			ptr:        filePtr,
+			parent:     nextNode,
+			children:   make(map[string]*pathTreeNode),
+			mergedPath: childPath,
+		}
+		nextNode.children[name] = childNode
+	}
+}
+
 func (fup *folderUpdatePrepper) makeSyncTree(
 	ctx context.Context, lState *lockState, resolvedPaths map[BlockPointer]path,
 	kmd KeyMetadata, lbc localBcache,
@@ -908,45 +952,8 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				FolderBranch: p.FolderBranch,
 				path:         p.path[:i+1],
 			}
-			var dd *dirData
-			dd, cleanupFn = fup.blocks.newDirDataWithLBC(
-				lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
-
-			for name := range blocks {
-				if _, ok := nextNode.children[name]; ok {
-					continue
-				}
-				// Try to lookup the block pointer, but this might be
-				// for a new file.
-				var filePtr BlockPointer
-				de, err := dd.lookup(ctx, name)
-				switch errors.Cause(err).(type) {
-				case nil:
-					filePtr = de.BlockPointer
-				case NoSuchNameError:
-				default:
-					fup.log.CWarningf(ctx, "Couldn't look up child: %+v", err)
-					continue
-				}
-
-				fup.log.CDebugf(ctx, "Creating child node for name %s for "+
-					"parent %v", name, pnode.BlockPointer)
-				childPath := path{
-					FolderBranch: p.FolderBranch,
-					path:         make([]pathNode, i+2),
-				}
-				copy(childPath.path[0:i+1], p.path[0:i+1])
-				childPath.path[i+1] = pathNode{Name: name}
-				childNode := &pathTreeNode{
-					ptr:        filePtr,
-					parent:     nextNode,
-					children:   make(map[string]*pathTreeNode),
-					mergedPath: childPath,
-				}
-				nextNode.children[name] = childNode
-			}
-			cleanupFn()
-			cleanupFn = nil
+			fup.setChildrenNodes(
+				ctx, lState, kmd, p, i, lbc, nextNode, currPath, blocks)
 		}
 	}
 	return root
