@@ -6,7 +6,7 @@ import type {TypedState, Dispatch} from '../../../../util/container'
 import BuildTeam from '.'
 
 const mapStateToProps = (state: TypedState) => ({
-  showBuildATeam: !state.chat2.metaMap.count(m => m.teamType !== 'adhoc'),
+  metaMap: state.chat2.metaMap,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBuildTeam: dispatchProps._onBuildTeam,
-  showBuildATeam: stateProps.showBuildATeam,
+  showBuildATeam: !stateProps.metaMap.some(m => m.teamType !== 'adhoc'),
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('BuildTeam'))(
