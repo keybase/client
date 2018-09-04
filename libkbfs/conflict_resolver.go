@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -2276,6 +2277,164 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	return newPtr, nil
 }
 
+func (cr *ConflictResolver) doOneAction(
+	ctx context.Context, lState *lockState,
+	unmergedChains, mergedChains *crChains, unmergedPath path,
+	mergedPaths map[BlockPointer]path, chargedTo keybase1.UserOrTeamID,
+	actionMap map[BlockPointer]crActionList, lbc localBcache,
+	doneActions map[BlockPointer]bool, newFileBlocks fileBlockMap,
+	dirtyBcache DirtyBlockCache) error {
+	unmergedMostRecent := unmergedPath.tailPointer()
+	unmergedChain, ok :=
+		unmergedChains.byMostRecent[unmergedMostRecent]
+	if !ok {
+		return fmt.Errorf("Couldn't find unmerged chain for %v",
+			unmergedMostRecent)
+	}
+
+	// If this is a file that has been deleted in the merged
+	// branch, a corresponding recreate op will take care of it,
+	// no need to do anything here.
+
+	// find the corresponding merged path
+	mergedPath, ok := mergedPaths[unmergedMostRecent]
+	if !ok {
+		// This most likely means that the file was created or
+		// deleted in the unmerged branch and thus has no
+		// corresponding merged path yet.
+		return nil
+	}
+	if unmergedChain.isFile() {
+		// The unmerged path is actually the parent (the merged
+		// path was already corrected above).
+		unmergedPath = *unmergedPath.parentPath()
+	}
+
+	// Now get the directory blocks.  For unmerged directories, we
+	// can use a nil local block cache, because unmerged blocks
+	// should never be changed during the CR process (since
+	// they're just going away).  This call will lock `blockLock`,
+	// and the subsequent `newDirData` calls can assume it's
+	// locked already.
+	var unmergedDir *dirData
+	unmergedDir, undoFn := cr.fbo.blocks.newDirDataWithLBC(
+		lState, unmergedPath, chargedTo,
+		unmergedChains.mostRecentChainMDInfo, nil)
+	defer undoFn()
+
+	if unmergedPath.tailPointer() == mergedPath.tailPointer() {
+		// recreateOps update the merged paths using original
+		// pointers; but if other stuff happened in the merged
+		// block before it was deleted (such as other removes) we
+		// want to preserve those.  Therefore, we don't want the
+		// unmerged block to remain in the local block cache.
+		// Below we'll replace it with a new one instead.
+		delete(lbc, unmergedPath.tailPointer())
+		cr.log.CDebugf(ctx, "Removing block for %v from the local cache",
+			unmergedPath.tailPointer())
+	}
+
+	_, blockExists := lbc[mergedPath.tailPointer()]
+	// If this is a recreate op and we haven't yet made a new
+	// block for it, then make a new one and put it in the local
+	// block cache.
+	if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
+		lbc[mergedPath.tailPointer()] = NewDirBlock().(*DirBlock)
+	}
+	mergedDir := cr.fbo.blocks.newDirDataWithLBCLocked(
+		lState, mergedPath, chargedTo,
+		mergedChains.mostRecentChainMDInfo, lbc)
+	// Force the top block into the `lbc`.  `folderUpdatePrepper`
+	// requires this, even if the block isn't modified, to
+	// distinguish it from a file block.
+	_, err := mergedDir.getTopBlock(ctx, blockWrite)
+	if err != nil {
+		return err
+	}
+
+	actions := actionMap[mergedPath.tailPointer()]
+	if len(actions) > 0 && !doneActions[mergedPath.tailPointer()] {
+		// Make sure we don't try to execute the same actions twice.
+		doneActions[mergedPath.tailPointer()] = true
+
+		// Any file block copies, keyed by their new temporary block
+		// IDs, and later we will ready them.
+		unmergedFetcher := func(ctx context.Context, name string,
+			ptr BlockPointer) (BlockPointer, error) {
+			return cr.makeFileBlockDeepCopy(ctx, lState, unmergedChains,
+				mergedPath.tailPointer(), unmergedPath, name, ptr,
+				newFileBlocks, dirtyBcache)
+		}
+		mergedFetcher := func(ctx context.Context, name string,
+			ptr BlockPointer) (BlockPointer, error) {
+			return cr.makeFileBlockDeepCopy(ctx, lState, mergedChains,
+				mergedPath.tailPointer(), mergedPath, name,
+				ptr, newFileBlocks, dirtyBcache)
+		}
+
+		// Execute each action and save the modified ops back into
+		// each chain.
+		for _, action := range actions {
+			swap, newPtr, err := action.swapUnmergedBlock(
+				ctx, unmergedChains, mergedChains, unmergedDir)
+			if err != nil {
+				return err
+			}
+			uDir := unmergedDir
+			if swap {
+				cr.log.CDebugf(ctx, "Swapping out dir %v for %v",
+					newPtr, unmergedPath.tailPointer())
+				if newPtr == zeroPtr {
+					// Use the merged `dirData`.
+					uDir = mergedDir
+				} else {
+					// Use the specified `dirData`, and supply a
+					// `nil` local block cache to ensure that a)
+					// only clean blocks are used, as blocks in
+					// the `lbc` might have already been touched
+					// by previous actions, and b) no new blocks
+					// are cached.
+					newPath := path{
+						FolderBranch: mergedPath.FolderBranch,
+						path: []pathNode{{
+							newPtr, mergedPath.tailName()}},
+					}
+					uDir = cr.fbo.blocks.newDirDataWithLBCLocked(
+						lState, newPath, chargedTo,
+						mergedChains.mostRecentChainMDInfo, nil)
+				}
+			}
+
+			err = action.do(
+				ctx, unmergedFetcher, mergedFetcher, uDir, mergedDir)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Now update the ops related to this exact path (not the ops
+	// for its parent!).
+	for _, action := range actions {
+		// unmergedMostRecent is for the correct pointer, but
+		// mergedPath may be for the parent in the case of files
+		// so we need to find the real mergedMostRecent pointer.
+		mergedMostRecent := unmergedChain.original
+		mergedChain, ok := mergedChains.byOriginal[unmergedChain.original]
+		if ok {
+			mergedMostRecent = mergedChain.mostRecent
+		}
+
+		err := action.updateOps(
+			ctx, unmergedMostRecent, mergedMostRecent,
+			unmergedDir, mergedDir, unmergedChains, mergedChains)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (cr *ConflictResolver) doActions(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
@@ -2300,162 +2459,14 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	// updated merged blocks.  A future phase will update the pointers
 	// in standard Merkle-tree-fashion.
 	doneActions := make(map[BlockPointer]bool)
-	var undoFn func()
-	defer func() {
-		if undoFn != nil {
-			undoFn()
-		}
-	}()
 	for _, unmergedPath := range unmergedPaths {
-		unmergedMostRecent := unmergedPath.tailPointer()
-		unmergedChain, ok :=
-			unmergedChains.byMostRecent[unmergedMostRecent]
-		if !ok {
-			return fmt.Errorf("Couldn't find unmerged chain for %v",
-				unmergedMostRecent)
-		}
-
-		// If this is a file that has been deleted in the merged
-		// branch, a corresponding recreate op will take care of it,
-		// no need to do anything here.
-
-		// find the corresponding merged path
-		mergedPath, ok := mergedPaths[unmergedMostRecent]
-		if !ok {
-			// This most likely means that the file was created or
-			// deleted in the unmerged branch and thus has no
-			// corresponding merged path yet.
-			continue
-		}
-		if unmergedChain.isFile() {
-			// The unmerged path is actually the parent (the merged
-			// path was already corrected above).
-			unmergedPath = *unmergedPath.parentPath()
-		}
-
-		actions := actionMap[mergedPath.tailPointer()]
-		// Now get the directory blocks.  For unmerged directories, we
-		// can use a nil local block cache, because unmerged blocks
-		// should never be changed during the CR process (since
-		// they're just going away).  This call will lock `blockLock`,
-		// and the subsequent `newDirData` calls can assume it's
-		// locked already.
-		var unmergedDir *dirData
-		unmergedDir, undoFn = cr.fbo.blocks.newDirDataWithLBC(
-			lState, unmergedPath, chargedTo,
-			unmergedChains.mostRecentChainMDInfo, nil)
-
-		if unmergedPath.tailPointer() == mergedPath.tailPointer() {
-			// recreateOps update the merged paths using original
-			// pointers; but if other stuff happened in the merged
-			// block before it was deleted (such as other removes) we
-			// want to preserve those.  Therefore, we don't want the
-			// unmerged block to remain in the local block cache.
-			// Below we'll replace it with a new one instead.
-			delete(lbc, unmergedPath.tailPointer())
-			cr.log.CDebugf(ctx, "Removing block for %v from the local cache",
-				unmergedPath.tailPointer())
-		}
-
-		_, blockExists := lbc[mergedPath.tailPointer()]
-		// If this is a recreate op and we haven't yet made a new
-		// block for it, then make a new one and put it in the local
-		// block cache.
-		if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
-			lbc[mergedPath.tailPointer()] = NewDirBlock().(*DirBlock)
-		}
-		mergedDir := cr.fbo.blocks.newDirDataWithLBCLocked(
-			lState, mergedPath, chargedTo,
-			mergedChains.mostRecentChainMDInfo, lbc)
-		// Force the top block into the `lbc`.  `folderUpdatePrepper`
-		// requires this, even if the block isn't modified, to
-		// distinguish it from a file block.
-		_, err = mergedDir.getTopBlock(ctx, blockWrite)
+		err := cr.doOneAction(
+			ctx, lState, unmergedChains, mergedChains, unmergedPath,
+			mergedPaths, chargedTo, actionMap, lbc, doneActions, newFileBlocks,
+			dirtyBcache)
 		if err != nil {
 			return err
 		}
-
-		if len(actions) > 0 && !doneActions[mergedPath.tailPointer()] {
-			// Make sure we don't try to execute the same actions twice.
-			doneActions[mergedPath.tailPointer()] = true
-
-			// Any file block copies, keyed by their new temporary block
-			// IDs, and later we will ready them.
-			unmergedFetcher := func(ctx context.Context, name string,
-				ptr BlockPointer) (BlockPointer, error) {
-				return cr.makeFileBlockDeepCopy(ctx, lState, unmergedChains,
-					mergedPath.tailPointer(), unmergedPath, name, ptr,
-					newFileBlocks, dirtyBcache)
-			}
-			mergedFetcher := func(ctx context.Context, name string,
-				ptr BlockPointer) (BlockPointer, error) {
-				return cr.makeFileBlockDeepCopy(ctx, lState, mergedChains,
-					mergedPath.tailPointer(), mergedPath, name,
-					ptr, newFileBlocks, dirtyBcache)
-			}
-
-			// Execute each action and save the modified ops back into
-			// each chain.
-			for _, action := range actions {
-				swap, newPtr, err := action.swapUnmergedBlock(
-					ctx, unmergedChains, mergedChains, unmergedDir)
-				if err != nil {
-					return err
-				}
-				uDir := unmergedDir
-				if swap {
-					cr.log.CDebugf(ctx, "Swapping out dir %v for %v",
-						newPtr, unmergedPath.tailPointer())
-					if newPtr == zeroPtr {
-						// Use the merged `dirData`.
-						uDir = mergedDir
-					} else {
-						// Use the specified `dirData`, and supply a
-						// `nil` local block cache to ensure that a)
-						// only clean blocks are used, as blocks in
-						// the `lbc` might have already been touched
-						// by previous actions, and b) no new blocks
-						// are cached.
-						newPath := path{
-							FolderBranch: mergedPath.FolderBranch,
-							path: []pathNode{{
-								newPtr, mergedPath.tailName()}},
-						}
-						uDir = cr.fbo.blocks.newDirDataWithLBCLocked(
-							lState, newPath, chargedTo,
-							mergedChains.mostRecentChainMDInfo, nil)
-					}
-				}
-
-				err = action.do(
-					ctx, unmergedFetcher, mergedFetcher, uDir, mergedDir)
-				if err != nil {
-					return err
-				}
-			}
-		}
-
-		// Now update the ops related to this exact path (not the ops
-		// for its parent!).
-		for _, action := range actions {
-			// unmergedMostRecent is for the correct pointer, but
-			// mergedPath may be for the parent in the case of files
-			// so we need to find the real mergedMostRecent pointer.
-			mergedMostRecent := unmergedChain.original
-			mergedChain, ok := mergedChains.byOriginal[unmergedChain.original]
-			if ok {
-				mergedMostRecent = mergedChain.mostRecent
-			}
-
-			err := action.updateOps(
-				ctx, unmergedMostRecent, mergedMostRecent,
-				unmergedDir, mergedDir, unmergedChains, mergedChains)
-			if err != nil {
-				return err
-			}
-		}
-		undoFn()
-		undoFn = nil
 	}
 	return nil
 }
