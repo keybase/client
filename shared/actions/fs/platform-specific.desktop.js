@@ -288,6 +288,35 @@ function installCachedDokan() {
   })
 }
 
+function getDokanUninstallString(): Promise<string> {
+  logger.info('getDokanUninstallString')
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
+    try {
+      regedit.list(uninstallRegPath).on('data', function(entry) {
+        const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
+        regedit.list(paths).on('data', function(subentry) {
+            if (subentry.data && subentry.data.values && subentry.data.values.DisplayName && subentry.data.values.DisplayName.value.startsWith('Dokan Library')) {
+                resolve(subentry.data.values.UninstallString.value)
+            }
+        })
+      })
+
+      reject(new Error('Failed to find dokan uninstall string'))
+    } catch (err) {
+      logger.error('getDokanUninstallString error', err)
+    }
+  })
+}
+
+function getDokanUninstallStringSaga() {
+  const result = Saga.call(getDokanUninstallString)
+  if (result) {
+    Saga.put(FsGen.createGetDokanUninstallStringResult(result))
+  }
+}
+
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
@@ -323,12 +352,14 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+    yield Saga.safeTakeLatestPure(KBFSGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.safeTakeLatestPure(KBFSGen.getDokanUninstallString, getDokanUninstallStringSaga)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }
