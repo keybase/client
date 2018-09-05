@@ -3,32 +3,17 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import EnterNamePopup from '.'
 
-const common = {
-  keyError: '',
-  linkExistingAccountError: '',
+const enterNameProps = {
   name: '',
-  nameError: '',
-  nameValidationState: 'none',
-  onClose: Sb.action('onCancel'),
-  onCheckKey: Sb.action('onCheckKey'),
-  onCheckName: Sb.action('onCheckName'),
-  onClearErrors: Sb.action('onClearErrors'),
+  onClose: Sb.action('onClose'),
   onDone: Sb.action('onDone'),
-  onKeyChange: Sb.action('onKeyChange'),
   onNameChange: Sb.action('onNameChange'),
   onViewChange: Sb.action('onViewChange'),
-  secretKey: '',
-  secretKeyValidationState: 'none',
   waiting: false,
 }
 
-const enterNameProps = {
-  ...common,
-  view: 'name',
-}
-
 const nameErrorProps = {
-  ...common,
+  ...enterNameProps,
   name: 'this is too long',
   error: 'Error: name too long',
   nameValidationState: 'error',
