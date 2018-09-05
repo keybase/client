@@ -4,7 +4,7 @@ import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
-import {printBridgeB64} from '../local-debug'
+import {printRPCBytes} from '../local-debug'
 import {measureStart, measureStop} from '../dev/user-timings'
 
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
@@ -29,7 +29,7 @@ class NativeTransport extends TransportShared {
       incomingRPCCallback,
       // We pass data over to the native side to be handled
       (data: string) => {
-        if (printBridgeB64) {
+        if (printRPCBytes) {
           console.log(`PRINTBridge JS sending data ${data}`)
         }
         nativeBridge.runWithData(data)
@@ -85,7 +85,7 @@ function createClient(
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
     const buffer = toBuffer(toByteArray(payload))
-    if (printBridgeB64) {
+    if (printRPCBytes) {
       console.log(`PRINTBridge: JS got payload ${payload.length}: ${buffer.toString()}`)
     }
 
