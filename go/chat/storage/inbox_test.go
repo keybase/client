@@ -2,7 +2,10 @@ package storage
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"sort"
+	"strings"
 	"testing"
 
 	"encoding/hex"
@@ -11,6 +14,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -775,6 +779,43 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 	require.Equal(t, len(convs), len(res), "length")
 	require.Equal(t, conv.GetConvID(), res[5].GetConvID(), "id")
 	require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE, res[5].Conv.Metadata.MembersType)
+}
+
+func TestMobileSharedInbox(t *testing.T) {
+	tc, inbox, _ := setupInboxTest(t, "shared")
+	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
+		MobileSharedHomeDir: os.TempDir(),
+	}, nil, tc.Context().GetLog)
+	numConvs := 10
+	var convs []types.RemoteConversation
+	for i := numConvs - 1; i >= 0; i-- {
+		conv := makeConvo(gregor1.Time(i), 1, 1)
+		if i == 5 {
+			conv.Conv.Metadata.TeamType = chat1.TeamType_COMPLEX
+			conv.Conv.MaxMsgSummaries[0].TlfName = "team"
+		} else {
+			conv.Conv.MaxMsgSummaries[0].TlfName = fmt.Sprintf("msg:%d", i)
+		}
+		convs = append(convs, conv)
+	}
+	require.NoError(t, inbox.Merge(context.TODO(), 1, utils.PluckConvs(convs), nil, nil))
+	diskIbox, err := inbox.readDiskInbox(context.TODO())
+	require.NoError(t, err)
+	diskIbox.Conversations[4].LocalMetadata = &types.RemoteConversationMetadata{
+		TopicName: "mike",
+	}
+	require.NoError(t, inbox.writeDiskInbox(context.TODO(), diskIbox))
+	sharedInbox, err := inbox.ReadShared(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, numConvs, len(sharedInbox))
+	convs = diskIbox.Conversations
+	for i := 0; i < numConvs; i++ {
+		require.Equal(t, convs[i].GetConvID().String(), sharedInbox[i].ConvID)
+		require.Equal(t, convs[i].GetName(), sharedInbox[i].Name)
+		if i == 4 {
+			require.True(t, strings.Contains(sharedInbox[i].Name, "#"))
+		}
+	}
 }
 
 func TestInboxMembershipUpdate(t *testing.T) {
