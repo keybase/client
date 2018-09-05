@@ -12,7 +12,7 @@ import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
-import {spawn, execFileSync} from 'child_process'
+import {spawn, execFileSync, execSync} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
 
@@ -312,31 +312,30 @@ function getDokanUninstallString(): Promise<string> {
         const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
         regedit.list(paths).on('data', function(subentry) {
             if (subentry.data && subentry.data.values && subentry.data.values.DisplayName && subentry.data.values.DisplayName.value.startsWith('Dokan Library')) {
-                resolve(subentry.data.values.UninstallString.value)
+              resolve(subentry.data.values.UninstallString.value)
             }
         })
       })
-
       reject(new Error('Failed to find dokan uninstall string'))
     } catch (err) {
       logger.error('getDokanUninstallString error', err)
     }
   })
+  .then(uninstallString => Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString})))
 }
 
 function getDokanUninstallStringSaga() {
-  const result = Saga.call(getDokanUninstallString)
-  if (result) {
-    Saga.put(FsGen.createGetDokanUninstallStringResult(result))
-  }
+  return Saga.call(getDokanUninstallString)
 }
 
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function uninstallDokanSaga(uninstallString: string) {
-  return Saga.call(uninstallCachedDokan(uninstallString))
+function* uninstallDokanSaga() {
+  const state: TypedState = yield Saga.select()
+  const uninstallString = state.fs.dokanUninstallString
+  return Saga.call(uninstallCachedDokan, uninstallString)
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -373,8 +372,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.safeTakeLatestPure(KBFSGen.uninstallKBFSConfirm, uninstallDokanSaga)
-    yield Saga.safeTakeLatestPure(KBFSGen.getDokanUninstallString, getDokanUninstallStringSaga)
+    yield Saga.safeTakeLatestPure(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.safeTakeLatest(FsGen.getDokanUninstallString, getDokanUninstallStringSaga)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
     yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)

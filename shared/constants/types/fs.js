@@ -201,6 +201,7 @@ export type _State = {
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
+  dokanUninstallString: string,
 }
 export type State = I.RecordOf<_State>
 

@@ -302,7 +302,6 @@ function* kbfsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeLatestPure(KBFSGen.fuseStatusUpdate, fuseStatusUpdateSaga)
   if (isWindows) {
     yield Saga.safeTakeLatestPure(KBFSGen.installFuse, installDokanSaga)
-    yield Saga.safeTakeLatestPure(KBFSGen.uninstallKBFS, uninstallDokanSaga)
   } else {
     yield Saga.safeTakeLatest(KBFSGen.installFuse, installFuseSaga)
   }

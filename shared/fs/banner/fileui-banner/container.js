@@ -19,6 +19,7 @@ const mapStateToProps = (state: TypedState) => {
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
+    dokanUninstallString: state.fs.dokanUninstallString,
   }
 }
 
@@ -30,7 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
     _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
     getDokanUninstallString: () => dispatch(FsGen.createGetDokanUninstallString()),
-    _uninstallDokan: (uninstallString: string) => dispatch(FsGen.createUninstallDokan(uninstallString)),
+    _uninstallDokan: () => dispatch(FsGen.createUninstallKBFSConfirm()),
   }
 }
 
@@ -42,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onUninstall: dispatchProps.onUninstall,
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
-  dokanUninstall: stateProps.dokanUninstallString ? () => dispatchProps._uninstallDokan(stateProps.dokanUninstallString) : undefined,
+  dokanUninstall: stateProps.dokanUninstallString ? () => dispatchProps._uninstallDokan() : undefined,
 })
 
 const ConnectedBanner = isMobile

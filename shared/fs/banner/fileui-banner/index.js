@@ -7,7 +7,6 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 type Props = {
   kbfsEnabled: boolean,
-  driverOutdated: boolean, // windows only
   inProgress: boolean,
   showBanner: boolean,
   path?: Types.Path,
@@ -17,7 +16,7 @@ type Props = {
   dokanUninstall?: () => void,
 }
 
-const Banner = ({kbfsEnabled, driverOutdated, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
+const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI, dokanUninstall}: Props) => {
   if (!showBanner) {
     return null
   }
@@ -29,7 +28,7 @@ const Banner = ({kbfsEnabled, driverOutdated, showBanner, onInstall, onDismiss, 
     alignItems: 'center',
     position: 'relative',
   }
-  const promptText = driverOutdated
+  const promptText = dokanUninstall
     ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
     : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
   let bannerContent
@@ -56,7 +55,7 @@ const Banner = ({kbfsEnabled, driverOutdated, showBanner, onInstall, onDismiss, 
           {promptText}
         </Text>)
         <Box style={{justifyContent: 'flex-start'}}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} disabled={driverOutdated} />
+          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} disabled={!!dokanUninstall} />
         </Box>
       </Box>
     )
