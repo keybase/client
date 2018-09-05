@@ -2508,3 +2508,26 @@ func NewTeamFTLOutdatedError(s string) error {
 func (t TeamFTLOutdatedError) Error() string {
 	return fmt.Sprintf("FTL outdated: %s", t.msg)
 }
+
+var _ error = TeamFTLOutdatedError{}
+
+//=============================================================================
+
+type FeatureFlagError struct {
+	msg     string
+	feature Feature
+}
+
+func NewFeatureFlagError(s string, f Feature) error {
+	return FeatureFlagError{s, f}
+}
+
+func (f FeatureFlagError) Feature() Feature {
+	return f.feature
+}
+
+func (t FeatureFlagError) Error() string {
+	return fmt.Sprintf("Feature %s flagged off: %s", t.feature, t.msg)
+}
+
+var _ error = FeatureFlagError{}

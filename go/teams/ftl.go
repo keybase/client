@@ -36,8 +36,12 @@ type FastTeamChainLoader struct {
 	// We don't store them to disk (as we do slow Load objects).
 	// LRU of TeamID -> keybase1.FastTeamData. The LRU is protected
 	// by a mutex, because it's swapped out on logout.
-	lruMutex sync.Mutex
+	lruMutex sync.RWMutex
 	lru      *lru.Cache
+
+	// Feature-flagging is power by the server. If we get feature flagged off, we
+	// won't retry for another hour.
+	featureFlagGate *libkb.FeatureFlagGate
 }
 
 const FTLVersion = 1
@@ -45,7 +49,8 @@ const FTLVersion = 1
 // NewFastLoader makes a new fast loader and initializes it.
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
-		world: NewLoaderContextFromG(g),
+		world:           NewLoaderContextFromG(g),
+		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, time.Hour),
 	}
 	ret.newLRU()
 	return ret
@@ -74,6 +79,11 @@ func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTe
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+
+	err = f.featureFlagGate.ErrorIfFlagged(m)
+	if err != nil {
+		return res, err
+	}
 
 	res, err = f.loadOneAttempt(m, arg)
 	if err != nil || arg.AssertTeamName == nil || arg.AssertTeamName.Eq(res.Name) {
@@ -600,9 +610,12 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	var seeds []keybase1.PerTeamKeySeed
 
 	lastSeqno, lastLinkID, err = f.world.merkleLookup(m.Ctx(), arg.ID, arg.Public)
+
 	if err != nil {
+		f.featureFlagGate.DigestError(m, err)
 		return nil, err
 	}
+
 	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(shoppingList), arg.Public)
 	if err != nil {
 		return nil, err
@@ -1142,8 +1155,8 @@ func (f *FastTeamChainLoader) newLRU() {
 
 // gerLRU gets the LRU currently active for this loader under protection of the lru Mutex.
 func (f *FastTeamChainLoader) getLRU() *lru.Cache {
-	f.lruMutex.Lock()
-	defer f.lruMutex.Unlock()
+	f.lruMutex.RLock()
+	defer f.lruMutex.RUnlock()
 	return f.lru
 }
 

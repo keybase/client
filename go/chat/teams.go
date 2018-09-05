@@ -40,9 +40,15 @@ func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool 
 	if err == nil {
 		return false
 	}
-	if _, ok := err.(libkb.TeamFTLOutdatedError); ok {
+	switch tErr := err.(type) {
+	case libkb.TeamFTLOutdatedError:
 		m.CDebugf("Our FTL implementation is too old; falling back to slow loader (%v)", err)
 		return true
+	case libkb.FeatureFlagError:
+		if tErr.Feature() == libkb.FeatureFTL {
+			m.CDebugf("FTL is now feature-flagged off in the server; will try again later")
+			return true
+		}
 	}
 	return false
 }

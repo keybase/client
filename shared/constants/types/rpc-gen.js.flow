@@ -135,6 +135,7 @@ export const constantsStatusCode = {
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
+  scfeatureflag: 712,
   scmissingresult: 801,
   sckeynotfound: 901,
   sckeycorrupted: 905,
@@ -1616,6 +1617,7 @@ export type StatusCode =
   | 472 // SCBadEmail_472
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
+  | 712 // SCFeatureFlag_712
   | 801 // SCMissingResult_801
   | 901 // SCKeyNotFound_901
   | 905 // SCKeyCorrupted_905

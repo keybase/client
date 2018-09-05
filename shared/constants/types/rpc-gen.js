@@ -125,6 +125,7 @@ export const constantsStatusCode = {
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
+  scfeatureflag: 712,
   scmissingresult: 801,
   sckeynotfound: 901,
   sckeycorrupted: 905,
