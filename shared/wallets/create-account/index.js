@@ -4,12 +4,12 @@ import * as Kb from '../../common-adapters'
 import type {ValidationState} from '../../constants/types/wallets'
 import {EnterName} from '../link-existing/index'
 
-type Props = {
+type Props = {|
   createNewAccountError: string,
   error: string,
   name: string,
   nameValidationState: ValidationState,
-  onBack: () => void,
+  onBack?: () => void,
   onCancel: () => void,
   onCheckName: (name: string) => void,
   onClearErrors: () => void,
@@ -17,7 +17,7 @@ type Props = {
   onDone: () => void,
   onNameChange: string => void,
   waiting: boolean,
-}
+|}
 
 class CreateAccount extends React.Component<Props> {
   render() {
