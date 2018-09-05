@@ -75,10 +75,16 @@ func getKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGenera
 	if err != nil {
 		return res, err
 	}
+
+	teamName, err := keybase1.TeamNameFromString(name)
+	if err != nil {
+		return res, err
+	}
 	arg := keybase1.FastTeamLoadArg{
-		ID:           teamID,
-		Public:       false,
-		Applications: []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		ID:             teamID,
+		Public:         false,
+		Applications:   []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		AssertTeamName: &teamName,
 	}
 
 	if keyGeneration > 0 {
@@ -91,10 +97,7 @@ func getKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGenera
 	if err != nil {
 		return res, err
 	}
-	err = res.Name.AssertEqString(name)
-	if err != nil {
-		return res, err
-	}
+
 	n := len(res.ApplicationKeys)
 	if n != 1 {
 		return res, NewFTLError(fmt.Sprintf("wrong number of keys back from FTL; wanted 1, but got %d", n))

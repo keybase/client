@@ -1951,6 +1951,7 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 type FastTeamLoadArg struct {
 	ID                   TeamID                 `codec:"ID" json:"ID"`
 	Public               bool                   `codec:"public" json:"public"`
+	AssertTeamName       *TeamName              `codec:"assertTeamName,omitempty" json:"assertTeamName,omitempty"`
 	Applications         []TeamApplication      `codec:"applications" json:"applications"`
 	KeyGenerationsNeeded []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
 	NeedLatestKey        bool                   `codec:"needLatestKey" json:"needLatestKey"`
@@ -1961,6 +1962,13 @@ func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
 	return FastTeamLoadArg{
 		ID:     o.ID.DeepCopy(),
 		Public: o.Public,
+		AssertTeamName: (func(x *TeamName) *TeamName {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AssertTeamName),
 		Applications: (func(x []TeamApplication) []TeamApplication {
 			if x == nil {
 				return nil
