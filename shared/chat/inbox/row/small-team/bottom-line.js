@@ -75,6 +75,10 @@ class BottomLine extends PureComponent<Props> {
                 common: {
                   color: this.props.isSelected ? globalColors.white : globalColors.black_20,
                 },
+                isElectron: {
+                  position: 'relative',
+                  top: -4,
+                },
                 isMobile: {
                   marginTop: -8,
                 },
