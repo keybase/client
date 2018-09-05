@@ -167,6 +167,10 @@
       "type": "Types.MobilePickType",
       "parentPath": "Types.Path"
     },
+    "userFileEditsLoad": {},
+    "userFileEditsLoaded": {
+      "writerEdits": "Array<RPCTypes.FSFolderEditHistory>"
+    },
 
     "placeholderAction": {}
   }

@@ -229,6 +229,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         default:
           return nextState
       }
+    case FsGen.userFileEditsLoaded:
+      // TODO: implement
+      return state
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.placeholderAction:
@@ -253,6 +256,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.pickAndUpload:
     case FsGen.upload:
     case FsGen.openFilesFromWidget:
+    case FsGen.userFileEditsLoad:
       return state
     default:
       /*::
