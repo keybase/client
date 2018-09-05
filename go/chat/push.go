@@ -1033,21 +1033,19 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		g.Lock()
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
-		// Get and localize the conversation to get the new tlfname.
-		inbox, err := g.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: update.ConvIDs,
-		}, nil)
+		// Update inbox and get conversations
+		convs, err := g.G().InboxSource.SubteamRename(ctx, uid, update.InboxVers, update.ConvIDs)
 		if err != nil {
-			g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
+			g.Debug(ctx, "SubteamRename: unable to read conversation: %s", err.Error())
 			return
 		}
-		if len(inbox.Convs) != len(update.ConvIDs) {
-			g.Debug(ctx, "resolve: unable to find all conversations")
+		if len(convs) != len(update.ConvIDs) {
+			g.Debug(ctx, "SubteamRename: unable to find all conversations")
 		}
 
 		convUIItems := make(map[chat1.TopicType][]chat1.InboxUIItem)
 		convIDs := make(map[chat1.TopicType][]chat1.ConversationID)
-		for _, conv := range inbox.Convs {
+		for _, conv := range convs {
 			uiItem := g.presentUIItem(ctx, &conv, uid)
 			if uiItem != nil {
 				convUIItems[uiItem.TopicType] = append(convUIItems[uiItem.TopicType], *uiItem)
