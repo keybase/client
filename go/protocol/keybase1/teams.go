@@ -634,6 +634,7 @@ type FastTeamData struct {
 	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
 	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	LoadedLatest              bool                                                 `codec:"loadedLatest" json:"loadedLatest"`
 }
 
 func (o FastTeamData) DeepCopy() FastTeamData {
@@ -678,6 +679,7 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 		})(o.ReaderKeyMasks),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		CachedAt:        o.CachedAt.DeepCopy(),
+		LoadedLatest:    o.LoadedLatest,
 	}
 }
 
