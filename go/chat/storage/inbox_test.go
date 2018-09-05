@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -783,7 +784,7 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 func TestMobileSharedInbox(t *testing.T) {
 	tc, inbox, _ := setupInboxTest(t, "shared")
 	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
-		MobileSharedHomeDir: tc.Context().GetEnv().GetConfigDir(),
+		MobileSharedHomeDir: os.TempDir(),
 	}, nil, tc.Context().GetLog)
 	numConvs := 10
 	var convs []types.RemoteConversation
