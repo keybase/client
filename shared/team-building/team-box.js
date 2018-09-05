@@ -5,7 +5,7 @@ import UserBubble from './user-bubble'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import type {ServiceId} from '../util/platforms'
-import type {Props as UserBubbleProps} from '../util/platforms'
+import type {Props as UserBubbleProps} from './user-bubble'
 
 // TODO
 // * Add styles for mobile
@@ -48,15 +48,13 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       height: 40,
-      width: 370,
-      marginTop: Styles.globalMargins.large, // small
-      marginLeft: Styles.globalMargins.small,
     },
     common: {
       ...Styles.globalStyles.rounded,
       borderColor: Styles.globalColors.black_20,
       borderWidth: 1,
       borderStyle: 'solid',
+      flex: 1,
     },
   }),
 })

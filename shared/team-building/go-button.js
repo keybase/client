@@ -30,7 +30,11 @@ const GoButton = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.red, ...Styles.globalStyles.rounded},
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      ...Styles.globalStyles.rounded,
+      marginLeft: Styles.globalMargins.tiny,
+    },
     isElectron: {height: 40, width: 40},
   }),
   go: Styles.platformStyles({

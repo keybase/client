@@ -34,4 +34,6 @@ export type User = {
   keybaseUserID: ?KeybaseUserID,
 }
 
+export type ServiceIdWithContact = ServiceId | 'contact'
+
 export type State = I.RecordOf<_State>

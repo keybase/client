@@ -2,8 +2,8 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import {serviceIdToLogo16} from './shared'
 import type {ServiceIdWithContact} from '../constants/team-building'
-import type {IconType} from '../common-adapters/icon.constants'
 
 // TODO
 // * Add styles for mobile
@@ -27,18 +27,6 @@ type IconProps = {
   showCount: boolean,
   isActive: boolean,
 }
-
-const serviceIdToLogo16 = (service: ServiceIdWithContact, isActive: boolean): IconType =>
-  ({
-    contact: `icon-search-twitter-${isActive ? 'active' : 'inactive'}-32`,
-    facebook: `icon-search-facebook-${isActive ? 'active' : 'inactive'}-32`,
-    github: `icon-search-github-${isActive ? 'active' : 'inactive'}-32`,
-    hackernews: `icon-search-hacker-news-${isActive ? 'active' : 'inactive'}-32`,
-    keybase: `icon-search-keybase-${isActive ? 'active' : 'inactive'}-32`,
-    pgp: `icon-search-pgp-${isActive ? 'active' : 'inactive'}-32`,
-    reddit: `icon-search-reddit-${isActive ? 'active' : 'inactive'}-32`,
-    twitter: `icon-search-twitter-${isActive ? 'active' : 'inactive'}-32`,
-  }[service])
 
 const ServiceIcon = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick}>

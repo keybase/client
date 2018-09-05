@@ -18,7 +18,7 @@ export type Props = {
 
 const KeybaseUserBubble = (props: Props) => (
   <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-    <Kb.Avatar avatarSize={32} username={props.username} style={styles.bubble} />
+    <Kb.Avatar size={BUBBLE_SIZE} username={props.username} />
   </Kb.Box2>
 )
 
