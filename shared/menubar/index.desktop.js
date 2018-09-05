@@ -8,9 +8,10 @@ import ChatContainer from './chat-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
+import Upload from '../fs/footer/upload'
+import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 
 export type Props = {
-  isAsyncWriteHappening: boolean,
   logIn: () => void,
   loggedIn: boolean,
   onFolderClick: (path: ?string) => void,
@@ -23,13 +24,14 @@ export type Props = {
   showUser: (username: ?string) => void,
   username: ?string,
   badgeInfo: {[string]: number},
-}
+} & UploadCountdownHOCProps
 
 type State = {|
   showingMenu: boolean,
 |}
 
 const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
+const UploadWithCountdown = UploadCountdownHOC(Upload)
 
 class MenubarRender extends React.Component<Props, State> {
   state: State = {
@@ -223,12 +225,11 @@ class MenubarRender extends React.Component<Props, State> {
           />
         </Kb.Box>
         <ChatContainer />
-        {this.props.isAsyncWriteHappening && (
-          <Kb.Box style={styles.uploadingContainer}>
-            <Kb.Icon type="icon-loader-uploading-16" />
-            <Kb.Text type="BodySmall">UPLOADING CHANGES...</Kb.Text>
-          </Kb.Box>
-        )}
+        <UploadWithCountdown
+          endEstimate={this.props.endEstimate}
+          files={this.props.files}
+          totalSyncingBytes={this.props.totalSyncingBytes}
+        />
       </Kb.Box>
     )
   }

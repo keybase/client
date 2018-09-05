@@ -96,10 +96,18 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
       this._tickerID = null
     }
 
+    componentDidMount() {
+      this._update()
+    }
+
     componentDidUpdate(prevProps) {
       if (this.props.files === prevProps.files && this.props.endEstimate === prevProps.endEstimate) {
         return
       }
+      this._update()
+    }
+
+    _update = () =>
       this.setState((prevState, props) => {
         const isUploading = !!props.files || !!props.totalSyncingBytes
         const displayDuration = props.endEstimate ? props.endEstimate - Date.now() : 0
@@ -143,7 +151,6 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
             return {}
         }
       })
-    }
 
     render() {
       const {files, totalSyncingBytes, debugToggleShow} = this.props

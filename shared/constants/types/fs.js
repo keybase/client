@@ -178,7 +178,6 @@ export type _Flags = {
   kextPermissionError: boolean,
   securityPrefsPropmted: boolean,
   showBanner: boolean,
-  syncing: boolean,
 }
 
 export type Flags = I.RecordOf<_Flags>

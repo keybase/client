@@ -33,14 +33,20 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
+export const uploadsToUploadCountdownHOCProps = (
+  uploads: Types.Uploads
+): $Exact<UploadCountdownHOCProps> => ({
+  // We just use syncingPaths rather than merging with writingToJournal here
+  // since journal status comes a bit slower, and merging the two causes
+  // flakes on our perception of overall upload status.
+  files: uploads.syncingPaths.size,
+  endEstimate: enableDebugUploadBanner ? uploads.endEstimate + 32000 : uploads.endEstimate,
+  totalSyncingBytes: uploads.totalSyncingBytes,
+})
+
 const mergeProps = ({_uploads}, {debugToggleShow}) =>
   ({
-    // We just use syncingPaths rather than merging with writingToJournal here
-    // since journal status comes a bit slower, and merging the two causes
-    // flakes on our perception of overall upload status.
-    files: _uploads.syncingPaths.size,
-    endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
-    totalSyncingBytes: _uploads.totalSyncingBytes,
+    ...uploadsToUploadCountdownHOCProps(_uploads),
     debugToggleShow,
   }: UploadCountdownHOCProps)
 

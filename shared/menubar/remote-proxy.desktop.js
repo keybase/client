@@ -7,6 +7,7 @@ import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import GetNewestConvMetas from '../chat/inbox/container/remote'
+import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
 
@@ -52,7 +53,7 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  isAsyncWriteHappening: state.fs.flags.syncing,
+  _uploads: state.fs.uploads,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
   conversations: GetNewestConvMetas(state),
@@ -63,7 +64,6 @@ const mergeProps = stateProps => ({
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
   conversations: stateProps.conversations,
@@ -71,6 +71,7 @@ const mergeProps = stateProps => ({
   windowOpts,
   windowParam: '',
   windowTitle: '',
+  ...uploadsToUploadCountdownHOCProps(stateProps._uploads),
 })
 
 // Actions are handled by remote-container
