@@ -304,11 +304,19 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
           ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
       },
-      filePaths => {
-        return resolve(filePaths)
-      }
+      filePaths => resolve(filePaths || [])
     )
-  ).then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+  )
+
+const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
+  Saga.call(function*() {
+    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
+    yield Saga.all(
+      localPaths.map(localPath =>
+        Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+      )
+    )
+  })
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
@@ -316,7 +324,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
-  yield Saga.actionToPromise(FsGen.openAndUpload, openAndUploadToPromise)
+  yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

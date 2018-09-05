@@ -11,6 +11,7 @@ import {
   Overlay,
   OverlayParentHOC,
   type OverlayParentProps,
+  WithTooltip,
 } from '../../common-adapters'
 import {fileUIName} from '../../constants/platform'
 
@@ -28,13 +29,15 @@ type Props = {
   FinderPopupProps
 
 const OpenInFileUI = ({openInFileUI}: OpenInFileUIProps) => (
-  <Icon
-    type="iconfont-finder"
-    style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-    fontSize={16}
-    onClick={openInFileUI}
-    className="fs-path-item-hover-icon"
-  />
+  <WithTooltip text="Show in Finder">
+    <Icon
+      type="iconfont-finder"
+      style={iconCastPlatformStyles(styles.pathItemActionIcon)}
+      fontSize={16}
+      onClick={openInFileUI}
+      className="fs-path-item-hover-icon"
+    />
+  </WithTooltip>
 )
 
 const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentProps) => (

@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) =>
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onSelectAccount: (accountID: AccountID) => {
-    dispatch(createSelectAccount({accountID}))
+    dispatch(createSelectAccount({accountID, show: true}))
   },
 })
 

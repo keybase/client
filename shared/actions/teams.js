@@ -16,6 +16,7 @@ import * as RouteTreeGen from './route-tree-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
+import * as GregorGen from './gregor-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
@@ -1311,6 +1312,30 @@ const receivedBadgeState = (state: TypedState, action: NotificationsGen.Received
     })
   )
 
+const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
+  const actions = []
+  const items = action.payload.state
+  const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  if (sawChatBanner) {
+    actions.push(Saga.put(TeamsGen.createSetTeamSawChatBanner()))
+  }
+
+  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
+  if (sawSubteamsBanner) {
+    actions.push(Saga.put(TeamsGen.createSetTeamSawSubteamsBanner()))
+  }
+
+  const chosenChannels = items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
+  const teamsWithChosenChannelsStr =
+    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  const teamsWithChosenChannels = teamsWithChosenChannelsStr
+    ? I.Set(JSON.parse(teamsWithChosenChannelsStr))
+    : I.Set()
+  actions.push(Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels})))
+
+  return Saga.sequentially(actions)
+}
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1353,6 +1378,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
 }
 
 export default teamsSaga

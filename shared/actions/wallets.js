@@ -12,6 +12,7 @@ import logger from '../logger'
 import type {TypedState} from '../constants/reducer'
 import {getPath} from '../route-tree'
 import {walletsTab} from '../constants/tabs'
+import flags from '../util/feature-flags'
 
 const buildPayment = (state: TypedState) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
@@ -86,6 +87,7 @@ const loadAccounts = (
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.RefreshPaymentsPayload
+    | WalletsGen.DidSetAccountAsDefaultPayload
     | ConfigGen.LoggedInPayload
 ) =>
   !action.error &&
@@ -130,6 +132,40 @@ const loadPayments = (
       pending: (pending || []).map(elem => Constants.paymentResultToPayment(elem)).filter(Boolean),
     })
   )
+
+const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplayCurrenciesPayload) =>
+  RPCTypes.localGetDisplayCurrenciesLocalRpcPromise().then(res =>
+    WalletsGen.createDisplayCurrenciesReceived({
+      currencies: (res || []).map(c => Constants.currenciesResultToCurrencies(c)),
+    })
+  )
+
+const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCurrencyPayload) =>
+  RPCTypes.localGetDisplayCurrencyLocalRpcPromise({
+    accountID: action.payload.accountID,
+  }).then(res =>
+    WalletsGen.createDisplayCurrencyReceived({
+      accountID: action.payload.accountID,
+      currency: Constants.makeCurrencies(res),
+    })
+  )
+
+const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
+  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise({
+    accountID: action.payload.accountID,
+    currency: action.payload.code, // called currency, though it is a code
+  }).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+
+const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
+  RPCTypes.localDeleteWalletAccountLocalRpcPromise({
+    accountID: action.payload.accountID,
+    userAcknowledged: 'yes',
+  }).then(res => WalletsGen.createDeletedAccount())
+
+const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
+  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise({
+    accountID: action.payload.accountID,
+  }).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
@@ -181,6 +217,9 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
       return WalletsGen.createValidatedSecretKeyError({error: err.desc, secretKey})
     })
 }
+
+const navigateToTop = () =>
+  Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 
 const navigateUp = (
   state: TypedState,
@@ -252,6 +291,11 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 }
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
+  if (!flags.walletsEnabled) {
+    console.log('Wallets saga disabled')
+    return
+  }
+
   yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
   yield Saga.actionToPromise(
     [
@@ -259,6 +303,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
+      WalletsGen.didSetAccountAsDefault,
+      WalletsGen.deletedAccount,
       ConfigGen.loggedIn,
     ],
     loadAccounts
@@ -269,6 +315,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
+      WalletsGen.loadDisplayCurrency,
     ],
     loadAssets
   )
@@ -281,14 +328,21 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     loadPayments
   )
+  yield Saga.actionToPromise(WalletsGen.deleteAccount, deleteAccount)
   yield Saga.actionToPromise(WalletsGen.loadPaymentDetail, loadPaymentDetail)
   yield Saga.actionToPromise(WalletsGen.linkExistingAccount, linkExistingAccount)
   yield Saga.actionToPromise(WalletsGen.validateAccountName, validateAccountName)
   yield Saga.actionToPromise(WalletsGen.validateSecretKey, validateSecretKey)
   yield Saga.actionToPromise(WalletsGen.exportSecretKey, exportSecretKey)
-  yield Saga.safeTakeEveryPure(WalletsGen.selectAccount, navigateToAccount)
+  yield Saga.actionToPromise(WalletsGen.loadDisplayCurrencies, loadDisplayCurrencies)
+  yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
+  yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
+  yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
+  yield Saga.safeTakeEveryPure(
+    [WalletsGen.selectAccount, WalletsGen.didSetAccountAsDefault],
+    navigateToAccount
+  )
   yield Saga.actionToAction([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
-
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [
@@ -301,6 +355,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ],
     buildPayment
   )
+
+  yield Saga.actionToAction(WalletsGen.deletedAccount, navigateToTop)
+
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
