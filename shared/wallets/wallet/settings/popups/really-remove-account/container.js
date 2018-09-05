@@ -9,6 +9,7 @@ import ReallyRemoveAccountPopup from '.'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
+  console.log('nathan test', accountID, secretKey)
 
   return {
     accountID,
@@ -17,7 +18,10 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _onClose: () => dispatch(navigateUp()),
+  _onClose: (accountID: Types.AccountID) => {
+    dispatch(WalletsGen.createSecretKeySeen({accountID}))
+    dispatch(navigateUp())
+  },
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
   _onFinish: (accountID: Types.AccountID) =>
     dispatch(
@@ -25,12 +29,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
         accountID,
       })
     ),
+  _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   name: stateProps.name,
-  onCancel: () => dispatchProps._onClose(),
-  onCopyKey: () => dispatchProps._onCopyKey(stateProps.accountID),
+  onCancel: () => dispatchProps._onClose(stateProps.accountID),
+  onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
+  onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ReallyRemoveAccountPopup)

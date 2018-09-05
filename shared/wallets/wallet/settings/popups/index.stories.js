@@ -17,6 +17,7 @@ const reallyProps = {
   onCancel: Sb.action('onCancel'),
   onFinish: Sb.action('onFinish'),
   onCopyKey: Sb.action('onCopyKey'),
+  onLoadSecretKey: Sb.action('onLoadSecretKey'),
 }
 
 const load = () => {
