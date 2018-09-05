@@ -173,9 +173,14 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 				rc.GetConvID())
 			continue
 		}
+		name := rc.GetName()
+		if len(name) == 0 {
+			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
+			continue
+		}
 		writable = append(writable, SharedInboxItem{
 			ConvID: rc.GetConvID().String(),
-			Name:   rc.GetName(),
+			Name:   name,
 			Public: rc.Conv.IsPublic(),
 		})
 	}

@@ -97,11 +97,14 @@ func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 func (rc RemoteConversation) GetName() string {
 	switch rc.Conv.Metadata.TeamType {
 	case chat1.TeamType_COMPLEX:
-		if rc.LocalMetadata != nil {
+		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
 			return fmt.Sprintf("%s#%s", rc.Conv.MaxMsgSummaries[0].TlfName, rc.LocalMetadata.TopicName)
 		}
 		fallthrough
 	default:
+		if len(rc.Conv.MaxMsgSummaries) == 0 {
+			return ""
+		}
 		return rc.Conv.MaxMsgSummaries[0].TlfName
 	}
 }
