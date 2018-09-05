@@ -130,9 +130,7 @@ class BottomLine extends PureComponent<Props> {
         {this.props.youNeedToRekey && (
           <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
-        <Box style={styles.innerBox}>
-          <Box>{content}</Box>
-        </Box>
+        <Box style={styles.innerBox}>{content}</Box>
       </Box>
     )
   }
@@ -146,6 +144,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
+    width: '100%',
   },
   rekeyNeededContainer: {
     alignSelf: 'center',

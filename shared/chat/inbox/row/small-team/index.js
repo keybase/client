@@ -14,7 +14,7 @@ import {
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import * as RowSizes from '../sizes'
+import * as InboxSizes from '../sizes'
 
 export type Props = {
   backgroundColor: string,
@@ -149,7 +149,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  container: {flexShrink: 0, height: RowSizes.smallRowHeight},
+  container: {flexShrink: 0, height: InboxSizes.smallRowHeight},
   conversationRow: {
     ...globalStyles.flexBoxColumn,
     flexGrow: 1,
@@ -157,6 +157,7 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     paddingLeft: 8,
     paddingRight: 8,
+    width: InboxSizes.inboxWidth - 48 - 16,
   },
   fastBlank: platformStyles({
     isMobile: {
