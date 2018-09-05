@@ -1050,6 +1050,41 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 	return i.writeDiskInbox(ctx, ibox)
 }
 
+func (i *Inbox) SubteamRename(ctx context.Context, vers chat1.InboxVers, convIDs []chat1.ConversationID) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Update convs
+	for _, convID := range convIDs {
+		_, conv := i.getConv(convID, ibox.Conversations)
+		if conv == nil {
+			i.Debug(ctx, "SubteamRename: no conversation found: convID: %s", convID)
+			continue
+		}
+		conv.Conv.Metadata.Version = vers.ToConvVers()
+	}
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
 func (i *Inbox) SetConvRetention(ctx context.Context, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
 	locks.Inbox.Lock()

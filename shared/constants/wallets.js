@@ -12,6 +12,10 @@ const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
 const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
+const sendReceiveFormRouteKey = 'sendReceiveForm'
+const confirmFormRouteKey = 'confirmForm'
+const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
+
 const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
   description: '',
@@ -58,6 +62,8 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  currencies: I.List(),
+  currencyMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -115,6 +121,21 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
+const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '',
+  name: '',
+})
+
+const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
+  makeCurrencies({
+    description: w.description,
+    code: w.code,
+    symbol: w.symbol,
+    name: w.name,
+  })
+
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
@@ -135,6 +156,13 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   txID: '',
   worth: '',
   worthCurrency: '',
+})
+
+const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '',
+  name: '',
 })
 
 const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
@@ -172,10 +200,12 @@ const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record(
 })
 
 const makeRequest: I.RecordFactory<Types._Request> = I.Record({
+  amount: '',
   amountDescription: '',
   asset: 'native',
   completed: false,
   completedTransactionID: null,
+  currencyCode: '',
   id: '',
   requestee: '',
   requesteeType: '',
@@ -185,6 +215,7 @@ const makeRequest: I.RecordFactory<Types._Request> = I.Record({
 
 const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   let asset = 'native'
+  let currencyCode = ''
   if (!(r.asset || r.currency)) {
     logger.error('Received requestDetails with no asset or currency code')
     return null
@@ -195,10 +226,13 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
     })
   } else if (r.currency) {
     asset = 'currency'
+    currencyCode = r.currency
   }
   return makeRequest({
+    amount: r.amount,
     amountDescription: r.amountDescription,
     asset,
+    currencyCode,
     id: r.id,
     requestee: r.toAssertion,
     requesteeType: partyTypeToString[r.toUserType],
@@ -235,6 +269,11 @@ const requestPaymentWaitingKey = 'wallets:requestPayment'
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
+
+const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
+
+const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
@@ -275,11 +314,15 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wa
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  currenciesResultToCurrencies,
   buildPaymentResultToBuiltPayment,
+  confirmFormRouteKey,
   createNewAccountWaitingKey,
   getAccountIDs,
   getAccount,
   getAssets,
+  getDisplayCurrencies,
+  getDisplayCurrency,
   getDefaultAccountID,
   getFederatedAddress,
   getPayment,
@@ -293,9 +336,11 @@ export {
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeCurrencies,
   makeBuildingPayment,
   makeBuiltPayment,
   makePayment,
+  makeRequest,
   makeReserve,
   makeState,
   paymentResultToPayment,
@@ -304,4 +349,6 @@ export {
   requestResultToRequest,
   requestPaymentWaitingKey,
   sendPaymentWaitingKey,
+  sendReceiveFormRouteKey,
+  sendReceiveFormRoutes,
 }

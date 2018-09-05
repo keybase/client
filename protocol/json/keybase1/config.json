@@ -251,6 +251,10 @@
             "items": "string"
           },
           "name": "provisionedUsernames"
+        },
+        {
+          "type": "boolean",
+          "name": "hasProvisionedUser"
         }
       ]
     },

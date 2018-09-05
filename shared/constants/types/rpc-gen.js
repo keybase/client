@@ -19,6 +19,12 @@ export const backendCommonBlockType = {
   git: 2,
 }
 
+export const blockBlockStatus = {
+  unknown: 0,
+  live: 1,
+  archived: 2,
+}
+
 export const commonClientType = {
   none: 0,
   cli: 1,

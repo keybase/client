@@ -28,7 +28,9 @@ const Header = (props: Props) => (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
         {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
-        <Kb.Text type="BodyBig">{props.walletName}</Kb.Text>
+        <Kb.Text selectable={true} type="BodyBig">
+          {props.walletName}
+        </Kb.Text>
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
         {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}

@@ -452,7 +452,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as not valid: %v", msg.DebugString())
 			continue
 		}
 
@@ -556,7 +556,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
@@ -611,7 +611,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if msg.GetMessageType() != chat1.MessageType_DELETEHISTORY {
@@ -713,7 +713,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		if !msg.IsValid() {
-			de("skipping invalid msg: %v", msg.GetMessageID())
+			de("skipping invalid msg: %v", msg.DebugString())
 			continue
 		}
 		mvalid := msg.Valid()
