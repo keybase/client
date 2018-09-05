@@ -2551,3 +2551,17 @@ func (f FeatureFlagError) Error() string {
 }
 
 var _ error = FeatureFlagError{}
+
+//=============================================================================
+
+type UserReverifyNeededError struct {
+	msg string
+}
+
+func NewUserReverifyNeededError(s string) error {
+	return UserReverifyNeededError{s}
+}
+
+func (e UserReverifyNeededError) Error() string {
+	return fmt.Sprintf("User green link error: %s", e.msg)
+}

@@ -67,7 +67,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 	if err != nil {
 		return nil, err
 	}
-	hPrevInfo, err := parentTeam.GetHPrevInfo()
+	hPrevInfo, err := parentTeam.GetHPrevInfoIfValid()
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func NewSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key libkb
 		SeqType:           seqTypeForTeamPublicness(parentTeam.IsPublic()), // children are as public as their parent
 		Seqno:             parentTeam.GetLatestSeqno() + 1,
 		PrevLinkID:        prevLinkID,
-		HPrevInfoFallback: &hPrevInfo,
+		HPrevInfoFallback: hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -144,7 +144,7 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 	if err != nil {
 		return nil, err
 	}
-	hPrevInfo, err := parentTeam.GetHPrevInfo()
+	hPrevInfo, err := parentTeam.GetHPrevInfoIfValid()
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func RenameSubteamSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key li
 		PrevLinkID:        prev,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfoFallback: &hPrevInfo,
+		HPrevInfoFallback: hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -179,7 +179,7 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 	if err != nil {
 		return nil, err
 	}
-	hPrevInfo, err := subteam.GetHPrevInfo()
+	hPrevInfo, err := subteam.GetHPrevInfoIfValid()
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func RenameUpPointerSig(g *libkb.GlobalContext, me libkb.UserForSignatures, key 
 		PrevLinkID:        prev,
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
-		HPrevInfoFallback: &hPrevInfo,
+		HPrevInfoFallback: hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -231,13 +231,12 @@ func NewInviteID() SCTeamInviteID {
 }
 
 func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.LinkID, seqno keybase1.Seqno, key libkb.GenericKey, teamSection SCTeamSection,
-	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, hPrevInfo libkb.HPrevInfo) (*jsonw.Wrapper, error) {
+	linkType libkb.LinkType, merkleRoot *libkb.MerkleRoot, hPrevInfo *libkb.HPrevInfo) (*jsonw.Wrapper, error) {
 	if teamSection.PerTeamKey != nil {
 		if teamSection.PerTeamKey.ReverseSig != "" {
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
 		}
 	}
-
 	ret, err := libkb.ProofMetadata{
 		LinkType:          linkType,
 		SigningUser:       me,
@@ -248,7 +247,7 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 		SigVersion:        libkb.KeybaseSignatureV2,
 		SeqType:           seqTypeForTeamPublicness(teamSection.Public),
 		MerkleRoot:        merkleRoot,
-		HPrevInfoFallback: &hPrevInfo,
+		HPrevInfoFallback: hPrevInfo,
 	}.ToJSON(metaContext(g))
 	if err != nil {
 		return nil, err
@@ -282,11 +281,11 @@ func seqTypeForTeamPublicness(public bool) keybase1.SeqType {
 
 func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 	sigMultiItem libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
-	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me)
+	return precheckLinksToPost(ctx, g, []libkb.SigMultiItem{sigMultiItem}, state, me, true)
 }
 
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion) (err error) {
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion, checkHPrevInfo bool) (err error) {
 	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 
 	// As an optimization, AppendChainLink consumes its state.
@@ -297,7 +296,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	for _, sigItem := range sigMultiItems {
-		state, err = playSigItem(ctx, g, me, state, sigItem)
+		state, err = playSigItem(ctx, g, me, state, sigItem, true)
 		if err != nil {
 			return err
 		}
@@ -306,7 +305,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	return nil
 }
 
-func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem) (*TeamSigChainState, error) {
+func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, checkHPrevInfo bool) (*TeamSigChainState, error) {
 	isAdmin := true
 	if state != nil {
 		role, err := state.GetUserRole(me)
@@ -342,7 +341,7 @@ func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVe
 		return nil, NewPrecheckStructuralError("link missing inner", nil)
 	}
 
-	newState, err := AppendChainLink(ctx, g, me, state, link2, &signer)
+	newState, err := AppendChainLink(ctx, g, me, state, link2, &signer, checkHPrevInfo)
 	if err != nil {
 		return nil, NewPrecheckAppendError(err)
 	}

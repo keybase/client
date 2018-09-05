@@ -674,7 +674,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 	// a null hPrevHash is valid even when specifying hPrevInfo.
 	var hPrevInfoPtr *HPrevInfo
 	if ol.HPrevSeqno != nil {
-		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, ol.HPrevHash)
+		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, *ol.HPrevHash)
 		hPrevInfoPtr = &hPrevInfo
 	}
 
@@ -1400,7 +1400,7 @@ func (c ChainLink) AllowStubbing() bool {
 	return c.unpacked.outerLinkV2.LinkType.AllowStubbing()
 }
 
-// isHighUserLink determines whether a chainlink counts as "high" in a user's chain,
+// IsHighUserLink determines whether a chainlink counts as "high" in a user's chain,
 // which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
 // PGPUpdate, Revoke, or any link that is revoking.
 func (c ChainLink) IsHighUserLink() (bool, error) {
@@ -1432,7 +1432,7 @@ func (c ChainLink) ExpectedNextHPrevInfo() (HPrevInfo, error) {
 		return NewHPrevInfo(c.GetSeqno(), c.id), nil
 	}
 	if c.computedHPrevInfo == nil {
-		return HPrevInfo{}, fmt.Errorf("Expected to have already computed this link's HPrevInfo, but it was not computed.")
+		return HPrevInfo{}, NewUserReverifyNeededError("Expected to have already computed this link's HPrevInfo, but it was not computed.")
 	}
 	return *c.computedHPrevInfo, nil
 }

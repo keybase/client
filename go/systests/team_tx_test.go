@@ -117,6 +117,9 @@ func TestTeamTxDependency(t *testing.T) {
 	team := ann.createTeam()
 	t.Logf("Team created (%s)", team)
 
+	// Adding as an admin also ensures client is posting correct
+	// high skip links when the new high link changes during
+	// a transaction.
 	ann.addTeamMember(team, bob.username, keybase1.TeamRole_ADMIN)
 
 	teamObj := ann.loadTeam(team, true /* admin */)

@@ -772,7 +772,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		g.Log.CDebugf(mctx.Ctx(), "AddMemberTx: Prepared signature %d: Type: %v SeqNo: %d Hash: %q",
 			i, linkType, nextSeqno, linkID)
 
-		runningState, err = team.playSigItem(mctx.Ctx(), runningState, sigMultiItem)
+		runningState, err = team.playSigItem(mctx.Ctx(), runningState, sigMultiItem, false)
 		if err != nil {
 			return err
 		}

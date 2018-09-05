@@ -344,7 +344,7 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 	return ret
 }
 
-func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
+func (sc *SigChain) VerifyChain(m MetaContext, reverify bool) (err error) {
 	m.CDebugf("+ SigChain#VerifyChain()")
 	defer func() {
 		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
@@ -355,7 +355,7 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		m.G().VDL.CLogf(m.Ctx(), VLog1, "| verify link %d (%s)", i, curr.id)
-		if curr.chainVerified {
+		if !reverify && curr.chainVerified {
 			expectedNextHPrevInfo, err = curr.ExpectedNextHPrevInfo()
 			if err != nil {
 				return err
@@ -758,7 +758,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 		m.CDebugf("- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(m); err != nil {
+	if err = sc.VerifyChain(m, false); err != nil {
 		return cached, 0, err
 	}
 
@@ -1281,7 +1281,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
+	if err = l.chain.VerifyChain(l.M(), false); err != nil {
 		return nil, err
 	}
 	stage("CheckFreshness")
@@ -1321,8 +1321,15 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
-		return nil, err
+	if err = l.chain.VerifyChain(l.M(), false); err != nil {
+		switch err.(type) {
+		case UserReverifyNeededError:
+			err = l.chain.VerifyChain(l.M(), true)
+		case nil:
+			// Do nothing
+		default:
+			return nil, err
+		}
 	}
 
 	stage("StoreChain")

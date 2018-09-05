@@ -1237,7 +1237,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	return sig, err
 }
 
-func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, hPrevInfo *libkb.HPrevInfo, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
+func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, hPrevInfoOverride *libkb.HPrevInfo, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
 	me, err := loadMeForSignatures(ctx, t.G())
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
@@ -1250,14 +1250,16 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
-	if hPrevInfo == nil {
-		hPrevInfoPre, err := t.chain().GetHPrevInfo()
-		if err != nil {
-			return libkb.SigMultiItem{}, "", err
-		}
-		hPrevInfo = &hPrevInfoPre
+
+	hPrevInfo, err := t.chain().GetHPrevInfoIfValid()
+	if err != nil {
+		return libkb.SigMultiItem{}, "", err
 	}
-	sig, err := ChangeSig(t.G(), me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot, *hPrevInfo)
+	if hPrevInfoOverride != nil {
+		hPrevInfo = hPrevInfoOverride
+	}
+
+	sig, err := ChangeSig(t.G(), me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot, hPrevInfo)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
@@ -1301,7 +1303,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		*hPrevInfo,
+		hPrevInfo,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
@@ -1653,15 +1655,15 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 	if err != nil {
 		return err
 	}
-	return precheckLinksToPost(ctx, t.G(), sigMultiItems, t.chain(), uv)
+	return precheckLinksToPost(ctx, t.G(), sigMultiItems, t.chain(), uv, true)
 }
 
-func (t *Team) playSigItem(ctx context.Context, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem) (newState *TeamSigChainState, err error) {
+func (t *Team) playSigItem(ctx context.Context, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, checkHPrevInfo bool) (newState *TeamSigChainState, err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return playSigItem(ctx, t.G(), uv, state, sigMultiItem)
+	return playSigItem(ctx, t.G(), uv, state, sigMultiItem, checkHPrevInfo)
 }
 
 // Try to run `post` (expected to post new team sigchain links).

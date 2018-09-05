@@ -306,7 +306,10 @@ func (e SubteamOwnersError) Error() string {
 }
 
 // The sigchain link is problematically new.
-type GreenLinkError struct{ seqno keybase1.Seqno }
+type GreenLinkError struct {
+	seqno keybase1.Seqno
+	msg   string
+}
 
 func NewGreenLinkError(seqno keybase1.Seqno) error {
 	return GreenLinkError{seqno: seqno}
@@ -314,7 +317,11 @@ func NewGreenLinkError(seqno keybase1.Seqno) error {
 
 func (e GreenLinkError) Error() string {
 	// Report the probable cause for this error.
-	return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
+	if e.msg == "" {
+		return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
+	} else {
+		return e.msg
+	}
 }
 
 type UnsupportedLinkTypeError struct {

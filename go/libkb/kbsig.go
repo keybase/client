@@ -359,29 +359,38 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
-	var hPrevInfo HPrevInfo
+	var hPrevInfo *HPrevInfo
 	if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
 		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
 	} else if arg.Me != nil {
-		hPrevInfo, err = arg.Me.GetExpectedNextHPrevInfo()
-		if err != nil {
+		hPrevInfoPre, err := arg.Me.GetExpectedNextHPrevInfo()
+		switch err.(type) {
+		// If we haven't computed the next expected HPrevInfo,
+		// yet, leave it as nil and postpone writing for now.
+		case UserReverifyNeededError:
+			break
+		case nil:
+			hPrevInfo = &hPrevInfoPre
+		default:
 			return nil, err
 		}
 	} else {
-		hPrevInfo = *arg.HPrevInfoFallback
+		hPrevInfo = arg.HPrevInfoFallback
 	}
 
-	hPrevInfoObj := jsonw.NewDictionary()
-	hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
-	if hash := hPrevInfo.Hash; hash != nil {
-		hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
-	} else {
-		hPrevInfoObj.SetKey("hash", jsonw.NewNil())
-	}
-	ret.SetKey("high_skip", hPrevInfoObj)
+	if hPrevInfo != nil {
+		hPrevInfoObj := jsonw.NewDictionary()
+		hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
+		if hash := hPrevInfo.Hash; hash != nil {
+			hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
+		} else {
+			hPrevInfoObj.SetKey("hash", jsonw.NewNil())
+		}
+		ret.SetKey("high_skip", hPrevInfoObj)
 
-	if arg.IgnoreIfUnsupported {
-		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		if arg.IgnoreIfUnsupported {
+			ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		}
 	}
 
 	eldest := arg.Eldest
@@ -593,7 +602,7 @@ func MakeSig(
 			hasRevokes,
 			seqType,
 			ignoreIfUnsupported,
-			hPrevInfo,
+			&hPrevInfo,
 		)
 	default:
 		err = errors.New("Invalid Signature Version")

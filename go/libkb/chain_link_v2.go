@@ -201,8 +201,8 @@ type OuterLinkV2 struct {
 	// -- Links exist in the wild that are missing fields below this line too.
 	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
 	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
-	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
-	HPrevHash  LinkID          `codec:"high_skip_hash"`
+	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno,omitempty"`
+	HPrevHash  *LinkID         `codec:"high_skip_hash,omitempty"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -248,7 +248,7 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
-	hPrevInfo HPrevInfo,
+	hPrevInfo *HPrevInfo,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
@@ -257,6 +257,12 @@ func MakeSigchainV2OuterSig(
 		return sig, sigid, linkID, err
 	}
 
+	var hPrevSeqno *keybase1.Seqno
+	var hPrevHash *LinkID
+	if hPrevInfo != nil {
+		hPrevSeqno = &hPrevInfo.Seqno
+		hPrevHash = &hPrevInfo.Hash
+	}
 	outerLink := OuterLinkV2{
 		Version:             2,
 		Seqno:               seqno,
@@ -265,8 +271,8 @@ func MakeSigchainV2OuterSig(
 		LinkType:            v2LinkType,
 		SeqType:             seqType,
 		IgnoreIfUnsupported: ignoreIfUnsupported,
-		HPrevSeqno:          &hPrevInfo.Seqno,
-		HPrevHash:           hPrevInfo.Hash,
+		HPrevSeqno:          hPrevSeqno,
+		HPrevHash:           hPrevHash,
 	}
 	encodedOuterLink, err := outerLink.Encode()
 	if err != nil {

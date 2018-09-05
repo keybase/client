@@ -218,7 +218,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		hPrevInfo,
+		&hPrevInfo,
 	)
 	if err != nil {
 		return err
@@ -442,7 +442,8 @@ func generateNewSubteamSigForParentChain(g *libkb.GlobalContext, me libkb.UserFo
 		return nil, err
 	}
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
-	hPrevInfo, err := parentTeam.GetHPrevInfo()
+
+	hPrevInfo, err := parentTeam.GetHPrevInfoIfValid()
 	if err != nil {
 		return nil, err
 	}
@@ -563,6 +564,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	seqType := seqTypeForTeamPublicness(parentTeam.IsPublic())
+	hPrevInfo := libkb.NewInitialHPrevInfo()
 	v2Sig, _, _, err := libkb.MakeSigchainV2OuterSig(
 		signingKey,
 		libkb.LinkTypeSubteamHead,
@@ -572,7 +574,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		libkb.NewInitialHPrevInfo(),
+		&hPrevInfo,
 	)
 	if err != nil {
 		return
