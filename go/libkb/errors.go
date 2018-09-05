@@ -2527,7 +2527,7 @@ func (f FeatureFlagError) Feature() Feature {
 }
 
 func (t FeatureFlagError) Error() string {
-	return fmt.Sprintf("Feature %s flagged off: %s", t.feature, t.msg)
+	return fmt.Sprintf("Feature %q flagged off: %s", t.feature, t.msg)
 }
 
 var _ error = FeatureFlagError{}

@@ -727,7 +727,6 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		for _, field := range s.Fields {
 			if field.Key == "feature" {
 				feature = Feature(field.Value)
-				break
 			}
 		}
 		return NewFeatureFlagError(s.Desc, feature)

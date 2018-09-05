@@ -612,14 +612,15 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 	lastSeqno, lastLinkID, err = f.world.merkleLookup(m.Ctx(), arg.ID, arg.Public)
 
 	if err != nil {
-		f.featureFlagGate.DigestError(m, err)
 		return nil, err
 	}
 
 	teamUpdate, err = f.makeHTTPRequest(m, arg.toHTTPArgs(shoppingList), arg.Public)
 	if err != nil {
+		f.featureFlagGate.DigestError(m, err)
 		return nil, err
 	}
+
 	if !teamUpdate.ID.Eq(arg.ID) {
 		return nil, NewFastLoadError("server returned wrong id: %v != %v", teamUpdate.ID, arg.ID)
 	}
