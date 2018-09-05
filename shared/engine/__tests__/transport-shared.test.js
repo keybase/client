@@ -3,22 +3,24 @@
 import {TransportShared} from '../transport-shared'
 
 describe('TransportShared', () => {
+  type MessageType = [number, number, string, Object]
+
   class FakeTransportShared extends TransportShared {
     connected: boolean
-    messages: any[]
+    lastMessage: ?MessageType
 
     constructor() {
       super({}, () => {}, () => {}, () => {})
       this.connected = false
-      this.messages = []
+      this.lastMessage = null
     }
 
     is_connected = () => {
       return this.connected
     }
 
-    send = (msg: any) => {
-      this.messages.push(msg)
+    send = (msg: MessageType) => {
+      this.lastMessage = msg
     }
   }
 
@@ -28,7 +30,7 @@ describe('TransportShared', () => {
 
     t.connected = true
     t.invoke(msg, () => {})
-    expect(t.messages).toEqual([[0, 1, 'foo.bar', msg.args]])
+    expect(t.lastMessage).toEqual([0, 1, 'foo.bar', msg.args])
   })
 
   it('invoke queued', () => {
@@ -37,12 +39,12 @@ describe('TransportShared', () => {
 
     t.connected = false
     t.invoke(msg, () => {})
-    expect(t.messages).toEqual([])
+    expect(t.messages).toBe(null)
 
     t.connected = true
 
     // $FlowIssue Flow doesn't see inherited methods.
     t._flush_queue()
-    expect(t.messages).toEqual([[0, 1, 'foo.bar', msg.args]])
+    expect(t.lastMessage).toEqual([0, 1, 'foo.bar', msg.args])
   })
 })
