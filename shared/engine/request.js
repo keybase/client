@@ -9,13 +9,16 @@ type SimpleWaiting = (waiting: boolean) => void
 class Request {
   // RPC call name
   method: MethodKey
+  // RPC parameters
+  param: Object
   // Let others know our waiting state
   _waitingHandler: (waiting: boolean) => void
   // If we're waiting for a response
   _waiting: boolean = false
 
-  constructor(method: MethodKey, waitingHandler: SimpleWaiting) {
+  constructor(method: MethodKey, param: Object, waitingHandler: SimpleWaiting) {
     this.method = method
+    this.param = param
     this._waitingHandler = waitingHandler
   }
 
@@ -26,21 +29,19 @@ class Request {
 }
 
 class IncomingRequest extends Request {
-  // RPC parameters
-  param: Object
   // Callback in the incomingCallMap
   _handler: (param: ?Object, request: ResponseType) => void
   _response: ?ResponseType
 
   constructor(
     method: MethodKey,
-    param: ?Object,
+    param: Object,
     response: ?ResponseType,
     waitingHandler: SimpleWaiting,
     handler: Function
   ) {
-    super(method, waitingHandler)
-    this.param = param || {}
+    super(method, param, waitingHandler)
+
     this._handler = handler
     this._response = response
   }
@@ -68,8 +69,6 @@ class IncomingRequest extends Request {
 }
 
 class OutgoingRequest extends Request {
-  // RPC parameters
-  param: Object
   // Callback when we've gotten a response
   _callback: (err: any, data: any) => void
   // How we make calls
@@ -82,8 +81,7 @@ class OutgoingRequest extends Request {
     waitingHandler: SimpleWaiting,
     invoke: invokeType
   ) {
-    super(method, waitingHandler)
-    this.param = param
+    super(method, param, waitingHandler)
     this._invoke = invoke
     this._callback = callback
   }
