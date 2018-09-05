@@ -39,6 +39,11 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
+			"path": "github.com/Microsoft/go-winio",
+			"revision": "97e4973ce50b2ff5f09635a57e2b88a037aae829",
+			"revisionTime": "2018-08-23T15:24:21-07:00"
+		},
+		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
@@ -377,11 +382,6 @@
 			"path": "github.com/keybase/keybase-test-vectors/teamchains",
 			"revision": "84ebf93577bf48141063f7842bc137c3d40c4b82",
 			"revisionTime": "2018-08-06T20:08:11Z"
-		},
-		{
-			"path": "github.com/keybase/npipe",
-			"revision": "fcc44a83dcb12dae0f3f325c449bef3e1f38892b",
-			"revisionTime": "2017-04-28T11:20:20-07:00"
 		},
 		{
 			"path": "github.com/keybase/ps-go",

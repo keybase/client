@@ -1,20 +1,39 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Icon, Text, Button, Input, PlatformIcon} from '../../common-adapters'
+import {Box, Box2, Icon, InfoNote, Text, Button, Input, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import {platformText} from './shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {Props} from '.'
+import openURL from '../../util/open-url'
 
 function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
-      <Box style={styleInfoBanner}>
-        <Text backgroundMode="Information" type="BodySemibold">
+      <Box style={styleYellowBanner}>
+        <Text backgroundMode="Information" type="BodySmallSemibold">
           &bull; You must have karma &ge; 2<br />
           &bull; You must enter your uSeRName with exact case
         </Text>
       </Box>
+    )
+  }
+
+  if (platform === 'facebook') {
+    return (
+      <InfoNote containerStyle={styleInfoNote}>
+        <Box2 direction="vertical" style={{textAlign: 'center'}}>
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            You can find your Facebook username at
+          </Text>
+          <Box2 direction="horizontal">
+            <Text type="BodySmallSecondaryLink" onClick={() => openURL('http://www.facebook.com/settings')}>
+              http://www.facebook.com/settings
+            </Text>
+            <Text type="BodySmall">.</Text>
+          </Box2>
+        </Box2>
+      </InfoNote>
     )
   }
 
@@ -71,7 +90,6 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           overlay={'icon-proof-unfinished'}
           overlayColor={globalColors.grey}
         />
-        <UsernameTips platform={this.props.platform} />
         <Input
           autoFocus={true}
           style={styleInput}
@@ -81,6 +99,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           onChangeText={username => this.handleUsernameChange(username)}
           onEnterKeyDown={() => this.handleContinue()}
         />
+        <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
           <Button
             type="Secondary"
@@ -143,17 +162,23 @@ const styleInput = {
   width: 460,
 }
 
-const styleInfoBanner = {
+const styleYellowBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.yellow,
+  borderRadius: 3,
   marginTop: globalMargins.small,
   marginBottom: -globalMargins.tiny,
+  minWidth: 460,
   paddingTop: globalMargins.xsmall,
   paddingBottom: globalMargins.xsmall,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-  borderRadius: 3,
+}
+
+const styleInfoNote = {
+  marginBottom: globalMargins.tiny,
+  marginTop: globalMargins.medium,
 }
 
 export default PrivateEnterUsernameRender

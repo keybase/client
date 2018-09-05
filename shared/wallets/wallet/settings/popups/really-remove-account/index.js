@@ -1,14 +1,15 @@
 // @flow
 import React from 'react'
-import * as Kb from '../../../common-adapters'
-import * as Styles from '../../../styles'
-import WalletPopup from '../../wallet-popup'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import WalletPopup from '../../../../wallet-popup'
 
-type Props = Kb.PropsWithTimer<{
+type Props = Kb.PropsWithTimer<{|
   name: string,
   onCopyKey: () => void,
-  onClose: () => void,
-}>
+  onFinish: () => void,
+  onCancel: () => void,
+|}>
 
 type State = {
   showingToast: boolean,
@@ -30,7 +31,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   render() {
     return (
       <WalletPopup
-        onClose={this.props.onClose}
+        onClose={this.props.onCancel}
         containerStyle={styles.backgroundColor}
         headerStyle={Styles.collapseStyles([styles.backgroundColor, styles.header])}
         bottomButtons={[
@@ -46,7 +47,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             fullWidth={Styles.isMobile}
             key={1}
             label="Finish"
-            onClick={this.props.onClose}
+            onClick={this.props.onFinish}
             type="Secondary"
           />,
         ]}
@@ -97,8 +98,8 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
   },
   warningText: {
-    textAlign: 'center',
     color: Styles.globalColors.brown_60,
+    textAlign: 'center',
   },
   toastText: {
     color: Styles.globalColors.white,

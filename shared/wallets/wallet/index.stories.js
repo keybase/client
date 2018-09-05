@@ -4,7 +4,7 @@ import * as Sb from '../../stories/storybook'
 import {stringToAccountID} from '../../constants/types/wallets'
 import Wallet from '.'
 import header, {Container} from './header/index.stories'
-import settingsPopup from './settings-popup/index.stories'
+import settings from './settings/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
@@ -30,7 +30,7 @@ const props = {
 
 const load = () => {
   header()
-  settingsPopup()
+  settings()
   Sb.storiesOf('Wallets/Wallet', module)
     .addDecorator(provider)
     .addDecorator(Container)

@@ -2008,9 +2008,9 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 }
 
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
-	conv chat1.Conversation, tlfPublic bool) (bool, error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
-		nameInfo, err := CreateNameInfoSource(ctx, b.G(), conv.GetMembersType()).LookupID(ctx, tlfName,
+		nameInfo, err := CreateNameInfoSource(ctx, b.G(), membersType).LookupID(ctx, tlfName,
 			tlfPublic)
 		if err != nil {
 			return "", err

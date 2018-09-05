@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
-import WalletPopup from '../../../wallet-popup'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
+import WalletPopup from '../../../../wallet-popup'
 
 type Props = {|
   accountName: string,
@@ -11,7 +11,7 @@ type Props = {|
   username: string,
 |}
 
-const SetDefaultAccount = (props: Props) => {
+const SetDefaultAccountPopup = (props: Props) => {
   const buttons = [
     <Kb.Button
       key={0}
@@ -96,4 +96,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default SetDefaultAccount
+export default SetDefaultAccountPopup

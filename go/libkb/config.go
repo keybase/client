@@ -818,6 +818,10 @@ func (f *JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
 }
 
+func (f *JSONConfigFile) IsMobileExtension() (bool, bool) {
+	return f.GetBoolAtPath("mobile_extension")
+}
+
 func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 	return f.GetBoolAtPath("slow_gregor_conn")
 }
