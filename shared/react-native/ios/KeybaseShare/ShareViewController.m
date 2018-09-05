@@ -9,26 +9,12 @@
 #import "ShareViewController.h"
 #import "ConversationViewController.h"
 #import "keybase/keybase.h"
-#import "Fs.h"
-
-#if TARGET_OS_SIMULATOR
-const BOOL isSimulator = YES;
-#else
-const BOOL isSimulator = NO;
-#endif
 
 @interface ShareViewController ()
 
 @end
 
 @implementation ShareViewController
-
-- (void)viewDidLoad {
-  NSError* error = NULL;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
-  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
-  [super viewDidLoad];
-}
 
 - (BOOL)isContentValid {
     // Do validation of contentText and/or NSExtensionContext attachments here

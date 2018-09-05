@@ -8,13 +8,26 @@
 
 #import "ConversationViewController.h"
 #import "keybase/keybase.h"
+#import "Fs.h"
+
+#if TARGET_OS_SIMULATOR
+const BOOL isSimulator = YES;
+#else
+const BOOL isSimulator = NO;
+#endif
 
 @interface ConversationViewController ()
 @property UISearchController* searchController;
+@property NSArray* unfilteredInboxItems;
+@property NSArray* filteredInboxItems;
 @end
 
 @implementation ConversationViewController
+
 - (void)viewDidLoad {
+  NSError* error = NULL;
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
+  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   
   self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
   self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
@@ -23,16 +36,24 @@
   self.searchController.dimsBackgroundDuringPresentation = false;
   self.definesPresentationContext = YES;
   [self.tableView setTableHeaderView:self.searchController.searchBar];
+  [self setUnfilteredInboxItems:[NSArray new]];
+  [self setFilteredInboxItems:[NSArray new]];
   
   NSString* jsonInbox = KeybaseExtensionGetInbox();
-  
+  [self parseInbox:jsonInbox];
   [super viewDidLoad];
-  
-    // Uncomment the following line to preserve selection between presentations.
-    // self.clearsSelectionOnViewWillAppear = NO;
-    
-    // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-    // self.navigationItem.rightBarButtonItem = self.editButtonItem;
+}
+
+- (void)parseInbox:(NSString*)jsonInbox {
+  NSError *error = nil;
+  NSData *data = [jsonInbox dataUsingEncoding:NSUTF8StringEncoding];
+  NSArray *items = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
+  if (!items) {
+    NSLog(@"parseInbox: error parsing JSON: %@", error);
+  } else {
+    [self setUnfilteredInboxItems:items];
+    [self setFilteredInboxItems:items];
+  }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -43,70 +64,37 @@
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return 2;
+    return 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 10;
+    return [self.filteredInboxItems count];
 }
-
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ConvCell"];
   if (NULL == cell) {
     cell = [[UITableViewCell alloc]  initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
   }
-  [[cell textLabel] setText:@"MIKE"];
+  NSInteger index = [indexPath item];
+  NSString* name = self.filteredInboxItems[index][@"Name"];
+  [[cell textLabel] setText:name];
   return cell;
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
-  NSLog(@"TEXT: %@\n", searchController.searchBar.text);
+  NSString* term = [searchController.searchBar.text lowercaseString];
+  if ([term length] == 0) {
+    [self setFilteredInboxItems:self.unfilteredInboxItems];
+  } else {
+    NSPredicate* pred = [NSPredicate predicateWithBlock:^BOOL(id obj, NSDictionary* bindings) {
+      NSDictionary* item = obj;
+      return [item[@"Name"] containsString:term];
+    }];
+    NSArray* filtered = [self.unfilteredInboxItems filteredArrayUsingPredicate:pred];
+    [self setFilteredInboxItems:filtered];
+  }
+  [self.tableView reloadData];
 }
-
-
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    } else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }   
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath {
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath {
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end
