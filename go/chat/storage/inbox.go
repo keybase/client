@@ -24,6 +24,7 @@ import (
 )
 
 const inboxVersion = 20
+const sharedInboxFile = "inbox.mpack"
 
 type queryHash []byte
 
@@ -152,6 +153,14 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	return ibox, nil
 }
 
+func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
+	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), sharedInboxFile)
+	return encrypteddb.NewFile(i.G().ExternalG(), path,
+		func(ctx context.Context) ([32]byte, error) {
+			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+		})
+}
+
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
@@ -171,12 +180,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 			Public: rc.Conv.IsPublic(),
 		})
 	}
-	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mpack")
-	file := encrypteddb.NewFile(i.G().ExternalG(), path,
-		func(ctx context.Context) ([32]byte, error) {
-			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
-		})
-	if err := file.Put(ctx, writable); err != nil {
+	if err := i.sharedInboxFile(ctx).Put(ctx, writable); err != nil {
 		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
 	}
 }
@@ -681,6 +685,15 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 
 	i.Debug(ctx, "Read: hit: version: %d", ibox.InboxVersion)
 	return ibox.InboxVersion, res, pagination, nil
+}
+
+func (i *Inbox) ReadShared(ctx context.Context) (res []SharedInboxItem, err Error) {
+	// no lock required here since we are just reading from a separate file
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("ReadShared(%s)", i.uid))()
+	if ierr := i.sharedInboxFile(ctx).Get(ctx, &res); ierr != nil {
+		return res, NewInternalError(ctx, i.DebugLabeler, "error reading shared inbox: %s", ierr)
+	}
+	return res, nil
 }
 
 func (i *Inbox) Clear(ctx context.Context) (err Error) {
