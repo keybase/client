@@ -6,6 +6,8 @@ package libkb
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testAssertionContext struct{}
@@ -22,11 +24,8 @@ func TestSuccess1(t *testing.T) {
 		{"reddit", "maxtaco"},
 		{"twitter", "maxtaco"},
 	})
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else if !expr.MatchSet(*proofs) {
-		t.Errorf("Should have matched")
-	}
+	require.NoError(t, err)
+	require.True(t, expr.MatchSet(*proofs))
 }
 
 func TestAssertions1(t *testing.T) {
@@ -85,19 +84,12 @@ func TestAssertions1(t *testing.T) {
 		}),
 	}
 	expr, err := AssertionParse(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
-		for i, proofset := range badProofsets {
-			if expr.MatchSet(proofset) {
-				t.Errorf("proofset %d should not have matched", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
+	}
+	for _, proofset := range badProofsets {
+		require.False(t, expr.MatchSet(proofset))
 	}
 }
 
@@ -120,14 +112,9 @@ func TestAssertions2(t *testing.T) {
 		}),
 	}
 	expr, err := AssertionParse(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
 	}
 }
 
@@ -140,18 +127,13 @@ func TestAssertions3(t *testing.T) {
 		}),
 	}
 	expr, err := AssertionParseAndOnly(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
 	}
 }
 
-func TestNeedsParans(t *testing.T) {
+func TestNeedsParens(t *testing.T) {
 	tests := []struct {
 		expr        string
 		needsParens bool
@@ -166,11 +148,8 @@ func TestNeedsParans(t *testing.T) {
 
 	for _, test := range tests {
 		expr, err := AssertionParse(testAssertionContext{}, test.expr)
-		if err != nil {
-			t.Errorf("Error parsing %s: %s", test.expr, err)
-		} else if expr.NeedsParens() != test.needsParens {
-			t.Errorf("On expresssion %s: didn't agree on needing parens", test.expr)
-		}
+		require.NoError(t, err)
+		require.Equal(t, expr.NeedsParens(), test.needsParens)
 	}
 
 }
