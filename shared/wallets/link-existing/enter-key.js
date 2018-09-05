@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {WalletPopup} from '../common'
 
 type EnterKeyProps = {
   error: string,
@@ -12,22 +13,18 @@ type EnterKeyProps = {
   waiting: boolean,
 }
 
-const EnterKey = (props: EnterKeyProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullWidth={true}
-    fullHeight={true}
-    style={Styles.collapseStyles([styles.popupContainer, styles.container])}
-  >
-    <Kb.Box2
-      direction="vertical"
-      gap="medium"
-      fullWidth={true}
-      fullHeight={true}
-      style={styles.contentContainer}
-    >
-      <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Kb.Text type="Header">Link an existing account</Kb.Text>
+const EnterKey = (props: EnterKeyProps) => {
+  const buttons = [
+    <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
+    <Kb.Button key={1} type="Wallet" onClick={props.onNext} label="Next" waiting={props.waiting} />,
+  ]
+
+  return (
+    <WalletPopup bottomButtons={buttons} onClose={props.onCancel}>
+      <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Text type="Header" style={styles.headerText}>
+        Link an existing account
+      </Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
           Paste your secret key
@@ -49,7 +46,7 @@ const EnterKey = (props: EnterKeyProps) => (
           </Kb.Text>
         )}
       </Kb.Box2>
-      <Kb.InfoNote>
+      <Kb.InfoNote containerStyle={styles.infoNote}>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="xtiny">
             <Kb.Text type="BodySmall" lineClamp={1} style={styles.textCenter}>
@@ -65,22 +62,18 @@ const EnterKey = (props: EnterKeyProps) => (
           </Kb.Text>
         </Kb.Box2>
       </Kb.InfoNote>
-    </Kb.Box2>
-    <Kb.ButtonBar>
-      <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-      <Kb.Button type="Wallet" onClick={props.onNext} label="Next" waiting={props.waiting} />
-    </Kb.ButtonBar>
-  </Kb.Box2>
-)
+    </WalletPopup>
+  )
+}
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    padding: Styles.globalMargins.medium,
+  icon: {
+    width: 48,
+    height: 48,
   },
-  contentContainer: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flex: 1,
+  headerText: {
+    marginTop: Styles.globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
   },
   error: Styles.platformStyles({
     common: {
@@ -89,11 +82,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       wordWrap: 'break-word',
-    },
-  }),
-  header: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
     },
   }),
   input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
@@ -122,17 +110,9 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
-  popupContainer: {
-    height: 525,
-    width: 360,
+  infoNote: {
+    marginTop: Styles.globalMargins.medium,
   },
-  tallSingleLineInput: Styles.platformStyles({
-    isMobile: {
-      minHeight: 32,
-      paddingBottom: 0,
-      paddingTop: 0,
-    },
-  }),
   textCenter: {textAlign: 'center'},
 })
 

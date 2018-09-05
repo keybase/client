@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
 import EnterKey from './enter-key'
 import {EnterNamePopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
@@ -60,11 +59,9 @@ class LinkWallet extends React.Component<Props, State> {
   }
 
   render() {
-    let view
-
     switch (this.state.view) {
       case 'key':
-        view = (
+        return (
           <EnterKey
             error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
@@ -74,7 +71,6 @@ class LinkWallet extends React.Component<Props, State> {
             waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
           />
         )
-        break
       case 'name':
         return (
           <EnterNamePopup
@@ -94,8 +90,6 @@ class LinkWallet extends React.Component<Props, State> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
-    // TODO: Refactor to use WalletPopup
-    return <Kb.MaybePopup onClose={this.props.onCancel}>{view}</Kb.MaybePopup>
   }
 }
 
