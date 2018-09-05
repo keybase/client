@@ -15,7 +15,7 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
   type: string,
   method: string | ((...Array<any>) => string),
   reason: string,
-  extra: [Object] | Object | ((...Array<any>) => Object),
+  extra: Object | ((...Array<any>) => Object),
   // we only want to enfoce a single callback on some wrapped things
   enforceOnlyOnce: boolean,
 |}): F {
@@ -47,7 +47,7 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
 }
 
 // Logging for rpcs
-function rpcLog(info: {method: string, reason?: string, extra?: Object | [Object], type: string}): void {
+function rpcLog(info: {method: string, reason: string, extra?: Object, type: string}): void {
   if (!printRPC) {
     return
   }
@@ -164,7 +164,7 @@ class TransportShared extends RobustTransport {
   invoke(arg: InvokeArgs, cb: any) {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
-      extra: arg.args,
+      extra: arg.args[0],
       handler: (args: InvokeArgs) => {
         super.invoke(
           args,
