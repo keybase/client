@@ -33,7 +33,10 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 	return team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_CHAT, generation)
 }
 
-func retryOnErrorViaFTL(m libkb.MetaContext, err error) bool {
+// shouldFallbackToSlowLoadAfterFTLError returns trues if the given error should result
+// in a retry via slow loading. Right now, it only happens if the server tells us
+// that our FTL is outdated.
+func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool {
 	if err == nil {
 		return false
 	}
@@ -314,7 +317,11 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 	if !public && membersType == chat1.ConversationMembersType_TEAM {
 		m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 		res, ni, err = encryptionKeyViaFTL(m, name, teamID)
-		if retryOnErrorViaFTL(m, err) {
+		if shouldFallbackToSlowLoadAfterFTLError(m, err) {
+			// Some FTL errors should not kill the whole operation; let's
+			// clear them out and allow regular, slow loading to happen.
+			// This is basically a server-side kill switch for some versions
+			// of FTL, if we should determine they are buggy.
 			err = nil
 		} else {
 			return res, ni, err
@@ -347,7 +354,8 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM {
 		m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 		res, err = decryptionKeyViaFTL(m, name, teamID, keyGeneration)
-		if retryOnErrorViaFTL(m, err) {
+		if shouldFallbackToSlowLoadAfterFTLError(m, err) {
+			// See comment above in EncryptionKey()
 			err = nil
 		} else {
 			return res, err
