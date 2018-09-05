@@ -21,8 +21,8 @@ describe('TransportShared', () => {
   }
   it('invoke', () => {
     const t = new FakeTransportShared()
-    const msg = {foo: 'bar'}
+    const msg = {program: 'foo', method: 'bar', args: {}, notify: null}
     t.invoke(msg, () => {})
-    expect(t._messages).toBe([msg])
+    expect(t._messages).toEqual([[0, 1, 'foo.bar', [msg.args]]])
   })
 })
