@@ -181,13 +181,23 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	_, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
 
-	t.Logf("load the subteam")
-	arg = keybase1.FastTeamLoadArg{
-		ID:            *subteamID,
-		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		NeedLatestKey: true,
+	loadSubteam := func() {
+		t.Logf("load the subteam")
+		arg = keybase1.FastTeamLoadArg{
+			ID:            *subteamID,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			NeedLatestKey: true,
+		}
+		team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+		require.NoError(t, err)
+		require.True(t, expectedSubTeamName.Eq(team.Name))
 	}
-	team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
-	require.NoError(t, err)
-	require.True(t, expectedSubTeamName.Eq(team.Name))
+
+	// Try again via the unstub system
+	loadSubteam()
+
+	// Also check that it works on a fresh load on a clean cache
+	tcs[0].G.GetFastTeamLoader().OnLogout()
+	loadSubteam()
+
 }
