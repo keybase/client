@@ -214,6 +214,9 @@
       "pendingMode": "Types.PendingMode",
       "noneDestination?": ["'inbox'", "'thread'"]
     },
+    "setPendingStatus": {
+      "pendingStatus": "Types.PendingStatus"
+    },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {
       "conversationIDKey": "Types.ConversationIDKey"

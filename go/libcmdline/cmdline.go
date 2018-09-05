@@ -66,6 +66,9 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+func (p CommandLine) GetMobileSharedHome() string {
+	return p.GetGString("mobile-shared-home")
+}
 func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
