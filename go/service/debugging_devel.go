@@ -63,6 +63,17 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			log("Result.error: %v", spew.Sdump(eerr))
 		}
 		return "", err
+	case "loadkey":
+		if len(args) != 2 {
+			return "", fmt.Errorf("require 2 args: <uid> <kid>")
+		}
+		uid, err := keybase1.UIDFromString(args[0])
+		if err != nil {
+			return "", err
+		}
+		kid := keybase1.KIDFromString(args[1])
+		_, _, _, err = t.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
+		return "", err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:
