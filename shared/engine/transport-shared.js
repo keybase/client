@@ -5,7 +5,6 @@ import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
-import {type transportInvokeArgs} from './index.platform'
 
 const RobustTransport = rpc.transport.RobustTransport
 const RpcClient = rpc.client.Client
@@ -71,6 +70,8 @@ function rpcLog(info: {method: string, reason?: string, extra?: Object | [Object
     {timeout: 1e3}
   )
 }
+
+type InvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
 
 class TransportShared extends RobustTransport {
   constructor(
@@ -160,11 +161,11 @@ class TransportShared extends RobustTransport {
     }
   }
 
-  invoke(arg: transportInvokeArgs, cb: any) {
+  invoke(arg: InvokeArgs, cb: any) {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args,
-      handler: (args: transportInvokeArgs) => {
+      handler: (args: InvokeArgs) => {
         super.invoke(
           args,
           _wrap({
