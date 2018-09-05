@@ -129,7 +129,16 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingFrom({from: sendingAccount || ''}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
-    dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
+    dispatch(
+      Route.createNavigateAppend({
+        path: [
+          {
+            props: {isRequest: true},
+            selected: WalletConstants.sendReceiveFormRouteKey,
+          },
+        ],
+      })
+    )
   },
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
