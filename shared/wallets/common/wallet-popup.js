@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {compose, renameProp} from 'recompose'
 
 type WalletModalProps = {|
@@ -47,12 +47,12 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
     isElectron: {
-      height: 525,
-      width: 360,
       borderRadius: 'inherit',
+      height: 525,
       paddingBottom: Styles.globalMargins.xlarge,
       paddingTop: Styles.globalMargins.xlarge,
       textAlign: 'center',
+      width: 360,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,
