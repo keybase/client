@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/auth"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -41,7 +42,8 @@ type AuthToken struct {
 // NewAuthToken creates a new authentication token.
 func NewAuthToken(signer Signer, tokenType string, expireIn int,
 	submoduleName, version string, rh AuthTokenRefreshHandler) *AuthToken {
-	clientName := fmt.Sprintf("go %s %s %s", submoduleName, runtime.GOOS, runtime.GOARCH)
+	clientName := fmt.Sprintf("go %s %s %s",
+		submoduleName, libkb.GetPlatformString(), runtime.GOARCH)
 	authToken := &AuthToken{
 		signer:         signer,
 		tokenType:      tokenType,
