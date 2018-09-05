@@ -73,6 +73,8 @@ function rpcLog(info: {method: string, reason: string, extra?: Object, type: str
 
 type InvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
 
+export type SendArg = [number, number, mixed, mixed]
+
 class TransportShared extends RobustTransport {
   constructor(
     opts: Object,
@@ -161,6 +163,7 @@ class TransportShared extends RobustTransport {
     }
   }
 
+  // Override RobustTransport.invoke.
   invoke = (arg: InvokeArgs, cb: any) => {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
@@ -186,6 +189,12 @@ class TransportShared extends RobustTransport {
     })
 
     wrappedInvoke(arg)
+  }
+
+  // Override Packetizer.send -- see packetizer.iced in
+  // framed-msgpack-rpc.
+  send = (msg: SendArg) => {
+    return super.send(msg)
   }
 }
 

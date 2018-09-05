@@ -1,6 +1,6 @@
 // @flow
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+import {TransportShared, sharedCreateClient, rpcLog, type SendArg} from './transport-shared'
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'
@@ -56,7 +56,7 @@ class NativeTransport extends TransportShared {
   } // eslint-disable-line camelcase
 
   // A custom send override to write b64 to the react native bridge
-  send(msg: string) {
+  send = (msg: SendArg) => {
     const packed = pack(msg)
     const len = pack(packed.length)
     // We have to write b64 encoded data over the RN bridge

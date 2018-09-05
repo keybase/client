@@ -1,14 +1,12 @@
 // @flow
 /* eslint-env jest */
-import {TransportShared} from '../transport-shared'
+import {TransportShared, type SendArg} from '../transport-shared'
 
 describe('TransportShared', () => {
-  type MessageType = [number, number, string, Object]
-
   // Extend TransportShared to fake out some methods.
   class FakeTransportShared extends TransportShared {
     connected: boolean
-    lastMessage: ?MessageType
+    lastMessage: ?SendArg
 
     constructor() {
       super({}, () => {}, () => {}, () => {})
@@ -24,8 +22,9 @@ describe('TransportShared', () => {
 
     // Override Packetizer.send -- see packetizer.iced in
     // framed-msgpack-rpc.
-    send = (msg: MessageType) => {
+    send = (msg: SendArg) => {
       this.lastMessage = msg
+      return true
     }
   }
 
