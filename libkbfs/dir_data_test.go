@@ -212,44 +212,10 @@ type testDirDataLeaf struct {
 	dirty      bool
 }
 
-func printTestTree(
-	t *testing.T, dd *dirData, cleanBcache BlockCache,
-	dirtyBcache DirtyBlockCache) {
-	cacheBlock, err := dirtyBcache.Get(
-		dd.tree.file.Tlf, dd.tree.rootBlockPointer(), MasterBranch)
-	require.NoError(t, err)
-	topBlock := cacheBlock.(*DirBlock)
-	level := []*DirBlock{topBlock}
-	t.Log("---------------")
-	for len(level) > 0 {
-		var nextLevel []*DirBlock
-		var levelString string
-		for i, block := range level {
-			for _, iptr := range block.IPtrs {
-				levelString += fmt.Sprintf("\"%s\" ", iptr.Off)
-				cacheBlock, err = dirtyBcache.Get(
-					dd.tree.file.Tlf, iptr.BlockPointer, MasterBranch)
-				wasDirty := err == nil
-				if !wasDirty {
-					cacheBlock, err = cleanBcache.Get(iptr.BlockPointer)
-				}
-				nextLevel = append(nextLevel, cacheBlock.(*DirBlock))
-			}
-			if i+1 < len(level) {
-				levelString += "| "
-			}
-		}
-		t.Log(levelString)
-		level = nextLevel
-	}
-	t.Log("---------------")
-}
-
 func testDirDataCheckLeafs(
 	t *testing.T, dd *dirData, cleanBcache BlockCache,
 	dirtyBcache DirtyBlockCache, expectedLeafs []testDirDataLeaf,
 	maxPtrsPerBlock, numDirEntries int) {
-	printTestTree(t, dd, cleanBcache, dirtyBcache)
 	// Top block should always be dirty.
 	cacheBlock, err := dirtyBcache.Get(
 		dd.tree.file.Tlf, dd.tree.rootBlockPointer(), MasterBranch)

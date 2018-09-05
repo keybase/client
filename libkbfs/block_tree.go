@@ -618,6 +618,8 @@ func (bt *blockTree) String() string {
 	}
 
 	level := []BlockWithPtrs{block}
+	// TODO: use a `bytes.Buffer` instead of a regular string here if
+	// we ever use this function from real code.
 	res := "\n---------------\n"
 	for len(level) > 0 {
 		var nextLevel []BlockWithPtrs
