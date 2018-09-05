@@ -67,7 +67,7 @@ type inboxDiskData struct {
 }
 
 type SharedInboxItem struct {
-	ConvID chat1.ConversationID
+	ConvID string
 	Name   string
 	Public bool
 }
@@ -174,7 +174,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 			continue
 		}
 		writable = append(writable, SharedInboxItem{
-			ConvID: rc.GetConvID(),
+			ConvID: rc.GetConvID().String(),
 			Name:   rc.GetName(),
 			Public: rc.Conv.IsPublic(),
 		})
