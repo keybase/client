@@ -960,7 +960,12 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	for i, seed := range seeds {
 		state.PerTeamKeySeedsUnverified[latestKeyGen-keybase1.PerTeamKeyGeneration(len(seeds)-i-1)] = seed
 	}
-	state.LatestKeyGeneration = latestKeyGen
+
+	// We might have gotten back 0 seeds from the server, so don't overwrite a valid LatestKeyGeneration
+	// with 0 in that case.
+	if latestKeyGen > state.LatestKeyGeneration {
+		state.LatestKeyGeneration = latestKeyGen
+	}
 	return nil
 }
 
