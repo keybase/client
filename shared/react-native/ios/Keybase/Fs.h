@@ -12,7 +12,7 @@
 #import <Foundation/Foundation.h>
 
 @interface FsHelper : NSObject
-  - (NSDictionary*) setupFs:(BOOL)skipLogFile;
+- (NSDictionary*) setupFs:(BOOL)skipLogFile setupSharedHome:(BOOL)setupSharedHome;
 @end
 
 #endif /* Fs_h */

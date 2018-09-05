@@ -87,32 +87,41 @@
   return YES;
 }
 
-- (NSString*) setupHome:(NSString*)home sharedHome:(NSString*)sharedHome {
+- (NSString*) setupAppHome:(NSString*)home sharedHome:(NSString*)sharedHome {
   // Setup all directories
   NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
   NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
-  NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
   [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
-  [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:appKeybasePath];
+  return home;
+}
+
+- (NSString*) setupSharedHome:(NSString*) home sharedHome:(NSString*)sharedHome {
+  NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
+  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
+  [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
   
   if (![self maybeMigrateDirectory:appKeybasePath dest:sharedKeybasePath]) {
     return home;
   }
-  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
-  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   if (![self maybeMigrateDirectory:appEraseableKVPath dest:sharedEraseableKVPath]) {
     return home;
   }
   return sharedHome;
 }
 
-- (NSDictionary*) setupFs:(BOOL)skipLogFile {
+- (NSDictionary*) setupFs:(BOOL)skipLogFile setupSharedHome:(BOOL)setupSharedHome {
   NSString* home = NSHomeDirectory();
   NSString* sharedHome = [[[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"] relativePath];
-  sharedHome = [self setupHome:home sharedHome:sharedHome];
+  home = [self setupAppHome:home sharedHome:sharedHome];
+  if (setupSharedHome) {
+    sharedHome = [self setupSharedHome:home sharedHome:sharedHome];
+  }
 
   // Setup app level directories
   NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];

@@ -51,7 +51,7 @@ const BOOL isDebug = NO;
   BOOL securityAccessGroupOverride = isSimulator;
   BOOL skipLogFile = false;
 
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile];
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:YES];
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
                                                    @"homedir": fsPaths[@"home"],
