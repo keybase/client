@@ -702,7 +702,11 @@ func TestGetPaymentsLocal(t *testing.T) {
 	msgID := chat1.MessageID(987)
 	loader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
-	// check the chat notification
+	// for the recipient too
+	recipLoader := stellar.NewPaymentLoader(tcs[1].G)
+	recipLoader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+
+	// check the sender chat notification
 	select {
 	case info := <-listenerSender.paymentInfos:
 		t.Logf("info from listener: %+v", info)
@@ -712,6 +716,24 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.True(t, info.ConvID.Eq(convID))
 		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
 		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_DECREASE)
+		require.Equal(t, info.Info.Worth, "$321.87")
+		require.Equal(t, info.Info.Note, "here you go")
+		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
+		require.Equal(t, info.Info.StatusDescription, "completed")
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
+
+	// check the recipient chat notification
+	select {
+	case info := <-listenerRecip.paymentInfos:
+		t.Logf("info from listener: %+v", info)
+		require.NotNil(t, info)
+		require.Equal(t, info.Uid, tcs[1].Fu.User.GetUID())
+		require.Equal(t, info.MsgID, msgID)
+		require.True(t, info.ConvID.Eq(convID))
+		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
+		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_INCREASE)
 		require.Equal(t, info.Info.Worth, "$321.87")
 		require.Equal(t, info.Info.Note, "here you go")
 		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
