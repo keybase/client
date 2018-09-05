@@ -271,7 +271,7 @@ class Engine {
     const session = this.createSession({incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
-      session.start(p.method, [p.params], p.callback)
+      session.start(p.method, p.params, p.callback)
     })
     return session.getId()
   }

@@ -119,7 +119,7 @@ class Session {
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start(method: MethodKey, param: [Object], callback: ?() => void) {
+  start(method: MethodKey, param: Object, callback: ?() => void) {
     this._startMethod = method
     this._startCallback = callback
 
@@ -132,12 +132,10 @@ class Session {
     }
 
     // Add the sessionID
-    const wrappedParam = [
-      {
-        ...param[0],
-        sessionID: this.getId(),
-      },
-    ]
+    const wrappedParam = {
+      ...param,
+      sessionID: this.getId(),
+    }
 
     rpcLog({
       extra: {id: this.getId(), this: this},

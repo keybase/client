@@ -69,7 +69,7 @@ class IncomingRequest extends Request {
 
 class OutgoingRequest extends Request {
   // RPC parameters
-  param: [Object]
+  param: Object
   // Callback when we've gotten a response
   _callback: (err: any, data: any) => void
   // How we make calls
@@ -77,7 +77,7 @@ class OutgoingRequest extends Request {
 
   constructor(
     method: MethodKey,
-    param: [Object],
+    param: Object,
     callback: () => void,
     waitingHandler: SimpleWaiting,
     invoke: invokeType
@@ -91,7 +91,7 @@ class OutgoingRequest extends Request {
   send(): void {
     this.updateWaiting(true)
     if (this._invoke) {
-      this._invoke(this.method, this.param, (err, data) => this._sendCallback(err, data))
+      this._invoke(this.method, [this.param], (err, data) => this._sendCallback(err, data))
     }
   }
 
