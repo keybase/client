@@ -117,7 +117,7 @@ class TransportShared extends RobustTransport {
   }
 
   // add logging / multiple call checking
-  _injectInstrumentedResponse(payload: any) {
+  _injectInstrumentedResponse = (payload: any) => {
     if (!payload || !payload.response) {
       return
     }
@@ -148,7 +148,7 @@ class TransportShared extends RobustTransport {
     }
   }
 
-  unwrap_incoming_error(err: any) {
+  unwrap_incoming_error = (err: any) => {
     // eslint-disable-line camelcase
     if (!err) {
       return null
@@ -161,7 +161,7 @@ class TransportShared extends RobustTransport {
     }
   }
 
-  invoke(arg: InvokeArgs, cb: any) {
+  invoke = (arg: InvokeArgs, cb: any) => {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
       extra: arg.args[0],
