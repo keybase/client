@@ -24,8 +24,8 @@ const Participants = (props: ParticipantsProps) => {
 
   switch (props.recipientType) {
     case 'keybaseUser':
-      if (!props.recipientUsername || !props.recipientFullName) {
-        throw new Error('Recipient type keybaseUser requires props recipientUsername and recipientFullName')
+      if (!props.recipientUsername) {
+        throw new Error('Recipient type keybaseUser requires prop recipientUsername')
       }
       toFieldContent = (
         <Kb.NameWithIcon
