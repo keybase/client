@@ -8,7 +8,6 @@ const enterNameProps = {
   onClose: Sb.action('onClose'),
   onDone: Sb.action('onDone'),
   onNameChange: Sb.action('onNameChange'),
-  onViewChange: Sb.action('onViewChange'),
   waiting: false,
 }
 
@@ -16,7 +15,6 @@ const nameErrorProps = {
   ...enterNameProps,
   name: 'this is too long',
   error: 'Error: name too long',
-  nameValidationState: 'error',
 }
 
 const load = () => {
