@@ -11,18 +11,7 @@ describe('TransportShared', () => {
     lastMessage: ?MessageType
 
     constructor() {
-      super(
-        {},
-        () => {
-          console.log('connectCallback')
-        },
-        () => {
-          console.log('disconnectCallback')
-        },
-        () => {
-          console.log('incomingRPCCallback')
-        }
-      )
+      super({}, () => {}, () => {}, () => {})
       this.connected = false
       this.lastMessage = null
     }
@@ -52,6 +41,7 @@ describe('TransportShared', () => {
     const t = new FakeTransportShared()
 
     t.connected = true
+    // Since connected is true, this should call send.
     t.invoke(invokeArg, () => {})
     expect(t.lastMessage).toEqual(expectedMessage)
   })
@@ -60,11 +50,16 @@ describe('TransportShared', () => {
     const t = new FakeTransportShared()
 
     t.connected = false
+    // Since connected is false, this should queue up the message.
     t.invoke(invokeArg, () => {})
     expect(t.lastMessage).toBe(null)
 
     t.connected = true
-
+    // _flush_queue is defined in Transport in transport.iced in
+    // framed-msgpack-rpc.
+    //
+    // Since connected is true, this should call send.
+    //
     // $FlowIssue Flow doesn't see inherited methods.
     t._flush_queue()
     expect(t.lastMessage).toEqual(expectedMessage)
