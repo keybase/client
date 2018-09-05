@@ -66,6 +66,12 @@ type inboxDiskData struct {
 	Queries       []inboxDiskQuery           `codec:"Q"`
 }
 
+type SharedInboxItem struct {
+	ConvID chat1.ConversationID
+	Name   string
+	Public bool
+}
+
 type Inbox struct {
 	globals.Contextified
 	*baseBox
@@ -151,7 +157,7 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
 		return
 	}
-	var writable []types.RemoteConversation
+	var writable []SharedInboxItem
 	for _, rc := range ibox.Conversations {
 		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
 			// need local metadata for channel names, so skip if we don't have it
@@ -159,9 +165,13 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 				rc.GetConvID())
 			continue
 		}
-		writable = append(writable, rc)
+		writable = append(writable, SharedInboxItem{
+			ConvID: rc.GetConvID(),
+			Name:   rc.GetName(),
+			Public: rc.Conv.IsPublic(),
+		})
 	}
-	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mp")
+	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mpack")
 	file := encrypteddb.NewFile(i.G().ExternalG(), path,
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
