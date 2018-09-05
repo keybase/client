@@ -80,7 +80,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 		return res, err
 	}
 
-	m.CDebugf("Did not get expected team/subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
+	m.CDebugf("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
 	arg.ForceRefresh = true
 	res, err = f.loadOneAttempt(m, arg)
 	if err != nil {
@@ -638,7 +638,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		}
 	}
 
-	m.CDebugf("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil)
+	m.CDebugf("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v; lastSecretGen=%d", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil, lastSecretGen)
 
 	return &groceries{
 		newLinks:     links,
@@ -989,6 +989,14 @@ func (f *FastTeamChainLoader) putSeeds(m libkb.MetaContext, arg fastLoadArg, sta
 	return nil
 }
 
+func (f *FastTeamChainLoader) putMetadata(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) error {
+	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
+	if arg.NeedLatestKey {
+		state.LoadedLatest = true
+	}
+	return nil
+}
+
 // mutateState takes the groceries fetched from the server and applies them to our current state.
 func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData, groceries *groceries) (err error) {
 
@@ -1008,9 +1016,9 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 	if err != nil {
 		return err
 	}
-	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
-	if arg.NeedLatestKey {
-		state.LoadedLatest = true
+	err = f.putMetadata(m, arg, state)
+	if err != nil {
+		return err
 	}
 	return nil
 }
