@@ -196,7 +196,8 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	// Try again via the unstub system
 	loadSubteam()
 
-	// Also check that it works on a fresh load on a clean cache
+	// Also check that it works on a fresh load on a clean cache (thought this
+	// duplicates what we did in TestFastLoaderMultilevel)
 	tcs[0].G.GetFastTeamLoader().OnLogout()
 	loadSubteam()
 
