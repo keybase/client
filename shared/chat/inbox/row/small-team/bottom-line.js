@@ -75,10 +75,6 @@ class BottomLine extends PureComponent<Props> {
                 common: {
                   color: this.props.isSelected ? globalColors.white : globalColors.black_20,
                 },
-                isElectron: {
-                  position: 'relative',
-                  top: -4,
-                },
                 isMobile: {
                   marginTop: -8,
                 },
@@ -148,7 +144,8 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
-    width: '100%',
+    height: 17,
+    position: 'relative',
   },
   rekeyNeededContainer: {
     alignSelf: 'center',
@@ -205,6 +202,7 @@ const styles = styleSheetCreate({
     },
   }),
   contentBox: {
+    ...globalStyles.fillAbsolute,
     alignItems: 'center',
     width: '100%',
   },
