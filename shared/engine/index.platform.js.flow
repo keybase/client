@@ -5,8 +5,8 @@ type payloadType = {
   response: ?Object,
 }
 
-// Client in client.iced in framed-msgpack-rpc takes a list of
-// arguments, but we only ever pass in a single object with keyed
+// Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
+// a list of arguments, but it expects exactly one element with keyed
 // arguments.
 export type invokeType = (method: string, args: [Object], cb: (err: any, data: any) => void) => void
 export type createClientType = {

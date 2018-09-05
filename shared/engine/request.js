@@ -88,9 +88,7 @@ class OutgoingRequest extends Request {
 
   send(): void {
     this.updateWaiting(true)
-    if (this._invoke) {
-      this._invoke(this.method, [this.param], (err, data) => this._sendCallback(err, data))
-    }
+    this._invoke(this.method, [this.param], (err, data) => this._sendCallback(err, data))
   }
 
   _sendCallback(err: any, data: any): void {
