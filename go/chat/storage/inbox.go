@@ -24,7 +24,6 @@ import (
 )
 
 const inboxVersion = 20
-const sharedInboxFile = "inbox.mpack"
 
 type queryHash []byte
 
@@ -154,7 +153,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 }
 
 func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
-	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), sharedInboxFile)
+	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mpack")
 	return encrypteddb.NewFile(i.G().ExternalG(), path,
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
