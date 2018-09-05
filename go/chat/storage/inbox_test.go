@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 	"testing"
@@ -782,6 +783,9 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 }
 
 func TestMobileSharedInbox(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip()
+	}
 	tc, inbox, _ := setupInboxTest(t, "shared")
 	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
 		MobileSharedHomeDir: os.TempDir(),
