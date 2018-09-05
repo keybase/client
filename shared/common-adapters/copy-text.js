@@ -1,7 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as ConfigGen from '../actions/config-gen'
-import {Box2, Icon, Button, ButtonBar, Text, Toast} from '.'
+import {Box2} from './box'
+import Icon from './icon'
+import Button from './button'
+import ButtonBar from './button-bar'
+import Text from './text'
+import Toast from './toast'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import * as Styles from '../styles'
 import {compose, connect, setDisplayName} from '../util/container'
