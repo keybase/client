@@ -1653,6 +1653,13 @@
           "name": "public"
         },
         {
+          "type": [
+            null,
+            "TeamName"
+          ],
+          "name": "assertTeamName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "TeamApplication"

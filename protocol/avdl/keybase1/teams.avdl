@@ -714,6 +714,8 @@ protocol teams {
     TeamID ID;
     boolean public;
 
+    union { null, TeamName } assertTeamName;
+
     // All (applications X keyGenerationsNeeded) should be loaded
     array<TeamApplication> applications;
     array<PerTeamKeyGeneration> keyGenerationsNeeded;

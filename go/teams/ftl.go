@@ -75,6 +75,25 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	m = ftlLogTag(m)
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 
+	res, err = f.loadOneAttempt(m, arg)
+	if err != nil || arg.AssertTeamName == nil || arg.AssertTeamName.Eq(res.Name) {
+		return res, err
+	}
+
+	m.CDebugf("Did not get expected team/subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
+	arg.ForceRefresh = true
+	res, err = f.loadOneAttempt(m, arg)
+	if err != nil {
+		return res, err
+	}
+	if !arg.AssertTeamName.Eq(res.Name) {
+		return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+	}
+	return res, nil
+}
+
+func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
+
 	if arg.ID.IsPublic() != arg.Public {
 		return res, NewBadPublicError(arg.ID, arg.Public)
 	}
@@ -85,7 +104,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	}
 
 	res.ApplicationKeys = flr.applicationKeys
-	res.Name, err = f.verifyTeamNameViaParentLoad(m, arg.ID, arg.Public, flr.unverifiedName, flr.upPointer, arg.ID)
+	res.Name, err = f.verifyTeamNameViaParentLoad(m, arg.ID, arg.Public, flr.unverifiedName, flr.upPointer, arg.ID, arg.ForceRefresh)
 	if err != nil {
 		return res, err
 	}
@@ -96,7 +115,7 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 // verifyTeamNameViaParentLoad takes a team ID, and a pointer to a parent team's sigchain, and computes
 // the full resolved team name. If the pointer is null, we'll assume this is a root team and do the
 // verification via hash-comparison.
-func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, unverifiedName keybase1.TeamName, parent *keybase1.UpPointer, bottomSubteam keybase1.TeamID) (res keybase1.TeamName, err error) {
+func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, unverifiedName keybase1.TeamName, parent *keybase1.UpPointer, bottomSubteam keybase1.TeamID, forceRefresh bool) (res keybase1.TeamName, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#verifyTeamNameViaParentLoad(%s,%s)", id, unverifiedName), func() error { return err })()
 
@@ -116,8 +135,9 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 
 	parentRes, err := f.load(m, fastLoadArg{
 		FastTeamLoadArg: keybase1.FastTeamLoadArg{
-			ID:     parent.ParentID,
-			Public: isPublic,
+			ID:           parent.ParentID,
+			Public:       isPublic,
+			ForceRefresh: forceRefresh,
 		},
 		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
 		needFreshState:     true,
@@ -132,7 +152,7 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 	}
 	suffix := downPointer.NameComponent
 
-	parentName, err := f.verifyTeamNameViaParentLoad(m, parent.ParentID, isPublic, parentRes.unverifiedName, parentRes.upPointer, bottomSubteam)
+	parentName, err := f.verifyTeamNameViaParentLoad(m, parent.ParentID, isPublic, parentRes.unverifiedName, parentRes.upPointer, bottomSubteam, forceRefresh)
 	if err != nil {
 		return res, err
 	}
