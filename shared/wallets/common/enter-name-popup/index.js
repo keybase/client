@@ -14,26 +14,6 @@ type EnterNameProps = {
   waiting: boolean,
 }
 
-// const EnterName = (props: EnterNameProps) => (
-//   <Kb.Box2 direction="vertical" style={styles.popupContainer}>
-//     <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-//     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-//       <Kb.Box2
-//         direction="vertical"
-//         gap="medium"
-//         fullWidth={true}
-//         fullHeight={true}
-//         style={styles.contentContainer}
-//       >
-//
-//       </Kb.Box2>
-//       <Kb.ButtonBar>
-//
-//       </Kb.ButtonBar>
-//     </Kb.Box2>
-//   </Kb.Box2>
-// )
-
 const EnterName = (props: EnterNameProps) => {
   const buttons = [
     <Kb.Button key={0} type="Secondary" onClick={props.onClose} label="Cancel" />,
@@ -41,8 +21,10 @@ const EnterName = (props: EnterNameProps) => {
   ]
   return (
     <WalletPopup bottomButtons={buttons} onClose={props.onClose}>
-      <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-      <Kb.Text type="Header">Name your account</Kb.Text>
+      <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Text type="Header" style={styles.headerText}>
+        Name your account
+      </Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
           Account name
@@ -73,13 +55,13 @@ const EnterName = (props: EnterNameProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    padding: Styles.globalMargins.medium,
+  icon: {
+    width: 48,
+    height: 48,
   },
-  contentContainer: {
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    flex: 1,
+  headerText: {
+    marginTop: Styles.globalMargins.medium,
+    marginBottom: Styles.globalMargins.medium,
   },
   error: Styles.platformStyles({
     common: {
@@ -88,11 +70,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       wordWrap: 'break-word',
-    },
-  }),
-  header: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
     },
   }),
   input: Styles.platformStyles({common: {margin: 0}, isElectron: {width: '100%'}}),
@@ -108,6 +85,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      marginBottom: Styles.globalMargins.medium,
       padding: Styles.globalMargins.xtiny,
       textAlign: 'left',
     },
@@ -121,10 +99,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
   }),
-  popupContainer: {
-    height: 525,
-    width: 360,
-  },
   tallSingleLineInput: Styles.platformStyles({
     isMobile: {
       minHeight: 32,
