@@ -98,13 +98,15 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
 
+	t.Logf("clear A's FTL state")
+	tcs[0].G.GetFastTeamLoader().OnLogout()
+
 	t.Logf("more tests as A; let's first load at generation=1")
 	arg = keybase1.FastTeamLoadArg{
 		ID:                   teamID,
 		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
 		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
 	}
-	tcs[0].G.GetFastTeamLoader().OnLogout()
 	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
 	require.Equal(t, len(team.ApplicationKeys), 1)
