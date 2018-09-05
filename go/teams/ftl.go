@@ -64,6 +64,10 @@ func ftlLogTag(m libkb.MetaContext) libkb.MetaContext {
 	return m.WithLogTag("FTL")
 }
 
+func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
+	return m.G().GetFastTeamLoader().Load(m, arg)
+}
+
 // Load fast-loads the given team. Provide some hints as to how to load it. You can specify an application
 // and key generations needed, if you are entering chat. Those links will be returned unstubbed
 // from the server, and then the keys can be output in the result.
@@ -344,17 +348,17 @@ func (f *FastTeamChainLoader) stateHasKeySeed(m libkb.MetaContext, gen keybase1.
 // stateHasKeys checks to see if the given state has the keys specified in the shopping list. If not, it will
 // modify the shopping list and return false. If yes, it will leave the shopping list unchanged and return
 // true.
-func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) (ret bool) {
+func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) (fresh bool) {
 	apps := make(map[keybase1.TeamApplication]struct{})
 	gens := make(map[keybase1.PerTeamKeyGeneration]struct{})
 
-	ret = true
+	fresh = true
 
 	if arg.NeedLatestKey {
 		for _, app := range arg.Applications {
 			apps[app] = struct{}{}
 		}
-		ret = false
+		fresh = false
 		shoppingList.needRefresh = true
 	}
 
@@ -364,7 +368,7 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 				gens[gen] = struct{}{}
 				apps[app] = struct{}{}
 				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)
-				ret = false
+				fresh = false
 			}
 		}
 	}
@@ -373,14 +377,12 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		shoppingList.applications = append(shoppingList.applications, app)
 	}
 
-	if ret {
-		return ret
+	if !fresh {
+		for gen := range gens {
+			shoppingList.generations = append(shoppingList.generations, gen)
+		}
 	}
-
-	for gen := range gens {
-		shoppingList.generations = append(shoppingList.generations, gen)
-	}
-	return ret
+	return fresh
 }
 
 // stateHasDownPointers checks to see if the given state has the down pointers specified in the shopping list.
