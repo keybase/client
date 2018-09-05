@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/client/go/stellar"
 
 	"regexp"
 
@@ -1122,9 +1123,8 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
-		if g.PaymentLoader != nil {
-			return g.PaymentLoader.Load(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
-		}
+		loader := stellar.DefaultPaymentLoader(g.ExternalG())
+		return loader.Load(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
 	}
 	return nil
 }

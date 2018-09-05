@@ -697,8 +697,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	checkPayment(*recipPayments[0].Payment, false)
 
 	// pretend that the chat message was unboxed and call the payment loader to load the info:
-	loader := stellar.NewPaymentLoader(tcs[0].G)
-	defer loader.Shutdown()
+	loader := stellar.DefaultPaymentLoader(tcs[0].G)
 	loader.Load(context.Background(), chat1.ConversationID{}, chat1.MessageID(0), tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
 	// check the chat notification

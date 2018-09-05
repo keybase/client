@@ -10,7 +10,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -328,8 +327,4 @@ type AttachmentUploader interface {
 
 type NativeVideoHelper interface {
 	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
-}
-
-type PaymentLoader interface {
-	Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 }

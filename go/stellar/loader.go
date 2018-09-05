@@ -26,6 +26,9 @@ type PaymentLoader struct {
 	shutdownOnce sync.Once
 }
 
+var defaultPaymentLoader *PaymentLoader
+var defaultLock sync.Mutex
+
 func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	p := &PaymentLoader{
 		Contextified: libkb.NewContextified(g),
@@ -37,6 +40,18 @@ func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	go p.run()
 
 	return p
+}
+
+func DefaultPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
+	defaultLock.Lock()
+	defer defaultLock.Unlock()
+
+	if defaultPaymentLoader == nil {
+		defaultPaymentLoader = NewPaymentLoader(g)
+		g.PushShutdownHook(defaultPaymentLoader.Shutdown)
+	}
+
+	return defaultPaymentLoader
 }
 
 func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
