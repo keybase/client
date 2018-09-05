@@ -72,7 +72,7 @@ class OutgoingRequest extends Request {
   // Callback when we've gotten a response
   _callback: (err: any, data: any) => void
   // How we make calls
-  _invoke: ?invokeType
+  _invoke: invokeType
 
   constructor(
     method: MethodKey,
