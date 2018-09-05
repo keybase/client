@@ -9,7 +9,8 @@ import desktopStories from './platform-stories.desktop'
 // Load css
 import '../desktop/renderer/style.css'
 
-const stories = {...sharedStories, ...desktopStories}
+const stories = {teamBuilding: sharedStories.teamBuilding}
+// const stories = {...sharedStories, ...desktopStories}
 
 const rootDecorator = story => (
   <div style={{height: '100%', width: '100%'}}>

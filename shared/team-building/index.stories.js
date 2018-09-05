@@ -6,6 +6,7 @@ import Hello from './index'
 import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
+import ServiceTabBar from './service-tab-bar'
 
 const provider = Sb.createPropProviderWithCommon(
   Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
@@ -65,6 +66,24 @@ const load = () => {
       />
     ))
     .add('Go Button', () => <GoButton onClick={Sb.action('onClick')} />)
+
+  Sb.storiesOf('Team-Building/Service Tab Bar', module)
+    .add('Plain', () => (
+      <ServiceTabBar
+        selectedService="keybase"
+        onChangeService={Sb.action('onChangeService')}
+        serviceResultCount={{}}
+        showServiceResultCount={false}
+      />
+    ))
+    .add('Pending results', () => (
+      <ServiceTabBar
+        selectedService="keybase"
+        onChangeService={Sb.action('onChangeService')}
+        serviceResultCount={{}}
+        showServiceResultCount={true}
+      />
+    ))
 }
 
 export default load

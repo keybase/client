@@ -12,7 +12,7 @@ export type Props = {
 
 const Go = () => (
   <Kb.Text type="BodySmallSemibold" style={styles.go}>
-    Go
+    Go!
   </Kb.Text>
 )
 
@@ -22,16 +22,15 @@ const GoIcon = () => (
 
 const GoWithIconHover = Kb.HoverHoc(Go, GoIcon)
 
-// .remove:hover::after { background: 'blue'; height: 10px; content: '${props.prettyName}';}
 const GoButton = (props: Props) => (
-  <Kb.ClickableBox onClick={props.onClick} style={styles.container}>
+  <Kb.ClickableBox onClick={() => props.onClick()} style={styles.container}>
     <GoWithIconHover />
   </Kb.ClickableBox>
 )
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.blue, ...Styles.globalStyles.rounded},
+    common: {backgroundColor: Styles.globalColors.red, ...Styles.globalStyles.rounded},
     isElectron: {height: 40, width: 40},
   }),
   go: Styles.platformStyles({
