@@ -24,31 +24,29 @@ const (
 	maskType        = uint8(112) // 0111 0000
 )
 
-// UpdateObjectStorage updates the given storer.EncodedObjectStorer with the contents of the
+// UpdateObjectStorage updates the storer with the objects in the given
 // packfile.
-func UpdateObjectStorage(
-	s storer.EncodedObjectStorer,
-	packfile io.Reader,
-	statusChan plumbing.StatusChan) error {
-	if sw, ok := s.(storer.PackfileWriter); ok {
-		return writePackfileToObjectStorage(sw, packfile, statusChan)
+func UpdateObjectStorage(s storer.Storer, packfile io.Reader, statusChan plumbing.StatusChan) error {
+	if pw, ok := s.(storer.PackfileWriter); ok {
+		return WritePackfileToObjectStorage(pw, packfile, statusChan)
 	}
 
-	stream := NewScanner(packfile)
-	d, err := NewDecoder(stream, s)
+	p, err := NewParserWithStorage(NewScanner(packfile), s, NewStatusObserver(statusChan))
 	if err != nil {
 		return err
 	}
 
-	_, err = d.Decode(statusChan)
+	_, err = p.Parse()
 	return err
 }
 
-func writePackfileToObjectStorage(
+// WritePackfileToObjectStorage writes all the packfile objects into the given
+// object storage.
+func WritePackfileToObjectStorage(
 	sw storer.PackfileWriter,
 	packfile io.Reader,
-	statusChan plumbing.StatusChan) error {
-	var err error
+	statusChan plumbing.StatusChan,
+) (err error) {
 	w, err := sw.PackfileWriter(statusChan)
 	if err != nil {
 		return err

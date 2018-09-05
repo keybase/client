@@ -13,7 +13,7 @@ const (
 	NoMatch MatchResult = iota
 	// Exclude defines an exclusion of a file as a result of a match check
 	Exclude
-	// Exclude defines an explicit inclusion of a file as a result of a match check
+	// Include defines an explicit inclusion of a file as a result of a match check
 	Include
 )
 
@@ -133,6 +133,9 @@ func (p *pattern) globMatch(path []string, isDir bool) bool {
 				} else if match {
 					matched = true
 					break
+				} else if len(path) == 0 {
+					// if nothing left then fail
+					matched = false
 				}
 			}
 		} else {

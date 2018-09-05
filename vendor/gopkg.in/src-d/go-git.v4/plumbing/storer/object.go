@@ -174,7 +174,6 @@ func (iter *EncodedObjectLookupIter) Close() {
 // no longer needed.
 type EncodedObjectSliceIter struct {
 	series []plumbing.EncodedObject
-	pos    int
 }
 
 // NewEncodedObjectSliceIter returns an object iterator for the given slice of
@@ -218,7 +217,6 @@ func (iter *EncodedObjectSliceIter) Close() {
 // longer needed.
 type MultiEncodedObjectIter struct {
 	iters []EncodedObjectIter
-	pos   int
 }
 
 // NewMultiEncodedObjectIter returns an object iterator for the given slice of

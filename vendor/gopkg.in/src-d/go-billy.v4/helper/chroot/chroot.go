@@ -37,7 +37,7 @@ func isCrossBoundaries(path string) bool {
 	path = filepath.ToSlash(path)
 	path = filepath.Clean(path)
 
-	return strings.HasPrefix(path, "..")
+	return strings.HasPrefix(path, ".."+string(filepath.Separator))
 }
 
 func (fs *ChrootHelper) Create(filename string) (billy.File, error) {
@@ -215,6 +215,11 @@ func (fs *ChrootHelper) Root() string {
 
 func (fs *ChrootHelper) Underlying() billy.Basic {
 	return fs.underlying
+}
+
+// Capabilities implements the Capable interface.
+func (fs *ChrootHelper) Capabilities() billy.Capability {
+	return billy.Capabilities(fs.underlying)
 }
 
 type file struct {

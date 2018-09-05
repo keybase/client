@@ -128,10 +128,10 @@ func (u *Endpoint) String() string {
 		buf.WriteString("//")
 
 		if u.User != "" || u.Password != "" {
-			buf.WriteString(u.User)
+			buf.WriteString(url.PathEscape(u.User))
 			if u.Password != "" {
 				buf.WriteByte(':')
-				buf.WriteString(u.Password)
+				buf.WriteString(url.PathEscape(u.Password))
 			}
 
 			buf.WriteByte('@')

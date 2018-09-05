@@ -165,7 +165,7 @@ func (o *ObjectStorage) Begin() storer.Transaction {
 }
 
 func (o *ObjectStorage) ForEachObjectHash(fun func(plumbing.Hash) error) error {
-	for h, _ := range o.Objects {
+	for h := range o.Objects {
 		err := fun(h)
 		if err != nil {
 			if err == storer.ErrStop {

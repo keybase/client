@@ -124,6 +124,9 @@ type PublicKeys struct {
 // (PKCS#1), DSA (OpenSSL), and ECDSA private keys.
 func NewPublicKeys(user string, pemBytes []byte, password string) (*PublicKeys, error) {
 	block, _ := pem.Decode(pemBytes)
+	if block == nil {
+		return nil, errors.New("invalid PEM data")
+	}
 	if x509.IsEncryptedPEMBlock(block) {
 		key, err := x509.DecryptPEMBlock(block, []byte(password))
 		if err != nil {
@@ -231,7 +234,7 @@ func (a *PublicKeysCallback) ClientConfig() (*ssh.ClientConfig, error) {
 }
 
 // NewKnownHostsCallback returns ssh.HostKeyCallback based on a file based on a
-// know_hosts file. http://man.openbsd.org/sshd#SSH_KNOWN_HOSTS_FILE_FORMAT
+// known_hosts file. http://man.openbsd.org/sshd#SSH_KNOWN_HOSTS_FILE_FORMAT
 //
 // If files is empty, the list of files will be read from the SSH_KNOWN_HOSTS
 // environment variable, example:
@@ -286,7 +289,7 @@ func filterKnownHostsFiles(files ...string) ([]string, error) {
 	}
 
 	if len(out) == 0 {
-		return nil, fmt.Errorf("unable to find any valid know_hosts file, set SSH_KNOWN_HOSTS env variable")
+		return nil, fmt.Errorf("unable to find any valid known_hosts file, set SSH_KNOWN_HOSTS env variable")
 	}
 
 	return out, nil

@@ -298,17 +298,6 @@ func (s *rpSession) updateReferences(req *packp.ReferenceUpdateRequest) {
 	}
 }
 
-func (s *rpSession) failAtomicUpdate() (*packp.ReportStatus, error) {
-	rs := s.reportStatus()
-	for _, cs := range rs.CommandStatuses {
-		if cs.Error() == nil {
-			cs.Status = "atomic updated"
-		}
-	}
-
-	return rs, s.firstErr
-}
-
 func (s *rpSession) writePackfile(r io.ReadCloser) error {
 	if r == nil {
 		return nil

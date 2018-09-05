@@ -63,10 +63,7 @@ func NewScanner(r io.Reader) *Scanner {
 
 	crc := crc32.NewIEEE()
 	return &Scanner{
-		r: &teeReader{
-			newByteReadSeeker(seeker),
-			crc,
-		},
+		r:          newTeeReader(newByteReadSeeker(seeker), crc),
 		crc:        crc,
 		IsSeekable: ok,
 	}
@@ -143,6 +140,8 @@ func (s *Scanner) readCount() (uint32, error) {
 
 // NextObjectHeader returns the ObjectHeader for the next object in the reader
 func (s *Scanner) NextObjectHeader() (*ObjectHeader, error) {
+	defer s.Flush()
+
 	if err := s.doPending(); err != nil {
 		return nil, err
 	}
@@ -271,6 +270,7 @@ func (s *Scanner) NextObject(w io.Writer) (written int64, crc32 uint32, err erro
 
 	s.pendingObject = nil
 	written, err = s.copyObject(w)
+	s.Flush()
 	crc32 = s.crc.Sum32()
 	return
 }
@@ -279,14 +279,15 @@ func (s *Scanner) NextObject(w io.Writer) (written int64, crc32 uint32, err erro
 // from it zlib stream in an object entry in the packfile.
 func (s *Scanner) copyObject(w io.Writer) (n int64, err error) {
 	if s.zr == nil {
-		zr, err := zlib.NewReader(s.r)
+		var zr io.ReadCloser
+		zr, err = zlib.NewReader(s.r)
 		if err != nil {
 			return 0, fmt.Errorf("zlib initialization error: %s", err)
 		}
 
 		s.zr = zr.(readerResetter)
 	} else {
-		if err := s.zr.Reset(s.r, nil); err != nil {
+		if err = s.zr.Reset(s.r, nil); err != nil {
 			return 0, fmt.Errorf("zlib reset error: %s", err)
 		}
 	}
@@ -337,6 +338,16 @@ func (s *Scanner) Close() error {
 	_, err := io.CopyBuffer(stdioutil.Discard, s.r, buf)
 	byteSlicePool.Put(buf)
 	return err
+}
+
+// Flush finishes writing the buffer to crc hasher in case we are using
+// a teeReader. Otherwise it is a no-op.
+func (s *Scanner) Flush() error {
+	tee, ok := s.r.(*teeReader)
+	if ok {
+		return tee.Flush()
+	}
+	return nil
 }
 
 type trackableReader struct {
@@ -400,10 +411,21 @@ type reader interface {
 
 type teeReader struct {
 	reader
-	w hash.Hash32
+	w         hash.Hash32
+	bufWriter *bufio.Writer
+}
+
+func newTeeReader(r reader, h hash.Hash32) *teeReader {
+	return &teeReader{
+		reader:    r,
+		w:         h,
+		bufWriter: bufio.NewWriter(h),
+	}
 }
 
 func (r *teeReader) Read(p []byte) (n int, err error) {
+	r.Flush()
+
 	n, err = r.reader.Read(p)
 	if n > 0 {
 		if n, err := r.w.Write(p[:n]); err != nil {
@@ -416,11 +438,12 @@ func (r *teeReader) Read(p []byte) (n int, err error) {
 func (r *teeReader) ReadByte() (b byte, err error) {
 	b, err = r.reader.ReadByte()
 	if err == nil {
-		_, err := r.w.Write([]byte{b})
-		if err != nil {
-			return 0, err
-		}
+		return b, r.bufWriter.WriteByte(b)
 	}
 
 	return
+}
+
+func (r *teeReader) Flush() (err error) {
+	return r.bufWriter.Flush()
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"time"
 
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -51,8 +52,20 @@ type Index struct {
 	ResolveUndo *ResolveUndo
 }
 
+// Add creates a new Entry and returns it. The caller should first check that
+// another entry with the same path does not exist.
+func (i *Index) Add(path string) *Entry {
+	e := &Entry{
+		Name: filepath.ToSlash(path),
+	}
+
+	i.Entries = append(i.Entries, e)
+	return e
+}
+
 // Entry returns the entry that match the given path, if any.
 func (i *Index) Entry(path string) (*Entry, error) {
+	path = filepath.ToSlash(path)
 	for _, e := range i.Entries {
 		if e.Name == path {
 			return e, nil
@@ -64,6 +77,7 @@ func (i *Index) Entry(path string) (*Entry, error) {
 
 // Remove remove the entry that match the give path and returns deleted entry.
 func (i *Index) Remove(path string) (*Entry, error) {
+	path = filepath.ToSlash(path)
 	for index, e := range i.Entries {
 		if e.Name == path {
 			i.Entries = append(i.Entries[:index], i.Entries[index+1:]...)
@@ -72,6 +86,24 @@ func (i *Index) Remove(path string) (*Entry, error) {
 	}
 
 	return nil, ErrEntryNotFound
+}
+
+// Glob returns the all entries matching pattern or nil if there is no matching
+// entry. The syntax of patterns is the same as in filepath.Glob.
+func (i *Index) Glob(pattern string) (matches []*Entry, err error) {
+	pattern = filepath.ToSlash(pattern)
+	for _, e := range i.Entries {
+		m, err := match(pattern, e.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		if m {
+			matches = append(matches, e)
+		}
+	}
+
+	return
 }
 
 // String is equivalent to `git ls-files --stage --debug`

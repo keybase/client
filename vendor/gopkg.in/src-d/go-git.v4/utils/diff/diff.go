@@ -16,8 +16,8 @@ import (
 // string into the dst string.
 func Do(src, dst string) (diffs []diffmatchpatch.Diff) {
 	dmp := diffmatchpatch.New()
-	wSrc, wDst, warray := dmp.DiffLinesToChars(src, dst)
-	diffs = dmp.DiffMain(wSrc, wDst, false)
+	wSrc, wDst, warray := dmp.DiffLinesToRunes(src, dst)
+	diffs = dmp.DiffMainRunes(wSrc, wDst, false)
 	diffs = dmp.DiffCharsToLines(diffs, warray)
 	return diffs
 }
