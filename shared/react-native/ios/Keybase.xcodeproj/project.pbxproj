@@ -17,6 +17,11 @@
 		279FB5EE2139ADEB005E4864 /* ConversationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB5ED2139ADEB005E4864 /* ConversationViewController.m */; };
 		279FB66921402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
 		279FB66A21402D68005E4864 /* Fs.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB66821402D68005E4864 /* Fs.m */; };
+		279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
+		279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6EE214039DA005E4864 /* AVFoundation.framework */; };
+		279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
+		279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F121403A2A005E4864 /* CoreMedia.framework */; };
+		279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 279FB6F321403A49005E4864 /* MobileCoreServices.framework */; };
 		27EE26A820A140EF00F92CD1 /* Pusher.m in Sources */ = {isa = PBXBuildFile; fileRef = 27EE26A720A140EF00F92CD1 /* Pusher.m */; };
 		370EFC8E1FB3BDE1004DB3BB /* MessageUIManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */; };
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
@@ -436,6 +441,10 @@
 		279FB5ED2139ADEB005E4864 /* ConversationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ConversationViewController.m; sourceTree = "<group>"; };
 		279FB66821402D68005E4864 /* Fs.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Fs.m; sourceTree = "<group>"; };
 		279FB69821402D82005E4864 /* Fs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fs.h; sourceTree = "<group>"; };
+		279FB6EE214039DA005E4864 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		279FB6F121403A2A005E4864 /* CoreMedia.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMedia.framework; path = System/Library/Frameworks/CoreMedia.framework; sourceTree = SDKROOT; };
+		279FB6F321403A49005E4864 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = KeybaseShare.entitlements; sourceTree = "<group>"; };
 		27EE26A720A140EF00F92CD1 /* Pusher.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Pusher.m; sourceTree = "<group>"; };
 		27EE26A920A1466300F92CD1 /* Pusher.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Pusher.h; sourceTree = "<group>"; };
 		370EFC8D1FB3BDE1004DB3BB /* MessageUIManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MessageUIManager.m; sourceTree = "<group>"; };
@@ -547,6 +556,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				279FB6F421403A49005E4864 /* MobileCoreServices.framework in Frameworks */,
+				279FB6F221403A2B005E4864 /* CoreMedia.framework in Frameworks */,
+				279FB6F021403A05005E4864 /* libresolv.tbd in Frameworks */,
+				279FB6EF214039DA005E4864 /* AVFoundation.framework in Frameworks */,
+				279FB6ED214037F6005E4864 /* keybase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,6 +610,7 @@
 		279FB59D2139AB6A005E4864 /* KeybaseShare */ = {
 			isa = PBXGroup;
 			children = (
+				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
 				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
 				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
 				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
@@ -678,6 +693,9 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				279FB6F321403A49005E4864 /* MobileCoreServices.framework */,
+				279FB6F121403A2A005E4864 /* CoreMedia.framework */,
+				279FB6EE214039DA005E4864 /* AVFoundation.framework */,
 				3791A8A220C71FE6001C2E86 /* UserNotifications.framework */,
 				274AFB721E972F5300615A64 /* libresolv.tbd */,
 			);
@@ -1030,6 +1048,11 @@
 						CreatedOnToolsVersion = 9.4.1;
 						DevelopmentTeam = 99229SGT5K;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -1756,11 +1779,16 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = KeybaseShare/KeybaseShare.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 99229SGT5K;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
@@ -1789,12 +1817,17 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = KeybaseShare/KeybaseShare.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution: Keybase, Inc. (99229SGT5K)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 99229SGT5K;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)",
+				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.4;

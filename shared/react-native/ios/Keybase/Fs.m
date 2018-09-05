@@ -117,7 +117,8 @@
 
 - (NSDictionary*) setupFs:(BOOL)skipLogFile setupSharedHome:(BOOL)setupSharedHome {
   NSString* home = NSHomeDirectory();
-  NSString* sharedHome = [[[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"] relativePath];
+  NSURL* sharedURL = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"];
+  NSString* sharedHome = [sharedURL relativePath];
   home = [self setupAppHome:home sharedHome:sharedHome];
   if (setupSharedHome) {
     sharedHome = [self setupSharedHome:home sharedHome:sharedHome];

@@ -8,6 +8,14 @@
 
 #import "ShareViewController.h"
 #import "ConversationViewController.h"
+#import "keybase/keybase.h"
+#import "Fs.h"
+
+#if TARGET_OS_SIMULATOR
+const BOOL isSimulator = YES;
+#else
+const BOOL isSimulator = NO;
+#endif
 
 @interface ShareViewController ()
 
@@ -16,7 +24,9 @@
 @implementation ShareViewController
 
 - (void)viewDidLoad {
-  self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
+  NSError* error = NULL;
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:NO setupSharedHome:NO];
+  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   [super viewDidLoad];
 }
 
