@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../common-adapters'
 import type {ValidationState} from '../../constants/types/wallets'
-import {EnterName} from '../link-existing/index'
+import {EnterNamePopup} from '../common'
 
 type Props = {
   createNewAccountError: string,
@@ -21,11 +20,7 @@ type Props = {
 
 class CreateAccount extends React.Component<Props> {
   render() {
-    return (
-      <Kb.MaybePopup onClose={this.props.onCancel}>
-        <EnterName {...this.props} />
-      </Kb.MaybePopup>
-    )
+    return <EnterNamePopup {...this.props} onClose={this.props.onCancel} />
   }
 
   _onCheckName = () => {

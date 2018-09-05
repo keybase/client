@@ -75,15 +75,16 @@ class LinkWallet extends React.Component<Props, State> {
         break
       case 'name':
         view = (
-          <EnterName
-            error={this.props.nameError || this.props.linkExistingAccountError}
-            name={this.props.name}
-            onBack={() => this._onViewChange('key')}
-            onCancel={this.props.onCancel}
-            onNameChange={this.props.onNameChange}
-            onDone={this._onCheckName}
-            waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
-          />
+          <h1>name</h1>
+          // <EnterName
+          //   error={this.props.nameError || this.props.linkExistingAccountError}
+          //   name={this.props.name}
+          //   onBack={() => this._onViewChange('key')}
+          //   onCancel={this.props.onCancel}
+          //   onNameChange={this.props.onNameChange}
+          //   onDone={this._onCheckName}
+          //   waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
+          // />
         )
         break
       default:
@@ -165,63 +166,6 @@ const EnterKey = (props: EnterKeyProps) => (
       <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
       <Kb.Button type="Wallet" onClick={props.onNext} label="Next" waiting={props.waiting} />
     </Kb.ButtonBar>
-  </Kb.Box2>
-)
-
-type EnterNameProps = {
-  error: string,
-  name: string,
-  onBack: ?() => void,
-  onCancel: () => void,
-  onNameChange: string => void,
-  onDone: () => void,
-  waiting: boolean,
-}
-
-const EnterName = (props: EnterNameProps) => (
-  <Kb.Box2 direction="vertical" style={styles.popupContainer}>
-    <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Kb.Box2
-        direction="vertical"
-        gap="medium"
-        fullWidth={true}
-        fullHeight={true}
-        style={styles.contentContainer}
-      >
-        <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
-        <Kb.Text type="Header">Name your account</Kb.Text>
-        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
-            Account name
-          </Kb.Text>
-          <Kb.Input
-            hideLabel={true}
-            hideUnderline={true}
-            inputStyle={Styles.collapseStyles([styles.inputElement, styles.tallSingleLineInput])}
-            style={styles.input}
-            value={props.name}
-            onChangeText={props.onNameChange}
-          />
-          {props.error && (
-            <Kb.Text type="BodySmall" style={styles.error}>
-              {props.error}
-            </Kb.Text>
-          )}
-        </Kb.Box2>
-        <Kb.InfoNote>
-          <Kb.Box2 direction="vertical" fullWidth={true}>
-            <Kb.Text type="BodySmall" style={styles.textCenter}>
-              Your account name is encrypted and only visible to you.
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.InfoNote>
-      </Kb.Box2>
-      <Kb.ButtonBar>
-        <Kb.Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-        <Kb.Button type="Wallet" onClick={props.onDone} label="Done" waiting={props.waiting} />
-      </Kb.ButtonBar>
-    </Kb.Box2>
   </Kb.Box2>
 )
 
@@ -334,5 +278,5 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export {EnterName, Wrapper}
+export {Wrapper}
 export default LinkWallet
