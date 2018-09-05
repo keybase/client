@@ -455,6 +455,8 @@ func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoa
 func (s *shoppingList) computeFreshLoad(m libkb.MetaContext, arg fastLoadArg) {
 	s.needRefresh = true
 	s.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
+	s.downPointers = append([]keybase1.Seqno{}, arg.downPointersNeeded...)
+	s.generations = append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
 }
 
 // applicationsToString converts the list of applications to a comma-separated string.
