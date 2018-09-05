@@ -358,6 +358,11 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		for _, app := range arg.Applications {
 			apps[app] = struct{}{}
 		}
+		if !state.LoadedLatest {
+			m.CDebugf("latest was never loaded, we need to load it")
+			shoppingList.needRefresh = true
+			fresh = false
+		}
 	}
 
 	for _, app := range arg.Applications {
@@ -979,6 +984,9 @@ func (f *FastTeamChainLoader) mutateState(m libkb.MetaContext, arg fastLoadArg, 
 		return err
 	}
 	state.CachedAt = keybase1.ToTime(m.G().Clock().Now())
+	if arg.NeedLatestKey {
+		state.LoadedLatest = true
+	}
 	return nil
 }
 

@@ -207,6 +207,10 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // True if we've ever loaded this team for the "latest" version; sometimes
+    // we don't, depending on the access patterns
+    boolean loadedLatest;
   }
 
   record LinkTriple {
