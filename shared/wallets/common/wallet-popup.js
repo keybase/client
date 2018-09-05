@@ -51,6 +51,7 @@ const styles = Styles.styleSheetCreate({
   outerContainer: {
     height: 525,
     width: 360,
+    borderRadius: 4,
   },
   header: Styles.platformStyles({
     isElectron: {
