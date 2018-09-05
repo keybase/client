@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 )
 
-type msgPair struct {
+type chatMsg struct {
 	convID chat1.ConversationID
 	msgID  chat1.MessageID
 	sender libkb.NormalizedUsername
@@ -20,7 +20,7 @@ type msgPair struct {
 type PaymentLoader struct {
 	libkb.Contextified
 	payments map[stellar1.PaymentID]*stellar1.PaymentLocal
-	messages map[stellar1.PaymentID]msgPair
+	messages map[stellar1.PaymentID]chatMsg
 	queue    chan stellar1.PaymentID
 	sync.Mutex
 	shutdownOnce sync.Once
@@ -33,7 +33,7 @@ func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	p := &PaymentLoader{
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
-		messages:     make(map[stellar1.PaymentID]msgPair),
+		messages:     make(map[stellar1.PaymentID]chatMsg),
 		queue:        make(chan stellar1.PaymentID, 50),
 	}
 
@@ -62,22 +62,22 @@ func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, m
 
 	m := libkb.NewMetaContext(ctx, p.G())
 
-	pair, ok := p.messages[paymentID]
+	msg, ok := p.messages[paymentID]
 	// store the msg info if necessary
 	if !ok {
-		pair = msgPair{
+		msg = chatMsg{
 			convID: convID,
 			msgID:  msgID,
 			sender: libkb.NewNormalizedUsername(senderUsername),
 		}
-		p.messages[paymentID] = pair
-	} else if !pair.convID.Eq(convID) || pair.msgID != msgID {
-		m.CWarningf("existing message info does not match load info: (%v, %v) != (%v, %v)", pair.convID, pair.msgID, convID, msgID)
+		p.messages[paymentID] = msg
+	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
+		m.CWarningf("existing message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
 	payment, ok := p.payments[paymentID]
 	if ok {
-		info := p.uiInfo(m, payment, pair)
+		info := p.uiInfo(m, payment, msg)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
@@ -132,7 +132,7 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 	p.sendNotification(m, id, summary)
 }
 
-func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, pair msgPair) *chat1.UIPaymentInfo {
+func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
 	info := chat1.UIPaymentInfo{
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
@@ -144,7 +144,7 @@ func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 
 	// calculate the payment delta
 	username := p.G().ActiveDevice.Username(m)
-	if pair.sender.Eq(username) {
+	if msg.sender.Eq(username) {
 		info.Delta = stellar1.BalanceDelta_DECREASE
 		// check if sending to self
 		if summary.TargetType == stellar1.ParticipantType_KEYBASE {
@@ -161,7 +161,7 @@ func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 
 func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.PaymentID, summary *stellar1.PaymentLocal) {
 	p.Lock()
-	pair, ok := p.messages[id]
+	msg, ok := p.messages[id]
 	p.Unlock()
 
 	if !ok {
@@ -169,8 +169,8 @@ func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.Paymen
 		return
 	}
 
-	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, pair.convID, pair.msgID)
+	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
-	info := p.uiInfo(m, summary, pair)
-	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, pair.convID, pair.msgID, *info)
+	info := p.uiInfo(m, summary, msg)
+	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
 }
