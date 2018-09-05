@@ -14,11 +14,12 @@ import (
 type msgPair struct {
 	convID chat1.ConversationID
 	msgID  chat1.MessageID
+	sender libkb.NormalizedUsername
 }
 
 type PaymentLoader struct {
 	libkb.Contextified
-	payments map[stellar1.PaymentID]*chat1.UIPaymentInfo
+	payments map[stellar1.PaymentID]*stellar1.PaymentLocal
 	messages map[stellar1.PaymentID]msgPair
 	queue    chan stellar1.PaymentID
 	sync.Mutex
@@ -28,7 +29,7 @@ type PaymentLoader struct {
 func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	p := &PaymentLoader{
 		Contextified: libkb.NewContextified(g),
-		payments:     make(map[stellar1.PaymentID]*chat1.UIPaymentInfo),
+		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
 		messages:     make(map[stellar1.PaymentID]msgPair),
 		queue:        make(chan stellar1.PaymentID, 50),
 	}
@@ -38,26 +39,46 @@ func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
 	return p
 }
 
-func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
 	defer libkb.CTrace(ctx, p.G().GetLog(), fmt.Sprintf("PaymentLoader.Load(cid=%s,mid=%s,pid=%s)", convID, msgID, paymentID), func() error { return nil })()
 
 	p.Lock()
 	defer p.Unlock()
 
+	m := libkb.NewMetaContext(ctx, p.G())
+
 	pair, ok := p.messages[paymentID]
 	// store the msg info if necessary
 	if !ok {
-		p.messages[paymentID] = msgPair{convID: convID, msgID: msgID}
+		pair = msgPair{
+			convID: convID,
+			msgID:  msgID,
+			sender: libkb.NewNormalizedUsername(senderUsername),
+		}
+		p.messages[paymentID] = pair
 	} else if !pair.convID.Eq(convID) || pair.msgID != msgID {
-		p.G().GetLog().CWarningf(ctx, "existing message info does not match load info: (%v, %v) != (%v, %v)", pair.convID, pair.msgID, convID, msgID)
+		m.CWarningf("existing message info does not match load info: (%v, %v) != (%v, %v)", pair.convID, pair.msgID, convID, msgID)
 	}
 
-	info, ok := p.payments[paymentID]
+	payment, ok := p.payments[paymentID]
 	if ok {
+		info, err := p.uiInfo(m, payment, pair)
+		if err != nil {
+			p.G().GetLog().CDebugf(ctx, "error getting uiInfo for payment %s", paymentID)
+			p.queue <- paymentID
+			return nil
+		}
+
+		if info.Status != stellar1.PaymentStatus_COMPLETED {
+			// to be safe, schedule a reload of the payment in case it has
+			// changed since stored
+			p.queue <- paymentID
+		}
+
 		return info
 	}
 
-	// need to load payment in background
+	// not found, need to load payment in background
 	p.queue <- paymentID
 
 	return nil
@@ -88,50 +109,64 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 		return
 	}
 
-	info, err := p.uiInfo(ctx, details)
+	m := libkb.NewMetaContext(ctx, p.G())
+	summary, err := TransformPaymentSummary(m, "", details.Summary)
 	if err != nil {
-		p.G().GetLog().CDebugf(ctx, "error getting ui info from details for %s: %s", id.TxID, err)
+		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id.TxID, err)
 		return
 	}
 
 	p.Lock()
-	p.payments[id] = info
+	p.payments[id] = summary
 	p.Unlock()
 
-	p.sendNotification(ctx, id, info)
+	p.sendNotification(m, id, summary)
 }
 
-func (p *PaymentLoader) uiInfo(ctx context.Context, details stellar1.PaymentDetails) (*chat1.UIPaymentInfo, error) {
-	m := libkb.NewMetaContext(ctx, p.G())
-	summary, err := TransformPaymentSummary(m, "", details.Summary)
-	if err != nil {
-		return nil, err
-	}
-
-	// don't worry about delta right now
+func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, pair msgPair) (*chat1.UIPaymentInfo, error) {
 	info := chat1.UIPaymentInfo{
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
-		Delta:             stellar1.BalanceDelta_NONE, // XXX fix
+		Delta:             summary.Delta,
 		Note:              summary.Note,
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
 	}
 
+	// calculate the payment delta
+	username := p.G().ActiveDevice.Username(m)
+	if pair.sender.Eq(username) {
+		info.Delta = stellar1.BalanceDelta_DECREASE
+		// check if sending to self
+		if summary.TargetType == stellar1.ParticipantType_KEYBASE {
+			if libkb.NewNormalizedUsername(summary.Target).Eq(username) {
+				info.Delta = stellar1.BalanceDelta_NONE
+			}
+		}
+	} else {
+		info.Delta = stellar1.BalanceDelta_INCREASE
+	}
+
 	return &info, nil
 }
 
-func (p *PaymentLoader) sendNotification(ctx context.Context, id stellar1.PaymentID, info *chat1.UIPaymentInfo) {
+func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.PaymentID, summary *stellar1.PaymentLocal) {
 	p.Lock()
 	pair, ok := p.messages[id]
 	p.Unlock()
 
 	if !ok {
-		p.G().GetLog().CDebugf(ctx, "not sending chat notification for %s (no associated convID, msgID)", id.TxID)
+		m.CDebugf("not sending chat notification for %s (no associated convID, msgID)", id.TxID)
 		return
 	}
 
-	p.G().GetLog().CDebugf(ctx, "sending chat notification for payment %s to %s, %s", id.TxID, pair.convID, pair.msgID)
+	info, err := p.uiInfo(m, summary, pair)
+	if err != nil {
+		m.CDebugf("error getting uiInfo for payment %s: %s", id.TxID, err)
+		return
+	}
+
+	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, pair.convID, pair.msgID)
 	uid := p.G().ActiveDevice.UID()
-	p.G().NotifyRouter.HandleChatPaymentInfo(ctx, uid, pair.convID, pair.msgID, *info)
+	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, pair.convID, pair.msgID, *info)
 }

@@ -331,5 +331,5 @@ type NativeVideoHelper interface {
 }
 
 type PaymentLoader interface {
-	Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+	Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
 }
