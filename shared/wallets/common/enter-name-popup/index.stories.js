@@ -30,9 +30,8 @@ const enterNameProps = {
 const nameErrorProps = {
   ...common,
   name: 'this is too long',
-  nameError: 'Error: name too long',
+  error: 'Error: name too long',
   nameValidationState: 'error',
-  view: 'name',
 }
 
 const load = () => {
