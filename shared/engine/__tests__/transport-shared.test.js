@@ -24,7 +24,7 @@ describe('TransportShared', () => {
 
   it('invoke', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: {}, notify: null}
+    const msg = {program: 'foo', method: 'bar', args: {}}
 
     t.connected = true
     t.invoke(msg, () => {})
@@ -33,7 +33,7 @@ describe('TransportShared', () => {
 
   it('invoke queued', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: {}, notify: null}
+    const msg = {program: 'foo', method: 'bar', args: {}}
 
     t.connected = false
     t.invoke(msg, () => {})
