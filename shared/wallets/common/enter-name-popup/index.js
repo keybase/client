@@ -14,13 +14,13 @@ type EnterNameProps = {
   waiting: boolean,
 }
 
-const EnterName = (props: EnterNameProps) => {
+const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
     <Kb.Button key={0} type="Secondary" onClick={props.onClose} label="Cancel" />,
     <Kb.Button key={1} type="Wallet" onClick={props.onDone} label="Done" waiting={props.waiting} />,
   ]
   return (
-    <WalletPopup bottomButtons={buttons} onClose={props.onClose}>
+    <WalletPopup bottomButtons={buttons} onClose={props.onClose} onBack={props.onBack}>
       <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text type="Header" style={styles.headerText}>
         Name your account
@@ -112,4 +112,4 @@ const styles = Styles.styleSheetCreate({
   textCenter: {textAlign: 'center'},
 })
 
-export default EnterName
+export default EnterNamePopup
