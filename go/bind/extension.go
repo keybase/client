@@ -64,6 +64,10 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 
 	svc := service.NewService(kbCtx, false)
+	err = svc.StartLoopbackServer()
+	if err != nil {
+		return err
+	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
 	kbCtx.SetUIRouter(uir)

@@ -6,5 +6,9 @@
 	<array>
 		<string>group.keybase</string>
 	</array>
+	<key>keychain-access-groups</key>
+	<array>
+		<string>$(AppIdentifierPrefix)group.keybase</string>
+	</array>
 </dict>
 </plist>

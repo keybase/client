@@ -7,6 +7,7 @@
 //
 
 #import "ConversationViewController.h"
+#import "keybase/keybase.h"
 
 @interface ConversationViewController ()
 @property UISearchController* searchController;
@@ -22,6 +23,8 @@
   self.searchController.dimsBackgroundDuringPresentation = false;
   self.definesPresentationContext = YES;
   [self.tableView setTableHeaderView:self.searchController.searchBar];
+  
+  NSString* jsonInbox = KeybaseExtensionGetInbox();
   
   [super viewDidLoad];
   
