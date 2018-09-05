@@ -684,8 +684,7 @@ func (bt *blockTree) shiftBlocksToFillHole(
 		"position", newBlockStartOff, bt.rootBlockPointer())
 
 	// Swap left as needed.
-	loopedOnce := false
-	for {
+	for loopedOnce := false; ; loopedOnce = true {
 		var leftOff Offset
 		var newParents []parentBlockAndChildIndex
 		immedPblock := immedParent.pblock
@@ -742,7 +741,6 @@ func (bt *blockTree) shiftBlocksToFillHole(
 					childBlock.NumIndirectPtrs() - 1)
 			}
 		}
-		loopedOnce = true
 
 		// We're done!
 		if leftOff.Less(newBlockStartOff) {
