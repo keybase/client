@@ -279,6 +279,8 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
+	d.SetupChatModules()
+
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -332,7 +334,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
-	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 	d.addGlobalHooks()
@@ -384,7 +385,7 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
-func (d *Service) createChatModules() {
+func (d *Service) SetupChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
 	ri := d.gregor.GetClient
 
@@ -1224,7 +1225,6 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
-	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 
