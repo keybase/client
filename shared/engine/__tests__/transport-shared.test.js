@@ -11,6 +11,10 @@ describe('TransportShared', () => {
       this._messages = []
     }
 
+    is_connected = () => {
+      return true
+    }
+
     send = (msg: any) => {
       this._messages.push(msg)
     }
