@@ -40,27 +40,33 @@ describe('TransportShared', () => {
     }
   }
 
+  const args = {
+    arg1: 5,
+    arg2: 'value',
+  }
+  const invokeArg = {program: 'myProgram', method: 'myMethod', args: [args], notify: false}
+
+  const expectedMessage = [0, 1, 'myProgram.myMethod', [args]]
+
   it('invoke', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: [{}], notify: false}
 
     t.connected = true
-    t.invoke(msg, () => {})
-    expect(t.lastMessage).toEqual([0, 1, 'foo.bar', msg.args])
+    t.invoke(invokeArg, () => {})
+    expect(t.lastMessage).toEqual(expectedMessage)
   })
 
   it('invoke queued', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: [{}], notify: false}
 
     t.connected = false
-    t.invoke(msg, () => {})
-    expect(t.messages).toBe(null)
+    t.invoke(invokeArg, () => {})
+    expect(t.lastMessage).toBe(null)
 
     t.connected = true
 
     // $FlowIssue Flow doesn't see inherited methods.
     t._flush_queue()
-    expect(t.lastMessage).toEqual([0, 1, 'foo.bar', msg.args])
+    expect(t.lastMessage).toEqual(expectedMessage)
   })
 })
