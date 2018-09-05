@@ -232,10 +232,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FSGen.getDokanUninstallStringResult:
-      return {
-        ...state,
-        action.payload,
-      }
+      return state.merge({dokanUninstallString: action.payload.uninstallString})
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:

@@ -14,6 +14,7 @@ type Props = {
   onDismiss?: () => void,
   onInstall: () => void,
   openInFileUI?: () => void,
+  dokanUninstall?: () => void,
 }
 
 const Banner = ({kbfsEnabled, driverOutdated, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {

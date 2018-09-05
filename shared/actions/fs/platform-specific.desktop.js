@@ -288,6 +288,20 @@ function installCachedDokan() {
   })
 }
 
+function uninstallCachedDokan(uninstallString: string) {
+  return new Promise((resolve, reject) => {
+    logger.info('Invoking dokan uninstaller')
+    try {
+      execSync(uninstallString, {windowsHide: true})
+    } catch (err) {
+      logger.error('uninstallCachedDokan caught', err)
+      reject(err)
+      return
+    }
+    resolve()
+  })
+}
+
 function getDokanUninstallString(): Promise<string> {
   logger.info('getDokanUninstallString')
   return new Promise((resolve, reject) => {
@@ -319,6 +333,10 @@ function getDokanUninstallStringSaga() {
 
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
+}
+
+function uninstallDokanSaga(uninstallString: string) {
+  return Saga.call(uninstallCachedDokan(uninstallString))
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
