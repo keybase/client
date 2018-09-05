@@ -24,16 +24,16 @@ describe('TransportShared', () => {
 
   it('invoke', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: {}}
+    const msg = {program: 'foo', method: 'bar', args: [{}], notify: false}
 
     t.connected = true
     t.invoke(msg, () => {})
-    expect(t.messages).toEqual([[0, 1, 'foo.bar', [msg.args]]])
+    expect(t.messages).toEqual([[0, 1, 'foo.bar', msg.args]])
   })
 
   it('invoke queued', () => {
     const t = new FakeTransportShared()
-    const msg = {program: 'foo', method: 'bar', args: {}}
+    const msg = {program: 'foo', method: 'bar', args: [{}], notify: false}
 
     t.connected = false
     t.invoke(msg, () => {})
@@ -43,6 +43,6 @@ describe('TransportShared', () => {
 
     // $FlowIssue Flow doesn't see inherited methods.
     t._flush_queue()
-    expect(t.messages).toEqual([[0, 1, 'foo.bar', [msg.args]]])
+    expect(t.messages).toEqual([[0, 1, 'foo.bar', msg.args]])
   })
 })

@@ -5,11 +5,13 @@ type payloadType = {
   response: ?Object,
 }
 
-export type invokeType = (method: string, param: ?Object, cb: (err: any, data: any) => void) => void
+export type transportInvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
+export type invokeType = (method: string, param: [Object], cb: (err: any, data: any) => void) => void
 export type createClientType = {
   transport: {
     needsConnect: boolean,
     reset: () => void,
+    invoke: (transportInvokeArgs) => void,
   },
   invoke: invokeType,
 }
