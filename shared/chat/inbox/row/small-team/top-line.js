@@ -61,11 +61,14 @@ class _SimpleTopLine extends React.Component<Props> {
           style={{
             ...globalStyles.flexBoxRow,
             flexGrow: 1,
+            height: 17,
+            position: 'relative',
           }}
         >
           <Box
             style={{
               ...globalStyles.flexBoxRow,
+              ...globalStyles.fillAbsolute,
               alignItems: 'center',
             }}
           >
