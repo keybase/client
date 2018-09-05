@@ -358,8 +358,6 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		for _, app := range arg.Applications {
 			apps[app] = struct{}{}
 		}
-		fresh = false
-		shoppingList.needRefresh = true
 	}
 
 	for _, app := range arg.Applications {
@@ -450,6 +448,10 @@ func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoa
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needRefresh = true
 	}
+	if arg.NeedFresh() && arg.ForceRefresh {
+		m.CDebugf("refresh forced via argument")
+		s.needRefresh = true
+	}
 	if arg.NeedFresh() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
 		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
 		s.needRefresh = true
@@ -506,6 +508,8 @@ func (a fastLoadArg) toHTTPArgs(s shoppingList) libkb.HTTPArgs {
 	}
 	if len(s.applications) > 0 {
 		ret["ftl_include_applications"] = libkb.S{Val: applicationsToString(s.applications)}
+	}
+	if a.NeedLatestKey {
 		ret["ftl_n_newest_key_generations"] = libkb.I{Val: int(3)}
 	}
 	if !a.readSubteamID.IsNil() {
