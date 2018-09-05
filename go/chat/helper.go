@@ -598,8 +598,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 			continue
 		}
 		if !msg.IsValid() {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message",
-				conv.GetConvID())
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message: %v",
+				conv.GetConvID(), msg.DebugString())
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{

@@ -44,7 +44,12 @@ const noiseSuffix = ".ns"
 const storageSubDir = "eraseablekvstore"
 
 func getStorageDir(g *libkb.GlobalContext, subDir string) string {
-	return filepath.Join(g.Env.GetDataDir(), storageSubDir, subDir)
+	base := g.Env.GetDataDir()
+	// check for iOS
+	if runtime.GOOS == "darwin" && g.GetAppType() == libkb.MobileAppType {
+		base = g.Env.GetConfigDir()
+	}
+	return filepath.Join(base, storageSubDir, subDir)
 }
 
 type ErasableKVStore interface {
