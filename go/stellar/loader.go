@@ -62,13 +62,7 @@ func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, m
 
 	payment, ok := p.payments[paymentID]
 	if ok {
-		info, err := p.uiInfo(m, payment, pair)
-		if err != nil {
-			p.G().GetLog().CDebugf(ctx, "error getting uiInfo for payment %s", paymentID)
-			p.queue <- paymentID
-			return nil
-		}
-
+		info := p.uiInfo(m, payment, pair)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
@@ -123,7 +117,7 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 	p.sendNotification(m, id, summary)
 }
 
-func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, pair msgPair) (*chat1.UIPaymentInfo, error) {
+func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, pair msgPair) *chat1.UIPaymentInfo {
 	info := chat1.UIPaymentInfo{
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
@@ -147,7 +141,7 @@ func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		info.Delta = stellar1.BalanceDelta_INCREASE
 	}
 
-	return &info, nil
+	return &info
 }
 
 func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.PaymentID, summary *stellar1.PaymentLocal) {
@@ -160,13 +154,8 @@ func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.Paymen
 		return
 	}
 
-	info, err := p.uiInfo(m, summary, pair)
-	if err != nil {
-		m.CDebugf("error getting uiInfo for payment %s: %s", id.TxID, err)
-		return
-	}
-
 	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, pair.convID, pair.msgID)
 	uid := p.G().ActiveDevice.UID()
+	info := p.uiInfo(m, summary, pair)
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, pair.convID, pair.msgID, *info)
 }
