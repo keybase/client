@@ -1665,6 +1665,10 @@
         {
           "type": "boolean",
           "name": "needLatestKey"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRefresh"
         }
       ]
     },
@@ -3052,6 +3056,15 @@
       ],
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "ftl": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "FastTeamLoadArg"
+        }
+      ],
+      "response": "FastTeamLoadRes"
     }
   },
   "namespace": "keybase.1"

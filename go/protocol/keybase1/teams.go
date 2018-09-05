@@ -1952,6 +1952,7 @@ type FastTeamLoadArg struct {
 	Applications         []TeamApplication      `codec:"applications" json:"applications"`
 	KeyGenerationsNeeded []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
 	NeedLatestKey        bool                   `codec:"needLatestKey" json:"needLatestKey"`
+	ForceRefresh         bool                   `codec:"forceRefresh" json:"forceRefresh"`
 }
 
 func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
@@ -1981,6 +1982,7 @@ func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
 			return ret
 		})(o.KeyGenerationsNeeded),
 		NeedLatestKey: o.NeedLatestKey,
+		ForceRefresh:  o.ForceRefresh,
 	}
 }
 
@@ -2775,6 +2777,10 @@ type GetTeamIDArg struct {
 	TeamName string `codec:"teamName" json:"teamName"`
 }
 
+type FtlArg struct {
+	Arg FastTeamLoadArg `codec:"arg" json:"arg"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2837,6 +2843,7 @@ type TeamsInterface interface {
 	// Gets a TeamID from a team name string. Returns an error if the
 	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
+	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3595,6 +3602,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ftl": {
+				MakeArg: func() interface{} {
+					ret := make([]FtlArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FtlArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FtlArg)(nil), args)
+						return
+					}
+					ret, err = i.Ftl(ctx, (*typedArgs)[0].Arg)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3858,5 +3881,11 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
+	__arg := FtlArg{Arg: arg}
+	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res)
 	return
 }

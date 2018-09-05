@@ -717,6 +717,10 @@ protocol teams {
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
     boolean needLatestKey;
+
+    // Specify this flag if you want to force past the time-based cache,
+    // currently set to one hour.
+    boolean forceRefresh;
   }
 
   record FastTeamLoadRes {
@@ -1048,4 +1052,6 @@ protocol teams {
    current user can't read the team.
    */
   TeamID getTeamID(string teamName);
+
+  FastTeamLoadRes ftl(FastTeamLoadArg arg);
 }
