@@ -41,8 +41,8 @@ class Row extends React.Component<Props> {
           style={{
             ...(this.props.expanded
               ? {
+                  backgroundColor: Styles.globalColors.blueGrey,
                   height: 6,
-                  backgroundColor: Styles.globalColors.blue5,
                 }
               : {}),
           }}
@@ -53,10 +53,6 @@ class Row extends React.Component<Props> {
             ...(this.props.expanded
               ? {
                   backgroundColor: Styles.globalColors.white,
-                  borderBottomWidth: 1,
-                  borderColor: Styles.globalColors.black_10,
-                  borderStyle: 'solid',
-                  borderTopWidth: 1,
                   paddingBottom: Styles.globalMargins.tiny,
                   paddingTop: Styles.globalMargins.xtiny,
                 }
@@ -213,7 +209,7 @@ class Row extends React.Component<Props> {
             ...(this.props.expanded
               ? {
                   height: 6,
-                  backgroundColor: Styles.globalColors.blue5,
+                  backgroundColor: Styles.globalColors.blueGrey,
                 }
               : {}),
           }}

@@ -845,7 +845,23 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
@@ -1153,7 +1169,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1163,6 +1179,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1172,6 +1194,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

@@ -267,7 +267,7 @@ describe('navs after revoking', () => {
   it('root of devices on revoke other', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
-    dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: true}))
+    dispatch(DevicesGen.createRevoked({deviceID, deviceName: 'a phone', wasCurrentDevice: false}))
     expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab]))
   })
 

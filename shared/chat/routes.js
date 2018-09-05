@@ -1,4 +1,5 @@
 // @flow
+import * as WalletConstants from '../constants/wallets'
 import AttachmentGetTitles from './conversation/attachment-get-titles/container'
 import AttachmentFullscreen from './conversation/attachment-fullscreen/container'
 import AttachmentVideoFullscreen from './conversation/attachment-video-fullscreen/container'
@@ -19,6 +20,8 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import DeleteHistoryWarning from './delete-history-warning/container'
 import RetentionWarning from '../teams/team/settings-tab/retention/warning/container'
 import ChooseEmoji from './conversation/messages/react-button/emoji-picker/container'
+import ConfirmForm from '../wallets/confirm-form/container'
+import SendForm from '../wallets/send-form/container'
 
 // Arbitrarily stackable routes from the chat tab
 const chatChildren = {
@@ -69,7 +72,9 @@ const chatChildren = {
   },
   attachmentVideoFullscreen: {
     component: AttachmentVideoFullscreen,
-    tags: makeLeafTags(isMobile ? {hideStatusBar: true, fullscreen: true} : {layerOnTop: true}),
+    tags: makeLeafTags(
+      isMobile ? {hideStatusBar: true, underStatusBar: true, fullscreen: true} : {layerOnTop: true}
+    ),
     children: key => makeRouteDefNode(chatChildren[key]),
   },
   attachmentGetTitles: {
@@ -89,6 +94,17 @@ const chatChildren = {
   },
   enterPaperkey: {
     component: EnterPaperkey,
+  },
+  [WalletConstants.sendReceiveFormRouteKey]: {
+    children: {
+      [WalletConstants.confirmFormRouteKey]: {
+        children: {},
+        component: ConfirmForm,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+    },
+    component: SendForm,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
   },
 }
 

@@ -12,7 +12,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
       dispatch(

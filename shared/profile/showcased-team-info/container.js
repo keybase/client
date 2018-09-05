@@ -49,7 +49,7 @@ const mapStateToProps = (state: TypedState, {team}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
   const teamname = team.fqName
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),

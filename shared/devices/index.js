@@ -71,6 +71,7 @@ class Devices extends React.PureComponent<Props, State> {
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.List items={items} renderItem={this._renderRow} />
         <Kb.FloatingMenu
+          closeOnSelect={true}
           attachTo={this.props.attachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}

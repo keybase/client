@@ -2,7 +2,7 @@
 import * as Types from '../constants/types/chat2'
 import * as Chat2Gen from '../actions/chat2-gen'
 import {Channel} from './channel'
-import {connect, compose, setDisplayName, type TypedState, type Dispatch} from '../util/container'
+import {connect, compose, setDisplayName, type TypedState} from '../util/container'
 import type {StylesCrossPlatform} from '../styles'
 
 type OwnProps = {|
@@ -14,7 +14,7 @@ type OwnProps = {|
 
 const mapStateToProps = (state: TypedState) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onClick: (name, convID) =>
     dispatch(
       Chat2Gen.createPreviewConversation({

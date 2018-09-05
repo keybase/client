@@ -2,7 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 

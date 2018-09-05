@@ -9,7 +9,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp}) => {
+const mapDispatchToProps = (dispatch, {routeProps, navigateUp}) => {
   return {
     onBack: () => {
       dispatch(navigateUp())

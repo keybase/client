@@ -174,6 +174,11 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
   }
 
   statusBarListener = (frameData: any) => {
+    if (frameData.height === 0 && isIPhoneX) {
+      // this is a rotation event
+      return
+    }
+
     // the iPhone X has default status bar height of 45px
     // and it doesn't increase in height like earlier devices.
     // (so this should always be 0 on an iPhone X, but this should still
@@ -360,7 +365,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
 })
 

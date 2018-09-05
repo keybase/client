@@ -1385,11 +1385,29 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
+  'icon-placeholder-secret-user-16': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-16.png'),
+  },
+  'icon-placeholder-secret-user-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-32.png'),
+  },
   'icon-placeholder-secret-user-48': {
     isFont: false,
     extension: 'png',
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-placeholder-secret-user-48.png'),
+  },
+  'icon-placeholder-secret-user-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-64.png'),
   },
   'icon-play-64': {
     isFont: false,
@@ -1900,6 +1918,30 @@ const iconMeta_ = {
     extension: 'png',
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-wallet-receive-64.png'),
+  },
+  'icon-wallet-remove-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-remove-48.png'),
+  },
+  'icon-wallet-remove-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-remove-64.png'),
+  },
+  'icon-wallet-secret-key-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-secret-key-48.png'),
+  },
+  'icon-wallet-secret-key-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-wallet-secret-key-64.png'),
   },
   'icon-website-16': {
     isFont: false,

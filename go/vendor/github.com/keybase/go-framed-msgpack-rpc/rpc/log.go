@@ -16,6 +16,8 @@ type Profiler interface {
 type LogInterface interface {
 	TransportStart()
 	TransportError(error)
+	// The passed-in slice should not be mutated.
+	FrameRead([]byte)
 	ClientCall(SeqNumber, string, interface{})
 	ServerCall(SeqNumber, string, error, interface{})
 	ServerReply(SeqNumber, string, error, interface{})
@@ -53,6 +55,7 @@ type LogOptions interface {
 	ShowArg() bool
 	ShowResult() bool
 	Profile() bool
+	FrameTrace() bool
 	ClientTrace() bool
 	ServerTrace() bool
 	TransportStart() bool
@@ -89,11 +92,13 @@ func (so SimpleLogOptions) ShowAddress() bool    { return true }
 func (so SimpleLogOptions) ShowArg() bool        { return true }
 func (so SimpleLogOptions) ShowResult() bool     { return true }
 func (so SimpleLogOptions) Profile() bool        { return true }
+func (so SimpleLogOptions) FrameTrace() bool     { return true }
 func (so SimpleLogOptions) ClientTrace() bool    { return true }
 func (so SimpleLogOptions) ServerTrace() bool    { return true }
 func (so SimpleLogOptions) TransportStart() bool { return true }
 
 type StandardLogOptions struct {
+	frameTrace     bool
 	clientTrace    bool
 	serverTrace    bool
 	profile        bool
@@ -106,22 +111,19 @@ func (s *StandardLogOptions) ShowAddress() bool    { return !s.noAddress }
 func (s *StandardLogOptions) ShowArg() bool        { return s.verboseTrace }
 func (s *StandardLogOptions) ShowResult() bool     { return s.verboseTrace }
 func (s *StandardLogOptions) Profile() bool        { return s.profile }
+func (s *StandardLogOptions) FrameTrace() bool     { return s.frameTrace }
 func (s *StandardLogOptions) ClientTrace() bool    { return s.clientTrace }
 func (s *StandardLogOptions) ServerTrace() bool    { return s.serverTrace }
 func (s *StandardLogOptions) TransportStart() bool { return s.connectionInfo }
 
 func NewStandardLogOptions(opts string, log LogOutput) LogOptions {
 	var s StandardLogOptions
-	s.clientTrace = false
-	s.serverTrace = false
-	s.profile = false
-	s.verboseTrace = false
-	s.connectionInfo = false
-	s.noAddress = false
 	for _, c := range opts {
 		switch c {
 		case 'A':
 			s.noAddress = true
+		case 'f':
+			s.frameTrace = true
 		case 'c':
 			s.clientTrace = true
 		case 's':
@@ -182,6 +184,12 @@ func (l SimpleLog) TransportError(e error) {
 		l.Out.Debug(l.msg(true, "EOF"))
 	}
 	return
+}
+
+func (s SimpleLog) FrameRead(bytes []byte) {
+	if s.Opts.FrameTrace() {
+		s.Out.Debug(s.msg(false, "Frame read: %x", bytes))
+	}
 }
 
 // Call

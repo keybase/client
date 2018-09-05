@@ -5,6 +5,8 @@ import assetInput, {props3 as assetInputProps} from './asset-input/index.stories
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
+import participants, {participantProviderProperties} from './participants/index.stories'
+
 import SendForm from '.'
 
 // TODO some of the state of these child components
@@ -16,11 +18,22 @@ const provider = Sb.createPropProviderWithCommon({
   AssetInput: props => assetInputProps,
   Available: props => ({}),
   Banner: props => ({}),
-  Body: props => ({}),
-  Footer: props => ({}),
+  Body: props => ({
+    bannerInfo: props.bannerInfo,
+    isProcessing: props.isProcessing,
+    isRequest: props.isRequest,
+  }),
+  Footer: props => ({
+    isRequest: props.isRequest,
+    onClickRequest: props.isRequest ? Sb.action('onClickRequest') : undefined,
+    onClickSend: Sb.action('onClickSend'),
+  }),
   Header: props => ({}),
   NoteAndMemo: props => ({}),
-  Participants: props => ({}),
+  Participants: props => ({
+    onShowProfile: Sb.action('onShowProfile'),
+  }),
+  ...participantProviderProperties,
 })
 
 const load = () => {
@@ -29,10 +42,12 @@ const load = () => {
   chooseAsset()
   footers()
   noteAndMemo()
+  participants()
   // full component
   Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />)
+    .add('Send', () => <SendForm isRequest={false} onClose={Sb.action('onClose')} />)
+    .add('Request', () => <SendForm isRequest={true} onClose={Sb.action('onClose')} />)
 }
 
 export default load

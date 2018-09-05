@@ -32,6 +32,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
@@ -1901,6 +1902,7 @@ type serverChatListener struct {
 	setConvSettings  chan chat1.ConversationID
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
+	subteamRename    chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1975,6 +1977,9 @@ func (n *serverChatListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
 }
+func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
+	n.subteamRename <- convIDs
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -1999,6 +2004,7 @@ func newServerChatListener() *serverChatListener {
 		setConvSettings:  make(chan chat1.ConversationID, buf),
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
+		subteamRename:    make(chan []chat1.ConversationID, buf),
 	}
 }
 
@@ -3467,6 +3473,16 @@ func consumeSetConvSettings(t *testing.T, listener *serverChatListener) chat1.Co
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get setConvSettings notification")
 		return chat1.ConversationID{}
+	}
+}
+
+func consumeSubteamRename(t *testing.T, listener *serverChatListener) []chat1.ConversationID {
+	select {
+	case x := <-listener.subteamRename:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get subteamRename notification")
+		return nil
 	}
 }
 
@@ -5362,6 +5378,95 @@ func TestChatSrvGetStaticConfig(t *testing.T) {
 	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
 	}, res)
+}
+
+func TestChatSrvStellarMessages(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			switch mt {
+			case chat1.ConversationMembersType_KBFS:
+				return
+			}
+
+			ctc := makeChatTestContext(t, "SrvStellarMessages", 2)
+			defer ctc.cleanup()
+			users := ctc.users()
+
+			uid := users[0].User.GetUID().ToBytes()
+			tc := ctc.world.Tcs[users[0].Username]
+			ctx := ctc.as(t, users[0]).startCtx
+			listener := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+			tc.ChatG.Syncer.(*Syncer).isConnected = true
+
+			created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user())
+
+			t.Logf("send a request message")
+			body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
+				RequestID: stellar1.KeybaseRequestID("dummy id"),
+				Note:      "Test note",
+			})
+
+			if ephemeralLifetime != nil {
+				_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
+				require.Error(t, err)
+				return
+			}
+
+			_, err := postLocalForTestNoAdvanceClock(t, ctc, users[0], created, body)
+			require.NoError(t, err)
+
+			var unboxed chat1.UIMessage
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
+				require.Equal(t, body.Requestpayment(), unboxed.Valid().MessageBody.Requestpayment())
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_REQUESTPAYMENT)
+
+			tv, err := tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_REQUESTPAYMENT, tv.Messages[0].GetMessageType())
+
+			t.Logf("delete the message")
+			darg := chat1.PostDeleteNonblockArg{
+				ConversationID:   created.Id,
+				TlfName:          created.TlfName,
+				TlfPublic:        created.Visibility == keybase1.TLFVisibility_PUBLIC,
+				Supersedes:       unboxed.GetMessageID(),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+			}
+			res, err := ctc.as(t, users[0]).chatLocalHandler().PostDeleteNonblock(ctx, darg)
+			require.NoError(t, err)
+			select {
+			case info := <-listener.newMessageRemote:
+				unboxed = info.Message
+				require.True(t, unboxed.IsValid(), "invalid message")
+				require.NotNil(t, unboxed.Valid().OutboxID, "no outbox ID")
+				require.Equal(t, res.OutboxID.String(), *unboxed.Valid().OutboxID, "mismatch outbox ID")
+				require.Equal(t, chat1.MessageType_DELETE, unboxed.GetMessageType(), "invalid type")
+			case <-time.After(20 * time.Second):
+				require.Fail(t, "no event (DELETE) received")
+			}
+			consumeNewMsgLocal(t, listener, chat1.MessageType_DELETE)
+
+			tv, err = tc.Context().ConvSource.Pull(ctx, created.Id, uid,
+				chat1.GetThreadReason_GENERAL, nil, nil)
+			require.NoError(t, err)
+			require.NotZero(t, len(tv.Messages))
+			require.Equal(t, chat1.MessageType_DELETE, tv.Messages[0].GetMessageType())
+			for _, msg := range tv.Messages {
+				require.NotEqual(t, chat1.MessageType_REQUESTPAYMENT, msg.GetMessageType())
+			}
+		})
+	})
 }
 
 func randSweepChannel() uint64 {

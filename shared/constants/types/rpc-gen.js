@@ -19,6 +19,12 @@ export const backendCommonBlockType = {
   git: 2,
 }
 
+export const blockBlockStatus = {
+  unknown: 0,
+  live: 1,
+  archived: 2,
+}
+
 export const commonClientType = {
   none: 0,
   cli: 1,
@@ -205,6 +211,7 @@ export const constantsStatusCode = {
   scteamnotfound: 2614,
   scteamexists: 2619,
   scteamreaderror: 2623,
+  scteamwritepermdenied: 2625,
   scnoop: 2638,
   scteaminvitebadtoken: 2646,
   scteamtarduplicate: 2663,
@@ -755,7 +762,6 @@ export const SimpleFSSimpleFSListRpcPromise = (params, waitingKey) => new Promis
 export const SimpleFSSimpleFSOpenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSOpen', params, callback: (error, result) => (error ? reject(error) : resolve()), waitingKey}))
 export const SimpleFSSimpleFSReadListRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSReadList', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSStatRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSStat', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
-export const SimpleFSSimpleFSSuppressNotificationsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSuppressNotifications', params, callback: (error, result) => (error ? reject(error) : resolve()), waitingKey}))
 export const SimpleFSSimpleFSSyncStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSSyncStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const SimpleFSSimpleFSWaitRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.SimpleFS.simpleFSWait', params, callback: (error, result) => (error ? reject(error) : resolve()), waitingKey}))
 export const accountEmailChangeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.account.emailChange', params, callback: (error, result) => (error ? reject(error) : resolve()), waitingKey}))

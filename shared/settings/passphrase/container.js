@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onChangeShowPassphrase: () => dispatch(SettingsGen.createOnChangeShowPassphrase()),
   onSave: (passphrase: string, passphraseConfirm: string) => {

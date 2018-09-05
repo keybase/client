@@ -544,6 +544,7 @@ class Profile extends Component<Props, State> {
         />
         {!!activeMenuProof && (
           <FloatingMenu
+            closeOnSelect={true}
             onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
             visible={!!activeMenuProof}
             {...this._proofMenuContent(activeMenuProof)}

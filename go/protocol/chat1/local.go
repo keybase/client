@@ -4478,6 +4478,9 @@ type PostFileAttachmentMessageLocalNonblockArg struct {
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	Filename          string                       `codec:"filename" json:"filename"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }

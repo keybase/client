@@ -400,6 +400,9 @@ func (f *JSONConfigFile) Reset() {
 func (f *JSONConfigFile) GetHome() string {
 	return f.GetTopLevelString("home")
 }
+func (f *JSONConfigFile) GetMobileSharedHome() string {
+	return f.GetTopLevelString("mobile_shared_home")
+}
 func (f *JSONConfigFile) GetServerURI() string {
 	return f.GetTopLevelString("server")
 }
@@ -813,6 +816,10 @@ func (f *JSONConfigFile) SetBug3964RepairTime(un NormalizedUsername, t time.Time
 
 func (f *JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
+}
+
+func (f *JSONConfigFile) IsMobileExtension() (bool, bool) {
+	return f.GetBoolAtPath("mobile_extension")
 }
 
 func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {

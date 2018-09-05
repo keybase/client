@@ -28,7 +28,9 @@ const Header = (props: HeaderProps) => (
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
       <Kb.Text type="BodySmall" style={styles.headerText}>
-        {`Sending${props.assetConversion ? ' ' + props.assetType + ' worth' : ''}`.toUpperCase()}
+        {`Sending${
+          props.assetConversion ? ' ' + props.amount + ' ' + props.assetType + ' worth' : ''
+        }`.toUpperCase()}
       </Kb.Text>
       <Kb.Text type="HeaderBigExtrabold" style={styles.headerText}>
         {props.assetConversion ? props.assetConversion : props.amount}

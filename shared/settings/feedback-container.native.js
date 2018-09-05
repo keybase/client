@@ -70,12 +70,15 @@ class FeedbackContainer extends Component<Props, State> {
           const logPath = logFileName()
           logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
+          const traceDir = pprofDir()
+          const cpuProfileDir = traceDir
           return logSend(
             JSON.stringify(extra),
             this.state.feedback || '',
             this.state.sendLogs,
             logPath,
-            pprofDir()
+            traceDir,
+            cpuProfileDir
           )
         })
         .then(logSendId => {
@@ -190,7 +193,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   title: 'Feedback',
 })

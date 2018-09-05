@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isDarwin} from '../../../../constants/platform'
 import {connect, compose, setDisplayName, withProps} from '../../../../util/container'
-import type {TypedState, Dispatch} from '../../../../util/container'
+import type {TypedState} from '../../../../util/container'
 import type {RowItem, RowItemSmall, RowItemBig} from '../../index.types'
 import ChatFilterRow from '.'
 
@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
+const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))

@@ -1,7 +1,15 @@
 {
-  "prelude": ["import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'"],
+  "prelude": [
+    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'",
+    "import * as Types from '../constants/types/git'"
+  ],
   "actions": {
     "loadGit": {},
+    "loaded": {
+      "repos": "{\"[key: string]\": Types.GitInfo}",
+      "errors": "Array<Error>"
+    },
+    "navToGit": {"switchTab": "boolean", "routeState": "?{\"expandedSet\": I.Set<string>}"},
     "createTeamRepo": {
       "name": "string",
       "teamname": "string",
@@ -10,6 +18,8 @@
     "createPersonalRepo": {
       "name": "string"
     },
+    "repoDeleted": {},
+    "repoCreated": {},
     "deleteTeamRepo": {
       "name": "string",
       "teamname": "string",
@@ -23,9 +33,6 @@
     },
     "badgeAppForGit": {
       "ids": "Array<string>"
-    },
-    "handleIncomingGregor": {
-      "messages": "Array<RPCTypesGregor.OutOfBandMessage>"
     },
     "setTeamRepoSettings": {
       "chatDisabled": "boolean",
