@@ -5,20 +5,36 @@ import {TransportShared} from '../transport-shared'
 describe('TransportShared', () => {
   type MessageType = [number, number, string, Object]
 
+  // Extend TransportShared to fake out some methods.
   class FakeTransportShared extends TransportShared {
     connected: boolean
     lastMessage: ?MessageType
 
     constructor() {
-      super({}, () => {}, () => {}, () => {})
+      super(
+        {},
+        () => {
+          console.log('connectCallback')
+        },
+        () => {
+          console.log('disconnectCallback')
+        },
+        () => {
+          console.log('incomingRPCCallback')
+        }
+      )
       this.connected = false
       this.lastMessage = null
     }
 
+    // Override Transport.is_connected -- see transport.iced in
+    // framed-msgpack-rpc.
     is_connected = () => {
       return this.connected
     }
 
+    // Override Packetizer.send -- see packetizer.iced in
+    // framed-msgpack-rpc.
     send = (msg: MessageType) => {
       this.lastMessage = msg
     }
