@@ -24,6 +24,7 @@ type PaymentLoader struct {
 	queue    chan stellar1.PaymentID
 	sync.Mutex
 	shutdownOnce sync.Once
+	done         bool
 }
 
 var defaultPaymentLoader *PaymentLoader
@@ -60,6 +61,10 @@ func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, m
 	p.Lock()
 	defer p.Unlock()
 
+	if p.done {
+		return nil
+	}
+
 	m := libkb.NewMetaContext(ctx, p.G())
 
 	msg, ok := p.messages[paymentID]
@@ -95,11 +100,20 @@ func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, m
 
 // status notification handlers should call this
 func (p *PaymentLoader) Update(ctx context.Context, paymentID stellar1.PaymentID) {
+	if p.done {
+		return
+	}
+
 	p.queue <- paymentID
 }
 
 func (p *PaymentLoader) Shutdown() error {
-	p.shutdownOnce.Do(func() { close(p.queue) })
+	p.shutdownOnce.Do(func() {
+		p.Lock()
+		p.done = true
+		close(p.queue)
+		p.Unlock()
+	})
 	return nil
 }
 
