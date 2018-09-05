@@ -586,6 +586,8 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		return nil, err
 	}
 
+	numStubbed := 0
+
 	for _, link := range links {
 		if link.Seqno() > lastSeqno {
 			m.CDebugf("TeamLoader found green link seqno:%v", link.Seqno())
@@ -594,6 +596,9 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		if link.Seqno() == lastSeqno && !lastLinkID.Eq(link.LinkID().Export()) {
 			m.CDebugf("Merkle tail mismatch at link %d: %v != %v", lastSeqno, lastLinkID, link.LinkID().Export())
 			return nil, NewInvalidLink(link, "last link did not match merkle tree")
+		}
+		if link.isStubbed() {
+			numStubbed++
 		}
 	}
 
@@ -604,7 +609,7 @@ func (f *FastTeamChainLoader) loadFromServerOnce(m libkb.MetaContext, arg fastLo
 		}
 	}
 
-	m.CDebugf("#loadFromServerOnce: got back %d new links", len(links))
+	m.CDebugf("loadFromServerOnce: got back %d new links; %d stubbed; %d RKMs; %d prevs; box=%v", len(links), numStubbed, len(teamUpdate.ReaderKeyMasks), len(teamUpdate.Prevs), teamUpdate.Box != nil)
 
 	return &groceries{
 		newLinks:     links,
