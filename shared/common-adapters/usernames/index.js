@@ -9,71 +9,73 @@ import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
 import type {Props, PlaintextProps} from '../usernames'
 
-function usernameText({
-  type,
-  users,
-  style,
-  commaColor,
-  joinerStyle,
-  inline,
-  redColor,
-  backgroundMode,
-  colorFollowing,
-  colorBroken = true,
-  colorYou,
-  onUsernameClicked,
-  underline = false,
-  inlineGrammar = false,
-  showAnd = false,
-}: Props) {
-  const derivedJoinerStyle = Styles.collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
-  return users.map((u, i) => {
+function UsernameText(props: Props) {
+  const derivedJoinerStyle = Styles.collapseStyles([
+    props.joinerStyle,
+    styles.joinerStyle,
+    {color: props.commaColor},
+  ])
+  return props.users.map((u, i) => {
     let userStyle = {
       ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
-      ...(colorFollowing && !u.you
+      ...(props.colorFollowing && !u.you
         ? {color: u.following ? Styles.globalColors.green2 : Styles.globalColors.blue}
         : null),
-      ...(colorBroken && u.broken && !u.you ? {color: redColor || Styles.globalColors.red} : null),
-      ...(inline && !Styles.isMobile ? {display: 'inline'} : null),
+      ...(props.colorBroken && u.broken && !u.you
+        ? {color: props.redColor || Styles.globalColors.red}
+        : null),
+      ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
       ...(u.you ? Styles.globalStyles.italic : null),
-      ...(colorYou && u.you
-        ? {color: typeof colorYou === 'string' ? colorYou : Styles.globalColors.black_75}
+      ...(props.colorYou && u.you
+        ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
         : null),
     }
-    userStyle = Styles.collapseStyles([style, userStyle])
+    userStyle = Styles.collapseStyles([props.style, userStyle])
 
     // Make sure onClick is undefined when _onUsernameClicked is, so
     // as to not override any existing onClick handler from containers
     // on native. (See DESKTOP-3963.)
-    const _onUsernameClicked = onUsernameClicked
+    const _onUsernameClicked = props.onUsernameClicked
     return (
-      <Text type={type} key={u.username}>
+      <Text type={props.type} key={u.username}>
         {i !== 0 &&
-          i === users.length - 1 &&
-          showAnd && (
-            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
+          i === props.users.length - 1 &&
+          props.showAnd && (
+            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
               {'and '}
             </Text>
           )}
         <Text
-          type={type}
-          backgroundMode={backgroundMode}
-          className={underline ? 'hover-underline' : undefined}
+          type={props.type}
+          backgroundMode={props.backgroundMode}
+          className={props.underline ? 'hover-underline' : undefined}
           onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
           style={userStyle}
         >
           {u.username}
         </Text>
-        {i !== users.length - 1 &&
-        (!inlineGrammar || users.length > 2) && ( // Injecting the commas here so we never wrap and have newlines starting with a ,
-            <Text type={type} backgroundMode={backgroundMode} style={derivedJoinerStyle}>
+        {i !== props.users.length - 1 &&
+          (!props.inlineGrammar || props.users.length > 2) && (
+            <Text
+              type={
+                props.type // Injecting the commas here so we never wrap and have newlines starting with a ,
+              }
+              backgroundMode={props.backgroundMode}
+              style={derivedJoinerStyle}
+            >
               ,
             </Text>
           )}
-        {i !== users.length - 1 && ' '}
+        {i !== props.users.length - 1 && ' '}
       </Text>
     )
   })
+}
+UsernameText.defaultProps = {
+  colorBroken: true,
+  inlineGrammar: false,
+  showAnd: false,
+  underline: false,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
@@ -106,7 +108,7 @@ class Usernames extends Component<Props> {
             {this.props.prefix}
           </Text>
         )}
-        {usernameText({...this.props, users: rwers})}
+        <UsernameText {...this.props} users={rwers} />
         {!!readers.length && (
           <Text
             type={this.props.type}
@@ -116,7 +118,7 @@ class Usernames extends Component<Props> {
             #
           </Text>
         )}
-        {usernameText({...this.props, users: readers})}
+        <UsernameText {...this.props} users={readers} />
         {!!this.props.suffix && (
           <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
             {this.props.suffix}
@@ -231,4 +233,4 @@ const ConnectedUsernames = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('Usernames')
 )(Usernames)
-export {usernameText, Usernames, PlaintextUsernames, ConnectedUsernames}
+export {UsernameText, Usernames, PlaintextUsernames, ConnectedUsernames}
