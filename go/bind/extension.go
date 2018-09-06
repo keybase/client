@@ -84,6 +84,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 		svc.SetupCriticalSubServices()
 
+		ri = chat.OfflineClient{}
 		svc.SetupChatModules(func() chat1.RemoteInterface { return ri })
 		gc := globals.NewContext(kbCtx, kbChatCtx)
 		if ri, err = getGregorClient(context.Background(), gc); err != nil {
