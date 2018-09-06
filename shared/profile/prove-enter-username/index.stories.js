@@ -34,7 +34,9 @@ const load = () => {
     .add('Bitcoin', () => <ProveEnterUsername {...props} platform="btc" />)
     .add('Bitcoin Disabled', () => <ProveEnterUsername {...props} platform="btc" canContinue={false} />)
     .add('DNS', () => <ProveEnterUsername {...props} platform="dns" />)
-    .add('Website', () => <ProveEnterUsername {...props} platform="http" />)
+    .add('HTTP', () => <ProveEnterUsername {...props} platform="http" />)
+    .add('HTTPS', () => <ProveEnterUsername {...props} platform="https" />)
+    .add('Website', () => <ProveEnterUsername {...props} platform="web" />)
     .add('Zcash', () => <ProveEnterUsername {...props} platform="zcash" />)
 }
 

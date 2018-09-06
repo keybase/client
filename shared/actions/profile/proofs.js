@@ -72,6 +72,7 @@ function _addProof(action: ProfileGen.AddProofPayload) {
       actions.push(Saga.put(_registerBTC()))
       break
     // flow needs this for some reason
+    case 'web':
     case 'http':
     case 'https':
     case 'twitter':

@@ -52,9 +52,17 @@ func (rc *WebChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libk
 //
 //=============================================================================
 
-type WebServiceType struct{ libkb.BaseServiceType }
+type WebServiceType struct {
+	libkb.BaseServiceType
+	scheme string
+}
 
-func (t WebServiceType) AllStringKeys() []string     { return []string{"web", "http", "https"} }
+func (t WebServiceType) AllStringKeys() []string {
+	if t.scheme == "" {
+		return []string{"web"}
+	}
+	return []string{t.scheme}
+}
 func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
@@ -103,7 +111,14 @@ func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret 
 		err = libkb.NewWebUnreachableError(host)
 		return
 	}
-	if len(prot) > 0 && prot == "https" && found != "https:" {
+	if len(t.scheme) > 0 && prot != t.scheme {
+		msg := fmt.Sprintf("You tried to prove ownership of %s over %s but gave a %s link.", host, t.scheme, prot)
+		err = libkb.NewProtocolSchemeMismatch(msg)
+		return
+	}
+	protocolAssertsHTTPS := prot == "https"
+	proofTypeAssertsHTTPS := t.scheme == "https"
+	if (protocolAssertsHTTPS || proofTypeAssertsHTTPS) && found != "https:" {
 		msg := fmt.Sprintf("You specified HTTPS for %s but only HTTP is available", host)
 		err = libkb.NewProtocolDowngradeError(msg)
 		return
@@ -176,3 +191,5 @@ func (t WebServiceType) LastWriterWins() bool { return false }
 func (t WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &WebChecker{l}
 }
+
+//=============================================================================
