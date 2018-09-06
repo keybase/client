@@ -185,7 +185,6 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
 
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
   ...makeMessageCommon,
-  paymentID: {txID: ''},
   paymentInfo: null,
   reactions: I.Map(),
   type: 'sendPayment',
@@ -617,7 +616,6 @@ const validUIMessagetoMessage = (
       return m.messageBody.sendpayment
         ? makeMessageSendPayment({
             ...common,
-            paymentID: m.messageBody.sendpayment.paymentID,
             paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfo),
           })
         : null

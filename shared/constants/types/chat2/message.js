@@ -193,7 +193,6 @@ export type _MessageSendPayment = {
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
-  paymentID: RPCStellarTypes.PaymentID, // TODO (DA) probably remove this
   paymentInfo: ?ChatPaymentInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'sendPayment',
