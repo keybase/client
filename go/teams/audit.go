@@ -14,7 +14,8 @@ import (
 )
 
 type AuditParams struct {
-	RootFreshness         time.Duration
+	RootFreshness time.Duration
+	// After this many new Merkle updates, another audit is triggered.
 	MerkleMovementTrigger keybase1.Seqno
 	NumPreProbes          int
 	NumPostProbes         int
@@ -222,6 +223,9 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 	return maxMerkleProbe, nil
 }
 
+// doPreProbes probabilistically checks that no team occupied the slot before the team
+// in question was created. It selects probes from before the team was created. Each
+// probed leaf must not be occupied.
 func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkle keybase1.MerkleRootV2) (err error) {
 	defer m.CTrace("Auditor#doPreProbes", func() error { return err })()
 
@@ -248,10 +252,10 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 	return nil
 }
 
+// randSeqno picks a random number in [lo,hi] inclusively.
 func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
-	rng := hi - lo + 1
-	rngBig := big.NewInt(int64(rng))
-	n, err := rand.Int(rand.Reader, rngBig)
+	rangeBig := big.NewInt(int64(hi - lo + 1))
+	n, err := rand.Int(rand.Reader, rangeBig)
 	if err != nil {
 		return keybase1.Seqno(0), err
 	}
