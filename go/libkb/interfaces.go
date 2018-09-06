@@ -91,6 +91,7 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
+	GetShouldUseInMemoryDbOnFailure() (bool, bool)
 }
 
 type CommandLine interface {

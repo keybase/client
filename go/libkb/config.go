@@ -829,3 +829,7 @@ func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
 }
+
+func (f *JSONConfigFile) GetShouldUseInMemoryDbOnFailure() (bool, bool) {
+	return f.GetBoolAtPath("should_use_inmemory_db_onfailure")
+}

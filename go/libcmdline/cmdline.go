@@ -192,6 +192,9 @@ func (p CommandLine) GetAppType() libkb.AppType {
 func (p CommandLine) IsMobileExtension() (bool, bool) {
 	return false, false
 }
+func (p CommandLine) GetShouldUseInMemoryDbOnFailure() (bool, bool) {
+	return p.GetBool("should-use-inmemory-db-onfailure", true)
+}
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
 }
