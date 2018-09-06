@@ -273,8 +273,11 @@ protocol teams {
 
   record Audit {
     Time time;
+    // The Maximum Merkle Seqno known globally at the time of the audit.
     Seqno maxMerkleSeqno;
+    // The maximum Seqno in the chain at the time of the audit.
     Seqno maxChainSeqno;
+    // The maximum merkle Seqno probed in this audit.
     Seqno maxMerkleProbe;
   }
 

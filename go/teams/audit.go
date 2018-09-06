@@ -55,7 +55,7 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
 	return a
 }
 
-// AuditTeam runs an audit on the links of the given team chain (or subchain).
+// AuditTeam runs an audit on the links of the given team chain (or team chain suffix).
 // The security factor of the audit is a function of the hardcoded parameters above,
 // and the amount of time since the last audit. This method should use some sort of
 // long-lived cache (via local DB) so that previous audits can be combined with the
