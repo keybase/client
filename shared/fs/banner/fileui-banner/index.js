@@ -31,6 +31,7 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI, do
   const promptText = dokanUninstall
     ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
     : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
+  const buttonText = dokanUninstall ? 'Yes, uninstall' : 'Yes, enable'
   let bannerContent
   if (kbfsEnabled) {
     bannerContent = (
@@ -53,9 +54,9 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI, do
         </Text>
         <Text type="BodySemibold" style={textStyle}>
           {promptText}
-        </Text>)
+        </Text>
         <Box style={{justifyContent: 'flex-start'}}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} disabled={!!dokanUninstall} />
+          <Button type="PrimaryGreen" label={buttonText} onClick={dokanUninstall || onInstall} />
         </Box>
       </Box>
     )

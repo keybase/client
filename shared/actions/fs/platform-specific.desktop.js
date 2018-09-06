@@ -288,13 +288,13 @@ function installCachedDokan() {
   })
 }
 
-function uninstallCachedDokan(uninstallString: string) {
+function uninstallDokan(uninstallString: string) {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan uninstaller')
     try {
       execSync(uninstallString, {windowsHide: true})
     } catch (err) {
-      logger.error('uninstallCachedDokan caught', err)
+      logger.error('uninstallDokan caught', err)
       reject(err)
       return
     }
@@ -321,11 +321,13 @@ function getDokanUninstallString(): Promise<string> {
       reject(new Error('Failed to find dokan uninstall string'))
     }
   })
-  .then(uninstallString => Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString})))
 }
 
 function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.call(getDokanUninstallString)
+  const uninstallString = yield Saga.call(getDokanUninstallString)
+  if (uninstallString) {
+    yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
+  }
 }
 
 function installDokanSaga() {
@@ -335,7 +337,7 @@ function installDokanSaga() {
 function* uninstallDokanSaga() {
   const state: TypedState = yield Saga.select()
   const uninstallString = state.fs.dokanUninstallString
-  return Saga.call(uninstallCachedDokan, uninstallString)
+  return yield Saga.call(uninstallDokan, uninstallString)
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -372,7 +374,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.safeTakeLatestPure(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
     yield Saga.safeTakeLatest(FsGen.getDokanUninstallString, getDokanUninstallStringSaga)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)

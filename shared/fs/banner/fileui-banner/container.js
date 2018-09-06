@@ -31,7 +31,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
     _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
     getDokanUninstallString: () => dispatch(FsGen.createGetDokanUninstallString()),
-    _uninstallDokan: () => dispatch(FsGen.createUninstallKBFSConfirm()),
   }
 }
 
@@ -44,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
   getDokanUninstallString: dispatchProps.getDokanUninstallString,
-  dokanUninstall: stateProps.dokanUninstallString ? () => dispatchProps._uninstallDokan() : undefined,
+  dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })
 
 const ConnectedBanner = isMobile
