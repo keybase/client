@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 #
 # This is a script to install KBFuse fsbundle and load the kext.
 # It is likely used by build or test machines since it requires
@@ -15,7 +16,7 @@ cd $dir
 client_dir="$dir/../.."
 fuse_dir="$client_dir/osx/Fuse"
 tmp_dir="/tmp/desktop-kbfuse"
-installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.62-darwin.tgz"
+installer_url="https://prerelease.keybase.io/darwin-package/KeybaseInstaller-1.1.63-darwin.tgz"
 
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
