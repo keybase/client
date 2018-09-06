@@ -67,7 +67,6 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'keybaseUser':
       return (
         <ConnectedUsernames
-          onUsernameClicked="profile"
           colorFollowing={true}
           colorBroken={true}
           inline={true}

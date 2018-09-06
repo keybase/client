@@ -37,12 +37,7 @@ export const TeamRequestRow = (props: Props) => {
       >
         <Avatar username={username} size={isMobile ? 48 : 32} />
         <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
-          <ConnectedUsernames
-            onUsernameClicked="profile"
-            type="BodySemibold"
-            colorFollowing={true}
-            usernames={[username]}
-          />
+          <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
           <Box style={globalStyles.flexBoxRow}>
             <Meta title="please decide" style={styleCharm} backgroundColor={globalColors.orange} />
           </Box>
