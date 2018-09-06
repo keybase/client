@@ -199,7 +199,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()
-	svc.SetupChatModules()
+	svc.SetupChatModules(nil)
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
