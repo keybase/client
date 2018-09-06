@@ -1,5 +1,6 @@
 // @flow
 import {NativeModules, NativeEventEmitter} from 'react-native'
+import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {type SendArg} from './index.platform'
 import {pack} from 'purepack'
@@ -55,7 +56,7 @@ class NativeTransport extends TransportShared {
     buf.set(packed, len.length)
     const b64 = fromByteArray(buf)
     if (printRPCBytes) {
-      console.log(`PRINTBridge JS sending data ${b64}`)
+      logger.debug('[RPC] (b64) Writing ', b64)
     }
     // Pass data over to the native side to be handled
     nativeBridge.runWithData(b64)

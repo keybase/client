@@ -1,8 +1,10 @@
 // @flow
 import net from 'net'
+import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {printRPCBytes} from '../local-debug'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -19,7 +21,11 @@ class NativeTransport extends TransportShared {
   }
 
   // Override Transport._raw_write.
-  _raw_write = (msg: string, encoding: string) => {
+  _raw_write = (msg, encoding) => {
+    if (printRPCBytes) {
+      const b = Buffer.from(msg, encoding)
+      logger.debug('[RPC] Writing ', b.toString('hex'))
+    }
     // $FlowIssue Flow doesn't see inherited methods.
     super._raw_write(msg, encoding)
   }
