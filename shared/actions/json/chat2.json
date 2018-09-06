@@ -440,6 +440,12 @@
       "_description": "Update the minWriterRole stored with the conversation metadata.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
+    },
+    "paymentInfoReceived": {
+      "_description": "We received payment info for a sendPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "paymentInfo": "RPCChatTypes.UIPaymentInfo"
     }
   }
 }

@@ -742,6 +742,17 @@ const setupEngineListeners = () => {
       `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
     )
   })
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatPaymentInfo',
+    (notif: RPCChatTypes.NotifyChatChatPaymentInfoRpcParam) => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      return Chat2Gen.createPaymentInfoReceived({
+        conversationIDKey,
+        messageID: notif.msgID,
+        paymentInfo: notif.info,
+      })
+    }
+  )
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {

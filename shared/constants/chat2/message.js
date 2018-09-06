@@ -175,7 +175,8 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
 
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
   ...makeMessageCommon,
-  paymentID: {txID: ''}, // TODO see if this is an appropriate default value
+  paymentID: {txID: ''},
+  paymentInfo: null,
   reactions: I.Map(),
   type: 'sendPayment',
 })
@@ -591,6 +592,7 @@ const validUIMessagetoMessage = (
         ? makeMessageSendPayment({
             ...common,
             paymentID: m.messageBody.sendpayment.paymentID,
+            paymentInfo: m.paymentInfo,
           })
         : null
     case RPCChatTypes.commonMessageType.requestpayment:

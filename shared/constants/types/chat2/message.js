@@ -3,6 +3,7 @@
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
+import * as RPCChatTypes from '../rpc-chat-gen'
 // $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
@@ -182,7 +183,8 @@ export type _MessageSendPayment = {
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
-  paymentID: RPCStellarTypes.PaymentID,
+  paymentID: RPCStellarTypes.PaymentID, // TODO (DA) probably remove this
+  paymentInfo: ?RPCChatTypes.UIPaymentInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'sendPayment',
 }
