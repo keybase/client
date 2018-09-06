@@ -23,7 +23,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
   }
   _attachmentRef = null
 
-  componentWillMount() {
+  componentDidMount() {
     this.props.onLoadSecretKey()
   }
 
