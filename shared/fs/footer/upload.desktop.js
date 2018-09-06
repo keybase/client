@@ -37,29 +37,42 @@ const realCSS = `
 }
 `
 
-const Upload = ({showing, files, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => (
-  <React.Fragment>
-    {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
-    <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
-      <Box className="upload-animation-loop" style={stylesBox}>
-        <style>{realCSS}</style>
-        <Text key="files" type="BodySemibold" style={stylesText}>
-          {files
-            ? `Encrypting and uploading ${files} files...`
-            : totalSyncingBytes
-              ? 'Encrypting and uploading...'
-              : 'Done!'}
-        </Text>
-        {!!(timeLeft && timeLeft.length) && (
-          <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
-        )}
-      </Box>
-    </CSSTransition>
-  </React.Fragment>
-)
+const Upload = ({showing, files, filePaths, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
+  return (
+    <React.Fragment>
+      {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
+      <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
+        <Box className="upload-animation-loop" style={stylesBox}>
+          <style>{realCSS}</style>
+          <Text key="files" type="BodySemibold" style={stylesTextElipsis}>
+            {files
+              ? filePaths && filePaths.length === 1
+                ? `Encrypting and uploading ${filePaths[0]}...`
+                : `Encrypting and uploading ${files} files...`
+              : totalSyncingBytes
+                ? 'Encrypting and uploading...'
+                : 'Done!'}
+          </Text>
+          {!!(timeLeft && timeLeft.length) && (
+            <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
+          )}
+        </Box>
+      </CSSTransition>
+    </React.Fragment>
+  )
+}
 
 const stylesText = {
   color: globalColors.white,
+}
+
+const stylesTextElipsis = {
+  color: globalColors.white,
+  maxWidth: '60vw',
+  whiteSpace: 'nowrap',
+  overflow: 'hidden',
+  textOverflow: 'ellipsis',
+  textAlign: 'center',
 }
 
 const stylesBox = {
@@ -67,7 +80,7 @@ const stylesBox = {
   position: 'relative',
   alignItems: 'center',
   justifyContent: 'center',
-  height,
+  maxHeight: height,
 }
 
 export default Upload
