@@ -417,7 +417,7 @@ func (b *BlockServerRemote) GetEncodedSize(
 				id, tlfID, context, err)
 		} else {
 			b.deferLog.CDebugf(
-				ctx, "Get id=%s tlf=%s context=%s sz=%d status=%s",
+				ctx, "GetEncodedSize id=%s tlf=%s context=%s sz=%d status=%s",
 				id, tlfID, context, size, status)
 		}
 	}()
