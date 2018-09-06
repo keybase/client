@@ -189,6 +189,9 @@ func (p CommandLine) GetPinentry() string {
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
 }
+func (p CommandLine) IsMobileExtension() (bool, bool) {
+	return false, false
+}
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
 }

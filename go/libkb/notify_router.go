@@ -65,6 +65,7 @@ type NotifyListener interface {
 	ChatAttachmentUploadStart(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID)
 	ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID, outboxID chat1.OutboxID,
 		bytesComplete, bytesTotal int64)
+	ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo)
 	PGPKeyInSecretStoreFile()
 	BadgeState(badgeState keybase1.BadgeState)
 	ReachabilityChanged(r keybase1.Reachability)
@@ -138,6 +139,8 @@ func (n *NoopNotifyListener) ChatAttachmentUploadStart(uid keybase1.UID, convID 
 }
 func (n *NoopNotifyListener) ChatAttachmentUploadProgress(uid keybase1.UID, convID chat1.ConversationID,
 	outboxID chat1.OutboxID, bytesComplete, bytesTotal int64) {
+}
+func (n *NoopNotifyListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 }
 func (n *NoopNotifyListener) PGPKeyInSecretStoreFile()                    {}
 func (n *NoopNotifyListener) BadgeState(badgeState keybase1.BadgeState)   {}
@@ -1677,4 +1680,34 @@ func (n *NotifyRouter) HandleAvatarUpdated(ctx context.Context, name string, for
 	if n.listener != nil {
 		n.listener.AvatarUpdated(name, formats)
 	}
+}
+
+func (n *NotifyRouter) HandleChatPaymentInfo(ctx context.Context, uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+	if n == nil {
+		return
+	}
+	var wg sync.WaitGroup
+	n.G().Log.CDebugf(ctx, "+ Sending ChatPaymentInfo notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.shouldSendChatNotification(id, chat1.TopicType_NONE) {
+			wg.Add(1)
+			go func() {
+				(chat1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).ChatPaymentInfo(context.Background(), chat1.ChatPaymentInfoArg{
+					Uid:    uid,
+					ConvID: convID,
+					MsgID:  msgID,
+					Info:   info,
+				})
+				wg.Done()
+			}()
+		}
+		return true
+	})
+	wg.Wait()
+	if n.listener != nil {
+		n.listener.ChatPaymentInfo(uid, convID, msgID, info)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent ChatPaymentInfo notification")
 }
