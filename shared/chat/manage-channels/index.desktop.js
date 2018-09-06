@@ -124,7 +124,7 @@ const ManageChannels = (props: Props) => {
       )}
       <Box style={_boxStyle}>
         <Avatar isTeam={true} teamname={props.teamname} size={32} />
-        <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
+        <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
           {props.teamname}
         </Text>
         {channelDisplay}

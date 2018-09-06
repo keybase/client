@@ -72,3 +72,15 @@ func (n nullFastTeamLoader) Load(MetaContext, keybase1.FastTeamLoadArg) (keybase
 func (n nullFastTeamLoader) OnLogout() {}
 
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }
+
+type nullTeamAuditor struct{}
+
+var _ TeamAuditor = nullTeamAuditor{}
+
+func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
+	return fmt.Errorf("null team auditor")
+}
+
+func (n nullTeamAuditor) OnLogout() {}
+
+func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
