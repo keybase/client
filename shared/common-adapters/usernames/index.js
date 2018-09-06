@@ -1,14 +1,20 @@
 // @flow
 import React, {Component} from 'react'
-import Text from './text'
+import Text from '../text'
 import shallowEqual from 'shallowequal'
-import {collapseStyles, platformStyles, styleSheetCreate, globalStyles, globalColors} from '../styles'
-import {isMobile} from '../constants/platform'
-import {compose, connect, setDisplayName} from '../util/container'
-import {type TypedState} from '../constants/reducer'
-import * as ProfileGen from '../actions/profile-gen'
-import * as TrackerGen from '../actions/tracker-gen'
-import type {Props, PlaintextProps} from './usernames'
+import {
+  collapseStyles,
+  platformStyles,
+  styleSheetCreate,
+  globalStyles,
+  globalColors,
+  isMobile,
+} from '../../styles'
+import {compose, connect, setDisplayName} from '../../util/container'
+import {type TypedState} from '../../constants/reducer'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as TrackerGen from '../../actions/tracker-gen'
+import type {Props, PlaintextProps} from '../usernames'
 
 function usernameText({
   type,
