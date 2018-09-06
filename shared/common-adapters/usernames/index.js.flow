@@ -66,8 +66,7 @@ export type PlaintextProps = {
   title?: string,
 }
 
-declare export function usernameText(props: Props): void
-
+declare export class UsernameText extends React.Component<Props> {}
 declare export class Usernames extends React.Component<Props> {}
 declare export class PlaintextUsernames extends React.Component<PlaintextProps> {}
 declare export class ConnectedUsernames extends React.Component<ConnectedProps> {}
