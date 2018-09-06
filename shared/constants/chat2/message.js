@@ -7,6 +7,7 @@ import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
+import * as WalletConstants from '../wallets'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
@@ -173,6 +174,15 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
   type: 'requestPayment',
 })
 
+export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+  amountDescription: '',
+  delta: 'none',
+  note: '',
+  status: 'none',
+  statusDescription: '',
+  worth: '',
+})
+
 export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
   ...makeMessageCommon,
   paymentID: {txID: ''},
@@ -261,6 +271,22 @@ export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   timestamp: 0,
   username: '',
 })
+
+export const uiPaymentInfoToChatPaymentInfo = (
+  p: ?RPCChatTypes.UIPaymentInfo
+): ?MessageTypes.ChatPaymentInfo => {
+  if (!p) {
+    return null
+  }
+  return makeChatPaymentInfo({
+    amountDescription: p.amountDescription,
+    delta: WalletConstants.balanceDeltaToString[p.delta],
+    note: p.note,
+    status: WalletConstants.statusSimplifiedToString[p.status],
+    statusDescription: p.statusDescription,
+    worth: p.worth,
+  })
+}
 
 export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
   if (!r.reactions) {
@@ -592,7 +618,7 @@ const validUIMessagetoMessage = (
         ? makeMessageSendPayment({
             ...common,
             paymentID: m.messageBody.sendpayment.paymentID,
-            paymentInfo: m.paymentInfo,
+            paymentInfo: uiPaymentInfoToChatPaymentInfo(m.paymentInfo),
           })
         : null
     case RPCChatTypes.commonMessageType.requestpayment:

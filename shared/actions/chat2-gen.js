@@ -264,7 +264,7 @@ type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey
 type _PaymentInfoReceivedPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
   messageID: RPCChatTypes.MessageID,
-  paymentInfo: RPCChatTypes.UIPaymentInfo,
+  paymentInfo: Types.ChatPaymentInfo,
 |}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,

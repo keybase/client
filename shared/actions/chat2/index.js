@@ -746,10 +746,20 @@ const setupEngineListeners = () => {
     'chat.1.NotifyChat.ChatPaymentInfo',
     (notif: RPCChatTypes.NotifyChatChatPaymentInfoRpcParam) => {
       const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo(notif.info)
+      if (!paymentInfo) {
+        // This should never happen
+        logger.error(
+          `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
+            notif.msgID
+          }. The local version may be absent or out of date.`
+        )
+        return
+      }
       return Chat2Gen.createPaymentInfoReceived({
         conversationIDKey,
         messageID: notif.msgID,
-        paymentInfo: notif.info,
+        paymentInfo,
       })
     }
   )

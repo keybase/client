@@ -50,7 +50,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         icon: 'iconfont-stellar-send',
         loading: false,
         memo: paymentInfo.note,
-        pending: paymentInfo.status === WalletConstants.paymentStatus.pending,
+        pending: paymentInfo.status === 'pending',
         sendButtonLabel: '',
       }
     }

@@ -445,7 +445,7 @@
       "_description": "We received payment info for a sendPayment message",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
-      "paymentInfo": "RPCChatTypes.UIPaymentInfo"
+      "paymentInfo": "Types.ChatPaymentInfo"
     }
   }
 }
