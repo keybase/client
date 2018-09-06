@@ -26,7 +26,9 @@ export type Props = {
   onClearSearch?: () => void,
   onAddSelectedUser: () => void,
   onEnterEmptyText?: () => void,
+  onFocus?: () => void,
   selectedSearchId: ?string,
+  hideClearSearch?: boolean,
 }
 
 export default class UserInput extends Component<Props> {

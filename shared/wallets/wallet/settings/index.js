@@ -60,12 +60,12 @@ const AccountSettings = (props: SettingsProps) => {
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
         </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.accountBox}>
-          <Kb.Avatar
-            size={32}
-            style={Kb.avatarCastPlatformStyles(styles.avatar)}
-            username={props.isDefault ? props.user : ''}
-          />
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.accountBox}>
+          {props.isDefault ? (
+            <Kb.Avatar size={32} username={props.user} />
+          ) : (
+            <Kb.Icon type="icon-placeholder-secret-user-32" style={{height: 32, width: 32}} />
+          )}
           <Kb.Box2 direction="vertical">
             <Kb.Text type="Body">
               {props.isDefault ? 'This is your default Keybase account.' : 'This is a secondary account.'}
@@ -129,9 +129,6 @@ const AccountSettings = (props: SettingsProps) => {
 const styles = Styles.styleSheetCreate({
   accountBox: {
     marginBottom: Styles.globalMargins.medium,
-  },
-  avatar: {
-    marginRight: Styles.globalMargins.tiny,
   },
   deleteOpacity: {
     opacity: 0.3,

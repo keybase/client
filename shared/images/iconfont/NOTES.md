@@ -17,13 +17,13 @@ The [webfonts-generator](https://github.com/sunflowerdeath/webfonts-generator) l
 **Important svg configuration**
 
 - `fontSize` must be set to a power of 2 larger than `1000`. This is because any font size (same as the em square value) below `1000` will lead to inaccurate svg paths (looks lumpy or rounded). See this [issue on a discussion of font size issues](https://github.com/jesseweed/seti-ui/issues/401).
-- `descent` must be set to `0`. This is because `svgicons2svgfont` has poor `ascent/descent` calculations which can put icons
+- `descent` must be set to `0`. This is because `svgicons2svgfont` has poor `ascent/descent` calculations which can put icons on a half pixel boundry for its grid size, leading to anti-aliasing which causes blurriness.
 
 ## Font Forge
 
 Font Forge exposes a [custom scripting language](https://fontforge.github.io/en-US/documentation/scripting/native/) for applying operations to font files. This is used is `desktop/yarn-helpers/font.js` to run a subprocess that will operate on the TTF font from webfonts-generator to tweak some font header values.
 
-Keyboard Shortcuts
+**Keyboard Shortcuts**
 
 - `CTRL + O` Open a font file (`client/shared/images/fonts/kb.ttf`)
 - `CTRL + SHIFT + >` Jump to a specific icon. You can filter by icon name (`1-kb-iconfont-add-16`) or by unicode value (`uniE900`).

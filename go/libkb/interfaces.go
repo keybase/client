@@ -33,6 +33,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
