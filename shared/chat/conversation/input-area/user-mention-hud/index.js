@@ -44,12 +44,7 @@ const MentionRowRenderer = ({username, fullName, selected, onClick, onHover}: Me
 
     <Box style={{width: globalMargins.small}} />
 
-    <ConnectedUsernames
-      onUsernameClicked="profile"
-      type="BodySemibold"
-      colorFollowing={true}
-      usernames={[username]}
-    />
+    <ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
     <Text type="BodySmall" style={{marginLeft: globalMargins.tiny}}>
       {fullName}
     </Text>

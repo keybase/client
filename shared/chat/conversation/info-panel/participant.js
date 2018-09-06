@@ -45,12 +45,7 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
               marginLeft: isMobile ? globalMargins.small : globalMargins.tiny,
             }}
           >
-            <ConnectedUsernames
-              onUsernameClicked="profile"
-              colorFollowing={true}
-              type="BodySemibold"
-              usernames={[username]}
-            />
+            <ConnectedUsernames colorFollowing={true} type="BodySemibold" usernames={[username]} />
             {fullname !== '' && <Text type="BodySmall">{fullname}</Text>}
           </Box>
         </Box>
