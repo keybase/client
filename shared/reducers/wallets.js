@@ -39,6 +39,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
         .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+    case WalletsGen.displayCurrenciesReceived:
+      return state.set('currencies', I.List(action.payload.currencies))
+    case WalletsGen.displayCurrencyReceived:
+      return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
     case WalletsGen.secretKeyReceived:
       return state.set('exportedSecretKey', action.payload.secretKey)
     case WalletsGen.secretKeySeen:
@@ -141,6 +145,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       const request = Constants.requestResultToRequest(action.payload.request)
       return request ? state.update('requests', r => r.set(request.id, request)) : state
     // Saga only actions
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
     case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
@@ -149,7 +154,14 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAssets:
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
+    case WalletsGen.loadDisplayCurrencies:
+    case WalletsGen.loadDisplayCurrency:
+    case WalletsGen.changeDisplayCurrency:
+    case WalletsGen.changeAccountName:
+    case WalletsGen.deleteAccount:
+    case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
+    case WalletsGen.setAccountAsDefault:
     case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:

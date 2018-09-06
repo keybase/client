@@ -936,6 +936,22 @@ func (s *HybridInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID
 	})
 }
 
+func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SubteamRename")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.SubteamRename(ctx, vers, convIDs); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if convs, err = s.getConvsLocal(ctx, uid, convIDs); err != nil {
+		s.Debug(ctx, "SubteamRename: unable to load conversations: convIDs: %v err: %s",
+			convIDs, err.Error())
+		return nil, nil
+	}
+	return convs, nil
+}
+
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {

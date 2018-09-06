@@ -70,6 +70,47 @@
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
     },
+    "loadDisplayCurrencies": {
+      "_description": "Load valid display currencies to choose from",
+    },
+    "displayCurrenciesReceived": {
+      "_description": "Update valid display currencies to choose from",
+      "currencies": "Array<Types.Currency>",
+    },
+    "changeAccountName": {
+      "_description": "Change the name of an account",
+      "accountID": "Types.AccountID",
+      "name": "string",
+    },
+    "setAccountAsDefault": {
+      "_description": "Change the default account",
+      "accountID": "Types.AccountID",
+    },
+    "didSetAccountAsDefault": {
+      "_description": "A response from the service after an account is set as the default",
+      "accountID": "Types.AccountID",
+    },
+    "deleteAccount": {
+      "_description": "Delete an account",
+      "accountID": "Types.AccountID",
+    },
+    "deletedAccount": {
+      "_description": "A service responde after an account is deleted",
+    },
+    "loadDisplayCurrency": {
+      "_description": "Load display currency for an account",
+      "accountID": "Types.AccountID",
+    },
+    "displayCurrencyReceived": {
+      "_description": "Update display currency for a certain account",
+      "accountID": "Types.AccountID",
+      "currency": "Types.Currency",
+    },
+    "changeDisplayCurrency": {
+      "_description": "Change display currency for an account",
+      "accountID": "Types.AccountID",
+      "code": "Types.CurrencyCode",
+    },
     "loadRequestDetail": {
       "_description": "Load a request's details",
       "requestID": "StellarRPCTypes.KeybaseRequestID",

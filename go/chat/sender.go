@@ -219,8 +219,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 			}
 		default:
 			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
-			if namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
-				headerQ.TlfPublic); err != nil {
+			if namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName,
+				conv.GetMembersType(), headerQ.TlfPublic); err != nil {
 				return err
 			} else if !namesEq {
 				s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)

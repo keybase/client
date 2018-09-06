@@ -41,7 +41,7 @@ const AccountEntry = (props: AccountEntryProps) => {
               username={props.keybaseUser}
             />
           )}
-          <Kb.Text type="BodySmall" style={styles.title}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
             {props.name}
           </Kb.Text>
         </Kb.Box2>
@@ -84,7 +84,6 @@ const styles = Styles.styleSheetCreate({
   },
   rightColumn: rightColumnStyle,
   title: {
-    ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: Styles.globalColors.black_75,
   },

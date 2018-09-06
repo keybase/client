@@ -63,7 +63,6 @@ const styles = styleSheetCreate({
   rightColumn: rightColumnStyle,
 
   title: {
-    ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.black_75,
   },
@@ -109,7 +108,7 @@ const WalletRow = (props: Props) => {
                 username={props.keybaseUser}
               />
             )}
-            <Text type="BodySmall" style={props.isSelected ? styles.titleSelected : styles.title}>
+            <Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
             </Text>
           </Box2>
