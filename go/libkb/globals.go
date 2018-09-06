@@ -508,7 +508,7 @@ func (g *GlobalContext) FlushCaches() {
 	g.configureMemCachesLocked(true)
 }
 
-func (g *GlobalContext) configureDiskCachesLocked() error {
+func (g *GlobalContext) configureDiskCachesLocked() (err error) {
 	// We consider the local DBs as caches; they're caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
@@ -518,7 +518,16 @@ func (g *GlobalContext) configureDiskCachesLocked() error {
 	epick := FirstErrorPicker{}
 	epick.Push(g.LocalDb.Open())
 	epick.Push(g.LocalChatDb.Open())
-	return epick.Error()
+	if err = epick.Error(); err != nil {
+		// Failed to open leveldb. If we are configured such that using the in-memory cache is an
+		// option, then let's sub that in now.
+		if g.GetEnv().ShouldUseInMemoryDbOnFailure() {
+			g.LocalDb = NewJSONLocalDb(NewMemDb())
+			g.LocalChatDb = NewJSONLocalDb(NewMemDb())
+			return nil
+		}
+	}
+	return err
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
