@@ -731,7 +731,6 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 
 // audit runs probabilistic merkle tree audit on the new links, to make sure that the server isn't
 // running odd-even-style attacks against members in a group.
-// TODO, see CORE-8466
 func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (err error) {
 	head, ok := state.Chain.MerkleInfo[1]
 	if !ok {

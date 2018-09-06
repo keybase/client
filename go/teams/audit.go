@@ -55,10 +55,13 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
 	return a
 }
 
-// ProbabilisticMerkleTeamAudit runs an audit on the links of the given team chain (or subchain).
-// The security factor of the audit is a function of the platform type, and the amount of time
-// since the last audit. This method should use some sort of long-lived cache (via local DB) so that
-// previous audits can be combined with the current one.
+// AuditTeam runs an audit on the links of the given team chain (or subchain).
+// The security factor of the audit is a function of the hardcoded parameters above,
+// and the amount of time since the last audit. This method should use some sort of
+// long-lived cache (via local DB) so that previous audits can be combined with the
+// current one. headMerkle is is the Merkle Root claimed in the head of the team.
+// maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
+// Seqno for which chain[s] is defined.
 func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
 
 	m = m.WithLogTag("AUDIT")
