@@ -141,6 +141,16 @@ const metaMapReducer = (metaMap, action) => {
         return updated
       }, {})
       return metaMap.merge(newMetas)
+    case Chat2Gen.saveMinWriterRole:
+      const {conversationIDKey, role} = action.payload
+      return metaMap.update(conversationIDKey, old => {
+        if (old) {
+          return old.set('minWriterRole', role)
+        }
+        // if we haven't loaded it yet we'll load it on navigation into the
+        // convo
+        return old
+      })
     default:
       return metaMap
   }
@@ -203,7 +213,12 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       )
     }
     case Chat2Gen.attachmentUploading:
-      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message => {
+      const convMap = pendingOutboxToOrdinal.get(action.payload.conversationIDKey, I.Map())
+      const ordinal = convMap.get(action.payload.outboxID)
+      if (!ordinal) {
+        return messageMap
+      }
+      return messageMap.updateIn([action.payload.conversationIDKey, ordinal], message => {
         if (!message || message.type !== 'attachment') {
           return message
         }
@@ -248,6 +263,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           .set('downloadPath', path)
           .set('transferProgress', 0)
           .set('transferState', null)
+          .set('fileURLCached', true) // assume we have this on the service now
       })
     case Chat2Gen.metasReceived:
       const existingPending = messageMap.get(Constants.pendingConversationIDKey)
@@ -259,6 +275,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       return messageMap
     case Chat2Gen.messagesExploded:
       const {conversationIDKey, messageIDs} = action.payload
+      logger.info(`messagesExploded: exploding ${messageIDs.length} messages`)
       const ordinals = messageIDs
         .map(mid => messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, mid))
         .filter(Boolean)
@@ -276,6 +293,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 .set('explodedBy', action.payload.explodedBy || '')
                 .set('text', new HiddenString(''))
                 .set('mentionsAt', I.Set())
+                .set('reactions', I.Map())
             )
           )
         })
@@ -310,21 +328,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    case Chat2Gen.clearLoading:
-      return state.update('loadingMap', loading => loading.delete(action.payload.key))
-    case Chat2Gen.setLoading:
-      return state.update('loadingMap', loading => {
-        const count = loading.get(action.payload.key, 0) + (action.payload.loading ? 1 : -1)
-        if (count > 0) {
-          return loading.set(action.payload.key, count)
-        } else if (count === 0) {
-          return loading.delete(action.payload.key)
-        } else {
-          console.log('Setting negative chat loading key', action.payload.key, count)
-          // This should hopefully never happen but some flows are flakey so let's log it but not throw an error
-          return loading.set(action.payload.key, count)
-        }
-      })
     // fallthrough actually select it
     case Chat2Gen.selectConversation:
       // ignore non-changing
@@ -332,28 +335,19 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         return state
       }
       return state.withMutations(s => {
-        // Update the orange line on the previous conversation
-        if (state.selectedConversation) {
-          const lastOrdinal = state.messageOrdinals.get(state.selectedConversation, I.Set()).last()
-          s.setIn(['orangeLineMap', state.selectedConversation], lastOrdinal)
-        }
-        // If the convo you just went into has no orange line (its at the bottom), just clear it so it doens't show up if you type or as stuff comes in
         if (action.payload.conversationIDKey) {
-          const oldOrange = s.getIn(['orangeLineMap', action.payload.conversationIDKey])
-          const lastOrdinal = s.messageOrdinals.get(action.payload.conversationIDKey, I.Set()).last()
-
-          if (oldOrange === lastOrdinal) {
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], null)
-          }
-        }
-
-        // Clear ordinals from the old selected conversation
-        const oldSelected = s.selectedConversation
-        if (oldSelected && Constants.isValidConversationIDKey(oldSelected)) {
-          s.updateIn(
-            ['messageOrdinals', oldSelected],
-            ordinals => (ordinals ? ordinals.takeLast(Constants.numMessagesOnInitialLoad) : ordinals)
+          const {readMsgID, maxMsgID} = state.metaMap.get(
+            action.payload.conversationIDKey,
+            Constants.makeConversationMeta()
           )
+
+          if (maxMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
+            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
+          } else {
+            // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
+            s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+          }
         }
 
         s.set('selectedConversation', action.payload.conversationIDKey)
@@ -364,6 +358,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.withMutations(_s => {
         const s = (_s: Types.State)
         s.set('pendingMode', action.payload.pendingMode)
+        s.set('pendingStatus', 'none')
         if (action.payload.pendingMode === 'none') {
           s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.List())
           s.setIn(
@@ -375,6 +370,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPendingStatus:
+      return state.set('pendingStatus', action.payload.pendingStatus)
+    case Chat2Gen.createConversation:
+      return state.set('pendingStatus', 'none')
     case Chat2Gen.setPendingConversationUsers:
       return state.setIn(
         ['metaMap', Constants.pendingConversationIDKey, 'participants'],
@@ -617,6 +616,74 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTypers: {
       return state.set('typingMap', action.payload.conversationToTypers)
     }
+    case Chat2Gen.toggleLocalReaction: {
+      const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
+      return state.update('messageMap', messageMap =>
+        messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) => {
+          return map.update(targetOrdinal, message => {
+            if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+              return message
+            }
+            const reactions = message.reactions
+            // $FlowIssue thinks `message` is the inner type
+            return message.set(
+              'reactions',
+              reactions.withMutations(reactionMap => {
+                reactionMap.update(emoji, I.Set(), rs => {
+                  const existing = rs.find(r => r.username === username)
+                  if (existing) {
+                    // found an existing reaction. remove it from our list
+                    return rs.delete(existing)
+                  }
+                  // no existing reaction. add this one to the map
+                  return rs.add(Constants.makeReaction({timestamp: Date.now(), username}))
+                })
+                const newSet = reactionMap.get(emoji)
+                if (newSet && newSet.size === 0) {
+                  reactionMap.delete(emoji)
+                }
+              })
+            )
+          })
+        })
+      )
+    }
+    case Chat2Gen.updateReactions: {
+      const {conversationIDKey, updates} = action.payload
+      const targetData = updates.map(u => ({
+        reactions: u.reactions,
+        targetMsgID: u.targetMsgID,
+        targetOrdinal: messageIDToOrdinal(
+          state.messageMap,
+          state.pendingOutboxToOrdinal,
+          conversationIDKey,
+          u.targetMsgID
+        ),
+      }))
+      return state.update('messageMap', messageMap =>
+        messageMap.update(conversationIDKey, I.Map(), (map: I.Map<Types.Ordinal, Types.Message>) =>
+          map.withMutations(mm => {
+            targetData.forEach(td => {
+              if (!td.targetOrdinal) {
+                logger.info(
+                  `updateReactions: couldn't find target ordinal for targetMsgID=${
+                    td.targetMsgID
+                  } in convID=${conversationIDKey}`
+                )
+                return
+              }
+              mm.update(td.targetOrdinal, message => {
+                if (!message || message.type === 'deleted' || message.type === 'placeholder') {
+                  return message
+                }
+                // $FlowIssue thinks `message` is the inner type
+                return message.set('reactions', td.reactions)
+              })
+            })
+          })
+        )
+      )
+    }
     case Chat2Gen.messagesWereDeleted: {
       const {
         conversationIDKey,
@@ -702,6 +769,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.set('isExplodingNew', action.payload.new)
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
+    case Chat2Gen.metasReceived: {
+      const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      return nextState.withMutations(s => {
+        s.set('metaMap', metaMapReducer(state.metaMap, action))
+        s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
+        s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
+      })
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -709,7 +784,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.messageAttachmentUploaded:
     case Chat2Gen.metaReceivedError:
     case Chat2Gen.metaRequestingTrusted:
-    case Chat2Gen.metasReceived:
     case Chat2Gen.attachmentLoading:
     case Chat2Gen.attachmentUploading:
     case Chat2Gen.attachmentUploaded:
@@ -722,12 +796,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateConvRetentionPolicy:
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
+    case Chat2Gen.saveMinWriterRole:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     // Saga only actions
+    case Chat2Gen.attachmentPreviewSelect:
     case Chat2Gen.attachmentsUpload:
     case Chat2Gen.desktopNotification:
     case Chat2Gen.inboxRefresh:
@@ -747,7 +823,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.resetLetThemIn:
     case Chat2Gen.sendTyping:
     case Chat2Gen.setConvRetentionPolicy:
-    case Chat2Gen.setupChatHandlers:
     case Chat2Gen.navigateToInbox:
     case Chat2Gen.navigateToThread:
     case Chat2Gen.messageAttachmentNativeShare:
@@ -755,9 +830,11 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
-    case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
+    case Chat2Gen.toggleMessageReaction:
+    case Chat2Gen.filePickerError:
+    case Chat2Gen.setMinWriterRole:
       return state
     default:
       /*::

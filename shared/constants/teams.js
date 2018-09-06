@@ -9,6 +9,7 @@ import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
 
 import type {Service} from './types/search'
+import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
 import {type TypedState} from './reducer'
 
 export const teamRoleTypes = ['reader', 'writer', 'admin', 'owner']
@@ -25,6 +26,7 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
   `teamAdd:${teamname};${username}`
 // also for pending invites, hence id rather than username
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
+export const addToTeamSearchKey = 'addToTeamSearch'
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',
@@ -81,7 +83,7 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
   joinAs: RPCTypes.teamsTeamRole.reader,
 })
 
-export const makeRetentionPolicy: I.RecordFactory<Types._RetentionPolicy> = I.Record({
+export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
   type: 'retain',
   days: 0,
 })
@@ -135,6 +137,7 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setTeamShowcase: false,
   setMemberShowcase: false,
   setRetentionPolicy: false,
+  setMinWriterRole: false,
   changeOpenTeam: false,
   leaveTeam: false,
   joinTeam: false,
@@ -162,10 +165,13 @@ const retentionPolicies = {
 
 const userIsActiveInTeamHelper = (
   state: TypedState,
-  username: string,
-  service: Service,
-  teamname: string
-) => {
+  _username: ?string,
+  _service: ?Service,
+  _teamname: ?string
+): boolean => {
+  const username = _username || ''
+  const service = _service || ''
+  const teamname = _teamname || ''
   if (service !== 'Keybase') {
     return false
   }
@@ -176,7 +182,11 @@ const userIsActiveInTeamHelper = (
   }
 
   const member = members.get(username)
-  return member && member.status === 'active'
+  if (!member) {
+    return false
+  }
+
+  return member.status === 'active'
 }
 
 const getEmailInviteError = (state: TypedState) => state.teams.emailInviteError
@@ -215,7 +225,7 @@ const getTeamID = (state: TypedState, teamname: Types.Teamname): string =>
 const getTeamNameFromID = (state: TypedState, teamID: string): ?Types.Teamname =>
   state.teams.teamNameToID.findKey(value => value === teamID)
 
-const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?Types.RetentionPolicy =>
+const getTeamRetentionPolicy = (state: TypedState, teamname: Types.Teamname): ?RetentionPolicy =>
   state.teams.getIn(['teamNameToRetentionPolicy', teamname], null)
 
 const getSelectedTeamNames = (state: TypedState): Types.Teamname[] => {
@@ -327,11 +337,9 @@ const isSubteam = (maybeTeamname: string) => {
   return true
 }
 const secondsToDays = (seconds: number) => seconds / (3600 * 24)
-const serviceRetentionPolicyToRetentionPolicy = (
-  policy: ?RPCChatTypes.RetentionPolicy
-): Types.RetentionPolicy => {
+const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.RetentionPolicy): RetentionPolicy => {
   // !policy implies a default policy of retainment
-  let retentionPolicy: Types.RetentionPolicy = makeRetentionPolicy({type: 'retain'})
+  let retentionPolicy: RetentionPolicy = makeRetentionPolicy({type: 'retain'})
   if (policy) {
     // replace retentionPolicy with whatever is explicitly set
     switch (policy.typ) {
@@ -355,9 +363,7 @@ const serviceRetentionPolicyToRetentionPolicy = (
 }
 
 const daysToSeconds = (days: number) => days * 3600 * 24
-const retentionPolicyToServiceRetentionPolicy = (
-  policy: Types.RetentionPolicy
-): RPCChatTypes.RetentionPolicy => {
+const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCChatTypes.RetentionPolicy => {
   let res: ?RPCChatTypes.RetentionPolicy
   switch (policy.type) {
     case 'retain':

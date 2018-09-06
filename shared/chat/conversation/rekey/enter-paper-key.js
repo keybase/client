@@ -1,5 +1,5 @@
 // @flow
-import EnterPaperkey from '../../../login/register/paper-key'
+import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
 import {connect, compose, withStateHandlers} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
@@ -19,7 +19,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   withStateHandlers(
     {paperKey: null},
     {

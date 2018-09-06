@@ -2,6 +2,7 @@
 import * as Types from './types/settings'
 import HiddenString from '../util/hidden-string'
 import type {TypedState} from './reducer'
+import * as WaitingConstants from './waiting'
 
 const initialState: Types.State = {
   allowDeleteAccount: false,
@@ -24,6 +25,7 @@ const initialState: Types.State = {
       },
     },
   },
+  lockdownModeEnabled: null,
   passphrase: {
     error: null,
     hasPGPKeyOnServer: null,
@@ -33,23 +35,17 @@ const initialState: Types.State = {
     newPassphraseError: null,
     rememberPassphrase: true,
   },
-  push: {
-    permissionsPrompt: false,
-    permissionsRequesting: false,
-    token: '',
-    tokenType: '',
-  },
   waitingForResponse: false,
 }
 
 const traceInProgressKey = 'traceInProgress'
 
-const traceInProgress = (state: TypedState) => state.waiting.get(traceInProgressKey, 0) !== 0
+const traceInProgress = (state: TypedState) => WaitingConstants.anyWaiting(state, traceInProgressKey)
 
 const processorProfileInProgressKey = 'processorProfileInProgress'
 
 const processorProfileInProgress = (state: TypedState) =>
-  state.waiting.get(processorProfileInProgressKey, 0) !== 0
+  WaitingConstants.anyWaiting(state, processorProfileInProgressKey)
 
 export const aboutTab = 'settingsTabs:aboutTab'
 export const advancedTab = 'settingsTabs:advancedTab'
@@ -68,6 +64,7 @@ export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs:walletsTab'
+export const waitingKey = 'settings:settingsPage'
 export {
   initialState,
   traceInProgressKey,

@@ -48,4 +48,4 @@ const mapStateToProps = (state: TypedState) => ({
   sessionIDToPinentry: state.pinentry.sessionIDToPinentry,
 })
 
-export default connect(mapStateToProps, () => ({}))(RemotePinentrys)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RemotePinentrys)

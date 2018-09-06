@@ -1,15 +1,88 @@
-// @flow
+// @noflow
 // TODO Deprecated. Instead use engine/saga helper
 // Handles sending requests to the daemon
 import logger from '../logger'
-import * as EngineGen from '../actions/engine-gen'
-import * as I from 'immutable'
 import * as Saga from '../util/saga'
-import * as Types from './types/engine'
-import * as SagaTypes from './types/saga'
-import type {Channel} from 'redux-saga'
-import {getEngine, EngineChannel} from '../engine'
-import {mapValues} from 'lodash-es'
+import {mapValues, forEach} from 'lodash-es'
+import {getEngine} from '../engine/require'
+
+export type Buffer<T> = {
+  isEmpty: () => boolean,
+  put: (msg: T) => void,
+  take: () => T,
+}
+
+export type Channel<T> = {
+  take: (cb: (msg: T) => void) => void,
+  put: (msg: T) => void,
+  close: () => void,
+}
+
+export type ChannelConfig<T> = {
+  [key: string]: () => Buffer<T>,
+}
+
+export type ChannelMap<T> = {
+  [key: string]: Channel<T>,
+}
+
+export type SagaMap = {
+  // $FlowIssue with returning Generators from functions
+  [key: string]: Generator<*, *, *>,
+}
+
+export class EngineChannel {
+  _map: ChannelMap<any>
+  _sessionID: SessionID
+  _configKeys: Array<string>
+
+  constructor(map: ChannelMap<any>, sessionID: SessionID, configKeys: Array<string>) {
+    this._map = map
+    this._sessionID = sessionID
+    this._configKeys = configKeys
+  }
+
+  getMap(): ChannelMap<any> {
+    return this._map
+  }
+
+  close() {
+    closeChannelMap(this._map)
+    getEngine().cancelSession(this._sessionID)
+  }
+
+  *take(key: string): Generator<any, any, any> {
+    return yield takeFromChannelMap(this._map, key)
+  }
+
+  *race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any> {
+    const timeout = options && options.timeout
+    const otherRacers = (options && options.racers) || {}
+    const initMap = {
+      ...(timeout
+        ? {
+            timeout: Saga.call(Saga.delay, timeout),
+          }
+        : {}),
+      ...otherRacers,
+    }
+
+    const raceMap = this._configKeys.reduce((map, key) => {
+      map[key] = takeFromChannelMap(this._map, key)
+      return map
+    }, initMap)
+
+    const result = yield Saga.race(raceMap)
+
+    if (result.timeout) {
+      this.close()
+    }
+
+    return result
+  }
+}
+
+type RpcRunResult = any
 
 // If a sub saga returns bail early, then the rpc will bail early
 const BailedEarly = {type: '@@engineRPCCall:bailedEarly', payload: undefined}
@@ -32,13 +105,11 @@ function _sagaWaitingDecorator(rpcNameKey, saga, waitingAction) {
     if (waitingAction) {
       yield Saga.put(waitingAction(false))
     }
-    yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: false}))
     // $FlowIssue has no way to type this
     yield Saga.call(saga, ...args)
     if (waitingAction) {
       yield Saga.put(waitingAction(true))
     }
-    yield Saga.put(EngineGen.createWaitingForRpc({name: rpcNameKey, waiting: true}))
   }
 }
 
@@ -73,27 +144,27 @@ function passthroughResponseSaga() {
 }
 
 class EngineRpcCall {
-  _subSagas: SagaTypes.SagaMap
-  _chanConfig: SagaTypes.ChannelConfig<any>
+  _subSagas: SagaMap
+  _chanConfig: ChannelConfig<any>
   _rpc: Function
   _rpcNameKey: string // Used for the waiting state and error messages.
   _request: any
 
-  _subSagaChannel: Channel
+  _subSagaChannel: Saga.Channel
   _engineChannel: EngineChannel
   _cleanedUp: boolean
   _finishedErrorShouldCancel: boolean
   _waitingActionCreator: ?(waiting: boolean) => any
 
   constructor(
-    sagaMap: SagaTypes.SagaMap,
+    sagaMap: SagaMap,
     rpc: any,
     rpcNameKey: string,
     request: any,
     finishedErrorShouldCancel?: ?boolean,
     waitingActionCreator?: (waiting: boolean) => any
   ) {
-    this._chanConfig = Saga.singleFixedChannelConfig(Object.keys(sagaMap))
+    this._chanConfig = singleFixedChannelConfig(Object.keys(sagaMap))
     this._rpcNameKey = rpcNameKey
     this._rpc = rpc
     this._cleanedUp = false
@@ -129,7 +200,6 @@ class EngineRpcCall {
       }
       this._engineChannel.close()
       this._subSagaChannel.close()
-      yield Saga.put(EngineGen.createWaitingForRpc({name: this._rpcNameKey, waiting: false}))
       if (this._waitingActionCreator) {
         const action = this._waitingActionCreator(false)
         if (action) {
@@ -141,7 +211,7 @@ class EngineRpcCall {
     }
   }
 
-  *run(timeout: ?number): Generator<any, Types.RpcRunResult, any> {
+  *run(timeout: ?number): Generator<any, RpcRunResult, any> {
     this._engineChannel = yield Saga.call(
       this._rpc,
       [...Object.keys(this._subSagas), 'finished'],
@@ -232,8 +302,47 @@ class EngineRpcCall {
   }
 }
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
-  rpcWaitingStates: I.Map(),
-})
+export function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
+  return ks.reduce((acc, k) => {
+    acc[k] = () => Saga.buffers.expanding(1)
+    return acc
+  }, {})
+}
+
+export function closeChannelMap<T>(channelMap: ChannelMap<T>): void {
+  forEach(channelMap, c => c.close())
+}
+
+export function putOnChannelMap<T>(channelMap: ChannelMap<T>, k: string, v: T): void {
+  const c = channelMap[k]
+  if (c) {
+    c.put(v)
+  } else {
+    logger.error('Trying to put, but no registered channel for', k)
+  }
+}
+
+export function effectOnChannelMap<T>(effectFn: any, channelMap: ChannelMap<T>, k: string): any {
+  const c = channelMap[k]
+  if (c) {
+    return effectFn(c)
+  } else {
+    logger.error('Trying to do effect, but no registered channel for', k)
+  }
+}
+
+export function takeFromChannelMap<T>(channelMap: ChannelMap<T>, k: string): any {
+  return effectOnChannelMap(Saga.take, channelMap, k)
+}
+
+export function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
+  return mapValues(channelConfig, (v, k) => {
+    const ret = Saga.channel(v())
+    // to help debug what's going on in dev/user-timings
+    // $ForceType
+    ret.userTimingName = k
+    return ret
+  })
+}
 
 export {EngineRpcCall, isFinished, BailedEarly, rpcResult, rpcCancel, rpcError, passthroughResponseSaga}

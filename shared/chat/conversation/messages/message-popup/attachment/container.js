@@ -2,11 +2,11 @@
 import type {Component} from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import * as Route from '../../../../../actions/route-tree'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
+import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
-import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
+import {connect, type TypedState} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Attachment from '.'
@@ -23,7 +23,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const message = ownProps.message
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
-  const _canDeleteHistory = meta.teamType === 'adhoc' || (yourOperations && yourOperations.deleteChatHistory)
+  const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   return {
     _canDeleteHistory,
     _you: state.config.username,
@@ -32,6 +32,16 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
+  _onAddReaction: (message: Types.Message) => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onDelete: (message: Types.Message) => {
     dispatch(
       Chat2Gen.createMessageDelete({
@@ -41,10 +51,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
     dispatch(Chat2Gen.createNavigateToThread())
   },
-  _onDeleteMessageHistory: (message: Types.Message) => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(Route.navigateAppend([{props: {message}, selected: 'deleteHistoryWarning'}]))
-  },
+
   _onDownload: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({
@@ -83,12 +90,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
-    onDeleteMessageHistory: stateProps._canDeleteHistory
-      ? () => dispatchProps._onDeleteMessageHistory(message)
-      : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
+    // We only show the share/save options for video if we have the file stored locally from a download
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,

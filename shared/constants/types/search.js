@@ -1,5 +1,5 @@
-// @flow
-import type {IconType} from '../../common-adapters'
+// @flow strict
+import type {IconType} from '../../common-adapters/icon.constants'
 export type Service = 'Facebook' | 'GitHub' | 'Hacker News' | 'Keybase' | 'Reddit' | 'Twitter'
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
@@ -16,24 +16,30 @@ export type RowProps = {
   leftFollowingState: FollowingState,
   leftFullname: ?string,
   leftIcon: ?IconType, // If service is keybase this can be null
+  leftIconOpaque: boolean,
   leftService: Service,
   leftUsername: string,
 
   rightFollowingState: FollowingState,
   rightIcon: ?IconType,
+  rightIconOpaque: boolean,
   rightService: ?Service,
   rightUsername: ?string,
 
-  showTrackerButton: boolean,
   onShowTracker: () => void,
   onClick: () => void,
   onMouseOver?: () => void,
   selected: boolean,
+  searchKey: string,
+
+  userAlreadySelected: boolean,
   userIsInTeam: boolean,
+  userIsSelectable: boolean,
 }
+
 // A normalized version of the row props above.
 // The connector should fill in the missing pieces like the following state
-export type SearchResult = {
+export type SearchResult = {|
   id: SearchResultId,
 
   leftFullname: ?string,
@@ -44,4 +50,4 @@ export type SearchResult = {
   rightIcon: ?IconType,
   rightService: ?Service,
   rightUsername: ?string,
-}
+|}

@@ -4,9 +4,6 @@ import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
 import {type SearchQuery} from './types/search'
 
-const usernameSelector = (state: TypedState) => state.config.username
-const loggedInSelector = (state: TypedState) => state.config.loggedIn
-
 const cachedSearchResults = (
   {
     entities: {
@@ -39,12 +36,4 @@ const searchResultMapSelector = createSelector(
   searchResults => searchResults
 )
 
-export {
-  amIBeingFollowed,
-  amIFollowing,
-  cachedSearchResults,
-  loggedInSelector,
-  searchResultMapSelector,
-  searchResultSelector,
-  usernameSelector,
-}
+export {amIBeingFollowed, amIFollowing, cachedSearchResults, searchResultMapSelector, searchResultSelector}

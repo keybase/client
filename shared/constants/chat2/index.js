@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -12,6 +11,7 @@ import {
   pendingConversationIDKey,
   noConversationIDKey,
   pendingWaitingConversationIDKey,
+  conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
 import {makeConversationMeta, getMeta} from './meta'
@@ -22,9 +22,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
-  loadingMap: I.Map(),
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -33,6 +33,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   pendingMode: 'none',
+  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
@@ -48,8 +49,8 @@ export const getResolvedPendingConversationIDKey = (state: TypedState) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Constants.noConversationIDKey,
-  targetConversationIDKey: Constants.noConversationIDKey,
+  sourceConversationIDKey: noConversationIDKey,
+  targetConversationIDKey: noConversationIDKey,
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
@@ -60,6 +61,8 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
+export const getMessageKey = (message: Types.Message) =>
+  `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -124,7 +127,25 @@ export const isInfoPanelOpen = (state: TypedState) => {
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
 }
 
-export const creatingLoadingKey = 'creatingConvo'
+export const waitingKeyJoinConversation = 'chat:joinConversation'
+export const waitingKeyDeleteHistory = 'chat:deleteHistory'
+export const waitingKeyPost = 'chat:post'
+export const waitingKeyRetryPost = 'chat:retryPost'
+export const waitingKeyEditPost = 'chat:editPost'
+export const waitingKeyDeletePost = 'chat:deletePost'
+export const waitingKeyCancelPost = 'chat:cancelPost'
+export const waitingKeyInboxRefresh = 'chat:inboxRefresh'
+export const waitingKeyCreating = 'chat:creatingConvo'
+export const waitingKeyInboxSyncStarted = 'chat:inboxSyncStarted'
+export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
+
+export const anyChatWaitingKeys = (state: TypedState) =>
+  state.waiting.keySeq().some(k => k.startsWith('chat:'))
 
 // When we see that exploding messages are in the app, we set
 // seenExplodingGregorKey. Once newExplodingGregorOffset time
@@ -147,6 +168,8 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   }
   return mode
 }
+export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
+  state.chat2.getIn(['explodingModeLocks', c], null) !== null
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
@@ -163,6 +186,26 @@ export const makeInboxQuery = (
     unreadOnly: false,
   }
 }
+
+export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.commonConversationMembersType.kbfs:
+      return RPCChatTypes.commonConversationMembersType.kbfs
+    case RPCChatTypes.commonConversationMembersType.team:
+      return RPCChatTypes.commonConversationMembersType.team
+    case RPCChatTypes.commonConversationMembersType.impteamnative:
+      return RPCChatTypes.commonConversationMembersType.impteamnative
+    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
+      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    default:
+      return null
+  }
+}
+
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
@@ -182,19 +225,28 @@ export {
 
 export {
   allMessageTypes,
+  authorIsCollapsible,
+  decoratedMessageTypes,
+  enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
+  isVideoAttachment,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
-  makePendingAttachmentMessages,
+  makePendingAttachmentMessage,
   makePendingTextMessage,
+  makeReaction,
   messageExplodeDescriptions,
+  nextFractionalOrdinal,
   pathToAttachmentType,
+  previewSpecs,
+  reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
   upgradeMessage,

@@ -1,5 +1,4 @@
 // @flow
-import logger from '../../logger'
 import * as React from 'react'
 import {
   Avatar,
@@ -14,27 +13,11 @@ import {
   Text,
   NativeImage,
 } from '../../common-adapters/mobile.native'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import {Linking, StyleSheet, NativeModules} from 'react-native'
+import {globalStyles, globalMargins, globalColors, hairlineWidth} from '../../styles'
 import type {MobileProps, ContactRowProps} from './index'
 import {type TeamRoleType} from '../../constants/types/teams'
-import {isAndroid} from '../../constants/platform'
 
-const settingsURL = 'app-settings:'
-const openSettings = () => {
-  if (isAndroid) {
-    NativeModules.NativeSettings.open()
-  } else {
-    Linking.canOpenURL(settingsURL).then(can => {
-      if (can) {
-        Linking.openURL(settingsURL)
-      } else {
-        logger.warn('Invite contacts: Unable to open app settings')
-      }
-    })
-  }
-}
-const AccessDenied = () => (
+const AccessDenied = ({openAppSettings}) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
@@ -60,7 +43,7 @@ const AccessDenied = () => (
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
-        <Button type="Primary" label="Open settings" onClick={openSettings} />
+        <Button type="Primary" label="Open settings" onClick={openAppSettings} />
       </ButtonBar>
     </Box>
   </Box>
@@ -167,8 +150,8 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: globalColors.black_05,
+              borderBottomWidth: hairlineWidth,
+              borderBottomColor: globalColors.black_10,
             }}
           >
             <Input
@@ -198,8 +181,8 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               alignItems: 'center',
               justifyContent: 'center',
               padding: globalMargins.small,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderBottomColor: globalColors.black_05,
+              borderBottomWidth: hairlineWidth,
+              borderBottomColor: globalColors.black_10,
               marginBottom: globalMargins.xtiny,
             }}
           >
@@ -220,7 +203,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     } else {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-          <AccessDenied />
+          <AccessDenied openAppSettings={this.props.openAppSettings} />
         </Box>
       )
     }

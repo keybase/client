@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../../logger'
 import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'

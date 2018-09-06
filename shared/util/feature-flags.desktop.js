@@ -14,9 +14,8 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: false,
+  avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
-  fsEnabled: true,
-  fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: false,
 }

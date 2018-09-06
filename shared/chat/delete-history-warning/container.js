@@ -3,46 +3,27 @@ import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
-import moment from 'moment'
-import {compose, connect, type TypedState, type Dispatch} from '../../util/container'
+import {compose, connect, type TypedState} from '../../util/container'
+import {isMobile} from '../../constants/platform'
 
-type OwnProps = RouteProps<
-  {
-    message: Types.Message,
-    teamname: string,
-  },
-  {}
->
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
-  const message = routeProps.get('message')
-  const teamname = routeProps.get('teamname')
-  const timestamp = moment(message.timestamp).format('dddd, MMMM Do YYYY, h:mm:ss a')
-  return {
-    teamname,
-    timestamp,
-  }
-}
+const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}: OwnProps) => ({
-  onBack: () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
+  onBack: isMobile ? null : () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
   onDeleteHistory: () => {
-    const message = routeProps.get('message')
+    const conversationIDKey = routeProps.get('conversationIDKey')
     dispatch(navigateUp())
-    dispatch(
-      Chat2Gen.createMessageDeleteHistory({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
+    dispatch(Chat2Gen.createMessageDeleteHistory({conversationIDKey}))
   },
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  title: 'Delete message history',
+  onBack: dispatchProps.onBack,
+  onCancel: dispatchProps.onCancel,
+  onDeleteHistory: dispatchProps.onDeleteHistory,
 })
 
 export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)

@@ -2,6 +2,8 @@
 import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {
+  collapseStyles,
+  glamorous,
   globalStyles,
   globalColors,
   globalMargins,
@@ -23,12 +25,23 @@ type Props = {
   onSelectConversation: () => void,
 }
 
+const HoverBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      ':hover': {backgroundColor: globalColors.blueGrey2},
+    })
+
 class BigTeamChannel extends PureComponent<Props> {
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Box style={styles.rowContainer}>
-          <Box style={this.props.isSelected ? styles.selectedChannelBackground : styles.channelBackground}>
+          <HoverBox
+            style={collapseStyles([
+              styles.channelBackground,
+              this.props.isSelected && styles.selectedChannelBackground,
+            ])}
+          >
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
               style={
@@ -47,7 +60,7 @@ class BigTeamChannel extends PureComponent<Props> {
             </Text>
             {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
             {this.props.hasBadge && <UnreadIcon />}
-          </Box>
+          </HoverBox>
         </Box>
       </ClickableBox>
     )
@@ -84,6 +97,8 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
     alignItems: 'center',
+    borderBottomLeftRadius: 3,
+    borderTopLeftRadius: 3,
     marginLeft: globalMargins.large,
     paddingLeft: globalMargins.tiny,
     paddingRight: globalMargins.tiny,
@@ -100,15 +115,7 @@ const styles = styleSheetCreate({
     isElectron: desktopStyles.clickable,
   }),
   selectedChannelBackground: {
-    ...globalStyles.flexBoxRow,
-    ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
-    alignItems: 'center',
     backgroundColor: globalColors.blue,
-    borderBottomLeftRadius: 3,
-    borderTopLeftRadius: 3,
-    marginLeft: globalMargins.large,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
   },
   textError: {
     color: globalColors.red,

@@ -36,7 +36,7 @@ class NewRepo extends React.Component<Props, State> {
     if (!item) {
       return (
         <Box style={globalStyles.flexBoxCenter}>
-          <Text type="Header">Pick a team</Text>
+          <Text type="BodyBig">Pick a team</Text>
         </Box>
       )
     }
@@ -89,8 +89,8 @@ class NewRepo extends React.Component<Props, State> {
     if (node && node.key === NewTeamSentry) {
       this.props.onNewTeam()
     } else {
-      // $FlowIssue doesn't understand key will be string
-      const selectedTeam: string = (node && node.key) || null
+      // $ForceType doesn't understand key will be string
+      const selectedTeam: string = node.key
       this.setState({selectedTeam})
     }
   }

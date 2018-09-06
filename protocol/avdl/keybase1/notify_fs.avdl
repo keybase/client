@@ -7,6 +7,10 @@ protocol NotifyFS {
   @lint("ignore")
   void FSActivity(FSNotification notification);
 
+  @notify("")
+  @lint("ignore")
+  void FSPathUpdated(string path) oneway;
+
   @lint("ignore")
   void FSSyncActivity(FSPathSyncStatus status) oneway;
 

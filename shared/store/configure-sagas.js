@@ -1,5 +1,4 @@
 // @flow
-import appStateSaga from '../actions/app'
 import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
@@ -10,12 +9,11 @@ import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
 import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
+import provisionSaga from '../actions/provision'
 import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
-import planBillingSaga from '../actions/plan-billing'
 import profileSaga from '../actions/profile'
-import pushSaga from '../actions/push'
 import routeSaga from '../actions/route-tree'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
@@ -26,38 +24,34 @@ import trackerSaga from '../actions/tracker'
 import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
-import {fork} from 'redux-saga/effects'
 import {reduxSagaLogger} from '../local-debug'
 import {sagaTimer} from '../dev/user-timings'
+import * as Saga from '../util/saga'
 
-import type {SagaGenerator} from '../constants/types/saga'
-
-function* mainSaga(): SagaGenerator<any, any> {
-  yield fork(chat2Saga)
-  yield fork(configSaga)
-  yield fork(deviceSaga)
-  yield fork(favoriteSaga)
-  yield fork(fsSaga)
-  yield fork(gregorSaga)
-  yield fork(kbfsSaga)
-  yield fork(loginSaga)
-  yield fork(notificationsSaga)
-  yield fork(pinentrySaga)
-  yield fork(planBillingSaga)
-  yield fork(profileSaga)
-  yield fork(pushSaga)
-  yield fork(routeSaga)
-  yield fork(searchSaga)
-  yield fork(settingsSaga)
-  yield fork(appStateSaga)
-  yield fork(trackerSaga)
-  yield fork(teamsSaga)
-  yield fork(unlockFoldersSaga)
-  yield fork(usersSaga)
-  yield fork(gitSaga)
-  yield fork(peopleSaga)
-  yield fork(walletsSaga)
-  yield fork(signupSaga)
+function* mainSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.fork(chat2Saga)
+  yield Saga.fork(configSaga)
+  yield Saga.fork(deviceSaga)
+  yield Saga.fork(favoriteSaga)
+  yield Saga.fork(fsSaga)
+  yield Saga.fork(gregorSaga)
+  yield Saga.fork(kbfsSaga)
+  yield Saga.fork(loginSaga)
+  yield Saga.fork(provisionSaga)
+  yield Saga.fork(notificationsSaga)
+  yield Saga.fork(pinentrySaga)
+  yield Saga.fork(profileSaga)
+  yield Saga.fork(routeSaga)
+  yield Saga.fork(searchSaga)
+  yield Saga.fork(settingsSaga)
+  yield Saga.fork(trackerSaga)
+  yield Saga.fork(teamsSaga)
+  yield Saga.fork(unlockFoldersSaga)
+  yield Saga.fork(usersSaga)
+  yield Saga.fork(gitSaga)
+  yield Saga.fork(peopleSaga)
+  yield Saga.fork(walletsSaga)
+  yield Saga.fork(signupSaga)
 }
 
 let middleWare

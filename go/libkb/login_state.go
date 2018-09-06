@@ -24,22 +24,17 @@ type LoginContext interface {
 	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
 	SetStreamCache(c *PassphraseStreamCache)
 	PassphraseStreamCache() *PassphraseStreamCache
-	ClearStreamCache()
-	SetStreamGeneration(gen PassphraseGeneration, nilPPStreamOK bool)
-	GetStreamGeneration() PassphraseGeneration
 
 	CreateLoginSessionWithSalt(emailOrUsername string, salt []byte) error
-	LoadLoginSession(emailOrUsername string) error
 	LoginSession() *LoginSession
-	ClearLoginSession()
 	SetLoginSession(l *LoginSession)
 
 	LocalSession() *Session
 	GetUID() keybase1.UID
 	GetUsername() NormalizedUsername
-	EnsureUsername(username NormalizedUsername)
-	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
-	SetUsernameUID(username NormalizedUsername, uid keybase1.UID) error
+	GetUserVersion() keybase1.UserVersion
+	SaveState(sessionID, csrf string, username NormalizedUsername, uv keybase1.UserVersion, deviceID keybase1.DeviceID) error
+	SetUsernameUserVersion(username NormalizedUsername, uv keybase1.UserVersion) error
 
 	Keyring(m MetaContext) (*SKBKeyringFile, error)
 	ClearKeyring()
@@ -51,7 +46,7 @@ type LoginContext interface {
 type loginAPIResult struct {
 	sessionID string
 	csrfToken string
-	uid       keybase1.UID
+	uv        keybase1.UserVersion
 	username  string
 	ppGen     PassphraseGeneration
 }

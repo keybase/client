@@ -1,19 +1,16 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as C from '../../constants/people'
-import {action, storiesOf} from '../../stories/storybook'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
-
-const provider = PropProviders.CommonProvider()
 
 const singleFollowProps1: Props = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
   notificationTime: new Date(),
-  onClickUser: action('onClickUser'),
+  onClickUser: Sb.action('onClickUser'),
 }
 
 const singleFollowProps2: Props = {
@@ -23,7 +20,7 @@ const singleFollowProps2: Props = {
   notificationTime: moment()
     .subtract(3, 'days')
     .toDate(),
-  onClickUser: action('onClickUser'),
+  onClickUser: Sb.action('onClickUser'),
 }
 
 const multiFollowProps1: Props = {
@@ -38,7 +35,7 @@ const multiFollowProps1: Props = {
     .subtract(3, 'weeks')
     .toDate(),
   numAdditional: 0,
-  onClickUser: action('onClickUser'),
+  onClickUser: Sb.action('onClickUser'),
 }
 
 const multiFollowProps2: Props = {
@@ -62,12 +59,11 @@ const multiFollowProps2: Props = {
     .subtract(3, 'months')
     .toDate(),
   numAdditional: 5,
-  onClickUser: action('onClickUser'),
+  onClickUser: Sb.action('onClickUser'),
 }
 
 const load = () => {
-  storiesOf('People/Follow notification', module)
-    .addDecorator(provider)
+  Sb.storiesOf('People/Follow notification', module)
     .add('Someone followed you', () => <FollowNotification {...singleFollowProps1} />)
     .add('Someone you follow followed you', () => <FollowNotification {...singleFollowProps2} />)
     .add('A few people followed you', () => <FollowNotification {...multiFollowProps1} />)

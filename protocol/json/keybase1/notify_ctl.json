@@ -82,6 +82,18 @@
         {
           "type": "boolean",
           "name": "chatdev"
+        },
+        {
+          "type": "boolean",
+          "name": "deviceclone"
+        },
+        {
+          "type": "boolean",
+          "name": "chatattachments"
+        },
+        {
+          "type": "boolean",
+          "name": "wallet"
         }
       ]
     }

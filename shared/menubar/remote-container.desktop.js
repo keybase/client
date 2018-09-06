@@ -1,10 +1,10 @@
 // @flow
-import * as AppGen from '../actions/app-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
-import {connect, compose, type Dispatch} from '../util/container'
+import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
@@ -20,13 +20,13 @@ const closeWindow = () => {
 }
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _showUser: (username: string) => {
     const link = urlHelper('user', {username})
     link && openUrl(link)
   },
   logIn: () => {
-    dispatch(AppGen.createShowMain())
+    dispatch(ConfigGen.createShowMain())
     dispatch(navigateTo([loginTab]))
   },
   onFolderClick: (path: ?string) => {
@@ -38,12 +38,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     closeWindow()
   },
   openApp: (tab?: Tab) => {
-    dispatch(AppGen.createShowMain())
+    dispatch(ConfigGen.createShowMain())
     tab && dispatch(switchTo([tab]))
   },
   quit: () => {
     closeWindow()
-    dispatch(AppGen.createDumpLogs({reason: 'quitting through menu'}))
+    dispatch(ConfigGen.createDumpLogs({reason: 'quitting through menu'}))
     // In case dump log doens't exit for us
     setTimeout(() => {
       executeActionsForContext('quitButton')
@@ -72,4 +72,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showUser: () => dispatchProps._showUser(stateProps.username),
   ...ownProps,
 })
-export default compose(connect(state => state, mapDispatchToProps, mergeProps))(Menubar)
+export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

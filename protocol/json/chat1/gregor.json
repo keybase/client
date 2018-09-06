@@ -480,6 +480,27 @@
     },
     {
       "type": "record",
+      "name": "SetConvSettingsUpdate",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "ConversationSettings"
+          ],
+          "name": "convSettings"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "KBFSImpteamUpgradeUpdate",
       "fields": [
         {
@@ -493,6 +514,23 @@
         {
           "type": "TopicType",
           "name": "topicType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamRenameUpdate",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationID"
+          },
+          "name": "convIDs"
+        },
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
         }
       ]
     }

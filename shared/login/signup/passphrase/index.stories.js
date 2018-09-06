@@ -1,19 +1,17 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../../stories/prop-providers'
+import * as Sb from '../../../stories/storybook'
 import Passphrase from '.'
-import {action, storiesOf} from '../../../stories/storybook'
 
 const props = {
   error: '',
-  onBack: action('onBack'),
-  onSubmit: action('onSubmit'),
+  onBack: Sb.action('onBack'),
+  onSubmit: Sb.action('onSubmit'),
   passphrase: '',
 }
 
 const load = () => {
-  storiesOf('Signup/Passphrase', module)
-    .addDecorator(PropProviders.CommonProvider())
+  Sb.storiesOf('Signup/Passphrase', module)
     .add('Start', () => <Passphrase {...props} />)
     .add('Error', () => <Passphrase {...props} error="This is an error" />)
 }

@@ -11,8 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/pvl"
@@ -60,10 +58,10 @@ type pvlKitT struct {
 }
 
 // Get PVL to use.
-func (s *PvlSourceImpl) GetPVL(ctx context.Context) (libkb.PvlUnparsed, error) {
+func (s *PvlSourceImpl) GetPVL(m libkb.MetaContext) (libkb.PvlUnparsed, error) {
 	pvlVersion := pvl.SupportedVersion
 
-	kitJSON, hash, err := s.GetKitString(ctx)
+	kitJSON, hash, err := s.GetKitString(m)
 	if err != nil {
 		return libkb.PvlUnparsed{}, err
 	}
@@ -92,16 +90,16 @@ func (s *PvlSourceImpl) GetPVL(ctx context.Context) (libkb.PvlUnparsed, error) {
 // First it makes sure that the merkle root is recent enough.
 // Using the pvl hash from that, it fetches from in-memory falling back to db
 // falling back to server.
-func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, libkb.PvlKitHash, error) {
+func (s *PvlSourceImpl) GetKitString(m libkb.MetaContext) (libkb.PvlKitString, libkb.PvlKitHash, error) {
 
 	// Use a file instead if specified.
-	kitFile := s.G().Env.GetPvlKitFilename()
+	kitFile := m.G().Env.GetPvlKitFilename()
 	if len(kitFile) > 0 {
-		s.G().Log.CWarningf(ctx, "PvlSource: using kit file: %s", kitFile)
+		m.CWarningf("PvlSource: using kit file: %s", kitFile)
 		return s.readFile(kitFile)
 	}
 
-	mc := s.G().GetMerkleClient()
+	mc := m.G().GetMerkleClient()
 	if mc == nil {
 		return "", "", libkb.NewPvlSourceError("no MerkleClient available")
 	}
@@ -113,13 +111,13 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, l
 	// The time that the root was fetched is used rather than when the
 	// root was published so that we can continue to operate even if
 	// the root has not been published in a long time.
-	if (root == nil) || s.pastDue(ctx, root.Fetched(), libkb.PvlSourceShouldRefresh) {
-		s.G().Log.CDebugf(ctx, "PvlSource: merkle root should refresh")
+	if (root == nil) || s.pastDue(m, root.Fetched(), libkb.PvlSourceShouldRefresh) {
+		m.CDebugf("PvlSource: merkle root should refresh")
 
 		// Attempt a refresh if the root is old or nil.
-		err := s.refreshRoot(ctx)
+		err := s.refreshRoot(m)
 		if err != nil {
-			s.G().Log.CWarningf(ctx, "PvlSource: could not refresh merkle root: %s", err)
+			m.CWarningf("PvlSource: could not refresh merkle root: %s", err)
 		} else {
 			root = mc.LastRoot()
 		}
@@ -129,9 +127,9 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, l
 		return "", "", libkb.NewPvlSourceError("no merkle root")
 	}
 
-	if s.pastDue(ctx, root.Fetched(), libkb.PvlSourceRequireRefresh) {
+	if s.pastDue(m, root.Fetched(), libkb.PvlSourceRequireRefresh) {
 		// The root is still too old, even after an attempted refresh.
-		s.G().Log.CDebugf(ctx, "PvlSource: merkle root too old")
+		m.CDebugf("PvlSource: merkle root too old")
 		return "", "", libkb.NewPvlSourceError("merkle root too old: %v %s", seqnoWrap(root.Seqno()), root.Fetched())
 	}
 
@@ -149,26 +147,25 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, l
 	// Use in-memory cache if it matches
 	fromMem := s.memGet(hash)
 	if fromMem != nil {
-		s.G().Log.CDebugf(ctx, "PvlSource: mem cache hit")
-		s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
+		m.CDebugf("PvlSource: mem cache hit, using hash: %s", hash)
 		return *fromMem, hash, nil
 	}
 
 	// Use db cache if it matches
-	fromDB := s.dbGet(ctx, hash)
+	fromDB := s.dbGet(m, hash)
 	if fromDB != nil {
-		s.G().Log.CDebugf(ctx, "PvlSource: db cache hit")
+		m.CDebugf("PvlSource: db cache hit")
 
 		// Store to memory
 		s.memSet(hash, *fromDB)
 
-		s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
+		m.CDebugf("PvlSource: using hash: %s", hash)
 		return *fromDB, hash, nil
 	}
 
 	// Fetch from the server
 	// This validates the hash
-	pvl, err := s.fetch(ctx, hash)
+	pvl, err := s.fetch(m, hash)
 	if err != nil {
 		return "", "", err
 	}
@@ -177,9 +174,9 @@ func (s *PvlSourceImpl) GetKitString(ctx context.Context) (libkb.PvlKitString, l
 	s.memSet(hash, pvl)
 
 	// Schedule a db write
-	go s.dbSet(context.Background(), hash, pvl)
+	go s.dbSet(m.BackgroundWithLogTags(), hash, pvl)
 
-	s.G().Log.CDebugf(ctx, "PvlSource: using hash: %s", hash)
+	m.CDebugf("PvlSource: using hash: %s", hash)
 	return pvl, hash, nil
 }
 
@@ -193,13 +190,13 @@ func (r *pvlServerRes) GetAppStatus() *libkb.AppStatus {
 }
 
 // Fetch pvl and check the hash.
-func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb.PvlKitString, error) {
-	s.G().Log.CDebugf(ctx, "PvlSource: fetching from server: %s", hash)
+func (s *PvlSourceImpl) fetch(m libkb.MetaContext, hash libkb.PvlKitHash) (libkb.PvlKitString, error) {
+	m.CDebugf("PvlSource: fetching from server: %s", hash)
 	var res pvlServerRes
-	err := s.G().API.GetDecode(libkb.APIArg{
+	err := m.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "merkle/pvl",
 		SessionType: libkb.APISessionTypeNONE,
-		NetContext:  ctx,
+		MetaContext: m,
 		Args: libkb.HTTPArgs{
 			"hash": libkb.S{Val: string(hash)},
 		},
@@ -211,7 +208,7 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb
 		return "", libkb.NewPvlSourceError("server returned empty pvl")
 	}
 	if s.hash(res.KitJSON) != hash {
-		s.G().Log.CWarningf(ctx, "pvl hash mismatch: got:%s expected:%s", s.hash(res.KitJSON), hash)
+		m.CWarningf("pvl hash mismatch: got:%s expected:%s", s.hash(res.KitJSON), hash)
 		return "", libkb.NewPvlSourceError("server returned wrong pvl")
 	}
 	return res.KitJSON, nil
@@ -219,7 +216,7 @@ func (s *PvlSourceImpl) fetch(ctx context.Context, hash libkb.PvlKitHash) (libkb
 
 // updateRoot kicks MerkleClient to update its merkle root
 // by doing a LookupUser on some arbitrary user.
-func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
+func (s *PvlSourceImpl) refreshRoot(m libkb.MetaContext) error {
 	q := libkb.NewHTTPArgs()
 	// The user lookup here is unnecessary. It is done because that is what
 	// is easy with MerkleClient.
@@ -231,7 +228,7 @@ func (s *PvlSourceImpl) refreshRoot(ctx context.Context) error {
 		uid = libkb.TAliceUID
 	}
 	q.Add("uid", libkb.UIDArg(uid))
-	_, err := s.G().MerkleClient.LookupUser(libkb.NewMetaContext(ctx, s.G()), q, nil)
+	_, err := s.G().MerkleClient.LookupUser(m, q, nil)
 	return err
 }
 
@@ -254,15 +251,15 @@ func (s *PvlSourceImpl) memSet(hash libkb.PvlKitHash, pvl libkb.PvlKitString) {
 }
 
 // Get from local db. Can return nil.
-func (s *PvlSourceImpl) dbGet(ctx context.Context, hash libkb.PvlKitHash) *libkb.PvlKitString {
-	db := s.G().LocalDb
+func (s *PvlSourceImpl) dbGet(m libkb.MetaContext, hash libkb.PvlKitHash) *libkb.PvlKitString {
+	db := m.G().LocalDb
 	if db == nil {
 		return nil
 	}
 	var ent entry
 	found, err := db.GetInto(&ent, dbKey)
 	if err != nil {
-		s.G().Log.CWarningf(ctx, "PvlSource: error reading from db: %s", err)
+		m.CWarningf("PvlSource: error reading from db: %s", err)
 		return nil
 	}
 	if !found {
@@ -279,10 +276,10 @@ func (s *PvlSourceImpl) dbGet(ctx context.Context, hash libkb.PvlKitHash) *libkb
 
 // Run in a goroutine.
 // Logs errors.
-func (s *PvlSourceImpl) dbSet(ctx context.Context, hash libkb.PvlKitHash, pvl libkb.PvlKitString) {
-	db := s.G().LocalDb
+func (s *PvlSourceImpl) dbSet(m libkb.MetaContext, hash libkb.PvlKitHash, pvl libkb.PvlKitString) {
+	db := m.G().LocalDb
 	if db == nil {
-		s.G().Log.CErrorf(ctx, "storing pvl: no db")
+		m.CErrorf("storing pvl: no db")
 		return
 	}
 	ent := entry{
@@ -292,7 +289,7 @@ func (s *PvlSourceImpl) dbSet(ctx context.Context, hash libkb.PvlKitHash, pvl li
 	}
 	err := db.PutObj(dbKey, nil, ent)
 	if err != nil {
-		s.G().Log.CErrorf(ctx, "storing pvl: %s", err)
+		m.CErrorf("storing pvl: %s", err)
 	}
 }
 
@@ -303,11 +300,11 @@ func (s *PvlSourceImpl) hash(in libkb.PvlKitString) libkb.PvlKitHash {
 	return libkb.PvlKitHash(out)
 }
 
-func (s *PvlSourceImpl) pastDue(ctx context.Context, event time.Time, limit time.Duration) bool {
-	diff := s.G().Clock().Now().Sub(event)
+func (s *PvlSourceImpl) pastDue(m libkb.MetaContext, event time.Time, limit time.Duration) bool {
+	diff := m.G().Clock().Now().Sub(event)
 	overdue := diff > limit
 	if overdue {
-		s.G().Log.CDebugf(ctx, "PvlSource: pastDue diff:(%s) t1:(%s) limit:(%s)", diff, event, limit)
+		m.CDebugf("PvlSource: pastDue diff:(%s) t1:(%s) limit:(%s)", diff, event, limit)
 	}
 	return overdue
 }

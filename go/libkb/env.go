@@ -21,9 +21,11 @@ import (
 type NullConfiguration struct{}
 
 func (n NullConfiguration) GetHome() string                                                { return "" }
+func (n NullConfiguration) GetMobileSharedHome() string                                    { return "" }
 func (n NullConfiguration) GetServerURI() string                                           { return "" }
 func (n NullConfiguration) GetConfigFilename() string                                      { return "" }
 func (n NullConfiguration) GetUpdaterConfigFilename() string                               { return "" }
+func (n NullConfiguration) GetDeviceCloneStateFilename() string                            { return "" }
 func (n NullConfiguration) GetSessionFilename() string                                     { return "" }
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
@@ -97,6 +99,7 @@ func (n NullConfiguration) GetMountDir() string                             { re
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
+func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
@@ -159,12 +162,13 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 }
 
 type TestParameters struct {
-	ConfigFilename string
-	Home           string
-	GPG            string
-	GPGHome        string
-	GPGOptions     []string
-	Debug          bool
+	ConfigFilename   string
+	Home             string
+	MobileSharedHome string
+	GPG              string
+	GPGHome          string
+	GPGOptions       []string
+	Debug            bool
 	// Whether we are in Devel Mode
 	Devel bool
 	// If we're in dev mode, the name for this test, with a random
@@ -302,6 +306,7 @@ func newEnv(cmd CommandLine, config ConfigReader, osname string, getLog LogGette
 
 	e.HomeFinder = NewHomeFinder("keybase",
 		func() string { return e.getHomeFromCmdOrConfig() },
+		func() string { return e.getMobileSharedHomeFromCmdOrConfig() },
 		osname,
 		func() RunMode { return e.GetRunMode() },
 		getLog)
@@ -316,12 +321,21 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e *Env) GetHome() string            { return e.HomeFinder.Home(false) }
-func (e *Env) GetConfigDir() string       { return e.HomeFinder.ConfigDir() }
-func (e *Env) GetCacheDir() string        { return e.HomeFinder.CacheDir() }
-func (e *Env) GetSandboxCacheDir() string { return e.HomeFinder.SandboxCacheDir() }
-func (e *Env) GetDataDir() string         { return e.HomeFinder.DataDir() }
-func (e *Env) GetLogDir() string          { return e.HomeFinder.LogDir() }
+func (e *Env) getMobileSharedHomeFromCmdOrConfig() string {
+	return e.GetString(
+		func() string { return e.Test.MobileSharedHome },
+		func() string { return e.cmd.GetMobileSharedHome() },
+		func() string { return e.GetConfig().GetMobileSharedHome() },
+	)
+}
+
+func (e *Env) GetHome() string             { return e.HomeFinder.Home(false) }
+func (e *Env) GetMobileSharedHome() string { return e.HomeFinder.MobileSharedHome(false) }
+func (e *Env) GetConfigDir() string        { return e.HomeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string         { return e.HomeFinder.CacheDir() }
+func (e *Env) GetSandboxCacheDir() string  { return e.HomeFinder.SandboxCacheDir() }
+func (e *Env) GetDataDir() string          { return e.HomeFinder.DataDir() }
+func (e *Env) GetLogDir() string           { return e.HomeFinder.LogDir() }
 
 func (e *Env) SendSystemChatMessages() bool {
 	return !e.Test.SkipSendingSystemChatMessages
@@ -484,6 +498,15 @@ func (e *Env) GetUpdaterConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
 		func() string { return e.GetConfig().GetUpdaterConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
+func (e *Env) GetDeviceCloneStateFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetDeviceCloneStateFilename() },
+		func() string { return os.Getenv("KEYBASE_DEVICE_CLONE_STATE_FILE") },
+		func() string { return e.GetConfig().GetDeviceCloneStateFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), DeviceCloneStateFile) },
 	)
 }
 
@@ -960,6 +983,14 @@ func (e *Env) GetAppType() AppType {
 	}
 }
 
+func (e *Env) IsMobileExtension() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.IsMobileExtension() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_MOBILE_EXTENSION") },
+		func() (bool, bool) { return e.GetConfig().IsMobileExtension() },
+	)
+}
+
 func (e *Env) GetSlowGregorConn() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
@@ -1235,6 +1266,7 @@ func (e *Env) GetStoredSecretServiceName() string {
 type AppConfig struct {
 	NullConfiguration
 	HomeDir                        string
+	MobileSharedHomeDir            string
 	LogFile                        string
 	RunMode                        RunMode
 	Debug                          bool
@@ -1243,6 +1275,7 @@ type AppConfig struct {
 	VDebugSetting                  string
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
+	MobileExtension                bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1267,6 +1300,10 @@ func (c AppConfig) GetHome() string {
 	return c.HomeDir
 }
 
+func (c AppConfig) GetMobileSharedHome() string {
+	return c.MobileSharedHomeDir
+}
+
 func (c AppConfig) GetServerURI() string {
 	return c.ServerURI
 }
@@ -1277,6 +1314,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) IsMobileExtension() (bool, bool) {
+	return c.MobileExtension, true
 }
 
 func (c AppConfig) GetSlowGregorConn() (bool, bool) {

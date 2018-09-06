@@ -78,7 +78,8 @@ func NewBlockingLocalizer(g *globals.Context) *BlockingLocalizer {
 	return &BlockingLocalizer{
 		Contextified:  globals.NewContextified(g),
 		baseLocalizer: newBaseLocalizer(g),
-		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
+		pipeline: newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
 	}
 }
 
@@ -124,9 +125,10 @@ func NewNonblockingLocalizer(g *globals.Context, localizeCb chan NonblockInboxRe
 		Contextified:  globals.NewContextified(g),
 		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "NonblockingLocalizer", false),
 		baseLocalizer: newBaseLocalizer(g),
-		pipeline:      newLocalizerPipeline(g, newBasicSupersedesTransform(g)),
-		localizeCb:    localizeCb,
-		maxUnbox:      maxUnbox,
+		pipeline: newLocalizerPipeline(g,
+			newBasicSupersedesTransform(g, basicSupersedesTransformOpts{})),
+		localizeCb: localizeCb,
+		maxUnbox:   maxUnbox,
 	}
 }
 
@@ -187,14 +189,12 @@ func (b *NonblockingLocalizer) Name() string {
 }
 
 func filterConvLocals(convLocals []chat1.ConversationLocal, rquery *chat1.GetInboxQuery,
-	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfo) (res []chat1.ConversationLocal, err error) {
+	query *chat1.GetInboxLocalQuery, nameInfo *types.NameInfoUntrusted) (res []chat1.ConversationLocal, err error) {
 
 	for _, convLocal := range convLocals {
-
 		if rquery != nil && rquery.TlfID != nil {
 			// inbox query contained a TLF name, so check to make sure that
 			// the conversation from the server matches tlfInfo from kbfs
-
 			if convLocal.Info.TLFNameExpanded() != nameInfo.CanonicalName {
 				if convLocal.Error == nil {
 					return nil, fmt.Errorf("server conversation TLF name mismatch: %s, expected %s",
@@ -265,7 +265,7 @@ func (b *baseInboxSource) SetRemoteInterface(ri func() chat1.RemoteInterface) {
 }
 
 func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
-	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfo, err error) {
+	lquery *chat1.GetInboxLocalQuery) (rquery *chat1.GetInboxQuery, info *types.NameInfoUntrusted, err error) {
 
 	if lquery == nil {
 		return nil, info, nil
@@ -276,7 +276,7 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
 			lquery.Name.MembersType)
-		info, err = CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, lquery.Name.MembersType,
+		info, err = CreateNameInfoSource(ctx, b.G(), lquery.Name.MembersType).LookupIDUntrusted(ctx, tlfName,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 		if err != nil {
 			b.Debug(ctx, "GetInboxQueryLocalToRemote: failed: %s", err)
@@ -322,11 +322,11 @@ func (b *baseInboxSource) IsMember(ctx context.Context, uid gregor1.UID, convID 
 }
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
-	lquery *chat1.GetInboxLocalQuery) (*types.NameInfo, error) {
+	lquery *chat1.GetInboxLocalQuery) (*types.NameInfoUntrusted, error) {
 	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
 		return nil, nil
 	}
-	return CtxKeyFinder(ctx, g).Find(ctx, lquery.Name.Name, lquery.Name.MembersType,
+	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupIDUntrusted(ctx, lquery.Name.Name,
 		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
@@ -461,6 +461,11 @@ func (s *RemoteInboxSource) SetConvRetention(ctx context.Context, uid gregor1.UI
 
 func (s *RemoteInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationLocal, err error) {
+	return res, err
+}
+
+func (s *RemoteInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (res *chat1.ConversationLocal, err error) {
 	return res, err
 }
 
@@ -924,6 +929,29 @@ func (s *HybridInboxSource) SetTeamRetention(ctx context.Context, uid gregor1.UI
 	return convs, nil
 }
 
+func (s *HybridInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (res *chat1.ConversationLocal, err error) {
+	return s.modConversation(ctx, "SetConvSettings", uid, convID, func(ctx context.Context, ib *storage.Inbox) error {
+		return ib.SetConvSettings(ctx, vers, convID, convSettings)
+	})
+}
+
+func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SubteamRename")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.SubteamRename(ctx, vers, convIDs); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if convs, err = s.getConvsLocal(ctx, uid, convIDs); err != nil {
+		s.Debug(ctx, "SubteamRename: unable to load conversations: convIDs: %v err: %s",
+			convIDs, err.Error())
+		return nil, nil
+	}
+	return convs, nil
+}
+
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
@@ -1028,7 +1056,7 @@ func (s *localizerPipeline) localizeConversationsPipeline(ctx context.Context, u
 }
 
 func (s *localizerPipeline) needsCanonicalize(name string) bool {
-	return strings.Contains(name, "@") || strings.Contains(name, ":")
+	return strings.Contains(name, "@") || strings.Contains(name, ":") || strings.Contains(name, ".")
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
@@ -1073,6 +1101,32 @@ func (s *localizerPipeline) getMessagesOffline(ctx context.Context, convID chat1
 	}
 
 	return foundMsgs, chat1.ConversationErrorType_NONE, nil
+}
+
+func (s *localizerPipeline) getMinWriterRoleInfoLocal(ctx context.Context, info *chat1.ConversationMinWriterRoleInfo) *chat1.ConversationMinWriterRoleInfoLocal {
+	if info == nil {
+		return nil
+	}
+	username := ""
+	name, err := s.G().GetUPAKLoader().LookupUsername(ctx, keybase1.UID(info.Uid.String()))
+	if err == nil {
+		username = name.String()
+	}
+	return &chat1.ConversationMinWriterRoleInfoLocal{
+		Role:     info.Role,
+		Username: username,
+	}
+}
+
+func (s *localizerPipeline) getConvSettingsLocal(ctx context.Context, conv chat1.Conversation) (res *chat1.ConversationSettingsLocal) {
+	settings := conv.ConvSettings
+	if settings == nil {
+		return nil
+	}
+	res = &chat1.ConversationSettingsLocal{}
+	res.MinWriterRoleInfo = s.getMinWriterRoleInfoLocal(ctx, settings.MinWriterRoleInfo)
+	return res
+
 }
 
 func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper libkb.UIDMapper,
@@ -1152,6 +1206,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	conversationLocal.Expunge = conversationRemote.Expunge
 	conversationLocal.ConvRetention = conversationRemote.ConvRetention
 	conversationLocal.TeamRetention = conversationRemote.TeamRetention
+	conversationLocal.ConvSettings = s.getConvSettingsLocal(ctx, conversationRemote)
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {
 		errMsg := "conversation has an empty MaxMsgSummaries field"
@@ -1269,14 +1324,27 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
-	// this if we are online
+	// Only do this check if there is a chance the TLF name might be an SBS
+	// name. Only attempt this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-		info, err := CtxKeyFinder(ctx, s.G()).Find(ctx,
-			conversationLocal.Info.TLFNameExpanded(), conversationLocal.GetMembersType(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			errMsg := err.Error()
+		infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
+		var info *types.NameInfo
+		var ierr error
+		// If we are of type TEAM, it's possible that our subteam has been
+		// renamed so we have to rely on the Tlfid, not the TLFName to get the
+		// latest info.
+		switch conversationRemote.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			info, ierr = infoSource.LookupName(ctx,
+				conversationLocal.Info.Triple.Tlfid,
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		default:
+			info, ierr = infoSource.LookupID(ctx,
+				conversationLocal.Info.TLFNameExpanded(),
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		}
+		if ierr != nil {
+			errMsg := ierr.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT,
 				nil)

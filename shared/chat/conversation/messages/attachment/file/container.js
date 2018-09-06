@@ -2,7 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import File from '.'
 
@@ -36,11 +36,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Encrypting'
+        ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
           : ''
-  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
   return {
     arrowColor,
     hasProgress,

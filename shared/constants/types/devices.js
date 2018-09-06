@@ -1,9 +1,12 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
+import HiddenString from '../../util/hidden-string'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export opaque type DeviceID: string = string
-export type _DeviceDetail = {
+
+export type _Device = {
   created: number,
   currentDevice: boolean,
   deviceID: DeviceID,
@@ -15,10 +18,14 @@ export type _DeviceDetail = {
   revokedByName: ?string,
   type: DeviceType,
 }
-export type DeviceDetail = I.RecordOf<_DeviceDetail>
+export type Device = I.RecordOf<_Device>
+
 export type _State = {
-  idToDetail: I.Map<DeviceID, DeviceDetail>,
-  idToEndangeredTLFs: I.Map<DeviceID, I.Set<string>>,
+  deviceMap: I.Map<DeviceID, Device>,
+  endangeredTLFMap: I.Map<DeviceID, I.Set<string>>,
+  newPaperkey: HiddenString,
+  selectedDeviceID: ?DeviceID,
+  justRevokedSelf: string,
 }
 export type State = I.RecordOf<_State>
 
@@ -35,10 +42,5 @@ export function stringToDeviceType(s: string): DeviceType {
   }
 }
 
-export function stringToDeviceID(s: string): DeviceID {
-  return s
-}
-
-export function deviceIDToString(id: DeviceID): string {
-  return id
-}
+export const stringToDeviceID = (s: string): DeviceID => s
+export const deviceIDToString = (id: DeviceID): string => id

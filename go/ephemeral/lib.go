@@ -28,6 +28,7 @@ type EKLib struct {
 	// state.
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
+	stopCh                   chan struct{}
 }
 
 func NewEKLib(g *libkb.GlobalContext) *EKLib {
@@ -36,10 +37,59 @@ func NewEKLib(g *libkb.GlobalContext) *EKLib {
 		// lru.New only panics if size <= 0
 		log.Panicf("Could not create lru cache: %v", err)
 	}
-	return &EKLib{
+	ekLib := &EKLib{
 		Contextified:   libkb.NewContextified(g),
 		teamEKGenCache: nlru,
 		clock:          clockwork.NewRealClock(),
+		stopCh:         make(chan struct{}),
+	}
+	go ekLib.backgroundKeygen()
+	return ekLib
+}
+
+func (e *EKLib) Shutdown() {
+	e.Lock()
+	defer e.Unlock()
+	if e.stopCh != nil {
+		close(e.stopCh)
+	}
+}
+
+func (e *EKLib) backgroundKeygen() {
+	ctx := context.Background()
+	e.G().Log.CDebugf(ctx, "backgroundKeygen: starting up")
+	keygenInterval := time.Hour
+	lastRunAt := time.Now()
+	runIfNeeded := func() {
+		if lastRunAt.Sub(libkb.ForceWallClock(time.Now())) >= keygenInterval {
+			if err := e.KeygenIfNeeded(ctx); err != nil {
+				e.G().Log.CDebugf(ctx, "backgroundKeygen keygenIfNeeded error: %s", err)
+			}
+			lastRunAt = time.Now()
+		}
+	}
+
+	runIfNeeded()
+	ticker := libkb.NewBgTicker(keygenInterval)
+	state := keybase1.AppState_FOREGROUND
+	// Run every hour but also check if enough wall clock time has elapsed when
+	// we are in a BACKGROUNDACTIVE state.
+	for {
+		select {
+		case <-ticker.C:
+			runIfNeeded()
+		case state = <-e.G().AppState.NextUpdate(&state):
+			if state == keybase1.AppState_BACKGROUNDACTIVE {
+				// Before running  we pause briefly so we don't stampede for
+				// resources with other background tasks. libkb.BgTicker
+				// handles this internally, so we only need to throttle on
+				// AppState change.
+				time.Sleep(time.Second)
+				runIfNeeded()
+			}
+		case <-e.stopCh:
+			return
+		}
 	}
 }
 
@@ -254,7 +304,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			return true, nil
 		default:
@@ -301,7 +351,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			return true, false, latestGeneration, nil
 		default:
@@ -342,14 +392,25 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= cacheEntryLifetime
 }
 
-func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+func (e *EKLib) PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID) {
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamID: teamID: %v", teamID)
+	e.teamEKGenCache.Remove(e.cacheKey(teamID))
+	if err := e.G().GetTeamEKBoxStorage().PurgeCacheForTeamID(ctx, teamID); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamID: %v", err)
+	}
+}
 
+func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamIDAndGeneration: teamID: %v, generation: %v", teamID, generation)
 	cacheKey := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, _ := e.isEntryExpired(val); cacheEntry != nil && cacheEntry.Generation != generation {
 			e.teamEKGenCache.Remove(cacheKey)
 		}
+	}
+	if err := e.G().GetTeamEKBoxStorage().Delete(ctx, teamID, generation); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamIDAndGeneration: %v", err)
 	}
 }
 
@@ -462,7 +523,7 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
 				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
@@ -605,7 +666,10 @@ func (e *EKLib) OnLogin() error {
 	return nil
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) ClearCaches() {
+	e.Lock()
+	defer e.Unlock()
+
 	e.teamEKGenCache.Purge()
 	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
@@ -616,5 +680,9 @@ func (e *EKLib) OnLogout() error {
 	if teamEKBoxStorage := e.G().GetTeamEKBoxStorage(); teamEKBoxStorage != nil {
 		teamEKBoxStorage.ClearCache()
 	}
+}
+
+func (e *EKLib) OnLogout() error {
+	e.ClearCaches()
 	return nil
 }

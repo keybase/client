@@ -398,6 +398,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 	}
 }
 
+func (d DebugLabeler) GetLog() logger.Logger {
+	return d.log
+}
+
 func (d DebugLabeler) showVerbose() bool {
 	return false
 }
@@ -421,7 +425,7 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, 
 		start := time.Now()
 		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
@@ -500,7 +504,8 @@ func GetSupersedes(msg chat1.MessageUnboxed) ([]chat1.MessageID, error) {
 		return nil, err
 	}
 
-	// We use the message ID in the body over the field in the client header to avoid server trust.
+	// We use the message ID in the body over the field in the client header to
+	// avoid server trust.
 	switch typ {
 	case chat1.MessageType_EDIT:
 		return []chat1.MessageID{msg.Valid().MessageBody.Edit().MessageID}, nil
@@ -840,7 +845,23 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
@@ -958,6 +979,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
+	res.ConvSettings = rawConv.ConvSettings
 	return res
 }
 
@@ -991,6 +1013,51 @@ func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	return res
 }
 
+func formatVideoDuration(ms int) string {
+	s := ms / 1000
+	// see if we have hours
+	if s >= 3600 {
+		hours := s / 3600
+		minutes := (s % 3600) / 60
+		seconds := s - (hours*3600 + minutes*60)
+		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, seconds)
+	}
+	minutes := s / 60
+	seconds := s % 60
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
+}
+
+func formatVideoSize(bytes int64) string {
+	const (
+		BYTE = 1.0 << (10 * iota)
+		KILOBYTE
+		MEGABYTE
+		GIGABYTE
+		TERABYTE
+	)
+	unit := ""
+	value := float64(bytes)
+	switch {
+	case bytes >= TERABYTE:
+		unit = "TB"
+		value = value / TERABYTE
+	case bytes >= GIGABYTE:
+		unit = "GB"
+		value = value / GIGABYTE
+	case bytes >= MEGABYTE:
+		unit = "MB"
+		value = value / MEGABYTE
+	case bytes >= KILOBYTE:
+		unit = "KB"
+		value = value / KILOBYTE
+	case bytes >= BYTE:
+		unit = "B"
+	case bytes == 0:
+		return "0"
+	}
+	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1001,28 +1068,61 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
 		var hasFullURL, hasPreviewURL bool
+		var asset chat1.Asset
 		var info chat1.UIAssetUrlInfo
 		if typ == chat1.MessageType_ATTACHMENT {
-			info.MimeType = body.Attachment().Object.MimeType
-			hasFullURL = body.Attachment().Object.Path != ""
+			asset = body.Attachment().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = body.Attachment().Preview != nil &&
 				body.Attachment().Preview.Path != ""
 		} else {
-			info.MimeType = body.Attachmentuploaded().Object.MimeType
-			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			asset = body.Attachmentuploaded().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
 				body.Attachmentuploaded().Previews[0].Path != ""
 		}
 		if hasFullURL {
+			var cached bool
 			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
+			if err != nil {
+				cached = false
+			}
+			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+		}
+		atyp, err := asset.Metadata.AssetType()
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
+			if asset.Metadata.Video().DurationMs > 1 {
+				info.VideoDuration = new(string)
+				*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+					formatVideoSize(asset.Size)
+			}
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
 		}
 		return &info
+	}
+	return nil
+}
+
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.PaymentLoader.Load(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
 	}
 	return nil
 }
@@ -1081,15 +1181,26 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			ExplodedBy:            valid.ExplodedBy(),
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
+			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
+		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
+		case chat1.MessageType_ATTACHMENT:
+			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1098,6 +1209,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Body:        body,
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
+			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1348,4 +1462,23 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 		}
 	}
 	return tlfName
+}
+
+func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []keybase1.UID) error {
+	getArg := func(i int) *libkb.LoadUserArg {
+		if i >= len(uids) {
+			return nil
+		}
+		tmp := libkb.NewLoadUserByUIDForceArg(g.GlobalContext, uids[i])
+		return &tmp
+	}
+	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
+}
+
+func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithPlaceholder(
+		chat1.MessageUnboxedPlaceholder{
+			MessageID: msgID,
+			Hidden:    true,
+		})
 }

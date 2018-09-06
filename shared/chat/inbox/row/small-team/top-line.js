@@ -1,12 +1,21 @@
 // @flow
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import {Text, PlaintextUsernames, Box, Icon} from '../../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
-import TeamMenu from '../../../conversation/info-panel/menu/container'
+import {
+  Text,
+  PlaintextUsernames,
+  Box,
+  Box2,
+  Icon,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../styles'
+import TeamMenu from '../../../conversation/info-panel/menu/container'
 
 type Props = {
+  channelname?: string,
+  teamname?: string,
   hasUnread: boolean,
   iconHoverColor: string,
   participants: Array<string>,
@@ -17,7 +26,7 @@ type Props = {
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
@@ -66,21 +75,44 @@ class _SimpleTopLine extends React.Component<Props> {
               justifyContent: 'center',
             }}
           >
-            <PlaintextUsernames
-              type="BodySemibold"
-              containerStyle={{
-                ...boldOverride,
-                color: this.props.usernameColor,
-                paddingRight: 7,
-                ...(isMobile
-                  ? {
-                      backgroundColor: this.props.backgroundColor,
-                    }
-                  : {}),
-              }}
-              users={this.props.participants.map(p => ({username: p}))}
-              title={this.props.participants.join(', ')}
-            />
+            {this.props.teamname && this.props.channelname ? (
+              <Box2 direction="horizontal" fullWidth={true}>
+                <Text
+                  type="BodySemibold"
+                  style={{
+                    ...boldOverride,
+                    color: this.props.usernameColor,
+                  }}
+                >
+                  {this.props.teamname}
+                </Text>
+                <Text
+                  type="BodySemibold"
+                  style={{
+                    ...boldOverride,
+                    paddingRight: 7,
+                  }}
+                >
+                  {'#' + this.props.channelname}
+                </Text>
+              </Box2>
+            ) : (
+              <PlaintextUsernames
+                type="BodySemibold"
+                containerStyle={{
+                  ...boldOverride,
+                  color: this.props.usernameColor,
+                  paddingRight: 7,
+                  ...(isMobile
+                    ? {
+                        backgroundColor: this.props.backgroundColor,
+                      }
+                    : {}),
+                }}
+                users={this.props.participants.map(p => ({username: p}))}
+                title={this.props.participants.join(', ')}
+              />
+            )}
           </Box>
         </Box>
         <Text
@@ -90,7 +122,6 @@ class _SimpleTopLine extends React.Component<Props> {
           style={platformStyles({
             common: {
               ...boldOverride,
-              backgroundColor: this.props.backgroundColor,
               color: this.props.subColor,
             },
           })}
@@ -103,7 +134,7 @@ class _SimpleTopLine extends React.Component<Props> {
             className="small-team-gear"
             onClick={this.props.toggleShowingMenu}
             ref={this.props.setAttachmentRef}
-            color={globalColors.black_20}
+            color={this.props.subColor}
             hoverColor={this.props.iconHoverColor}
             style={{position: 'relative', right: globalMargins.xtiny}}
           />
@@ -113,7 +144,7 @@ class _SimpleTopLine extends React.Component<Props> {
     )
   }
 }
-const SimpleTopLine = FloatingMenuParentHOC(_SimpleTopLine)
+const SimpleTopLine = OverlayParentHOC(_SimpleTopLine)
 
 const unreadDotStyle = {
   backgroundColor: globalColors.orange,

@@ -409,6 +409,10 @@ func (l LinkID) Eq(l2 LinkID) bool {
 	return l == l2
 }
 
+func (l LinkID) IsNil() bool {
+	return len(l) == 0
+}
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
@@ -494,6 +498,18 @@ func TeamIDFromString(s string) (TeamID, error) {
 	}
 	return "", fmt.Errorf("Bad TeamID '%s': must end in one of [0x%x, 0x%x, 0x%x, 0x%x]",
 		s, TEAMID_PRIVATE_SUFFIX_HEX, TEAMID_PUBLIC_SUFFIX_HEX, SUB_TEAMID_PRIVATE_SUFFIX, SUB_TEAMID_PUBLIC_SUFFIX)
+}
+
+func UserOrTeamIDFromString(s string) (UserOrTeamID, error) {
+	UID, errUser := UIDFromString(s)
+	if errUser == nil {
+		return UID.AsUserOrTeam(), nil
+	}
+	teamID, errTeam := TeamIDFromString(s)
+	if errTeam == nil {
+		return teamID.AsUserOrTeam(), nil
+	}
+	return "", fmt.Errorf("Bad UserOrTeamID: could not parse %s as a UID (err = %v) or team id (err = %v)", s, errUser, errTeam)
 }
 
 // Used by unit tests.
@@ -857,6 +873,15 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UserOrTeamID) UnmarshalJSON(b []byte) error {
+	utid, err := UserOrTeamIDFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = utid
+	return nil
+}
+
 // Size implements the cache.Measurable interface.
 func (u UID) Size() int {
 	return len(u) + ptrSize
@@ -867,6 +892,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
+func (u *UserOrTeamID) MarshalJSON() ([]byte, error) {
 	return Quote(u.String()), nil
 }
 
@@ -1206,7 +1235,8 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
 		TLFIdentifyBehavior_CHAT_GUI_STRICT,
-		TLFIdentifyBehavior_SALTPACK:
+		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
 	default:
 		// TLFIdentifyBehavior_DEFAULT_KBFS, for filesystem activity that
@@ -1227,6 +1257,36 @@ func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	}
 }
 
+func (b TLFIdentifyBehavior) SkipUserCard() bool {
+	switch b {
+	case TLFIdentifyBehavior_CHAT_GUI, TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We don't need to bother loading a user card in these cases.
+		return true
+	default:
+		return false
+	}
+}
+
+func (b TLFIdentifyBehavior) AllowCaching() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// We Don't want to use any internal ID2 caching for ResolveAndCheck.
+		return false
+	default:
+		return true
+	}
+}
+
+func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
+	switch b {
+	case TLFIdentifyBehavior_RESOLVE_AND_CHECK:
+		// ResolveAndCheck is OK with deleted users
+		return true
+	default:
+		return false
+	}
+}
+
 // All of the chat modes want to prevent tracker popups.
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
@@ -1236,6 +1296,7 @@ func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
 		TLFIdentifyBehavior_SALTPACK,
+		TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 		TLFIdentifyBehavior_KBFS_CHAT:
 		// These are identifies that either happen without user interaction at
 		// all, or happen while you're staring at some Keybase UI that can
@@ -1300,17 +1361,12 @@ func (u UserPlusKeys) GetStatus() StatusCode {
 	return u.Status
 }
 
-func (u UserPlusAllKeys) GetRemoteTrack(s string) *RemoteTrack {
-	i := sort.Search(len(u.RemoteTracks), func(j int) bool {
-		return u.RemoteTracks[j].Username >= s
-	})
-	if i >= len(u.RemoteTracks) {
+func (u UserPlusKeysV2AllIncarnations) GetRemoteTrack(uid UID) *RemoteTrack {
+	ret, ok := u.Current.RemoteTracks[uid]
+	if !ok {
 		return nil
 	}
-	if u.RemoteTracks[i].Username != s {
-		return nil
-	}
-	return &u.RemoteTracks[i]
+	return &ret
 }
 
 func (u UserPlusAllKeys) GetUID() UID {
@@ -1372,6 +1428,14 @@ func (u UserPlusKeysV2) GetName() string {
 	return u.Username
 }
 
+func (u UserPlusKeysV2) GetStatus() StatusCode {
+	return u.Status
+}
+
+func (u UserPlusKeysV2AllIncarnations) ExportToSimpleUser() User {
+	return User{Uid: u.GetUID(), Username: u.GetName()}
+}
+
 func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 	for _, k := range u.Current.DeviceKeys {
 		if k.DeviceID.Eq(d) {
@@ -1379,6 +1443,18 @@ func (u UserPlusKeysV2AllIncarnations) FindDevice(d DeviceID) *PublicKeyV2NaCl {
 		}
 	}
 	return nil
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetUID() UID {
+	return u.Current.GetUID()
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetName() string {
+	return u.Current.GetName()
+}
+
+func (u UserPlusKeysV2AllIncarnations) GetStatus() StatusCode {
+	return u.Current.GetStatus()
 }
 
 func (u UserPlusKeysV2AllIncarnations) AllIncarnations() (ret []UserPlusKeysV2) {
@@ -1872,10 +1948,6 @@ func (t TeamMembers) AllUserVersions() []UserVersion {
 	return all
 }
 
-func (t TeamMember) IsReset() bool {
-	return t.EldestSeqno != t.UserEldestSeqno
-}
-
 func (s TeamMemberStatus) IsActive() bool {
 	return s == TeamMemberStatus_ACTIVE
 }
@@ -1960,7 +2032,7 @@ func TeamNameFromString(s string) (TeamName, error) {
 func (t TeamName) String() string {
 	tmp := make([]string, len(t.Parts))
 	for i, p := range t.Parts {
-		tmp[i] = string(p)
+		tmp[i] = strings.ToLower(string(p))
 	}
 	return strings.Join(tmp, ".")
 }
@@ -2084,6 +2156,10 @@ func (u UserPlusKeysV2) ToUserVersion() UserVersion {
 		Uid:         u.Uid,
 		EldestSeqno: u.EldestSeqno,
 	}
+}
+
+func (u UserPlusKeysV2AllIncarnations) ToUserVersion() UserVersion {
+	return u.Current.ToUserVersion()
 }
 
 // Can return nil.
@@ -2483,4 +2559,29 @@ func MakeAvatarURL(u string) AvatarUrl {
 func (b Bytes32) IsBlank() bool {
 	var blank Bytes32
 	return (subtle.ConstantTimeCompare(b[:], blank[:]) == 1)
+}
+
+func (i Identify2ResUPK2) ExportToV1() Identify2Res {
+	return Identify2Res{
+		Upk:          UPAKFromUPKV2AI(i.Upk).Base,
+		IdentifiedAt: i.IdentifiedAt,
+		TrackBreaks:  i.TrackBreaks,
+	}
+}
+
+func (path Path) String() string {
+	pathType, err := path.PathType()
+	if err != nil {
+		return ""
+	}
+	switch pathType {
+	case PathType_KBFS:
+		return path.Kbfs()
+	case PathType_KBFS_ARCHIVED:
+		return path.KbfsArchived().Path
+	case PathType_LOCAL:
+		return path.Local()
+	default:
+		return ""
+	}
 }

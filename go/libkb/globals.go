@@ -54,7 +54,7 @@ type GlobalContext struct {
 	perUserKeyringMu *sync.Mutex
 	perUserKeyring   *PerUserKeyring      // Keyring holding per user keys
 	API              API                  // How to make a REST call to the server
-	Resolver         *Resolver            // cache of resolve results
+	Resolver         Resolver             // cache of resolve results
 	LocalDb          *JSONLocalDb         // Local DB for cache
 	LocalChatDb      *JSONLocalDb         // Local DB for cache
 	MerkleClient     *MerkleClient        // client for querying server's merkle sig tree
@@ -72,6 +72,7 @@ type GlobalContext struct {
 	linkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
+	fastTeamLoader   FastTeamLoader   // Play back team in "fast" mode for keys and names only
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -122,6 +123,7 @@ type GlobalContext struct {
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+	FeatureFlags        *FeatureFlagSet      // user's feature flag set
 
 	StandaloneChatConnector StandaloneChatConnector
 
@@ -139,10 +141,6 @@ type GlobalContext struct {
 
 	NetContext context.Context
 }
-
-// There are many interfaces that slice and dice the GlobalContext to expose a
-// smaller API. TODO: Assert more of them here.
-var _ ProofContext = (*GlobalContext)(nil)
 
 type GlobalTestOptions struct {
 	NoBug3964Repair bool
@@ -186,6 +184,7 @@ func NewGlobalContext() *GlobalContext {
 		ActiveDevice:       NewActiveDevice(),
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
+		FeatureFlags:       NewFeatureFlagSet(),
 	}
 	return ret
 }
@@ -217,10 +216,11 @@ func (g *GlobalContext) SetEKLib(ekLib EKLib) { g.ekLib = ekLib }
 func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil, g.GetLog)
 	g.Service = false
-	g.Resolver = NewResolver(g)
+	g.Resolver = NewResolverImpl()
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
+	g.fastTeamLoader = newNullFastTeamLoader()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -260,7 +260,7 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 func (g *GlobalContext) simulateServiceRestart() {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 }
 
 func (g *GlobalContext) Logout() error {
@@ -269,7 +269,7 @@ func (g *GlobalContext) Logout() error {
 
 	username := g.Env.GetUsername()
 
-	g.ActiveDevice.Clear(nil)
+	g.ActiveDevice.Clear()
 
 	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
 
@@ -284,6 +284,11 @@ func (g *GlobalContext) Logout() error {
 	tl := g.teamLoader
 	if tl != nil {
 		tl.OnLogout()
+	}
+
+	ftl := g.fastTeamLoader
+	if ftl != nil {
+		ftl.OnLogout()
 	}
 
 	st := g.stellar
@@ -307,6 +312,8 @@ func (g *GlobalContext) Logout() error {
 
 	// send logout notification
 	g.NotifyRouter.HandleLogout()
+
+	g.FeatureFlags.Clear()
 
 	return nil
 }
@@ -350,7 +357,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c, c)
+	g.Env.SetConfig(c, c)
 	return nil
 }
 
@@ -364,7 +371,7 @@ func (g *GlobalContext) ConfigureUpdaterConfig() error {
 	c := NewJSONUpdaterConfigFile(g)
 	err := c.Load(false)
 	if err == nil {
-		g.Env.SetUpdaterConfig(*c)
+		g.Env.SetUpdaterConfig(c)
 	} else {
 		g.Log.Debug("Failed to open update config: %s\n", err)
 	}
@@ -449,7 +456,7 @@ func (g *GlobalContext) configureMemCachesLocked(isFlush bool) {
 
 	g.shutdownCachesLocked()
 
-	g.Resolver.EnableCaching()
+	g.Resolver.EnableCaching(NewMetaContextBackground(g))
 	g.trackCache = NewTrackCache()
 	g.identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.Log.Debug("Created Identify2Cache, max age: %s", g.Env.GetUserCacheMaxAge())
@@ -522,6 +529,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.fastTeamLoader
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -625,7 +638,7 @@ func (g *GlobalContext) Shutdown() error {
 		g.cacheMu.Unlock()
 
 		if g.Resolver != nil {
-			g.Resolver.Shutdown()
+			g.Resolver.Shutdown(NewMetaContextBackground(g))
 		}
 
 		for _, hook := range g.ShutdownHooks {
@@ -1014,6 +1027,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.teamLoader = l
 }
 
+func (g *GlobalContext) SetFastTeamLoader(l FastTeamLoader) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.fastTeamLoader = l
+}
+
 func (g *GlobalContext) SetStellar(s Stellar) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
@@ -1077,7 +1096,6 @@ func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {
@@ -1223,21 +1241,9 @@ func (g *GlobalContext) IsOneshot(ctx context.Context) (bool, error) {
 }
 
 func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, err error) {
-	defer g.CTraceTimed(ctx, "GlobalContext.GetMeUV", func() error { return err })()
-	meUID := g.ActiveDevice.UID()
-	if meUID.IsNil() {
-		return res, LoginRequiredError{}
+	res = g.ActiveDevice.UserVersion()
+	if res.IsNil() {
+		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
-	loadMeArg := NewLoadUserArgWithContext(ctx, g).
-		WithUID(meUID).
-		WithSelf(true).
-		WithPublicKeyOptional()
-	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadMeArg)
-	if err != nil {
-		return res, err
-	}
-	if upkv2 == nil {
-		return res, fmt.Errorf("could not load logged-in user")
-	}
-	return upkv2.Current.ToUserVersion(), nil
+	return res, nil
 }

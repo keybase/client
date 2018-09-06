@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 import Invites from '.'
-import {action, storiesOf} from '../../stories/storybook'
 
 const props = {
   acceptedInvites: [
@@ -37,12 +36,12 @@ const props = {
   error: null,
   inviteEmail: 'tcook@apple.com',
   inviteMessage: 'Hey Tim! I heard you like end-to-end encryption...',
-  onClearError: action('onClearError'),
-  onGenerateInvitation: action('onGenerateInvitation'),
-  onReclaimInvitation: action('onReclaimInvitation'),
-  onRefresh: action('onRefresh'),
-  onSelectPendingInvite: action('onSelectPendingInvite'),
-  onSelectUser: action('onSelectUser'),
+  onClearError: Sb.action('onClearError'),
+  onGenerateInvitation: Sb.action('onGenerateInvitation'),
+  onReclaimInvitation: Sb.action('onReclaimInvitation'),
+  onRefresh: Sb.action('onRefresh'),
+  onSelectPendingInvite: Sb.action('onSelectPendingInvite'),
+  onSelectUser: Sb.action('onSelectUser'),
   pendingInvites: [
     {created: 1469565223, email: 'tcook@apple.com', id: '123456', url: 'keybase.io/inv/9999999999'},
     {created: 1469566223, email: '', id: '123457', url: 'keybase.io/inv/9999999999'},
@@ -51,11 +50,8 @@ const props = {
   waitingForResponse: false,
 }
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Settings/Invites', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Settings/Invites', module)
     .add('Empty', () => (
       <Invites
         {...props}

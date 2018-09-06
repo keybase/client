@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Avatar, Box2, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
+import {capitalize} from 'lodash-es'
+import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
@@ -21,7 +22,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'account':
+    case 'otherAccount':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -54,11 +55,13 @@ type CounterpartyTextProps = {|
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -76,14 +79,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
-    case 'account':
+    case 'otherAccount':
       return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
+        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
       ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
       )
     default:
       /*::
@@ -108,6 +111,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const counterparty = (
     <CounterpartyText
@@ -120,25 +124,25 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text type={textTypeSemibold}>{props.amountUser}</Text>
+    <Text type={textTypeExtrabold}>{props.amountUser}</Text>
   ) : (
     <React.Fragment>
-      Lumens worth <Text type={textTypeSemibold}>{props.amountUser}</Text>
+      Lumens worth <Text type={textTypeExtrabold}>{props.amountUser}</Text>
     </React.Fragment>
   )
 
-  if (props.counterpartyType === 'account') {
+  if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
-        <Text type={textType}>
+        <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
@@ -147,7 +151,7 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
@@ -155,14 +159,14 @@ const Detail = (props: DetailProps) => {
 
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
-    <Text type={textType}>
+    <Text type={textTypeSemibold}>
       {counterparty} {verbPhrase} {amount}.
     </Text>
   )
 }
 
 type AmountXLMProps = {|
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -183,12 +187,21 @@ const AmountXLM = (props: AmountXLMProps) => {
   )
 }
 
-type TimestampProps = {|
+type TimestampLineProps = {|
+  error: string,
+  status: Types.StatusSimplified,
   timestamp: Date | null,
   relative: boolean,
 |}
 
-export const Timestamp = (props: TimestampProps) => {
+export const TimestampLine = (props: TimestampLineProps) => {
+  if (props.error) {
+    return (
+      <Text type="BodySmallError">
+        {capitalize(props.status)} • The Stellar network did not approve this transaction - {props.error}
+      </Text>
+    )
+  }
   if (!props.timestamp) {
     return (
       <Text type="BodySmall">
@@ -211,78 +224,84 @@ export const Timestamp = (props: TimestampProps) => {
 }
 
 export type Props = {|
-  large: boolean,
-
-  // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
-
-  // A null timestamp means the transaction is still pending.
-  timestamp: Date | null,
-
-  yourRole: Role,
-  counterparty: string,
-  counterpartyType: Types.CounterpartyType,
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
-
+  counterparty: string,
+  counterpartyType: Types.CounterpartyType,
+  // whether account balance has increased or decreased
+  delta: 'none' | 'increase' | 'decrease',
+  large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onCancelPayment?: () => void,
+  onRetryPayment?: () => void,
+  onSelectTransaction?: () => void,
+  status: Types.StatusSimplified,
+  statusDetail: string,
+  // A null timestamp means the transaction is still pending.
+  timestamp: Date | null,
+  yourRole: Role,
 |}
 
 export const Transaction = (props: Props) => {
-  const pending = !props.timestamp
+  const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
     props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
-      {pending && (
+      <ClickableBox onClick={props.onSelectTransaction}>
         <Box2
-          direction="vertical"
+          direction="horizontal"
           fullWidth={true}
-          style={{backgroundColor: globalColors.blue5, padding: globalMargins.xtiny}}
+          style={collapseStyles([
+            styles.container,
+            {backgroundColor: pending ? globalColors.blue4 : globalColors.white},
+          ])}
         >
-          <Text type="BodySmallSemibold">Pending</Text>
-        </Box2>
-      )}
-      <Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-        <CounterpartyIcon
-          counterparty={props.counterparty}
-          counterpartyType={props.counterpartyType}
-          large={props.large}
-        />
-        <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
-          <Timestamp relative={true} timestamp={props.timestamp} />
-          <Detail
-            large={props.large}
-            pending={pending}
-            yourRole={props.yourRole}
+          <CounterpartyIcon
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
-            amountUser={props.amountUser || props.amountXLM}
-            isXLM={!props.amountUser}
+            large={props.large}
           />
-          {// TODO: Consolidate memo display code below with
-          // chat/conversation/messages/wallet-payment/index.js.
-          showMemo && (
-            <Box2
-              direction="horizontal"
-              gap="small"
-              fullWidth={true}
-              style={{marginTop: globalMargins.xtiny}}
-            >
-              <Divider vertical={true} style={styles.quoteMarker} />
-              <Markdown allowFontScaling={true}>{props.memo}</Markdown>
-            </Box2>
-          )}
-          <AmountXLM
-            delta={props.delta}
-            pending={pending}
-            yourRole={props.yourRole}
-            amountXLM={props.amountXLM}
-          />
+          <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
+            <TimestampLine
+              error={props.statusDetail}
+              relative={true}
+              status={props.status}
+              timestamp={props.timestamp}
+            />
+            <Detail
+              large={props.large}
+              pending={pending}
+              yourRole={props.yourRole}
+              counterparty={props.counterparty}
+              counterpartyType={props.counterpartyType}
+              amountUser={props.amountUser || props.amountXLM}
+              isXLM={!props.amountUser}
+            />
+            {// TODO: Consolidate memo display code below with
+            // chat/conversation/messages/wallet-payment/index.js.
+            showMemo && (
+              <Box2
+                direction="horizontal"
+                gap="small"
+                fullWidth={true}
+                style={{marginTop: globalMargins.xtiny}}
+              >
+                <Divider vertical={true} style={styles.quoteMarker} />
+                <Markdown allowFontScaling={true}>{props.memo}</Markdown>
+              </Box2>
+            )}
+            <AmountXLM
+              delta={props.delta}
+              pending={pending}
+              yourRole={props.yourRole}
+              amountXLM={props.amountXLM}
+            />
+          </Box2>
         </Box2>
-      </Box2>
+      </ClickableBox>
     </Box2>
   )
 }
@@ -292,6 +311,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  pendingBox: {backgroundColor: globalColors.blue5, padding: globalMargins.xtiny},
   quoteMarker: {maxWidth: 3, minWidth: 3},
   rightContainer: {
     flex: 1,

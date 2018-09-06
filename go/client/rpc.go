@@ -304,6 +304,15 @@ func GetPaperProvisionClient(g *libkb.GlobalContext) (cli keybase1.Paperprovisio
 	return cli, nil
 }
 
+func GetSelfProvisionClient(g *libkb.GlobalContext) (cli keybase1.SelfprovisionClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.SelfprovisionClient{Cli: rcli}
+	return cli, nil
+}
+
 func GetRekeyClient(g *libkb.GlobalContext) (keybase1.RekeyClient, error) {
 	rcli, _, err := GetRPCClientWithContext(g)
 	if err != nil {

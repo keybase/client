@@ -4,16 +4,8 @@ import * as Constants from '../../../../constants/chat2'
 import * as RouteTree from '../../../../actions/route-tree'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
-import {
-  branch,
-  compose,
-  renderComponent,
-  connect,
-  type TypedState,
-  type Dispatch,
-} from '../../../../util/container'
+import {branch, compose, renderComponent, connect, type TypedState} from '../../../../util/container'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
-import {chatTab} from '../../../../constants/tabs'
 
 const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) => {
   const _isPending = conversationIDKey === Constants.pendingConversationIDKey
@@ -27,10 +19,10 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
   const _participants = meta.teamname ? I.Set() : meta.participants
 
   return {
+    _badgeMap: state.chat2.badgeMap,
     _conversationIDKey: conversationIDKey,
     _isPending,
     _participants,
-    badgeNumber: state.notifications.getIn(['navBadges', chatTab]),
     channelName: meta.channelname,
     infoPanelOpen,
     muted: meta.isMuted,
@@ -39,7 +31,7 @@ const mapStateToProps = (state: TypedState, {infoPanelOpen, conversationIDKey}) 
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
+const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
   onBack: () => dispatch(RouteTree.navigateUp()),
@@ -48,7 +40,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {onToggleInfoPanel, conversation
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  badgeNumber: stateProps.badgeNumber,
+  badgeNumber: stateProps._badgeMap.reduce(
+    (res, currentValue, currentConvID) =>
+      // only show sum of badges that aren't for the current conversation
+      currentConvID !== stateProps._conversationIDKey ? res + currentValue : res,
+    0
+  ),
   canOpenInfoPanel: !stateProps._isPending,
   channelName: stateProps.channelName,
   infoPanelOpen: stateProps.infoPanelOpen,

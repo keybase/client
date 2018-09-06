@@ -8,6 +8,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"runtime"
 	"runtime/pprof"
 	"runtime/trace"
@@ -56,7 +57,6 @@ type Service struct {
 	logForwarder         *logFwd
 	gregor               *gregorHandler
 	rekeyMaster          *rekeyMaster
-	attachmentstore      *attachments.Store
 	badger               *badges.Badger
 	reachability         *reachability
 	backgroundIdentifier *BackgroundIdentifier
@@ -80,7 +80,6 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		stopCh:           make(chan keybase1.ExitCode),
 		logForwarder:     newLogFwd(),
 		rekeyMaster:      newRekeyMaster(g),
-		attachmentstore:  attachments.NewStore(g.GetLog(), g.Env.GetRuntimeDir()),
 		badger:           badges.NewBadger(g),
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
@@ -131,10 +130,11 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
 		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
+		keybase1.SelfprovisionProtocol(NewSelfProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.attachmentstore, d.gregor))),
+		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor))),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
@@ -347,6 +347,23 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	go d.identifySelf()
 }
 
+func (d *Service) purgeOldChatAttachmentData() {
+	purge := func(glob string) {
+		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+		if err != nil {
+			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
+		} else {
+			for _, f := range files {
+				if err := os.Remove(f); err != nil {
+					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
+				}
+			}
+		}
+	}
+	purge("kbchat*")
+	purge("prev*")
+}
+
 func (d *Service) startChatModules() {
 	uid := d.G().Env.GetUID()
 	if !uid.IsNil() {
@@ -357,6 +374,7 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 	}
+	d.purgeOldChatAttachmentData()
 }
 
 func (d *Service) stopChatModules() {
@@ -395,14 +413,17 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), d.attachmentstore, ri)
+	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
+	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
-	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g,
-		chat.NewCachingAttachmentFetcher(g, d.attachmentstore, 1000), ri)
+	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+
+	g.PaymentLoader = stellar.DefaultPaymentLoader(g.ExternalG())
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -596,7 +617,7 @@ func (d *Service) chatOutboxPurgeCheck() {
 					IsEphemeralPurge: true,
 				})
 				d.ChatG().ActivityNotifier.Activity(context.Background(), gregorUID, chat1.TopicType_NONE,
-					&act)
+					&act, chat1.ChatActivitySource_LOCAL)
 			}
 		}
 	}()
@@ -615,17 +636,9 @@ func (d *Service) hourlyChecks() {
 		if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 			m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
 		}
-		ekLib := m.G().GetEKLib()
-		ekLib.KeygenIfNeeded(m.Ctx())
 		for {
 			<-ticker.C
 			m.CDebugf("+ hourly check loop")
-			ekLib := m.G().GetEKLib()
-			m.CDebugf("| checking if ephemeral keys need to be created or deleted")
-			if err := ekLib.KeygenIfNeeded(m.Ctx()); err != nil {
-				m.CDebugf("KeygenIfNeeded error: %s", err)
-			}
-
 			m.CDebugf("| checking if current device revoked")
 			if err := m.LogoutAndDeprovisionIfRevoked(); err != nil {
 				m.CDebugf("LogoutAndDeprovisionIfRevoked error: %s", err)
@@ -639,6 +652,23 @@ func (d *Service) hourlyChecks() {
 	}()
 }
 
+func (d *Service) deviceCloneSelfCheck() error {
+	m := libkb.NewMetaContextBackground(d.G())
+	m = m.WithLogTag("CLONE")
+	before, after, err := libkb.UpdateDeviceCloneState(m)
+	if err != nil {
+		return err
+	}
+	newClones := after - before
+
+	m.CDebugf("deviceCloneSelfCheck: is there a new clone? %v", newClones > 0)
+	if newClones > 0 {
+		m.CDebugf("deviceCloneSelfCheck: notifying user %v -> %v restarts", before, after)
+		d.G().NotifyRouter.HandleDeviceCloneNotification(newClones)
+	}
+	return nil
+}
+
 func (d *Service) slowChecks() {
 	ticker := libkb.NewBgTicker(6 * time.Hour)
 	d.G().PushShutdownHook(func() error {
@@ -646,6 +676,10 @@ func (d *Service) slowChecks() {
 		ticker.Stop()
 		return nil
 	})
+	// Do this once fast
+	if err := d.deviceCloneSelfCheck(); err != nil {
+		d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
+	}
 	go func() {
 		for {
 			<-ticker.C
@@ -653,6 +687,10 @@ func (d *Service) slowChecks() {
 			d.G().Log.Debug("| checking if current device should log out")
 			if err := d.G().LogoutSelfCheck(); err != nil {
 				d.G().Log.Debug("LogoutSelfCheck error: %s", err)
+			}
+			d.G().Log.Debug("| checking if current device is a clone")
+			if err := d.deviceCloneSelfCheck(); err != nil {
+				d.G().Log.Debug("deviceCloneSelfCheck error: %s", err)
 			}
 			d.G().Log.Debug("- slow checks loop")
 		}
@@ -1193,4 +1231,9 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	d.startChatModules()
 
 	return nil
+}
+
+// Called by CtlHandler after DbNuke finishes and succeeds.
+func (d *Service) onDbNuke(ctx context.Context) {
+	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
 }

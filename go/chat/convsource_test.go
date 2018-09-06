@@ -292,6 +292,7 @@ func TestReactions(t *testing.T) {
 	defer world.Cleanup()
 
 	u := world.GetUsers()[0]
+	uid := u.User.GetUID().ToBytes()
 	tc := world.Tcs[u.Username]
 	trip := newConvTriple(ctx, t, tc, u.Username)
 	firstMessagePlaintext := chat1.MessagePlaintext{
@@ -315,7 +316,7 @@ func TestReactions(t *testing.T) {
 
 	verifyThread := func(msgID, supersededBy chat1.MessageID, body string,
 		reactionIDs []chat1.MessageID, reactionMap chat1.ReactionMap) {
-		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
 			chat1.GetThreadReason_GENERAL,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -329,39 +330,48 @@ func TestReactions(t *testing.T) {
 		require.Equal(t, body, msg.Valid().MessageBody.Text().Body, "wrong body")
 		require.Equal(t, supersededBy, msg.Valid().ServerHeader.SupersededBy, "wrong super")
 		require.Equal(t, reactionIDs, msg.Valid().ServerHeader.ReactionIDs, "wrong reactionIDs")
+
+		// Verify the ctimes are not zero, but we don't care about the actual
+		// value for the test.
+		for _, reactions := range msg.Valid().Reactions.Reactions {
+			for k, r := range reactions {
+				require.NotZero(t, r.Ctime)
+				r.Ctime = 0
+				reactions[k] = r
+			}
+		}
 		require.Equal(t, reactionMap, msg.Valid().Reactions, "wrong reactions")
 	}
 
-	t.Logf("send text")
-	body := "hi"
-	_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_TEXT,
-		},
-		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: body,
-		}),
-	}, 0, nil)
-	require.NoError(t, err)
-	msgID := msgBoxed.GetMessageID()
-	verifyThread(msgID, 0 /* supersededBy */, body, nil, chat1.ReactionMap{})
+	sendText := func(body string) chat1.MessageID {
+		_, msgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      uid,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_TEXT,
+			},
+			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: body,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		return msgBoxed.GetMessageID()
+	}
 
-	sendEdit := func(editText string) chat1.MessageID {
+	sendEdit := func(editText string, supersedes chat1.MessageID) chat1.MessageID {
 		_, editMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
-				Sender:      u.User.GetUID().ToBytes(),
+				Sender:      uid,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_EDIT,
-				Supersedes:  msgID,
+				Supersedes:  supersedes,
 			},
 			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
-				MessageID: msgID,
+				MessageID: supersedes,
 				Body:      editText,
 			}),
 		}, 0, nil)
@@ -369,18 +379,18 @@ func TestReactions(t *testing.T) {
 		return editMsgBoxed.GetMessageID()
 	}
 
-	sendReaction := func(reactionText string) chat1.MessageID {
+	sendReaction := func(reactionText string, supersedes chat1.MessageID) chat1.MessageID {
 		_, reactionMsgboxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
 			ClientHeader: chat1.MessageClientHeader{
 				Conv:        trip,
-				Sender:      u.User.GetUID().ToBytes(),
+				Sender:      uid,
 				TlfName:     u.Username,
 				TlfPublic:   false,
 				MessageType: chat1.MessageType_REACTION,
-				Supersedes:  msgID,
+				Supersedes:  supersedes,
 			},
 			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
-				MessageID: msgID,
+				MessageID: supersedes,
 				Body:      reactionText,
 			}),
 		}, 0, nil)
@@ -388,19 +398,43 @@ func TestReactions(t *testing.T) {
 		return reactionMsgboxed.GetMessageID()
 	}
 
+	sendDelete := func(supsersedes chat1.MessageID, deletes []chat1.MessageID) chat1.MessageID {
+		delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: deletes,
+		})
+		_, deleteMsgBoxed, err := sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      uid,
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				MessageType: chat1.MessageType_DELETE,
+				Supersedes:  supsersedes,
+			},
+			MessageBody: delBody,
+		}, 0, nil)
+		require.NoError(t, err)
+		return deleteMsgBoxed.GetMessageID()
+
+	}
+
+	t.Logf("send text")
+	body := "hi"
+	msgID := sendText(body)
+	verifyThread(msgID, 0 /* supersededBy */, body, nil, chat1.ReactionMap{})
+
 	// Verify edits can happen around reactions and don't get clobbered
 	t.Logf("testing an edit")
 	body = "edited"
-	editMsgID := sendEdit(body)
+	editMsgID := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID, body, nil, chat1.ReactionMap{})
 
 	t.Logf("test +1 reaction")
-	reactionMsgID := sendReaction(":+1:")
+	reactionMsgID := sendReaction(":+1:", msgID)
 	expectedReactionMap := chat1.ReactionMap{
-		Reactions: map[string][]chat1.Reaction{
-			":+1:": []chat1.Reaction{
-				chat1.Reaction{
-					Username:      u.Username,
+		Reactions: map[string]map[string]chat1.Reaction{
+			":+1:": map[string]chat1.Reaction{
+				u.Username: chat1.Reaction{
 					ReactionMsgID: reactionMsgID,
 				},
 			},
@@ -409,10 +443,9 @@ func TestReactions(t *testing.T) {
 	verifyThread(msgID, editMsgID, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("test -1 reaction")
-	reactionMsgID2 := sendReaction(":-1:")
-	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
-		chat1.Reaction{
-			Username:      u.Username,
+	reactionMsgID2 := sendReaction(":-1:", msgID)
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
 			ReactionMsgID: reactionMsgID2,
 		},
 	}
@@ -420,7 +453,7 @@ func TestReactions(t *testing.T) {
 
 	t.Logf("testing an edit2")
 	body = "edited2"
-	editMsgID2 := sendEdit(body)
+	editMsgID2 := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
 	t.Logf("test multiple pulls")
@@ -428,64 +461,52 @@ func TestReactions(t *testing.T) {
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID, reactionMsgID2}, expectedReactionMap)
 
 	t.Logf("test reaction deletion")
-	delBody := chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-		MessageIDs: []chat1.MessageID{reactionMsgID2},
-	})
-	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  reactionMsgID2,
-		},
-		MessageBody: delBody,
-	}, 0, nil)
-	require.NoError(t, err)
+	sendDelete(reactionMsgID2, []chat1.MessageID{reactionMsgID2})
 	delete(expectedReactionMap.Reactions, ":-1:")
 	verifyThread(msgID, editMsgID2, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("testing an edit3")
 	body = "edited3"
-	editMsgID3 := sendEdit(body)
+	editMsgID3 := sendEdit(body, msgID)
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID}, expectedReactionMap)
 
 	t.Logf("test reaction after delete")
-	reactionMsgID3 := sendReaction(":-1:")
+	reactionMsgID3 := sendReaction(":-1:", msgID)
 
-	expectedReactionMap.Reactions[":-1:"] = []chat1.Reaction{
-		chat1.Reaction{
-			Username:      u.Username,
+	expectedReactionMap.Reactions[":-1:"] = map[string]chat1.Reaction{
+		u.Username: chat1.Reaction{
 			ReactionMsgID: reactionMsgID3,
 		},
 	}
 	verifyThread(msgID, editMsgID3, body, []chat1.MessageID{reactionMsgID, reactionMsgID3}, expectedReactionMap)
 
 	t.Logf("testing a delete")
-	delBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
-		MessageIDs: []chat1.MessageID{msgID, reactionMsgID, reactionMsgID3},
-	})
-	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
-			Sender:      u.User.GetUID().ToBytes(),
-			TlfName:     u.Username,
-			TlfPublic:   false,
-			MessageType: chat1.MessageType_DELETE,
-			Supersedes:  msgID,
-		},
-		MessageBody: delBody,
-	}, 0, nil)
-	require.NoError(t, err)
+	sendDelete(msgID, []chat1.MessageID{msgID, reactionMsgID, reactionMsgID3})
 
-	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+	thread, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, uid,
 		chat1.GetThreadReason_GENERAL,
 		&chat1.GetThreadQuery{
 			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
 		}, nil)
 	require.NoError(t, err)
 	require.Equal(t, 0, len(thread.Messages), "wrong length")
+
+	// Post illegal supersedes=0, fails on send
+	_, _, err = sender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      uid,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_REACTION,
+			Supersedes:  0,
+		},
+		MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+			MessageID: 0,
+			Body:      ":wave:",
+		}),
+	}, 0, nil)
+	require.Error(t, err)
 }
 
 type failingRemote struct {
@@ -577,16 +598,6 @@ func (f failingRemote) TlfResolve(context.Context, chat1.TlfResolveArg) error {
 	require.Fail(f.t, "TlfResolve call")
 	return nil
 }
-func (f failingRemote) PublishReadMessage(context.Context, chat1.PublishReadMessageArg) error {
-
-	require.Fail(f.t, "PublishReadMessage call")
-	return nil
-}
-func (f failingRemote) PublishSetConversationStatus(context.Context, chat1.PublishSetConversationStatusArg) error {
-
-	require.Fail(f.t, "PublicSetConversationStatus call")
-	return nil
-}
 func (f failingRemote) SyncInbox(ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 	require.Fail(f.t, "SyncInbox")
 	return chat1.SyncInboxRes{}, nil
@@ -663,6 +674,11 @@ func (f failingRemote) SetTeamRetention(ctx context.Context, _ chat1.SetTeamRete
 	return res, errors.New("SetTeamRetention not mocked")
 }
 
+func (f failingRemote) SetConvMinWriterRole(ctx context.Context, _ chat1.SetConvMinWriterRoleArg) (res chat1.SetConvMinWriterRoleRes, err error) {
+	require.Fail(f.t, "SetConvMinWriterRole")
+	return res, errors.New("SetConvMinWriterRole not mocked")
+}
+
 func (f failingRemote) RetentionSweepConv(ctx context.Context, convID chat1.ConversationID) (res chat1.SweepRes, err error) {
 	require.Fail(f.t, "UpgradeKBFSToImpteam")
 	return res, nil
@@ -698,20 +714,37 @@ func (f failingTlf) CompleteAndCanonicalizePrivateTlfName(context.Context, strin
 	return keybase1.CanonicalTLFNameAndIDWithBreaks{}, nil
 }
 
-func (f failingTlf) Lookup(context.Context, string, bool) (*types.NameInfo, error) {
+func (f failingTlf) LookupIDUntrusted(context.Context, string, bool) (*types.NameInfoUntrusted, error) {
+	require.Fail(f.t, "LookupUnstrusted call")
+	return nil, nil
+}
+
+func (f failingTlf) LookupID(context.Context, string, bool) (*types.NameInfo, error) {
 	require.Fail(f.t, "Lookup call")
 	return nil, nil
 }
 
-func (f failingTlf) EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+func (f failingTlf) LookupName(context.Context, chat1.TLFID, bool) (*types.NameInfo, error) {
+	require.Fail(f.t, "Lookup call")
+	return nil, nil
 }
 
-func (f failingTlf) DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+func (f failingTlf) AllCryptKeys(context.Context, string, bool) (types.AllCryptKeys, error) {
+	require.Fail(f.t, "AllCryptKeys call")
+	return nil, nil
+}
+
+func (f failingTlf) EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error) {
+	require.Fail(f.t, "EncryptionKey call")
+	return nil, nil, nil
+}
+
+func (f failingTlf) DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	keyGeneration int, kbfsEncrypted bool) (*types.NameInfo, error) {
-	return f.Lookup(ctx, tlfName, public)
+	keyGeneration int, kbfsEncrypted bool) (types.CryptKey, error) {
+	require.Fail(f.t, "DecryptionKey call")
+	return nil, nil
 }
 
 func (f failingTlf) EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -734,6 +767,8 @@ type failingUpak struct {
 	t *testing.T
 }
 
+var _ libkb.UPAKLoader = (*failingUpak)(nil)
+
 func newFailingUpak(t *testing.T) failingUpak {
 	return failingUpak{
 		t: t,
@@ -751,7 +786,7 @@ func (f failingUpak) LoadV2(arg libkb.LoadUserArg) (ret *keybase1.UserPlusKeysV2
 	require.Fail(f.t, "LoadV2 call")
 	return nil, nil, nil
 }
-func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error) {
+func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error) {
 	require.Fail(f.t, "LoadKeyV2")
 	return nil, nil, nil, nil
 }

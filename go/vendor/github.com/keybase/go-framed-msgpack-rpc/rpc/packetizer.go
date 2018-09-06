@@ -12,21 +12,37 @@ type packetizer interface {
 	NextFrame() (rpcMessage, error)
 }
 
+// lastErrReader stores the last error returned by its child
+// reader. It's used by loadNextFrame below.
+type lastErrReader struct {
+	reader io.Reader
+	err    error
+}
+
+func (r *lastErrReader) Read(buf []byte) (int, error) {
+	n, err := r.reader.Read(buf)
+	r.err = err
+	return n, err
+}
+
 type packetHandler struct {
 	lengthDecoder *codec.Decoder
-	reader        io.Reader
+	reader        *lastErrReader
 	fieldDecoder  *fieldDecoder
 	protocols     *protocolHandler
 	calls         *callContainer
+	log           LogInterface
 }
 
-func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callContainer) *packetHandler {
+func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callContainer, log LogInterface) *packetHandler {
+	wrappedReader := &lastErrReader{reader, nil}
 	return &packetHandler{
-		lengthDecoder: codec.NewDecoder(reader, newCodecMsgpackHandle()),
-		reader:        reader,
+		lengthDecoder: codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
+		reader:        wrappedReader,
 		fieldDecoder:  newFieldDecoder(),
 		protocols:     protocols,
 		calls:         calls,
+		log:           log,
 	}
 }
 
@@ -53,6 +69,12 @@ func (p *packetHandler) NextFrame() (rpcMessage, error) {
 		return nil, NewPacketizerError("invalid frame size: %d", len(bytes))
 	}
 
+	// Log the bytes as the last thing, just in case the logger
+	// mutates those bytes (which it shouldn't).
+	defer func() {
+		p.log.FrameRead(bytes)
+	}()
+
 	// Attempt to read the fixarray
 	nb := int(bytes[0])
 
@@ -73,12 +95,17 @@ func (p *packetHandler) loadNextFrame() ([]byte, error) {
 	// Get the packet length
 	var l int
 	if err := p.lengthDecoder.Decode(&l); err != nil {
-		if _, ok := err.(*net.OpError); ok {
-			// If the connection is reset or has been closed on this side,
-			// return EOF
+		// If the connection is reset or has been closed on
+		// this side, return EOF. lengthDecoder wraps most
+		// errors, so we have to check p.reader.err instead of
+		// err.
+		if _, ok := p.reader.err.(*net.OpError); ok {
 			return nil, io.EOF
 		}
 		return nil, err
+	}
+	if l < 0 {
+		return nil, PacketizerError{fmt.Sprintf("invalid frame length: %d", l)}
 	}
 
 	bytes := make([]byte, l)

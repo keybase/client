@@ -8,6 +8,7 @@ import NewTeamDialog from './new-team/container'
 import JoinTeamDialog from './join-team/container'
 import ManageChannels from '../chat/manage-channels/container'
 import EditChannel from '../chat/manage-channels/edit-channel-container'
+import EditTeamAvatar from '../profile/edit-avatar/container'
 import EditTeamDescription from './edit-team-description/container'
 import CreateChannel from '../chat/create-channel/container'
 import ReallyLeaveTeam from './really-leave-team/container'
@@ -102,6 +103,10 @@ const teamRoute = makeRouteDefNode({
         reallyRemoveMember,
       },
       component: Member,
+    },
+    editTeamAvatar: {
+      component: EditTeamAvatar,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
     },
     editTeamDescription: {
       children: {},

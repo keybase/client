@@ -149,11 +149,12 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified", true)
 	defer tracer.Finish()
+	m := libkb.NewMetaContext(ctx, g)
 
 	tracer.Stage("Resolve QueryUID")
 	var queryUID keybase1.UID
 	if arg.UserAssertion != "" {
-		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
+		res := g.Resolver.ResolveFullExpression(m, arg.UserAssertion)
 		if res.GetError() != nil {
 			return nil, res.GetError()
 		}
@@ -199,20 +200,20 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 		serverSaysNeedAdmin := memberNeedAdmin(memberInfo, meUID)
 		team, _, err := loadedTeams.getTeamForMember(ctx, memberInfo, serverSaysNeedAdmin)
 		if err != nil {
-			g.Log.CDebugf(ctx, "| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
+			m.CDebugf("| Error in getTeamForMember ID:%s UID:%s: %v; skipping team", memberInfo.TeamID, memberInfo.UserID, err)
 			expectEmptyList = false // so we tell user about errors at the end.
 			continue
 		}
 
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			g.Log.CDebugf(ctx, "| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.CDebugf("| TeamList skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
 		expectEmptyList = false
 
 		if memberInfo.UserID != queryUID {
-			g.Log.CDebugf(ctx, "| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
+			m.CDebugf("| Expected memberInfo for UID:%s, got UID:%s", queryUID, memberInfo.UserID)
 			continue
 		}
 
@@ -234,7 +235,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 
 		members, err := team.Members()
 		if err != nil {
-			g.Log.CDebugf(ctx, "| Failed to get Members() for team %q: %v", team.ID, err)
+			m.CDebugf("| Failed to get Members() for team %q: %v", team.ID, err)
 			continue
 		}
 
@@ -247,14 +248,14 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 		for invID, invite := range invites {
 			category, err := invite.Type.C()
 			if err != nil {
-				g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+				m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 				continue
 			}
 
 			if category == keybase1.TeamInviteCategory_KEYBASE {
 				uv, err := invite.KeybaseUserVersion()
 				if err != nil {
-					g.Log.CDebugf(ctx, "| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
+					m.CDebugf("| Failed parsing invite %q in team %q: %v", invID, team.ID, err)
 					continue
 				}
 
@@ -705,6 +706,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 	if err != nil {
 		return res, err
 	}
+	rootName := arg.Name.RootAncestorName()
 
 	// Map from team name (string) to entry
 	entryMap := make(map[string]keybase1.TeamTreeEntry)
@@ -717,7 +719,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		if err != nil {
 			return res, err
 		}
-		if !arg.Name.IsAncestorOf(serverName) && !arg.Name.Eq(serverName) {
+		if !rootName.IsAncestorOf(serverName) && !rootName.Eq(serverName) {
 			// Skip those not in this tree.
 			continue
 		}
@@ -756,7 +758,7 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 				}
 			}
 			name, err = name.Parent()
-			if err != nil || (!arg.Name.IsAncestorOf(name) && !arg.Name.Eq(name)) {
+			if err != nil || (!rootName.IsAncestorOf(name) && !rootName.Eq(name)) {
 				break
 			}
 		}
@@ -767,7 +769,13 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 	}
 
 	if len(res.Entries) == 0 {
-		return res, fmt.Errorf("team not found: %v", arg.Name)
+		g.Log.CDebugf(ctx, "| TeamTree not teams matched")
+		// Try to get a nicer error by loading the team directly.
+		_, err = Load(ctx, g, keybase1.LoadTeamArg{Name: arg.Name.String()})
+		if err != nil {
+			return res, err
+		}
+		return res, fmt.Errorf("team not found: %v", rootName)
 	}
 
 	// Order into a tree order. Which happens to be alphabetical ordering.

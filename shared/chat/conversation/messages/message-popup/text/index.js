@@ -2,7 +2,6 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import {isMobile} from '../../../../../util/container'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
@@ -12,6 +11,7 @@ type Props = {
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
+  onAddReaction: null | (() => void),
   onCopy: () => void,
   onDelete: null | (() => void),
   onDeleteMessageHistory: null | (() => void),
@@ -19,7 +19,7 @@ type Props = {
   onHidden: () => void,
   onQuote: null | (() => void),
   onReplyPrivately: null | (() => void),
-  onViewProfile: () => void,
+  onViewProfile: null | (() => void),
   position: Position,
   showDivider: boolean,
   style?: Object,
@@ -42,15 +42,6 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.onDeleteMessageHistory
-      ? [
-          {
-            danger: true,
-            onClick: props.onDeleteMessageHistory,
-            title: 'Delete this + everything above',
-          },
-        ]
-      : []),
     ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
     ...(props.onEdit
       ? [
@@ -60,10 +51,11 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
+    ...(props.onAddReaction ? [{onClick: props.onAddReaction, title: 'Add a reaction'}] : []),
     {onClick: props.onCopy, title: 'Copy text'},
-    {onClick: props.onQuote, title: 'Quote'},
-    {onClick: props.onReplyPrivately, title: 'Reply privately'},
-    {onClick: props.onViewProfile, title: 'View profile'},
+    ...(props.onQuote ? [{onClick: props.onQuote, title: 'Quote'}] : []),
+    ...(props.onReplyPrivately ? [{onClick: props.onReplyPrivately, title: 'Reply privately'}] : []),
+    ...(props.onViewProfile ? [{onClick: props.onViewProfile, title: 'View profile'}] : []),
   ]
 
   const header = {
@@ -88,15 +80,10 @@ const TextPopupMenu = (props: Props) => {
       items={items}
       onHidden={props.onHidden}
       position={props.position}
-      style={{...stylePopup, ...props.style}}
+      containerStyle={props.style}
       visible={props.visible}
     />
   )
-}
-
-const stylePopup = {
-  overflow: 'visible',
-  width: isMobile ? '100%' : 240,
 }
 
 export default TextPopupMenu

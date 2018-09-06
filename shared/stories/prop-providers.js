@@ -1,11 +1,13 @@
 // @flow
-import {action, createPropProvider} from './storybook'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
+import * as _CopyText from '../common-adapters/copy-text'
+import {action} from '@storybook/addon-actions'
+import {createPropProvider} from './storybook.shared'
 
-/**
+/*
  * Some common prop factory creators.
  *
  *  Params: specific pieces of data (not necessarily store data)
@@ -18,14 +20,13 @@ const defaultYou = 'ayoubd'
 const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
-const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
+export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
     const {usernames} = ownProps
-    const users = (usernames || []).map(username => ({
-      username,
-      following: following.includes(username),
-      you: username === you,
-    }))
+    const users = (usernames || [])
+      .map(username => ({username, following: following.includes(username), you: username === you}))
+      .filter(u => !ownProps.skipSelf || !u.you)
+
     return {
       ...ownProps,
       users,
@@ -34,18 +35,18 @@ const Usernames = (following: string[] = defaultFollowing, you: string = default
   },
 })
 
-const WaitingButton = () => ({
+export const WaitingButton = () => ({
   WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
     ...ownProps,
     storeWaiting: false,
   }),
 })
 
-const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
-  Avatar: (ownProps: _Avatar.OwnProps) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
+export const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
+  Avatar: (ownProps: _Avatar.Props) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
-const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
+export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
   TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
     _loadOperations: action('_loadOperations'),
     attachTo: ownProps.attachTo,
@@ -66,12 +67,19 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const Common = () => ({
+const CopyText = () => ({
+  CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
+})
+
+export const Common = () => ({
   ...Usernames(),
   ...Avatar(),
   ...WaitingButton(),
+  ...CopyText(),
 })
 
-const CommonProvider = () => createPropProvider(Common())
-
-export {Avatar, Common, CommonProvider, TeamDropdownMenu, Usernames}
+export const createPropProviderWithCommon = (custom: ?Object) =>
+  createPropProvider({
+    ...Common(),
+    ...(custom || {}),
+  })

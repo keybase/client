@@ -2,12 +2,19 @@
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
+
 // Does not fully mock members
 // Add properties & functions as necessary
 export const clipboard = {writeText: s => {}}
-export const remote = {BrowserWindow: {}, Menu: {}}
+export const remote = {
+  BrowserWindow: {},
+  Menu: {},
+  getCurrentWindow: () => ({
+    on: () => {},
+  }),
+}
 export const crashReporter = {}
-export const shell = {}
+export const shell = {openExternal: () => {}}
 export const ipcRenderer = {}
 export const globalShortcut = {}
 export const session = {}

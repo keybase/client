@@ -2,8 +2,9 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
 import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import Transaction, {CounterpartyIcon, CounterpartyText, Timestamp} from '../transaction'
+import {capitalize} from 'lodash-es'
+import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
 type Role = 'sender' | 'receiver'
 
@@ -13,12 +14,17 @@ export type Props = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onBack: () => void,
+  title: string,
+  onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  status: Types.StatusSimplified,
+  statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
   transactionID?: string,
@@ -58,11 +64,7 @@ const Counterparty = (props: CounterpartyProps) => {
         counterpartyType={props.counterpartyType}
         large={false}
       />
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        style={{justifyContent: 'center', marginLeft: globalMargins.small}}
-      >
+      <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
@@ -75,91 +77,140 @@ const Counterparty = (props: CounterpartyProps) => {
   )
 }
 
-const TransactionDetails = (props: Props) => (
-  <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
-    <Transaction
-      amountUser={props.amountUser}
-      amountXLM={props.amountXLM}
-      counterparty={props.counterparty}
-      counterpartyType={props.counterpartyType}
-      delta={props.delta}
-      large={true}
-      memo={props.memo}
-      timestamp={props.timestamp}
-      yourRole={props.yourRole}
-    />
-    <Divider />
+const colorForStatus = (status: Types.StatusSimplified) => {
+  switch (status) {
+    case 'completed':
+      return globalColors.green2
+    case 'pending':
+      return globalColors.black_75
+    case 'error':
+      return globalColors.red
+    default:
+      return globalColors.black
+  }
+}
 
-    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
-      <Text type="BodySmallSemibold">Sender:</Text>
-      <Counterparty
-        counterparty={props.counterparty}
-        counterpartyMeta={props.counterpartyMeta}
-        counterpartyType={props.counterpartyType}
-        isYou={props.yourRole === 'sender'}
-        you={props.you}
-        yourRole={props.yourRole}
-      />
-    </Box2>
+const descriptionForStatus = (status: Types.StatusSimplified) =>
+  status === 'completed' ? 'Sent' : capitalize(status)
 
-    <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-      <Text type="BodySmallSemibold">Recipient:</Text>
-      <Counterparty
-        counterparty={props.counterparty}
-        counterpartyMeta={props.counterpartyMeta}
-        counterpartyType={props.counterpartyType}
-        isYou={props.yourRole === 'receiver'}
-        you={props.you}
-        yourRole={props.yourRole}
-      />
-    </Box2>
+class TransactionDetails extends React.Component<Props> {
+  componentWillMount() {
+    this.props.onLoadPaymentDetail()
+  }
 
-    <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-      <Text type="BodySmallSemibold">Status:</Text>
-      <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={{alignItems: 'center'}}>
-        <Icon
-          color={props.timestamp ? globalColors.green2 : globalColors.black}
-          fontSize={16}
-          type={props.timestamp ? 'iconfont-success' : 'icon-transaction-pending-16'}
+  render() {
+    return (
+      <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
+        <Transaction
+          amountUser={this.props.amountUser}
+          amountXLM={this.props.amountXLM}
+          counterparty={this.props.counterparty}
+          counterpartyType={this.props.counterpartyType}
+          delta={this.props.delta}
+          large={true}
+          memo={this.props.memo}
+          status={this.props.status}
+          statusDetail={this.props.statusDetail}
+          timestamp={this.props.timestamp}
+          yourRole={this.props.yourRole}
         />
-        <Text
-          style={{
-            color: props.timestamp ? globalColors.green2 : globalColors.black,
-            marginLeft: globalMargins.xtiny,
-          }}
-          type="Body"
-        >
-          {props.timestamp ? 'Sent' : 'Pending'}
-        </Text>
+        <Divider />
+
+        <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+          <Text type="BodySmallSemibold">Sender:</Text>
+          <Counterparty
+            counterparty={this.props.counterparty}
+            counterpartyMeta={this.props.counterpartyMeta}
+            counterpartyType={this.props.counterpartyType}
+            isYou={this.props.yourRole === 'sender'}
+            you={this.props.you}
+            yourRole={this.props.yourRole}
+          />
+        </Box2>
+
+        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+          <Text type="BodySmallSemibold">Recipient:</Text>
+          <Counterparty
+            counterparty={this.props.counterparty}
+            counterpartyMeta={this.props.counterpartyMeta}
+            counterpartyType={this.props.counterpartyType}
+            isYou={this.props.yourRole === 'receiver'}
+            you={this.props.you}
+            yourRole={this.props.yourRole}
+          />
+        </Box2>
+
+        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+          <Text type="BodySmallSemibold">Status:</Text>
+          <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
+            <Icon
+              color={colorForStatus(this.props.status)}
+              fontSize={16}
+              type={
+                this.props.status === 'error'
+                  ? 'iconfont-close'
+                  : this.props.status === 'completed'
+                    ? 'iconfont-success'
+                    : 'icon-transaction-pending-16'
+              }
+            />
+            <Text
+              style={collapseStyles([
+                styles.statusText,
+                {color: colorForStatus(this.props.status), marginLeft: globalMargins.xtiny},
+              ])}
+              type="Body"
+            >
+              {descriptionForStatus(this.props.status)}
+            </Text>
+          </Box2>
+          {this.props.status !== 'error' && (
+            <TimestampLine
+              status={this.props.status}
+              error={this.props.statusDetail}
+              relative={false}
+              timestamp={this.props.timestamp}
+            />
+          )}
+        </Box2>
+
+        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+          <Text type="BodySmallSemibold">Public memo:</Text>
+          <Text type="Body">{this.props.publicMemo}</Text>
+        </Box2>
+
+        <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+          <Text type="BodySmallSemibold">Transaction ID:</Text>
+          <Text type="Body">{this.props.transactionID}</Text>
+          {this.props.onViewTransaction && (
+            <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
+              View transaction
+            </Text>
+          )}
+        </Box2>
       </Box2>
-      <Timestamp relative={false} timestamp={props.timestamp} />
-    </Box2>
+    )
+  }
+}
 
-    <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-      <Text type="BodySmallSemibold">Public memo:</Text>
-      <Text type="Body">{props.publicMemo}</Text>
-    </Box2>
-
-    <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
-      <Text type="BodySmallSemibold">Transaction ID:</Text>
-      <Text type="Body">{props.transactionID}</Text>
-      {props.onViewTransaction && (
-        <Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
-          View transaction
-        </Text>
-      )}
-    </Box2>
-  </Box2>
-)
+export default TransactionDetails
 
 const styles = styleSheetCreate({
   container: {
     padding: globalMargins.small,
   },
+  counterPartyText: {
+    justifyContent: 'center',
+    marginLeft: globalMargins.small,
+  },
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
   },
+  statusBox: {
+    alignItems: 'center',
+  },
+  statusText: {
+    marginLeft: globalMargins.xtiny,
+  },
 })
-
-export default TransactionDetails

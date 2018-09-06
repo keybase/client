@@ -8,7 +8,8 @@ import * as Types from '../constants/types/profile'
 import * as More from '../constants/types/more'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of profile but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'profile:'
 export const addProof = 'profile:addProof'
 export const backToProfile = 'profile:backToProfile'
 export const cancelAddProof = 'profile:cancelAddProof'
@@ -39,6 +40,7 @@ export const updateProofStatus = 'profile:updateProofStatus'
 export const updateProofText = 'profile:updateProofText'
 export const updateSigID = 'profile:updateSigID'
 export const updateUsername = 'profile:updateUsername'
+export const uploadAvatar = 'profile:uploadAvatar'
 export const waiting = 'profile:waiting'
 
 // Payload Types
@@ -93,6 +95,10 @@ type _UpdateProofStatusPayload = $ReadOnly<{|
 type _UpdateProofTextPayload = $ReadOnly<{|proof: string|}>
 type _UpdateSigIDPayload = $ReadOnly<{|sigID: ?RPCTypes.SigID|}>
 type _UpdateUsernamePayload = $ReadOnly<{|username: string|}>
+type _UploadAvatarPayload = $ReadOnly<{|
+  filename: string,
+  crop?: RPCTypes.ImageCropRect,
+|}>
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
 // Action Creators
@@ -128,6 +134,7 @@ export const createUpdateProofStatus = (payload: _UpdateProofStatusPayload) => (
 export const createUpdateProofText = (payload: _UpdateProofTextPayload) => ({error: false, payload, type: updateProofText})
 export const createUpdateSigID = (payload: _UpdateSigIDPayload) => ({error: false, payload, type: updateSigID})
 export const createUpdateUsername = (payload: _UpdateUsernamePayload) => ({error: false, payload, type: updateUsername})
+export const createUploadAvatar = (payload: _UploadAvatarPayload) => ({error: false, payload, type: uploadAvatar})
 export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
 
 // Action Payloads
@@ -163,6 +170,7 @@ export type UpdateProofStatusPayload = $Call<typeof createUpdateProofStatus, _Up
 export type UpdateProofTextPayload = $Call<typeof createUpdateProofText, _UpdateProofTextPayload>
 export type UpdateSigIDPayload = $Call<typeof createUpdateSigID, _UpdateSigIDPayload>
 export type UpdateUsernamePayload = $Call<typeof createUpdateUsername, _UpdateUsernamePayload>
+export type UploadAvatarPayload = $Call<typeof createUploadAvatar, _UploadAvatarPayload>
 export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
 
 // All Actions
@@ -200,5 +208,6 @@ export type Actions =
   | UpdateProofTextPayload
   | UpdateSigIDPayload
   | UpdateUsernamePayload
+  | UploadAvatarPayload
   | WaitingPayload
   | {type: 'common:resetStore', payload: void}

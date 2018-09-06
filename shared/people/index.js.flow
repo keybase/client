@@ -1,22 +1,15 @@
 // @flow
 import * as React from 'react'
-import * as I from 'immutable'
 import * as Types from '../constants/types/people'
 
 export type Props = {
   oldItems: Array<Types._PeopleScreenItem>,
   newItems: Array<Types._PeopleScreenItem>,
   followSuggestions: Array<Types._FollowSuggestion>,
-  getData: () => void,
+  getData: (markViewed?: boolean) => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,
   myUsername: string,
-  todoDispatch: {
-    [key: Types.TodoType]: {
-      onConfirm: () => void,
-      onDismiss: () => void,
-    },
-  },
   waiting: boolean,
 }
 

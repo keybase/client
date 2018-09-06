@@ -1,49 +1,40 @@
 // @flow
-import * as PropProviders from '../../stories/prop-providers'
-import React from 'react'
-import {Box2} from '../../common-adapters'
-import {storiesOf, action} from '../../stories/storybook'
-import Header from './header'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
+import {stringToAccountID} from '../../constants/types/wallets'
+import Wallet from '.'
+import header, {Container} from './header/index.stories'
+import settings from './settings/index.stories'
 
-const defaultWalletMock = {
-  isDefaultWallet: true,
-  keybaseUser: 'cecileb',
-  walletName: "cecileb's wallet",
+const provider = Sb.createPropProviderWithCommon({
+  // TODO mock out meaningful values once type `OwnProps` is defined
+  Header: props => ({
+    onDeposit: Sb.action('onDeposit'),
+    onReceive: Sb.action('onReceive'),
+    onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
+    onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
+    onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
+    onSettings: Sb.action('onSettings'),
+    onShowSecretKey: Sb.action('onShowSecretKey'),
+    isDefaultWallet: true,
+    keybaseUser: 'cecileb',
+    walletName: "cecileb's account",
+  }),
+})
+
+const props = {
+  accountID: stringToAccountID('fakeAccountID'),
+  navigateAppend: Sb.action('navigateAppend'),
+  sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['historyPlaceholder']}],
 }
-
-const secondWalletMock = {
-  isDefaultWallet: false,
-  walletName: 'Second wallet',
-}
-
-const commonActions = {
-  navigateAppend: action('navigateAppend'),
-  onDeposit: action('onDeposit'),
-  onReceive: action('onReceive'),
-  onSendToAnotherWallet: action('onSendToAnotherWallet'),
-  onSendToKeybaseUser: action('onSendToKeybaseUser'),
-  onSendToStellarAddress: action('onSendToStellarAddress'),
-  onSettings: action('onSettings'),
-  onShowSecretKey: action('onShowSecretKey'),
-}
-
-const provider = PropProviders.CommonProvider()
 
 const load = () => {
-  storiesOf('Wallets/Wallet', module)
+  header()
+  settings()
+  Sb.storiesOf('Wallets/Wallet', module)
     .addDecorator(provider)
-    .add('Default wallet', () => (
-      <Box2 direction="horizontal" style={styleWidth}>
-        <Header {...commonActions} {...defaultWalletMock} />
-      </Box2>
-    ))
-    .add('Second wallet', () => (
-      <Box2 direction="horizontal" style={styleWidth}>
-        <Header {...commonActions} {...secondWalletMock} />
-      </Box2>
-    ))
+    .addDecorator(Container)
+    .add('Default', () => <Wallet {...props} />)
 }
-
-const styleWidth = {width: 520}
 
 export default load

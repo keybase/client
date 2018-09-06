@@ -19,7 +19,6 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
     case PeopleGen.getPeopleData:
     case PeopleGen.markViewed:
     case PeopleGen.skipTodo:
-    case PeopleGen.setupPeopleHandlers:
       return state
     default:
       /*::

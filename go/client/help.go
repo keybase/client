@@ -223,6 +223,6 @@ USAGE:
    {{.Name}} <command> [arguments...]
 
 COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
+   {{range .Commands}}{{ if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
    {{end}}
 `

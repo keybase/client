@@ -70,12 +70,15 @@ class FeedbackContainer extends Component<Props, State> {
           const logPath = logFileName()
           logger.info(`Sending ${this.state.sendLogs ? 'log' : 'feedback'} to daemon`)
           const extra = this.state.sendLogs ? {...this.props.status, ...this.props.chat} : this.props.status
+          const traceDir = pprofDir()
+          const cpuProfileDir = traceDir
           return logSend(
             JSON.stringify(extra),
             this.state.feedback || '',
             this.state.sendLogs,
             logPath,
-            pprofDir()
+            traceDir,
+            cpuProfileDir
           )
         })
         .then(logSendId => {
@@ -127,7 +130,6 @@ const extraChatLogs = (state: TypedState) => {
     return I.Map({
       badgeMap: chat.badgeMap.get(c),
       editingMap: chat.editingMap.get(c),
-      loadingMap: chat.loadingMap,
       messageMap: chat.messageMap.get(c, I.Map()).map(m => ({
         a: m.author,
         i: m.id,
@@ -191,9 +193,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   title: 'Feedback',
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), HeaderHoc, HOCTimers)(FeedbackContainer)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  HeaderHoc,
+  HOCTimers
+)(FeedbackContainer)

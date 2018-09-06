@@ -89,7 +89,7 @@ const Item = (props: ItemProps) => {
   )
 }
 
-export default (props: Props) => {
+const SetExplodePopup = (props: Props) => {
   const selected = props.selected || {text: 'Never', seconds: 0}
   const listItems = props.items.map(it => ({
     onClick: () => props.onSelect(it.seconds),
@@ -104,11 +104,18 @@ export default (props: Props) => {
   return (
     <FloatingMenu
       attachTo={props.attachTo}
+      position="top left"
       visible={props.visible}
       header={{title: 'announcement-header', view: <Header isNew={props.isNew} />}}
       closeOnSelect={true}
       onHidden={props.onHidden}
       items={listItems}
+      containerStyle={{
+        bottom: 3,
+        position: 'relative',
+      }}
     />
   )
 }
+
+export default SetExplodePopup

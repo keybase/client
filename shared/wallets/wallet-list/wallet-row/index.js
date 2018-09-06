@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Text, Avatar} from '../../../common-adapters'
-import Icon, {castPlatformStyles} from '../../../common-adapters/icon'
+import {
+  Box2,
+  ClickableBox,
+  Text,
+  Avatar,
+  Icon,
+  iconCastPlatformStyles,
+  avatarCastPlatformStyles,
+} from '../../../common-adapters'
 import {
   globalStyles,
   globalMargins,
@@ -56,17 +63,14 @@ const styles = styleSheetCreate({
   rightColumn: rightColumnStyle,
 
   title: {
-    ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.darkBlue,
-    fontSize: 13,
   },
   titleSelected: {
     ...globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: globalColors.white,
     backgroundColor: backgroundColorSelected,
-    fontSize: 13,
   },
 
   amount: {
@@ -90,11 +94,21 @@ const WalletRow = (props: Props) => {
         direction="horizontal"
         fullWidth={true}
       >
-        <Icon type="icon-wallet-64" color={globalColors.darkBlue} style={castPlatformStyles(styles.icon)} />
+        <Icon
+          type="icon-wallet-64"
+          color={globalColors.darkBlue}
+          style={iconCastPlatformStyles(styles.icon)}
+        />
         <Box2 direction="vertical" style={styles.rightColumn}>
           <Box2 direction="horizontal" fullWidth={true}>
-            {props.keybaseUser && <Avatar size={16} style={styles.avatar} username={props.keybaseUser} />}
-            <Text type="BodySmall" style={props.isSelected ? styles.titleSelected : styles.title}>
+            {props.keybaseUser && (
+              <Avatar
+                size={16}
+                style={avatarCastPlatformStyles(styles.avatar)}
+                username={props.keybaseUser}
+              />
+            )}
+            <Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
             </Text>
           </Box2>

@@ -11,6 +11,8 @@ import (
 )
 
 const defaultPageSize = 300
+const MaxAllowedSearchHits = 10000
+const MaxAllowedSearchMessages = 100000
 
 type Searcher struct {
 	globals.Contextified
@@ -29,7 +31,7 @@ func NewSearcher(g *globals.Context) *Searcher {
 }
 
 func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp,
-	maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
+	sentBy string, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
 	uid := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	pagination := &chat1.Pagination{Num: s.pageSize}
 
@@ -39,6 +41,14 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 	}
 	if afterContext >= s.pageSize {
 		afterContext = s.pageSize - 1
+	}
+
+	if maxHits > MaxAllowedSearchHits {
+		maxHits = MaxAllowedSearchHits
+	}
+
+	if maxMessages > MaxAllowedSearchMessages {
+		maxMessages = MaxAllowedSearchMessages
 	}
 
 	// If we have to gather search result context around a pagination boundary,
@@ -140,6 +150,9 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 
 		for i, msg := range curPage.Messages {
 			numMessages++
+			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
+				continue
+			}
 			msgText := msg.Valid().MessageBody.Text().Body
 			matches := re.FindAllString(msgText, -1)
 

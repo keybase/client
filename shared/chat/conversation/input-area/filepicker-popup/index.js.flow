@@ -1,0 +1,4 @@
+// @flow
+import * as React from 'react'
+import type {Props} from './index.types'
+declare export default class FilePickerPopup extends React.Component<Props> {}

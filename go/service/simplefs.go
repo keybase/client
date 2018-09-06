@@ -54,6 +54,16 @@ func (s *SimpleFSHandler) SimpleFSListRecursive(ctx context.Context, arg keybase
 	return cli.SimpleFSListRecursive(ctx, arg)
 }
 
+// SimpleFSListRecursiveToDepth - Begin recursive list of items in directory at
+// path to a given depth.
+func (s *SimpleFSHandler) SimpleFSListRecursiveToDepth(ctx context.Context, arg keybase1.SimpleFSListRecursiveToDepthArg) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSListRecursiveToDepth(ctx, arg)
+}
+
 // SimpleFSReadList - Get list of Paths in progress. Can indicate status of pending
 // to get more entries.
 func (s *SimpleFSHandler) SimpleFSReadList(ctx context.Context, arg keybase1.OpID) (keybase1.SimpleFSListResult, error) {
@@ -160,6 +170,28 @@ func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.Path) (
 	return cli.SimpleFSStat(ctx, arg)
 }
 
+// SimpleFSGetRevisions - Get revision info for a directory entry
+func (s *SimpleFSHandler) SimpleFSGetRevisions(
+	ctx context.Context, arg keybase1.SimpleFSGetRevisionsArg) error {
+	cli, err := s.client()
+	if err != nil {
+		return err
+	}
+	return cli.SimpleFSGetRevisions(ctx, arg)
+}
+
+// SimpleFSReadRevisions - Get list of revisions in progress. Can
+// indicate status of pending to get more entries.
+func (s *SimpleFSHandler) SimpleFSReadRevisions(
+	ctx context.Context, opID keybase1.OpID) (
+	keybase1.GetRevisionsResult, error) {
+	cli, err := s.client()
+	if err != nil {
+		return keybase1.GetRevisionsResult{}, err
+	}
+	return cli.SimpleFSReadRevisions(ctx, opID)
+}
+
 // SimpleFSMakeOpid - Convenience helper for generating new random value
 func (s *SimpleFSHandler) SimpleFSMakeOpid(ctx context.Context) (keybase1.OpID, error) {
 	cli, err := s.client()
@@ -226,12 +258,12 @@ func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 }
 
 // SimpleFSSyncStatus - Get sync status.
-func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.FSSyncStatus{}, err
 	}
-	return cli.SimpleFSSyncStatus(ctx)
+	return cli.SimpleFSSyncStatus(ctx, filter)
 }
 
 // SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
@@ -264,11 +296,12 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 	return cli.SimpleFSFolderEditHistory(ctx, path)
 }
 
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
+// SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
+func (s *SimpleFSHandler) SimpleFSGetUserQuotaUsage(ctx context.Context) (
+	keybase1.SimpleFSQuotaUsage, error) {
 	cli, err := s.client()
 	if err != nil {
-		return err
+		return keybase1.SimpleFSQuotaUsage{}, err
 	}
-	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
+	return cli.SimpleFSGetUserQuotaUsage(ctx)
 }

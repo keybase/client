@@ -129,6 +129,7 @@ var deletableMessageTypesByDelete = []MessageType{
 	MessageType_EDIT,
 	MessageType_ATTACHMENTUPLOADED,
 	MessageType_REACTION,
+	MessageType_REQUESTPAYMENT,
 }
 
 // Messages types NOT deletable by a DELETEHISTORY message.
@@ -205,6 +206,24 @@ func (hash Hash) Eq(other Hash) bool {
 	return bytes.Equal(hash, other)
 }
 
+func (m MessageUnboxed) OutboxID() *OutboxID {
+	if state, err := m.State(); err == nil {
+		switch state {
+		case MessageUnboxedState_VALID:
+			return m.Valid().ClientHeader.OutboxID
+		case MessageUnboxedState_ERROR:
+			return nil
+		case MessageUnboxedState_PLACEHOLDER:
+			return nil
+		case MessageUnboxedState_OUTBOX:
+			return m.Outbox().Msg.ClientHeader.OutboxID
+		default:
+			return nil
+		}
+	}
+	return nil
+}
+
 func (m MessageUnboxed) GetMessageID() MessageID {
 	if state, err := m.State(); err == nil {
 		switch state {
@@ -279,6 +298,28 @@ func (m MessageUnboxed) IsValidFull() bool {
 		return false
 	}
 	return bodyType == headerType
+}
+
+// IsValidDeleted returns whether a message is valid and has been deleted.
+// This statement does not hold: IsValidFull != IsValidDeleted
+func (m MessageUnboxed) IsValidDeleted() bool {
+	if !m.IsValid() {
+		return false
+	}
+	valid := m.Valid()
+	headerType := valid.ClientHeader.MessageType
+	switch headerType {
+	case MessageType_NONE:
+		return false
+	case MessageType_TLFNAME:
+		// Undeletable and may have no body
+		return false
+	}
+	bodyType, err := valid.MessageBody.MessageType()
+	if err != nil {
+		return false
+	}
+	return bodyType == MessageType_NONE
 }
 
 func (m *MessageUnboxed) DebugString() string {
@@ -447,6 +488,10 @@ func (o *MsgEphemeralMetadata) Eq(r *MsgEphemeralMetadata) bool {
 	return (o == nil) && (r == nil)
 }
 
+func (m MessageUnboxedValid) HasPairwiseMacs() bool {
+	return m.ClientHeader.HasPairwiseMacs
+}
+
 func (m MessageUnboxedValid) IsEphemeral() bool {
 	return m.EphemeralMetadata() != nil
 }
@@ -589,6 +634,10 @@ func (m MessageBoxed) Summary() MessageSummary {
 	return s
 }
 
+func (m MessageBoxed) OutboxInfo() *OutboxInfo {
+	return m.ClientHeader.OutboxInfo
+}
+
 func (m MessageBoxed) KBFSEncrypted() bool {
 	return m.ClientHeader.KbfsCryptKeysUsed == nil || *m.ClientHeader.KbfsCryptKeysUsed
 }
@@ -666,6 +715,11 @@ func (t ConversationIDTriple) Derivable(cid ConversationID) bool {
 	return bytes.Equal(h[2:], []byte(cid[2:]))
 }
 
+func MakeOutboxID(s string) (OutboxID, error) {
+	b, err := hex.DecodeString(s)
+	return OutboxID(b), err
+}
+
 func (o *OutboxID) Eq(r *OutboxID) bool {
 	if o != nil && r != nil {
 		return bytes.Equal(*o, *r)
@@ -686,6 +740,10 @@ func (o *OutboxInfo) Eq(r *OutboxInfo) bool {
 		return *o == *r
 	}
 	return (o == nil) && (r == nil)
+}
+
+func (o OutboxRecord) IsAttachment() bool {
+	return o.Msg.ClientHeader.MessageType == MessageType_ATTACHMENT
 }
 
 func (p MessagePreviousPointer) Eq(other MessagePreviousPointer) bool {
@@ -1500,10 +1558,25 @@ func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found b
 	if !ok {
 		return false, 0
 	}
-	for _, reaction := range reactions {
-		if reaction.Username == username {
-			return true, reaction.ReactionMsgID
-		}
+	reaction, ok := reactions[username]
+	return ok, reaction.ReactionMsgID
+}
+
+func (r MessageReaction) Eq(o MessageReaction) bool {
+	return r.Body == o.Body && r.MessageID == o.MessageID
+}
+
+func (i *ConversationMinWriterRoleInfoLocal) String() string {
+	if i == nil {
+		return "Minimum writer role for this conversation is not set."
 	}
-	return false, 0
+	usernameSuffix := "."
+	if i.Username != "" {
+		usernameSuffix = fmt.Sprintf(", last set by %v.", i.Username)
+	}
+	return fmt.Sprintf("Minimum writer role for this conversation is %v%v", i.Role, usernameSuffix)
+}
+
+func (s *ConversationSettings) IsNil() bool {
+	return s == nil || s.MinWriterRoleInfo == nil
 }

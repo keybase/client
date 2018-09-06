@@ -81,7 +81,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Equal(t, team.IsPublic(), public)
 
 		expr := fmt.Sprintf("tid:%s", createdTeam.ID)
-		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(context.Background(), expr)
+		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContextForTest(tc), expr)
 		require.NoError(t, rres.GetError())
 		require.True(t, rres.GetTeamID().Exists())
 	}
@@ -453,10 +453,22 @@ func TestTeamListImplicit(t *testing.T) {
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: false})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 1)
+	// verify that we cache this call
+	var cachedList []keybase1.MemberInfo
+	cacheKey := listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, false /* includeImplicitTeams */)
+	found, err := tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: true})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 2)
+	cacheKey = listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, true /* includeImplicitTeams */)
+	found, err = tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListAll(context.Background(), tcs[0].G, keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: false,
@@ -491,14 +503,14 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 
 	t.Logf("created team id: %s", teamObj.ID)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
 
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, jun.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	require.NoError(t, err)
 
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, hal.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
 
 	// Now, the fun part (bug CORE-8099):
 
@@ -512,8 +524,29 @@ func TestReAddMemberWithSameUV(t *testing.T) {
 	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
 	require.NoError(t, err)
 
-	// Subsequent calls should start failing with ExistsError again
-	// and cancel old invite and add new one for same UV.
-	err = ReAddMemberAfterReset(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
-	require.IsType(t, libkb.ExistsError{}, err)
+	// Subsequent calls should start UserHasNotResetErrorin again
+	err = reAddMemberAfterResetInner(context.Background(), tcs[0].G, teamObj.ID, bob.Username)
+	require.IsType(t, UserHasNotResetError{}, err)
+}
+
+func TestGetTeamIDRPC(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	for i := 1; i <= 2; i++ {
+		// Test with two impteams: "fus[0]" and "fus[0],fus[1]"
+		var membersStr []string
+		for j := 0; j < i; j++ {
+			membersStr = append(membersStr, fus[j].Username)
+		}
+		impteamName := strings.Join(membersStr, ",")
+		t.Logf("creating an implicit team: %v", impteamName)
+		teamObj, _, _, err := LookupOrCreateImplicitTeam(context.Background(), tcs[0].G, impteamName, false /*isPublic*/)
+		require.NoError(t, err)
+
+		mctx := libkb.NewMetaContextForTest(*tcs[0])
+		res, err := GetTeamIDByNameRPC(mctx, teamObj.Name().String())
+		require.NoError(t, err)
+		require.Equal(t, teamObj.ID, res)
+	}
 }

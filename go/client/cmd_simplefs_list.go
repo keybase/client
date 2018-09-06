@@ -56,10 +56,12 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 				Name:  "rec, recursive",
 				Usage: "recurse into subdirectories",
 			},
+			/* TODO: currently this option does nothing.
 			cli.BoolFlag{
 				Name:  "dirs-first",
 				Usage: "list directories first",
 			},
+			*/
 			cli.BoolFlag{
 				Name:  "nocolor",
 				Usage: "remove color formatting",
@@ -91,6 +93,18 @@ func NewCmdSimpleFSList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "w, windows",
 				Usage: "windows style dir",
+			},
+			cli.IntFlag{
+				Name:  "rev",
+				Usage: "a revision number for the KBFS folder",
+			},
+			cli.StringFlag{
+				Name:  "time",
+				Usage: "a time for the KBFS folder (eg \"2018-07-27 22:05\")",
+			},
+			cli.StringFlag{
+				Name:  "reltime, relative-time",
+				Usage: "a relative time for the KBFS folder (eg \"5m\")",
 			},
 		},
 	}
@@ -165,13 +179,13 @@ func (c *CmdSimpleFSList) Run() error {
 				return err
 			}
 			// TODO: should stat include the path in the result?
-			e.Name = pathToString(path)
+			e.Name = path.String()
 			listResult.Entries = append(listResult.Entries, e)
 		}
 		c.output(listResult)
 	} else if len(paths) == 1 {
 		path := paths[0]
-		c.G().Log.Debug("SimpleFSList %s", pathToString(path))
+		c.G().Log.Debug("SimpleFSList %s", path)
 
 		opid, err2 := cli.SimpleFSMakeOpid(ctx)
 		if err2 != nil {
@@ -265,7 +279,7 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	var err error
 
-	c.recurse = ctx.Bool("recurse")
+	c.recurse = ctx.Bool("rec") || ctx.Bool("recursive")
 	c.winStyle = ctx.Bool("windows")
 	c.options.all = ctx.Bool("all")
 	c.options.long = ctx.Bool("long")
@@ -281,13 +295,24 @@ func (c *CmdSimpleFSList) ParseArgv(ctx *cli.Context) error {
 		return errors.New("ls requires at least one KBFS path argument")
 	}
 
+	// TODO: "rev" should be a real int64, need to update the `cli`
+	// library for that.
+	rev := int64(ctx.Int("rev"))
+	time := ctx.String("time")
+	relTime := getRelTime(ctx)
 	for _, src := range ctx.Args() {
-		argPath := makeSimpleFSPath(c.G(), src)
+		// Use the same revision number for each path.
+		argPath, err := makeSimpleFSPathWithArchiveParams(
+			src, rev, time, relTime)
+		if err != nil {
+			return err
+		}
 		pathType, err := argPath.PathType()
 		if err != nil {
 			return err
 		}
-		if pathType != keybase1.PathType_KBFS {
+		if pathType != keybase1.PathType_KBFS &&
+			pathType != keybase1.PathType_KBFS_ARCHIVED {
 			return errors.New("ls requires KBFS path arguments")
 		}
 		c.paths = append(c.paths, argPath)

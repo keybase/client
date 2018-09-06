@@ -33,12 +33,28 @@ export const props3 = {
   inputPlaceholder: '0.0000000',
 }
 
+const warning1 = {
+  warningAsset: '$13',
+}
+
+const warning2 = {
+  warningAsset: '128.4567890 XLM',
+}
+
+const warning3 = {
+  warningAsset: 'BTC/Stronghold.com',
+  warningPayee: 'russel',
+}
+
 const load = () => {
   storiesOf('Wallets/SendForm/Asset input', module)
     .addDecorator(story => <Box style={{maxWidth: 500, padding: 20}}>{story()}</Box>)
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props3} />)
     .add('Asset', () => <AssetInput {...props2} />)
+    .add('USD over warning', () => <AssetInput {...props1} {...warning1} />)
+    .add('XLM over warning', () => <AssetInput {...props2} {...warning2} />)
+    .add('asset type warning', () => <AssetInput {...props3} {...warning3} />)
 }
 
 export default load

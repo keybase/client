@@ -3,12 +3,13 @@ import * as Constants from '../../../../constants/teams'
 import * as Types from '../../../../constants/types/teams'
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
+import * as TrackerGen from '../../../../actions/tracker-gen'
+import * as ProfileGen from '../../../../actions/profile-gen'
 import {TeamMemberRow} from '.'
 import {amIFollowing} from '../../../../constants/selectors'
 import {navigateAppend} from '../../../../actions/route-tree'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect, isMobile, type TypedState} from '../../../../util/container'
 import {anyWaiting} from '../../../../constants/waiting'
-import * as TrackerGen from '../../../../actions/tracker-gen'
 
 type OwnProps = {
   teamname: string,
@@ -42,7 +43,7 @@ type DispatchProps = {
   onClick: () => void,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchProps => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps): DispatchProps => ({
   _onReAddToTeam: (teamname: string, username: string, role: Types.TeamRoleType) => {
     dispatch(
       TeamsGen.createAddToTeam({
@@ -57,7 +58,9 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps): DispatchPro
     dispatch(TeamsGen.createRemoveMemberOrPendingInvite({email: '', inviteID: '', teamname, username}))
   },
   _onShowTracker: (username: string) => {
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
+    isMobile
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
+      : dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username}))
   },
   onChat: () => {
     ownProps.username &&

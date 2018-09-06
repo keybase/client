@@ -40,7 +40,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	kbfsPlain := textMsgWithHeader(t, "kbfs", header)
 
 	boxer := NewBoxer(tc.Context())
-	sender := NewBlockingSender(tc.Context(), boxer, nil, func() chat1.RemoteInterface { return ri })
+	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
 	kbfsBoxed, _, _, _, _, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
 	require.NoError(t, err)
 	require.NotNil(t, kbfsBoxed)
@@ -53,7 +53,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
 	conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
-	CtxKeyFinder(ctx, tc.Context()).SetNameInfoSourceOverride(nil)
+	ctx = CtxAddTestingNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
 		TlfName:     u.Username,

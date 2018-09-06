@@ -58,7 +58,7 @@ func (t *txlogger) AddClaim(kbTxID stellar1.KeybaseTransactionID, c stellar1.Cla
 
 // Filter by accountID
 // But: Unclaimed relays not from the caller are effectively associated with the caller's primary account.
-func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) []stellar1.PaymentSummary {
+func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int, skipPending bool) []stellar1.PaymentSummary {
 	t.Lock()
 	defer t.Unlock()
 
@@ -72,7 +72,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 		WithNetContext(ctx)
 	user, err := libkb.LoadUser(loadMeArg)
 	require.NoError(t.T, err)
-	myAccountID := user.StellarWalletAddress()
+	myAccountID := user.StellarAccountID()
 	if myAccountID != nil {
 		callerAccountID = *myAccountID
 	}
@@ -140,6 +140,107 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 					p.KbTxID, accountID, callerAccountID)
 				continue
 			}
+
+			if skipPending {
+				pending := true
+				if p.TxStatus != stellar1.TransactionStatus_SUCCESS && p.TxStatus != stellar1.TransactionStatus_PENDING {
+					pending = false
+				}
+				if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+					pending = false
+				}
+				if pending {
+					continue
+				}
+			}
+
+			res = append(res, tx.Summary)
+		default:
+			require.Fail(t.T, "unrecognized variant", "%v", typ)
+		}
+	}
+	return res
+}
+
+// Pending by accountID
+func (t *txlogger) Pending(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) []stellar1.PaymentSummary {
+	t.Lock()
+	defer t.Unlock()
+
+	// load the caller to get their primary account
+	callerAccountID := stellar1.AccountID("")
+	meUID := tc.G.ActiveDevice.UID()
+	require.False(t.T, meUID.IsNil())
+	loadMeArg := libkb.NewLoadUserArgWithContext(ctx, tc.G).
+		WithUID(meUID).
+		WithSelf(true).
+		WithNetContext(ctx)
+	user, err := libkb.LoadUser(loadMeArg)
+	require.NoError(t.T, err)
+	myAccountID := user.StellarAccountID()
+	if myAccountID != nil {
+		callerAccountID = *myAccountID
+	}
+	caller := user.ToUserVersion()
+
+	var res []stellar1.PaymentSummary
+	for _, tx := range t.transactions {
+		if limit > 0 && len(res) == limit {
+			break
+		}
+
+		typ, err := tx.Summary.Typ()
+		require.NoError(t.T, err)
+		switch typ {
+		case stellar1.PaymentSummaryType_STELLAR:
+			continue
+		case stellar1.PaymentSummaryType_DIRECT:
+			continue
+		case stellar1.PaymentSummaryType_RELAY:
+			p := tx.Summary.Relay()
+
+			// Caller must be a member of the impteam.
+			if !t.isCallerInImplicitTeam(tc, p.TeamID) {
+				t.T.Logf("filtered out relay (team membership): %v", p.KbTxID)
+				continue
+			}
+
+			filterByAccount := func(r *stellar1.PaymentSummaryRelay, accountID stellar1.AccountID) bool {
+				if accountID.IsNil() {
+					return true
+				}
+				if r.FromStellar.Eq(accountID) {
+					return true
+				}
+				var successfullyClaimed bool
+				if r.Claim != nil {
+					if r.Claim.ToStellar.Eq(accountID) {
+						return true
+					}
+					if r.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+						successfullyClaimed = true
+					}
+				}
+				// Unclaimed relays not from the caller are effectively associated with the caller's primary account.
+				if !successfullyClaimed && !r.From.Eq(caller) && !callerAccountID.IsNil() && accountID.Eq(callerAccountID) {
+					return true
+				}
+				return false
+			}
+
+			if !filterByAccount(&p, accountID) {
+				t.T.Logf("filtered out relay (account filter): %v queryAccountID:%v callerAccountID:%v",
+					p.KbTxID, accountID, callerAccountID)
+				continue
+			}
+
+			if p.TxStatus != stellar1.TransactionStatus_SUCCESS && p.TxStatus != stellar1.TransactionStatus_PENDING {
+				continue
+			}
+			if p.Claim != nil && p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
+				continue
+			}
+
 			res = append(res, tx.Summary)
 		default:
 			require.Fail(t.T, "unrecognized variant", "%v", typ)
@@ -190,11 +291,12 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 }
 
 type FakeAccount struct {
-	T          testing.TB
-	accountID  stellar1.AccountID
-	secretKey  stellar1.SecretKey // can be missing for relay accounts
-	balance    stellar1.Balance
-	subentries int
+	T             testing.TB
+	accountID     stellar1.AccountID
+	secretKey     stellar1.SecretKey // can be missing for relay accounts
+	balance       stellar1.Balance   // XLM
+	otherBalances []stellar1.Balance // other assets
+	subentries    int
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
@@ -243,7 +345,7 @@ func (a *FakeAccount) Check() bool {
 	case b < 0:
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
 	case b < int64(minimumReserve):
-		require.Fail(a.T, "account has less than the minimum blaance balance", "%v < %v %v",
+		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
 			stellaramount.StringFromInt64(b), stellaramount.String(minimumReserve), a.accountID)
 	default:
 		return true
@@ -258,6 +360,25 @@ func (a *FakeAccount) availableBalance() string {
 		a.T.Fatalf("AvailableBalance error: %s", err)
 	}
 	return b
+}
+
+func (a *FakeAccount) AdjustAssetBalance(amount int64, asset stellar1.Asset) {
+	for i, v := range a.otherBalances {
+		if v.Asset.Eq(asset) {
+			b, err := stellaramount.ParseInt64(v.Amount)
+			require.NoError(a.T, err)
+			b += amount
+			v.Amount = stellaramount.StringFromInt64(b)
+			a.otherBalances[i] = v
+			return
+		}
+	}
+
+	balance := stellar1.Balance{
+		Amount: stellaramount.StringFromInt64(amount),
+		Asset:  asset,
+	}
+	a.otherBalances = append(a.otherBalances, balance)
 }
 
 // RemoteClientMock is a Remoter that calls into a BackendMock.
@@ -309,8 +430,12 @@ func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoCla
 	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
 }
 
-func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (stellar1.PaymentsPage, error) {
-	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit)
+func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
+	return r.Backend.RecentPayments(ctx, r.Tc, accountID, cursor, limit, skipPending)
+}
+
+func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stellar1.AccountID, limit int) ([]stellar1.PaymentSummary, error) {
+	return r.Backend.PendingPayments(ctx, r.Tc, accountID, limit)
 }
 
 func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
@@ -329,6 +454,18 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+	return r.Backend.SubmitRequest(ctx, r.Tc, post)
+}
+
+func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	return r.Backend.RequestDetails(ctx, r.Tc, requestID)
+}
+
+func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) (err error) {
+	return r.Backend.CancelRequest(ctx, r.Tc, requestID)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.
@@ -339,6 +476,7 @@ type BackendMock struct {
 	T        testing.TB
 	seqnos   map[stellar1.AccountID]uint64
 	accounts map[stellar1.AccountID]*FakeAccount
+	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
 }
 
@@ -347,6 +485,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		T:        t,
 		seqnos:   make(map[stellar1.AccountID]uint64),
 		accounts: make(map[stellar1.AccountID]*FakeAccount),
+		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
 	}
 }
@@ -397,7 +536,9 @@ func (r *BackendMock) Balances(ctx context.Context, accountID stellar1.AccountID
 		// If an account does not exist on the network, return empty balance list.
 		return nil, nil
 	}
-	return []stellar1.Balance{a.balance}, nil
+	res = append(res, a.balance)
+	res = append(res, a.otherBalances...)
+	return res, nil
 }
 
 func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post stellar1.PaymentDirectPost) (res stellar1.PaymentResult, err error) {
@@ -603,14 +744,22 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	}, nil
 }
 
-func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int) (res stellar1.PaymentsPage, err error) {
+func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.RecentPayments", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	if cursor != nil {
 		return res, errors.New("cursor not mocked")
 	}
-	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit)
+	res.Payments = r.txLog.Filter(ctx, tc, accountID, limit, skipPending)
+	return res, nil
+}
+
+func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, limit int) (res []stellar1.PaymentSummary, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PendingPayments", func() error { return err })()
+	r.Lock()
+	defer r.Unlock()
+	res = r.txLog.Pending(ctx, tc, accountID, limit)
 	return res, nil
 }
 
@@ -685,6 +834,7 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a.accountID
 }
 
@@ -697,16 +847,17 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 		T:         r.T,
 		accountID: accountID,
 		balance: stellar1.Balance{
-			Asset:  stellar1.Asset{Type: "native"},
+			Asset:  stellar1.AssetNative(),
 			Amount: amount,
 		},
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a
 }
 
-func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
+func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
 	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
 	defer r.Unlock()
@@ -716,17 +867,11 @@ func (r *BackendMock) ImportAccountsForUser(tc *TestContext) {
 		if _, found := r.accounts[account.AccountID]; found {
 			continue
 		}
-		a := &FakeAccount{
-			T:         r.T,
-			accountID: stellar1.AccountID(account.AccountID),
-			secretKey: stellar1.SecretKey(account.Signers[0]),
-			balance: stellar1.Balance{
-				Asset:  stellar1.Asset{Type: "native"},
-				Amount: "0",
-			},
-		}
-		r.accounts[a.accountID] = a
+		acc := r.addAccountByID(account.AccountID, false /* funded */)
+		acc.secretKey = stellar1.SecretKey(account.Signers[0])
+		res = append(res, acc)
 	}
+	return res
 }
 
 func (r *BackendMock) SecretKey(accountID stellar1.AccountID) stellar1.SecretKey {
@@ -757,12 +902,82 @@ func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currenc
 	}, nil
 }
 
+func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+	b, err := libkb.RandBytesWithSuffix(stellar1.KeybaseRequestIDLen, stellar1.KeybaseRequestIDSuffix)
+	if err != nil {
+		return "", err
+	}
+
+	reqID, err := stellar1.KeybaseRequestIDFromString(hex.EncodeToString(b))
+	if err != nil {
+		return "", err
+	}
+
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return "", fmt.Errorf("could not get self UV: %v", err)
+	}
+
+	r.requests[reqID] = &stellar1.RequestDetails{
+		Id:          reqID,
+		FromUser:    caller,
+		ToUser:      post.ToUser,
+		ToAssertion: post.ToAssertion,
+		Amount:      post.Amount,
+		Asset:       post.Asset,
+		Currency:    post.Currency,
+	}
+	return reqID, nil
+}
+
+func (r *BackendMock) RequestDetails(ctx context.Context, tc *TestContext, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+	details, ok := r.requests[requestID]
+	if !ok {
+		return res, fmt.Errorf("request %v not found", requestID)
+	}
+
+	return *details, nil
+}
+
+func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, requestID stellar1.KeybaseRequestID) (err error) {
+	readError := func() error { return fmt.Errorf("could not find request with ID %s", requestID) }
+
+	details, ok := r.requests[requestID]
+	if !ok {
+		return readError()
+	}
+
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return fmt.Errorf("could not get self UV: %v", err)
+	}
+
+	if !details.FromUser.Eq(caller) {
+		return readError()
+	}
+
+	details.Status = stellar1.RequestStatus_CANCELED
+	return nil
+}
+
 // Friendbot sends someone XLM
 func (r *BackendMock) Gift(accountID stellar1.AccountID, amount string) {
 	r.Lock()
 	defer r.Unlock()
 	require.NotNil(r.T, r.accounts[accountID], "account for gift")
 	r.accounts[accountID].AdjustBalance(int64(stellaramount.MustParse(amount)))
+}
+
+func (r *BackendMock) CreateFakeAsset(code string) stellar1.Asset {
+	full, err := keypair.Random()
+	require.NoError(r.T, err)
+	assetType, err := stellar1.CreateNonNativeAssetType(code)
+	require.NoError(r.T, err)
+	return stellar1.Asset{
+		Type:   assetType,
+		Code:   code,
+		Issuer: full.Address(),
+	}
 }
 
 func randomKeybaseTransactionID(t testing.TB) stellar1.KeybaseTransactionID {

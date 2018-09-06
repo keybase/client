@@ -43,7 +43,7 @@ type cacheStats struct {
 	breaks  int
 }
 
-type identify2testCache map[keybase1.UID](*keybase1.Identify2Res)
+type identify2testCache map[keybase1.UID](*keybase1.Identify2ResUPK2)
 
 func (c cacheStats) eq(h, t, m, n, b int) bool {
 	return h == c.hit && t == c.timeout && m == c.miss && n == c.notime && b == c.breaks
@@ -85,7 +85,7 @@ func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
 func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
 func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
 func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
-func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.ProofContext, name string) (string, error) {
+func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
 func (i *Identify2WithUIDTester) NormalizeUsername(name string) (string, error)    { return name, nil }
@@ -100,11 +100,11 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ libkb.PvlUnparsed) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ libkb.PvlUnparsed) libkb.ProofError {
 	if i.checkStatusHook != nil {
 		return i.checkStatusHook(h, pcm)
 	}
-	i.G().Log.Debug("Check status rubber stamp: %+v", h)
+	m.CDebugf("Check status rubber stamp: %+v", h)
 	return nil
 }
 
@@ -171,7 +171,7 @@ func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason, bool) er
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2Res, error) {
+func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, gcdf libkb.GetCacheDurationFunc, breaksOK bool) (*keybase1.Identify2ResUPK2, error) {
 	i.Lock()
 	defer i.Unlock()
 	res := i.cache[uid]
@@ -179,7 +179,7 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 
 	// Please excuse this horrible hack, but use the `GetCacheDurationFunc` to see if we're dealing
 	// with a fast cache duration
-	if gcdf(keybase1.Identify2Res{}) == libkb.Identify2CacheShortTimeout {
+	if gcdf(keybase1.Identify2ResUPK2{}) == libkb.Identify2CacheShortTimeout {
 		stats = &i.fastStats
 	}
 
@@ -208,13 +208,13 @@ func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFu
 	return res, nil
 }
 
-func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2Res) error {
+func (i *Identify2WithUIDTester) Insert(up *keybase1.Identify2ResUPK2) error {
 	i.Lock()
 	defer i.Unlock()
 	tmp := *up
 	copy := &tmp
 	copy.Upk.Uvv.CachedAt = keybase1.ToTime(i.now)
-	i.cache[up.Upk.Uid] = copy
+	i.cache[up.Upk.GetUID()] = copy
 	return nil
 }
 func (i *Identify2WithUIDTester) DidFullUserLoad(uid keybase1.UID) {
@@ -429,17 +429,17 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	var origUI libkb.IdentifyUI
 	origUI = tester
 
-	checkBrokenRes := func(res *keybase1.Identify2Res) {
-		if !res.Upk.Uid.Equal(tracyUID) {
+	checkBrokenRes := func(res *keybase1.Identify2ResUPK2) {
+		if !res.Upk.GetUID().Equal(tracyUID) {
 			t.Fatal("bad UID for t_tracy")
 		}
-		if res.Upk.Username != "t_tracy" {
+		if res.Upk.GetName() != "t_tracy" {
 			t.Fatal("bad username for t_tracy")
 		}
-		if len(res.Upk.DeviceKeys) != 4 {
+		if len(res.Upk.Current.DeviceKeys) != 4 {
 			t.Fatal("wrong # of device keys for tracy")
 		}
-		if len(res.TrackBreaks.Proofs) != 1 {
+		if res.TrackBreaks == nil || len(res.TrackBreaks.Proofs) != 1 {
 			t.Fatal("Expected to get back 1 broken proof")
 		}
 		if res.TrackBreaks.Proofs[0].RemoteProof.Key != "twitter" {
@@ -451,8 +451,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	}
 
 	runChatGUI := func() {
-		// Now run the engine again, but in normal mode, and check that we don't hit
-		// the cached broken gy.
+		// Now run the engine again, but in gui mode, and check that we don't hit
+		// the cached broken guy.
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
@@ -468,9 +468,12 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		// otherwise the waiter() will block indefinitely.
 		origUI.Finish()
 		waiter()
-		res := eng.Result()
 		if err != nil {
-			t.Fatalf("expected no ID2 error; got %v\n", err)
+			t.Fatalf("expected no ID2 error; got %v", err)
+		}
+		res, err := eng.Result()
+		if err != nil {
+			t.Fatalf("unexpected export error: %s", err)
 		}
 		checkBrokenRes(res)
 		if n := eng.testArgs.stats.untrackedFastPaths; n > 0 {
@@ -480,7 +483,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 
 	runStandard := func() {
 		// Now run the engine again, but in normal mode, and check that we don't hit
-		// the cached broken gy.
+		// the cached broken guy.
 		eng := NewIdentify2WithUID(tc.G, &keybase1.Identify2Arg{Uid: tracyUID, IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI})
 
 		eng.testArgs = &Identify2WithUIDTestArgs{
@@ -928,12 +931,15 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	}
 
 	// kbfs would like to have some info about the user
-	result := eng.Result()
+	result, err := eng.Result()
+	if err != nil {
+		t.Fatalf("unexpeted export error: %s", err)
+	}
 	if result == nil {
 		t.Fatal("no result on id2 w/ no sigchain")
 	}
-	if result.Upk.Username != u {
-		t.Errorf("result username: %q, expected %q", result.Upk.Username, u)
+	if result.Upk.GetName() != u {
+		t.Errorf("result username: %q, expected %q", result.Upk.GetName(), u)
 	}
 }
 
@@ -1068,6 +1074,60 @@ func TestSkipExternalChecks(t *testing.T) {
 	arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CHAT_CLI
 	_, err = identify2WithUIDWithBrokenTrackMakeEngine(t, arg)
 	require.Error(t, err)
+}
+
+type evilResolver struct {
+	*libkb.ResolverImpl
+	badPrefix string
+	badUID    keybase1.UID
+}
+
+func (e *evilResolver) ResolveFullExpressionWithBody(m libkb.MetaContext, s string) libkb.ResolveResult {
+	ret := e.ResolverImpl.ResolveFullExpressionWithBody(m, s)
+	if strings.HasPrefix(s, e.badPrefix) {
+		ret.SetUIDForTesting(e.badUID)
+	}
+	return ret
+}
+
+var _ libkb.Resolver = (*evilResolver)(nil)
+
+func TestResolveAndCheck(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+	m := NewMetaContextForTest(tc)
+	goodResolver := tc.G.Resolver.(*libkb.ResolverImpl)
+	evilResolver := evilResolver{goodResolver, "t_alice", tracyUID}
+
+	var tests = []struct {
+		s string
+		e error
+		r libkb.Resolver
+	}{
+		{"tacovontaco@twitter+t_tracy@rooter", nil, nil},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, nil},
+		{"t_tracy", nil, nil},
+		{"t_tracy+" + string(tracyUID) + "@uid", nil, nil},
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, nil},
+		{"foobunny@github", libkb.ResolutionError{}, nil},
+		{"foobunny", libkb.NotFoundError{}, nil},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}, nil},
+		{"t_alice", libkb.UIDMismatchError{}, &evilResolver},
+		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, &evilResolver},
+		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, &evilResolver},
+	}
+	for _, test := range tests {
+		tc.G.Resolver = goodResolver
+		if test.r != nil {
+			tc.G.Resolver = test.r
+		}
+		upk, err := ResolveAndCheck(m, test.s, true)
+		require.IsType(t, test.e, err)
+		if err == nil {
+			require.True(t, upk.GetUID().Equal(tracyUID))
+			require.Equal(t, upk.GetName(), "t_tracy")
+		}
+	}
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

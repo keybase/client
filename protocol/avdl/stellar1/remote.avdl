@@ -130,6 +130,7 @@ protocol remote {
     array<Balance> balances;
     int subentryCount;  // number of entries in the ledger (which raise minimum balance)
     string available;   // for native XLM the amount that is available to send (amount - min balance)
+    array<AccountReserve> reserves;
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
@@ -137,7 +138,9 @@ protocol remote {
     array<PaymentSummary> payments;
     union { null, PageCursor } cursor;
   }
-  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit);
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
+
+  array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
@@ -164,6 +167,43 @@ protocol remote {
 
   // ask the stellar network whether the master key for the account has power
   boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
+
+  record RequestPost {
+    // User being asked for payment - Keybase user or an assertion. If
+    // `toUser` is not null, `toAssertion` shall be the username. For
+    // SBS, `toUser` is null, and `toAssertion` is social assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    // Amount of XLM or other Stellar asset, or outside currency.
+    string amount;
+    // User can either ask for specific amount of given Stellar asset,
+    // or an amount of outside currency (user making the payment does
+    // the conversion in this case).
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+  }
+  KeybaseRequestID submitRequest(keybase1.UserVersion caller, RequestPost request);
+
+  record RequestDetails {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    keybase1.UserVersion fromUser;
+    // User being asked for payment - Keybase user or SBS assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Payment ID if funded, empty if not funded.
+    KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
+  }
+  RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
+  void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
 
   string ping();
 }

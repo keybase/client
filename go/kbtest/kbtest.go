@@ -7,7 +7,10 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"sync"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
 
@@ -152,6 +155,84 @@ func AssertProvisioned(tc libkb.TestContext) error {
 	return nil
 }
 
+func FakeSalt() []byte {
+	return []byte("fakeSALTfakeSALT")
+}
+
+// Provision a new device (in context tcY) from the active (and logged in) device in test context tcX.
+// This was adapted from engine/kex2_test.go
+// Note that it uses Errorf in goroutines, so if it fails
+// the test will not fail until later.
+// tcX is a TestContext where device X (the provisioner) is already provisioned and logged in.
+// this function will provision a new device Y inside tcY
+func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser) {
+	// tcX is the device X (provisioner) context:
+	// tcX should already have been logged in.
+	t := tcX.T
+
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	var secretY kex2.Secret
+	if _, err := rand.Read(secretY[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		err := (func() error {
+			uis := libkb.UIs{
+				ProvisionUI: &TestProvisionUI{SecretCh: make(chan kex2.Secret, 1)},
+			}
+			m := libkb.NewMetaContextForTest(*tcY).WithUIs(uis).WithNewProvisionalLoginContext()
+			deviceID, err := libkb.NewDeviceID()
+			if err != nil {
+				return err
+			}
+			suffix, err := libkb.RandBytes(5)
+			if err != nil {
+				return err
+			}
+			dname := fmt.Sprintf("device_%x", suffix)
+			device := &libkb.Device{
+				ID:          deviceID,
+				Description: &dname,
+				Type:        libkb.DeviceTypeDesktop,
+			}
+			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
+			return engine.RunEngine2(m, provisionee)
+		})()
+		require.NoError(t, err, "kex2 provisionee")
+	}()
+
+	// start provisioner
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		uis := libkb.UIs{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: &TestProvisionUI{},
+		}
+		provisioner := engine.NewKex2Provisioner(tcX.G, secretX, nil)
+		go provisioner.AddSecret(secretY)
+		m := libkb.NewMetaContextForTest(*tcX).WithUIs(uis)
+		if err := engine.RunEngine2(m, provisioner); err != nil {
+			require.NoErrorf(t, err, "provisioner error")
+			return
+		}
+	}()
+
+	wg.Wait()
+
+	return
+}
+
 type TestProvisionUI struct {
 	SecretCh chan kex2.Secret
 }
@@ -248,4 +329,44 @@ func CheckTeamMiscNotifications(tc libkb.TestContext, notifications *TeamNotifyL
 			return
 		}
 	}
+}
+
+type fakeIdentifyUI struct {
+	*engine.LoopbackIdentifyUI
+}
+
+func (l *fakeIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+	return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
+}
+
+func newFakeIdentifyUI(g *libkb.GlobalContext) *fakeIdentifyUI {
+	var tb *keybase1.IdentifyTrackBreaks
+	return &fakeIdentifyUI{
+		engine.NewLoopbackIdentifyUI(g, &tb),
+	}
+}
+
+func RunTrack(tc libkb.TestContext, fu *FakeUser, username string) (them *libkb.User, err error) {
+	sv := keybase1.SigVersion(2)
+	return RunTrackWithOptions(tc, fu, username, keybase1.TrackOptions{BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI(), false)
+}
+
+func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, options keybase1.TrackOptions, secretUI libkb.SecretUI, forceRemoteCheck bool) (them *libkb.User, err error) {
+	idUI := newFakeIdentifyUI(tc.G)
+
+	arg := &engine.TrackEngineArg{
+		UserAssertion:    username,
+		Options:          options,
+		ForceRemoteCheck: forceRemoteCheck,
+	}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: idUI,
+		SecretUI:   secretUI,
+	}
+	eng := engine.NewTrackEngine(tc.G, arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	them = eng.User()
+	return them, err
 }

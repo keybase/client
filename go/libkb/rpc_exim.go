@@ -354,17 +354,25 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		ret := NoPGPEncryptionKeyError{User: s.Desc}
 		for _, field := range s.Fields {
 			switch field.Key {
-			case "device":
-				ret.HasDeviceKey = true
+			case "HasKeybaseEncryptionKey":
+				ret.HasKeybaseEncryptionKey = true
 			}
 		}
 		return ret
 	case SCKeyNoNaClEncryption:
-		ret := NoNaClEncryptionKeyError{User: s.Desc}
+		ret := NoNaClEncryptionKeyError{}
 		for _, field := range s.Fields {
 			switch field.Key {
-			case "pgp":
+			case "Username":
+				ret.Username = field.Value
+			case "HasPGPKey":
 				ret.HasPGPKey = true
+			case "HasPUK":
+				ret.HasPUK = true
+			case "HasPaperKey":
+				ret.HasPaperKey = true
+			case "HasDeviceKey":
+				ret.HasDeviceKey = true
 			}
 		}
 		return ret
@@ -405,7 +413,23 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCDeleted:
 		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
-		return DecryptionError{}
+		ret := DecryptionError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCSigCannotVerify:
+		ret := VerificationError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
 	case SCKeyRevoked:
 		return KeyRevokedError{msg: s.Desc}
 	case SCDeviceNameInUse:
@@ -677,6 +701,27 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			e.CanKey = true
 		}
 		return e
+	case SCEphemeralPairwiseMACsMissingUIDs:
+		uids := []keybase1.UID{}
+		for _, field := range s.Fields {
+			uids = append(uids, keybase1.UID(field.Value))
+		}
+		return NewEphemeralPairwiseMACsMissingUIDsError(uids)
+	case SCMerkleClientError:
+		e := MerkleClientError{m: s.Desc}
+		for _, field := range s.Fields {
+			if field.Key == "type" {
+				i, err := strconv.Atoi(field.Value)
+				if err != nil {
+					g.Log.Warning("error parsing merkle error type: %s", err)
+				} else {
+					e.t = merkleClientErrorType(i)
+				}
+			}
+		}
+		return e
+	case SCTeamFTLOutdated:
+		return NewTeamFTLOutdatedError(s.Desc)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1397,6 +1442,10 @@ func (u *User) ExportToUPKV2AllIncarnations() (*keybase1.UserPlusKeysV2AllIncarn
 			current.RemoteTracks[track.whomUID] = track.Export()
 		}
 	}
+	if accountID := u.StellarAccountID(); accountID != nil {
+		tmp := accountID.String()
+		current.StellarAccountID = &tmp
+	}
 
 	// Collect the link IDs (that is, the hashes of the signature inputs) from all subchains.
 	linkIDs := map[keybase1.Seqno]keybase1.LinkID{}
@@ -1732,9 +1781,9 @@ func (e NoPGPEncryptionKeyError) ToStatus() keybase1.Status {
 		Name: "SC_KEY_NO_PGP_ENCRYPTION",
 		Desc: e.User,
 	}
-	if e.HasDeviceKey {
+	if e.HasKeybaseEncryptionKey {
 		ret.Fields = []keybase1.StringKVPair{
-			{Key: "device", Value: "1"},
+			{Key: "HasKeybaseEncryptionKey", Value: "1"},
 		}
 	}
 	return ret
@@ -1744,12 +1793,22 @@ func (e NoNaClEncryptionKeyError) ToStatus() keybase1.Status {
 	ret := keybase1.Status{
 		Code: SCKeyNoNaClEncryption,
 		Name: "SC_KEY_NO_NACL_ENCRYPTION",
-		Desc: e.User,
+		Desc: e.Error(),
 	}
+
+	ret.Fields = []keybase1.StringKVPair{{Key: "Username", Value: e.Username}}
+
 	if e.HasPGPKey {
-		ret.Fields = []keybase1.StringKVPair{
-			{Key: "pgp", Value: "1"},
-		}
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPGPKey", Value: "1"})
+	}
+	if e.HasPUK {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPUK", Value: "1"})
+	}
+	if e.HasDeviceKey {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasDeviceKey", Value: "1"})
+	}
+	if e.HasPaperKey {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "HasPaperKey", Value: "1"})
 	}
 	return ret
 }
@@ -1847,7 +1906,19 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
-		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
+	}
+}
+
+func (e VerificationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCannotVerify,
+		Name: "SC_SIG_CANNOT_VERIFY",
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
 	}
 }
 
@@ -2249,5 +2320,32 @@ func (e TeamProvisionalError) ToStatus() keybase1.Status {
 	if e.IsPublic {
 		ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "IsPublic", Value: "1"})
 	}
+	return ret
+}
+
+func (e EphemeralPairwiseMACsMissingUIDsError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCEphemeralPairwiseMACsMissingUIDs
+	ret.Name = "EPHEMERAL_PAIRWISE_MACS_MISSING_UIDS"
+	for _, uid := range e.UIDs {
+		ret.Fields = append(ret.Fields, keybase1.StringKVPair{
+			Key:   "uid",
+			Value: uid.String(),
+		})
+	}
+	return ret
+}
+
+func (e MerkleClientError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCMerkleClientError
+	ret.Name = "MERKLE_CLIENT_ERROR"
+	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "type", Value: fmt.Sprintf("%d", int(e.t))})
+	ret.Desc = e.m
+	return ret
+}
+
+func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamFTLOutdated
+	ret.Name = "TEAM_FTL_OUTDATED"
+	ret.Desc = e.msg
 	return ret
 }

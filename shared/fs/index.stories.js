@@ -3,25 +3,28 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
+import * as Sb from '../stories/storybook'
 import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
-import {action, storiesOf, createPropProvider} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
+import TlfTypeRow from './row/tlf-type'
+import TlfRow from './row/tlf'
 import StillRow from './row/still'
 import EditingRow from './row/editing'
 import PlaceholderRow from './row/placeholder'
 import UploadingRow from './row/uploading'
 import {NormalPreview} from './filepreview'
-import {Box} from '../common-adapters'
+import {Box, Box2, Text, OverlayParentHOC} from '../common-adapters'
+import Downloads from './footer/downloads'
 import Download from './footer/download'
 import Upload from './footer/upload'
 import PathItemAction from './common/path-item-action'
-import {FloatingMenuParentHOC} from '../common-adapters/floating-menu'
 import Breadcrumb from './header/breadcrumb.desktop'
 import Banner from './banner'
+import Errs from './footer/errs'
 
-const FloatingPathItemAction = FloatingMenuParentHOC(PathItemAction)
+const FloatingPathItemAction = OverlayParentHOC(PathItemAction)
 
 const folderItemStyles = {
   iconSpec: {
@@ -51,31 +54,46 @@ const rowProviders = {
   }),
   ConnectedStillRow: ({path}: {path: Types.Path}) => {
     const pathStr = Types.pathToString(path)
-    const hasAbc = pathStr.includes('abc')
-    const hasDef = pathStr.includes('def')
-    const hasGhi = pathStr.includes('ghi')
     return {
       name: Types.getPathName(path),
-      onOpen: () => {},
-      openInFileUI: () => {},
       type: 'folder',
-      shouldShowMenu: true,
       itemStyles: folderItemStyles,
-      onAction: action('onAction'),
-      resetParticipants: [...(hasAbc ? ['abc'] : []), ...(hasDef ? ['def'] : []), ...(hasGhi ? ['ghi'] : [])],
-      isUserReset: false,
+      onAction: Sb.action('onAction'),
+      isEmpty: pathStr.includes('empty'),
     }
   },
+  ConnectedOpenHOC: ownProps => ({
+    ...ownProps,
+    onOpen: () => {},
+  }),
+  ConnectedOpenInFileUI: () => ({
+    kbfsEnabled: false,
+    openInFileUI: Sb.action('openInFileUI'),
+    installFuse: Sb.action('installFuse'),
+  }),
 }
 
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   ...rowProviders,
-  ConnectedFooter: () => ({
-    downloadKeys: [],
+  ConnectedErrs: () => ({
+    errs: [],
+  }),
+  ConnectedDownloads: () => ({
+    downloadKeys: ['file 1', 'blah 2', 'yo 3'],
+    thereAreMore: true,
+    openDownloadFolder: Sb.action('openDownloadFolder'),
   }),
   ConnectedUpload: () => ({
     files: 0,
-    timeLeft: '',
+  }),
+  ConnectedDownload: ({downloadKey}) => ({
+    filename: downloadKey,
+    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    progressText: '42 s',
+    isDone: false,
+    open: Sb.action('open'),
+    dismiss: Sb.action('dismiss'),
+    cancel: Sb.action('cancel'),
   }),
   FolderHeader: () => ({
     breadcrumbItems: [
@@ -87,9 +105,9 @@ const provider = createPropProvider({
     dropdownItems: [],
     isTeamPath: false,
     path: Types.stringToPath('/keybase'),
-    onBack: action('onBack'),
-    onOpenBreadcrumb: action('onOpenBreadcrumb'),
-    onOpenBreadcrumbDropdown: action('onOpenBreadcrumbDropdown'),
+    onBack: Sb.action('onBack'),
+    onOpenBreadcrumb: Sb.action('onOpenBreadcrumb'),
+    onOpenBreadcrumbDropdown: Sb.action('onOpenBreadcrumbDropdown'),
   }),
   ConnectedBreadcrumb: () => ({
     dropdownItems: undefined,
@@ -100,8 +118,8 @@ const provider = createPropProvider({
       sortBy: 'name',
       sortOrder: 'asc',
     },
-    onOpenSortSettingPopup: () => {},
     folderIsPending: true,
+    sortSettingToAction: sortSetting => Sb.action(`sortSettingToAction${sortSetting}`),
   }),
   FilesBanner: () => ({
     path: Types.stringToPath('/keybase'),
@@ -109,10 +127,10 @@ const provider = createPropProvider({
     showBanner: false,
     inProgress: false,
     showSecurityPrefs: false,
-    getFuseStatus: action('getFuseStatus'),
-    onDismiss: action('onDismiss'),
-    onInstall: action('onInstall'),
-    onUninstall: action('onUninstall'),
+    getFuseStatus: Sb.action('getFuseStatus'),
+    onDismiss: Sb.action('onDismiss'),
+    onInstall: Sb.action('onInstall'),
+    onUninstall: Sb.action('onUninstall'),
   }),
   FilePreviewDefaultView: () => ({
     fileUIEnabled: false,
@@ -144,8 +162,8 @@ const provider = createPropProvider({
     mimeType: 'jpg',
     isSymlink: false,
     path: '/keybase/private/foo/bar.jpg',
-    onInvalidToken: action('onInvalidToken'),
-    loadMimeType: action('loadMimeType'),
+    onInvalidToken: Sb.action('onInvalidToken'),
+    loadMimeType: Sb.action('loadMimeType'),
   }),
   ResetBanner: ({path}: {path: Types.Path}) => ({
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
@@ -170,9 +188,9 @@ const provider = createPropProvider({
 })
 
 const downloadCommonActions = {
-  open: action('open'),
-  dismiss: action('dismiss'),
-  cancel: action('cancel'),
+  open: Sb.action('open'),
+  dismiss: Sb.action('dismiss'),
+  cancel: Sb.action('cancel'),
 }
 
 const pathItemActionPopupProps = (path: Types.Path) => {
@@ -186,14 +204,15 @@ const pathItemActionPopupProps = (path: Types.Path) => {
     childrenFiles: 0,
     itemStyles: Constants.getItemStyles(pathElements, 'folder', 'meatball'),
     name: Types.getPathNameFromElems(pathElements),
+    path,
     pathElements,
     menuItems: [
       {
         title: 'menu item',
-        onClick: action('onClick'),
+        onClick: Sb.action('onClick'),
       },
     ],
-    onHidden: action('onHidden'),
+    onHidden: Sb.action('onHidden'),
   }
 }
 
@@ -204,7 +223,7 @@ const breadcrumbProps = (names: Array<string>) => {
     name: name,
     path: Types.stringToPath('/' + names.slice(0, idx + 1).join('/')),
     iconSpec: Constants.getItemStyles(names.slice(0, idx + 1), 'folder', 'foo').iconSpec,
-    onClick: action('onClick'),
+    onClick: Sb.action('onClick'),
   }))
   return items.length > 3
     ? {
@@ -218,13 +237,13 @@ const breadcrumbProps = (names: Array<string>) => {
 }
 
 const commonRowProps = {
-  onSubmit: action('onSubmit'),
-  onUpdate: action('onUpdate'),
-  onCancel: action('onCancel'),
+  onSubmit: Sb.action('onSubmit'),
+  onUpdate: Sb.action('onUpdate'),
+  onCancel: Sb.action('onCancel'),
 }
 
 const load = () => {
-  storiesOf('Files', module)
+  Sb.storiesOf('Files', module)
     .addDecorator(provider)
     .add('Root', () => (
       <Files
@@ -253,8 +272,9 @@ const load = () => {
       <Box>
         <WrapRow key="1">
           <ConnectedStillRow
+            name="a"
             path={Types.stringToPath('/keybase/private/a')}
-            routeProps={I.Map({path: '/keybase/private/foo'})}
+            routeProps={I.Map({path: '/keybase/private/a'})}
             routePath={I.List([])}
           />
         </WrapRow>
@@ -359,15 +379,11 @@ const load = () => {
             type="file"
             lastModifiedTimestamp={Date.now()}
             lastWriter="alice"
-            shouldShowMenu={true}
             itemStyles={fileItemStyles}
-            badgeCount={0}
             isDownloading={true}
-            isUserReset={false}
-            resetParticipants={[]}
-            onOpen={action('onOpen')}
-            openInFileUI={action('openInFileUI')}
-            onAction={action('onAction')}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+            isEmpty={false}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -376,9 +392,135 @@ const load = () => {
         <WrapRow key="14">
           <PlaceholderRow type="file" />
         </WrapRow>
+        <WrapRow key="15">
+          <ConnectedStillRow
+            name="empty"
+            path={Types.stringToPath('/keybase/private/empty')}
+            routeProps={I.Map({path: '/keybase/private/empty'})}
+            routePath={I.List([])}
+          />
+        </WrapRow>
+        <WrapRow key="16">
+          <StillRow
+            path={Types.stringToPath('/keybase/private/foo/bar/baz')}
+            name="qux"
+            type="file"
+            lastModifiedTimestamp={Date.now()}
+            lastWriter="bob"
+            itemStyles={fileItemStyles}
+            isDownloading={false}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+            isEmpty={false}
+          />
+        </WrapRow>
+        <WrapRow key="17">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={0}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="18">
+          <TlfTypeRow
+            name="private"
+            path={Types.stringToPath('/keybase/private')}
+            itemStyles={folderItemStyles}
+            badgeCount={3}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="19">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="20">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={true}
+            resetParticipants={['charlie']}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="21">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={['alice', 'bob']}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
+        <WrapRow key="22">
+          <TlfRow
+            name="alice,bob,charlie"
+            path={Types.stringToPath('/keybase/private/alice,bob,charlie')}
+            itemStyles={folderItemStyles}
+            needsRekey={false}
+            isIgnored={false}
+            isNew={true}
+            isUserReset={false}
+            resetParticipants={[]}
+            onOpen={Sb.action('onOpen')}
+            onAction={Sb.action('onAction')}
+          />
+        </WrapRow>
       </Box>
     ))
-    .add('Footer Cards', () => (
+    .add('Downloads', () => (
+      <Box2 direction="vertical">
+        <Text type="Header">1 item</Text>
+        <Downloads
+          downloadKeys={['file 1']}
+          thereAreMore={false}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
+        <Text type="Header">2 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2']}
+          thereAreMore={false}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
+        <Text type="Header">3 items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={false}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
+        <Text type="Header">4+ items</Text>
+        <Downloads
+          downloadKeys={['file 1', 'blah 2', 'yo 3']}
+          thereAreMore={true}
+          openDownloadFolder={Sb.action('openDownloadFolder')}
+        />
+      </Box2>
+    ))
+    .add('Download Cards', () => (
       <Box>
         <Box style={{height: 8}} />
         <Download
@@ -480,7 +622,7 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} timeLeft="23 min" />)
+    .add('UploadBanner', () => <Upload files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />)
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}
@@ -514,6 +656,36 @@ const load = () => {
         <Box style={{height: 8}} />
         <Banner path={Types.stringToPath('/keybase/private/me,reset')} shouldShowReset={true} />
       </Box>
+    ))
+    .add('Errs', () => (
+      <Errs
+        errs={[
+          {
+            key: '1',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 1.jpg',
+            dismiss: Sb.action('dismiss'),
+          },
+          {
+            key: '2',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 2.jpg',
+            retry: Sb.action('retry'),
+            dismiss: Sb.action('dismiss'),
+          },
+          {
+            key: '3',
+            time: 1534362428795,
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            msg: 'Error when downloading file blah 99.jpg',
+            retry: Sb.action('retry'),
+            dismiss: Sb.action('dismiss'),
+          },
+        ]}
+        more={2}
+      />
     ))
 }
 

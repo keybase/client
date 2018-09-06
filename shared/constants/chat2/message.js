@@ -6,6 +6,7 @@ import * as MessageTypes from '../types/chat2/message'
 import * as RPCTypes from '../types/rpc-gen'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
+import * as FsTypes from '../types/fs'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
@@ -50,6 +51,10 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
         'systemSimpleToComplex',
         'systemText',
       ]
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return ['sendPayment']
+    case RPCChatTypes.commonMessageType.requestpayment:
+      return ['requestPayment']
     // mutations and other types we don't store directly
     case RPCChatTypes.commonMessageType.none:
     case RPCChatTypes.commonMessageType.edit:
@@ -57,7 +62,6 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.tlfname:
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
-    case RPCChatTypes.commonMessageType.sendpayment:
       return []
     default:
       /*::
@@ -130,6 +134,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
+  reactions: I.Map(),
   submitState: null,
   text: new HiddenString(''),
   type: 'text',
@@ -144,25 +149,46 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileSize: 0,
   fileType: '',
   fileURL: '',
+  fileURLCached: false,
+  inlineVideoPlayable: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
   previewWidth: 0,
+  reactions: I.Map(),
   showPlayButton: false,
   submitState: null,
   title: '',
   transferProgress: 0,
   transferState: null,
   type: 'attachment',
+  videoDuration: null,
+})
+
+export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
+  ...makeMessageCommon,
+  note: '',
+  reactions: I.Map(),
+  requestID: '',
+  type: 'requestPayment',
+})
+
+export const makeMessageSendPayment: I.RecordFactory<MessageTypes._MessageSendPayment> = I.Record({
+  ...makeMessageCommon,
+  paymentID: {txID: ''}, // TODO see if this is an appropriate default value
+  reactions: I.Map(),
+  type: 'sendPayment',
 })
 
 const makeMessageSystemJoined: I.RecordFactory<MessageTypes._MessageSystemJoined> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   type: 'systemJoined',
 })
 
 const makeMessageSystemLeft: I.RecordFactory<MessageTypes._MessageSystemLeft> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   type: 'systemLeft',
 })
 
@@ -171,6 +197,7 @@ const makeMessageSystemAddedToTeam: I.RecordFactory<MessageTypes._MessageSystemA
   addee: '',
   adder: '',
   isAdmin: false,
+  reactions: I.Map(),
   team: '',
   type: 'systemAddedToTeam',
 })
@@ -182,6 +209,7 @@ const makeMessageSystemInviteAccepted: I.RecordFactory<MessageTypes._MessageSyst
   inviteType: 'none',
   invitee: '',
   inviter: '',
+  reactions: I.Map(),
   team: '',
   type: 'systemInviteAccepted',
 })
@@ -190,19 +218,23 @@ const makeMessageSystemSimpleToComplex: I.RecordFactory<
   MessageTypes._MessageSystemSimpleToComplex
 > = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   team: '',
   type: 'systemSimpleToComplex',
 })
 
 const makeMessageSystemText: I.RecordFactory<MessageTypes._MessageSystemText> = I.Record({
   ...makeMessageMinimum,
+  reactions: I.Map(),
   text: new HiddenString(''),
   type: 'systemText',
 })
 
 const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPush> = I.Record({
   ...makeMessageMinimum,
+  pushType: 0,
   pusher: '',
+  reactions: I.Map(),
   refs: [],
   repo: '',
   repoID: '',
@@ -213,14 +245,42 @@ const makeMessageSystemGitPush: I.RecordFactory<MessageTypes._MessageSystemGitPu
 const makeMessageSetDescription: I.RecordFactory<MessageTypes._MessageSetDescription> = I.Record({
   ...makeMessageMinimum,
   newDescription: new HiddenString(''),
+  reactions: I.Map(),
   type: 'setDescription',
 })
 
 const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannelname> = I.Record({
   ...makeMessageMinimum,
   newChannelname: '',
+  reactions: I.Map(),
   type: 'setChannelname',
 })
+
+export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
+  timestamp: 0,
+  username: '',
+})
+
+export const reactionMapToReactions = (r: RPCChatTypes.ReactionMap): MessageTypes.Reactions => {
+  if (!r.reactions) {
+    return I.Map()
+  }
+  return I.Map(
+    Object.keys(r.reactions).reduce((res, emoji) => {
+      if (r.reactions[emoji]) {
+        res[emoji] = I.Set(
+          Object.keys(r.reactions[emoji]).map(username =>
+            makeReaction({
+              timestamp: r.reactions[emoji][username].ctime,
+              username,
+            })
+          )
+        )
+      }
+      return res
+    }, {})
+  )
+}
 
 const channelMentionToMentionsChannel = (channelMention: RPCChatTypes.ChannelMention) => {
   switch (channelMention) {
@@ -329,9 +389,11 @@ const uiMessageToSystemMessage = (minimum, body): ?Types.Message => {
       })
     }
     case RPCChatTypes.localMessageSystemType.gitpush: {
-      const {team = '???', pusher = '???', repoName: repo = '???', repoID = '???', refs} = body.gitpush || {}
+      const {team = '???', pushType = 0, pusher = '???', repoName: repo = '???', repoID = '???', refs} =
+        body.gitpush || {}
       return makeMessageSystemGitPush({
         ...minimum,
+        pushType,
         pusher,
         refs: refs || [],
         repo,
@@ -367,6 +429,36 @@ const clampAttachmentPreviewSize = ({width = 0, height = 0}) =>
         width: clamp(width || 0, 0, maxAttachmentPreviewSize),
       }
 
+export const isVideoAttachment = (message: Types.MessageAttachment) => message.fileType.startsWith('video')
+
+export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCChatTypes.AssetMetadata) => {
+  const res = {
+    height: 0,
+    width: 0,
+    attachmentType: 'file',
+    showPlayButton: false,
+  }
+  if (!preview) {
+    return res
+  }
+  if (preview.assetType === RPCChatTypes.localAssetMetadataType.image && preview.image) {
+    const wh = clampAttachmentPreviewSize(preview.image)
+    res.height = wh.height
+    res.width = wh.width
+    res.attachmentType = 'image'
+    // full is a video but preview is an image?
+    if (full && full.assetType === RPCChatTypes.localAssetMetadataType.video) {
+      res.showPlayButton = true
+    }
+  } else if (preview.assetType === RPCChatTypes.localAssetMetadataType.video && preview.video) {
+    const wh = clampAttachmentPreviewSize(preview.video)
+    res.height = wh.height
+    res.width = wh.width
+    res.attachmentType = 'image'
+  }
+  return res
+}
+
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -384,16 +476,19 @@ const validUIMessagetoMessage = (
     deviceName: m.senderDeviceName,
     deviceRevokedAt: m.senderDeviceRevokedAt,
     deviceType: DeviceTypes.stringToDeviceType(m.senderDeviceType),
+    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
+    reactions: reactionMapToReactions(m.reactions),
+  }
+  const explodable = {
     exploded: m.isEphemeralExpired,
     explodedBy: m.explodedBy || '',
     exploding: m.isEphemeral,
     explodingTime: m.etime,
-    outboxID: m.outboxID ? Types.stringToOutboxID(m.outboxID) : null,
   }
 
   if (m.isEphemeralExpired) {
     // This message already exploded. Make it an empty text message.
-    return makeMessageText({...common})
+    return makeMessageText({...common, ...explodable})
   }
 
   switch (m.messageBody.messageType) {
@@ -401,6 +496,7 @@ const validUIMessagetoMessage = (
       const rawText: string = (m.messageBody.text && m.messageBody.text.body) || ''
       return makeMessageText({
         ...common,
+        ...explodable,
         hasBeenEdited: m.superseded,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
@@ -437,60 +533,40 @@ const validUIMessagetoMessage = (
         transferState = null
       }
       const {filename, title, size} = attachment.object
-      let previewHeight = 0
-      let previewWidth = 0
-      let attachmentType = 'file'
-      let showPlayButton = false
 
-      if (preview && preview.metadata) {
-        if (
-          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.image &&
-          preview.metadata.image
-        ) {
-          const wh = clampAttachmentPreviewSize(preview.metadata.image)
-          previewHeight = wh.height
-          previewWidth = wh.width
-          attachmentType = 'image'
-          // full is a video but preview is an image?
-          if (
-            full &&
-            full.metadata &&
-            full.metadata.assetType === RPCChatTypes.localAssetMetadataType.video
-          ) {
-            showPlayButton = true
-          }
-        } else if (
-          preview.metadata.assetType === RPCChatTypes.localAssetMetadataType.video &&
-          preview.metadata.video
-        ) {
-          const wh = clampAttachmentPreviewSize(preview.metadata.video)
-          previewHeight = wh.height
-          previewWidth = wh.width
-          attachmentType = 'image'
-        }
-      }
+      const pre = previewSpecs(preview && preview.metadata, full && full.metadata)
       let previewURL = ''
       let fileURL = ''
       let fileType = ''
+      let fileURLCached = false
+      let videoDuration = null
+      let inlineVideoPlayable = false
       if (m.assetUrlInfo) {
         previewURL = m.assetUrlInfo.previewUrl
         fileURL = m.assetUrlInfo.fullUrl
         fileType = m.assetUrlInfo.mimeType
+        fileURLCached = m.assetUrlInfo.fullUrlCached
+        videoDuration = m.assetUrlInfo.videoDuration
+        inlineVideoPlayable = m.assetUrlInfo.inlineVideoPlayable
       }
 
       return makeMessageAttachment({
         ...common,
-        attachmentType,
+        ...explodable,
+        attachmentType: pre.attachmentType,
         fileName: filename,
         fileSize: size,
         fileType,
         fileURL,
-        previewHeight,
+        fileURLCached,
+        inlineVideoPlayable,
+        previewHeight: pre.height,
         previewURL,
-        previewWidth,
-        showPlayButton,
+        previewWidth: pre.width,
+        showPlayButton: pre.showPlayButton,
         title,
         transferState,
+        videoDuration,
       })
     }
     case RPCChatTypes.commonMessageType.join:
@@ -509,6 +585,21 @@ const validUIMessagetoMessage = (
     case RPCChatTypes.commonMessageType.metadata:
       return m.messageBody.metadata
         ? makeMessageSetChannelname({...minimum, newChannelname: m.messageBody.metadata.conversationTitle})
+        : null
+    case RPCChatTypes.commonMessageType.sendpayment:
+      return m.messageBody.sendpayment
+        ? makeMessageSendPayment({
+            ...common,
+            paymentID: m.messageBody.sendpayment.paymentID,
+          })
+        : null
+    case RPCChatTypes.commonMessageType.requestpayment:
+      return m.messageBody.requestpayment
+        ? makeMessageRequestPayment({
+            ...common,
+            note: m.messageBody.requestpayment.note,
+            requestID: m.messageBody.requestpayment.requestID,
+          })
         : null
     case RPCChatTypes.commonMessageType.none:
       return null
@@ -550,29 +641,58 @@ export const rpcErrorToString = (error: RPCChatTypes.OutboxStateError) => {
 }
 
 const outboxUIMessagetoMessage = (
+  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
-  o: RPCChatTypes.UIMessageOutbox,
-  you: string,
-  yourDevice: string
+  o: RPCChatTypes.UIMessageOutbox
 ) => {
   const errorReason =
     o.state && o.state.state === RPCChatTypes.localOutboxStateType.error && o.state.error
       ? rpcErrorToString(o.state.error)
       : null
 
-  return makeMessageText({
-    author: you,
-    conversationIDKey,
-    deviceName: yourDevice,
-    deviceType: isMobile ? 'mobile' : 'desktop',
-    errorReason,
-    ordinal: Types.numberToOrdinal(o.ordinal),
-    outboxID: Types.stringToOutboxID(o.outboxID),
-    submitState: 'pending',
-    text: new HiddenString(o.body),
-    timestamp: o.ctime,
-  })
+  switch (o.messageType) {
+    case RPCChatTypes.commonMessageType.attachment:
+      const title = o.title
+      const fileName = o.filename
+      let previewURL = ''
+      let pre = previewSpecs(null, null)
+      if (o.preview) {
+        previewURL =
+          o.preview.location &&
+          o.preview.location.ltyp === RPCChatTypes.localPreviewLocationTyp.url &&
+          o.preview.location.url
+            ? o.preview.location.url
+            : ''
+        const md = o.preview && o.preview.metadata
+        const baseMd = o.preview && o.preview.baseMetadata
+        pre = previewSpecs(md, baseMd)
+      }
+      return makePendingAttachmentMessage(
+        state,
+        conversationIDKey,
+        title,
+        FsTypes.getLocalPathName(fileName),
+        previewURL,
+        pre,
+        Types.stringToOutboxID(o.outboxID),
+        Types.numberToOrdinal(o.ordinal),
+        errorReason
+      )
+    case RPCChatTypes.commonMessageType.text:
+      return makeMessageText({
+        author: state.config.username || '',
+        conversationIDKey,
+        deviceName: state.config.deviceName || '',
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        errorReason,
+        ordinal: Types.numberToOrdinal(o.ordinal),
+        outboxID: Types.stringToOutboxID(o.outboxID),
+        submitState: 'pending',
+        text: new HiddenString(o.body),
+        timestamp: o.ctime,
+      })
+  }
 }
 
 const placeholderUIMessageToMessage = (
@@ -606,7 +726,9 @@ const errorUIMessagetoMessage = (
     errorReason: o.errMsg,
     exploded: o.isEphemeralExpired,
     exploding: o.isEphemeral,
-    explodingUnreadable: o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral,
+    explodingUnreadable:
+      o.errType === RPCChatTypes.localMessageUnboxedErrorType.ephemeral ||
+      o.errType === RPCChatTypes.localMessageUnboxedErrorType.pairwiseMissing,
     id: Types.numberToMessageID(o.messageID),
     ordinal: Types.numberToOrdinal(o.messageID),
     timestamp: o.ctime,
@@ -614,10 +736,9 @@ const errorUIMessagetoMessage = (
 }
 
 export const uiMessageToMessage = (
+  state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  uiMessage: RPCChatTypes.UIMessage,
-  you: string,
-  yourDevice: string
+  uiMessage: RPCChatTypes.UIMessage
 ): ?Types.Message => {
   switch (uiMessage.state) {
     case RPCChatTypes.chatUiMessageUnboxedState.valid:
@@ -632,7 +753,7 @@ export const uiMessageToMessage = (
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.outbox:
       if (uiMessage.outbox) {
-        return outboxUIMessagetoMessage(conversationIDKey, uiMessage, uiMessage.outbox, you, yourDevice)
+        return outboxUIMessagetoMessage(state, conversationIDKey, uiMessage, uiMessage.outbox)
       }
       return null
     case RPCChatTypes.chatUiMessageUnboxedState.placeholder:
@@ -649,7 +770,7 @@ export const uiMessageToMessage = (
   }
 }
 
-function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
+export function nextFractionalOrdinal(ord: Types.Ordinal): Types.Ordinal {
   // Mimic what the service does with outbox items
   return Types.numberToOrdinal(Types.ordinalToNumber(ord) + 0.001)
 }
@@ -686,58 +807,43 @@ export const makePendingTextMessage = (
   })
 }
 
-export const makePendingAttachmentMessages = (
+export const makePendingAttachmentMessage = (
   state: TypedState,
   conversationIDKey: Types.ConversationIDKey,
-  attachmentTypes: Types.AttachmentType[],
-  titles: string[],
-  previewURLs: string[],
-  outboxIDs: Types.OutboxID[],
+  title: string,
+  fileName: string,
+  previewURL: string,
+  previewSpec: Types.PreviewSpec,
+  outboxID: Types.OutboxID,
+  inOrdinal: ?Types.Ordinal,
+  errorReason: ?string,
   explodeTime?: number
 ) => {
-  if (attachmentTypes.length - titles.length + previewURLs.length - outboxIDs.length !== 0) {
-    // some are not the same size. no good.
-    throw new Error(
-      `makePendingAttachments: got arrays of differing lengths: (${attachmentTypes.length}, ${
-        titles.length
-      }, ${previewURLs.length}, ${outboxIDs.length})`
-    )
-  }
   const lastOrdinal =
     state.chat2.messageOrdinals.get(conversationIDKey, I.List()).last() || Types.numberToOrdinal(0)
-  // arbitrarily reduce on attachmentTypes to get the same length
-  const ordinals = attachmentTypes.reduce((ords, _) => {
-    if (ords.length === 0) {
-      ords.push(nextFractionalOrdinal(lastOrdinal))
-      return ords
-    }
-    ords.push(nextFractionalOrdinal(ords[ords.length - 1]))
-    return ords
-  }, [])
-
+  const ordinal = !inOrdinal ? nextFractionalOrdinal(lastOrdinal) : inOrdinal
   const explodeInfo = explodeTime ? {exploding: true, explodingTime: Date.now() + explodeTime * 1000} : {}
 
-  const res = []
-  for (let i = 0; i < attachmentTypes.length; i++) {
-    res.push(
-      makeMessageAttachment({
-        ...explodeInfo,
-        attachmentType: attachmentTypes[i],
-        author: state.config.username || '',
-        conversationIDKey,
-        deviceName: '',
-        previewURL: previewURLs[i],
-        deviceType: isMobile ? 'mobile' : 'desktop',
-        id: Types.numberToMessageID(0),
-        ordinal: ordinals[i],
-        outboxID: outboxIDs[i],
-        submitState: 'pending',
-        timestamp: Date.now(),
-        title: titles[i],
-      })
-    )
-  }
-  return res
+  return makeMessageAttachment({
+    ...explodeInfo,
+    attachmentType: previewSpec.attachmentType,
+    author: state.config.username || '',
+    conversationIDKey,
+    deviceName: '',
+    fileName: fileName,
+    previewURL: previewURL,
+    previewWidth: previewSpec.width,
+    previewHeight: previewSpec.height,
+    showPlayButton: previewSpec.showPlayButton,
+    deviceType: isMobile ? 'mobile' : 'desktop',
+    id: Types.numberToMessageID(0),
+    ordinal: ordinal,
+    outboxID: outboxID,
+    errorReason: errorReason,
+    submitState: 'pending',
+    timestamp: Date.now(),
+    title: title,
+  })
 }
 
 export const getClientPrev = (state: TypedState, conversationIDKey: Types.ConversationIDKey) => {
@@ -811,7 +917,6 @@ export const enoughTimeBetweenMessages = (
   )
 
 export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
-  {text: 'Never (turn off)', seconds: 0},
   {text: '30 seconds', seconds: 30},
   {text: '5 minutes', seconds: 300},
   {text: '60 minutes', seconds: 3600},
@@ -819,4 +924,21 @@ export const messageExplodeDescriptions: Types.MessageExplodeDescription[] = [
   {text: '24 hours', seconds: 86400},
   {text: '3 days', seconds: 86400 * 3},
   {text: '7 days', seconds: 86400 * 7},
+  {text: 'Never explode (turn off)', seconds: 0},
 ].reverse()
+
+// Used to decide whether to show the author wrapper
+export const showAuthorMessageTypes = ['attachment', 'requestPayment', 'sendPayment', 'text']
+
+// Used to decide whether to show react button / message menu
+export const decoratedMessageTypes: Array<Types.MessageType> = [
+  'attachment',
+  'text',
+  'requestPayment',
+  'sendPayment',
+  'systemLeft',
+]
+
+// Used to decide whether to show the author for sequential messages
+export const authorIsCollapsible = (m: Types.Message) =>
+  m.type === 'text' || m.type === 'deleted' || m.type === 'attachment'

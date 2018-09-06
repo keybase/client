@@ -1,21 +1,17 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import {Box} from '../../common-adapters'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
 import DeleteRepo from '.'
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Git/Delete', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Git/Delete', module)
     .add('DeleteRepo', () => (
       <Box style={{height: '100%', width: '100%'}}>
         <DeleteRepo
           name="docs"
-          onClose={action('onClose')}
-          onDelete={action('onDelete')}
+          onClose={Sb.action('onClose')}
+          onDelete={Sb.action('onDelete')}
           error={null}
           waitingKey="test"
         />
@@ -26,8 +22,8 @@ const load = () => {
         <DeleteRepo
           teamname="siggis.board"
           name="media"
-          onClose={action('onClose')}
-          onDelete={action('onDelete')}
+          onClose={Sb.action('onClose')}
+          onDelete={Sb.action('onDelete')}
           error={null}
           waitingKey="test"
         />

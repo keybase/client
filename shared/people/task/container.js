@@ -20,6 +20,38 @@ const onSkipTodo = (type: Types.TodoType, dispatch: Dispatch) => () =>
 
 const mapStateToProps = (state: TypedState) => ({myUsername: state.config.username || ''})
 
+// ----- AVATAR TEAM ----- //
+const avatarTeamConnector = connect(
+  mapStateToProps,
+  (dispatch: Dispatch) => ({
+    onConfirm: () => dispatch(switchTo([Tabs.teamsTab])),
+    onDismiss: () => {},
+  }),
+  (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    onConfirm: () => dispatchProps.onConfirm(),
+    onDismiss: dispatchProps.onDismiss,
+  })
+)
+
+// ----- AVATAR USER ----- //
+const avatarUserConnector = connect(
+  mapStateToProps,
+  (dispatch: Dispatch) => ({
+    onConfirm: () => {
+      // make sure we have tracker state & profile is up to date
+      dispatch(createGetMyProfile({}))
+      dispatch(switchTo([Tabs.profileTab, 'editAvatar']))
+    },
+    onDismiss: () => {},
+  }),
+  (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    onConfirm: () => dispatchProps.onConfirm(),
+    onDismiss: dispatchProps.onDismiss,
+  })
+)
+
 // ----- BIO ----- //
 const bioConnector = connect(
   mapStateToProps,
@@ -58,7 +90,8 @@ const deviceConnector = connect(
   (dispatch: Dispatch) => ({
     onConfirm: () => openURL(installLinkURL),
     onDismiss: onSkipTodo('device', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- FOLLOW ----- //
@@ -67,7 +100,8 @@ const followConnector = connect(
   (dispatch: Dispatch) => ({
     onConfirm: () => dispatch(navigateAppend(['search'], [Tabs.peopleTab])),
     onDismiss: onSkipTodo('follow', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- CHAT ----- //
@@ -76,7 +110,8 @@ const chatConnector = connect(
   (dispatch: Dispatch) => ({
     onConfirm: () => dispatch(switchTo([Tabs.chatTab])),
     onDismiss: onSkipTodo('chat', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- PAPERKEY ----- //
@@ -92,7 +127,8 @@ const paperKeyConnector = connect(
       }
     },
     onDismiss: () => {},
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- TEAM ----- //
@@ -104,7 +140,8 @@ const teamConnector = connect(
       dispatch(switchTo([Tabs.teamsTab]))
     },
     onDismiss: onSkipTodo('team', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- FOLDER ----- //
@@ -121,7 +158,8 @@ const folderConnector = connect(
       }
     },
     onDismiss: onSkipTodo('folder', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- GITREPO ----- //
@@ -133,7 +171,8 @@ const gitRepoConnector = connect(
       dispatch(switchTo([Tabs.gitTab]))
     },
     onDismiss: onSkipTodo('gitRepo', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 // ----- TEAMSHOWCASE ----- //
@@ -146,11 +185,14 @@ const teamShowcaseConnector = connect(
       dispatch(switchTo([Tabs.teamsTab]))
     },
     onDismiss: onSkipTodo('teamShowcase', dispatch),
-  })
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
 )
 
 export default compose(
-  // TODO maybe have an object
+  // TODO remove all this branch and just make a component
+  branch(props => props.todoType === todoTypes.avatarTeam, avatarTeamConnector),
+  branch(props => props.todoType === todoTypes.avatarUser, avatarUserConnector),
   branch(props => props.todoType === todoTypes.bio, bioConnector),
   branch(props => props.todoType === todoTypes.proof, proofConnector),
   branch(props => props.todoType === todoTypes.device, deviceConnector),

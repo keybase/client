@@ -1,42 +1,86 @@
 // @flow
-import SearchResultRow from '.'
-import {Map} from 'immutable'
+import SearchResultRow, {type Props} from '.'
 import {userIsActiveInTeamHelper} from '../../constants/teams'
-import {followStateHelper} from '../../constants/search'
+import {followStateHelper, getUserInputItemIds, makeSearchResult} from '../../constants/search'
 import {type SearchResultId} from '../../constants/types/search'
+import {parseUserId} from '../../util/platforms'
 import {connect, type TypedState, setDisplayName, compose} from '../../util/container'
+import {some} from 'lodash-es'
 
-type OwnProps = {
+export type OwnProps = {|
   disableIfInTeamName: ?string,
   id: SearchResultId,
+  selected: boolean,
   onClick: () => void,
   onMouseOver?: () => void,
   onShowTracker?: () => void,
-}
+  searchKey: string,
+|}
 
-const mapStateToProps = (
-  state: TypedState,
-  {disableIfInTeamName, id, onClick, onMouseOver, onShowTracker}: OwnProps
-) => {
-  const result: any = state.entities.getIn(['search', 'searchResults', id], Map()).toObject()
+const emptySearch = makeSearchResult()
+
+const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+  const result = state.entities.search.searchResults.get(ownProps.id, emptySearch)
+  const {searchKey} = ownProps
   const leftFollowingState = followStateHelper(state, result.leftUsername, result.leftService)
   const rightFollowingState = followStateHelper(state, result.rightUsername, result.rightService)
-  const leftIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.leftUsername, result.leftService, disableIfInTeamName)
-    : false
-  const rightIsInTeam = disableIfInTeamName
-    ? userIsActiveInTeamHelper(state, result.rightUsername, result.rightService, disableIfInTeamName)
-    : false
+
+  const selectedIds = getUserInputItemIds(state, {searchKey})
+  const leftIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.leftUsername,
+    result.leftService,
+    ownProps.disableIfInTeamName
+  )
+  const rightIsInTeam = userIsActiveInTeamHelper(
+    state,
+    result.rightUsername,
+    result.rightService,
+    ownProps.disableIfInTeamName
+  )
+  const userIsInTeam = leftIsInTeam || rightIsInTeam
   return {
-    ...result,
-    onClick,
-    onMouseOver,
-    onShowTracker,
-    showTrackerButton: !!onShowTracker,
+    result,
     leftFollowingState,
     rightFollowingState,
-    userIsInTeam: leftIsInTeam || rightIsInTeam,
+    selectedIds,
+    userIsInTeam,
   }
 }
 
-export default compose(connect(mapStateToProps), setDisplayName('SearchResultRow'))(SearchResultRow)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => {
+  const result = stateProps.result.toObject()
+  const parsedIds = stateProps.selectedIds.map(id => parseUserId(id))
+  // Check whether the user shown in this row has been chosen in the input box.
+  const userAlreadySelected =
+    some(parsedIds, {serviceId: (result.leftService || '').toLowerCase(), username: result.leftUsername}) ||
+    some(parsedIds, {serviceId: (result.rightService || '').toLowerCase(), username: result.rightUsername})
+
+  let leftFullname = result.leftFullname
+  if (leftFullname) {
+    if (stateProps.userIsInTeam) {
+      leftFullname = leftFullname + ' • '
+    }
+  }
+  if (stateProps.userIsInTeam) {
+    leftFullname = (leftFullname || '') + 'Already in team'
+  }
+  const userIsSelectable = !stateProps.userIsInTeam && !userAlreadySelected
+
+  return {
+    ...result,
+    leftFollowingState: stateProps.leftFollowingState,
+    leftFullname,
+    leftIconOpaque: userIsSelectable,
+    rightFollowingState: stateProps.rightFollowingState,
+    rightIconOpaque: userIsSelectable,
+    userAlreadySelected,
+    userIsInTeam: stateProps.userIsInTeam,
+    userIsSelectable,
+    ...ownProps,
+  }
+}
+
+export default compose(connect(mapStateToProps, () => ({}), mergeProps), setDisplayName('SearchResultRow'))(
+  SearchResultRow
+)

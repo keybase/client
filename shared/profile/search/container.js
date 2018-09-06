@@ -1,9 +1,10 @@
 // @flow
-import Search, {type Props} from '.'
+import Search from '.'
+import {type RouteProps} from '../../route-tree/render-route'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import {compose, defaultProps, connect} from '../../util/container'
+import {connect} from '../../util/container'
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInfoPanel}: Props) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}: RouteProps<{}, {}>) => ({
   onClick: username => {
     dispatch(navigateUp())
     dispatch(createShowUserProfile({username}))
@@ -13,10 +14,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, onBack, onToggleInf
   },
 })
 
-export default compose(
-  connect(undefined, mapDispatchToProps),
-  defaultProps({
-    placeholder: 'Type someone',
-    showAddButton: false,
-  })
-)(Search)
+export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Search)

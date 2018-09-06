@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
-import {TouchableWithoutFeedback, Picker} from 'react-native'
-import Box, {Box2} from './box'
+import {Picker} from 'react-native'
+import {Box2} from './box'
+import Overlay from './overlay'
 import Text from './text'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../styles'
-import FloatingBox from './floating-box.native'
 
 type PickerItem = {|label: string, value: string | number|}
 
@@ -26,35 +26,29 @@ const FloatingPicker = (props: Props) => {
     return null
   }
   return (
-    // onHidden required by the typing for desktop, not used on mobile
-    <FloatingBox onHidden={() => {}}>
-      <Box style={[styles.overlayContainer, styles.overlay]}>
-        <TouchableWithoutFeedback onPress={props.onHidden}>
-          <Box style={styles.flexOne} />
-        </TouchableWithoutFeedback>
-        <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
-          {props.header}
-          <Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
-            <Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
-              Cancel
-            </Text>
-            <Box style={styles.flexOne} />
-            <Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
-              Done
-            </Text>
-          </Box2>
-          {props.prompt}
-          <Picker
-            selectedValue={props.selectedValue}
-            onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
-            prompt={props.promptString}
-            style={styles.picker}
-          >
-            {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
-          </Picker>
+    <Overlay onHidden={props.onHidden}>
+      <Box2 direction="vertical" fullWidth={true} style={styles.menu}>
+        {props.header}
+        <Box2 direction="horizontal" fullWidth={true} style={styles.actionButtons}>
+          <Text type="BodySemibold" style={styles.link} onClick={props.onCancel}>
+            Cancel
+          </Text>
+          <Box2 direction="horizontal" style={styles.flexOne} />
+          <Text type="BodySemibold" style={styles.link} onClick={props.onDone}>
+            Done
+          </Text>
         </Box2>
-      </Box>
-    </FloatingBox>
+        {props.prompt}
+        <Picker
+          selectedValue={props.selectedValue}
+          onValueChange={(itemValue, itemIndex) => props.onSelect(itemValue)}
+          prompt={props.promptString}
+          style={styles.picker}
+        >
+          {props.items.map(item => <Picker.Item key={item.label} {...item} />)}
+        </Picker>
+      </Box2>
+    </Overlay>
   )
 }
 

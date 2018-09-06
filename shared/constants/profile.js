@@ -43,6 +43,7 @@ export const BACK_ZINDEX = 12
 export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
 export const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
 export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
+export const EDIT_AVATAR_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
 
 // A simple check, the server does a fuller check
 function checkBTC(address: string): boolean {
@@ -79,7 +80,14 @@ function cleanupUsername(platform: ?string, username: string): string {
   return username
 }
 
-function urlToUsername(url: URL): ?string {
+function urlToUsername(url: {
+  protocol: string,
+  username: string,
+  password: string,
+  hostname: string,
+  port: string,
+  pathname: string,
+}): ?string {
   const protocol = url.protocol
   if (protocol !== 'http:' && protocol !== 'https:') {
     return null

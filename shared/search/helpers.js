@@ -57,6 +57,7 @@ const onChangeSelectedSearchResultHoc = compose(
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
+  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),
@@ -93,15 +94,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-const showServiceLogicHoc = withPropsOnChange(
-  ['addNewParticipant', 'searchText', 'userItems'],
-  ({addNewParticipant, searchText, userItems}) => ({
-    showServiceFilter: !!searchText || userItems.length === 0 || addNewParticipant,
-  })
-)
-
 const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedService}) => ({
   placeholder: `Search ${selectedService}`,
 }))
 
-export {clearSearchHoc, onChangeSelectedSearchResultHoc, placeholderServiceHoc, showServiceLogicHoc}
+export {clearSearchHoc, onChangeSelectedSearchResultHoc, placeholderServiceHoc}

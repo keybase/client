@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 	"testing"
@@ -29,10 +30,10 @@ type chatListener struct {
 	libkb.NoopNotifyListener
 
 	// ChatActivity channels
-	ephemeralPurge chan chat1.EphemeralPurgeNotifInfo
-
-	obids          []chat1.OutboxID
-	incoming       chan int
+	obidsLocal     []chat1.OutboxID
+	obidsRemote    []chat1.OutboxID
+	incomingLocal  chan int
+	incomingRemote chan int
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
@@ -40,6 +41,7 @@ type chatListener struct {
 	bgConvLoads    chan chat1.ConversationID
 	typingUpdate   chan []chat1.ConvTypingUpdate
 	inboxSynced    chan chat1.ChatSyncResult
+	ephemeralPurge chan chat1.EphemeralPurgeNotifInfo
 }
 
 var _ libkb.NotifyListener = (*chatListener)(nil)
@@ -80,7 +82,8 @@ func (n *chatListener) ChatTypingUpdate(updates []chat1.ConvTypingUpdate) {
 	}
 }
 
-func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity) {
+func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
 	n.Lock()
 	defer n.Unlock()
 	typ, err := activity.ActivityType()
@@ -91,11 +94,21 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 				strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
 				if strOutboxID != nil {
 					outboxID, _ := hex.DecodeString(*strOutboxID)
-					n.obids = append(n.obids, chat1.OutboxID(outboxID))
-					select {
-					case n.incoming <- len(n.obids):
-					case <-time.After(5 * time.Second):
-						panic("timeout on the incoming channel")
+					switch source {
+					case chat1.ChatActivitySource_REMOTE:
+						n.obidsRemote = append(n.obidsRemote, chat1.OutboxID(outboxID))
+						select {
+						case n.incomingRemote <- len(n.obidsRemote):
+						case <-time.After(5 * time.Second):
+							panic("timeout on the incomingRemote channel")
+						}
+					case chat1.ChatActivitySource_LOCAL:
+						n.obidsLocal = append(n.obidsLocal, chat1.OutboxID(outboxID))
+						select {
+						case n.incomingLocal <- len(n.obidsLocal):
+						case <-time.After(5 * time.Second):
+							panic("timeout on the incomingLocal channel")
+						}
 					}
 				}
 			}
@@ -131,7 +144,7 @@ func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext
 
 func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	username string, membersType chat1.ConversationMembersType) chat1.ConversationIDTriple {
-	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username, membersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, tc.Context(), membersType).LookupID(ctx, username, false)
 	require.NoError(t, err)
 	topicID, err := utils.NewChatTopicID()
 	require.NoError(t, err)
@@ -190,13 +203,15 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	boxer := NewBoxer(g)
 	boxer.SetClock(world.Fc)
 	getRI := func() chat1.RemoteInterface { return ri }
-	baseSender := NewBlockingSender(g, boxer, nil, getRI)
+	baseSender := NewBlockingSender(g, boxer, getRI)
 	// Force a small page size here to test prev pointer calculations for
 	// exploding and non exploding messages
 	baseSender.setPrevPagination(&chat1.Pagination{Num: 2})
+	baseSender.SetClock(world.Fc)
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
-		incoming:       make(chan int, 100),
+		incomingLocal:  make(chan int, 100),
+		incomingRemote: make(chan int, 100),
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
@@ -254,7 +269,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 2
 	g.Searcher = searcher
-	g.AttachmentURLSrv = DummyAttachmentHTTPSrv{}
+	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
@@ -284,13 +299,13 @@ func TestNonblockChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "event not received")
 	}
 
-	require.Equal(t, 1, len(listener.obids), "wrong length")
-	require.Equal(t, obid, listener.obids[0], "wrong obid")
+	require.Equal(t, 1, len(listener.obidsRemote), "wrong length")
+	require.Equal(t, obid, listener.obidsRemote[0], "wrong obid")
 }
 
 type sentRecord struct {
@@ -395,7 +410,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Make we get nothing until timer is up
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -439,22 +454,22 @@ func TestNonblockTimer(t *testing.T) {
 	// Should get a blast of all 5
 
 	var olen int
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		select {
-		case olen = <-listener.incoming:
+		case olen = <-listener.incomingRemote:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "event not received")
 		}
 
-		t.Logf("OUTBOXID: %s", obids[i/2])
+		t.Logf("OUTBOXID: %s", obids[i])
 		require.Equal(t, i+1, olen, "wrong length")
-		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
+		require.Equal(t, listener.obidsRemote[i], obids[i], "wrong obid")
 	}
 
 	// Make sure it is really empty
 	clock.Advance(5 * time.Minute)
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -568,7 +583,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 		}),
 	}, 0, nil)
 	require.NoError(t, err)
-	cl.Advance(20 * time.Minute)
+	cl.Advance(2 * time.Hour)
 	tc.ChatG.MessageDeliverer.Connected(ctx)
 	select {
 	case f := <-listener.failing:
@@ -582,17 +597,18 @@ func TestOutboxItemExpiration(t *testing.T) {
 		require.Fail(t, "no failing message")
 	}
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "no incoming message")
 	default:
 	}
 
 	outbox := storage.NewOutbox(tc.Context(), uid)
 	outbox.SetClock(cl)
-	require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
+	_, err = outbox.RetryMessage(ctx, obid, nil)
+	require.NoError(t, err)
 	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
 	select {
-	case i := <-listener.incoming:
+	case i := <-listener.incomingRemote:
 		require.Equal(t, 1, i)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no success")
@@ -642,16 +658,14 @@ func TestDisconnectedFailure(t *testing.T) {
 	default:
 	}
 	tc.ChatG.MessageDeliverer.Connected(ctx)
-	for i := 0; i < 2; i++ {
-		select {
-		case inc := <-listener.incoming:
-			require.Equal(t, i+1, inc)
-			require.Equal(t, obid, listener.obids[0])
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no incoming message")
-		}
+	select {
+	case inc := <-listener.incomingRemote:
+		require.Equal(t, 1, inc)
+		require.Equal(t, obid, listener.obidsRemote[0])
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no incoming message")
 	}
-	listener.obids = nil
+	listener.obidsRemote = nil
 
 	tc.ChatG.MessageDeliverer.Disconnected(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
@@ -705,15 +719,16 @@ func TestDisconnectedFailure(t *testing.T) {
 	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
 	outbox.SetClock(cl)
 	for _, obid := range obids {
-		require.NoError(t, outbox.RetryMessage(ctx, obid, nil))
+		_, err = outbox.RetryMessage(ctx, obid, nil)
+		require.NoError(t, err)
 	}
 	tc.ChatG.MessageDeliverer.Start(ctx, u.User.GetUID().ToBytes())
 	tc.ChatG.MessageDeliverer.Connected(ctx)
 
 	for {
 		select {
-		case inc := <-listener.incoming:
-			if inc >= 2*len(obids) {
+		case inc := <-listener.incomingRemote:
+			if inc >= len(obids) {
 				break
 			}
 			continue
@@ -722,10 +737,8 @@ func TestDisconnectedFailure(t *testing.T) {
 		}
 		break
 	}
-	require.Equal(t, 2*len(obids), len(listener.obids), "wrong amount of successes")
-	for index, obid := range listener.obids {
-		require.Equal(t, obid, obids[index/2])
-	}
+	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	require.Equal(t, listener.obidsRemote, obids)
 }
 
 // The sender is responsible for making sure that a deletion of a single
@@ -1006,6 +1019,11 @@ func TestKBFSCryptKeysBit(t *testing.T) {
 func TestPrevPointerAddition(t *testing.T) {
 	mt := chat1.ConversationMembersType_TEAM
 	runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+		if ephemeralLifetime == nil {
+			t.Logf("ephemeral stage: %v", ephemeralLifetime)
+		} else {
+			t.Logf("ephemeral stage: %v", *ephemeralLifetime)
+		}
 		ctx, world, ri2, _, blockingSender, _ := setupTest(t, 1)
 		defer world.Cleanup()
 
@@ -1042,14 +1060,8 @@ func TestPrevPointerAddition(t *testing.T) {
 		if ephemeralLifetime != nil {
 			t.Logf("expiry all ephemeral messages")
 			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
-			// Mock out server call for new messages
-			ri.GetThreadRemoteFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, arg chat1.GetThreadRemoteArg) (chat1.GetThreadRemoteRes, error) {
-				return chat1.GetThreadRemoteRes{
-					Thread: chat1.ThreadViewBoxed{
-						Pagination: &chat1.Pagination{},
-					},
-				}, nil
-			}
+			// Mock out pulling messages to return no messages
+			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = true
 			// Prepare a regular message and make sure it gets prev pointers
 			boxed, pendingAssetDeletes, _, _, _, err := blockingSender.Prepare(ctx, chat1.MessagePlaintext{
 				ClientHeader: chat1.MessageClientHeader{
@@ -1067,7 +1079,7 @@ func TestPrevPointerAddition(t *testing.T) {
 			// server not returning results, we give up and don't attach any
 			// prevs.
 			require.Empty(t, boxed.ClientHeader.Prev, "empty prev pointers")
-			ri.GetThreadRemoteFunc = nil
+			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = false
 		}
 
 		// Nuke the body cache
@@ -1266,4 +1278,271 @@ func compareAssetLists(t *testing.T, got []chat1.Asset, expected []chat1.Asset, 
 	}
 
 	return match
+}
+
+func TestPairwiseMACChecker(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		// Don't run this test for kbfs
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			return
+		default:
+		}
+
+		ctc := makeChatTestContext(t, "TestPairwiseMACChecker", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+
+		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
+		ctx := ctc.as(t, users[0]).startCtx
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+			chat1.NewConversationLocalArg{
+				TlfName:       firstConv.TlfName,
+				TopicType:     chat1.TopicType_CHAT,
+				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
+				MembersType:   mt,
+			})
+		require.NoError(t, err)
+		conv := ncres.Conv.Info
+
+		tc := ctc.world.Tcs[users[0].Username]
+		uid1 := users[0].User.GetUID()
+		uid2 := users[1].User.GetUID()
+		ri := ctc.as(t, users[0]).ri
+		boxer := NewBoxer(tc.Context())
+		getRI := func() chat1.RemoteInterface { return ri }
+		g := globals.NewContext(tc.G, tc.ChatG)
+		blockingSender := NewBlockingSender(g, boxer, getRI)
+
+		text := "hi"
+		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
+		// Pairwise MACs rely on the sender's DeviceID in the header.
+		deviceID := make([]byte, libkb.DeviceIDLen)
+		err = tc.G.ActiveDevice.DeviceID().ToBytes(deviceID)
+		require.NoError(t, err)
+		msg.ClientHeader.TlfName = firstConv.TlfName
+		msg.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID)
+
+		key := cryptKey(t)
+		signKP := getSigningKeyPairForTest(t, tc, users[0])
+		encryptionKeypair, err := tc.G.ActiveDevice.NaclEncryptionKey()
+		require.NoError(t, err)
+
+		// Missing recipients uid2
+		pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
+
+		boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		require.NoError(t, err)
+
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id, MessageBoxed: *boxed,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
+		merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		require.Equal(t, []keybase1.UID{keybase1.UID(uid2)}, merr.UIDs)
+
+		// Bogus recipients, both uids are missing
+		pairwiseMACRecipients = []keybase1.KID{"012141487209e42c6b39f7d9bcbda02a8e8045e4bcab10b571a5fa250ae72012bd3f0a"}
+		boxed, err = boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		require.NoError(t, err)
+
+		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+			ConversationID: conv.Id,
+			MessageBoxed:   *boxed,
+		})
+		require.Error(t, err)
+		require.IsType(t, libkb.EphemeralPairwiseMACsMissingUIDsError{}, err)
+		merr = err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+		sortUIDs := func(uids []keybase1.UID) { sort.Slice(uids, func(i, j int) bool { return uids[i] < uids[j] }) }
+		expectedUIDs := []keybase1.UID{keybase1.UID(uid1), keybase1.UID(uid2)}
+		sortUIDs(expectedUIDs)
+		sortUIDs(merr.UIDs)
+		require.Equal(t, expectedUIDs, merr.UIDs)
+
+		// Including all devices works
+		_, _, err = blockingSender.Send(ctx, conv.Id, msg, 0, nil)
+		require.NoError(t, err)
+
+		tv, err := tc.Context().ConvSource.Pull(ctx, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		require.Len(t, tv.Messages, 2)
+		msgUnboxed := tv.Messages[0]
+		require.True(t, msgUnboxed.IsValid())
+		require.Equal(t, msgUnboxed.Valid().MessageBody.Text().Body, text)
+	})
+}
+
+func TestProcessDuplicateReactionMsgs(t *testing.T) {
+	ctx, world, ri, _, baseSender, listener := setupTest(t, 1)
+	defer world.Cleanup()
+
+	u := world.GetUsers()[0]
+	tc := world.Tcs[u.Username]
+	clock := world.Fc
+	trip := newConvTriple(ctx, t, tc, u.Username)
+	firstMessagePlaintext := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TLFNAME,
+		},
+		MessageBody: chat1.MessageBody{},
+	}
+	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+		chat1.ConversationMembersType_KBFS, nil)
+	require.NoError(t, err)
+	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		IdTriple:   trip,
+		TLFMessage: *firstMessageBoxed,
+	})
+	require.NoError(t, err)
+
+	// send initial text message which we will react to
+	_, msgTextBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        trip,
+			Sender:      u.User.GetUID().ToBytes(),
+			TlfName:     u.Username,
+			TlfPublic:   false,
+			MessageType: chat1.MessageType_TEXT,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "hi",
+		}),
+	}, 0, nil)
+	require.NoError(t, err)
+	msgTextID := msgTextBoxed.GetMessageID()
+
+	// Send a bunch of blocking reaction messages
+	var sentRef []sentRecord
+	for i := 0; i < 5; i++ {
+		_, msgBoxed, err := baseSender.Send(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				Supersedes:  msgTextID,
+				MessageType: chat1.MessageType_REACTION,
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				Body:      ":+1:",
+				MessageID: msgTextID,
+			}),
+		}, 0, nil)
+		require.NoError(t, err)
+		msgID := msgBoxed.GetMessageID()
+		t.Logf("generated msgID: %d", msgID)
+		sentRef = append(sentRef, sentRecord{msgID: &msgID})
+	}
+
+	tres, err := tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL, nil, nil)
+
+	require.NoError(t, err)
+	texts := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
+	require.Len(t, texts, 1)
+	txtMsg := texts[0]
+	expectedReactionMap := chat1.ReactionMap{
+		Reactions: map[string]map[string]chat1.Reaction{
+			":+1:": map[string]chat1.Reaction{
+				u.Username: chat1.Reaction{
+					ReactionMsgID: *sentRef[len(sentRef)-1].msgID,
+				},
+			},
+		},
+	}
+	// Verify the ctimes are not zero, but we don't care about the actual
+	// value for the test.
+	for _, reactions := range txtMsg.Valid().Reactions.Reactions {
+		for k, r := range reactions {
+			require.NotZero(t, r.Ctime)
+			r.Ctime = 0
+			reactions[k] = r
+		}
+	}
+	require.Equal(t, expectedReactionMap, txtMsg.Valid().Reactions)
+
+	deletes := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_DELETE}}, false)
+	require.Len(t, deletes, 2)
+	reactions := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_REACTION}}, false)
+	require.Len(t, reactions, 1)
+
+	// Add a bunch of things to the outbox. We should cancel all but one
+	// ultimately deleting the reaction.
+	outbox := storage.NewOutbox(tc.Context(), u.User.GetUID().ToBytes())
+	outbox.SetClock(clock)
+	var obids []chat1.OutboxID
+	msgID := *sentRef[len(sentRef)-1].msgID
+	for i := 0; i < 5; i++ {
+		obr, err := outbox.PushMessage(ctx, res.ConvID, chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        trip,
+				Sender:      u.User.GetUID().ToBytes(),
+				TlfName:     u.Username,
+				TlfPublic:   false,
+				Supersedes:  msgTextID,
+				MessageType: chat1.MessageType_REACTION,
+				OutboxInfo: &chat1.OutboxInfo{
+					Prev: msgID,
+				},
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				Body:      ":+1:",
+				MessageID: msgTextID,
+			}),
+		}, nil, keybase1.TLFIdentifyBehavior_CHAT_CLI)
+		obid := obr.OutboxID
+		t.Logf("generated obid: %s prev: %d", hex.EncodeToString(obid), msgID)
+		require.NoError(t, err)
+		sentRef = append(sentRef, sentRecord{outboxID: &obid})
+		obids = append(obids, obid)
+	}
+
+	// Make we get nothing until timer is up
+	select {
+	case <-listener.incomingLocal:
+		require.Fail(t, "action event received too soon")
+	case <-listener.failing:
+		require.Fail(t, "failed message")
+	default:
+	}
+	clock.Advance(5 * time.Minute)
+
+	// Since we canceled all of the other outbox records we should should only
+	// get one hit here.
+	var olen int
+	select {
+	case olen = <-listener.incomingLocal:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "event not received")
+	}
+
+	require.Equal(t, 1, olen, "wrong length")
+	require.Equal(t, listener.obidsLocal[0], obids[0], "wrong obid")
+
+	// Make sure it is really empty
+	clock.Advance(5 * time.Minute)
+	select {
+	case <-listener.incomingLocal:
+		require.Fail(t, "action event received too soon")
+	default:
+	}
+
+	tres, err = tc.ChatG.ConvSource.Pull(ctx, res.ConvID, u.User.GetUID().ToBytes(),
+		chat1.GetThreadReason_GENERAL, nil, nil)
+	require.NoError(t, err)
+
+	// we have the same number of messages as before since ultimately we just deleted a reaction
+	texts = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
+	require.Len(t, texts, 1)
+	txtMsg = texts[0]
+	require.Nil(t, txtMsg.Valid().Reactions.Reactions)
+
+	deletes = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_DELETE}}, false)
+	require.Len(t, deletes, 3)
+	reactions = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_REACTION}}, false)
+	require.Len(t, reactions, 0)
 }

@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import Avatar from './avatar'
+import Avatar, {castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
@@ -21,14 +21,18 @@ type Size = 'small' | 'default' | 'large'
 type Props = {
   horizontal?: boolean,
   colorFollowing?: boolean,
+  editableIcon?: boolean,
   icon?: IconType,
   title?: string, // for non-users
+  titleStyle?: StylesCrossPlatform,
   metaOne?: string | React.Node,
   metaTwo?: string | React.Node,
   onClick?: any => void,
+  onEditIcon?: any => void,
   size?: Size,
   containerStyle?: StylesCrossPlatform,
   metaStyle?: StylesCrossPlatform,
+  avatarStyle?: StylesCrossPlatform,
   isYou?: boolean,
   teamname?: string,
   username?: string,
@@ -46,21 +50,20 @@ const NameWithIconVertical = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           showFollowingStatus={true}
           size={adapterProps.iconSize}
           username={props.username}
           teamname={props.teamname}
+          style={props.avatarStyle ? avatarCastPlatformStyles(props.avatarStyle) : {}}
         />
       )}
       {!isAvatar &&
-        !!props.icon && (
-          // TODO switch this to collapseStyles when Icon is fixed
+      !!props.icon && ( // TODO switch this to collapseStyles when Icon is fixed
           <Icon
             type={props.icon || ''}
-            style={{
-              height: adapterProps.iconSize,
-              width: adapterProps.iconSize,
-            }}
+            style={{height: adapterProps.iconSize, width: adapterProps.iconSize}}
             fontSize={adapterProps.iconSize}
           />
         )}
@@ -72,9 +75,14 @@ const NameWithIconVertical = (props: Props) => {
           props.metaStyle,
         ])}
       >
-        {!props.username && <Text type={adapterProps.titleType}>{props.title}</Text>}
+        {!props.username && (
+          <Text type={adapterProps.titleType} style={props.titleStyle}>
+            {props.title}
+          </Text>
+        )}
         {!!props.username && (
           <ConnectedUsernames
+            clickable={true}
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -104,10 +112,12 @@ const NameWithIconHorizontal = (props: Props) => {
     >
       {isAvatar && (
         <Avatar
+          editable={props.editableIcon}
+          onEditAvatarClick={props.editableIcon ? props.onEditIcon : undefined}
           size={commonHeight}
           username={props.username}
           teamname={props.teamname}
-          style={{marginRight: 16}}
+          style={collapseStyles([styles.hAvatarStyle, props.avatarStyle])}
         />
       )}
       {!isAvatar &&
@@ -122,6 +132,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
+            clickable={true}
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}

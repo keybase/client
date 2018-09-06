@@ -233,10 +233,6 @@ protocol remote {
 
   void tlfResolve(TLFID tlfID, array<gregor1.UID> resolvedWriters, array<gregor1.UID> resolvedReaders);
 
-  // Pubsub endpoints
-  void publishReadMessage(gregor1.UID uid, ConversationID convID, MessageID msgID);
-  void publishSetConversationStatus(gregor1.UID uid, ConversationID convID, ConversationStatus status);
-
   // Typing endpoints
   void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
 
@@ -262,7 +258,7 @@ protocol remote {
     array<Conversation> conversations;
     union { null, RateLimit } rateLimit;
   }
-  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs, boolean useCache);
 
   // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
   // currently configured settings.
@@ -276,12 +272,18 @@ protocol remote {
   // Endpoint to indicate a high priority push notification has been processed
   void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
 
-  // sweepChannel should be 0 except for in certain tests.
   record SetRetentionRes {
     union { null, RateLimit } rateLimit;
   }
+
+  // sweepChannel should be 0 except for in certain tests.
   SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy, uint64 sweepChannel);
   SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy, uint64 sweepChannel);
+
+  record SetConvMinWriterRoleRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetConvMinWriterRoleRes setConvMinWriterRole(ConversationID convID, keybase1.TeamRole role);
 
   // Used only for testing.
   record SweepRes {

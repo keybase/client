@@ -6,7 +6,7 @@ import Settings from './'
 import InvitationsContainer from './invites/container'
 import InviteGenerated from './invite-generated/container'
 import Feedback from './feedback-container'
-import Push from '../app/push/push.native'
+import PushPrompt from '../app/push-prompt.native'
 import DevicesRoute from '../devices/routes'
 import WalletsRoute from '../wallets/routes'
 import GitRoute from '../git/routes'
@@ -36,9 +36,7 @@ const routeTree = makeRouteDefNode({
         terms: {component: WebLinks},
       },
     },
-    [Constants.passphraseTab]: {
-      component: Passphrase,
-    },
+    [Constants.passphraseTab]: {component: Passphrase},
     [Constants.feedbackTab]: {component: Feedback},
     [Constants.landingTab]: {component: About},
     [Constants.screenprotectorTab]: {component: Screenprotector},
@@ -75,7 +73,7 @@ const routeTree = makeRouteDefNode({
       component: DevMenu,
       children: {
         push: {
-          component: () => <Push prompt={true} />,
+          component: () => <PushPrompt />,
         },
         testPopup: {
           component: TestPopup,

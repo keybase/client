@@ -1,8 +1,7 @@
 // @flow
-import React from 'react'
-import {action, storiesOf, createPropProvider, unexpected} from '../../../stories/storybook'
+import * as React from 'react'
+import * as Sb from '../../../stories/storybook'
 import * as Constants from '../../../constants/chat2'
-import * as PropProviders from '../../../stories/prop-providers'
 import {retentionPolicies} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
 import {globalStyles} from '../../../styles'
@@ -13,19 +12,24 @@ const onlyValidConversationsProps = {
 }
 
 const notificationProps = {
-  _muteConversation: action('_muteConversation'),
+  _muteConversation: Sb.action('_muteConversation'),
   _storeChannelWide: false,
   _storeDesktop: 'onWhenAtMentioned',
   _storeMobile: 'never',
   _storeMuted: false,
-  _updateNotifications: action('_updateNotifications'),
+  _updateNotifications: Sb.action('_updateNotifications'),
+}
+
+const minWriterRoleProps = {
+  canSetMinWriterRole: false,
+  minWriterRole: 'reader',
 }
 
 const retentionPickerPropSelector = props => ({
-  _loadTeamPolicy: action('_loadTeamPolicy'),
-  _loadTeamOperations: unexpected('_loadTeamOperations'),
-  _onShowDropdown: action('onShowDropdownRetentionPicker'),
-  _onShowWarning: action('onShowWarningRetentionPicker'),
+  _loadTeamPolicy: Sb.action('_loadTeamPolicy'),
+  _loadTeamOperations: Sb.unexpected('_loadTeamOperations'),
+  _onShowDropdown: Sb.action('onShowDropdownRetentionPicker'),
+  _onShowWarning: Sb.action('onShowWarningRetentionPicker'),
   _parentPath: 'mockedParentPath',
   _permissionsLoaded: true,
   canSetPolicy: true,
@@ -38,12 +42,14 @@ const retentionPickerPropSelector = props => ({
   isTeamWide: props.isTeamWide,
   type: props.type,
   isSmallTeam: props.isSmallTeam,
-  setRetentinPolicy: action('setRetentionPolicy'),
-  onSelect: action('onSelectRetentionPolicy'),
+  setRetentinPolicy: Sb.action('setRetentionPolicy'),
+  onSelect: Sb.action('onSelectRetentionPolicy'),
 })
 
-const provider = createPropProvider(PropProviders.Common(), PropProviders.TeamDropdownMenu(), {
+const provider = Sb.createPropProviderWithCommon({
+  ...Sb.PropProviders.TeamDropdownMenu(),
   InfoPanel: (props: InfoPanelProps) => props,
+  MinWriterRole: () => minWriterRoleProps,
   OnlyValidConversations: () => onlyValidConversationsProps,
   LifecycleNotifications: () => notificationProps,
   RetentionPicker: retentionPickerPropSelector,
@@ -65,8 +71,10 @@ const commonProps = {
       username: 'max',
     },
   ],
-  onBack: unexpected('onBack'),
-  onShowProfile: (username: string) => action(`onShowProfile(${username})`),
+  onBack: Sb.unexpected('onBack'),
+  onShowProfile: (username: string) => Sb.action(`onShowProfile(${username})`),
+  canDeleteHistory: true,
+  canSetMinWriterRole: false,
 }
 
 const conversationProps = {
@@ -80,15 +88,15 @@ const conversationProps = {
   canSetRetention: false,
   description: "You shouldn't be seeing this",
 
-  onShowBlockConversationDialog: action('onShowBlockConversationDialog'),
-  onShowNewTeamDialog: action('onShowNewTeamDialog'),
+  onShowClearConversationDialog: Sb.action('onShowClearConversationDialog'),
+  onShowBlockConversationDialog: Sb.action('onShowBlockConversationDialog'),
+  onShowNewTeamDialog: Sb.action('onShowNewTeamDialog'),
 
-  onAddPeople: unexpected('onAddPeople'),
-  onViewTeam: unexpected('onViewTeam'),
+  onViewTeam: Sb.unexpected('onViewTeam'),
 
-  onLeaveConversation: unexpected('onLeaveConversation'),
-  onJoinChannel: unexpected('onJoinChannel'),
-  onEditChannel: unexpected('onEditChannel'),
+  onLeaveConversation: Sb.unexpected('onLeaveConversation'),
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
+  onEditChannel: Sb.unexpected('onEditChannel'),
 }
 
 const teamCommonProps = {
@@ -98,11 +106,11 @@ const teamCommonProps = {
   canEditChannel: true,
   canSetRetention: true,
 
-  onShowBlockConversationDialog: unexpected('onShowBlockConversationDialog'),
-  onShowNewTeamDialog: unexpected('onShowNewTeamDialog'),
+  onShowClearConversationDialog: Sb.unexpected('onShowClearConversationDialog'),
+  onShowBlockConversationDialog: Sb.unexpected('onShowBlockConversationDialog'),
+  onShowNewTeamDialog: Sb.unexpected('onShowNewTeamDialog'),
 
-  onAddPeople: action('onAddPeople'),
-  onViewTeam: action('onViewTeam'),
+  onViewTeam: Sb.action('onViewTeam'),
 }
 
 const smallTeamProps = {
@@ -112,9 +120,9 @@ const smallTeamProps = {
   admin: false,
   description: "You shouldn't be seeing this",
 
-  onLeaveConversation: unexpected('onLeaveConversation'),
-  onJoinChannel: unexpected('onJoinChannel'),
-  onEditChannel: unexpected('onEditChannel'),
+  onLeaveConversation: Sb.unexpected('onLeaveConversation'),
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
+  onEditChannel: Sb.unexpected('onEditChannel'),
 }
 
 const bigTeamCommonProps = {
@@ -122,7 +130,7 @@ const bigTeamCommonProps = {
   smallTeam: false,
   admin: false,
   description: 'The best channel',
-  onEditChannel: action('onEditChannel'),
+  onEditChannel: Sb.action('onEditChannel'),
 }
 
 const bigTeamPreviewProps = {
@@ -132,8 +140,8 @@ const bigTeamPreviewProps = {
   smallTeam: false,
   admin: false,
 
-  onLeaveConversation: unexpected('onLeaveConversation'),
-  onJoinChannel: action('onJoinChannel'),
+  onLeaveConversation: Sb.unexpected('onLeaveConversation'),
+  onJoinChannel: Sb.action('onJoinChannel'),
 }
 
 const bigTeamNoPreviewProps = {
@@ -143,12 +151,12 @@ const bigTeamNoPreviewProps = {
   smallTeam: false,
   admin: false,
 
-  onLeaveConversation: action('onLeaveConversation'),
-  onJoinChannel: unexpected('onJoinChannel'),
+  onLeaveConversation: Sb.action('onLeaveConversation'),
+  onJoinChannel: Sb.unexpected('onJoinChannel'),
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/InfoPanel', module)
+  Sb.storiesOf('Chat/Conversation/InfoPanel', module)
     .addDecorator(provider)
     .addDecorator(story => (
       <Box style={{...globalStyles.flexBoxColumn, height: 500, width: 320}}>{story()}</Box>

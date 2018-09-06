@@ -5,7 +5,6 @@ import {type Path, type LeafTags, pathToString, makeLeafTags, type RouteStateNod
 import {putActionIfOnPath, navigateUp, navigateAppend} from '../actions/route-tree'
 import Box from '../common-adapters/box'
 
-import type {Action} from '../constants/types/flux'
 import type {Tab} from '../constants/tabs'
 
 type _RenderRouteResult = {
@@ -15,10 +14,12 @@ type _RenderRouteResult = {
   leafComponent: ({shouldRender: boolean, key?: string}) => React.Node,
 }
 
+const defaultTags = makeLeafTags()
+
 export type RenderRouteResult = I.RecordOf<_RenderRouteResult>
 const makeRenderRouteResult: I.RecordFactory<_RenderRouteResult> = I.Record({
   path: I.List(),
-  tags: makeLeafTags(),
+  tags: defaultTags,
   component: () => null,
   leafComponent: () => null,
 })
@@ -52,8 +53,8 @@ export type RouteProps<P, S> = {
   setRouteState: (partialState: any) => void,
 
   // Navigation if your path hasn't changed underneath you
-  navigateUp: () => Action,
-  navigateAppend: (...Array<any>) => Action,
+  navigateUp: () => any,
+  navigateAppend: (...Array<any>) => any,
 }
 
 type RenderRouteNodeProps<S> = {
@@ -91,7 +92,7 @@ class RenderRouteNode extends React.PureComponent<RenderRouteNodeProps<any>, any
         navigateUp={this._navigateUp}
         navigateAppend={this._navigateAppend}
         routePath={path}
-        routeLeafTags={leafTags || makeLeafTags()}
+        routeLeafTags={leafTags || defaultTags}
         routeStack={stack || I.Stack()}
         setRouteState={this._setRouteState}
       >

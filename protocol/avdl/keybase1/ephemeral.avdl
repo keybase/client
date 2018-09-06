@@ -71,6 +71,12 @@ protocol ephemeral {
     UserEkMetadata metadata;
   }
 
+  record UserEkReboxArg {
+    UserEkBoxMetadata userEkBoxMetadata;
+    DeviceID deviceID;
+    string deviceEkStatementSig;
+  }
+
   ////////////////////////////////////////////////////////////////////////
 
   record TeamEkMetadata {

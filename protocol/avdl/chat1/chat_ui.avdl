@@ -4,6 +4,7 @@ protocol chatUi {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
 
   record UIPagination {
@@ -74,6 +75,7 @@ protocol chatUi {
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationSettingsLocal } convSettings;
 
     // Finalized convo stuff (KBFS only)
     union { null, ConversationFinalizeInfo } finalizeInfo;
@@ -104,7 +106,19 @@ protocol chatUi {
   record UIAssetUrlInfo {
     string previewUrl;
     string fullUrl;
+    boolean fullUrlCached;
     string mimeType;
+    union { null, string } videoDuration;
+    boolean inlineVideoPlayable;
+  }
+
+  record UIPaymentInfo {
+    string amountDescription;       // "1,323.1234567 XLM"
+    string worth;                   // "$123.23"
+    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                    // secret note
+    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;       // "pending", "completed", "error"
   }
 
   record UIMessageValid {
@@ -127,6 +141,8 @@ protocol chatUi {
     gregor1.Time etime;
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
+    boolean hasPairwiseMacs;
+    union { null, UIPaymentInfo } paymentInfo;
   }
 
   record UIMessageOutbox {
@@ -136,6 +152,11 @@ protocol chatUi {
     string body;
     gregor1.Time ctime;
     double ordinal;
+
+    // For attachments
+    string filename;
+    string title;
+    union { null, MakePreviewRes } preview;
   }
 
   enum MessageUnboxedState {
@@ -156,14 +177,6 @@ protocol chatUi {
     array<UIMessage> messages;
     union { null, UIPagination } pagination;
   }
-
-  void chatAttachmentUploadOutboxID(int sessionID, OutboxID outboxID);
-  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata, MessageID placeholderMsgID) oneway;
-  void chatAttachmentUploadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
-  void chatAttachmentUploadDone(int sessionID);
-
-  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;
-  void chatAttachmentPreviewUploadDone(int sessionID);
 
   void chatAttachmentDownloadStart(int sessionID);
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;

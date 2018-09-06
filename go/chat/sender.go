@@ -27,21 +27,22 @@ type BlockingSender struct {
 	utils.DebugLabeler
 
 	boxer             *Boxer
-	store             *attachments.Store
+	store             attachments.Store
 	getRi             func() chat1.RemoteInterface
 	prevPtrPagination *chat1.Pagination
+	clock             clockwork.Clock
 }
 
 var _ types.Sender = (*BlockingSender)(nil)
 
-func NewBlockingSender(g *globals.Context, boxer *Boxer, store *attachments.Store,
-	getRi func() chat1.RemoteInterface) *BlockingSender {
+func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.RemoteInterface) *BlockingSender {
 	return &BlockingSender{
 		Contextified:      globals.NewContextified(g),
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             store,
+		store:             attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir()),
+		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
 }
@@ -50,24 +51,28 @@ func (s *BlockingSender) setPrevPagination(p *chat1.Pagination) {
 	s.prevPtrPagination = p
 }
 
-func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, error) {
+func (s *BlockingSender) SetClock(clock clockwork.Clock) {
+	s.clock = clock
+}
+
+func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.MessagePlaintext, gregor1.UID, error) {
 	uid := s.G().Env.GetUID()
 	if uid.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.LoginRequiredError{}
+		return chat1.MessagePlaintext{}, nil, libkb.LoginRequiredError{}
 	}
 	did := s.G().Env.GetDeviceID()
 	if did.IsNil() {
-		return chat1.MessagePlaintext{}, libkb.DeviceRequiredError{}
+		return chat1.MessagePlaintext{}, nil, libkb.DeviceRequiredError{}
 	}
 
 	huid := uid.ToBytes()
 	if huid == nil {
-		return chat1.MessagePlaintext{}, errors.New("invalid UID")
+		return chat1.MessagePlaintext{}, nil, errors.New("invalid UID")
 	}
 
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err := did.ToBytes(hdid); err != nil {
-		return chat1.MessagePlaintext{}, err
+		return chat1.MessagePlaintext{}, nil, err
 	}
 
 	header := msg.ClientHeader
@@ -77,7 +82,7 @@ func (s *BlockingSender) addSenderToMessage(msg chat1.MessagePlaintext) (chat1.M
 		ClientHeader: header,
 		MessageBody:  msg.MessageBody,
 	}
-	return updated, nil
+	return updated, gregor1.UID(huid), nil
 }
 
 func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg chat1.MessagePlaintext,
@@ -194,15 +199,33 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		return fmt.Errorf("Chat public-ness does not match reference message")
 	}
 	if headerQ.TlfName != headerRef.TlfName {
-		// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
-		namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
-			headerQ.TlfPublic)
-		if err != nil {
-			return err
-		}
-		if !namesEq {
-			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+		// If we're of type TEAM, we lookup the name info for the team and
+		// verify it matches what is on the message itself. If we rename a
+		// subteam the names between the current and reference message will
+		// differ so we cannot rely on that.
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// Cannonicalize the given TlfName
+			teamNameParsed, err := keybase1.TeamNameFromString(headerQ.TlfName)
+			if err != nil {
+				return fmt.Errorf("invalid team name: %v", err)
+			}
+			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
+				conv.Metadata.IdTriple.Tlfid,
+				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				return err
+			} else if info.CanonicalName != teamNameParsed.String() {
+				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
+			}
+		default:
+			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
+			if namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName,
+				conv.GetMembersType(), headerQ.TlfPublic); err != nil {
+				return err
+			} else if !namesEq {
+				s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
+				return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+			}
 		}
 	}
 
@@ -215,8 +238,8 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 // If the conversation is not cached, this relies on the server to get old messages, so the server
 // could omit messages. Those messages would then not be signed into the `Deletes` list. And their
 // associated attachment assets would be left undeleted.
-func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.MessagePlaintext,
-	conv chat1.Conversation) (chat1.MessagePlaintext, []chat1.Asset, error) {
+func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (chat1.MessagePlaintext, []chat1.Asset, error) {
 
 	var pendingAssetDeletes []chat1.Asset
 
@@ -231,38 +254,22 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	}
 
 	// Get the one message to be deleted by ID.
-	var uid gregor1.UID = s.G().Env.GetUID().ToBytes()
-	deleteTargets, err := s.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{deleteTargetID}, nil)
+	deleteTarget, err := s.getMessage(ctx, uid, convID, deleteTargetID, false /* resolveSupersedes */)
 	if err != nil {
 		return msg, nil, err
 	}
-	if len(deleteTargets) != 1 {
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: wrong number of delete targets found (%v but expected 1)", len(deleteTargets))
-	}
-	deleteTarget := deleteTargets[0]
-	state, err := deleteTarget.State()
-	if err != nil {
-		return msg, nil, err
-	}
-	switch state {
-	case chat1.MessageUnboxedState_VALID:
-		// pass
-	case chat1.MessageUnboxedState_ERROR:
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target: %s", deleteTarget.Error().ErrMsg)
-	case chat1.MessageUnboxedState_OUTBOX:
-		// TODO You should be able to delete messages that haven't been sent yet. But through a different mechanism.
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target still in outbox")
-	default:
-		return msg, nil, fmt.Errorf("getAllDeletedEdits: delete target invalid (state:%v)", state)
+	if deleteTarget.ClientHeader.MessageType == chat1.MessageType_REACTION {
+		// Don't do anything here for reactions, they can't be edited
+		return msg, nil, nil
 	}
 
 	// Delete all assets on the deleted message.
 	// assetsForMessage logs instead of failing.
-	pads2 := utils.AssetsForMessage(s.G(), deleteTarget.Valid().MessageBody)
+	pads2 := utils.AssetsForMessage(s.G(), deleteTarget.MessageBody)
 	pendingAssetDeletes = append(pendingAssetDeletes, pads2...)
 
 	// Time of the first message to be deleted.
-	timeOfFirst := gregor1.FromTime(deleteTarget.Valid().ServerHeader.Ctime)
+	timeOfFirst := gregor1.FromTime(deleteTarget.ServerHeader.Ctime)
 	// Time a couple seconds before that, because After querying is exclusive.
 	timeBeforeFirst := gregor1.ToTime(timeOfFirst.Add(-2 * time.Second))
 
@@ -270,7 +277,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Use ConvSource with an `After` which query. Fetches from a combination of local cache
 	// and the server. This is an opportunity for the server to retain messages that should
 	// have been deleted without getting caught.
-	tv, err := s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
+	tv, err := s.G().ConvSource.Pull(ctx, convID, msg.ClientHeader.Sender,
 		chat1.GetThreadReason_PREPARE,
 		&chat1.GetThreadQuery{
 			MarkAsRead:   false,
@@ -284,7 +291,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	// Get all affected messages to be deleted
 	deletes := []chat1.MessageID{deleteTargetID}
 	// Add in any reaction messages the deleteTargetID may have
-	deletes = append(deletes, deleteTarget.Valid().ServerHeader.ReactionIDs...)
+	deletes = append(deletes, deleteTarget.ServerHeader.ReactionIDs...)
 	for _, m := range tv.Messages {
 		if !m.IsValid() {
 			continue
@@ -293,7 +300,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 		typ, err := body.MessageType()
 		if err != nil {
 			s.Debug(ctx, "getAllDeletedEdits: error getting message type: convID: %s msgID: %d err: %s",
-				conv.GetConvID(), m.GetMessageID(), err.Error())
+				convID, m.GetMessageID(), err.Error())
 			continue
 		}
 		switch typ {
@@ -312,7 +319,7 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 			}
 		default:
 			s.Debug(ctx, "getAllDeletedEdits: unexpected message type: convID: %s msgID: %d typ: %v",
-				conv.GetConvID(), m.GetMessageID(), typ)
+				convID, m.GetMessageID(), typ)
 			continue
 		}
 	}
@@ -324,6 +331,69 @@ func (s *BlockingSender) getAllDeletedEdits(ctx context.Context, msg chat1.Messa
 	msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{MessageIDs: deletes})
 
 	return msg, pendingAssetDeletes, nil
+}
+
+func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, resolveSupersedes bool) (mvalid chat1.MessageUnboxedValid, err error) {
+	messages, err := GetMessages(ctx, s.G(), uid, convID, []chat1.MessageID{msgID}, resolveSupersedes)
+	if err != nil {
+		return mvalid, err
+	}
+	if len(messages) != 1 || !messages[0].IsValid() {
+		return mvalid, fmt.Errorf("getMessage returned multiple messages or an invalid result for msgID: %v, numMsgs: %v", msgID, len(messages))
+	}
+	return messages[0].Valid(), nil
+}
+
+// If we are superseding an ephemeral message, we have to set the
+// ephemeralMetadata on this superseder message.
+func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
+
+	switch msg.ClientHeader.MessageType {
+	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION:
+	default:
+		// nothing to do here
+		return msg.ClientHeader.EphemeralMetadata, nil
+	}
+
+	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
+	if err != nil {
+		return nil, err
+	}
+	if supersededMsg.IsEphemeral() {
+		metadata = supersededMsg.EphemeralMetadata()
+		metadata.Lifetime = gregor1.ToDurationSec(supersededMsg.RemainingEphemeralLifetime(s.clock.Now()))
+	}
+	return metadata, nil
+}
+
+// processReactionMessage determines if we are trying to post a duplicate
+// chat1.MessageType_REACTION, which is considered a chat1.MessageType_DELETE
+// and updates the send appropriately.
+func (s *BlockingSender) processReactionMessage(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessagePlaintext) (clientHeader chat1.MessageClientHeader, body chat1.MessageBody, err error) {
+	if msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+		// nothing to do here
+		return msg.ClientHeader, msg.MessageBody, nil
+	}
+
+	// We could either be posting a reaction or removing one that we already posted.
+	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, true /* resolveSupersedes */)
+	if err != nil {
+		return clientHeader, body, err
+	}
+	found, reactionMsgID := supersededMsg.Reactions.HasReactionFromUser(msg.MessageBody.Reaction().Body, s.G().Env.GetUsername().String())
+	if found {
+		msg.ClientHeader.Supersedes = reactionMsgID
+		msg.ClientHeader.MessageType = chat1.MessageType_DELETE
+		msg.ClientHeader.Deletes = []chat1.MessageID{reactionMsgID}
+		msg.MessageBody = chat1.NewMessageBodyWithDelete(chat1.MessageDelete{
+			MessageIDs: []chat1.MessageID{reactionMsgID},
+		})
+	}
+
+	return msg.ClientHeader, msg.MessageBody, nil
 }
 
 func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat1.MessagePlaintext,
@@ -361,7 +431,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, fmt.Errorf("cannot send message without type")
 	}
 
-	msg, err := s.addSenderToMessage(plaintext)
+	msg, uid, err := s.addSenderToMessage(plaintext)
 	if err != nil {
 		return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 	}
@@ -383,11 +453,26 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// Make sure our delete message gets everything it should
 	var pendingAssetDeletes []chat1.Asset
 	if conv != nil {
-		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
-		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, msg, *conv)
+		convID := (*conv).GetConvID()
+		// First process the reactionMessage in case we convert it to a delete
+		header, body, err := s.processReactionMessage(ctx, uid, convID, msg)
 		if err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
+		msg.ClientHeader = header
+		msg.MessageBody = body
+
+		// Be careful not to shadow (msg, pendingAssetDeletes) with this assignment.
+		msg, pendingAssetDeletes, err = s.getAllDeletedEdits(ctx, uid, convID, msg)
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+
+		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
+		if err != nil {
+			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
+		}
+		msg.ClientHeader.EphemeralMetadata = metadata
 	}
 
 	// Get topic name state if this is a METADATA message, so that we avoid any races to the
@@ -423,22 +508,19 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	chanMention := chat1.ChannelMention_NONE
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
-		err = checkHeaderBodyTypeMatch()
-		if err != nil {
+		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_EDIT:
-		err = checkHeaderBodyTypeMatch()
-		if err != nil {
+		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_SYSTEM:
-		err = checkHeaderBodyTypeMatch()
-		if err != nil {
+		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return nil, nil, nil, chat1.ChannelMention_NONE, nil, err
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
@@ -631,6 +713,11 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				// out of date.
 				s.Debug(ctx, "failed because of stale previous state, trying the whole thing again")
 				continue
+			case libkb.EphemeralPairwiseMACsMissingUIDsError:
+				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
+				s.Debug(ctx, "failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)
+				utils.ForceReloadUPAKsForUIDs(ctx, s.G(), merr.UIDs)
+				continue
 			default:
 				s.Debug(ctx, "failed to PostRemote, bailing: %s", err.Error())
 				return chat1.OutboxID{}, nil, err
@@ -660,7 +747,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			DisplayDesktopNotification: false,
 			Conv: s.presentUIItem(convLocal),
 		})
-		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity)
+		s.G().ActivityNotifier.Activity(ctx, boxed.ClientHeader.Sender, conv.GetTopicType(), &activity,
+			chat1.ChatActivitySource_LOCAL)
 	}
 	return []byte{}, boxed, nil
 }
@@ -699,6 +787,9 @@ type Deliverer struct {
 	disconnTime   time.Time
 	clock         clockwork.Clock
 
+	notifyFailureChsMu sync.Mutex
+	notifyFailureChs   map[string]chan []chat1.OutboxRecord
+
 	// Testing
 	testingNameInfoSource types.NameInfoSource
 }
@@ -707,14 +798,15 @@ var _ types.MessageDeliverer = (*Deliverer)(nil)
 
 func NewDeliverer(g *globals.Context, sender types.Sender) *Deliverer {
 	d := &Deliverer{
-		Contextified:  globals.NewContextified(g),
-		DebugLabeler:  utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
-		shutdownCh:    make(chan chan struct{}, 1),
-		msgSentCh:     make(chan struct{}, 100),
-		reconnectCh:   make(chan struct{}, 100),
-		sender:        sender,
-		identNotifier: NewCachingIdentifyNotifier(g),
-		clock:         clockwork.NewRealClock(),
+		Contextified:     globals.NewContextified(g),
+		DebugLabeler:     utils.NewDebugLabeler(g.GetLog(), "Deliverer", false),
+		shutdownCh:       make(chan chan struct{}, 1),
+		msgSentCh:        make(chan struct{}, 100),
+		reconnectCh:      make(chan struct{}, 100),
+		sender:           sender,
+		identNotifier:    NewCachingIdentifyNotifier(g),
+		clock:            clockwork.NewRealClock(),
+		notifyFailureChs: make(map[string]chan []chat1.OutboxRecord),
 	}
 
 	g.PushShutdownHook(func() error {
@@ -801,6 +893,12 @@ func (s *Deliverer) IsOffline(ctx context.Context) bool {
 	return !s.connected
 }
 
+func (s *Deliverer) IsDelivering() bool {
+	s.Lock()
+	defer s.Unlock()
+	return s.delivering
+}
+
 func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg chat1.MessagePlaintext,
 	outboxID *chat1.OutboxID,
 	identifyBehavior keybase1.TLFIdentifyBehavior) (obr chat1.OutboxRecord, err error) {
@@ -818,6 +916,56 @@ func (s *Deliverer) Queue(ctx context.Context, convID chat1.ConversationID, msg 
 	s.msgSentCh <- struct{}{}
 
 	return obr, nil
+}
+
+func (s *Deliverer) ActiveDeliveries(ctx context.Context) (res []chat1.ConversationID, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ActiveDeliveries")()
+	if !s.IsDelivering() {
+		s.Debug(ctx, "ActiveDeliveries: not delivering, returning empty")
+		return nil, nil
+	}
+	recs, err := s.outbox.PullAllConversations(ctx, false, false)
+	cmap := make(map[string]chat1.ConversationID)
+	if err != nil {
+		s.Debug(ctx, "ActiveDeliveries: failed to pull convs: %s", err)
+		return res, err
+	}
+	for _, r := range recs {
+		styp, err := r.State.State()
+		if err != nil {
+			s.Debug(ctx, "ActiveDeliveries: bogus state: outboxID: %s err: %s", r.OutboxID, err)
+			continue
+		}
+		if styp == chat1.OutboxStateType_SENDING {
+			cmap[r.ConvID.String()] = r.ConvID
+		}
+	}
+	for _, convID := range cmap {
+		res = append(res, convID)
+	}
+	return res, nil
+}
+
+func (s *Deliverer) NextFailure() (chan []chat1.OutboxRecord, func()) {
+	s.notifyFailureChsMu.Lock()
+	defer s.notifyFailureChsMu.Unlock()
+	ch := make(chan []chat1.OutboxRecord, 1)
+	id := libkb.RandStringB64(3)
+	s.notifyFailureChs[id] = ch
+	return ch, func() {
+		s.notifyFailureChsMu.Lock()
+		defer s.notifyFailureChsMu.Unlock()
+		delete(s.notifyFailureChs, id)
+	}
+}
+
+func (s *Deliverer) alertFailureChannels(obrs []chat1.OutboxRecord) {
+	s.notifyFailureChsMu.Lock()
+	defer s.notifyFailureChsMu.Unlock()
+	for _, ch := range s.notifyFailureChs {
+		ch <- obrs
+	}
+	s.notifyFailureChs = make(map[string]chan []chat1.OutboxRecord)
 }
 
 func (s *Deliverer) doNotRetryFailure(ctx context.Context, obr chat1.OutboxRecord, err error) (chat1.OutboxErrorType, error, bool) {
@@ -878,9 +1026,114 @@ func (s *Deliverer) failMessage(ctx context.Context, obr chat1.OutboxRecord,
 		act := chat1.NewChatActivityWithFailedMessage(chat1.FailedMessageInfo{
 			OutboxRecords: marked,
 		})
-		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act)
+		s.G().ActivityNotifier.Activity(context.Background(), s.outbox.GetUID(), chat1.TopicType_NONE, &act,
+			chat1.ChatActivitySource_LOCAL)
+		s.alertFailureChannels(marked)
 	}
 	return nil
+}
+
+var errDelivererUploadInProgress = errors.New("attachment upload in progress")
+
+func (s *Deliverer) processAttachment(ctx context.Context, obr chat1.OutboxRecord) (chat1.OutboxRecord, error) {
+	if !obr.IsAttachment() {
+		return obr, nil
+	}
+	status, res, err := s.G().AttachmentUploader.Status(ctx, obr.OutboxID)
+	if err != nil {
+		return obr, err
+	}
+	switch status {
+	case types.AttachmentUploaderTaskStatusSuccess:
+		// Modify the attachment message
+		att := chat1.MessageAttachment{
+			Object:   res.Object,
+			Metadata: res.Metadata,
+			Uploaded: true,
+			Preview:  res.Preview,
+		}
+		if res.Preview != nil {
+			att.Previews = []chat1.Asset{*res.Preview}
+		}
+		obr.Msg.MessageBody = chat1.NewMessageBodyWithAttachment(att)
+		if err := s.outbox.UpdateMessage(ctx, obr); err != nil {
+			return obr, err
+		}
+	case types.AttachmentUploaderTaskStatusFailed:
+		errStr := "<unknown>"
+		if res.Error != nil {
+			errStr = *res.Error
+		}
+		// register this as a failure, but still attempt a retry
+		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
+			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+		}
+		return obr, NewAttachmentUploadError(errStr)
+	case types.AttachmentUploaderTaskStatusUploading:
+		// Make sure we are actually trying to upload this guy
+		if _, err := s.G().AttachmentUploader.Retry(ctx, obr.OutboxID); err != nil {
+			s.Debug(ctx, "processAttachment: failed to retry upload on in progress task: %s", err)
+		}
+		return obr, errDelivererUploadInProgress
+	}
+	return obr, nil
+}
+
+// cancelPendingDuplicateReactions removes duplicate reactions in the outbox.
+// If we cancel an odd number of items we cancel ourselves since the current
+// reaction state is correct.
+func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr chat1.OutboxRecord) (bool, error) {
+	if obr.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+		// nothing to do here
+		return false, nil
+	}
+	// While holding the outbox lock, let's remove any duplicate reaction
+	// messages and  make sure we are in the outbox, otherwise someone else
+	// canceled us.
+	inOutbox := false
+	numCanceled, err := s.outbox.CancelMessagesWithPredicate(ctx, func(o chat1.OutboxRecord) bool {
+		if !o.ConvID.Eq(obr.ConvID) {
+			return false
+		}
+		if o.Msg.ClientHeader.MessageType != chat1.MessageType_REACTION {
+			return false
+		}
+
+		idEq := o.OutboxID.Eq(&obr.OutboxID)
+		bodyEq := o.Msg.MessageBody.Reaction().Eq(obr.Msg.MessageBody.Reaction())
+		// Don't delete ourselves from the outbox, but we want to make sure we
+		// are in here.
+		inOutbox = inOutbox || idEq
+		shouldCancel := bodyEq && !idEq
+		if shouldCancel {
+			s.Debug(ctx, "canceling outbox message convID: %v obid: %v", o.ConvID, o.OutboxID)
+		}
+		return shouldCancel
+	})
+
+	if err != nil {
+		return false, err
+	} else if !inOutbox {
+		// we were canceled previously, the jig is up
+		return true, nil
+	} else if numCanceled%2 == 1 {
+		// Since we're just toggling the reaction on/off, we should abort here
+		// and remove ourselves from the outbox since our message wouldn't
+		// change the reaction state.
+		err = s.outbox.RemoveMessage(ctx, obr.OutboxID)
+		return true, err
+	}
+	return false, nil
+}
+
+func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
+	switch err {
+	case ErrDuplicateConnection:
+		// This just happens when threads are racing to reconnect to Gregor, don't count it as
+		// an error to send.
+		return false
+	}
+	return true
 }
 
 func (s *Deliverer) deliverLoop() {
@@ -921,45 +1174,62 @@ func (s *Deliverer) deliverLoop() {
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
-				CtxKeyFinder(bctx, s.G()).SetNameInfoSourceOverride(s.testingNameInfoSource)
+				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
-			} else if s.clock.Now().Sub(obr.Ctime.Time()) > 10*time.Minute {
-				// If we are re-trying a message after 10 minutes, let's just give up. These times can
+			} else if s.clock.Now().Sub(obr.Ctime.Time()) > time.Hour {
+				// If we are re-trying a message after an hour, let's just give up. These times can
 				// get very long if the app is suspended on mobile.
-				s.Debug(bgctx, "deliverLoop: expiring pending message because it is too old: obid: %s dur: %v",
+				s.Debug(bctx, "deliverLoop: expiring pending message because it is too old: obid: %s dur: %v",
 					obr.OutboxID, s.clock.Now().Sub(obr.Ctime.Time()))
 				err = delivererExpireError{}
 			} else {
-				_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+				// Check for an attachment message and process based on upload status
+				obr, err = s.processAttachment(bctx, obr)
+				if err == errDelivererUploadInProgress {
+					s.Debug(bctx, "deliverLoop: attachment upload in progress, skipping: convID: %s obid: %s",
+						obr.ConvID, obr.OutboxID)
+					continue
+				}
+				if err == nil {
+					canceled, err := s.cancelPendingDuplicateReactions(bctx, obr)
+					if err == nil && canceled {
+						s.Debug(bctx, "deliverLoop: aborting send, duplicate send convID: %s, obid: %s",
+							obr.ConvID, obr.OutboxID)
+						continue
+					}
+				}
+				if err == nil {
+					_, _, err = s.sender.Send(bctx, obr.ConvID, obr.Msg, 0, nil)
+				}
 			}
 			if err != nil {
-				s.Debug(bgctx,
+				s.Debug(bctx,
 					"deliverLoop: failed to send msg: uid: %s convID: %s obid: %s err: %s attempts: %d",
 					s.outbox.GetUID(), obr.ConvID, obr.OutboxID, err.Error(), obr.State.Sending())
 
 				// Process failure. If we determine that the message is unrecoverable, then bail out.
-				if errTyp, newErr, ok := s.doNotRetryFailure(bgctx, obr, err); ok {
+				if errTyp, newErr, ok := s.doNotRetryFailure(bctx, obr, err); ok {
 					// Record failure if we hit this case, and put the rest of this loop in a
 					// mode where all other entries also fail.
-					s.Debug(bgctx, "deliverLoop: failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
+					s.Debug(bctx, "deliverLoop: failure condition reached, marking as error and notifying: obid: %s errTyp: %v attempts: %d", obr.OutboxID, errTyp, obr.State.Sending())
 
-					if err := s.failMessage(bgctx, obr, chat1.OutboxStateError{
+					if err := s.failMessage(bctx, obr, chat1.OutboxStateError{
 						Message: newErr.Error(),
 						Typ:     errTyp,
 					}); err != nil {
-						s.Debug(bgctx, "deliverLoop: unable to fail message: err: %s", err.Error())
+						s.Debug(bctx, "deliverLoop: unable to fail message: err: %s", err.Error())
 					}
-				} else {
-					if err = s.outbox.RecordFailedAttempt(bgctx, obr); err != nil {
+				} else if s.shouldRecordError(bctx, err) {
+					if err = s.outbox.RecordFailedAttempt(bctx, obr); err != nil {
 						s.Debug(bgctx, "deliverLoop: unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}
 				}
 				break
 			} else {
-				if err = s.outbox.RemoveMessage(bgctx, obr.OutboxID); err != nil {
+				if err = s.outbox.RemoveMessage(bctx, obr.OutboxID); err != nil {
 					s.Debug(bgctx, "deliverLoop: failed to remove successful message send: %s", err)
 				}
 			}

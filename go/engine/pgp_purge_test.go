@@ -15,7 +15,7 @@ func TestPGPPurgeLksec(t *testing.T) {
 	tc := SetupEngineTest(t, "purge")
 	defer tc.Cleanup()
 
-	createFakeUserWithPGPSibkey(tc)
+	createFakeUserWithPGPSibkeyPaper(tc)
 
 	idUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),

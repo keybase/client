@@ -9,12 +9,9 @@ import SystemJoined from './system-joined/container'
 import SystemLeft from './system-left/container'
 import SystemSimpleToComplex from './system-simple-to-complex/container'
 import SystemText from './system-text/container'
-import TextMessage from './text/container'
-import Attachment from './attachment/container'
 import SetDescription from './set-description/container'
 import SetChannelname from './set-channelname/container'
 import Placeholder from './placeholder/container'
-import WrapperAuthor from './wrapper/wrapper-author/container'
 import WrapperTimestamp from './wrapper/wrapper-timestamp/container'
 import {setDisplayName, connect, compose, lifecycle, type TypedState} from '../../../util/container'
 
@@ -32,6 +29,7 @@ class MessageFactory extends React.PureComponent<Props> {
     }
 
     const messageWrapperProps = {
+      isEditing: this.props.isEditing,
       measure: this.props.measure,
       message: this.props.message,
       previous: this.props.previous,
@@ -39,29 +37,13 @@ class MessageFactory extends React.PureComponent<Props> {
 
     switch (this.props.message.type) {
       case 'text':
-        return (
-          <WrapperTimestamp {...messageWrapperProps}>
-            <WrapperAuthor
-              innerClass={TextMessage}
-              isEditing={this.props.isEditing}
-              message={this.props.message}
-              previous={this.props.previous}
-              measure={this.props.measure}
-            />
-          </WrapperTimestamp>
-        )
+        return <WrapperTimestamp {...messageWrapperProps} />
       case 'attachment':
-        return (
-          <WrapperTimestamp {...messageWrapperProps}>
-            <WrapperAuthor
-              innerClass={Attachment}
-              isEditing={this.props.isEditing}
-              message={this.props.message}
-              previous={this.props.previous}
-              measure={this.props.measure}
-            />
-          </WrapperTimestamp>
-        )
+        return <WrapperTimestamp {...messageWrapperProps} />
+      case 'requestPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
+      case 'sendPayment':
+        return <WrapperTimestamp {...messageWrapperProps} />
       case 'placeholder':
         return (
           <WrapperTimestamp {...messageWrapperProps}>

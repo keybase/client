@@ -16,8 +16,9 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
-type Props = {
+export type Props = {
   backgroundColor: string,
+  channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
@@ -37,25 +38,51 @@ type Props = {
   usernameColor: string,
   youAreReset: boolean,
   youNeedToRekey: boolean,
+  isInWidget?: boolean,
+}
+
+type State = {
+  isHovered: boolean,
 }
 
 const SmallTeamBox = isMobile
-  ? Box
+  ? ClickableBox
   : glamorous(Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
     })
 
-class SmallTeam extends React.PureComponent<Props> {
+class SmallTeam extends React.PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
+  _backgroundColor = () =>
+    // props.backgroundColor should always override hover styles, otherwise, there's a
+    // moment when the conversation is loading that the selected inbox row is styled
+    // with hover styles instead of props.backgroundColor.
+    this.props.isSelected
+      ? this.props.backgroundColor
+      : this.state.isHovered
+        ? globalColors.blueGrey2
+        : this.props.backgroundColor
+
   render() {
     const props = this.props
     return (
-      <ClickableBox
+      <SmallTeamBox
         onClick={props.onSelectConversation}
-        style={collapseStyles([{backgroundColor: props.backgroundColor}, styles.container])}
+        onMouseLeave={() => this.setState({isHovered: false})}
+        onMouseOver={() => this.setState({isHovered: true})}
+        style={collapseStyles([
+          {
+            backgroundColor: this._backgroundColor(),
+          },
+          styles.container,
+        ])}
       >
-        <SmallTeamBox style={props.isSelected ? styles.rowContainerSelected : styles.rowContainer}>
+        <Box style={collapseStyles([styles.rowContainer, styles.fastBlank])}>
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
@@ -64,14 +91,14 @@ class SmallTeam extends React.PureComponent<Props> {
             />
           ) : (
             <Avatars
-              backgroundColor={props.backgroundColor}
+              backgroundColor={this._backgroundColor()}
               isMuted={props.isMuted}
               isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}
               participants={props.participants}
             />
           )}
-          <Box style={props.isSelected ? styles.conversationRowSelected : styles.conversationRow}>
+          <Box style={collapseStyles([styles.conversationRow, styles.fastBlank])}>
             <SimpleTopLine
               backgroundColor={props.backgroundColor}
               hasUnread={props.hasUnread}
@@ -79,10 +106,12 @@ class SmallTeam extends React.PureComponent<Props> {
               iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
-              showGear={!!props.teamname && !isMobile}
+              showGear={!!props.teamname && !isMobile && !props.isInWidget}
               subColor={props.subColor}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
+              teamname={props.teamname}
+              {...(props.channelname ? {channelname: props.channelname} : {})}
             />
 
             <BottomLine
@@ -98,8 +127,8 @@ class SmallTeam extends React.PureComponent<Props> {
               isSelected={props.isSelected}
             />
           </Box>
-        </SmallTeamBox>
-      </ClickableBox>
+        </Box>
+      </SmallTeamBox>
     )
   }
 }
@@ -108,26 +137,20 @@ const styles = styleSheetCreate({
   container: {flexShrink: 0, height: RowSizes.smallRowHeight},
   conversationRow: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
     flexGrow: 1,
     height: '100%',
     justifyContent: 'center',
     paddingLeft: 8,
     paddingRight: 8,
   },
-  conversationRowSelected: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.blue,
-    flexGrow: 1,
-    height: '100%',
-    justifyContent: 'center',
-    paddingLeft: 8,
-    paddingRight: 8,
-  },
+  fastBlank: platformStyles({
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+    },
+  }),
   rowContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
       height: '100%',
     },
     isElectron: desktopStyles.clickable,
@@ -135,7 +158,6 @@ const styles = styleSheetCreate({
   rowContainerSelected: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      backgroundColor: globalColors.blue,
       height: '100%',
     },
     isElectron: desktopStyles.clickable,

@@ -32,7 +32,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => {
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
   const teamname = routeProps.get('teamname')
   const repoID = routeProps.get('repoID')
   return {

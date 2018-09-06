@@ -1,15 +1,15 @@
 // @flow
-import type {State as Billing} from '../constants/types/plan-billing'
 import type {State as Chat2} from '../constants/types/chat2'
 import type {State as Config} from '../constants/types/config'
 import type {State as Dev} from '../constants/types/dev'
 import type {State as Devices} from '../constants/types/devices'
 import type {State as Entity} from '../constants/types/entities'
-import type {State as Engine} from '../constants/types/engine'
 import type {State as Favorite} from '../constants/types/favorite'
+import type {State as Git} from '../constants/types/git'
 import type {State as Gregor} from '../constants/types/gregor'
 import type {State as FS} from '../constants/types/fs'
 import type {State as Login} from '../constants/types/login'
+import type {State as Provision} from '../constants/types/provision'
 import type {State as Notification} from '../constants/types/notifications'
 import type {State as Pinentry} from '../constants/types/pinentry'
 import type {State as Profile} from '../constants/types/profile'
@@ -30,16 +30,16 @@ export type TypedState = $ReadOnly<{|
   config: Config,
   dev: Dev,
   devices: Devices,
-  engine: Engine,
   entities: Entity,
   favorite: Favorite,
   fs: FS,
+  git: Git,
   gregor: Gregor,
   login: Login,
+  provision: Provision,
   notifications: Notification,
   people: People,
   pinentry: Pinentry,
-  planBilling: Billing,
   profile: Profile,
   push: Push,
   routeTree: RouteTree,

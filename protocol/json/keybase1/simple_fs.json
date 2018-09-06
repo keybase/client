@@ -17,11 +17,81 @@
       "size": "16"
     },
     {
+      "type": "record",
+      "name": "KBFSRevision",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "KBFSArchivedType",
+      "symbols": [
+        "REVISION_0",
+        "TIME_1",
+        "TIME_STRING_2",
+        "REL_TIME_STRING_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "KBFSArchivedParam",
+      "switch": {
+        "type": "KBFSArchivedType",
+        "name": "KBFSArchivedType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "REVISION",
+            "def": false
+          },
+          "body": "KBFSRevision"
+        },
+        {
+          "label": {
+            "name": "TIME",
+            "def": false
+          },
+          "body": "Time"
+        },
+        {
+          "label": {
+            "name": "TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "REL_TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSArchivedPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "KBFSArchivedParam",
+          "name": "archivedParam"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "PathType",
       "symbols": [
         "LOCAL_0",
-        "KBFS_1"
+        "KBFS_1",
+        "KBFS_ARCHIVED_2"
       ]
     },
     {
@@ -45,6 +115,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "KBFS_ARCHIVED",
+            "def": false
+          },
+          "body": "KBFSArchivedPath"
         }
       ]
     },
@@ -86,6 +163,28 @@
           "type": "boolean",
           "name": "writable"
         }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DirentWithRevision",
+      "fields": [
+        {
+          "type": "Dirent",
+          "name": "entry"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RevisionSpanType",
+      "symbols": [
+        "DEFAULT_0",
+        "LAST_FIVE_1"
       ]
     },
     {
@@ -153,7 +252,9 @@
         "WRITE_3",
         "COPY_4",
         "MOVE_5",
-        "REMOVE_6"
+        "REMOVE_6",
+        "LIST_RECURSIVE_TO_DEPTH_7",
+        "GET_REVISIONS_8"
       ]
     },
     {
@@ -179,6 +280,28 @@
         {
           "type": "ListFilter",
           "name": "filter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListToDepthArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "ListFilter",
+          "name": "filter"
+        },
+        {
+          "type": "int",
+          "name": "depth"
         }
       ]
     },
@@ -273,6 +396,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetRevisionsArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "RevisionSpanType",
+          "name": "spanType"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OpDescription",
       "switch": {
@@ -293,6 +434,13 @@
             "def": false
           },
           "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE_TO_DEPTH",
+            "def": false
+          },
+          "body": "ListToDepthArgs"
         },
         {
           "label": {
@@ -328,6 +476,30 @@
             "def": false
           },
           "body": "RemoveArgs"
+        },
+        {
+          "label": {
+            "name": "GET_REVISIONS",
+            "def": false
+          },
+          "body": "GetRevisionsArgs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRevisionsResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "DirentWithRevision"
+          },
+          "name": "revisions"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
         }
       ]
     },
@@ -387,6 +559,36 @@
         }
       ],
       "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSQuotaUsage",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "usageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "archiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "limitBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitUsageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitArchiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitLimitBytes"
+        }
+      ]
     }
   ],
   "messages": {
@@ -403,10 +605,14 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin list of items in directory at path\n   Retrieve results with readList()\n   Can be a single file to get flags/status"
+      "doc": "Begin list of items in directory at path.\n   Retrieve results with readList().\n   Can be a single file to get flags/status.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
     },
     "simpleFSListRecursive": {
       "request": [
@@ -421,10 +627,40 @@
         {
           "name": "filter",
           "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
         }
       ],
       "response": null,
-      "doc": "Begin recursive list of items in directory at path"
+      "doc": "Begin recursive list of items in directory at path.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
+    },
+    "simpleFSListRecursiveToDepth": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        },
+        {
+          "name": "depth",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path up to a given depth"
     },
     "simpleFSReadList": {
       "request": [
@@ -596,6 +832,34 @@
       "response": "Dirent",
       "doc": "Get info about file"
     },
+    "simpleFSGetRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "spanType",
+          "type": "RevisionSpanType"
+        }
+      ],
+      "response": null,
+      "doc": "Get revision info for a directory entry"
+    },
+    "simpleFSReadRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "GetRevisionsResult",
+      "doc": "Get list of revisions in progress. Can indicate status of pending\n   to get more revisions."
+    },
     "simpleFSMakeOpid": {
       "request": [],
       "response": "OpID",
@@ -655,7 +919,12 @@
       "doc": "Instructs KBFS to dump debugging info into its logs."
     },
     "simpleFSSyncStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        }
+      ],
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },
@@ -683,14 +952,10 @@
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
     },
-    "simpleFSSuppressNotifications": {
-      "request": [
-        {
-          "name": "suppressDurationSec",
-          "type": "int"
-        }
-      ],
-      "response": null
+    "simpleFSGetUserQuotaUsage": {
+      "request": [],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
     }
   },
   "namespace": "keybase.1"

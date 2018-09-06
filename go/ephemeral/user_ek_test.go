@@ -141,6 +141,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	needed, err := ekLib.NewUserEKNeeded(context.Background())
 	require.NoError(t, err)
 	if skipUserEKForTesting {

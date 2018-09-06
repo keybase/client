@@ -1,15 +1,9 @@
 // @flow
-import * as RPCTypesGregor from './rpc-gregor-gen'
+import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 
-export type NonNullGregorItem = {
-  md: RPCTypesGregor.Metadata,
-  item: RPCTypesGregor.Item,
+export type _State = {
+  reachable: RPCTypes.Reachable,
 }
 
-export type MsgMap = {[key: string]: ?NonNullGregorItem}
-
-export type State = {
-  reachability: RPCTypes.Reachability,
-  seenMsgs: MsgMap,
-}
+export type State = I.RecordOf<_State>

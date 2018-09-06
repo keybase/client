@@ -66,6 +66,9 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+func (p CommandLine) GetMobileSharedHome() string {
+	return p.GetGString("mobile-shared-home")
+}
 func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
@@ -74,6 +77,9 @@ func (p CommandLine) GetConfigFilename() string {
 }
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
+}
+func (p CommandLine) GetDeviceCloneStateFilename() string {
+	return p.GetGString("device-clone-state-file")
 }
 func (p CommandLine) GetSessionFilename() string {
 	return p.GetGString("session-file")
@@ -182,6 +188,9 @@ func (p CommandLine) GetPinentry() string {
 }
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
+}
+func (p CommandLine) IsMobileExtension() (bool, bool) {
+	return false, false
 }
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)

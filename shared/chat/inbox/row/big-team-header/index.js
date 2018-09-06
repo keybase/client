@@ -1,7 +1,14 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  type OverlayParentProps,
+  OverlayParentHOC,
+} from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {
   desktopStyles,
@@ -18,8 +25,9 @@ import * as RowSizes from '../sizes'
 type Props = {
   badgeSubscribe: boolean,
   memberCount: number,
+  onClick: () => void,
   teamname: string,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 class _BigTeamHeader extends React.PureComponent<Props> {
   render() {
@@ -34,8 +42,8 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           teamname={props.teamname}
           isSmallTeam={false}
         />
-        <Avatar teamname={props.teamname} size={32} />
-        <Text type="BodySmallSemibold" style={styles.team}>
+        <Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
+        <Text onClick={props.onClick} type="BodySmallSemibold" style={styles.team}>
           {props.teamname}
         </Text>
         <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} style={styles.showMenu}>
@@ -52,7 +60,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
   }
 }
 
-const BigTeamHeader = FloatingMenuParentHOC(_BigTeamHeader)
+const BigTeamHeader = OverlayParentHOC(_BigTeamHeader)
 const iconFontSize = isMobile ? 20 : 16
 
 const styles = styleSheetCreate({
@@ -66,6 +74,7 @@ const styles = styleSheetCreate({
   },
   showMenu: {
     ...globalStyles.flexBoxRow,
+    padding: 6,
     position: 'relative',
     right: globalMargins.xtiny,
   },

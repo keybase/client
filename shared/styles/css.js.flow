@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 export type Color = null | string
 type Dimension = string | number
 
@@ -175,7 +175,7 @@ export type _StylesDesktop = {|
   borderTopLeftRadius?: string,
   borderTopRightRadius?: string,
   borderTopStyle?: string,
-  borderTopWidth?: string,
+  borderTopWidth?: Dimension,
   borderWidth?: Dimension,
   bottom?: Dimension,
   boxDecorationBreak?: string,
@@ -265,7 +265,7 @@ export type _StylesDesktop = {|
   left?: Dimension,
   letterSpacing?: string,
   lineBreak?: string,
-  lineHeight?: string,
+  lineHeight?: Dimension,
   listStyle?: string,
   listStyleImage?: string,
   listStylePosition?: string,
@@ -347,6 +347,7 @@ export type _StylesDesktop = {|
   shapeImageThreshold?: string,
   shapeMargin?: string,
   shapeOutside?: string,
+  speak?: 'none',
   tabSize?: string,
   tableLayout?: string,
   textAlign?: string,
@@ -379,14 +380,15 @@ export type _StylesDesktop = {|
   userSelect?: string,
   verticalAlign?: string,
   visibility?: string,
-  webkitBackdropFilter?: string,
-  webkitOverflowScrolling?: string,
-  webkitTransform?: string,
-  webkitTransformOrigin?: string,
-  webkitTransitionDelay?: string,
-  webkitTransitionDuration?: string,
-  webkitTransitionProperty?: string,
-  webkitTransitionTimingFunction?: string,
+  WebkitBackdropFilter?: string,
+  WebkitFontSmoothing?: string,
+  WebkitOverflowScrolling?: string,
+  WebkitTransform?: string,
+  WebkitTransformOrigin?: string,
+  WebkitTransitionDelay?: string,
+  WebkitTransitionDuration?: string,
+  WebkitTransitionProperty?: string,
+  WebkitTransitionTimingFunction?: string,
   whiteSpace?: string,
   widows?: string,
   width?: Dimension,
@@ -395,7 +397,7 @@ export type _StylesDesktop = {|
   wordSpacing?: string,
   wordWrap?: string,
   writingMode?: string,
-  zIndex?: string,
+  zIndex?: number,
 |}
 
 export type StylesDesktop = null | _StylesDesktop | $ReadOnlyArray<_StylesDesktop | null | false | void>

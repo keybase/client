@@ -18,7 +18,7 @@ import type {Props} from './index.types'
 // remember to check that nothing overflows on android!
 const marginWidth = 60
 const shhIconColor = globalColors.black_20
-const shhIconFontSize = 20
+const shhIconFontSize = 24
 
 const Wrapper = (props: {
   badgeNumber: number,
@@ -28,8 +28,13 @@ const Wrapper = (props: {
 }) => (
   <Box2 direction="horizontal" style={styles.container}>
     <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon type="iconfont-arrow-left" fontSize={24} color={globalColors.blue} />
-      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
+      <Icon
+        type="iconfont-arrow-left"
+        fontSize={24}
+        color={globalColors.black_40}
+        style={iconCastPlatformStyles(styles.arrow)}
+      />
+      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
     </ClickableBox>
     <Box2
       direction="vertical"
@@ -102,7 +107,7 @@ const marginStyle = {
 }
 
 const styles = styleSheetCreate({
-  badge: {marginLeft: -5, marginTop: -3},
+  arrow: {marginTop: 3, marginRight: -3},
   center: {
     justifyContent: 'center',
     textAlign: 'center',
@@ -112,7 +117,7 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'stretch',
     backgroundColor: globalColors.fastBlank,
-    borderBottomColor: globalColors.black_05,
+    borderBottomColor: globalColors.black_10,
     borderBottomWidth: 1,
     minHeight: 44,
   },

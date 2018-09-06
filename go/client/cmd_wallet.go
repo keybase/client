@@ -17,6 +17,10 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		newCmdWalletSend(cl, g),
 		newCmdWalletSetCurrency(cl, g),
 		newCmdWalletSetPrimary(cl, g),
+		newCmdWalletRequest(cl, g),
+		newCmdWalletCancelRequest(cl, g),
+		newCmdWalletLookup(cl, g),
+		newCmdWalletRename(cl, g),
 	}
 	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	return cli.Command{

@@ -144,7 +144,8 @@
         "SYSTEM_11",
         "DELETEHISTORY_12",
         "REACTION_13",
-        "SENDPAYMENT_14"
+        "SENDPAYMENT_14",
+        "REQUESTPAYMENT_15"
       ],
       "go": "nostring"
     },
@@ -654,6 +655,35 @@
     },
     {
       "type": "record",
+      "name": "ConversationMinWriterRoleInfo",
+      "fields": [
+        {
+          "type": "gregor1.UID",
+          "name": "uid"
+        },
+        {
+          "type": "keybase1.TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "ConversationMinWriterRoleInfo"
+          ],
+          "name": "minWriterRoleInfo",
+          "mpackkey": "mwr",
+          "jsonkey": "mwr"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Conversation",
       "fields": [
         {
@@ -712,6 +742,15 @@
             "RetentionPolicy"
           ],
           "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConversationSettings"
+          ],
+          "name": "convSettings",
+          "mpackkey": "cs",
+          "jsonkey": "cs"
         }
       ]
     },
@@ -746,8 +785,8 @@
       "name": "Reaction",
       "fields": [
         {
-          "type": "string",
-          "name": "username"
+          "type": "gregor1.Time",
+          "name": "ctime"
         },
         {
           "type": "MessageID",
@@ -763,8 +802,9 @@
           "type": {
             "type": "map",
             "values": {
-              "type": "array",
-              "items": "Reaction"
+              "type": "map",
+              "values": "Reaction",
+              "keys": "string"
             },
             "keys": "string"
           },
@@ -1082,6 +1122,12 @@
           "name": "rtime",
           "mpackkey": "rt",
           "jsonkey": "rt"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs",
+          "mpackkey": "pm",
+          "jsonkey": "pm"
         }
       ]
     },
@@ -1234,7 +1280,8 @@
         "NONE_0",
         "RETAIN_1",
         "EXPIRE_2",
-        "INHERIT_3"
+        "INHERIT_3",
+        "EPHEMERAL_4"
       ]
     },
     {
@@ -1265,6 +1312,13 @@
             "def": false
           },
           "body": "RpInherit"
+        },
+        {
+          "label": {
+            "name": "EPHEMERAL",
+            "def": false
+          },
+          "body": "RpEphemeral"
         }
       ]
     },
@@ -1287,6 +1341,16 @@
       "type": "record",
       "name": "RpInherit",
       "fields": []
+    },
+    {
+      "type": "record",
+      "name": "RpEphemeral",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "age"
+        }
+      ]
     },
     {
       "type": "enum",

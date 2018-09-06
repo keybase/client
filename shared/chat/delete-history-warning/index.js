@@ -1,55 +1,93 @@
 // @flow
 import React from 'react'
-import {Box, Button, HeaderOnMobile, Icon, Text} from '../../common-adapters'
-import {globalColors, globalMargins, globalStyles, isMobile} from '../../styles'
+import {Box, Button, HeaderOnMobile, Icon, MaybePopup, Text} from '../../common-adapters'
+import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
-type Props = {
-  errorText: string,
-  name: string,
-  onBack: () => void,
+type Props = {|
+  onBack: ?() => void,
+  onCancel: () => void,
   onDeleteHistory: () => void,
-  timestamp: string,
-}
+|}
 
-const DeleteHistoryWarning = ({errorText, name, onBack, timestamp, onDeleteHistory}: Props) => (
-  <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      ...stylePadding,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: globalColors.white,
-      padding: globalMargins.small,
-    }}
-  >
-    <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
-    <Text style={{padding: globalMargins.small}} type="Header">
-      Delete this message + everything above?
-    </Text>
-    <Text style={{padding: globalMargins.small}} type="Body">
-      You are about to delete <Text type="BodySemibold">all messages up to {timestamp}</Text>. For everyone.
-    </Text>
-    <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.xlarge}}>
-      <Button type="Secondary" style={{marginLeft: globalMargins.tiny}} onClick={onBack} label="Cancel" />
-      <Button
-        type="Danger"
-        style={{marginLeft: globalMargins.tiny}}
-        onClick={onDeleteHistory}
-        label="Yes, delete these messages"
-      />
+const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
+  <MaybePopup onClose={onCancel}>
+    <Box
+      style={{
+        ...globalStyles.flexBoxColumn,
+        ...stylePadding,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: globalColors.white,
+        padding: globalMargins.small,
+        maxWidth: 560,
+      }}
+    >
+      <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
+      <Text style={{padding: globalMargins.small}} type="Header">
+        Delete conversation history?
+      </Text>
+      <Text style={styleText} type="Body">
+        You are about to delete all the messages in this conversation. For everyone.
+      </Text>
+      <Box style={styleButtonBox}>
+        <Button type="Secondary" style={styleButton} onClick={onCancel} label="Cancel" fullWidth={isMobile} />
+        <Button
+          type="Danger"
+          style={styleButton}
+          onClick={onDeleteHistory}
+          label="Yes, clear for everyone"
+          fullWidth={isMobile}
+        />
+      </Box>
     </Box>
-  </Box>
+  </MaybePopup>
 )
 
-const stylePadding = isMobile
-  ? {
-      paddingTop: globalMargins.xlarge,
-    }
-  : {
-      marginBottom: 40,
-      marginLeft: 80,
-      marginRight: 80,
-      marginTop: 40,
-    }
+const stylePadding = platformStyles({
+  isMobile: {
+    paddingTop: globalMargins.xlarge,
+  },
+  isElectron: {
+    marginBottom: 40,
+    marginLeft: 80,
+    marginRight: 80,
+    marginTop: 40,
+  },
+})
+
+const styleButtonBox = platformStyles({
+  common: {
+    marginTop: globalMargins.xlarge,
+  },
+  isMobile: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1,
+    alignItems: 'stretch',
+    width: '100%',
+    flexDirection: 'column-reverse',
+    paddingTop: globalMargins.xlarge,
+  },
+  isElectron: {
+    ...globalStyles.flexBoxRow,
+  },
+})
+
+const styleButton = platformStyles({
+  isElectron: {
+    marginLeft: globalMargins.tiny,
+  },
+  isMobile: {
+    marginTop: globalMargins.tiny,
+  },
+})
+
+const styleText = platformStyles({
+  common: {
+    padding: globalMargins.small,
+  },
+  isMobile: {
+    textAlign: 'center',
+  },
+})
 
 export default HeaderOnMobile(DeleteHistoryWarning)

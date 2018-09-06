@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -198,16 +199,17 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent          *SigChain
-	id              LinkID
-	hashVerified    bool
-	sigVerified     bool
-	payloadVerified bool
-	chainVerified   bool
-	storedLocally   bool
-	revoked         bool
-	unsigned        bool
-	dirty           bool
+	parent           *SigChain
+	id               LinkID
+	hashVerified     bool
+	sigVerified      bool
+	payloadVerified  bool
+	chainVerified    bool
+	storedLocally    bool
+	revoked          bool
+	unsigned         bool
+	dirty            bool
+	revocationsCache *[]keybase1.SigID
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -392,11 +394,18 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 	if c.IsStubbed() {
 		return nil
 	}
+	if c.revocationsCache != nil {
+		return *c.revocationsCache
+	}
 	payload, err := c.unpacked.Payload()
 	if err != nil {
 		return nil
 	}
 	var ret []keybase1.SigID
+	if !bytes.Contains(payload, []byte("revoke")) {
+		c.revocationsCache = &ret
+		return nil
+	}
 	if s, err := jsonparser.GetString(payload, "body", "revoke", "sig_id"); err == nil {
 		if sigID, err := keybase1.SigIDFromString(s, true); err == nil {
 			ret = append(ret, sigID)
@@ -409,6 +418,7 @@ func (c *ChainLink) GetRevocations() []keybase1.SigID {
 		}
 	}, "body", "revoke", "sig_ids")
 
+	c.revocationsCache = &ret
 	return ret
 }
 
@@ -1052,24 +1062,24 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
 	}
 }
 
-func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
-	link, ok := g.LinkCache().Get(id)
+func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*ChainLink, error) {
+	link, ok := m.G().LinkCache().Get(id)
 	if ok {
-		link.Contextified = NewContextified(g)
+		link.Contextified = NewContextified(m.G())
 		return &link, nil
 	}
 
 	var ret *ChainLink
-	data, _, err := g.LocalDb.GetRaw(DbKey{Typ: DBLink, Key: id.String()})
+	data, _, err := m.G().LocalDb.GetRaw(DbKey{Typ: DBLink, Key: id.String()})
 	if err == nil && data != nil {
 		// May as well recheck onload (maybe revisit this)
-		ret = NewChainLink(g, nil, id)
+		ret = NewChainLink(m.G(), nil, id)
 		if err = ret.Unpack(true, selfUID, data); err != nil {
 			return nil, err
 		}
 		ret.storedLocally = true
 
-		g.LinkCache().Put(id, ret.Copy())
+		m.G().LinkCache().Put(id, ret.Copy())
 	}
 	return ret, err
 }

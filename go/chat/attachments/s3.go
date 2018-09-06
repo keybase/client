@@ -8,18 +8,63 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"time"
+	"sync"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/sync/errgroup"
 )
 
+const s3PipelineMaxWidth = 10
+
+type s3UploadPipeliner struct {
+	sync.Mutex
+	width   int
+	waiters []chan struct{}
+}
+
+func (s *s3UploadPipeliner) QueueForTakeoff(ctx context.Context) error {
+	s.Lock()
+	if s.width >= s3PipelineMaxWidth {
+		ch := make(chan struct{})
+		s.waiters = append(s.waiters, ch)
+		s.Unlock()
+		select {
+		case <-ch:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		s.Lock()
+		s.width++
+		s.Unlock()
+		return nil
+	}
+	s.width++
+	s.Unlock()
+	return nil
+}
+
+func (s *s3UploadPipeliner) Complete() {
+	s.Lock()
+	defer s.Unlock()
+	if len(s.waiters) > 0 {
+		close(s.waiters[0])
+		if len(s.waiters) > 1 {
+			s.waiters = s.waiters[1:]
+		} else {
+			s.waiters = nil
+		}
+	}
+	if s.width > 0 {
+		s.width--
+	}
+}
+
+var s3UploadPipeline = &s3UploadPipeliner{}
+
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
-const retryAttempts = 10
 
 // ErrAbortOnPartMismatch is returned when there is a mismatch between a current
 // part and a previous attempt part.  If ErrAbortOnPartMismatch is returned,
@@ -37,7 +82,8 @@ type PutS3Result struct {
 
 // PutS3 uploads the data in Reader r to S3.  It chooses whether to use
 // putSingle or putMultiPipeline based on the size of the object.
-func (a *Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (*PutS3Result, error) {
+func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *UploadTask, previous *AttachmentInfo) (res *PutS3Result, err error) {
+	defer a.Trace(ctx, func() error { return err }, "PutS3")()
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
@@ -53,21 +99,20 @@ func (a *Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Upload
 		task.S3Params.ObjectKey = objectKey
 	}
 
-	res := PutS3Result{
+	s3res := PutS3Result{
 		Region:   task.S3Params.RegionName,
 		Endpoint: task.S3Params.RegionEndpoint,
 		Bucket:   task.S3Params.Bucket,
 		Path:     task.S3Params.ObjectKey,
 		Size:     size,
 	}
-
-	return &res, nil
+	return &s3res, nil
 }
 
 // putSingle uploads data in r to S3 with the Put API.  It has to be
 // used for anything less than 5MB.  It can be used for anything up
 // to 5GB, but putMultiPipeline best for anything over 5MB.
-func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
+func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
 	b s3.BucketInt, progress types.ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
 	// In order to be able to retry the upload, need to read in the entire
@@ -86,29 +131,13 @@ func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params c
 	progWriter := newProgressWriter(progress, size)
 	tee := io.TeeReader(sr, progWriter)
 
-	var lastErr error
-	for i := 0; i < retryAttempts; i++ {
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		case <-time.After(libkb.BackoffDefault.Duration(i)):
-		}
-		a.Debug(ctx, "putSingle: s3 attempt %d", i+1)
-		err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl), s3.Options{})
-		if err == nil {
-			a.Debug(ctx, "putSingle: attempt %d success", i+1)
-			progWriter.Finish()
-			return nil
-		}
-		a.Debug(ctx, "putSingle: attempt %d error: %s", i+1, err)
-		lastErr = err
-
-		// move back to beginning of sr buffer for retry
-		sr.Seek(0, io.SeekStart)
-		progWriter = newProgressWriter(progress, size)
-		tee = io.TeeReader(sr, progWriter)
+	if err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl),
+		s3.Options{}); err != nil {
+		a.Debug(ctx, "putSingle: failed: %s", err)
+		return NewErrorWrapper("failed putSingle", err)
 	}
-	return NewErrorWrapper("failed putSingle, last error", lastErr)
+	progWriter.Finish()
+	return nil
 }
 
 // putMultiPipeline uploads data in r to S3 using the Multi API.  It uses a
@@ -116,7 +145,7 @@ func (a *Store) putSingle(ctx context.Context, r io.Reader, size int64, params c
 // Each block is 5MB. It returns the object key if no errors.  putMultiPipeline
 // will return a different object key from params.ObjectKey if a previous Put is
 // successfully resumed and completed.
-func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
+func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, task *UploadTask, b s3.BucketInt, previous *AttachmentInfo) (res string, err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putMultiPipeline(size=%d)", size))()
 
 	var multi s3.MultiInt
@@ -138,6 +167,8 @@ func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, t
 		list, err := multi.ListParts(ctx)
 		if err != nil {
 			a.Debug(ctx, "putMultiPipeline: ignoring multi.ListParts error: %s", err)
+			// dump previous since we can't check it anymore
+			previous = nil
 		} else {
 			for _, p := range list {
 				previousParts[p.N] = p
@@ -147,6 +178,7 @@ func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, t
 
 	// need to use ectx in everything in eg.Go() funcs since eg
 	// will cancel ectx in eg.Wait().
+	a.Debug(ctx, "putMultiPipeline: beginning parts uploader process")
 	eg, ectx := errgroup.WithContext(ctx)
 	blockCh := make(chan job)
 	retCh := make(chan s3.Part)
@@ -154,17 +186,22 @@ func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, t
 		defer close(blockCh)
 		return a.makeBlockJobs(ectx, r, blockCh, task.stashKey(), previous)
 	})
-	for i := 0; i < 10; i++ {
-		eg.Go(func() error {
-			for b := range blockCh {
+	eg.Go(func() error {
+		for lb := range blockCh {
+			if err := s3UploadPipeline.QueueForTakeoff(ectx); err != nil {
+				return err
+			}
+			b := lb
+			eg.Go(func() error {
+				defer s3UploadPipeline.Complete()
 				if err := a.uploadPart(ectx, task, b, previous, previousParts, multi, retCh); err != nil {
 					return err
 				}
-			}
-			return nil
-		})
-	}
-
+				return nil
+			})
+		}
+		return nil
+	})
 	go func() {
 		eg.Wait()
 		close(retCh)
@@ -183,37 +220,14 @@ func (a *Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64, t
 	if a.blockLimit > 0 {
 		return "", errors.New("block limit hit, not completing multi upload")
 	}
-
 	a.Debug(ctx, "putMultiPipeline: all parts uploaded, completing request")
-
-	// retry this request up to retryAttempts times
-	var lastErr error
-	for i := 0; i < retryAttempts; i++ {
-		select {
-		case <-ctx.Done():
-			a.Debug(ctx, "putMultiPipeline: multi.Complete retry loop, context canceled (attempt %d)", i+1)
-			return "", ctx.Err()
-		case <-time.After(libkb.BackoffDefault.Duration(i)):
-		}
-		a.Debug(ctx, "putMultiPipeline: attempt %d to run multi.Complete", i+1)
-		if err := multi.Complete(ctx, parts); err == nil {
-			a.Debug(ctx, "putMultiPipeline: success in attempt %d to run multi.Complete", i+1)
-			break
-		} else {
-			a.Debug(ctx, "putMultiPipeline: attempt %d multi.Complete error: %s", i+1, err)
-			lastErr = err
-		}
+	if err := multi.Complete(ctx, parts); err != nil {
+		a.Debug(ctx, "putMultiPipeline: Complete() failed: %s", err)
+		return "", err
 	}
-	if lastErr != nil {
-		a.Debug(ctx, "putMultiPipeline: all retry attempts for multi.Complete failed")
-		return "", lastErr
-	}
-
 	a.Debug(ctx, "putMultiPipeline: success, %d parts", len(parts))
-
 	// Just to make sure the UI gets the 100% call
 	progWriter.Finish()
-
 	return task.S3Params.ObjectKey, nil
 }
 
@@ -230,7 +244,7 @@ func (j job) etag() string {
 // makeBlockJobs reads ciphertext chunks from r and creates jobs that it puts onto blockCh.
 // If this is a resumed upload, it verifies the blocks against the local stash before
 // creating jobs.
-func (a *Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
+func (a *S3Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job, stashKey StashKey, previous *AttachmentInfo) error {
 	var partNumber int
 	for {
 		partNumber++
@@ -277,7 +291,7 @@ func (a *Store) makeBlockJobs(ctx context.Context, r io.Reader, blockCh chan job
 }
 
 // addJob creates a job and puts it on blockCh, unless the blockCh isn't ready and the context has been canceled.
-func (a *Store) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
+func (a *S3Store) addJob(ctx context.Context, blockCh chan job, block []byte, partNumber int, hash string) error {
 	// Create a job, unless the context has been canceled.
 	select {
 	case blockCh <- job{block: block, index: partNumber, hash: hash}:
@@ -290,7 +304,7 @@ func (a *Store) addJob(ctx context.Context, blockCh chan job, block []byte, part
 // uploadPart handles uploading a job to S3.  The job `b` has already passed local stash verification.
 // If this is a resumed upload, it checks the previous parts reported by S3 and will skip uploading
 // any that already exist.
-func (a *Store) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
+func (a *S3Store) uploadPart(ctx context.Context, task *UploadTask, b job, previous *AttachmentInfo, previousParts map[int]s3.Part, multi s3.MultiInt, retCh chan s3.Part) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("uploadPart(%d)", b.index))()
 
 	// check to see if this part has already been uploaded.
@@ -331,9 +345,9 @@ func (a *Store) uploadPart(ctx context.Context, task *UploadTask, b job, previou
 		a.Debug(ctx, "uploadPart: StashRecordPart error: %s", err)
 	}
 
-	part, putErr := a.putRetry(ctx, multi, b.index, b.block)
+	part, putErr := multi.PutPart(ctx, b.index, bytes.NewReader(b.block))
 	if putErr != nil {
-		return putErr
+		return NewErrorWrapper(fmt.Sprintf("failed to put part %d", b.index), putErr)
 	}
 
 	// put the successfully uploaded part information in the retCh
@@ -346,27 +360,6 @@ func (a *Store) uploadPart(ctx context.Context, task *UploadTask, b job, previou
 	}
 
 	return nil
-}
-
-// putRetry sends a block to S3, retrying retryAttempts times w/ backoff.
-func (a *Store) putRetry(ctx context.Context, multi s3.MultiInt, partNumber int, block []byte) (s3.Part, error) {
-	var lastErr error
-	for i := 0; i < retryAttempts; i++ {
-		select {
-		case <-ctx.Done():
-			return s3.Part{}, ctx.Err()
-		case <-time.After(libkb.BackoffDefault.Duration(i)):
-		}
-		a.Debug(ctx, "putRetry: attempt %d to upload part %d", i+1, partNumber)
-		part, putErr := multi.PutPart(ctx, partNumber, bytes.NewReader(block))
-		if putErr == nil {
-			a.Debug(ctx, "putRetry: success in attempt %d to upload part %d", i+1, partNumber)
-			return part, nil
-		}
-		a.Debug(ctx, "putRetry: error in attempt %d to upload part %d: %s", i+1, putErr)
-		lastErr = putErr
-	}
-	return s3.Part{}, NewErrorWrapper(fmt.Sprintf("failed to put part %d", partNumber), lastErr)
 }
 
 type ErrorWrapper struct {
@@ -389,4 +382,23 @@ func (e *ErrorWrapper) Details() string {
 	default:
 		return fmt.Sprintf("%s: error %q, no details for type %T", e.prefix, e.err, e.err)
 	}
+}
+
+type S3Signer struct {
+	ri func() chat1.RemoteInterface
+}
+
+func NewS3Signer(ri func() chat1.RemoteInterface) *S3Signer {
+	return &S3Signer{
+		ri: ri,
+	}
+}
+
+// Sign implements github.com/keybase/go/chat/s3.Signer interface.
+func (s *S3Signer) Sign(payload []byte) ([]byte, error) {
+	arg := chat1.S3SignArg{
+		Payload: payload,
+		Version: 1,
+	}
+	return s.ri().S3Sign(context.Background(), arg)
 }

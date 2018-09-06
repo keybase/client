@@ -436,8 +436,8 @@ func (s *PerUserKeyring) SyncWithExtras(m MetaContext, upak *keybase1.UserPlusAl
 
 // `m.LoginContext` and `upak` are optional
 func (s *PerUserKeyring) syncAsConfiguredDevice(m MetaContext, upak *keybase1.UserPlusAllKeys) (err error) {
-	uid, deviceID, _, _, activeDecryptionKey := m.ActiveDevice().AllFields()
-	if !s.uid.Equal(uid) {
+	uv, deviceID, _, _, activeDecryptionKey := m.ActiveDevice().AllFields()
+	if !s.uid.Equal(uv.Uid) {
 		return fmt.Errorf("UID changed on PerUserKeyring")
 	}
 	if deviceID.IsNil() {
@@ -447,7 +447,7 @@ func (s *PerUserKeyring) syncAsConfiguredDevice(m MetaContext, upak *keybase1.Us
 }
 
 // `m.LoginContext` and `upak` are optional
-func (s *PerUserKeyring) SyncAsPaperKey(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
+func (s *PerUserKeyring) SyncAsProvisioningKey(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
 	if deviceID.IsNil() {
 		return fmt.Errorf("missing deviceID")
 	}

@@ -127,8 +127,7 @@ func TestChatSrvSBS(t *testing.T) {
 					Body: "HI",
 				}), ephemeralLifetime)
 			require.NoError(t, err)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 
 			_, err = postLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -163,17 +162,15 @@ func TestChatSrvSBS(t *testing.T) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "HI",
 				}), ephemeralLifetime)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 
 			mustPostLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "HI",
 				}), ephemeralLifetime)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 			verifyThread := func(user *kbtest.FakeUser) {
 				tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 					ConversationID: ncres.Conv.GetConvID(),
@@ -190,13 +187,11 @@ func TestChatSrvSBS(t *testing.T) {
 					// turn depends on the size of the team, in a way that we
 					// might tune in the future. Allow that specific failure.
 
-					// TODO re-enable this check for tests to pass once
-					// pairwise macs are turned on
-					//if ephemeralLifetime != nil && msg.IsError() {
-					//	require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
-					//} else {
-					require.True(t, msg.IsValid())
-					//}
+					if ephemeralLifetime != nil && msg.IsError() {
+						require.Equal(t, chat1.MessageUnboxedErrorType_PAIRWISE_MISSING, msg.Error().ErrType)
+					} else {
+						require.True(t, msg.IsValid())
+					}
 				}
 			}
 

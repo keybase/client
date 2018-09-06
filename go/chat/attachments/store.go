@@ -1,6 +1,7 @@
 package attachments
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/sha256"
 	"errors"
@@ -8,16 +9,19 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/go-crypto/ed25519"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/signencrypt"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
-	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 )
 
@@ -29,40 +33,65 @@ type ReadResetter interface {
 type UploadTask struct {
 	S3Params       chat1.S3Params
 	Filename       string
-	FileSize       int
+	FileSize       int64
 	Plaintext      ReadResetter
-	plaintextHash  []byte
+	taskHash       []byte
 	S3Signer       s3.Signer
 	ConversationID chat1.ConversationID
-	UserID         keybase1.UID
+	UserID         gregor1.UID
+	OutboxID       chat1.OutboxID
+	Preview        bool
 	Progress       types.ProgressReporter
 }
 
-func (u *UploadTask) computePlaintextHash() error {
-	plaintextHasher := sha256.New()
-	io.Copy(plaintextHasher, u.Plaintext)
-	u.plaintextHash = plaintextHasher.Sum(nil)
+func (u *UploadTask) computeHash() {
+	hasher := sha256.New()
+	seed := fmt.Sprintf("%s:%v", u.OutboxID, u.Preview)
+	io.Copy(hasher, bytes.NewReader([]byte(seed)))
+	u.taskHash = hasher.Sum(nil)
+}
 
-	// reset the stream to the beginning of the file
-	return u.Plaintext.Reset()
+func (u *UploadTask) hash() []byte {
+	return u.taskHash
 }
 
 func (u *UploadTask) stashKey() StashKey {
-	return NewStashKey(u.plaintextHash, u.ConversationID, u.UserID)
+	return NewStashKey(u.OutboxID, u.Preview)
 }
 
 func (u *UploadTask) Nonce() signencrypt.Nonce {
 	var n [signencrypt.NonceSize]byte
-	copy(n[:], u.plaintextHash)
+	copy(n[:], u.taskHash)
 	return &n
 }
 
-type Store struct {
+type Store interface {
+	UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (chat1.Asset, error)
+	DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
+		signer s3.Signer, progress types.ProgressReporter) error
+	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+		signer s3.Signer) (io.ReadCloser, error)
+	StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, signer s3.Signer) (io.ReadSeeker, error)
+	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
+		progress types.ProgressReporter) error
+	DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error
+	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
+}
+
+type streamCache struct {
+	path  string
+	cache *lru.Cache
+}
+
+type S3Store struct {
 	utils.DebugLabeler
 
 	s3signer s3.Signer
 	s3c      s3.Root
 	stash    AttachmentStash
+
+	scMutex     sync.Mutex
+	streamCache *streamCache
 
 	// testing hooks
 	testing    bool                        // true if we're in a test
@@ -71,22 +100,22 @@ type Store struct {
 	blockLimit int                         // max number of blocks to upload
 }
 
-// NewStore creates a standard Store that uses a real
+// NewS3Store creates a standard Store that uses a real
 // S3 connection.
-func NewStore(logger logger.Logger, runtimeDir string) *Store {
-	return &Store{
+func NewS3Store(logger logger.Logger, runtimeDir string) *S3Store {
+	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
 		s3c:          &s3.AWS{},
 		stash:        NewFileStash(runtimeDir),
 	}
 }
 
-// newStoreTesting creates an Store suitable for testing
+// NewStoreTesting creates an Store suitable for testing
 // purposes.  It is not exposed outside this package.
 // It uses an in-memory s3 interface, reports enc/sig keys, and allows limiting
 // the number of blocks uploaded.
-func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *Store {
-	return &Store{
+func NewStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *S3Store {
+	return &S3Store{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Attachments.Store", false),
 		s3c:          &s3.Mem{},
 		stash:        NewFileStash(os.TempDir()),
@@ -95,15 +124,14 @@ func newStoreTesting(logger logger.Logger, kt func(enc, sig []byte)) *Store {
 	}
 }
 
-func (a *Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset, error) {
+func (a *S3Store) UploadAsset(ctx context.Context, task *UploadTask, encryptedOut io.Writer) (res chat1.Asset, err error) {
+	defer a.Trace(ctx, func() error { return err }, "UploadAsset")()
 	// compute plaintext hash
-	if task.plaintextHash == nil {
-		if err := task.computePlaintextHash(); err != nil {
-			return chat1.Asset{}, err
-		}
+	if task.hash() == nil {
+		task.computeHash()
 	} else {
 		if !a.testing {
-			return chat1.Asset{}, errors.New("task.plaintextHash not nil")
+			return res, errors.New("task.plaintextHash not nil")
 		}
 		a.Debug(ctx, "UploadAsset: skipping plaintextHash calculation due to existing plaintextHash (testing only feature)")
 	}
@@ -119,7 +147,7 @@ func (a *Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset,
 		previous = a.previousUpload(ctx, task)
 	}
 
-	asset, err := a.uploadAsset(ctx, task, enc, previous, resumable)
+	res, err = a.uploadAsset(ctx, task, enc, previous, resumable, encryptedOut)
 
 	// if the upload is aborted, reset the stream and start over to get new keys
 	if err == ErrAbortOnPartMismatch && previous != nil {
@@ -127,18 +155,16 @@ func (a *Store) UploadAsset(ctx context.Context, task *UploadTask) (chat1.Asset,
 		a.aborts++
 		previous = nil
 		task.Plaintext.Reset()
-		// recompute plaintext hash:
-		if err := task.computePlaintextHash(); err != nil {
-			return chat1.Asset{}, err
-		}
-		return a.uploadAsset(ctx, task, enc, nil, resumable)
+		task.computeHash()
+		return a.uploadAsset(ctx, task, enc, nil, resumable, encryptedOut)
 	}
 
-	return asset, err
+	return res, err
 }
 
-func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter, previous *AttachmentInfo, resumable bool) (chat1.Asset, error) {
-	var err error
+func (a *S3Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncrypter,
+	previous *AttachmentInfo, resumable bool, encryptedOut io.Writer) (asset chat1.Asset, err error) {
+	defer a.Trace(ctx, func() error { return err }, "uploadAsset")()
 	var encReader io.Reader
 	if previous != nil {
 		a.Debug(ctx, "uploadAsset: found previous upload for %s in conv %s", task.Filename,
@@ -164,7 +190,7 @@ func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncr
 
 	// compute ciphertext hash
 	hash := sha256.New()
-	tee := io.TeeReader(encReader, hash)
+	tee := io.TeeReader(io.TeeReader(encReader, hash), encryptedOut)
 
 	// post to s3
 	length := int64(enc.EncryptedLen(task.FileSize))
@@ -182,7 +208,7 @@ func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncr
 	}
 	a.Debug(ctx, "uploadAsset: chat attachment upload: %+v", upRes)
 
-	asset := chat1.Asset{
+	asset = chat1.Asset{
 		Filename:  filepath.Base(task.Filename),
 		Region:    upRes.Region,
 		Endpoint:  upRes.Endpoint,
@@ -202,15 +228,18 @@ func (a *Store) uploadAsset(ctx context.Context, task *UploadTask, enc *SignEncr
 	return asset, nil
 }
 
-func (a *Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-	signer s3.Signer) (io.ReadCloser, error) {
+func (a *S3Store) getAssetBucket(asset chat1.Asset, params chat1.S3Params, signer s3.Signer) s3.BucketInt {
 	region := a.regionFromAsset(asset)
-	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+	return a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
+}
 
+func (a *S3Store) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer) (io.ReadCloser, error) {
+	b := a.getAssetBucket(asset, params, signer)
 	return b.GetReader(ctx, asset.Path)
 }
 
-func (a *Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
+func (a *S3Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
 	progress types.ProgressReporter) error {
 	// compute hash
 	hash := sha256.New()
@@ -248,8 +277,8 @@ func (a *Store) DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, a
 }
 
 // DownloadAsset gets an object from S3 as described in asset.
-func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset, w io.Writer,
-	signer s3.Signer, progress types.ProgressReporter) error {
+func (a *S3Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	w io.Writer, signer s3.Signer, progress types.ProgressReporter) error {
 	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
 		return fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
 	}
@@ -266,7 +295,91 @@ func (a *Store) DownloadAsset(ctx context.Context, params chat1.S3Params, asset 
 	return a.DecryptAsset(ctx, w, body, asset, progress)
 }
 
-func (a *Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {
+type s3Seeker struct {
+	utils.DebugLabeler
+	ctx    context.Context
+	asset  chat1.Asset
+	bucket s3.BucketInt
+	offset int64
+}
+
+func newS3Seeker(ctx context.Context, log logger.Logger, asset chat1.Asset, bucket s3.BucketInt) *s3Seeker {
+	return &s3Seeker{
+		DebugLabeler: utils.NewDebugLabeler(log, "s3Seeker", false),
+		ctx:          ctx,
+		asset:        asset,
+		bucket:       bucket,
+	}
+}
+
+func (s *s3Seeker) Read(b []byte) (n int, err error) {
+	defer s.Trace(s.ctx, func() error { return err }, "Read(%v,%v)", s.offset, len(b))()
+	if s.offset >= s.asset.Size {
+		return 0, io.EOF
+	}
+	rc, err := s.bucket.GetReaderWithRange(s.ctx, s.asset.Path, s.offset, s.offset+int64(len(b)))
+	if err != nil {
+		return 0, err
+	}
+	defer rc.Close()
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, rc); err != nil {
+		return 0, err
+	}
+	copy(b, buf.Bytes())
+	return len(b), nil
+}
+
+func (s *s3Seeker) Seek(offset int64, whence int) (res int64, err error) {
+	defer s.Trace(s.ctx, func() error { return err }, "Seek(%v,%v)", s.offset, whence)()
+	switch whence {
+	case io.SeekStart:
+		s.offset = offset
+	case io.SeekCurrent:
+		s.offset += offset
+	case io.SeekEnd:
+		s.offset = s.asset.Size - offset
+	}
+	return s.offset, nil
+}
+
+func (a *S3Store) getStreamerCache(asset chat1.Asset) *lru.Cache {
+	a.scMutex.Lock()
+	defer a.scMutex.Unlock()
+	if a.streamCache != nil && a.streamCache.path == asset.Path {
+		return a.streamCache.cache
+	}
+	c, _ := lru.New(20) // store 20MB in memory while streaming
+	a.streamCache = &streamCache{
+		path:  asset.Path,
+		cache: c,
+	}
+	return c
+}
+
+func (a *S3Store) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer) (io.ReadSeeker, error) {
+	if asset.Key == nil || asset.VerifyKey == nil || asset.EncHash == nil {
+		return nil, fmt.Errorf("unencrypted attachments not supported: asset: %#v", asset)
+	}
+	b := a.getAssetBucket(asset, params, signer)
+	ptsize := signencrypt.GetPlaintextSize(asset.Size)
+	var xencKey [signencrypt.SecretboxKeySize]byte
+	copy(xencKey[:], asset.Key)
+	var xverifyKey [ed25519.PublicKeySize]byte
+	copy(xverifyKey[:], asset.VerifyKey)
+	var nonce [signencrypt.NonceSize]byte
+	if asset.Nonce != nil {
+		copy(nonce[:], asset.Nonce)
+	}
+	// Make a ReadSeeker, and pass along the cache if we hit for the given path. We may get
+	// a bunch of these calls for a given playback session.
+	source := newS3Seeker(ctx, a.GetLog(), asset, b)
+	return signencrypt.NewDecodingReadSeeker(ctx, a.GetLog(), source, ptsize, &xencKey, &xverifyKey,
+		libkb.SignaturePrefixChatAttachment, &nonce, a.getStreamerCache(asset)), nil
+}
+
+func (a *S3Store) startUpload(ctx context.Context, task *UploadTask, encrypter *SignEncrypter) {
 	info := AttachmentInfo{
 		ObjectKey: task.S3Params.ObjectKey,
 		EncKey:    encrypter.encKey,
@@ -278,13 +391,13 @@ func (a *Store) startUpload(ctx context.Context, task *UploadTask, encrypter *Si
 	}
 }
 
-func (a *Store) finishUpload(ctx context.Context, task *UploadTask) {
+func (a *S3Store) finishUpload(ctx context.Context, task *UploadTask) {
 	if err := a.stash.Finish(task.stashKey()); err != nil {
 		a.Debug(ctx, "finishUpload: StashFinish error: %s", err)
 	}
 }
 
-func (a *Store) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
+func (a *S3Store) previousUpload(ctx context.Context, task *UploadTask) *AttachmentInfo {
 	info, found, err := a.stash.Lookup(task.stashKey())
 	if err != nil {
 		a.Debug(ctx, "previousUpload: StashLookup error: %s", err)
@@ -296,7 +409,7 @@ func (a *Store) previousUpload(ctx context.Context, task *UploadTask) *Attachmen
 	return &info
 }
 
-func (a *Store) regionFromParams(params chat1.S3Params) s3.Region {
+func (a *S3Store) regionFromParams(params chat1.S3Params) s3.Region {
 	return s3.Region{
 		Name:             params.RegionName,
 		S3Endpoint:       params.RegionEndpoint,
@@ -304,20 +417,20 @@ func (a *Store) regionFromParams(params chat1.S3Params) s3.Region {
 	}
 }
 
-func (a *Store) regionFromAsset(asset chat1.Asset) s3.Region {
+func (a *S3Store) regionFromAsset(asset chat1.Asset) s3.Region {
 	return s3.Region{
 		Name:       asset.Region,
 		S3Endpoint: asset.Endpoint,
 	}
 }
 
-func (a *Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
+func (a *S3Store) s3Conn(signer s3.Signer, region s3.Region, accessKey string) s3.Connection {
 	conn := a.s3c.New(signer, region)
 	conn.SetAccessKey(accessKey)
 	return conn
 }
 
-func (a *Store) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
+func (a *S3Store) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
 
 	epick := libkb.FirstErrorPicker{}
 	for _, asset := range assets {
@@ -330,7 +443,7 @@ func (a *Store) DeleteAssets(ctx context.Context, params chat1.S3Params, signer 
 	return epick.Error()
 }
 
-func (a *Store) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {
+func (a *S3Store) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer, asset chat1.Asset) error {
 	region := a.regionFromAsset(asset)
 	b := a.s3Conn(signer, region, params.AccessKey).Bucket(asset.Bucket)
 	return b.Del(ctx, asset.Path)

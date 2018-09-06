@@ -257,7 +257,6 @@ type attachOptionsV1 struct {
 	Filename          string
 	Preview           string
 	Title             string
-	NoStream          bool
 	EphemeralLifetime ephemeralLifetime `json:"exploding_lifetime"`
 }
 

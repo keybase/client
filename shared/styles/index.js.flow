@@ -1,6 +1,5 @@
 // @flow
 // Styles from our designers
-import type {Background} from '../common-adapters/text'
 import * as CSS from './css'
 export {default as globalColors} from './colors'
 
@@ -14,7 +13,9 @@ declare export var globalStyles: {
   fillAbsolute: {|bottom: 0, left: 0, position: 'absolute', right: 0, top: 0|},
   flexBoxCenter: {|alignItems: 'center', justifyContent: 'center'|},
   flexBoxColumn: {|flexDirection: 'column'|},
+  flexBoxColumnReverse: {|flexDirection: 'column-reverse'|},
   flexBoxRow: {|flexDirection: 'row'|},
+  flexBoxRowReverse: {|flexDirection: 'row-reverse'|},
   flexGrow: {|flexGrow: 1|},
   fontBold: {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|},
   fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle,
@@ -29,6 +30,7 @@ declare export var globalStyles: {
 }
 declare export var desktopStyles: {
   clickable?: CSS._StylesDesktop,
+  editable?: CSS._StylesDesktop,
   fadeOpacity?: CSS._StylesDesktop,
   noSelect?: CSS._StylesDesktop,
   scrollable?: CSS._StylesDesktop, // TODO this is used a lot of places like it's a global style but we should use scrollview instead
@@ -65,6 +67,8 @@ declare export function glamorous(
   Component: any // React.ComponentType<P>
 ): (...styles: Array<any>) => any // React.Component<P>
 
+declare export var isAndroid: boolean
+declare export var isIOS: boolean
 declare export var isMobile: boolean
 declare export var isIPhoneX: boolean
 

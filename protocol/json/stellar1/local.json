@@ -26,6 +26,10 @@
         {
           "type": "string",
           "name": "balanceDescription"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
         }
       ]
     },
@@ -68,6 +72,13 @@
         {
           "type": "string",
           "name": "availableToSendWorth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AccountReserve"
+          },
+          "name": "reserves"
         }
       ]
     },
@@ -107,7 +118,7 @@
       "name": "PaymentLocal",
       "fields": [
         {
-          "type": "TransactionID",
+          "type": "PaymentID",
           "name": "id"
         },
         {
@@ -125,6 +136,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -213,8 +228,12 @@
       "name": "PaymentDetailsLocal",
       "fields": [
         {
-          "type": "TransactionID",
+          "type": "PaymentID",
           "name": "id"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
         },
         {
           "type": "TimeMs",
@@ -231,6 +250,10 @@
         {
           "type": "string",
           "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
         },
         {
           "type": "string",
@@ -354,6 +377,10 @@
         },
         {
           "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
           "name": "amountErrMsg"
         },
         {
@@ -410,6 +437,58 @@
         {
           "type": "boolean",
           "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RequestDetailsLocal",
+      "fields": [
+        {
+          "type": "KeybaseRequestID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "fromAssertion"
+        },
+        {
+          "type": "boolean",
+          "name": "fromCurrentUser"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toUserType"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "RequestStatus",
+          "name": "status"
         }
       ]
     },
@@ -562,6 +641,23 @@
           "name": "exchangeRate"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupResultCLILocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -613,7 +709,7 @@
       ],
       "response": "PaymentsPageLocal"
     },
-    "getPaymentDetailsLocal": {
+    "getPendingPaymentsLocal": {
       "request": [
         {
           "name": "sessionID",
@@ -622,10 +718,29 @@
         {
           "name": "accountID",
           "type": "AccountID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PaymentOrErrorLocal"
+      }
+    },
+    "getPaymentDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
-          "type": "TransactionID"
+          "type": "PaymentID"
         }
       ],
       "response": "PaymentDetailsLocal"
@@ -641,6 +756,45 @@
         "type": "array",
         "items": "CurrencyLocal"
       }
+    },
+    "validateAccountIDLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "validateSecretKeyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "secretKey",
+          "type": "SecretKey"
+        }
+      ],
+      "response": null
+    },
+    "validateAccountNameLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
     },
     "changeWalletAccountNameLocal": {
       "request": [
@@ -920,6 +1074,67 @@
       ],
       "response": "SendPaymentResLocal"
     },
+    "getRequestDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": "RequestDetailsLocal"
+    },
+    "cancelRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null
+    },
+    "makeRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1101,6 +1316,46 @@
         }
       ],
       "response": "string"
+    },
+    "makeRequestCLILocal": {
+      "request": [
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
+    },
+    "lookupCLILocal": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "LookupResultCLILocal"
     }
   },
   "namespace": "stellar.1"

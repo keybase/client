@@ -33,6 +33,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
@@ -54,6 +55,7 @@ type configGetter interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
+	GetMobileSharedHome() string
 	GetLinkCacheSize() (int, bool)
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
@@ -80,6 +82,7 @@ type configGetter interface {
 	GetUPAKCacheSize() (int, bool)
 	GetUIDMapFullNameCacheSize() (int, bool)
 	GetUpdaterConfigFilename() string
+	GetDeviceCloneStateFilename() string
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetVDebugSetting() string
 	GetChatDelivererInterval() (time.Duration, bool)
@@ -141,17 +144,21 @@ type KVStorer interface {
 	Delete(id DbKey) error
 }
 
-type ConfigReader interface {
-	configGetter
-
-	GetUserConfig() (*UserConfig, error)
-	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
-	GetBundledCA(host string) string
+type JSONReader interface {
 	GetStringAtPath(string) (string, bool)
 	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
+}
+
+type ConfigReader interface {
+	JSONReader
+	configGetter
+
+	GetUserConfig() (*UserConfig, error)
+	GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error)
+	GetBundledCA(host string) string
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
 	GetProofCacheShortDur() (time.Duration, bool)
@@ -184,19 +191,24 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
+type JSONWriter interface {
+	SetStringAtPath(string, string) error
+	SetBoolAtPath(string, bool) error
+	SetIntAtPath(string, int) error
+	SetNullAtPath(string) error
+}
+
 type ConfigWriter interface {
+	JSONWriter
 	SetUserConfig(cfg *UserConfig, overwrite bool) error
 	SwitchUser(un NormalizedUsername) error
 	NukeUser(un NormalizedUsername) error
 	SetDeviceID(keybase1.DeviceID) error
-	SetStringAtPath(string, string) error
-	SetBoolAtPath(string, bool) error
-	SetIntAtPath(string, int) error
 	SetWrapperAtPath(string, *jsonw.Wrapper) error
-	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
 	SetUpdatePreferenceSkip(string) error
@@ -361,12 +373,6 @@ type ProvisionUI interface {
 }
 
 type ChatUI interface {
-	ChatAttachmentUploadOutboxID(context.Context, chat1.ChatAttachmentUploadOutboxIDArg) error
-	ChatAttachmentUploadStart(context.Context, chat1.AssetMetadata, chat1.MessageID) error
-	ChatAttachmentUploadProgress(context.Context, chat1.ChatAttachmentUploadProgressArg) error
-	ChatAttachmentUploadDone(context.Context) error
-	ChatAttachmentPreviewUploadStart(context.Context, chat1.AssetMetadata) error
-	ChatAttachmentPreviewUploadDone(context.Context) error
 	ChatAttachmentDownloadStart(context.Context) error
 	ChatAttachmentDownloadProgress(context.Context, chat1.ChatAttachmentDownloadProgressArg) error
 	ChatAttachmentDownloadDone(context.Context) error
@@ -514,16 +520,6 @@ type DNSContext interface {
 	GetDNSNameServerFetcher() DNSNameServerFetcher
 }
 
-// ProofContext defines features needed by the proof system
-type ProofContext interface {
-	LogContext
-	APIContext
-	NetContext
-	DNSContext
-	GetPvlSource() PvlSource
-	GetAppType() AppType
-}
-
 type AssertionContext interface {
 	NormalizeSocialName(service string, username string) (string, error)
 }
@@ -538,7 +534,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(ctx ProofContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
 	GetTorError() ProofError
 }
 
@@ -559,11 +555,11 @@ type ServiceType interface {
 	// leaves the dots in (that NormalizeUsername above would strip out). This
 	// lets us keep the dots in the proof text, and display them on your
 	// profile page, even though we ignore them for proof checking.
-	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
+	NormalizeRemoteName(m MetaContext, name string) (string, error)
 
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(ctx ProofContext, remotename string) (*Markup, error)
+	PreProofCheck(m MetaContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
@@ -572,7 +568,7 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(ProofContext, *PostProofRes) (string, error)
+	FormatProofText(MetaContext, *PostProofRes) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -585,7 +581,7 @@ type ExternalServicesCollector interface {
 }
 
 type PvlSource interface {
-	GetPVL(ctx context.Context) (PvlUnparsed, error)
+	GetPVL(m MetaContext) (PvlUnparsed, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -625,6 +621,11 @@ type TeamLoader interface {
 	ClearMem()
 }
 
+type FastTeamLoader interface {
+	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	OnLogout()
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletGated(context.Context) error
@@ -660,6 +661,8 @@ type TeamEKBoxStorage interface {
 	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
+	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
@@ -667,7 +670,8 @@ type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
-	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
@@ -675,6 +679,7 @@ type EKLib interface {
 	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
 	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
 	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ClearCaches()
 	// For testing
 	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 }
@@ -792,4 +797,51 @@ type ChatHelper interface {
 	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
 		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
 	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
+}
+
+// Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
+// into UIDs. It is based on sever-trust. All results are unverified. So you should check
+// its answer if used in a security-sensitive setting. (See engine.ResolveAndCheck)
+type Resolver interface {
+	EnableCaching(m MetaContext)
+	Shutdown(m MetaContext)
+	ResolveFullExpression(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionNeedUsername(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionWithBody(m MetaContext, input string) (res ResolveResult)
+	ResolveUser(m MetaContext, assertion string) (u keybase1.User, res ResolveResult, err error)
+	ResolveWithBody(m MetaContext, input string) ResolveResult
+	Resolve(m MetaContext, input string) ResolveResult
+	PurgeResolveCache(m MetaContext, input string) error
+}
+
+type EnginePrereqs struct {
+	TemporarySession bool
+	Device           bool
+}
+
+type Engine2 interface {
+	Run(MetaContext) error
+	Prereqs() EnginePrereqs
+	UIConsumer
+}
+
+type SaltpackRecipientKeyfinderEngineInterface interface {
+	Engine2
+	GetPublicKIDs() []keybase1.KID
+	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+}
+
+type SaltpackRecipientKeyfinderArg struct {
+	Recipients        []string // usernames or user assertions
+	TeamRecipients    []string // team names
+	NoSelfEncrypt     bool
+	UseEntityKeys     bool // Both per user and per team keys (and implicit teams for non existing users)
+	UsePaperKeys      bool
+	UseDeviceKeys     bool // Does not include Paper Keys
+	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+}
+
+type SaltpackReceiverSymmetricKey struct {
+	Key        [32]byte
+	Identifier []byte
 }

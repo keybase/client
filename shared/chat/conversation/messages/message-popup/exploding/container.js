@@ -3,12 +3,12 @@ import type {Component} from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
+import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
-import {navigateAppend} from '../../../../../actions/route-tree'
+import * as Route from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
-import {copyToClipboard} from '../../../../../util/clipboard'
 
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
@@ -42,15 +42,21 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
+  _onAddReaction: () => {
+    dispatch(
+      Route.navigateAppend([
+        {
+          props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
+          selected: 'chooseEmoji',
+        },
+      ])
+    )
+  },
   _onCopy: () => {
     if (ownProps.message.type === 'text') {
-      copyToClipboard(ownProps.message.text.stringValue())
+      dispatch(ConfigGen.createCopyToClipboard({text: ownProps.message.text.stringValue()}))
     }
-  },
-  _onDeleteHistory: () => {
-    dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(navigateAppend([{props: {message: ownProps.message}, selected: 'deleteHistoryWarning'}]))
   },
   _onDownload: () =>
     dispatch(
@@ -87,10 +93,11 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
         ordinal: ownProps.message.ordinal,
       })
     ),
-  _onShowInFinder: () =>
+  _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
-    ownProps.message.downloadPath &&
-    dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath})),
+      ownProps.message.downloadPath &&
+      dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath}))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -102,11 +109,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       title: 'Explode now',
     })
   }
-  if (stateProps._canDeleteHistory) {
+  if (isMobile) {
+    // 'Add a reaction' is an option on mobile
     items.push({
-      danger: true,
-      onClick: dispatchProps._onDeleteHistory,
-      title: 'Delete this + everything above',
+      onClick: dispatchProps._onAddReaction,
+      title: 'Add a reaction',
     })
   }
   const message = ownProps.message

@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
-import {action, storiesOf} from '../stories/storybook'
-import * as PropProviders from '../stories/prop-providers'
+import * as Sb from '../stories/storybook'
 import Profile from '.'
 import {
   normal,
@@ -169,32 +168,33 @@ const props = {
   following,
   isYou: false,
   loading: false,
-  onAcceptProofs: action('onAcceptProofs'),
-  onAddToTeam: action('onAddToTeam'),
-  onBack: action('onBack'),
-  onBrowsePublicFolder: action('onBrowsePublicFolder'),
-  onChangeFriendshipsTab: action('onChangeFriendshipsTab'),
-  onChat: action('onChat'),
-  onClearAddUserToTeamsResults: action('onClearAddUserToTeamsResults'),
-  onClickAvatar: action('onClickAvatar'),
-  onClickFollowers: action('onClickFollowers'),
-  onClickFollowing: action('onClickFollowing'),
-  onClickShowcaseOffer: action('onClickShowcaseOffer'),
-  onClickShowcased: action('onClickShowcased'),
-  onFolderClick: action('onFolderClick'),
-  onFollow: action('onFollow'),
-  onMissingProofClick: action(`Prove`),
-  onOpenPrivateFolder: action('onOpenPrivateFolder'),
-  onPushProfile: action('onPushProfile'),
-  onRecheckProof: action('onRecheckProof'),
-  onRevokeProof: action('onRevokeProof'),
-  onSearch: action('onSearch'),
-  onUnfollow: action('onUnfollow'),
-  onUserClick: action('showUserProfile'),
-  onViewProof: action('onViewProof'),
+  onAcceptProofs: Sb.action('onAcceptProofs'),
+  onAddToTeam: Sb.action('onAddToTeam'),
+  onBack: Sb.action('onBack'),
+  onBrowsePublicFolder: Sb.action('onBrowsePublicFolder'),
+  onChangeFriendshipsTab: Sb.action('onChangeFriendshipsTab'),
+  onChat: Sb.action('onChat'),
+  onClearAddUserToTeamsResults: Sb.action('onClearAddUserToTeamsResults'),
+  onClickAvatar: Sb.action('onClickAvatar'),
+  onClickFollowers: Sb.action('onClickFollowers'),
+  onClickFollowing: Sb.action('onClickFollowing'),
+  onClickShowcaseOffer: Sb.action('onClickShowcaseOffer'),
+  onClickShowcased: Sb.action('onClickShowcased'),
+  onEditAvatar: Sb.action('onEditAvatar'),
+  onFolderClick: Sb.action('onFolderClick'),
+  onFollow: Sb.action('onFollow'),
+  onMissingProofClick: Sb.action(`Prove`),
+  onOpenPrivateFolder: Sb.action('onOpenPrivateFolder'),
+  onPushProfile: Sb.action('onPushProfile'),
+  onRecheckProof: Sb.action('onRecheckProof'),
+  onRevokeProof: Sb.action('onRevokeProof'),
+  onSearch: Sb.action('onSearch'),
+  onUnfollow: Sb.action('onUnfollow'),
+  onUserClick: Sb.action('showUserProfile'),
+  onViewProof: Sb.action('onViewProof'),
   proofs: proofsDefault,
   reason: '',
-  refresh: action('refresh'),
+  refresh: Sb.action('refresh'),
   serverActive: false,
   tlfs: folders,
   trackerState: normal,
@@ -203,11 +203,11 @@ const props = {
 }
 
 const bioEditFns = {
-  onBioEdit: action('onBioEdit'),
-  onEditAvatarClick: action('onEditAvatarClick'),
-  onEditProfile: action('onEditProfile'),
-  onLocationEdit: action('onLocationEdit'),
-  onNameEdit: action('onNameEdit'),
+  onBioEdit: Sb.action('onBioEdit'),
+  onEditAvatarClick: Sb.action('onEditAvatarClick'),
+  onEditProfile: Sb.action('onEditProfile'),
+  onLocationEdit: Sb.action('onLocationEdit'),
+  onNameEdit: Sb.action('onNameEdit'),
 }
 
 const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
@@ -230,11 +230,8 @@ const proofsPending = proofsDefault.map((proof, idx) => ({
   state: checking,
 }))
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Profile/Profile', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Profile/Profile', module)
     .add('Your Profile', () => <Profile {...props} bioEditFns={bioEditFns} isYou={true} />)
     .add('Your Profile - Loading', () => (
       <Profile {...props} loading={true} bioEditFns={bioEditFns} isYou={true} />

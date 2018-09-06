@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	"golang.org/x/net/context"
 	emoji "gopkg.in/kyokomi/emoji.v1"
 )
@@ -32,10 +33,13 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 
 	table := &flexibletable.Table{}
 	for i, conv := range v {
+		var tlfName string
 		if conv.Error != nil {
-			continue
+			tlfName = fmt.Sprintf("(unverified) %v",
+				formatUnverifiedConvName(conv.Error.UnverifiedTLFName, conv.Info.Visibility, g.Env.GetUsername().String()))
+		} else {
+			tlfName = conv.Info.TlfName
 		}
-		participants := strings.Split(conv.Info.TlfName, ",")
 		vis := "private"
 		if conv.Info.Visibility == keybase1.TLFVisibility_PUBLIC {
 			vis = "public"
@@ -56,7 +60,7 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
-				Content:   flexibletable.MultiCell{Sep: ",", Items: participants},
+				Content:   flexibletable.SingleCell{Item: tlfName},
 			},
 			flexibletable.Cell{
 				Alignment: flexibletable.Left,
@@ -100,7 +104,8 @@ func (v conversationListView) convNameKBFS(g *libkb.GlobalContext, conv chat1.Co
 	return name
 }
 
-// Make a name that looks like a tlfname but is sorted by activity and missing myUsername.
+// Make a name that looks like a tlfname but is sorted by activity and missing
+// myUsername.
 func (v conversationListView) convName(g *libkb.GlobalContext, conv chat1.ConversationLocal, myUsername string) string {
 	switch conv.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM:
@@ -446,8 +451,6 @@ func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
 	return "", nil
 }
 
-const deletedTextCLI = "[deleted]"
-
 // Everything you need to show a message.
 // Takes into account superseding edits and deletions.
 type messageView struct {
@@ -507,7 +510,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(ctx, body.KbTxID)
+	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.TxID.String())
 	if err != nil {
 		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"
@@ -535,6 +538,45 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	view := verb + " " + amountDescription
 	if details.Note != "" {
 		view += "\n> " + details.Note
+	}
+
+	return view
+}
+
+func formatRequestPaymentMessage(g *libkb.GlobalContext, body chat1.MessageRequestPayment) (view string) {
+	const formattingErrorStr = "[error getting request details]"
+	ctx := context.Background()
+
+	cli, err := GetWalletClient(g)
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
+		return formattingErrorStr
+	}
+
+	details, err := cli.GetRequestDetailsLocal(ctx, stellar1.GetRequestDetailsLocalArg{
+		ReqID: stellar1.KeybaseRequestID(body.RequestID),
+	})
+	if err != nil {
+		g.Log.CDebugf(ctx, "GetRequestDetailsLocal failed with: %s", err)
+		return formattingErrorStr
+	}
+
+	if details.Currency != nil {
+		view = fmt.Sprintf("requested Lumens worth %s", details.AmountDescription)
+	} else {
+		view = fmt.Sprintf("requested %s", details.AmountDescription)
+	}
+
+	if len(body.Note) > 0 {
+		view += "\n> " + body.Note
+	}
+
+	if details.Status == stellar1.RequestStatus_CANCELED {
+		// If canceled, add "[canceled]" prefix.
+		view = "[canceled] " + view
+	} else {
+		// If not, append request ID for cancel-request command.
+		view += fmt.Sprintf("\n[Request ID: %s]", body.RequestID)
 	}
 
 	return view
@@ -603,6 +645,9 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_SENDPAYMENT:
 		mv.Renderable = true
 		mv.Body = formatSendPaymentMessage(g, m.MessageBody.Sendpayment())
+	case chat1.MessageType_REQUESTPAYMENT:
+		mv.Renderable = true
+		mv.Body = formatRequestPaymentMessage(g, m.MessageBody.Requestpayment())
 	default:
 		return mv, fmt.Errorf(fmt.Sprintf("unsupported MessageType: %s", typ.String()))
 	}

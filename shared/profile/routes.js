@@ -5,6 +5,7 @@ import Profile from './container'
 import AddToTeam from './add-to-team/container'
 import EditProfile from './edit-profile/container'
 import EditAvatar from './edit-avatar/container'
+import EditAvatarPlaceholder from './edit-avatar-placeholder/container'
 import ProveEnterUsername from './prove-enter-username/container'
 import ProveWebsiteChoice from './prove-website-choice/container'
 import RevokeContainer from './revoke/container'
@@ -55,6 +56,10 @@ const profileRoute = makeRouteDefNode({
     },
     editAvatar: {
       component: EditAvatar,
+      tags: makeLeafTags({layerOnTop: !isMobile}),
+    },
+    editAvatarPlaceholder: {
+      component: EditAvatarPlaceholder,
     },
     nonUserProfile: {
       component: NonUserProfile,

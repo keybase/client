@@ -1,7 +1,7 @@
 // @flow
 // Inside tracker we use an embedded Avatar which is connected. This assumes its connected and uses immutable stuff.
 // We convert the over-the-wire plain json to immutable in the remote-store helper
-import * as AppGen from '../actions/app-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
@@ -9,20 +9,19 @@ import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
 import {
   branch,
-  connect,
+  remoteConnect,
   compose,
   lifecycle,
   renderNothing,
   withStateHandlers,
-  type Dispatch,
 } from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
+const mapDispatchToProps = (dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
-    dispatch(AppGen.createShowMain())
+    dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
   _onClickAvatar: (username: string) =>
@@ -65,8 +64,8 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(s => s, mapDispatchToProps, mergeProps),
-  branch(props => !props.username, renderNothing),
+  remoteConnect(s => s, mapDispatchToProps, mergeProps),
+  branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')

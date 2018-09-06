@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   withStateHandlers(props => ({bio: props.bio, fullname: props.fullname, location: props.location}), {
     onBioChange: () => bio => ({bio}),
     onFullnameChange: () => fullname => ({fullname}),
@@ -46,5 +46,5 @@ export default compose(
   withHandlers({
     ...(isMobile ? {} : {onCancel: ({onBack}) => () => onBack()}),
     onSubmit: ({bio, fullname, location, onEditProfile}) => () => onEditProfile(bio, fullname, location),
-  }),
+  })
 )(HeaderOnMobile(Render))

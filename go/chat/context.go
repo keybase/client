@@ -6,7 +6,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -22,6 +21,7 @@ type chatTrace int
 type identifyModeKey int
 type upakfinderKey int
 type rateLimitKey int
+type nameInfoOverride int
 
 var kfKey keyfinderKey
 var inKey identifyNotifierKey
@@ -29,6 +29,7 @@ var chatTraceKey chatTrace
 var identModeKey identifyModeKey
 var upKey upakfinderKey
 var rlKey rateLimitKey
+var nameInfoOverrideKey nameInfoOverride
 
 type identModeData struct {
 	mode   keybase1.TLFIdentifyBehavior
@@ -115,15 +116,26 @@ func CtxTrace(ctx context.Context) (string, bool) {
 	return "", false
 }
 
+func CtxTestingNameInfoSource(ctx context.Context) (types.NameInfoSource, bool) {
+	val := ctx.Value(nameInfoOverrideKey)
+	if ni, ok := val.(types.NameInfoSource); ok {
+		return ni, true
+	}
+	return nil, false
+}
+
+func CtxAddTestingNameInfoSource(ctx context.Context, ni types.NameInfoSource) context.Context {
+	return context.WithValue(ctx, nameInfoOverrideKey, ni)
+}
+
 func CtxAddLogTags(ctx context.Context, env appTypeSource) context.Context {
 
 	// Add trace context value
-	ctx = context.WithValue(ctx, chatTraceKey, libkb.RandStringB64(3))
+	trace := libkb.RandStringB64(3)
+	ctx = context.WithValue(ctx, chatTraceKey, trace)
 
 	// Add log tags
-	tags := make(map[interface{}]string)
-	tags[chatTraceKey] = "chat-trace"
-	ctx = logger.NewContextWithLogTags(ctx, tags)
+	ctx = libkb.WithLogTagWithValue(ctx, "chat-trace", trace)
 
 	rpcTags := make(map[string]interface{})
 	rpcTags["user-agent"] = libkb.UserAgent
@@ -168,7 +180,7 @@ func Context(ctx context.Context, g *globals.Context, mode keybase1.TLFIdentifyB
 
 func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Context {
 
-	rctx := context.Background()
+	rctx := libkb.CopyTagsToBackground(sourceCtx)
 
 	in := CtxIdentifyNotifier(sourceCtx)
 	if ident, breaks, ok := IdentifyMode(sourceCtx); ok {
@@ -178,6 +190,10 @@ func BackgroundContext(sourceCtx context.Context, g *globals.Context) context.Co
 	// Overwrite trace tag
 	if tr, ok := sourceCtx.Value(chatTraceKey).(string); ok {
 		rctx = context.WithValue(rctx, chatTraceKey, tr)
+	}
+
+	if ni, ok := CtxTestingNameInfoSource(sourceCtx); ok {
+		rctx = CtxAddTestingNameInfoSource(rctx, ni)
 	}
 
 	rctx = context.WithValue(rctx, kfKey, CtxKeyFinder(sourceCtx, g))

@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Text, Markdown, Box, Box2, Meta} from '../../../../common-adapters'
+import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
   globalColors,
@@ -29,45 +29,20 @@ class BottomLine extends PureComponent<Props> {
     let content
 
     if (this.props.youNeedToRekey) {
-      content = (
-        <Box
-          style={{
-            alignSelf: 'center',
-            backgroundColor: globalColors.red,
-            borderRadius: 2,
-            paddingLeft: globalMargins.xtiny,
-            paddingRight: globalMargins.xtiny,
-          }}
-        >
-          <Text
-            type="BodySmallSemibold"
-            backgroundMode="Terminal"
-            style={platformStyles({
-              common: {
-                color: globalColors.white,
-                fontSize: 12,
-                lineHeight: 14,
-              },
-            })}
-          >
-            REKEY NEEDED
-          </Text>
-        </Box>
-      )
+      content = null
     } else if (this.props.youAreReset) {
       content = (
         <Text
           type="BodySmallSemibold"
           backgroundMode="Terminal"
-          style={platformStyles({
-            common: {
+          style={collapseStyles([
+            styles.youAreResetText,
+            {
               color: this.props.isSelected ? globalColors.white : globalColors.red,
-              fontSize: isMobile ? 13 : 12,
-              lineHeight: 14,
             },
-          })}
+          ])}
         >
-          Participants should let you back in.
+          You are locked out.
         </Text>
       )
     } else if (this.props.participantNeedToRekey) {
@@ -77,30 +52,63 @@ class BottomLine extends PureComponent<Props> {
         </Text>
       )
     } else if (this.props.snippet) {
-      const baseStyle = styles.bottomLine
+      const style = collapseStyles([
+        styles.bottomLine,
+        {
+          color: this.props.subColor,
+          ...(this.props.showBold ? globalStyles.fontBold : {}),
+        },
+      ])
 
-      let style
+      let snippetDecoration
+      let exploded = false
 
-      if (this.props.subColor !== globalColors.black_40 || this.props.showBold) {
-        style = collapseStyles([
-          baseStyle,
-          {
-            color: this.props.subColor,
-            ...(this.props.showBold ? globalStyles.fontBold : {}),
-          },
-        ])
-      } else {
-        style = baseStyle
+      // `snippetDecoration` will either be an explosion emoji, bomb emoji, or empty string.
+      // We want to use these emojis to render the correct custom icon.
+      switch (this.props.snippetDecoration) {
+        case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
+          snippetDecoration = (
+            <Icon
+              type="iconfont-boom"
+              fontSize={isMobile ? 40 : 28}
+              style={platformStyles({
+                common: {
+                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
+                },
+                isMobile: {
+                  marginTop: -10,
+                },
+              })}
+            />
+          )
+          exploded = true
+          break
+        case '\u{1F4A3}': // Bomb emoji (💣)
+          snippetDecoration = (
+            <Icon
+              color={globalColors.black_75}
+              type="iconfont-bomb"
+              fontSize={isMobile ? 16 : 12}
+              style={{alignSelf: 'flex-start'}}
+            />
+          )
+          break
+        default:
+          snippetDecoration = this.props.snippetDecoration
       }
-
       content = (
-        <Box2 direction="horizontal" style={styles.bottomLineBox}>
-          <Markdown preview={true} style={style}>
-            {this.props.snippet}
-          </Markdown>
-          <Text type="BodySmall" style={{color: globalColors.black}}>
-            {this.props.snippetDecoration}
-          </Text>
+        <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
+          {!!snippetDecoration && (
+            <Box2 direction="vertical" centerChildren={true}>
+              {snippetDecoration}
+            </Box2>
+          )}
+          {!exploded &&
+            !!this.props.snippet && (
+              <Markdown preview={true} style={style}>
+                {this.props.snippet}
+              </Markdown>
+            )}
         </Box2>
       )
     } else {
@@ -109,53 +117,71 @@ class BottomLine extends PureComponent<Props> {
 
     return (
       <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          backgroundColor: isMobile ? this.props.backgroundColor : undefined,
-          flexGrow: 1,
-          height: isMobile ? 20 : 17,
-          maxHeight: isMobile ? 20 : 17,
-        }}
+        style={collapseStyles([
+          styles.outerBox,
+          {
+            backgroundColor: isMobile ? this.props.backgroundColor : undefined,
+          },
+        ])}
       >
         {this.props.hasResetUsers && (
-          <Meta title="reset" style={resetStyle} backgroundColor={globalColors.red} />
+          <Meta title="reset" style={styles.alertMeta} backgroundColor={globalColors.red} />
         )}
-        <Box
-          style={{
-            ...globalStyles.flexBoxRow,
-            alignItems: 'center',
-            flexGrow: 1,
-            height: '100%',
-            position: 'relative',
-          }}
-        >
-          <Box
-            style={{
-              ...globalStyles.flexBoxRow,
-              ...globalStyles.fillAbsolute,
-              alignItems: 'center',
-            }}
-          >
-            {content}
-          </Box>
+        {this.props.youNeedToRekey && (
+          <Meta title="rekey needed" style={styles.alertMeta} backgroundColor={globalColors.red} />
+        )}
+        <Box style={styles.innerBox}>
+          <Box style={{...globalStyles.fillAbsolute}}>{content}</Box>
         </Box>
       </Box>
     )
   }
 }
 
-const resetStyle = platformStyles({
-  common: {
-    alignSelf: 'center',
-    marginRight: 6,
-  },
-  isElectron: {},
-  isMobile: {
-    marginTop: 2,
-  },
-})
-
 const styles = styleSheetCreate({
+  outerBox: {
+    ...globalStyles.flexBoxRow,
+    flexGrow: 1,
+    height: isMobile ? 20 : 17,
+    maxHeight: isMobile ? 20 : 17,
+  },
+  innerBox: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    flexGrow: 1,
+    height: '100%',
+    position: 'relative',
+  },
+  rekeyNeededContainer: {
+    alignSelf: 'center',
+    backgroundColor: globalColors.red,
+    borderRadius: 2,
+    paddingLeft: globalMargins.xtiny,
+    paddingRight: globalMargins.xtiny,
+  },
+  rekeyNeededText: platformStyles({
+    common: {
+      color: globalColors.white,
+    },
+    isElectron: {
+      fontSize: 11,
+      lineHeight: 13,
+    },
+    isMobile: {
+      fontSize: 12,
+      lineHeight: 14,
+    },
+  }),
+  youAreResetText: platformStyles({
+    isElectron: {
+      fontSize: 12,
+      lineHeight: 13,
+    },
+    isMobile: {
+      fontSize: 14,
+      lineHeight: 19,
+    },
+  }),
   bottomLine: platformStyles({
     isAndroid: {
       lineHeight: undefined,
@@ -164,7 +190,7 @@ const styles = styleSheetCreate({
       color: globalColors.black_40,
       display: 'block',
       fontSize: 12,
-      lineHeight: '15px',
+      lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
       paddingRight: 30,
@@ -180,9 +206,17 @@ const styles = styleSheetCreate({
       paddingRight: 30,
     },
   }),
-  bottomLineBox: {
+  contentBox: {
     width: '100%',
   },
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
 })
-
 export {BottomLine}

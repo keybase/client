@@ -5,12 +5,15 @@ import (
 	"sort"
 
 	"golang.org/x/net/context"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
+// newProofTerm creates a new proof term.
+// `lm` can be nil (it is for teams since SetTeamLinkMap is used)
 func newProofTerm(i keybase1.UserOrTeamID, s keybase1.SignatureMetadata, lm linkMapT) proofTerm {
 	return proofTerm{leafID: i, sigMeta: s, linkMap: lm}
 }
@@ -110,7 +113,9 @@ func (p *proofSetT) AddNeededHappensBeforeProof(ctx context.Context, a proofTerm
 
 	var action string
 	defer func() {
-		p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		if action != "discard-easy" && !ShouldSuppressLogging(ctx) {
+			p.G().Log.CDebugf(ctx, "proofSet add(%v --> %v) [%v] '%v'", a.shortForm(), b.shortForm(), action, reason)
+		}
 	}()
 
 	idx := newProofIndex(a.leafID, b.leafID)
@@ -273,9 +278,17 @@ func (p proof) findLink(ctx context.Context, g *libkb.GlobalContext, world Loade
 	return linkID, nil
 }
 
+func (p *proofSetT) checkRequired() bool {
+	return len(p.proofs) > 0
+}
+
 // check the entire proof set, failing if any one proof fails.
-func (p *proofSetT) check(ctx context.Context, world LoaderContext) (err error) {
+func (p *proofSetT) check(ctx context.Context, world LoaderContext, parallel bool) (err error) {
 	defer p.G().CTrace(ctx, "TeamLoader proofSet check", func() error { return err })()
+
+	if parallel {
+		return p.checkParallel(ctx, world)
+	}
 
 	var total int
 	for _, v := range p.proofs {
@@ -285,9 +298,7 @@ func (p *proofSetT) check(ctx context.Context, world LoaderContext) (err error) 
 	var i int
 	for _, v := range p.proofs {
 		for _, proof := range v {
-			if i%100 == 0 {
-				p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
-			}
+			p.G().Log.CDebugf(ctx, "TeamLoader proofSet check [%v / %v]", i, total)
 			err = proof.check(ctx, p.G(), world, p)
 			if err != nil {
 				return err
@@ -296,4 +307,47 @@ func (p *proofSetT) check(ctx context.Context, world LoaderContext) (err error) 
 		}
 	}
 	return nil
+}
+
+// check the entire proof set, failing if any one proof fails. (parallel version)
+func (p *proofSetT) checkParallel(ctx context.Context, world LoaderContext) (err error) {
+
+	var total int
+	for _, v := range p.proofs {
+		total += len(v)
+	}
+	p.G().Log.CDebugf(ctx, "TeamLoader proofSet check parallel [%v]", total)
+
+	queue := make(chan proof)
+	go func() {
+		for _, v := range p.proofs {
+			for _, proof := range v {
+				queue <- proof
+			}
+		}
+		close(queue)
+	}()
+
+	group, ctx := errgroup.WithContext(libkb.CopyTagsToBackground(ctx))
+	const pipeline = 20
+	for i := 0; i < pipeline; i++ {
+		group.Go(func() error {
+			for {
+				select {
+				case <-ctx.Done():
+					return ctx.Err()
+				case proof, ok := <-queue:
+					if !ok {
+						return nil
+					}
+					err = proof.check(ctx, p.G(), world, p)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		})
+	}
+
+	return group.Wait()
 }

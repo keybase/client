@@ -343,7 +343,6 @@ func (u *User) Store(m MetaContext) error {
 }
 
 func (u *User) StoreTopLevel(m MetaContext) error {
-	m.CDebugf("+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -356,7 +355,9 @@ func (u *User) StoreTopLevel(m MetaContext) error {
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	m.CDebugf("- StoreTopLevel -> %s", ErrToOk(err))
+	if err != nil {
+		m.CDebugf("StoreTopLevel -> %s", ErrToOk(err))
+	}
 	return err
 }
 
@@ -450,11 +451,11 @@ func (u *User) IDTable() *IdentityTable {
 
 // Return the active stellar public address for a user.
 // Returns nil if there is none or it has not been loaded.
-func (u *User) StellarWalletAddress() *stellar1.AccountID {
+func (u *User) StellarAccountID() *stellar1.AccountID {
 	if u.idTable == nil {
 		return nil
 	}
-	return u.idTable.StellarWalletAddress()
+	return u.idTable.StellarAccountID()
 }
 
 func (u *User) sigChain() *SigChain {
@@ -532,30 +533,30 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
-func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
-	return TmpTrackChainLinkFor(u.id, uid, u.G())
+func (u *User) TmpTrackChainLinkFor(m MetaContext, username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
+	return TmpTrackChainLinkFor(m, u.id, uid)
 }
 
-func TmpTrackChainLinkFor(me keybase1.UID, them keybase1.UID, g *GlobalContext) (tcl *TrackChainLink, err error) {
-	g.Log.Debug("+ TmpTrackChainLinkFor for %s", them)
-	tcl, err = LocalTmpTrackChainLinkFor(me, them, g)
-	g.Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
+func TmpTrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID) (tcl *TrackChainLink, err error) {
+	m.CDebugf("+ TmpTrackChainLinkFor for %s", them)
+	tcl, err = LocalTmpTrackChainLinkFor(m, me, them)
+	m.CDebugf("- TmpTrackChainLinkFor for %s -> %v, %v", them, (tcl != nil), err)
 	return tcl, err
 }
 
-func (u *User) TrackChainLinkFor(username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
+func (u *User) TrackChainLinkFor(m MetaContext, username NormalizedUsername, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
 	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
-	return TrackChainLinkFor(u.id, uid, remote, e1, u.G())
+	return TrackChainLinkFor(m, u.id, uid, remote, e1)
 }
 
-func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error, g *GlobalContext) (*TrackChainLink, error) {
+func TrackChainLinkFor(m MetaContext, me keybase1.UID, them keybase1.UID, remote *TrackChainLink, remoteErr error) (*TrackChainLink, error) {
 
-	local, e2 := LocalTrackChainLinkFor(me, them, g)
+	local, e2 := LocalTrackChainLinkFor(m, me, them)
 
-	g.Log.Debug("| Load remote -> %v", (remote != nil))
-	g.Log.Debug("| Load local -> %v", (local != nil))
+	m.CDebugf("| Load remote -> %v", (remote != nil))
+	m.CDebugf("| Load local -> %v", (local != nil))
 
 	if remoteErr != nil && e2 != nil {
 		return nil, remoteErr
@@ -570,12 +571,12 @@ func TrackChainLinkFor(me keybase1.UID, them keybase1.UID, remote *TrackChainLin
 	}
 
 	if remote == nil && local != nil {
-		g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
+		m.CDebugf("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
-		g.Log.Debug("| Returning newer remote")
+		m.CDebugf("| Returning newer remote")
 		return remote, nil
 	}
 
@@ -770,7 +771,7 @@ func (u *User) SigChainDump(w io.Writer) {
 	u.sigChain().Dump(w)
 }
 
-func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeys) bool {
+func (u *User) IsCachedIdentifyFresh(upk *keybase1.UserPlusKeysV2AllIncarnations) bool {
 	idv, _ := u.GetIDVersion()
 	if upk.Uvv.Id == 0 || idv != upk.Uvv.Id {
 		return false

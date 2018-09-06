@@ -4,7 +4,7 @@ import * as React from 'react'
 import {globalColors, styleSheetCreate, collapseStyles} from '../styles'
 import ClickableBox from './clickable-box'
 import Box from './box'
-import {Image} from 'react-native'
+import NativeImage from './native-image.native'
 import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
@@ -55,7 +55,7 @@ class UserImage extends React.PureComponent<ImageProps> {
   render() {
     const {borderRadius, opacity = 1} = this.props
     return (
-      <Image
+      <NativeImage
         source={this.props.url}
         onLoadEnd={this.props.onLoadEnd}
         style={[styles[`image:${this.props.size}`], {borderRadius, opacity}]}
@@ -65,7 +65,7 @@ class UserImage extends React.PureComponent<ImageProps> {
 }
 
 const borderOffset = -1
-const borderSize = 2
+const borderSize = 1
 // Layer on top to extend outside of the image
 class Border extends React.PureComponent<{borderColor: any, borderRadius: number}> {
   render() {
@@ -133,8 +133,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
               borderRadius={borderRadius}
             />
           )}
-          {!!this.props.borderColor && (
-            <Border borderColor={this.props.borderColor} borderRadius={borderRadius} />
+          {(!!this.props.borderColor || this.props.isTeam) && (
+            <Border
+              borderColor={this.props.borderColor || globalColors.black_10}
+              borderRadius={borderRadius}
+            />
           )}
           {this.props.followIconType && (
             <Icon
@@ -143,6 +146,17 @@ class AvatarRender extends React.PureComponent<Props, State> {
                 styles[`icon:${this.props.followIconSize}`],
                 this.props.followIconStyle,
               ])}
+            />
+          )}
+          {this.props.editable && (
+            <Icon
+              type="iconfont-edit"
+              onClick={this.props.onEditAvatarClick}
+              style={{
+                bottom: this.props.isTeam ? -2 : 0,
+                position: 'absolute',
+                right: this.props.isTeam ? -18 : 0,
+              }}
             />
           )}
           {this.props.children}

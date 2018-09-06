@@ -146,7 +146,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 }
 
 func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func SetRoleOwner(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -162,7 +162,7 @@ func SetRoleAdmin(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 }
 
 func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
@@ -170,33 +170,34 @@ func SetRoleWriter(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 }
 
 func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err != nil {
 		return err
 	}
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
-func getUserProofs(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, error) {
+func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    username,
 		UseDelegateUI:    false,
 		Reason:           keybase1.IdentifyReason{Reason: "clear invitation when adding team member"},
 		CanSuppressUI:    true,
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 		NeedProofSet:     true,
+		ActLoggedOut:     true,
 	}
 	eng := engine.NewResolveThenIdentify2(g, &arg)
 	m := libkb.NewMetaContext(ctx, g)
 	if err := engine.RunEngine2(m, eng); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return eng.GetProofSet(), nil
+	return eng.GetProofSet(), eng.GetIdentifyOutcome(), nil
 }
 
 func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, username string, role keybase1.TeamRole) (res keybase1.TeamAddMemberResult, err error) {
 	var inviteRequired bool
-	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username)
+	resolvedUsername, uv, err := loadUserVersionPlusByUsername(ctx, g, username, true /* useTracking */)
 	g.Log.CDebugf(ctx, "team.AddMember: loadUserVersionPlusByUsername(%s) -> (%s, %v, %v)", username, resolvedUsername, uv, err)
 	if err != nil {
 		if err == errInviteRequired {
@@ -228,6 +229,9 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
+		// Try to mark completed any invites for the user's social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
 		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
 		if err := tx.CompleteSocialInvitesFor(timeoutCtx, uv, username); err != nil {
 			g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor, no invites will be cleared. Err was: %v", err)
@@ -260,7 +264,97 @@ func AddMember(ctx context.Context, g *libkb.GlobalContext, teamname, username s
 	return AddMemberByID(ctx, g, team.ID, username, role)
 }
 
+type AddMembersRes struct {
+	Invite   bool                     // Whether the membership addition was an invite.
+	Username libkb.NormalizedUsername // Resolved username. May be nil for social assertions.
+}
+
+// AddMembers adds a bunch of people to a team. Assertions can contain usernames or social assertions.
+// Adds them all in a transaction so it's all or nothing.
+// On success, returns a list where len(res)=len(assertions) and in corresponding order.
+func AddMembers(ctx context.Context, g *libkb.GlobalContext, teamname string, assertions []string, role keybase1.TeamRole) (res []AddMembersRes, err error) {
+	tracer := g.CTimeTracer(ctx, "team.AddMembers", true)
+	defer tracer.Finish()
+	teamName, err := keybase1.TeamNameFromString(teamname)
+	if err != nil {
+		return nil, err
+	}
+	teamID, err := ResolveNameToID(ctx, g, teamName)
+	if err != nil {
+		return nil, err
+	}
+
+	err = RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
+		res = make([]AddMembersRes, len(assertions))
+		team, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
+		if err != nil {
+			return err
+		}
+
+		tx := CreateAddMemberTx(team)
+		type sweepEntry struct {
+			Assertion string
+			UV        keybase1.UserVersion
+		}
+		var sweep []sweepEntry
+		for i, assertion := range assertions {
+			username, uv, invite, err := tx.AddMemberByAssertion(ctx, assertion, role)
+			if err != nil {
+				if _, ok := err.(AttemptedInviteSocialOwnerError); ok {
+					return err
+				}
+				return NewAddMembersError(assertion, err)
+			}
+			var normalizedUsername libkb.NormalizedUsername
+			if !username.IsNil() {
+				normalizedUsername = username
+			}
+			res[i] = AddMembersRes{
+				Invite:   invite,
+				Username: normalizedUsername,
+			}
+			if !uv.IsNil() {
+				sweep = append(sweep, sweepEntry{
+					Assertion: assertion,
+					UV:        uv,
+				})
+			}
+		}
+
+		// Try to mark completed any invites for the users' social assertions.
+		// This can be a time-intensive process since it involves checking proofs.
+		// It is limited to a few seconds and failure is non-fatal.
+		timeoutCtx, timeoutCancel := context.WithTimeout(ctx, 2*time.Second)
+		for _, x := range sweep {
+			if err := tx.CompleteSocialInvitesFor(timeoutCtx, x.UV, x.Assertion); err != nil {
+				g.Log.CWarningf(ctx, "Failed in CompleteSocialInvitesFor(%v, %v) -> %v", x.UV, x.Assertion, err)
+			}
+		}
+		timeoutCancel()
+
+		return tx.Post(libkb.NewMetaContext(ctx, g))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
 func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	username string) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("ReAddMemberAfterReset(%v,%v)", teamID, username), func() error { return err })()
+	err = reAddMemberAfterResetInner(ctx, g, teamID, username)
+	switch err.(type) {
+	case UserHasNotResetError:
+		// No-op is ok
+		g.Log.CDebugf(ctx, "suppressing error: %v", err)
+		return nil
+	default:
+		return err
+	}
+}
+
+func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
 	username string) error {
 	arg := libkb.NewLoadUserArg(g).
 		WithNetContext(ctx).
@@ -310,10 +404,8 @@ func ReAddMemberAfterReset(ctx context.Context, g *libkb.GlobalContext, teamID k
 		}
 
 		if existingUV.EldestSeqno == uv.EldestSeqno {
-			return libkb.ExistsError{
-				Msg: fmt.Sprintf("user %s has not reset, no need to re-add, existing: %v new: %v",
-					username, existingUV.EldestSeqno, uv.EldestSeqno),
-			}
+			return NewUserHasNotResetError("user %s has not reset, no need to re-add, existing: %v new: %v",
+				username, existingUV.EldestSeqno, uv.EldestSeqno)
 		}
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
@@ -420,7 +512,7 @@ func AddEmailsBulk(ctx context.Context, g *libkb.GlobalContext, teamname, emails
 }
 
 func EditMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string, role keybase1.TeamRole) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, true /* useTracking */)
 	if err == errInviteRequired {
 		g.Log.CDebugf(ctx, "team %s: edit member %s, member is an invite link", teamname, username)
 		return editMemberInvite(ctx, g, teamname, username, role, uv)
@@ -477,7 +569,7 @@ func editMemberInvite(ctx context.Context, g *libkb.GlobalContext, teamname, use
 }
 
 func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username string) (role keybase1.TeamRole, err error) {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		return keybase1.TeamRole_NONE, err
 	}
@@ -497,7 +589,7 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
 
 	var inviteRequired bool
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		switch err {
 		case errInviteRequired:
@@ -664,7 +756,7 @@ func ParseAndAcceptSeitanToken(ctx context.Context, g *libkb.GlobalContext, tok 
 }
 
 func AcceptSeitan(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKey) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
@@ -717,7 +809,7 @@ func ProcessSeitanV2(ikey SeitanIKeyV2, uv keybase1.UserVersion, kbtime keybase1
 }
 
 func AcceptSeitanV2(ctx context.Context, g *libkb.GlobalContext, ikey SeitanIKeyV2) error {
-	uv, err := getCurrentUserUV(ctx, g)
+	uv, err := g.GetMeUV(ctx)
 	if err != nil {
 		return err
 	}
@@ -752,27 +844,24 @@ func ChangeRoles(ctx context.Context, g *libkb.GlobalContext, teamname string, r
 var errInviteRequired = errors.New("invite required for username")
 var errUserDeleted = errors.New("user is deleted")
 
-func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
+func loadUserVersionPlusByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (libkb.NormalizedUsername, keybase1.UserVersion, error) {
 	// need username here as `username` parameter might be social assertion, also username
 	// is used for chat notification recipient
-	res := g.Resolver.ResolveFullExpressionNeedUsername(ctx, username)
-	if res.GetError() != nil {
-		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+	m := libkb.NewMetaContext(ctx, g)
+	upk, err := engine.ResolveAndCheck(m, username, useTracking)
+	if err != nil {
+		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
 			return "", keybase1.UserVersion{}, errInviteRequired
 		}
-		return "", keybase1.UserVersion{}, res.GetError()
+		return "", keybase1.UserVersion{}, err
 	}
-
-	uv, err := loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
-	if err != nil {
-		return res.GetNormalizedUsername(), uv, err
-	}
-	return res.GetNormalizedUsername(), uv, nil
+	uv, err := filterUserCornerCases(ctx, upk)
+	return libkb.NormalizedUsernameFromUPK2(upk), uv, err
 }
 
-func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
-	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username)
+func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (uname libkb.NormalizedUsername, uv keybase1.UserVersion, hasPUK bool, err error) {
+	uname, uv, err = loadUserVersionPlusByUsername(ctx, g, username, useTracking)
 	if err == nil {
 		hasPUK = true
 	} else {
@@ -786,40 +875,36 @@ func loadUserVersionAndPUKedByUsername(ctx context.Context, g *libkb.GlobalConte
 	return uname, uv, hasPUK, nil
 }
 
-func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string) (keybase1.UserVersion, error) {
-	res := g.Resolver.ResolveWithBody(username)
-	if res.GetError() != nil {
-		if e, ok := res.GetError().(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
+func loadUserVersionByUsername(ctx context.Context, g *libkb.GlobalContext, username string, useTracking bool) (keybase1.UserVersion, error) {
+	m := libkb.NewMetaContext(ctx, g)
+	upk, err := engine.ResolveAndCheck(m, username, useTracking)
+	if err != nil {
+		if e, ok := err.(libkb.ResolutionError); ok && e.Kind == libkb.ResolutionErrorNotFound {
 			// couldn't find a keybase user for username assertion
 			return keybase1.UserVersion{}, errInviteRequired
 		}
-		return keybase1.UserVersion{}, res.GetError()
+		return keybase1.UserVersion{}, err
 	}
 
-	return loadUserVersionByUIDCheckUsername(ctx, g, res.GetUID(), res.GetUsername())
+	return filterUserCornerCases(ctx, upk)
 }
 
 func loadUserVersionByUID(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (keybase1.UserVersion, error) {
-	return loadUserVersionByUIDCheckUsername(ctx, g, uid, "")
-}
-
-func loadUserVersionByUIDCheckUsername(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, un string) (keybase1.UserVersion, error) {
 	upak, err := loadUPAK2(ctx, g, uid, true /*forcePoll */)
 	if err != nil {
 		return keybase1.UserVersion{}, err
 	}
-	if un != "" && !libkb.NormalizedUsername(un).Eq(libkb.NormalizedUsername(upak.Current.Username)) {
-		return keybase1.UserVersion{}, libkb.BadUsernameError{N: un}
-	}
+	return filterUserCornerCases(ctx, upak.Current)
+}
 
-	uv := NewUserVersion(upak.Current.Uid, upak.Current.EldestSeqno)
-	if upak.Current.Status == keybase1.StatusCode_SCDeleted {
+func filterUserCornerCases(ctx context.Context, upak keybase1.UserPlusKeysV2) (keybase1.UserVersion, error) {
+	uv := upak.ToUserVersion()
+	if upak.Status == keybase1.StatusCode_SCDeleted {
 		return uv, errUserDeleted
 	}
-	if len(upak.Current.PerUserKeys) == 0 {
+	if len(upak.PerUserKeys) == 0 {
 		return uv, errInviteRequired
 	}
-
 	return uv, nil
 }
 
@@ -1064,7 +1149,7 @@ func ListMyAccessRequests(ctx context.Context, g *libkb.GlobalContext, teamName 
 }
 
 func IgnoreRequest(ctx context.Context, g *libkb.GlobalContext, teamName, username string) error {
-	uv, err := loadUserVersionByUsername(ctx, g, username)
+	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
 		if err == errInviteRequired {
 			return libkb.NotFoundError{
@@ -1137,7 +1222,7 @@ func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team,
 		lookingFor = uv.TeamInviteName()
 		typ = "keybase"
 	} else {
-		ptyp, name, err := team.parseSocial(username)
+		ptyp, name, err := parseSocialAssertion(libkb.NewMetaContext(ctx, g), username)
 		if err != nil {
 			return err
 		}
@@ -1426,6 +1511,7 @@ func CanUserPerform(ctx context.Context, g *libkb.GlobalContext, teamname string
 	ret.EditChannelDescription = writer
 	ret.DeleteChatHistory = admin
 	ret.SetRetentionPolicy = admin
+	ret.SetMinWriterRole = admin
 	ret.Chat = isRoleOrAbove(keybase1.TeamRole_READER)
 
 	return ret, err
@@ -1468,6 +1554,10 @@ func MapImplicitTeamIDToDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	})
 	if err != nil {
 		return folder, err
+	}
+
+	if !team.IsImplicit() {
+		return folder, NewExplicitTeamOperationError("MapImplicitTeamIDToDisplayName")
 	}
 
 	itdn, err := team.ImplicitTeamDisplayName(ctx)
@@ -1619,4 +1709,16 @@ func ProfileTeamLoad(mctx libkb.MetaContext, arg keybase1.LoadTeamArg) (res keyb
 	post := mctx.G().Clock().Now()
 	res.LoadTimeNsec = post.Sub(pre).Nanoseconds()
 	return res, err
+}
+
+func GetTeamIDByNameRPC(mctx libkb.MetaContext, teamName string) (res keybase1.TeamID, err error) {
+	nameParsed, err := keybase1.TeamNameFromString(teamName)
+	if err != nil {
+		return "", err
+	}
+	id, err := ResolveNameToID(mctx.Ctx(), mctx.G(), nameParsed)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }

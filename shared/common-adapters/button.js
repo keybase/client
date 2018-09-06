@@ -17,11 +17,11 @@ import {
 
 export type Props = {
   children?: React.Node,
-  onClick: ?(event: SyntheticEvent<>) => void,
+  onClick?: null | ((event: SyntheticEvent<>) => void),
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
-  label?: ?string,
+  label?: string,
   style?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
   type:
@@ -34,8 +34,8 @@ export type Props = {
     | 'PrimaryGreenActive'
     | 'PrimaryColoredBackground'
     | 'SecondaryColoredBackground',
-  disabled?: ?boolean,
-  waiting?: ?boolean,
+  disabled?: boolean,
+  waiting?: boolean,
   small?: boolean,
   fullWidth?: boolean,
   backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
@@ -86,7 +86,11 @@ class Button extends React.Component<Props> {
     containerStyle = collapseStyles([containerStyle, this.props.style])
 
     const onClick = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
-    const whiteSpinner = !(this.props.type === 'PrimaryGreenActive' || this.props.type === 'Secondary')
+    const whiteSpinner = !(
+      this.props.type === 'PrimaryGreenActive' ||
+      this.props.type === 'Secondary' ||
+      this.props.type === 'PrimaryColoredBackground'
+    )
 
     return (
       <ClickableBox style={containerStyle} onClick={onClick}>
@@ -100,7 +104,7 @@ class Button extends React.Component<Props> {
           >
             {this.props.label}
           </Text>
-          {this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
+          {!!this.props.waiting && <Progress small={this.props.small} white={whiteSpinner} />}
         </Box>
       </ClickableBox>
     )
@@ -195,7 +199,7 @@ const labelStyles = styleSheetCreate({
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
   PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
-  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green2},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},

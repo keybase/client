@@ -1,4 +1,5 @@
 // @flow
+import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import PostProof from '.'
 import {compose, connect, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
@@ -34,17 +35,18 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 export default compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
-      // Facebook proof checking gets enabled after they click continue.
-      if (this.props.platform === 'facebook') {
+      // Activate the proof check after they've completed the first step for these services.
+      if (['facebook', 'twitter', 'reddit', 'github', 'hackernews'].includes(this.props.platform)) {
         this.props.onAllowProofCheck(false)
       }
     },

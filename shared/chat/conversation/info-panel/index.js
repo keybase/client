@@ -10,8 +10,9 @@ import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
+import MinWriterRole from './min-writer-role/container'
 
-const border = `1px solid ${globalColors.black_05}`
+const border = `1px solid ${globalColors.black_10}`
 const listStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
@@ -22,13 +23,13 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
+        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
-type InfoPanelProps = {
+type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
   participants: Array<{
     username: string,
@@ -48,19 +49,23 @@ type InfoPanelProps = {
 
   // Used for conversations.
   onShowBlockConversationDialog: () => void,
+  onShowClearConversationDialog: () => void,
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
   onViewTeam: () => void,
+  canSetMinWriterRole: boolean,
   canSetRetention: boolean,
 
   // Used for big teams.
   canEditChannel: boolean,
+  canDeleteHistory: boolean,
   description: ?string,
   onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
-} & HeaderHocProps
+  ...$Exact<HeaderHocProps>,
+|}
 
 // FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
 // use this.props in _renderRow instead
@@ -146,6 +151,12 @@ type BlockThisConversationRow = {
   onShowBlockConversationDialog: () => void,
 }
 
+type ClearThisConversationRow = {
+  type: 'clear entire conversation',
+  key: 'clear entire conversation',
+  onShowClearConversationDialog: () => void,
+}
+
 type ParticipantCountRow = {
   type: 'participant count',
   key: 'participant count',
@@ -186,6 +197,13 @@ type LeaveChannelRow = {
   onLeaveConversation: () => void,
 }
 
+type MinWriterRoleRow = {
+  type: 'min writer role',
+  key: 'min writer role',
+  canSetMinWriterRole: boolean,
+  isSmallTeam: boolean,
+}
+
 // All the row types that can appear in a small or big team header.
 type TeamHeaderRow =
   | DividerRow
@@ -193,10 +211,12 @@ type TeamHeaderRow =
   | NotificationsRow
   | ParticipantCountRow
   | RetentionRow
+  | ClearThisConversationRow
   | SmallTeamHeaderRow
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
+  | MinWriterRoleRow
 
 type Row =
   | AddPeopleRow
@@ -205,6 +225,7 @@ type Row =
   | DividerRow
   | NotificationsRow
   | TurnIntoTeamRow
+  | ClearThisConversationRow
   | BlockThisConversationRow
   | TeamHeaderRow
 
@@ -234,6 +255,9 @@ const typeSizeEstimator = (row: Row): number => {
     case 'block this conversation':
       return 17
 
+    case 'clear entire conversation':
+      return 17
+
     case 'participant count':
       return 15
 
@@ -253,6 +277,10 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'retention':
       return row.canSetRetention ? 84 : 49
+
+    case 'min writer role':
+      // TODO (DA)
+      return row.canSetMinWriterRole ? 84 : 35
 
     default:
       /*::
@@ -297,6 +325,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             caption="Block this conversation"
             onClick={row.onShowBlockConversationDialog}
             icon="iconfont-remove"
+          />
+        )
+
+      case 'clear entire conversation':
+        return (
+          <CaptionedDangerIcon
+            key="clear entire conversation"
+            caption="Clear entire conversation"
+            onClick={row.onShowClearConversationDialog}
+            icon="iconfont-fire"
           />
         )
 
@@ -366,6 +404,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             showSaveIndicator={true}
             teamname={row.teamname}
             type="auto"
+          />
+        )
+
+      case 'min writer role':
+        return (
+          <MinWriterRole
+            key="min writer role"
+            conversationIDKey={this.props.selectedConversationIDKey}
+            isSmallTeam={row.isSmallTeam}
           />
         )
 
@@ -439,6 +486,33 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname: props.teamname || '',
             entityType: 'small team',
           },
+          {
+            type: 'divider',
+            key: nextKey(),
+            marginTop: 8,
+            marginBottom: 8,
+          },
+          {
+            canSetMinWriterRole: props.canSetMinWriterRole,
+            isSmallTeam: true,
+            type: 'min writer role',
+            key: 'min writer role',
+          },
+          ...(props.canDeleteHistory
+            ? [
+                {
+                  type: 'divider',
+                  marginTop: 8,
+                  key: nextKey(),
+                  marginBottom: globalMargins.small,
+                },
+                {
+                  type: 'clear entire conversation',
+                  key: 'clear entire conversation',
+                  onShowClearConversationDialog: props.onShowClearConversationDialog,
+                },
+              ]
+            : []),
           {
             type: 'divider',
             marginTop: 8,
@@ -546,6 +620,33 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             },
             {
               type: 'divider',
+              key: nextKey(),
+              marginTop: 8,
+              marginBottom: 8,
+            },
+            {
+              canSetMinWriterRole: props.canSetMinWriterRole,
+              isSmallTeam: false,
+              type: 'min writer role',
+              key: 'min writer role',
+            },
+            ...(props.canDeleteHistory
+              ? [
+                  {
+                    type: 'divider',
+                    marginTop: 8,
+                    key: nextKey(),
+                    marginBottom: globalMargins.small,
+                  },
+                  {
+                    type: 'clear entire conversation',
+                    key: 'clear entire conversation',
+                    onShowClearConversationDialog: props.onShowClearConversationDialog,
+                  },
+                ]
+              : []),
+            {
+              type: 'divider',
               marginTop: 8,
               key: nextKey(),
             },
@@ -591,6 +692,17 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           key: 'retention',
           canSetRetention: true,
           entityType: 'adhoc',
+        },
+        {
+          type: 'divider',
+          marginTop: 8,
+          key: nextKey(),
+          marginBottom: globalMargins.small,
+        },
+        {
+          type: 'clear entire conversation',
+          key: 'clear entire conversation',
+          onShowClearConversationDialog: props.onShowClearConversationDialog,
         },
         {
           type: 'divider',

@@ -167,6 +167,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.deleteChannelConfirmed:
     case TeamsGen.editMembership:
     case TeamsGen.editTeamDescription:
+    case TeamsGen.uploadTeamAvatar:
     case TeamsGen.getChannelInfo:
     case TeamsGen.getChannels:
     case TeamsGen.getDetails:
@@ -186,7 +187,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setMemberPublicity:
     case TeamsGen.setPublicity:
     case TeamsGen.saveTeamRetentionPolicy:
-    case TeamsGen.setupTeamHandlers:
     case TeamsGen.updateChannelName:
     case TeamsGen.updateTopic:
       return state

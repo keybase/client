@@ -6,7 +6,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../s
 import {Box, Button, Text} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import PathItemIcon from '../common/path-item-icon'
-import memoize from 'lodash/memoize'
+import {memoize} from 'lodash-es'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 
 type DefaultViewProps = {
@@ -14,11 +14,10 @@ type DefaultViewProps = {
   itemStyles: Types.ItemStyles,
   pathItem: Types.PathItem,
 
-  onDownload: () => void,
-  onSave: () => void,
-  onShare: () => void,
-  onOpenAsText: () => void,
-  onShowInFileUI: () => void,
+  download: () => void,
+  saveMedia: () => void,
+  shareNative: () => void,
+  showInFileUI: () => void,
 }
 
 const DefaultView = (props: DefaultViewProps) => (
@@ -52,7 +51,7 @@ const DefaultView = (props: DefaultViewProps) => (
         type="Primary"
         label="Share"
         style={{marginTop: globalMargins.medium}}
-        onClick={props.onShare}
+        onClick={props.shareNative}
       />
     )}
     {!isIOS &&
@@ -62,7 +61,7 @@ const DefaultView = (props: DefaultViewProps) => (
           type="Secondary"
           label={'Show in ' + fileUIName}
           style={{marginTop: globalMargins.small}}
-          onClick={props.onShowInFileUI}
+          onClick={props.showInFileUI}
         />
       ) : (
         <Button
@@ -70,7 +69,7 @@ const DefaultView = (props: DefaultViewProps) => (
           type="Secondary"
           label="Download a copy"
           style={{marginTop: globalMargins.small}}
-          onClick={props.onDownload}
+          onClick={props.download}
         />
       ))}
   </Box>

@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,9 +16,8 @@ import (
 func getActiveDevicesAndKeys(tc libkb.TestContext, u *FakeUser) ([]*libkb.Device, []libkb.GenericKey) {
 	arg := libkb.NewLoadUserByNameArg(tc.G, u.Username).WithPublicKeyOptional()
 	user, err := libkb.LoadUser(arg)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
+
 	sibkeys := user.GetComputedKeyFamily().GetAllActiveSibkeys()
 	subkeys := user.GetComputedKeyFamily().GetAllActiveSubkeys()
 
@@ -58,13 +58,13 @@ func assertNumDevicesAndKeys(tc libkb.TestContext, u *FakeUser, numDevices, numK
 		for i, d := range devices {
 			tc.T.Logf("device %d: %+v", i, d)
 		}
-		tc.T.Fatalf("Expected to find %d devices. Found %d.", numDevices, len(devices))
+		require.Fail(tc.T, fmt.Sprintf("Expected to find %d devices. Found %d.", numDevices, len(devices)))
 	}
 	if len(keys) != numKeys {
 		for i, k := range keys {
 			tc.T.Logf("key %d: %+v", i, k)
 		}
-		tc.T.Fatalf("Expected to find %d keys. Found %d.", numKeys, len(keys))
+		require.Fail(tc.T, fmt.Sprintf("Expected to find %d keys. Found %d.", numKeys, len(keys)))
 	}
 }
 

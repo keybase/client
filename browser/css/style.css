@@ -1,5 +1,10 @@
+
 .keybase-reply {
   text-align: left;
+}
+
+.keybase-reply * {
+  font-family: Open Sans, sans-serif !important;
 }
 
 .fixed-form form, form.fixed-form {
@@ -24,7 +29,6 @@ li.keybase-reply form, form.keybase-reply {
   font-family: 'Open Sans', sans-serif !important;
   font-size: 13px;
   line-height: 1.5em;
-
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -35,15 +39,18 @@ li.keybase-reply form, form.keybase-reply {
   display: inline-block;
 }
 
-.keybase-reply a {
+.keybase-reply a, 
+.keybase-reply a:visited, 
+.keybase-reply a:link {
   text-decoration: none;
   font-weight: 600;
   font-size: inherit !important;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.6) !important;
   cursor: pointer;
 }
 
 .keybase-body {
+  font-weight:normal;
   margin: 24px;
   color: rgba(0, 0, 0, 0.75);
 }
@@ -52,8 +59,13 @@ li.keybase-reply form, form.keybase-reply {
   text-align: center;
 }
 
-.keybase-reply .keybase-success h3 {
-  background: #3dcc8e;
+.keybase-reply.keybase-success h3 {
+  background: #3dcca6;
+}
+
+.keybase-reply.keybase-success p {
+  margin: 30px 0 30px 0;
+  font-weight: 600;
 }
 
 .keybase-error {
@@ -86,7 +98,7 @@ img.keybase-icon {
   border-radius: 16px;
 }
 .keybase-user span {
-  color: #33a0ff;
+  color: #4C8EFF;
 }
 
 .keybase-reply .keybase-service {
@@ -95,7 +107,7 @@ img.keybase-icon {
 }
 
 .keybase-reply a.external-user {
-  color: #0079d3 !important;
+  color: #3663EA !important;
   padding: 0 !important;
   font-weight: normal !important;
 }
@@ -112,10 +124,11 @@ img.keybase-icon {
 .keybase-reply textarea, .keybase-reply textarea:focus {
   width: 97%;
   font-size: 13px;
+  font-weight:normal;
   color: rgba(0, 0, 0, 0.75);
   padding: 0.5em;
   border-radius: 4px;
-  border: solid 1px #33a0ff;
+  border: solid 1px #4C8EFF;
   margin: 8px 0 8px 0;
   box-shadow: inherit;
 }
@@ -132,7 +145,7 @@ a.keybase-button {
   font-size: 14px;
   display: inline-block;
   border-radius: 50px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   color: white !important;
   padding: 0.6em 1.5em !important;
   font-weight: normal !important;
@@ -140,7 +153,7 @@ a.keybase-button {
 
 .keybase-reply h3 {
   text-align: center;
-  background: #33a0ff;
+  background: #4C8EFF;
   color: #fff;
   height: 40px;
   line-height: 40px;
@@ -165,7 +178,7 @@ a.keybase-button {
   height: 32px;
   border: 0;
   border-radius: 50px;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   color: #fff;
   font-size: 14px;
   font-style: normal;
@@ -193,10 +206,10 @@ span.keybase-close {
   top: -10px;
   right: 5px;
   display: inline-block;
-  font-size: 20px;
+  font-size: 24px;
   font-weight: bold;
   padding: 5px;
-  color: rgba(0,0,0,0.2);
+  color: rgba(0,0,0,0.4);
   cursor: pointer;
 }
 span.keybase-close::before {
@@ -227,7 +240,7 @@ a.keybase-chat {
   font-weight: 600;
   border-radius: 4px;
   color: #fff !important;
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   white-space: nowrap !important;
   cursor: pointer;
   text-align: center;
@@ -236,6 +249,9 @@ a.keybase-chat {
   width: 134px;
   line-height: 28px;
   border-radius: 28px;
+}
+#fbProfileCover a.keybase-chat {
+  vertical-align: bottom;
 }
 a.keybase-chat img {
   vertical-align: unset;
@@ -247,15 +263,14 @@ a.keybase-chat img {
 a.keybase-chat:focus img {
   border: 0;
 }
-
 a.keybase-chat:hover {
   text-decoration: none !important;
-  background-color: #52afff;
+  background-color: #73A6FF;
 }
 
 a.keybase-profile-chat {
   /* Chat button for keybase profile page. */
-  background-color: #33a0ff;
+  background-color: #4C8EFF;
   color: rgb(255,255,255);
 }
 a.keybase-profile-chat img {
@@ -267,5 +282,5 @@ a.keybase-profile-chat img {
 
 a.keybase-profile-chat:hover {
   color: rgb(255,255,255);
-  background-color: #52afff;
+  background-color: #73A6FF;
 }

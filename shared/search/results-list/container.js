@@ -1,27 +1,25 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect, compose, setDisplayName, type TypedState} from '../../util/container'
 import React from 'react'
 import {ProgressIndicator, Box} from '../../common-adapters'
-import SearchResultsList from '.'
+import SearchResultsList, {type Props as _Props} from '.'
 import * as SearchGen from '../../actions/search-gen'
 import {globalMargins} from '../../styles'
 
-type OwnProps = {
+export type OwnProps = {|
   searchKey: string,
   onShowTracker?: (id: string) => void,
   onClick?: (id: string) => void,
   disableListBuilding?: boolean,
   disableIfInTeamName?: ?string,
-}
+  style?: any,
+|}
 
 const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey}: OwnProps) => {
-  const searchResultIds = entities.getIn(['search', 'searchKeyToResults', searchKey])
-  const pending = entities.getIn(['search', 'searchKeyToPending', searchKey], false)
-  const showSearchSuggestions = entities.getIn(
-    ['search', 'searchKeyToShowSearchSuggestion', searchKey],
-    false
-  )
-  const selectedId = entities.getIn(['search', 'searchKeyToSelectedId', searchKey])
+  const searchResultIds = entities.search.searchKeyToResults.get(searchKey)
+  const pending = entities.search.searchKeyToPending.get(searchKey, false)
+  const showSearchSuggestions = entities.search.searchKeyToShowSearchSuggestion.get(searchKey, false)
+  const selectedId = entities.search.searchKeyToSelectedId.get(searchKey)
   return {
     disableIfInTeamName,
     items: searchResultIds && searchResultIds.toArray(),
@@ -31,7 +29,7 @@ const mapStateToProps = ({entities}: TypedState, {disableIfInTeamName, searchKey
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {searchKey, onClick, disableListBuilding}: OwnProps) => ({
   onClick: (id: string) => {
     !disableListBuilding && dispatch(SearchGen.createAddResultsToUserInput({searchKey, searchResults: [id]}))
     onClick && onClick(id)
@@ -52,5 +50,13 @@ const styleSpinner = {
   width: 24,
 }
 
-const Chooser = props => (props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />)
-export default connect(mapStateToProps, mapDispatchToProps)(Chooser)
+export type Props = _Props & {pending: boolean}
+
+const Chooser = (props: any) =>
+  props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />
+
+export default compose(
+  // $FlowIssue
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  setDisplayName('ResultsList')
+)(Chooser)

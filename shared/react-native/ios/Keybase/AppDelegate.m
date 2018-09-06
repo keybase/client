@@ -87,6 +87,60 @@ const BOOL isDebug = NO;
   }
 }
 
+- (BOOL) maybeMigrateDirectory:(NSString*)source dest:(NSString*)dest {
+  NSError* error = nil;
+  NSFileManager* fm = [NSFileManager defaultManager];
+
+  // Always do this copy in case it doesn't work on previous attempts. 
+  NSArray<NSString*>* sourceContents = [fm contentsOfDirectoryAtPath:source error:&error];
+  if (nil == sourceContents) {
+    NSLog(@"Error listing app contents directory: %@", error);
+    return NO;
+  } else {
+    for (NSString* file in sourceContents) {
+      BOOL isDirectory = NO;
+      NSString* path = [NSString stringWithFormat:@"%@/%@", source, file];
+      NSString* destPath = [NSString stringWithFormat:@"%@/%@", dest, file];
+      if ([fm fileExistsAtPath:path isDirectory:&isDirectory] && isDirectory) {
+        NSLog(@"skipping directory: %@", file);
+        continue;
+      }
+      if (![fm copyItemAtPath:path toPath:destPath error:&error]) {
+        if ([error code] == NSFileWriteFileExistsError) {
+          // Just charge forward if the file is there already
+          continue;
+        }
+        NSLog(@"Error copying file: %@ error: %@", file, error);
+        return NO;
+      }
+    }
+  }
+  return YES;
+}
+
+- (NSString*) setupHome:(NSString*)home sharedHome:(NSString*)sharedHome {
+  // Setup all directories
+  NSString* appKeybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
+  NSString* appEraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
+  NSString* sharedKeybasePath = [NSString stringWithFormat:@"%@/Library/Application Support/Keybase", sharedHome];
+  [self createBackgroundReadableDirectory:appKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
+  [self createBackgroundReadableDirectory:appEraseableKVPath setAllFiles:YES];
+  [self addSkipBackupAttributeToItemAtPath:appKeybasePath];
+  [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
+  
+  if (![self maybeMigrateDirectory:appKeybasePath dest:sharedKeybasePath]) {
+    return home;
+  }
+  NSString* sharedEraseableKVPath =  [NSString stringWithFormat:@"%@/Library/Application Support/Keybase/eraseablekvstore/device-eks", sharedHome];
+  [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
+  if (![self maybeMigrateDirectory:appEraseableKVPath dest:sharedEraseableKVPath]) {
+    return home;
+  }
+  
+  return sharedHome;
+}
+
 - (void) setupGo
 {
 #if TESTING
@@ -96,29 +150,25 @@ const BOOL isDebug = NO;
   BOOL securityAccessGroupOverride = isSimulator;
   BOOL skipLogFile = false;
 
-  NSString * home = NSHomeDirectory();
-
-  NSString * keybasePath = [@"~/Library/Application Support/Keybase" stringByExpandingTildeInPath];
-  NSString * levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
-  NSString * chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
-  NSString * eraseableKVPath = [@"~/Library/Application Support/Keybase/eraseablekvstore/device-eks" stringByExpandingTildeInPath];
-  NSString * logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
-  NSString * serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
-
-  // Make keybasePath if it doesn't exist
-  [self createBackgroundReadableDirectory:keybasePath setAllFiles:YES];
-  [self addSkipBackupAttributeToItemAtPath:keybasePath];
-
+  NSString* home = NSHomeDirectory();
+  NSString* sharedHome = [[[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:@"group.keybase"] relativePath];
+  sharedHome = [self setupHome:home sharedHome:sharedHome];
+  
+  // Setup app level directories
+  NSString* levelDBPath = [@"~/Library/Application Support/Keybase/keybase.leveldb" stringByExpandingTildeInPath];
+  NSString* chatLevelDBPath = [@"~/Library/Application Support/Keybase/keybase.chat.leveldb" stringByExpandingTildeInPath];
+  NSString* logPath = [@"~/Library/Caches/Keybase" stringByExpandingTildeInPath];
+  NSString* serviceLogFile = skipLogFile ? @"" : [logPath stringByAppendingString:@"/ios.log"];
   // Create LevelDB and log directories with a slightly lower data protection mode so we can use them in the background
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
-  [self createBackgroundReadableDirectory:eraseableKVPath setAllFiles:YES];
 
-  NSError * err;
+  NSError* err;
   self.engine = [[Engine alloc] initWithSettings:@{
                                                    @"runmode": @"prod",
                                                    @"homedir": home,
+                                                   @"sharedHome": sharedHome,
                                                    @"logFile": serviceLogFile,
                                                    @"serverURI": @"",
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
@@ -143,6 +193,7 @@ const BOOL isDebug = NO;
   [DDLog addLogger:self.fileLogger];
 
   [self setupGo];
+  [self notifyAppState:application];
 
   NSURL *jsCodeLocation;
 
@@ -257,18 +308,13 @@ const BOOL isDebug = NO;
 
 - (void)applicationWillTerminate:(UIApplication *)application {
   self.window.rootViewController.view.hidden = YES;
-  KeybaseAppWillExit();
+  KeybaseAppWillExit([[PushNotifier alloc] init]);
 }
 
 - (void) hideCover {
-  // Always cancel outstanding animations else they can fight and the timing is very weird
   NSLog(@"hideCover: cancelling outstanding animations...");
   [self.resignImageView.layer removeAllAnimations];
-  [UIView animateWithDuration:0.3 delay:0.3 options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-    self.resignImageView.alpha = 0;
-  } completion:^(BOOL finished){
-    NSLog(@"hideCover: hid keyz screen. Finished: %d", finished);
-  }];
+  self.resignImageView.alpha = 0;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
@@ -299,10 +345,18 @@ const BOOL isDebug = NO;
   if (requestTime && (!self.shutdownTask || self.shutdownTask == UIBackgroundTaskInvalid)) {
     UIApplication *app = [UIApplication sharedApplication];
     self.shutdownTask = [app beginBackgroundTaskWithExpirationHandler:^{
-      KeybaseAppWillExit();
+      KeybaseAppWillExit([[PushNotifier alloc] init]);
       [app endBackgroundTask:self.shutdownTask];
       self.shutdownTask = UIBackgroundTaskInvalid;
     }];
+    // The service can tell us to end this task early, so if it does, then shutdown
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      KeybaseAppBeginBackgroundTask([[PushNotifier alloc] init]);
+      if (self.shutdownTask && self.shutdownTask != UIBackgroundTaskInvalid) {
+        [app endBackgroundTask:self.shutdownTask];
+        self.shutdownTask = UIBackgroundTaskInvalid;
+      }
+    });
   }
 }
 
@@ -317,11 +371,6 @@ const BOOL isDebug = NO;
 - (void)applicationWillEnterForeground:(UIApplication *)application {
   NSLog(@"applicationWillEnterForeground: hiding keyz screen.");
   [self hideCover];
-}
-
-- (void)applicationDidFinishLaunching:(UIApplication *)application {
-  NSLog(@"applicationDidFinishLaunching: notifying service.");
-  [self notifyAppState:application];
 }
 
 - (void)notifyAppState:(UIApplication *)application {

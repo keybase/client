@@ -143,10 +143,21 @@ protocol gregor {
         RetentionPolicy policy;
     }
 
+    record SetConvSettingsUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        union { null, ConversationSettings } convSettings;
+    }
+
     record KBFSImpteamUpgradeUpdate {
         ConversationID convID;
         InboxVers inboxVers;
         TopicType topicType;
+    }
+
+    record SubteamRenameUpdate {
+        array<ConversationID> convIDs;
+        InboxVers inboxVers;
     }
 
 }

@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react'
+import * as Styles from '../../styles'
 import {NativeImage, NativeDimensions, ZoomableBox} from '../../common-adapters/mobile.native'
 import {type ImageViewProps} from './image-view'
 
 const {width: screenWidth, height: screenHeight} = NativeDimensions.get('window')
 
-class ImageView extends React.Component<any, {...ImageViewProps, width: number, height: number, loaded: boolean}> {
+class ImageView extends React.Component<
+  ImageViewProps,
+  {...ImageViewProps, width: number, height: number, loaded: boolean}
+> {
   state = {height: 0, width: 0, loaded: false}
   _mounted: boolean = false
 
@@ -24,30 +28,47 @@ class ImageView extends React.Component<any, {...ImageViewProps, width: number, 
   _setLoaded = () => this.setState({loaded: true})
 
   render() {
+    const {onLoadingStateChange} = this.props
     return (
       <ZoomableBox
-        contentContainerStyle={{flex: 1, position: 'relative'}}
+        contentContainerStyle={styles.zoomableBoxContainer}
         maxZoom={10}
-        style={{position: 'relative', overflow: 'hidden', width: '100%', height: '100%'}}
+        style={styles.zoomableBox}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
       >
         <NativeImage
           source={{uri: this.props.url}}
-          style={{
-            ...stylesImage,
-            height: Math.min(this.state.height, screenHeight),
-            width: Math.min(this.state.width, screenWidth),
-          }}
-          resizeMode="contain" />
+          style={Styles.collapseStyles([
+            styles.image,
+            {
+              height: Math.min(this.state.height, screenHeight),
+              width: Math.min(this.state.width, screenWidth),
+            },
+          ])}
+          onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
+          onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+          resizeMode="contain"
+        />
       </ZoomableBox>
     )
   }
 }
 
-const stylesImage = {
-  flex: 1,
-  alignSelf: 'center',
-}
+const styles = Styles.styleSheetCreate({
+  image: {
+    flex: 1,
+    alignSelf: 'center',
+  },
+  zoomableBox: {
+    flex: 1,
+    position: 'relative',
+  },
+  zoomableBoxContainer: {
+    flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+})
 
 export default ImageView

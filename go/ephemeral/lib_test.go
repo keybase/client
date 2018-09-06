@@ -26,6 +26,7 @@ func TestKeygenIfNeeded(t *testing.T) {
 	defer tc.Cleanup()
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 
@@ -114,6 +115,7 @@ func TestNewTeamEKNeeded(t *testing.T) {
 
 	teamID := createTeam(tc)
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	fc := clockwork.NewFakeClockAt(time.Now())
 	ekLib.setClock(fc)
 	deviceEKStorage := tc.G.GetDeviceEKStorage()
@@ -254,11 +256,13 @@ func TestNewTeamEKNeeded(t *testing.T) {
 	// Fake the teamEK creation time so we are forced to generate a new one.
 	forceEKCtime := func(generation keybase1.EkGeneration, d time.Duration) {
 		rawTeamEKBoxStorage.Get(context.Background(), teamID, generation)
-		teamEKBoxes, found, err := rawTeamEKBoxStorage.getMap(context.Background(), teamID)
+		cache, found, err := rawTeamEKBoxStorage.getCacheForTeamID(context.Background(), teamID)
 		require.NoError(t, err)
 		require.True(t, found)
-		teamEKBoxed, ok := teamEKBoxes[generation]
+		cacheItem, ok := cache[generation]
 		require.True(t, ok)
+		require.False(t, cacheItem.HasError())
+		teamEKBoxed := cacheItem.TeamEKBoxed
 		teamEKBoxed.Metadata.Ctime = keybase1.ToTime(teamEKBoxed.Metadata.Ctime.Time().Add(d))
 		err = teamEKBoxStorage.Put(context.Background(), teamID, generation, teamEKBoxed)
 		require.NoError(t, err)
@@ -308,6 +312,7 @@ func TestCleanupStaleUserAndDeviceEKs(t *testing.T) {
 	require.NoError(t, err)
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	err = ekLib.CleanupStaleUserAndDeviceEKs(context.Background())
 	require.NoError(t, err)
 
@@ -337,6 +342,7 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	require.NoError(t, err)
 
 	ekLib := NewEKLib(tc.G)
+	defer ekLib.Shutdown()
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())

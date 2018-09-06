@@ -1,22 +1,18 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import {Box} from '../../common-adapters'
-import * as PropProviders from '../../stories/prop-providers'
-import {storiesOf, action} from '../../stories/storybook'
 import NewRepo from '.'
 
-const provider = PropProviders.CommonProvider()
-
 const load = () => {
-  storiesOf('Git/New', module)
-    .addDecorator(provider)
+  Sb.storiesOf('Git/New', module)
     .add('PersonalRepo', () => (
       <Box style={{height: 500, width: '100%'}}>
         <NewRepo
           isTeam={false}
-          onCreate={action('onCreate')}
-          onClose={action('onClose')}
-          onNewTeam={action('onNewTeam')}
+          onCreate={Sb.action('onCreate')}
+          onClose={Sb.action('onClose')}
+          onNewTeam={Sb.action('onNewTeam')}
           error={null}
           waitingKey="test"
         />
@@ -26,9 +22,9 @@ const load = () => {
       <Box style={{height: '100%', width: '100%'}}>
         <NewRepo
           isTeam={true}
-          onClose={action('onClose')}
-          onCreate={action('onCreate')}
-          onNewTeam={action('onNewTeam')}
+          onClose={Sb.action('onClose')}
+          onCreate={Sb.action('onCreate')}
+          onNewTeam={Sb.action('onNewTeam')}
           teams={['fortgreenmoms', 'siggis', 'siggis.board']}
           error={null}
           waitingKey="test"

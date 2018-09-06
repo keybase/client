@@ -3,6 +3,7 @@
 protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
@@ -165,14 +166,19 @@ protocol local {
   record MessageLeave {}
 
   record MessageReaction {
-    @mpackkey("m") @jsonkey("m")
-    MessageID messageID;
-    @mpackkey("b") @jsonkey("b")
-    string body; // emoji reaction :+1:
+     @mpackkey("m") @jsonkey("m")
+     MessageID messageID;
+     @mpackkey("b") @jsonkey("b")
+     string body; // emoji reaction :+1:
   }
-  
+
   record MessageSendPayment {
-    string kbTxID;
+    stellar1.PaymentID paymentID;
+  }
+
+  record MessageRequestPayment {
+    stellar1.KeybaseRequestID requestID;
+    string note;
   }
 
   variant MessageBody switch (MessageType messageType) {
@@ -189,6 +195,7 @@ protocol local {
     case DELETEHISTORY: MessageDeleteHistory;
     case REACTION: MessageReaction;
     case SENDPAYMENT: MessageSendPayment;
+    case REQUESTPAYMENT: MessageRequestPayment;
   }
 
   enum OutboxStateType {
@@ -204,7 +211,8 @@ protocol local {
     DUPLICATE_4,
     EXPIRED_5,
     TOOMANYATTEMPTS_6,
-    ALREADY_DELETED_7
+    ALREADY_DELETED_7,
+    UPLOADFAILED_8
   }
 
   record OutboxStateError {
@@ -226,6 +234,7 @@ protocol local {
     MessagePlaintext Msg;
     keybase1.TLFIdentifyBehavior identifyBehavior;
     int ordinal; // the position of this outbox record behind the clientPrev in Msg
+    union { null, MakePreviewRes } preview;
   }
 
   enum HeaderPlaintextVersion {
@@ -508,6 +517,15 @@ protocol local {
     array<string> readerNames;
   }
 
+  record ConversationMinWriterRoleInfoLocal {
+    string username;
+    keybase1.TeamRole role;
+  }
+
+  record ConversationSettingsLocal {
+    union { null, ConversationMinWriterRoleInfoLocal} minWriterRoleInfo;
+  }
+
   // ConversationLocal, whenever present, has a valid `identifyFailures` field that
   // faithfully represent identify result. If identify information is not
   // available, we should use a different type.
@@ -532,6 +550,7 @@ protocol local {
     Expunge expunge; // The latest history deletion. Defaults to zeroes.
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationSettingsLocal } convSettings;
   }
 
   record NonblockFetchRes {
@@ -556,6 +575,7 @@ protocol local {
     boolean markAsRead;
     array<MessageType> messageTypes;
     boolean disableResolveSupersedes;
+    boolean enableDeletePlaceholders;
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
@@ -744,44 +764,24 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  // LocalSource is a stream attachment source.
-  record LocalSource {
-    keybase1.Stream source;
+  record PostFileAttachmentArg {
+    ConversationID conversationID;
+    string tlfName;
+    keybase1.TLFVisibility visibility;
     string filename;
-    int size;
-  }
+    string title;
+    bytes metadata;
+    keybase1.TLFIdentifyBehavior identifyBehavior;
 
-  // Post an attachment from stream source to conversationID.
-  PostLocalRes postAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalSource attachment,
-    union { null, MakePreviewRes} preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
-
-  // LocalFileSource is a file attachment source.  Filename must be readable
-  // by the service for the duration of the attachment upload.
-  record LocalFileSource {
-    string filename;
+    union {null, MakePreviewRes } callerPreview;
+    union {null, OutboxID } outboxID;
+    union {null, gregor1.DurationSec} ephemeralLifetime;
   }
 
   // Post an attachment from file source to conversationID.
-  PostLocalRes postFileAttachmentLocal(int sessionID, ConversationID conversationID,
-    string tlfName,
-    keybase1.TLFVisibility visibility,
-    LocalFileSource attachment,
-    union { null, MakePreviewRes } preview,
-    string title,
-    bytes metadata,
-    keybase1.TLFIdentifyBehavior identifyBehavior,
-    union { null, OutboxID } outboxID,
-    union {null, gregor1.DurationSec} ephemeralLifetime
-    );
+  PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
+  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
+  void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
     boolean offline;
@@ -798,13 +798,24 @@ protocol local {
   @lint("ignore")
   DownloadAttachmentLocalRes DownloadFileAttachmentLocal(int sessionID, ConversationID conversationID, MessageID messageID, string filename, boolean preview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
+  enum PreviewLocationTyp {
+    URL_0,
+    FILE_1
+  }
+
+  variant PreviewLocation switch (PreviewLocationTyp ltyp) {
+    case URL: string;
+    case FILE: string;
+  }
+
   record MakePreviewRes {
     string mimeType;        // this will always be populated
-    union {null, string} filename;    // will exist if service is able to make a preview
+    union {null, string} previewMimeType ; // this will be populated if we made a preview
+    union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata
   }
-  MakePreviewRes makePreview(int sessionID, LocalFileSource attachment, string outputDir);
+  MakePreviewRes makePreview(int sessionID, string filename, OutboxID outboxID);
 
   @lint("ignore")
   void CancelPost(OutboxID outboxID);
@@ -877,6 +888,7 @@ protocol local {
   void setTeamRetentionLocal(keybase1.TeamID teamID, RetentionPolicy policy);
   union { null, RetentionPolicy } getTeamRetentionLocal(keybase1.TeamID teamID);
 
+  void setConvMinWriterRoleLocal(ConversationID convID, keybase1.TeamRole role);
   void upgradeKBFSConversationToImpteam(ConversationID convID);
 
   record GetSearchRegexpRes {
@@ -885,7 +897,7 @@ protocol local {
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
+  GetSearchRegexpRes getSearchRegexp(int sessionID, ConversationID conversationID, string query, boolean isRegex, string sentBy, int maxHits, int maxMessages, int beforeContext, int afterContext, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();

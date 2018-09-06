@@ -54,9 +54,15 @@ func (h *IdentifyHandler) Identify2(netCtx context.Context, arg keybase1.Identif
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
 	err = engine.RunEngine2(m, eng)
-	resp := eng.Result()
+	if err != nil {
+		return res, err
+	}
+	resp, err := eng.Result()
+	if err != nil {
+		return res, err
+	}
 	if resp != nil {
-		res = *resp
+		res = resp.ExportToV1()
 	}
 	return res, err
 }
@@ -126,12 +132,16 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	m = m.WithUIs(uis)
 	eng := engine.NewResolveThenIdentify2(h.G(), &id2arg)
 	err = engine.RunEngine2(m, eng)
-	resp := eng.Result()
-	if resp != nil {
-		res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.Uid)
-		res.Ul.Name = resp.Upk.Username
-		res.TrackBreaks = resp.TrackBreaks
+	if err != nil {
+		return res, err
 	}
+	resp, err := eng.Result()
+	if err != nil {
+		return res, err
+	}
+	res.Ul.Id = keybase1.UserOrTeamID(resp.Upk.GetUID())
+	res.Ul.Name = resp.Upk.GetName()
+	res.TrackBreaks = resp.TrackBreaks
 	return res, err
 }
 
@@ -143,7 +153,7 @@ func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(ctx, h.G()), arg)
 	err = res.GetError()
 	if err != nil {
 		return u, err
@@ -291,16 +301,19 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamDoIdentifies(ctx context.Co
 			eng := engine.NewIdentify2WithUID(h.G(), &id2arg)
 			m := libkb.NewMetaContext(subctx, h.G()).WithUIs(uis)
 			err := engine.RunEngine2(m, eng)
-			idRes := eng.Result()
+			idRes, idErr := eng.Result()
 			if err != nil {
 				h.G().Log.CDebugf(subctx, "identify failed (IDres %v, TrackBreaks %v): %v", idRes != nil, idRes != nil && idRes.TrackBreaks != nil, err)
-				if idRes != nil && idRes.TrackBreaks != nil {
+				if idRes != nil && idRes.TrackBreaks != nil && idErr == nil {
 					trackBreaksLock.Lock()
 					defer trackBreaksLock.Unlock()
 					if res.TrackBreaks == nil {
 						res.TrackBreaks = make(map[keybase1.UserVersion]keybase1.IdentifyTrackBreaks)
 					}
 					res.TrackBreaks[idRes.Upk.ToUserVersion()] = *idRes.TrackBreaks
+				}
+				if idErr != nil {
+					h.G().Log.CDebugf(subctx, "Failed to convert result from Identify2: %s", idErr)
 				}
 				return err
 			}

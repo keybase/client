@@ -11,6 +11,10 @@ const (
 	KeybaseTransactionIDLen       = 16
 	KeybaseTransactionIDSuffix    = 0x30
 	KeybaseTransactionIDSuffixHex = "30"
+
+	KeybaseRequestIDLen       = 16
+	KeybaseRequestIDSuffix    = 0x31
+	KeybaseRequestIDSuffixHex = "31"
 )
 
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
@@ -32,12 +36,35 @@ func (k KeybaseTransactionID) Eq(b KeybaseTransactionID) bool {
 	return k == b
 }
 
+func (k KeybaseTransactionID) IsNil() bool {
+	return len(k) == 0
+}
+
 func (t TransactionID) String() string {
 	return string(t)
 }
 
 func (t TransactionID) Eq(b TransactionID) bool {
 	return t == b
+}
+
+func KeybaseRequestIDFromString(s string) (KeybaseRequestID, error) {
+	if len(s) != hex.EncodedLen(KeybaseRequestIDLen) {
+		return "", fmt.Errorf("bad KeybaseRequestID %q: must be %d bytes long", s, KeybaseRequestIDLen)
+	}
+	suffix := s[len(s)-2:]
+	if suffix != KeybaseRequestIDSuffixHex {
+		return "", fmt.Errorf("bad KeybaseRequestID %q: must end in 0x%x", s, KeybaseRequestIDSuffix)
+	}
+	return KeybaseRequestID(s), nil
+}
+
+func (k KeybaseRequestID) String() string {
+	return string(k)
+}
+
+func (k KeybaseRequestID) Eq(b KeybaseRequestID) bool {
+	return k == b
 }
 
 func ToTimeMs(t time.Time) TimeMs {
@@ -143,6 +170,16 @@ func AssetNative() Asset {
 	}
 }
 
+func CreateNonNativeAssetType(code string) (string, error) {
+	if len(code) >= 1 && len(code) <= 4 {
+		return "credit_alphanum4", nil
+	} else if len(code) >= 5 && len(code) <= 12 {
+		return "credit_alphanum12", nil
+	} else {
+		return "", fmt.Errorf("Invalid asset code: %q", code)
+	}
+}
+
 func (t TransactionStatus) ToPaymentStatus() PaymentStatus {
 	switch t {
 	case TransactionStatus_PENDING:
@@ -176,7 +213,7 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 
 func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
 	return &PaymentLocal{
-		Id:   txid,
+		Id:   PaymentID{TxID: txid},
 		Time: ctime,
 	}
 }

@@ -1,112 +1,37 @@
 // @flow
 import logger from '../logger'
-import {mapValues, isEqual, map, forEach} from 'lodash-es'
-import {buffers, channel, delay} from 'redux-saga'
-import type {Pattern, ForkEffect, Saga as _Saga, Effect, PutEffect} from 'redux-saga'
-import {
-  actionChannel,
-  all,
-  call,
-  cancel,
-  cancelled,
-  fork,
-  join,
-  put,
-  race,
-  select,
-  spawn,
-  take,
-  takeEvery,
-  takeLatest,
-  throttle,
-} from 'redux-saga/effects'
-import * as ConfigGen from '../actions/config-gen'
+import * as RS from 'redux-saga'
+import * as Effects from 'redux-saga/effects'
 import {convertToError} from '../util/errors'
-
-import type {Action} from '../constants/types/flux'
+import * as ConfigGen from '../actions/config-gen'
 import type {TypedState} from '../constants/reducer'
-import type {ChannelConfig, ChannelMap, SagaGenerator, Channel} from '../constants/types/saga'
+import type {TypedActions} from '../actions/typed-actions-gen'
+import put from './typed-put'
 
-type SagaMap = {[key: string]: any}
+export type SagaGenerator<Yield, Actions> = Generator<Yield, void, Actions>
 
-function createChannelMap<T>(channelConfig: ChannelConfig<T>): ChannelMap<T> {
-  return mapValues(channelConfig, (v, k) => {
-    const ret = channel(v())
-    // to help debug what's going on in dev/user-timings
-    // $ForceType
-    ret.userTimingName = k
-    return ret
-  })
-}
-
-function putOnChannelMap<T>(channelMap: ChannelMap<T>, k: string, v: T): void {
-  const c = channelMap[k]
-  if (c) {
-    c.put(v)
-  } else {
-    logger.error('Trying to put, but no registered channel for', k)
-  }
-}
-
-// TODO type this properly
-function effectOnChannelMap<T>(effectFn: any, channelMap: ChannelMap<T>, k: string): any {
-  const c = channelMap[k]
-  if (c) {
-    return effectFn(c)
-  } else {
-    logger.error('Trying to do effect, but no registered channel for', k)
-  }
-}
-
-function takeFromChannelMap<T>(channelMap: ChannelMap<T>, k: string): any {
-  return effectOnChannelMap(take, channelMap, k)
-}
-
-// Map a chanmap method -> channel to a saga map method -> saga using the given effectFn
-function mapSagasToChanMap<T>(
-  effectFn: (c: Channel<T>, saga: SagaGenerator<any, any>) => any,
-  sagaMap: SagaMap,
-  channelMap: ChannelMap<T>
-): Array<Effect> {
-  // Check that all method names are accounted for
-  if (!isEqual(Object.keys(channelMap).sort(), Object.keys(sagaMap).sort())) {
-    logger.warn('Missing or extraneous saga handlers')
-  }
-  return map(sagaMap, (saga, methodName) =>
-    effectOnChannelMap(c => effectFn(c, saga), channelMap, methodName)
-  )
-}
-
-function closeChannelMap<T>(channelMap: ChannelMap<T>): void {
-  forEach(channelMap, c => c.close())
-}
-
-function singleFixedChannelConfig<T>(ks: Array<string>): ChannelConfig<T> {
-  return ks.reduce((acc, k) => {
-    acc[k] = () => buffers.expanding(1)
-    return acc
-  }, {})
-}
-
-function safeTakeEvery(pattern: Pattern, worker: Function): ForkEffect<null, Function, $ReadOnlyArray<any>> {
-  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: Action): _Saga<void> {
+function safeTakeEvery(
+  pattern: RS.Pattern,
+  worker: Function
+): RS.ForkEffect<null, Function, $ReadOnlyArray<any>> {
+  const safeTakeEveryWorker = function* safeTakeEveryWorker(action: TypedActions): RS.Saga<void> {
     try {
-      yield call(worker, action)
+      yield Effects.call(worker, action)
     } catch (error) {
       // Convert to global error so we don't kill the takeEvery loop
-      yield put(
+      yield Effects.put(
         ConfigGen.createGlobalError({
           globalError: convertToError(error),
         })
       )
     } finally {
-      if (yield cancelled()) {
+      if (yield Effects.cancelled()) {
         logger.info('safeTakeEvery cancelled')
       }
     }
   }
 
-  return takeEvery(pattern, safeTakeEveryWorker)
+  return Effects.takeEvery(pattern, safeTakeEveryWorker)
 }
 
 // Useful in safeTakeEveryPure when you have an array of effects you want to run in order
@@ -119,29 +44,49 @@ function* sequentially(effects: Array<any>): Generator<any, Array<any>, any> {
 }
 
 // Helper that expects a function which returns a promise that resolves to a put
-function safeTakeEveryPurePromise<A, RA>(
-  pattern: Pattern,
-  f: (state: TypedState, action: A) => null | false | Promise<RA>
+function actionToPromise<A>(
+  pattern: RS.Pattern,
+  f: (state: TypedState, action: A) => null | false | void | Promise<TypedActions | null | false | void>
 ) {
-  return safeTakeEveryPure(pattern, function*(action: A) {
-    const state: TypedState = yield select()
-    const toPut = yield call(f, state, action)
-    if (toPut) {
-      yield put(toPut)
+  return Effects.takeEvery(pattern, function* actionToPromiseHelper(action: A): RS.Saga<void> {
+    try {
+      const state: TypedState = yield Effects.select()
+      const toPut = yield Effects.call(f, state, action)
+      if (toPut) {
+        yield Effects.put(toPut)
+      }
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToPromise cancelled')
+      }
     }
   })
 }
 
 // like safeTakeEveryPure but simpler, only 2 params and gives you a state first
-function safeTakeEveryPureSimple<A, FinalAction>(
-  pattern: Pattern,
-  f: (state: TypedState, action: A) => null | false | FinalAction
-) {
-  return safeTakeEveryPure(pattern, function*(action: A) {
-    const state: TypedState = yield select()
-    const result = yield call(f, state, action)
-    if (result) {
-      yield result
+function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action: A) => E) {
+  return Effects.takeEvery(pattern, function* actionToActionHelper(action: A): Generator<any, void, any> {
+    try {
+      const state: TypedState = yield Effects.select()
+      yield f(state, action)
+    } catch (error) {
+      // Convert to global error so we don't kill the takeEvery loop
+      yield Effects.put(
+        ConfigGen.createGlobalError({
+          globalError: convertToError(error),
+        })
+      )
+    } finally {
+      if (yield Effects.cancelled()) {
+        logger.info('actionToAction cancelled')
+      }
     }
   })
 }
@@ -151,18 +96,18 @@ function safeTakeEveryPureSimple<A, FinalAction>(
 // whatever purework returns will be yielded on.
 // i.e. it can return put(someAction). That effectively transforms the input action into another action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
-function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
-  pattern: Pattern,
+function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
+  pattern: RS.Pattern,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalAction,
-  actionCreatorsWithError?: ?(result: R, action: A) => FinalActionError
+  actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalEffect,
+  actionCreatorsWithError?: ?(result: R, action: A) => FinalErrorEffect
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
     try {
       let result
       if (pureWorker.length === 2) {
-        const state: TypedState = yield select()
+        const state: TypedState = yield Effects.select()
         // $FlowIssue - doesn't understand checking for arity
         result = yield pureWorker(action, state)
       } else {
@@ -173,7 +118,7 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
       if (actionCreatorsWithResult) {
         if (actionCreatorsWithResult.length === 3) {
           // add a way to get the updated state
-          const state: TypedState = yield select()
+          const state: TypedState = yield Effects.select()
           yield actionCreatorsWithResult(result, action, state)
         } else {
           // $FlowIssue we pass undefined if they don't use it
@@ -184,7 +129,7 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
       if (actionCreatorsWithError) {
         yield actionCreatorsWithError(e, action)
       } else {
-        yield put(
+        yield Effects.put(
           ConfigGen.createGlobalError({
             globalError: convertToError(e),
           })
@@ -194,18 +139,18 @@ function safeTakeEveryPure<A, R, FinalAction, FinalActionError>(
   })
 }
 // Similar to safeTakeEveryPure
-function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
-  pattern: string | Array<any> | Function,
+function safeTakeLatestPure<A, R, FinalEffect, FinalErrorEffect>(
+  pattern: RS.Pattern,
   pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
-  actionCreatorsWithResult?: (result: R, action: A) => FinalAction,
-  actionCreatorsWithError?: (result: R, action: A) => FinalActionError
+  actionCreatorsWithResult?: (result: R, action: A) => FinalEffect,
+  actionCreatorsWithError?: (result: R, action: A) => FinalErrorEffect
 ) {
   const safeTakeLatestPureWorker = function* safeTakeLatestPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
     try {
       let result
       if (pureWorker.length === 2) {
-        const state: TypedState = yield select(s => s)
+        const state: TypedState = yield Effects.select(s => s)
         // $FlowIssue - doesn't understand checking for arity
         result = yield pureWorker(action, state)
       } else {
@@ -222,7 +167,7 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
         // $FlowIssue confused
         yield actionCreatorsWithError(e, action)
       } else {
-        yield put(
+        yield Effects.put(
           ConfigGen.createGlobalError({
             globalError: convertToError(e),
           })
@@ -230,7 +175,7 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
       }
     } finally {
       if (actionCreatorsWithError) {
-        if (yield cancelled()) {
+        if (yield Effects.cancelled()) {
           // $FlowIssue confused
           yield actionCreatorsWithError(new Error('Canceled'), action)
         }
@@ -238,151 +183,71 @@ function safeTakeLatestPure<A, R, FinalAction, FinalActionError>(
     }
   }
   // $FlowIssue confused
-  return takeLatest(pattern, safeTakeLatestPureWorker)
+  return Effects.takeLatest(pattern, safeTakeLatestPureWorker)
 }
 
-function safeTakeLatestWithCatch(
-  pattern: string | Array<any> | Function | Channel<any>,
+function _safeTakeLatestWithCatch(
+  pattern: RS.Pattern,
   catchHandler: Function,
-  worker: Function | SagaGenerator<any, any>,
+  worker: Function | Generator<any, void, any>,
   ...args: Array<any>
 ) {
   const safeTakeLatestWithCatchWorker = function* safeTakeLatestWithCatchWorker(...args) {
     try {
-      yield call(worker, ...args)
+      yield Effects.call(worker, ...args)
     } catch (error) {
       // Convert to global error so we don't kill the takeLatest loop
-      yield put(
+      yield Effects.put(
         ConfigGen.createGlobalError({
           globalError: convertToError(error),
         })
       )
-      yield call(catchHandler, error)
+      yield Effects.call(catchHandler, error)
     } finally {
-      if (yield cancelled()) {
+      if (yield Effects.cancelled()) {
         logger.info('safeTakeLatestWithCatch cancelled')
       }
     }
   }
 
   // $FlowIssue confused
-  return takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
+  return Effects.takeLatest(pattern, safeTakeLatestWithCatchWorker, ...args)
 }
 
+// Likely avoid using this. Saga canceling is tricky
 function safeTakeLatest(
-  pattern: string | Array<any> | Function | Channel<any>,
-  worker: Function | SagaGenerator<any, any>,
+  pattern: RS.Pattern,
+  worker: Function | Generator<any, void, any>,
   ...args: Array<any>
 ) {
-  return safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
+  return _safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
 }
 
-function cancelWhen(predicate: (originalAction: Action, checkAction: Action) => boolean, worker: Function) {
-  const wrappedWorker = function*(action: Action): SagaGenerator<any, any> {
-    yield race({
-      result: call(worker, action),
-      cancel: take((checkAction: Action) => predicate(action, checkAction)),
-    })
-  }
-
-  return wrappedWorker
-}
-
-function safeTakeSerially(pattern: string | Array<any> | Function, worker: Function, ...args: Array<any>) {
-  const safeTakeSeriallyWorker = function* safeTakeSeriallyWorker(...args) {
-    try {
-      yield call(worker, ...args)
-    } catch (error) {
-      // Convert to global error so we don't kill the loop
-      yield put(dispatch => {
-        dispatch(
-          ConfigGen.createGlobalError({
-            globalError: convertToError(error),
-          })
-        )
-      })
-    } finally {
-      if (yield cancelled()) {
-        logger.info('safeTakeSerially cancelled')
-      }
-    }
-  }
-
-  return fork(function* safeTakeSeriallyForkWorker() {
-    const chan = yield actionChannel(pattern, buffers.expanding(10))
-    while (true) {
-      const action = yield take(chan)
-      yield call(safeTakeSeriallyWorker, action, ...args)
-    }
-  })
-}
-
-// If you `yield identity(x)` you get x back
-function identity<X>(x: X) {
-  return call(() => x)
-}
-
-// these should be opaue types, but eslint doesn't support that yet
-type Ok<X> = {type: 'ok', payload: X}
-type Err<E> = {type: 'err', payload: E}
-type Result<X, E> = Ok<X> | Err<E>
-
-function callAndWrap<R, A1, A2, A3, A4, A5, Fn: (a1: A1, a2: A2, a3: A3, a4: A4, a5: A5) => R>(
-  fn: Fn,
-  a1: A1,
-  a2: A2,
-  a3: A3,
-  a4: A4,
-  a5: A5
-) {
-  const wrapper = function*() {
-    try {
-      const result = yield call(fn, a1, a2, a3, a4, a5)
-      return {type: 'ok', payload: result}
-    } catch (error) {
-      return {type: 'err', payload: error}
-    }
-  }
-
-  return call(wrapper)
-}
-
-export type {SagaGenerator, Ok, Err, Result, Effect, PutEffect}
-
+export type {Effect, PutEffect, Channel} from 'redux-saga'
+export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
-  actionChannel,
   all,
-  buffers,
   call,
-  callAndWrap,
   cancel,
-  cancelWhen,
   cancelled,
-  channel,
-  closeChannelMap,
-  createChannelMap,
-  delay,
-  effectOnChannelMap,
   fork,
-  identity,
   join,
-  mapSagasToChanMap,
-  put,
-  putOnChannelMap,
   race,
-  safeTakeEvery,
-  safeTakeEveryPure,
-  safeTakeEveryPurePromise,
-  safeTakeEveryPureSimple,
-  safeTakeLatest,
-  safeTakeLatestPure,
-  safeTakeLatestWithCatch,
-  safeTakeSerially,
   select,
-  sequentially,
-  singleFixedChannelConfig,
   spawn,
   take,
-  takeFromChannelMap,
+  takeEvery,
+  takeLatest,
   throttle,
+} from 'redux-saga/effects'
+
+export {
+  put,
+  safeTakeEvery,
+  safeTakeEveryPure,
+  actionToPromise,
+  actionToAction,
+  safeTakeLatest,
+  safeTakeLatestPure,
+  sequentially,
 }

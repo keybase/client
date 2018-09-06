@@ -3,7 +3,6 @@ import * as shared from './shared'
 import CopyableText from '../../common-adapters/copyable-text'
 import * as React from 'react'
 import {Button, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
-import LinkWithIcon from '../link-with-icon'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from '.'
 
@@ -26,7 +25,6 @@ const PostProof = (props: Props) => {
     onCompleteText,
     proofText,
     platformSubtitle,
-    proofActionIcon,
     proofActionText,
   } = shared.propsForPlatform(props)
 
@@ -77,27 +75,28 @@ const PostProof = (props: Props) => {
         </Text>
       )}
       {!!proofAction &&
-        !!proofActionIcon && (
-          <LinkWithIcon
-            style={styleProofAction}
-            label={proofActionText || ''}
-            icon={proofActionIcon}
-            color={globalColors.blue}
+        !allowProofCheck && (
+          <Button
+            style={styleContinueButton}
+            fullWidth={true}
+            type="Primary"
             onClick={() => {
               onAllowProofCheck(true)
               proofAction()
             }}
+            label={proofActionText || ''}
           />
         )}
-      <Button
-        disabled={!allowProofCheck}
-        style={styleContinueButton}
-        fullWidth={true}
-        type="Primary"
-        onClick={() => onComplete()}
-        label={onCompleteText}
-        waiting={isOnCompleteWaiting}
-      />
+      {allowProofCheck && (
+        <Button
+          style={styleContinueButton}
+          fullWidth={true}
+          type="Primary"
+          onClick={() => onComplete()}
+          label={onCompleteText || ''}
+          waiting={isOnCompleteWaiting}
+        />
+      )}
     </StandardScreen>
   )
 }
@@ -133,10 +132,6 @@ const styleProofText = {
 const styleNoteText = {
   marginTop: globalMargins.tiny,
   textAlign: 'center',
-}
-
-const styleProofAction = {
-  marginTop: globalMargins.tiny,
 }
 
 const styleContinueButton = {

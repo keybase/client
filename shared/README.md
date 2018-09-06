@@ -12,11 +12,6 @@ If you really want to install Keybase, please return to the [top level Readme.md
 
 ## Keybase
 
-### Project Status
-
-Hi everyone! This folder's code is *not* ready for prime time. Use at your own risk (and never against production!)
-We are iterating quickly and a lot of the code is changing every day.
-
 ### Install
 
 ```sh
@@ -47,6 +42,18 @@ You can set environment variables for debugging:
 | KEYBASE_RPC_DELAY | Number of ms to delay all RPC calls (requires debug mode) |
 | KEYBASE_RPC_DELAY_RESULT | Number of ms to delay all RPC call callbacks (requires debug mode) |
 | NO_DASHBOARD | Don't show dashboard |
+
+You can also edit `~/Library/Logs/Keybase.app.debug` on macOS,
+`$HOME/.cache/keybase.app.debug` on Linux, or
+`%localappdata%\Keybase\keybase.app.debug` on Windows (see
+`platform.desktop.js`) to add debug flags. In particular, you probably want
+```json
+{
+  "showDevTools": true
+}
+```
+instead of toggling the dev tools after launch because of a bug where
+not all source files are available if the dev tools aren't opened at launch.
 
 ### iOS
 
@@ -264,6 +271,12 @@ prompt if it appears. After that, `adb devices` should list your
 device. If it says 'unauthorized' next to your device, then you likely
 haven't tapped 'OK' on the prompt yet.
 
+**Turn off Instant Run**
+
+To turn off Instant Run go to [Android Studio | Settings | Build, Execution, Deployment | Instant Run | Uncheck the box](https://i.imgur.com/0ofeBMn.png).
+
+If you see the errors including `Failed to execute aapt` or `transformDexWithInstantRunDependenciesApkForDebug` the problem might be that Instant Run is enabled.
+
 Finally, you'll have to forward port 8081 on your device to port 8081
 on your computer. To do so, run
 
@@ -396,6 +409,8 @@ See [this
 link](https://github.com/guard/listen/wiki/Increasing-the-amount-of-inotify-watchers)
 for how to increase the watch limit; I set mine to 65536.
 
+#### Could not connect to development server error
+
 On Android 28 and above HTTP traffic is disabled by default which can block
 Metro Bundler from running properly. We have manually allowed `127.0.0.1` to
 have HTTP traffic, so if you see an error about connecting to the bundler
@@ -405,6 +420,8 @@ the app:
 ```sh
 # Enable loopback
 adb reverse tcp:8081 tcp:8081
+# Additionally, if running storybook
+adb reverse tcp:7007 tcp:7007
 ```
 
 Then open the [react native debug

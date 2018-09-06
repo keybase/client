@@ -1,7 +1,7 @@
 // @flow
 import {WalletList, type Props} from '.'
-import logger from '../../logger'
-import {connect, type TypedState, type Dispatch} from '../../util/container'
+import * as RouteTree from '../../actions/route-tree'
+import {connect, type TypedState} from '../../util/container'
 import {getAccountIDs} from '../../constants/wallets'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -10,10 +10,10 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   onAddNew: () => {
-    logger.error('TODO: onAddNew')
+    dispatch(RouteTree.navigateAppend(['createNewAccount']))
   },
   onLinkExisting: () => {
-    logger.error('TODO: onLinkExisting')
+    dispatch(RouteTree.navigateAppend(['linkExisting']))
   },
 })
 

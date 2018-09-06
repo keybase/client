@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -86,7 +87,7 @@ func pplGotPassphrase(m MetaContext, usernameOrEmail string, passphrase string, 
 		res.sessionID,
 		res.csrfToken,
 		NewNormalizedUsername(res.username),
-		res.uid,
+		res.uv,
 		nilDeviceID,
 	)
 	if err != nil {
@@ -122,6 +123,7 @@ type loginReply struct {
 		Basics struct {
 			Username             string               `json:"username"`
 			PassphraseGeneration PassphraseGeneration `json:"passphrase_generation"`
+			EldestSeqno          keybase1.Seqno       `json:"eldest_seqno"`
 		} `json:"basics"`
 	} `json:"me"`
 }
@@ -148,8 +150,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 		return nil, err
 	}
 	if res.Status.Code == SCBadLoginPassword {
-		err = PassphraseError{"server rejected login attempt"}
-		return nil, err
+		return nil, PassphraseError{"Invalid passphrase. Server rejected login attempt."}
 	}
 	if res.Status.Code == SCBadLoginUserNotFound {
 		return nil, NotFoundError{}
@@ -157,7 +158,7 @@ func pplPost(m MetaContext, eOu string, lp PDPKALoginPackage) (*loginAPIResult, 
 	return &loginAPIResult{
 		sessionID: res.Session,
 		csrfToken: res.CsrfToken,
-		uid:       res.UID,
+		uv:        keybase1.UserVersion{Uid: res.UID, EldestSeqno: res.Me.Basics.EldestSeqno},
 		username:  res.Me.Basics.Username,
 		ppGen:     res.Me.Basics.PassphraseGeneration,
 	}, nil
@@ -170,10 +171,7 @@ func PassphraseLoginNoPrompt(m MetaContext, usernameOrEmail string, passphrase s
 	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
 		return err
 	}
-	if err = pplGotPassphrase(m, usernameOrEmail, passphrase, loginSession); err != nil {
-		return err
-	}
-	return nil
+	return pplGotPassphrase(m, usernameOrEmail, passphrase, loginSession)
 }
 
 func PassphraseLoginNoPromptThenSecretStore(m MetaContext, usernameOrEmail string, passphrase string, failOnStoreError bool) (err error) {
@@ -209,10 +207,7 @@ func PassphraseLoginPrompt(m MetaContext, usernameOrEmail string, maxAttempts in
 	if loginSession, err = pplGetLoginSession(m, usernameOrEmail); err != nil {
 		return err
 	}
-	if err = pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession); err != nil {
-		return err
-	}
-	return nil
+	return pplPromptLoop(m, usernameOrEmail, maxAttempts, loginSession)
 }
 
 func StoreSecretAfterLogin(m MetaContext, n NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) (err error) {
@@ -268,12 +263,7 @@ func StoreSecretAfterLoginWithLKS(m MetaContext, n NormalizedUsername, lks *LKSe
 		return err
 	}
 
-	err = secretStore.StoreSecret(m, secret)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return secretStore.StoreSecret(m, secret)
 }
 
 func getStoredPassphraseStream(m MetaContext) (*PassphraseStream, error) {
@@ -428,11 +418,11 @@ func VerifyPassphraseGetStreamInLoginContext(m MetaContext, passphrase string) (
 // it's fine to use in production code if it seems appropriate.
 func VerifyPassphraseForLoggedInUser(m MetaContext, pp string) (pps *PassphraseStream, err error) {
 	defer m.CTrace("VerifyPassphraseForLoggedInUser", func() error { return err })()
-	uid, un := m.ActiveDevice().GetUsernameAndUIDIfValid(m)
-	if uid.IsNil() {
+	uv, un := m.ActiveDevice().GetUsernameAndUserVersionIfValid(m)
+	if uv.IsNil() {
 		return nil, NewLoginRequiredError("for VerifyPassphraseForLoggedInUser")
 	}
-	m = m.WithNewProvisionalLoginContextForUIDAndUsername(uid, un)
+	m = m.WithNewProvisionalLoginContextForUserVersionAndUsername(uv, un)
 	pps, err = VerifyPassphraseGetStreamInLoginContext(m, pp)
 	return pps, err
 }

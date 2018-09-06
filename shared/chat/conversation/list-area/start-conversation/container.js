@@ -1,13 +1,15 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
+import * as WaitingConstants from '../../../../constants/waiting'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import StartConversation from '.'
 import {connect, type TypedState} from '../../../../util/container'
 
 const mapStateToProps = (state: TypedState, {conversationIDKey}) => ({
   _meta: Constants.getMeta(state, conversationIDKey),
-  isLoading: !!state.chat2.loadingMap.get(Constants.creatingLoadingKey),
+  isLoading: WaitingConstants.anyWaiting(state, Constants.waitingKeyCreating),
   showAddParticipants: state.chat2.pendingMode === 'searchingForUsers',
+  isError: state.chat2.pendingStatus === 'failed',
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
@@ -24,6 +26,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
   return {
     isLoading: stateProps.isLoading,
+    isError: stateProps.isError,
     onStart: () => dispatchProps.onStart(participants),
     participants: str,
     showAddParticipants: stateProps.showAddParticipants,

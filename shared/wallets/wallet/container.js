@@ -7,9 +7,10 @@ const mapStateToProps = (state: TypedState) => ({
   accountID: Constants.getSelectedAccount(state),
   assets: Constants.getAssets(state),
   payments: Constants.getPayments(state),
+  pending: Constants.getPendingPayments(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   navigateAppend,
 })
 
@@ -18,10 +19,22 @@ const mergeProps = (stateProps, dispatchProps) => {
   // layout is
   // 1. header (TODO: not included in list yet)
   // 2. assets header and list of assets
-  // 3. transactions header and transactions (TODO)
+  // 3. transactions header and transactions
   // Formatted in a SectionList
   sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
-  sections.push({data: stateProps.payments.map(p => ({paymentID: p.id})).toArray(), title: 'History'})
+  const completed = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+  const pending = stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+
+  if (pending.length > 0) {
+    sections.push({data: pending, title: 'Pending'})
+  }
+
+  if (completed.length === 0) {
+    sections.push({data: ['historyPlaceholder'], title: 'History'})
+  } else {
+    sections.push({data: completed, title: 'History'})
+  }
+
   return {
     accountID: stateProps.accountID,
     navigateAppend: dispatchProps.navigateAppend,
