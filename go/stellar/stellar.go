@@ -1190,6 +1190,16 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
 	}
 
+	if arg.Asset != nil {
+		a, err := amount.ParseInt64(arg.Amount)
+		if err != nil {
+			return ret, err
+		}
+		if a <= 0 {
+			return ret, fmt.Errorf("must request positive amount of XLM")
+		}
+	}
+
 	if arg.Currency != nil {
 		conf, err := m.G().GetStellar().GetServerDefinitions(m.Ctx())
 		if err != nil {

@@ -1317,6 +1317,39 @@ func TestGetSendAssetChoices(t *testing.T) {
 	}
 }
 
+func TestMakeRequestLocal(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	xlm := stellar1.AssetNative()
+	_, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "0",
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "-1.2345",
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "1.2345",
+	})
+	require.NoError(t, err)
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 
