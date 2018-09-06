@@ -72,7 +72,6 @@ const TeamBuilding = (props: Props) => (
           username={result.username}
           prettyName={result.prettyName}
           services={result.services}
-          service={result.service}
           inTeam={result.inTeam}
           followingState={result.followingState}
           highlight={index === props.highlightedIndex}

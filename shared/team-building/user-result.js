@@ -12,6 +12,8 @@ import type {FollowingState} from '../constants/types/search'
 // * Add service icons and colors
 // * style
 // * style for mobile
+// * Use ListItem2
+// * maybe move realCSS up?
 
 export type Props = {
   username: string,
@@ -25,19 +27,25 @@ export type Props = {
 }
 
 const realCSS = (inTeam: boolean) => `
-    .hoverRow:hover { background-color: ${Styles.globalColors.blue4};}
-    .hoverRow:hover .actionButton { background-color: ${Styles.globalColors.blue} !important;}
-    .hoverRow:hover .actionButton * { color: ${Styles.globalColors.white} !important;}
+    .hoverRow${inTeam ? 'inTeam' : ''}:hover { background-color: ${Styles.globalColors.blue4};}
+    .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton * { color: ${
+  Styles.globalColors.white
+} !important;}
+    .hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton { background-color: ${
+  Styles.globalColors.blue
+} !important;}
     ${
       inTeam
-        ? `.hoverRow .actionButton:hover { background-color: ${Styles.globalColors.red} !important;}`
+        ? `.hoverRow${inTeam ? 'inTeam' : ''}:hover .actionButton:hover { background-color: ${
+            Styles.globalColors.red
+          } !important;}`
         : ``
     }
   `
 
 const Row = (props: Props) => (
   <Kb.Box2
-    className="hoverRow"
+    className={`hoverRow${props.inTeam ? 'inTeam' : ''}`}
     direction="horizontal"
     centerChildren={true}
     style={Styles.collapseStyles([styles.rowContainer, props.highlight ? styles.highlighted : null])}
@@ -90,10 +98,20 @@ const ActionButton = (props: {
         centerChildren={true}
         style={Styles.collapseStyles([
           styles.actionButton,
-          props.highlight ? styles.actionButtonHighlight : null,
+          props.highlight
+            ? {backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue}
+            : null,
         ])}
       >
-        {props.highlight ? <AddButtonHover /> : <Icon containerStyle={styles.actionButtonHoverContainer} />}
+        {props.highlight ? (
+          props.inTeam ? (
+            <RemoveButton />
+          ) : (
+            <AddButtonHover />
+          )
+        ) : (
+          <Icon containerStyle={styles.actionButtonHoverContainer} />
+        )}
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -169,6 +187,9 @@ const styles = Styles.styleSheetCreate({
   }),
   actionButtonHighlight: {
     backgroundColor: Styles.globalColors.blue,
+  },
+  removeButtonHighlight: {
+    backgroundColor: Styles.globalColors.red,
   },
 
   actionButtonHoverContainer: Styles.platformStyles({

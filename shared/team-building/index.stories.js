@@ -67,21 +67,19 @@ const load = () => {
           serviceResultCount={{}}
           showServiceResultCount={false}
           onAdd={Sb.action('onAdd')}
-          highlightedIndex={0}
+          highlightedIndex={2}
           searchResults={[
             {
               userId: 'chris',
               username: 'chris',
               prettyName: 'Chris Coyne',
-              services: [
-                {
-                  facebook: 'chriscoyne on Facebook',
-                  github: 'malgorithms on GitHub',
-                  hackernews: 'malgorithms on HackerNews',
-                  reddit: 'malgorithms on Reddit',
-                  twitter: 'malgorithms on Twitter',
-                },
-              ],
+              services: {
+                facebook: 'chriscoyne on Facebook',
+                github: 'malgorithms on GitHub',
+                hackernews: 'malgorithms on HackerNews',
+                reddit: 'malgorithms on Reddit',
+                twitter: 'malgorithms on Twitter',
+              },
               inTeam: true,
               followingState: 'Following',
             },
@@ -89,14 +87,12 @@ const load = () => {
               userId: 'chrismikacle',
               username: 'chrismikacle',
               prettyName: 'Chris Mikacle',
-              services: [
-                {
-                  github: 'chrismikacle on GitHub',
-                  hackernews: 'chrismikacle on HackerNews',
-                  reddit: 'chrismikacle on Reddit',
-                  twitter: 'chrismikacle on Twitter',
-                },
-              ],
+              services: {
+                github: 'chrismikacle on GitHub',
+                hackernews: 'chrismikacle on HackerNews',
+                reddit: 'chrismikacle on Reddit',
+                twitter: 'chrismikacle on Twitter',
+              },
               inTeam: false,
               followingState: 'NotFollowing',
             },
@@ -104,14 +100,12 @@ const load = () => {
               userId: 'chrisnojima',
               username: 'chrisnojima',
               prettyName: 'Chris Nojima',
-              services: [
-                {
-                  github: 'cnojima on GitHub',
-                  hackernews: 'cnojima on HackerNews',
-                  reddit: 'cnojima on Reddit',
-                  twitter: 'cnojima on Twitter',
-                },
-              ],
+              services: {
+                github: 'cnojima on GitHub',
+                hackernews: 'cnojima on HackerNews',
+                reddit: 'cnojima on Reddit',
+                twitter: 'cnojima on Twitter',
+              },
               inTeam: false,
               followingState: 'Following',
             },
@@ -248,8 +242,6 @@ const load = () => {
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
-        onMouseOver={Sb.action('onMouseOver')}
-        onMouseLeave={Sb.action('onMouseLeave')}
       />
     ))
 }
