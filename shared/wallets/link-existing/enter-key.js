@@ -26,7 +26,7 @@ const EnterKey = (props: EnterKeyProps) => {
         Link an existing account
       </Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
           Paste your secret key
         </Kb.Text>
         <Kb.Input

@@ -26,7 +26,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
         Name your account
       </Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
           Account name
         </Kb.Text>
         <Kb.Input
