@@ -137,9 +137,10 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
 			err.Msg = fmt.Sprintf("user deleted in chat '%v'", tlfName)
 		}
 		return NewPermanentUnboxingError(err)
-	case teams.TeamDoesNotExistError:
-		return NewPermanentUnboxingError(err)
-	case DecryptionKeyNotFoundError:
+	case teams.TeamDoesNotExistError,
+		DecryptionKeyNotFoundError,
+		NotAuthenticatedForThisDeviceError,
+		InvalidMACError:
 		return NewPermanentUnboxingError(err)
 	case ephemeral.EphemeralKeyError:
 		// Normalize error message with EphemeralUnboxingError
