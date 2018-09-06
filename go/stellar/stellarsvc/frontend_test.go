@@ -1321,6 +1321,12 @@ func TestMakeRequestLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
 	xlm := stellar1.AssetNative()
 	_, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
 		Recipient: tcs[1].Fu.Username,
@@ -1342,12 +1348,26 @@ func TestMakeRequestLocal(t *testing.T) {
 	})
 	require.Error(t, err)
 
-	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Asset:     &xlm,
 		Amount:    "1.2345",
 	})
 	require.NoError(t, err)
+	require.NotEmpty(t, reqID)
+
+	// pretend that the chat message was unboxed and call the request loader to load the info:
+	loader := stellar.DefaultRequestLoader(tcs[0].G)
+	convID := chat1.ConversationID("efef")
+	msgID := chat1.MessageID(654)
+	loader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+
+	// check the sender chat notification
+	select {
+	case info := <-listenerSender.requestInfos:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat request info notification to sender")
+	}
 }
 
 type chatListener struct {
