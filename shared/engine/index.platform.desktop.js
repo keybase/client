@@ -13,7 +13,7 @@ class NativeTransport extends TransportShared {
     this.needsConnect = true
   }
 
-  _connect_critical_section = (cb: any) => {
+  _connect_critical_section(cb: any) {
     // eslint-disable-line camelcase
     // $FlowIssue
     super._connect_critical_section(cb)
@@ -22,7 +22,7 @@ class NativeTransport extends TransportShared {
 
   // Override Transport._raw_write -- see transport.iced in
   // framed-msgpack-rpc.
-  _raw_write = (msg, encoding) => {
+  _raw_write(msg, encoding) {
     if (printRPCBytes) {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
@@ -33,7 +33,7 @@ class NativeTransport extends TransportShared {
 
   // Override Packetizer.packetize_data -- see packetizer.iced in
   // framed-msgpack-rpc.
-  packetize_data = (m: Buffer) => {
+  packetize_data(m: Buffer) {
     if (printRPCBytes) {
       logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
     }
