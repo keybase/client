@@ -508,7 +508,7 @@ func (g *GlobalContext) FlushCaches() {
 	g.configureMemCachesLocked(true)
 }
 
-func (g *GlobalContext) configureDiskCachesLocked() (err error) {
+func (g *GlobalContext) configureDiskCachesLocked() error {
 	// We consider the local DBs as caches; they're caching our
 	// fetches from the server after all (and also our cryptographic
 	// checking).
