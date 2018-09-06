@@ -4,14 +4,14 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {WalletPopup} from '../common'
 
-type EnterKeyProps = {
+type EnterKeyProps = {|
   error: string,
   onCancel: () => void,
   onKeyChange: string => void,
   onNext: () => void,
   secretKey: string,
   waiting: boolean,
-}
+|}
 
 const EnterKey = (props: EnterKeyProps) => {
   const buttons = [

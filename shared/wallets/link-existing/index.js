@@ -6,7 +6,7 @@ import type {ValidationState} from '../../constants/types/wallets'
 
 type View = 'key' | 'name'
 
-type LinkWalletProps = {
+type LinkWalletProps = {|
   secretKey: string,
   linkExistingAccountError: string,
   onCancel: () => void,
@@ -23,11 +23,11 @@ type LinkWalletProps = {
   secretKeyValidationState: ValidationState,
   view?: View,
   waiting: boolean,
-}
+|}
 
-type LinkWalletState = {
+type LinkWalletState = {|
   view: View,
-}
+|}
 
 class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   state = {view: this.props.view || 'key'}
@@ -92,13 +92,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     }
   }
 }
-
-type WrapperState = {|
-  secretKey: string,
-  name: string,
-|}
-
-type WrapperProps = {
+type WrapperProps = {|
   linkExistingAccountError: string,
   onCancel: () => void,
   onCheckKey: (key: string) => void,
@@ -110,7 +104,12 @@ type WrapperProps = {
   nameValidationState: ValidationState,
   secretKeyValidationState: ValidationState,
   waiting: boolean,
-}
+|}
+
+type WrapperState = {|
+  secretKey: string,
+  name: string,
+|}
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {secretKey: '', name: ''}

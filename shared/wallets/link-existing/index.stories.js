@@ -18,7 +18,6 @@ const common = {
   onDone: action('onDone'),
   onKeyChange: action('onKeyChange'),
   onNameChange: action('onNameChange'),
-  onViewChange: action('onViewChange'),
   secretKey: '',
   secretKeyValidationState: 'none',
   waiting: false,
