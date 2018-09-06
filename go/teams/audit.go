@@ -23,13 +23,33 @@ type AuditParams struct {
 	LRUSize               int
 }
 
-var params = AuditParams{
+var desktopParams = AuditParams{
 	RootFreshness:         time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(1000),
 	NumPreProbes:          25,
 	NumPostProbes:         25,
-	Parallelism:           4,
-	LRUSize:               10000,
+	Parallelism:           5,
+	LRUSize:               1000,
+}
+
+var mobileParams = AuditParams{
+	RootFreshness:         10 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(10000),
+	NumPreProbes:          10,
+	NumPostProbes:         10,
+	Parallelism:           3,
+	LRUSize:               500,
+}
+
+// getAuditParams will return parameters based on the platform. On mobile,
+// we're going to be performing a smaller audit, and therefore have a smaller
+// security margin (1-2^10). But it's worth it given the bandwidth and CPU
+// constraints.
+func getAuditParams(m libkb.MetaContext) AuditParams {
+	if libkb.IsMobilePlatform() {
+		return mobileParams
+	}
+	return desktopParams
 }
 
 type Auditor struct {
@@ -44,16 +64,16 @@ type Auditor struct {
 }
 
 // NewAuditor makes a new auditor
-func NewAuditor() *Auditor {
+func NewAuditor(g *libkb.GlobalContext) *Auditor {
 	ret := &Auditor{}
-	ret.newLRU()
+	ret.newLRU(libkb.NewMetaContextBackground(g))
 	return ret
 }
 
 // NewAuditorAndInstall makes a new Auditor and dangles it
 // off of the given GlobalContext.
 func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
-	a := NewAuditor()
+	a := NewAuditor(g)
 	g.SetTeamAuditor(a)
 	return a
 }
@@ -139,7 +159,7 @@ func (a *Auditor) checkRecent(m libkb.MetaContext, history *keybase1.AuditHistor
 		return false
 	}
 	diff := *root.Seqno() - last.MaxMerkleSeqno
-	if diff >= params.MerkleMovementTrigger {
+	if diff >= getAuditParams(m).MerkleMovementTrigger {
 		m.CDebugf("previous merkle audit was %v ago", diff)
 		return false
 	}
@@ -191,7 +211,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, params.NumPostProbes)
+	probeTuples, err := a.computeProbes(m, history.ID, history.PostProbes, probeID, low, latestMerkleSeqno, 0, getAuditParams(m).NumPostProbes)
 	if err != nil {
 		return maxMerkleProbe, err
 	}
@@ -234,7 +254,7 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 		return NewAuditError("cannot find a first modern merkle sequence")
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkle.Seqno, len(history.PreProbes), params.NumPreProbes)
+	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkle.Seqno, len(history.PreProbes), getAuditParams(m).NumPreProbes)
 	if err != nil {
 		return err
 	}
@@ -326,7 +346,7 @@ func (a *Auditor) lookupProbe(m libkb.MetaContext, teamID keybase1.TeamID, probe
 }
 
 func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tuples []probeTuple) (err error) {
-	pipeliner := pipeliner.NewPipeliner(params.Parallelism)
+	pipeliner := pipeliner.NewPipeliner(getAuditParams(m).Parallelism)
 	for i := range tuples {
 		if err = pipeliner.WaitForRoom(m.Ctx()); err != nil {
 			return err
@@ -357,7 +377,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		return nil
 	}
 
-	root, err := m.G().MerkleClient.FetchRootFromServerByFreshness(m, params.RootFreshness)
+	root, err := m.G().MerkleClient.FetchRootFromServerByFreshness(m, getAuditParams(m).RootFreshness)
 	if err != nil {
 		return err
 	}
@@ -396,7 +416,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	return nil
 }
 
-func (a *Auditor) newLRU() {
+func (a *Auditor) newLRU(m libkb.MetaContext) {
 
 	a.lruMutex.Lock()
 	defer a.lruMutex.Unlock()
@@ -405,13 +425,13 @@ func (a *Auditor) newLRU() {
 		a.lru.Purge()
 	}
 
-	lru, err := lru.New(params.LRUSize)
+	lru, err := lru.New(getAuditParams(m).LRUSize)
 	if err != nil {
 		panic(err)
 	}
 	a.lru = lru
 }
 
-func (a *Auditor) OnLogout() {
-	a.newLRU()
+func (a *Auditor) OnLogout(m libkb.MetaContext) {
+	a.newLRU(m)
 }
