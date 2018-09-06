@@ -3,7 +3,6 @@
 import rpc from 'framed-msgpack-rpc'
 import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
-import {pack} from 'purepack'
 import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
 
@@ -73,8 +72,6 @@ function rpcLog(info: {method: string, reason: string, extra?: Object, type: str
 }
 
 type InvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
-
-export type SendArg = [number, number, mixed, mixed]
 
 class TransportShared extends RobustTransport {
   constructor(
@@ -186,23 +183,6 @@ class TransportShared extends RobustTransport {
     })
 
     wrappedInvoke(arg)
-  }
-
-  // Override Packetizer.send -- see packetizer.iced in
-  // framed-msgpack-rpc.
-  send = (msg: SendArg) => {
-    const b2 = pack(msg)
-    const b1 = pack(b2.length)
-    const bufs = [b1, b2]
-    const enc = 'binary'
-    bufs.forEach(b => {
-      // _raw_write is defined in Transport in transport.iced in
-      // framed-msgpack-rpc.
-      //
-      // $FlowIssue Flow doesn't see inherited methods.
-      this._raw_write(b.toString(enc), enc)
-    })
-    return true
   }
 }
 

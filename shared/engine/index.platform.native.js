@@ -1,6 +1,7 @@
 // @flow
 import {NativeModules, NativeEventEmitter} from 'react-native'
-import {TransportShared, sharedCreateClient, rpcLog, type SendArg} from './transport-shared'
+import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
+import {type SendArg} from './index.platform'
 import {pack} from 'purepack'
 import {toByteArray, fromByteArray} from 'base64-js'
 import toBuffer from 'typedarray-to-buffer'

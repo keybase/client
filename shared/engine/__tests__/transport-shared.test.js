@@ -1,6 +1,7 @@
 // @flow
 /* eslint-env jest */
-import {TransportShared, type SendArg} from '../transport-shared'
+import {TransportShared} from '../transport-shared'
+import {type SendArg} from '../index.platform'
 
 describe('TransportShared', () => {
   // Extend TransportShared to fake out some methods.
