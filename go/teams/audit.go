@@ -88,7 +88,7 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
 func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
 
 	m = m.WithLogTag("AUDIT")
-	defer m.CTrace(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
+	defer m.CTraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
 
 	if id.IsPublic() != isPublic {
 		return NewBadPublicError(id, isPublic)

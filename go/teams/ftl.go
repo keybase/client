@@ -78,7 +78,7 @@ func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTe
 // from the server, and then the keys can be output in the result.
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
-	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	defer m.CTraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
 
 	err = f.featureFlagGate.ErrorIfFlagged(m)
 	if err != nil {
