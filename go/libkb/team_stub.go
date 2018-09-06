@@ -85,6 +85,6 @@ func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic b
 	return fmt.Errorf("null team auditor")
 }
 
-func (n nullTeamAuditor) OnLogout() {}
+func (n nullTeamAuditor) OnLogout(m MetaContext) {}
 
 func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
