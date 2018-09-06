@@ -162,7 +162,8 @@ func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile 
 
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
-	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
+	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
+		i.G().GetAppType() != libkb.MobileAppType {
 		return
 	}
 	var writable []SharedInboxItem
