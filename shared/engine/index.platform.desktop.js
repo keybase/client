@@ -20,14 +20,24 @@ class NativeTransport extends TransportShared {
     windowsHack()
   }
 
-  // Override Transport._raw_write.
+  // Override Transport._raw_write -- see transport.iced in
+  // framed-msgpack-rpc.
   _raw_write = (msg, encoding) => {
     if (printRPCBytes) {
       const b = Buffer.from(msg, encoding)
-      logger.debug('[RPC] Writing ', b.toString('hex'))
+      logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
     // $FlowIssue Flow doesn't see inherited methods.
     super._raw_write(msg, encoding)
+  }
+
+  // Override Packetizer.packetize_data -- see packetizer.iced in
+  // framed-msgpack-rpc.
+  packetize_data = (m: Buffer) => {
+    if (printRPCBytes) {
+      logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
+    }
+    super.packetize_data(m)
   }
 }
 

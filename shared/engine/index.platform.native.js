@@ -79,7 +79,7 @@ function createClient(
   // This is how the RN side writes back to us
   RNEmitter.addListener(nativeBridge.eventName, (payload: string) => {
     if (printRPCBytes) {
-      logger.debug('[RPC] (b64) Read', payload.length, 'chars:', payload)
+      logger.debug('[RPC] Read', payload.length, 'chars:', payload)
     }
 
     const buffer = toBuffer(toByteArray(payload))
