@@ -94,6 +94,11 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontSemibold,
   },
+  BodyBigExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 18,
+    styleOverride: globalStyles.fontExtrabold,
+  },
   // Body
   Body: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,

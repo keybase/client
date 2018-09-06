@@ -15,7 +15,6 @@ export const createPersonalRepo = 'git:createPersonalRepo'
 export const createTeamRepo = 'git:createTeamRepo'
 export const deletePersonalRepo = 'git:deletePersonalRepo'
 export const deleteTeamRepo = 'git:deleteTeamRepo'
-export const handleIncomingGregor = 'git:handleIncomingGregor'
 export const loadGit = 'git:loadGit'
 export const loadGitRepo = 'git:loadGitRepo'
 export const loaded = 'git:loaded'
@@ -40,7 +39,6 @@ type _DeleteTeamRepoPayload = $ReadOnly<{|
   teamname: string,
   notifyTeam: boolean,
 |}>
-type _HandleIncomingGregorPayload = $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>
 type _LoadGitPayload = void
 type _LoadGitRepoPayload = $ReadOnly<{|
   username: ?string,
@@ -74,7 +72,6 @@ export const createCreatePersonalRepo = (payload: _CreatePersonalRepoPayload) =>
 export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({error: false, payload, type: createTeamRepo})
 export const createDeletePersonalRepo = (payload: _DeletePersonalRepoPayload) => ({error: false, payload, type: deletePersonalRepo})
 export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({error: false, payload, type: deleteTeamRepo})
-export const createHandleIncomingGregor = (payload: _HandleIncomingGregorPayload) => ({error: false, payload, type: handleIncomingGregor})
 export const createLoadGit = (payload: _LoadGitPayload) => ({error: false, payload, type: loadGit})
 export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({error: false, payload, type: loadGitRepo})
 export const createLoaded = (payload: _LoadedPayload) => ({error: false, payload, type: loaded})
@@ -91,7 +88,6 @@ export type CreatePersonalRepoPayload = $Call<typeof createCreatePersonalRepo, _
 export type CreateTeamRepoPayload = $Call<typeof createCreateTeamRepo, _CreateTeamRepoPayload>
 export type DeletePersonalRepoPayload = $Call<typeof createDeletePersonalRepo, _DeletePersonalRepoPayload>
 export type DeleteTeamRepoPayload = $Call<typeof createDeleteTeamRepo, _DeleteTeamRepoPayload>
-export type HandleIncomingGregorPayload = $Call<typeof createHandleIncomingGregor, _HandleIncomingGregorPayload>
 export type LoadGitPayload = $Call<typeof createLoadGit, _LoadGitPayload>
 export type LoadGitRepoPayload = $Call<typeof createLoadGitRepo, _LoadGitRepoPayload>
 export type LoadedPayload = $Call<typeof createLoaded, _LoadedPayload>
@@ -110,7 +106,6 @@ export type Actions =
   | CreateTeamRepoPayload
   | DeletePersonalRepoPayload
   | DeleteTeamRepoPayload
-  | HandleIncomingGregorPayload
   | LoadGitPayload
   | LoadGitRepoPayload
   | LoadedPayload
