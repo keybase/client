@@ -129,7 +129,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
+export {globalMargins, backgroundModeToColor, platformStyles, globalZIndices} from './shared'
 export {default as glamorous} from 'glamorous'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
