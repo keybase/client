@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"errors"
 	"sync"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -20,11 +21,13 @@ func NewMemDb() *MemDb {
 	}
 }
 
-func (m *MemDb) Open() error                                          { return nil }
-func (m *MemDb) ForceOpen() error                                     { return nil }
-func (m *MemDb) Close() error                                         { return nil }
-func (m *MemDb) Nuke() (string, error)                                { return "", nil }
-func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) { return res, nil }
+func (m *MemDb) Open() error           { return nil }
+func (m *MemDb) ForceOpen() error      { return nil }
+func (m *MemDb) Close() error          { return nil }
+func (m *MemDb) Nuke() (string, error) { return "", nil }
+func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
+	return res, errors.New("not implemented")
+}
 
 func (m *MemDb) Put(id DbKey, aliases []DbKey, value []byte) error {
 	m.Lock()
