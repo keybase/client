@@ -49,7 +49,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
           paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
         loading: false,
-        memo: paymentInfo.note,
+        memo: paymentInfo.note.stringValue(),
         pending: paymentInfo.status === 'pending',
         sendButtonLabel: '',
       }

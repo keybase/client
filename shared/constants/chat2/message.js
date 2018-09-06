@@ -177,7 +177,7 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
 export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
   amountDescription: '',
   delta: 'none',
-  note: '',
+  note: new HiddenString(''),
   status: 'none',
   statusDescription: '',
   worth: '',
@@ -281,7 +281,7 @@ export const uiPaymentInfoToChatPaymentInfo = (
   return makeChatPaymentInfo({
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
-    note: p.note,
+    note: new HiddenString(p.note),
     status: WalletConstants.statusSimplifiedToString[p.status],
     statusDescription: p.statusDescription,
     worth: p.worth,

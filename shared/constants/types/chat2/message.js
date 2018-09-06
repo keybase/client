@@ -175,7 +175,7 @@ export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
 export type _ChatPaymentInfo = {
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
-  note: string,
+  note: HiddenString,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
   worth: string,
