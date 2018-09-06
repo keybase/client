@@ -12,8 +12,9 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   return {
     accountID,
-    secretKey,
+    loading: !secretKey,
     name: Constants.getAccount(state, accountID).name,
+    secretKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -31,6 +32,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
   _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  loading: stateProps.loading,
   name: stateProps.name,
   onCancel: () => dispatchProps._onClose(stateProps.accountID),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
