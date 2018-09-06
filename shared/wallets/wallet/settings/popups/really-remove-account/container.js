@@ -9,7 +9,6 @@ import ReallyRemoveAccountPopup from '.'
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
-  console.log('nathan test', accountID, secretKey)
 
   return {
     accountID,
