@@ -293,7 +293,7 @@ protocol teams {
     TeamID ID;
     // Whether this is a public team.
     boolean public;
-    // The last known merkle seqno prior to team creation
+    // The Merkle sequence number signed into the head link of the team chain.
     Seqno priorMerkleSeqno;
 
     // When the last audit(s) happened
