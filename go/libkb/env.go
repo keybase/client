@@ -102,7 +102,6 @@ func (n NullConfiguration) GetAppType() AppType                             { re
 func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
-func (n NullConfiguration) GetShouldUseInMemoryDbOnFailure() (bool, bool)   { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
@@ -992,14 +991,6 @@ func (e *Env) IsMobileExtension() bool {
 	)
 }
 
-func (e *Env) ShouldUseInMemoryDbOnFailure() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetShouldUseInMemoryDbOnFailure() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_MEMDB_ONFAILURE") },
-		func() (bool, bool) { return e.GetConfig().GetShouldUseInMemoryDbOnFailure() },
-	)
-}
-
 func (e *Env) GetSlowGregorConn() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
@@ -1285,7 +1276,6 @@ type AppConfig struct {
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
 	MobileExtension                bool
-	ShouldUseInMemoryDbOnFailure   bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1328,10 +1318,6 @@ func (c AppConfig) GetAppType() AppType {
 
 func (c AppConfig) IsMobileExtension() (bool, bool) {
 	return c.MobileExtension, true
-}
-
-func (c AppConfig) GetShouldUseInMemoryDbOnFailure() (bool, bool) {
-	return c.ShouldUseInMemoryDbOnFailure, true
 }
 
 func (c AppConfig) GetSlowGregorConn() (bool, bool) {

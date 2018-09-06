@@ -516,19 +516,9 @@ func (g *GlobalContext) configureDiskCachesLocked() (err error) {
 	g.LocalChatDb = NewJSONLocalDb(NewLevelDb(g, g.Env.GetChatDbFilename))
 
 	epick := FirstErrorPicker{}
-	epick.Push(g.LocalDb.ForceOpen())
-	epick.Push(g.LocalChatDb.ForceOpen())
-	if err = epick.Error(); err != nil {
-		// Failed to open leveldb. If we are configured such that using the in-memory cache is an
-		// option, then let's sub that in now.
-		if g.GetEnv().ShouldUseInMemoryDbOnFailure() {
-			g.Log.Debug("configureDiskCachesLocked: falling back to in-memory local database: err: %s", err)
-			g.LocalDb = NewJSONLocalDb(NewMemDb())
-			g.LocalChatDb = NewJSONLocalDb(NewMemDb())
-			return nil
-		}
-	}
-	return err
+	epick.Push(g.LocalDb.Open())
+	epick.Push(g.LocalChatDb.Open())
+	return epick.Error()
 }
 
 func (g *GlobalContext) ConfigureMerkleClient() error {
