@@ -505,6 +505,58 @@ export const createFavoritesLoadedFromJSONResults = (
   })
 }
 
+export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
+  path: Types.stringToPath(''),
+  writer: '',
+  serverTime: 0,
+  history: I.List(),
+})
+
+export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  filename: '',
+  serverTime: 0,
+  editType: 'unknown',
+})
+
+const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
+  switch (fsNotificationType) {
+    case RPCTypes.kbfsCommonFSNotificationType.fileCreated:
+      return 'created'
+    case RPCTypes.kbfsCommonFSNotificationType.fileModified:
+      return 'modified'
+    case RPCTypes.kbfsCommonFSNotificationType.fileDeleted:
+      return 'deleted'
+    case RPCTypes.kbfsCommonFSNotificationType.fileRenamed:
+      return 'renamed'
+    default:
+      return 'unknown'
+  }
+}
+
+export const userTlfHistoryRPCToState = (history: Array<RPCTypes.FSFolderEditHistory>): Types.UserTlfUpdates => {
+  let updates = []
+  history.forEach(folder => {
+    const updateServerTime = folder.serverTime
+    const path = pathFromFolderRPC(folder.folder)
+    const tlfUpdates = folder.history
+      ? folder.history.map(({writerName, edits}) => makeTlfUpdate({
+          path,
+          serverTime: updateServerTime,
+          writer: writerName,
+          history: I.List(edits
+            ? edits.map(({filename, notificationType, serverTime}) => makeTlfEdit({
+                filename,
+                serverTime,
+                editType: fsNotificationTypeToEditType(notificationType),
+              }))
+            : []),
+        }))
+      : []
+    updates = updates.concat(tlfUpdates)
+  })
+  return I.List(updates)
+}
+
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   if (mimeType === 'text/plain') {
     return 'text'
@@ -561,6 +613,12 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
     notificationsOn: false,
     created: false,
   }
+}
+
+export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
+  const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return Types.stringToPath('')
+  return Types.stringToPath(`/keybase/${visibility}/name`)
 }
 
 export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {

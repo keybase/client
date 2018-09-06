@@ -189,6 +189,31 @@ export type _LocalHTTPServer = {
 }
 export type LocalHTTPServer = I.RecordOf<_LocalHTTPServer>
 
+export type FileEditType = 'created' | 'modified' | 'deleted' | 'renamed' | 'unknown'
+
+export type _TlfEdit = {
+  filename: string,
+  serverTime: number,
+  editType: FileEditType,
+}
+
+export type TlfEdit = I.RecordOf<_TlfEdit>
+
+export type _TlfUpdate = {
+  path: Path,
+  writer: string,
+  serverTime: number,
+  history: I.List<TlfEdit>,
+}
+
+export type TlfUpdate = I.RecordOf<_TlfUpdate>
+
+export type _UserTlfUpdates = {
+  updates: I.List<TlfUpdate>,
+}
+
+export type UserTlfUpdates = I.List<TlfUpdate>
+
 export type _State = {
   pathItems: I.Map<Path, PathItem>,
   tlfs: Tlfs,
@@ -201,6 +226,7 @@ export type _State = {
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
+  tlfUpdates: UserTlfUpdates,
 }
 export type State = I.RecordOf<_State>
 
@@ -265,6 +291,18 @@ export const pathIsInTlfPath = (path: Path, tlfPath: Path) => {
 export const getRPCFolderTypeFromVisibility = (v: Visibility): RPCTypes.FolderType => {
   if (v === null) return RPCTypes.favoriteFolderType.unknown
   return RPCTypes.favoriteFolderType[v]
+}
+export const getVisibilityFromRPCFolderType = (folderType: RPCTypes.FolderType): Visibility => {
+  switch (folderType) {
+    case RPCTypes.favoriteFolderType.private:
+      return 'private'
+    case RPCTypes.favoriteFolderType.public:
+      return 'public'
+    case RPCTypes.favoriteFolderType.team:
+      return 'team'
+    default:
+      return null
+  }
 }
 export const getPathVisibility = (p: Path): Visibility => {
   const elems = getPathElements(p)
