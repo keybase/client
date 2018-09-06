@@ -97,17 +97,30 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	return err
 }
 
-func ExtensionGetInbox() string {
-	defer kbCtx.Trace("ExtensionGetInbox", func() error { return nil })()
-	var err error
+func assertLoggedInUID(ctx context.Context, gc *globals.Context) (uid gregor1.UID, err error) {
+	if !gc.ActiveDevice.HaveKeys() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	k1uid := gc.Env.GetUID()
+	if k1uid.IsNil() {
+		return uid, libkb.LoginRequiredError{}
+	}
+	return gregor1.UID(k1uid.ToBytes()), nil
+}
+
+func ExtensionGetInbox() (res string, err error) {
+	defer kbCtx.Trace("ExtensionGetInbox", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-	uid := gregor1.UID(gc.GetEnv().GetUID().ToBytes())
+	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return res, err
+	}
 	inbox := storage.NewInbox(gc, uid)
 	sharedInbox, err := inbox.ReadShared(ctx)
 	if err != nil {
-		return ""
+		return res, err
 	}
 
 	// Pretty up the names
@@ -128,9 +141,9 @@ func ExtensionGetInbox() string {
 	// JSON up to send to native
 	dat, err := json.Marshal(sharedInbox)
 	if err != nil {
-		return ""
+		return res, err
 	}
-	return string(dat)
+	return string(dat), nil
 }
 
 type extensionGregorHandler struct {

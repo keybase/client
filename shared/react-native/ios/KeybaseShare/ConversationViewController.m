@@ -39,7 +39,7 @@ const BOOL isSimulator = NO;
   [self setUnfilteredInboxItems:[NSArray new]];
   [self setFilteredInboxItems:[NSArray new]];
   
-  NSString* jsonInbox = KeybaseExtensionGetInbox();
+  NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
   [self parseInbox:jsonInbox];
   [super viewDidLoad];
 }
