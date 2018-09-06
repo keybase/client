@@ -306,7 +306,7 @@ function getDokanUninstallString(): Promise<string> {
   logger.info('getDokanUninstallString')
   return new Promise((resolve, reject) => {
     const regedit = require('regedit')
-    const uninstallRegPath = 'HKCU\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
+    const uninstallRegPath = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
     try {
       regedit.list(uninstallRegPath).on('data', function(entry) {
         const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
@@ -316,16 +316,16 @@ function getDokanUninstallString(): Promise<string> {
             }
         })
       })
-      reject(new Error('Failed to find dokan uninstall string'))
     } catch (err) {
       logger.error('getDokanUninstallString error', err)
+      reject(new Error('Failed to find dokan uninstall string'))
     }
   })
   .then(uninstallString => Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString})))
 }
 
-function getDokanUninstallStringSaga() {
-  return Saga.call(getDokanUninstallString)
+function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.call(getDokanUninstallString)
 }
 
 function installDokanSaga() {

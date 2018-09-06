@@ -43,6 +43,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onUninstall: dispatchProps.onUninstall,
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
+  getDokanUninstallString: dispatchProps.getDokanUninstallString,
   dokanUninstall: stateProps.dokanUninstallString ? () => dispatchProps._uninstallDokan() : undefined,
 })
 

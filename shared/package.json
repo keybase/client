@@ -234,6 +234,7 @@
     "react-hot-loader": "4.3.1",
     "react-test-renderer": "16.4.0",
     "redux-logger": "3.0.6",
+    "regedit": "2.2.7",
     "source-map-support": "0.5.6",
     "style-loader": "0.21.0",
     "uglifyjs-webpack-plugin": "1.2.5",
@@ -245,7 +246,6 @@
     "webpack-merge": "4.1.2"
   },
   "optionalDependencies": {
-    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master",
-    "regedit": "2.2.7"
+    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master"
   }
 }
