@@ -1225,6 +1225,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
+	d.SetupChatModules()
 	d.startupGregor()
 	d.startChatModules()
 
