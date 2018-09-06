@@ -791,3 +791,10 @@ func (c *ChatRPC) ChatAttachmentUploadProgress(
 	_ context.Context, _ chat1.ChatAttachmentUploadProgressArg) error {
 	return nil
 }
+
+// ChatPaymentInfo implements the chat1.NotifyChatInterface
+// for ChatRPC.
+func (c *ChatRPC) ChatPaymentInfo(
+	_ context.Context, _ chat1.ChatPaymentInfoArg) error {
+	return nil
+}
