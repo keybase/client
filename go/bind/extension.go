@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
@@ -24,11 +25,24 @@ import (
 	context "golang.org/x/net/context"
 )
 
-var ri chat1.RemoteClient
+var extensionRi chat1.RemoteClient
+var extensionInited bool
+var extensionInitMu sync.Mutex
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+	extensionInitMu.Lock()
+	defer extensionInitMu.Unlock()
 	defer func() { err = flattenError(err) }()
+	defer func() {
+		if err == nil {
+			extensionInited = true
+		}
+		kbCtx.Log.Debug("Init complete: err: %s extensionInited: %v", err, extensionInited)
+	}()
+	if extensionInited {
+		return nil
+	}
 	fmt.Printf("Go: Extension Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
@@ -53,7 +67,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 	var runMode kbconst.RunMode
 	if runMode, err = libkb.StringToRunMode(runModeStr); err != nil {
-		return
+		return err
 	}
 	config := libkb.AppConfig{
 		HomeDir:                        homeDir,
@@ -68,12 +82,12 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		ChatInboxSourceLocalizeThreads: 5,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
-		return
+		return err
 	}
 
 	svc := service.NewService(kbCtx, false)
 	if err = svc.StartLoopbackServer(); err != nil {
-		return
+		return err
 	}
 	kbCtx.SetService()
 	uir := service.NewUIRouter(kbCtx)
@@ -82,21 +96,20 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	svc.SetupCriticalSubServices()
 
 	var uid gregor1.UID
-	ri = chat1.RemoteClient{Cli: chat.OfflineClient{}}
-	svc.SetupChatModules(func() chat1.RemoteInterface { return ri })
+	extensionRi = chat1.RemoteClient{Cli: chat.OfflineClient{}}
+	svc.SetupChatModules(func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx = svc.ChatContextified.ChatG()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	if uid, err = assertLoggedInUID(context.Background(), gc); err != nil {
-		return
+		return err
 	}
-	if ri, err = getGregorClient(context.Background(), gc); err != nil {
-		return
+	if extensionRi, err = getGregorClient(context.Background(), gc); err != nil {
+		return err
 	}
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
-	kbCtx.Log.Debug("Init complete: err: %s", err)
-	return err
+	return nil
 }
 
 func assertLoggedInUID(ctx context.Context, gc *globals.Context) (uid gregor1.UID, err error) {
@@ -249,7 +262,8 @@ func ExtensionPostURL(strConvID, name string, public bool, body string) (err err
 	if err != nil {
 		return err
 	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc), func() chat1.RemoteInterface { return ri })
+	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
+		func() chat1.RemoteInterface { return extensionRi })
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_TEXT,
