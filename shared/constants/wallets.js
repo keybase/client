@@ -11,6 +11,7 @@ const balanceDeltaToString = invert(RPCTypes.localBalanceDelta)
 const statusSimplifiedToString = invert(RPCTypes.localPaymentStatus)
 const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
+const paymentStatus = RPCTypes.localPaymentStatus
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
 const confirmFormRouteKey = 'confirmForm'
@@ -344,6 +345,7 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
+  paymentStatus,
   paymentToCounterpartyType,
   paymentToYourRole,
   requestResultToRequest,
