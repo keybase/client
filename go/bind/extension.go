@@ -93,6 +93,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 		kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
 	})
+	kbCtx.Log.Debug("Init complete: err: %s", err)
 	return err
 }
 
