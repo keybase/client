@@ -133,12 +133,14 @@ func ExtensionGetInbox() string {
 }
 
 type extensionGregorHandler struct {
+	globals.Contextified
 	nist *libkb.NIST
 }
 
-func newExtensionGregorHandler(nist *libkb.NIST) *extensionGregorHandler {
+func newExtensionGregorHandler(gc *globals.Context, nist *libkb.NIST) *extensionGregorHandler {
 	return &extensionGregorHandler{
-		nist: nist,
+		Contextified: globals.NewContextified(gc),
+		nist:         nist,
 	}
 }
 
@@ -147,9 +149,13 @@ func (g *extensionGregorHandler) HandlerName() string {
 }
 func (g *extensionGregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
 	gcli := gregor1.AuthClient{Cli: cli}
+	uid := gregor1.UID(g.G().GetEnv().GetUID().ToBytes())
 	authRes, err := gcli.AuthenticateSessionToken(ctx, gregor1.SessionToken(g.nist.Token().String()))
 	if err != nil {
 		return err
+	}
+	if !authRes.Uid.Eq(uid) {
+		return errors.New("wrong uid authed")
 	}
 	return nil
 }
@@ -184,7 +190,7 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 	}
 
 	var conn *rpc.Connection
-	handler := newExtensionGregorHandler(nist)
+	handler := newExtensionGregorHandler(gc, nist)
 	if uri.UseTLS() {
 		rawCA := kbCtx.GetEnv().GetBundledCA(uri.Host)
 		if len(rawCA) == 0 {
@@ -197,7 +203,7 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
 	} else {
 		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(kbCtx))
-		conn = rpc.NewConnectionWithTransport(newExtensionGregorHandler(nist), t,
+		conn = rpc.NewConnectionWithTransport(handler, t,
 			libkb.NewContextifiedErrorUnwrapper(kbCtx),
 			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
 	}
@@ -207,8 +213,12 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
 }
 
-func stripChannel(name string) string {
-	return strings.Split(name, "#")[0]
+func restoreName(gc *globals.Context, name string) string {
+	if strings.Contains(name, "#") {
+		return strings.Split(name, "#")[0]
+	}
+	username := gc.GetEnv().GetUsername().String()
+	return name + "," + username
 }
 
 func ExtensionPostURL(strConvID, name string, public bool, body string) (err error) {
@@ -227,7 +237,7 @@ func ExtensionPostURL(strConvID, name string, public bool, body string) (err err
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_TEXT,
-			TlfName:     stripChannel(name),
+			TlfName:     restoreName(gc, name),
 			TlfPublic:   public,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{

@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import <Social/Social.h>
+#import "ConversationViewController.h"
 
-@interface ShareViewController : SLComposeServiceViewController
+@interface ShareViewController : SLComposeServiceViewController<ConversationViewDelegate>
 
 @end

@@ -8,6 +8,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ConversationViewController : UITableViewController <UISearchResultsUpdating>
+@protocol ConversationViewDelegate<NSObject>
+-(void)convSelected:(NSDictionary*)conv;
+@end
 
+@interface ConversationViewController : UITableViewController <UISearchResultsUpdating>
+@property UIViewController<ConversationViewDelegate> *delegate;
 @end

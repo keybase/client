@@ -7,11 +7,10 @@
 //
 
 #import "ShareViewController.h"
-#import "ConversationViewController.h"
 #import "keybase/keybase.h"
 
 @interface ShareViewController ()
-
+@property NSDictionary* convTarget;
 @end
 
 @implementation ShareViewController
@@ -21,29 +20,72 @@
     return YES;
 }
 
-- (void)didSelectPost {
-    // This is called after the user selects Post. Do the upload of contentText and/or NSExtensionContext attachments.
-  NSString* contentText = [self contentText];
-  NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
-  NSArray* items = [input attachments];
-  for (NSItemProvider* item in items) {
-    if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
-      NSLog(@"url");
+- (NSItemProvider*)getFirstSendableAttachment:(NSArray*)attachments {
+  NSItemProvider* item = nil;
+  for (NSItemProvider* a in attachments) {
+    if ([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]) {
+      item = a;
+      break;
     }
   }
-    // Inform the host that we're done, so it un-blocks its UI. Note: Alternatively you could call super's -didSelectPost, which will similarly complete the extension context.
+  if(!item) {
+    for (NSItemProvider* a in attachments) {
+      if ([a hasItemConformingToTypeIdentifier:@"public.image"]) {
+        item = a;
+        break;
+      }
+    }
+  }
+  if(!item) {
+    item = attachments.firstObject;
+  }
+  return item;
+}
+
+- (void)didSelectPost {
+  if (!self.convTarget) {
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+    return;
+  }
+  
+  NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
+  NSItemProvider* item = [self getFirstSendableAttachment:[input attachments]];
+  
+  NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
+    NSString* body = (self.contentText.length) ? [NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteString] : url.absoluteString;
+    KeybaseExtensionPostURL(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, &error);
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+    }];
+  };
+  
+  if([item hasItemConformingToTypeIdentifier:@"public.url"]) {
+    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+  } else {
+    [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+  }
 }
 
 - (NSArray *)configurationItems {
   SLComposeSheetConfigurationItem *item = [[SLComposeSheetConfigurationItem alloc] init];
   item.title = @"Share to...";
-  item.value = @"Please choose";
+  if (self.convTarget) {
+    item.value = self.convTarget[@"Name"];
+  } else {
+    item.value = @"Please choose";
+  }
   item.tapHandler = ^{
     ConversationViewController *viewController = [[ConversationViewController alloc] initWithStyle:UITableViewStylePlain];
+    viewController.delegate = self;
     [self pushConfigurationViewController:viewController];
   };
   return @[item];
+}
+
+- (void)convSelected:(NSDictionary *)conv {
+  [self setConvTarget:conv];
+  [self reloadConfigurationItems];
+  [self popConfigurationViewController];
 }
 
 @end

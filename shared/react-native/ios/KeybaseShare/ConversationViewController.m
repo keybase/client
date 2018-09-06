@@ -71,15 +71,26 @@ const BOOL isSimulator = NO;
     return [self.filteredInboxItems count];
 }
 
+- (NSDictionary*)getItemAtIndex:(NSIndexPath*)indexPath {
+  NSInteger index = [indexPath item];
+  return self.filteredInboxItems[index];
+}
+
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ConvCell"];
   if (NULL == cell) {
     cell = [[UITableViewCell alloc]  initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
   }
-  NSInteger index = [indexPath item];
-  NSString* name = self.filteredInboxItems[index][@"Name"];
-  [[cell textLabel] setText:name];
+  NSDictionary* item = [self getItemAtIndex:indexPath];
+  [[cell textLabel] setText:item[@"Name"]];
   return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+  NSDictionary* conv = [self getItemAtIndex:indexPath];
+  if (self.delegate) {
+    [self.delegate convSelected:conv];
+  }
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
