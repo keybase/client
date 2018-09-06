@@ -30,17 +30,17 @@ class NativeTransport extends TransportShared {
   }
 
   // We're always connected, so call the callback
-  connect(cb: () => void) {
+  connect = (cb: () => void) => {
     cb()
   }
-  is_connected() {
+  is_connected = () => {
     return true
   } // eslint-disable-line camelcase
 
   // Override and disable some built in stuff in TransportShared
-  reset() {}
-  close() {}
-  get_generation() {
+  reset = () => {}
+  close = () => {}
+  get_generation = () => {
     return 1
   } // eslint-disable-line camelcase
 
