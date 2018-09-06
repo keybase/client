@@ -4,7 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import WalletPopup from '../wallet-popup'
 
-type EnterNameProps = {
+type EnterNameProps = {|
   error?: string,
   name: string,
   onBack?: () => void,
@@ -12,7 +12,7 @@ type EnterNameProps = {
   onNameChange: string => void,
   onDone: () => void,
   waiting: boolean,
-}
+|}
 
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [

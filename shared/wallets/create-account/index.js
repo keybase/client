@@ -3,12 +3,12 @@ import * as React from 'react'
 import type {ValidationState} from '../../constants/types/wallets'
 import {EnterNamePopup} from '../common'
 
-type Props = {
+type Props = {|
   createNewAccountError: string,
   error: string,
   name: string,
   nameValidationState: ValidationState,
-  onBack: () => void,
+  onBack?: () => void,
   onCancel: () => void,
   onCheckName: (name: string) => void,
   onClearErrors: () => void,
@@ -16,11 +16,21 @@ type Props = {
   onDone: () => void,
   onNameChange: string => void,
   waiting: boolean,
-}
+|}
 
 class CreateAccount extends React.Component<Props> {
   render() {
-    return <EnterNamePopup {...this.props} onClose={this.props.onCancel} />
+    return (
+      <EnterNamePopup
+        error={this.props.error || this.props.createNewAccountError}
+        name={this.props.name}
+        onBack={this.props.onBack}
+        onCancel={this.props.onCancel}
+        onNameChange={this.props.onNameChange}
+        onDone={this.props.onDone}
+        waiting={this.props.waiting}
+      />
+    )
   }
 
   _onCheckName = () => {
