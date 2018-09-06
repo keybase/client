@@ -123,6 +123,7 @@ type GlobalContext struct {
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+	FeatureFlags        *FeatureFlagSet      // user's feature flag set
 
 	StandaloneChatConnector StandaloneChatConnector
 
@@ -183,6 +184,7 @@ func NewGlobalContext() *GlobalContext {
 		ActiveDevice:       NewActiveDevice(),
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
+		FeatureFlags:       NewFeatureFlagSet(),
 	}
 	return ret
 }
@@ -310,6 +312,8 @@ func (g *GlobalContext) Logout() error {
 
 	// send logout notification
 	g.NotifyRouter.HandleLogout()
+
+	g.FeatureFlags.Clear()
 
 	return nil
 }
