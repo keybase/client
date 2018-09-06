@@ -2,14 +2,7 @@
 import React, {Component} from 'react'
 import logger from '../../logger'
 import {Box, Text, Icon, HOCTimers, type PropsWithTimer} from '../../common-adapters'
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  globalZIndices,
-  platformStyles,
-  transition,
-} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, transition} from '../../styles'
 import {ignoreDisconnectOverlay} from '../../local-debug.desktop'
 import {RPCError} from '../../util/errors'
 
@@ -208,7 +201,7 @@ const containerOverlayStyle = {
   position: 'absolute',
   right: 0,
   top: 0,
-  zIndex: globalZIndices.errorOverlay,
+  zIndex: 1000,
 }
 
 const overlayRowStyle = {

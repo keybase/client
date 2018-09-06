@@ -17,8 +17,6 @@ export const globalMargins = {
 }
 /* eslint-enable sort-keys */
 
-export const globalZIndices = {errorOverlay: 10000}
-
 export const backgroundModeToColor = {
   Announcements: globalColors.blue,
   Documentation: globalColors.darkBlue,
