@@ -6,7 +6,7 @@ import type {ValidationState} from '../../constants/types/wallets'
 
 type View = 'key' | 'name'
 
-type Props = {
+type LinkWalletProps = {
   secretKey: string,
   linkExistingAccountError: string,
   onCancel: () => void,
@@ -25,11 +25,11 @@ type Props = {
   waiting: boolean,
 }
 
-type State = {
+type LinkWalletState = {
   view: View,
 }
 
-class LinkWallet extends React.Component<Props, State> {
+class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
   state = {view: this.props.view || 'key'}
   _onViewChange = (view: View) => this.setState(s => (s.view !== view ? {view} : null))
 
@@ -47,7 +47,7 @@ class LinkWallet extends React.Component<Props, State> {
   componentWillUnmount() {
     this.props.onClearErrors()
   }
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: LinkWalletProps, prevState: LinkWalletState) {
     if (this.props.secretKeyValidationState === 'valid' && this.state.view === 'key') {
       this.props.onClearErrors()
       this._onViewChange('name')
