@@ -19,6 +19,7 @@ type AuditParams struct {
 	NumPreProbes          int
 	NumPostProbes         int
 	Parallelism           int
+	LRUSize               int
 }
 
 var params = AuditParams{
@@ -27,6 +28,7 @@ var params = AuditParams{
 	NumPreProbes:          25,
 	NumPostProbes:         25,
 	Parallelism:           4,
+	LRUSize:               10000,
 }
 
 type Auditor struct {
@@ -399,8 +401,7 @@ func (a *Auditor) newLRU() {
 		a.lru.Purge()
 	}
 
-	// TODO - make this configurable
-	lru, err := lru.New(10000)
+	lru, err := lru.New(params.LRUSize)
 	if err != nil {
 		panic(err)
 	}
