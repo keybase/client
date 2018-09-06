@@ -81,8 +81,7 @@ class TransportShared extends RobustTransport {
     opts: Object,
     connectCallback: () => void,
     disconnectCallback: () => void,
-    incomingRPCCallback: (a: any) => void,
-    writeCallback: any
+    incomingRPCCallback: (a: any) => void
   ) {
     super(opts)
 
@@ -96,9 +95,6 @@ class TransportShared extends RobustTransport {
       },
     }
 
-    if (writeCallback) {
-      this.writeCallback = writeCallback
-    }
     if (incomingRPCCallback) {
       // delay the call back to us
       const handler = payload => {

@@ -22,19 +22,7 @@ const RNEmitter: {
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
-    super(
-      {},
-      connectCallback,
-      disconnectCallback,
-      incomingRPCCallback,
-      // We pass data over to the native side to be handled
-      (data: string) => {
-        if (printRPCBytes) {
-          console.log(`PRINTBridge JS sending data ${data}`)
-        }
-        nativeBridge.runWithData(data)
-      }
-    )
+    super({}, connectCallback, disconnectCallback, incomingRPCCallback)
 
     // We're connected locally so we never get disconnected
     this.needsConnect = false
@@ -65,7 +53,11 @@ class NativeTransport extends TransportShared {
     buf.set(len, 0)
     buf.set(packed, len.length)
     const b64 = fromByteArray(buf)
-    this.writeCallback(b64)
+    if (printRPCBytes) {
+      console.log(`PRINTBridge JS sending data ${b64}`)
+    }
+    // Pass data over to the native side to be handled
+    nativeBridge.runWithData(b64)
     return true
   }
 }
