@@ -2864,8 +2864,10 @@ func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
 	// Just an approximation since it doesn't include the size of the
 	// directory entry itself, but that's ok -- at worst it'll be an
 	// off-by-one-entry error, and since there's a maximum name length
-	// we can't get in too much trouble.
-	if currSize+uint64(len(newName)) > fbo.config.MaxDirBytes() {
+	// we can't get in too much trouble. TODO(KBFS-3306): remove this
+	// check.
+	if dirPath.tailPointer().DirectType == DirectBlock &&
+		currSize+uint64(len(newName)) > fbo.config.MaxDirBytes() {
 		return DirTooBigError{dirPath, currSize + uint64(len(newName)),
 			fbo.config.MaxDirBytes()}
 	}

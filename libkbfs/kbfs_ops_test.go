@@ -1260,6 +1260,7 @@ func testCreateEntryFailDirTooBig(t *testing.T, isDir bool) {
 	rootID := kbfsblock.FakeID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	node.BlockPointer.DirectType = DirectBlock
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
@@ -1301,6 +1302,7 @@ func TestRenameEntryFailDirTooBig(t *testing.T) {
 	rootID := kbfsblock.FakeID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	node.BlockPointer.DirectType = DirectBlock
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
