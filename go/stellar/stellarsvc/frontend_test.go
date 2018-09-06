@@ -1365,6 +1365,7 @@ func TestMakeRequestLocal(t *testing.T) {
 	// check the sender chat notification
 	select {
 	case info := <-listenerSender.requestInfos:
+		_ = info
 	case <-time.After(20 * time.Second):
 		t.Fatal("timed out waiting for chat request info notification to sender")
 	}
@@ -1374,11 +1375,13 @@ type chatListener struct {
 	libkb.NoopNotifyListener
 
 	paymentInfos chan chat1.ChatPaymentInfoArg
+	requestInfos chan chat1.ChatRequestInfoArg
 }
 
 func newChatListener() *chatListener {
 	x := &chatListener{
 		paymentInfos: make(chan chat1.ChatPaymentInfoArg, 1),
+		requestInfos: make(chan chat1.ChatRequestInfoArg, 1),
 	}
 	return x
 }
