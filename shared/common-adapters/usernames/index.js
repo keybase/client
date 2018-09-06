@@ -2,14 +2,7 @@
 import React, {Component} from 'react'
 import Text from '../text'
 import shallowEqual from 'shallowequal'
-import {
-  collapseStyles,
-  platformStyles,
-  styleSheetCreate,
-  globalStyles,
-  globalColors,
-  isMobile,
-} from '../../styles'
+import * as Styles from '../../styles'
 import {compose, connect, setDisplayName} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
 import * as ProfileGen from '../../actions/profile-gen'
@@ -33,19 +26,21 @@ function usernameText({
   inlineGrammar = false,
   showAnd = false,
 }: Props) {
-  const derivedJoinerStyle = collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
+  const derivedJoinerStyle = Styles.collapseStyles([joinerStyle, styles.joinerStyle, {color: commaColor}])
   return users.map((u, i) => {
     let userStyle = {
-      ...(!isMobile ? {textDecoration: 'inherit'} : null),
-      ...(colorFollowing && !u.you ? {color: u.following ? globalColors.green2 : globalColors.blue} : null),
-      ...(colorBroken && u.broken && !u.you ? {color: redColor || globalColors.red} : null),
-      ...(inline && !isMobile ? {display: 'inline'} : null),
-      ...(u.you ? globalStyles.italic : null),
+      ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
+      ...(colorFollowing && !u.you
+        ? {color: u.following ? Styles.globalColors.green2 : Styles.globalColors.blue}
+        : null),
+      ...(colorBroken && u.broken && !u.you ? {color: redColor || Styles.globalColors.red} : null),
+      ...(inline && !Styles.isMobile ? {display: 'inline'} : null),
+      ...(u.you ? Styles.globalStyles.italic : null),
       ...(colorYou && u.you
-        ? {color: typeof colorYou === 'string' ? colorYou : globalColors.black_75}
+        ? {color: typeof colorYou === 'string' ? colorYou : Styles.globalColors.black_75}
         : null),
     }
-    userStyle = collapseStyles([style, userStyle])
+    userStyle = Styles.collapseStyles([style, userStyle])
 
     // Make sure onClick is undefined when _onUsernameClicked is, so
     // as to not override any existing onClick handler from containers
@@ -81,7 +76,7 @@ function usernameText({
   })
 }
 
-const inlineProps = isMobile ? {lineClamp: 1} : {}
+const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
 
 class Usernames extends Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
@@ -102,7 +97,7 @@ class Usernames extends Component<Props> {
       <Text
         type={this.props.type}
         backgroundMode={this.props.backgroundMode}
-        style={collapseStyles([containerStyle, this.props.containerStyle])}
+        style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         {...(this.props.inline ? inlineProps : {})}
       >
@@ -116,7 +111,7 @@ class Usernames extends Component<Props> {
           <Text
             type={this.props.type}
             backgroundMode={this.props.backgroundMode}
-            style={collapseStyles([this.props.style, {marginRight: 1}])}
+            style={Styles.collapseStyles([this.props.style, {marginRight: 1}])}
           >
             #
           </Text>
@@ -132,7 +127,7 @@ class Usernames extends Component<Props> {
   }
 }
 
-const divider = isMobile ? ', ' : ',\u200a'
+const divider = Styles.isMobile ? ', ' : ',\u200a'
 
 class PlaintextUsernames extends Component<PlaintextProps> {
   shouldComponentUpdate(nextProps: PlaintextProps) {
@@ -152,7 +147,7 @@ class PlaintextUsernames extends Component<PlaintextProps> {
       <Text
         type={this.props.type}
         backgroundMode={this.props.backgroundMode}
-        style={collapseStyles([containerStyle, this.props.containerStyle])}
+        style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
         title={this.props.title}
         {...inlineProps}
       >
@@ -207,13 +202,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-const styles = styleSheetCreate({
-  joinerStyle: platformStyles({
+const styles = Styles.styleSheetCreate({
+  joinerStyle: Styles.platformStyles({
     isElectron: {
       textDecoration: 'none',
     },
   }),
-  inlineStyle: platformStyles({
+  inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
       overflow: 'hidden',
@@ -221,9 +216,9 @@ const styles = styleSheetCreate({
       whiteSpace: 'nowrap',
     },
   }),
-  nonInlineStyle: platformStyles({
+  nonInlineStyle: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       flexWrap: 'wrap',
     },
     isElectron: {
