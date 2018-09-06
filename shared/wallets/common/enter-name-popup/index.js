@@ -8,7 +8,7 @@ type EnterNameProps = {
   error?: string,
   name: string,
   onBack?: () => void,
-  onClose: () => void,
+  onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,
   waiting: boolean,
@@ -16,11 +16,11 @@ type EnterNameProps = {
 
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
-    <Kb.Button key={0} type="Secondary" onClick={props.onClose} label="Cancel" />,
+    <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
     <Kb.Button key={1} type="Wallet" onClick={props.onDone} label="Done" waiting={props.waiting} />,
   ]
   return (
-    <WalletPopup bottomButtons={buttons} onClose={props.onClose} onBack={props.onBack}>
+    <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
       <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text type="Header" style={styles.headerText}>
         Name your account

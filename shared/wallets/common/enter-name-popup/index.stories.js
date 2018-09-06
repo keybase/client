@@ -5,7 +5,7 @@ import EnterNamePopup from '.'
 
 const enterNameProps = {
   name: '',
-  onClose: Sb.action('onClose'),
+  onCancel: Sb.action('onCancel'),
   onDone: Sb.action('onDone'),
   onNameChange: Sb.action('onNameChange'),
   waiting: false,
