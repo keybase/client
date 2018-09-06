@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>BuildMachineOSBuild</key>
-	<string>16G24b</string>
+	<string>18A377a</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
@@ -23,33 +23,33 @@
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>3.6.3</string>
+	<string>3.8.2</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>
-	<string>7A1001</string>
+	<string>7D1014</string>
 	<key>DTPlatformVersion</key>
 	<string>GM</string>
 	<key>DTSDKBuild</key>
-	<string>14D125</string>
+	<string>15E60</string>
 	<key>DTSDKName</key>
-	<string>macosx10.10</string>
+	<string>macosx10.11</string>
 	<key>DTXcode</key>
-	<string>0701</string>
+	<string>0731</string>
 	<key>DTXcodeBuild</key>
-	<string>7A1001</string>
+	<string>7D1014</string>
 	<key>OSBundleLibraries</key>
 	<dict>
 		<key>com.apple.kpi.bsd</key>
-		<string>14.0.0</string>
+		<string>15.0.0</string>
 		<key>com.apple.kpi.iokit</key>
-		<string>14.0.0</string>
+		<string>15.0.0</string>
 		<key>com.apple.kpi.libkern</key>
-		<string>14.0.0</string>
+		<string>15.0.0</string>
 		<key>com.apple.kpi.mach</key>
-		<string>14.0.0</string>
+		<string>15.0.0</string>
 		<key>com.apple.kpi.unsupported</key>
-		<string>14.0.0</string>
+		<string>15.0.0</string>
 	</dict>
 </dict>
 </plist>
