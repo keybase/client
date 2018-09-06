@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/kbconst"
@@ -25,75 +24,77 @@ import (
 	context "golang.org/x/net/context"
 )
 
-var initExtensionOnce sync.Once
 var ri chat1.RemoteClient
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() { err = flattenError(err) }()
-	initExtensionOnce.Do(func() {
-		fmt.Printf("Go: Extension Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
-		if logFile != "" {
-			fmt.Printf("Go: Using log: %s\n", logFile)
-		}
+	fmt.Printf("Go: Extension Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	if logFile != "" {
+		fmt.Printf("Go: Using log: %s\n", logFile)
+	}
 
-		dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
-		dnsServers := dnsNSFetcher.GetServers()
-		for _, srv := range dnsServers {
-			fmt.Printf("Go: DNS Server: %s\n", srv)
-		}
+	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
+	dnsServers := dnsNSFetcher.GetServers()
+	for _, srv := range dnsServers {
+		fmt.Printf("Go: DNS Server: %s\n", srv)
+	}
 
-		kbCtx = libkb.NewGlobalContext()
-		kbCtx.Init()
-		kbCtx.SetServices(externals.GetServices())
+	kbCtx = libkb.NewGlobalContext()
+	kbCtx.Init()
+	kbCtx.SetServices(externals.GetServices())
 
-		// 10k uid -> FullName cache entries allowed
-		kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
-		usage := libkb.Usage{
-			Config:    true,
-			API:       true,
-			KbKeyring: true,
-		}
-		var runMode kbconst.RunMode
-		if runMode, err = libkb.StringToRunMode(runModeStr); err != nil {
-			return
-		}
-		config := libkb.AppConfig{
-			HomeDir:                        homeDir,
-			MobileSharedHomeDir:            mobileSharedHome,
-			MobileExtension:                true,
-			LogFile:                        logFile,
-			RunMode:                        runMode,
-			Debug:                          true,
-			LocalRPCDebug:                  "",
-			VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
-			SecurityAccessGroupOverride:    accessGroupOverride,
-			ChatInboxSourceLocalizeThreads: 5,
-		}
-		if err = kbCtx.Configure(config, usage); err != nil {
-			return
-		}
+	// 10k uid -> FullName cache entries allowed
+	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
+	usage := libkb.Usage{
+		Config:    true,
+		API:       true,
+		KbKeyring: true,
+	}
+	var runMode kbconst.RunMode
+	if runMode, err = libkb.StringToRunMode(runModeStr); err != nil {
+		return
+	}
+	config := libkb.AppConfig{
+		HomeDir:                        homeDir,
+		MobileSharedHomeDir:            mobileSharedHome,
+		MobileExtension:                true,
+		LogFile:                        logFile,
+		RunMode:                        runMode,
+		Debug:                          true,
+		LocalRPCDebug:                  "",
+		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
+		SecurityAccessGroupOverride:    accessGroupOverride,
+		ChatInboxSourceLocalizeThreads: 5,
+	}
+	if err = kbCtx.Configure(config, usage); err != nil {
+		return
+	}
 
-		svc := service.NewService(kbCtx, false)
-		if err = svc.StartLoopbackServer(); err != nil {
-			return
-		}
-		kbCtx.SetService()
-		uir := service.NewUIRouter(kbCtx)
-		kbCtx.SetUIRouter(uir)
-		kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
-		svc.SetupCriticalSubServices()
+	svc := service.NewService(kbCtx, false)
+	if err = svc.StartLoopbackServer(); err != nil {
+		return
+	}
+	kbCtx.SetService()
+	uir := service.NewUIRouter(kbCtx)
+	kbCtx.SetUIRouter(uir)
+	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
+	svc.SetupCriticalSubServices()
 
-		ri = chat.OfflineClient{}
-		svc.SetupChatModules(func() chat1.RemoteInterface { return ri })
-		gc := globals.NewContext(kbCtx, kbChatCtx)
-		if ri, err = getGregorClient(context.Background(), gc); err != nil {
-			return
-		}
-		kbChatCtx = svc.ChatContextified.ChatG()
-		kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
-		kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
-	})
+	var uid gregor1.UID
+	ri = chat1.RemoteClient{Cli: chat.OfflineClient{}}
+	svc.SetupChatModules(func() chat1.RemoteInterface { return ri })
+	kbChatCtx = svc.ChatContextified.ChatG()
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	if uid, err = assertLoggedInUID(context.Background(), gc); err != nil {
+		return
+	}
+	if ri, err = getGregorClient(context.Background(), gc); err != nil {
+		return
+	}
+	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
+	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
+	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbCtx.Log.Debug("Init complete: err: %s", err)
 	return err
 }

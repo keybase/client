@@ -28,6 +28,11 @@ const BOOL isSimulator = NO;
   NSError* error = NULL;
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
   KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
+  if (error != nil) {
+    NSLog(@"Failed to init: %@", error);
+    [super viewDidLoad];
+    return;
+  }
   
   self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
   self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
@@ -40,7 +45,11 @@ const BOOL isSimulator = NO;
   [self setFilteredInboxItems:[NSArray new]];
   
   NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
-  [self parseInbox:jsonInbox];
+  if (jsonInbox == nil) {
+    NSLog(@"failed to get inbox: %@", error);
+  } else {
+    [self parseInbox:jsonInbox];
+  }
   [super viewDidLoad];
 }
 
