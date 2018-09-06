@@ -26,7 +26,7 @@ const BOOL isSimulator = NO;
 
 - (void)viewDidLoad {
   NSError* error = NULL;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:NO setupSharedHome:NO];
   KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   if (error != nil) {
     NSLog(@"Failed to init: %@", error);

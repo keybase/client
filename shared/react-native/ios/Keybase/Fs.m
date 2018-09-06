@@ -49,7 +49,8 @@
     NSLog(@"Error listing directory contents: %@", error);
   } else {
     for (NSString* file in contents) {
-      if (![fm setAttributes:noProt ofItemAtPath:file error:&error]) {
+      NSString* filePath = [NSString stringWithFormat:@"%@/%@", path, file];
+      if (![fm setAttributes:noProt ofItemAtPath:filePath error:&error]) {
         NSLog(@"Error setting file attributes on file: %@ error: %@", file, error);
       }
     }

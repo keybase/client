@@ -107,7 +107,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		return err
 	}
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
-	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
+	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	return nil
 }
