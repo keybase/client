@@ -17,13 +17,13 @@ describe('TransportShared', () => {
 
     // Override Transport.is_connected -- see transport.iced in
     // framed-msgpack-rpc.
-    is_connected = () => {
+    is_connected() {
       return this.connected
     }
 
     // Override Packetizer.send -- see packetizer.iced in
     // framed-msgpack-rpc.
-    send = (msg: SendArg) => {
+    send(msg: SendArg) {
       this.lastMessage = msg
       return true
     }
