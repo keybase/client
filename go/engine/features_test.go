@@ -15,7 +15,7 @@ func TestFeatureFlagSet(t *testing.T) {
 	tc.G.SetClock(fakeClock)
 	m := NewMetaContextForTest(tc)
 	CreateAndSignupFakeUserPaper(tc, "feat")
-	on, err := tc.G.FeatureFlags.Enabled(m, libkb.FeatureFTL)
+	on, err := tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 	require.NoError(t, err)
 	require.False(t, on)
 
@@ -32,13 +32,13 @@ func TestFeatureFlagSet(t *testing.T) {
 	require.NoError(t, err)
 
 	// Still off, since it's still cached.
-	on, err = tc.G.FeatureFlags.Enabled(m, libkb.FeatureFTL)
+	on, err = tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 	require.NoError(t, err)
 	require.False(t, on)
 
 	fakeClock.Advance(time.Hour * 10)
 	for i := 0; i < 2; i++ {
-		on, err = tc.G.FeatureFlags.Enabled(m, libkb.FeatureFTL)
+		on, err = tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 		require.NoError(t, err)
 		require.True(t, on)
 	}

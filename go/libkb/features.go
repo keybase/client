@@ -92,8 +92,9 @@ func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 	f.cacheUntil = m.G().Clock().Now().Add(time.Duration(r.CacheSec) * time.Second)
 }
 
-// Enabled returns if the given feature is enabled
-func (s *FeatureFlagSet) Enabled(m MetaContext, f Feature) (on bool, err error) {
+// EnabledWithError returns if the given feature is enabled, it will return true if it's
+// enabled, and an error if one occurred.
+func (s *FeatureFlagSet) EnabledWithError(m MetaContext, f Feature) (on bool, err error) {
 	m = m.WithLogTag("FEAT")
 	slot := s.getOrMakeSlot(f)
 	slot.Lock()
@@ -120,6 +121,17 @@ func (s *FeatureFlagSet) Enabled(m MetaContext, f Feature) (on bool, err error) 
 	slot.readFrom(m, rawFeature)
 	m.CDebugf("Feature (fetched) %q -> %v (will cache for %ds)", f, slot.on, rawFeature.CacheSec)
 	return slot.on, nil
+}
+
+// Enabled returns if the feature flag is enabled. It ignore errors and just acts
+// as if the feature is off.
+func (s *FeatureFlagSet) Enabled(m MetaContext, f Feature) (on bool) {
+	on, err := s.EnabledWithError(m, f)
+	if err != nil {
+		m.CInfof("Error checking feature %q: %v", f, err)
+		return false
+	}
+	return on
 }
 
 // Clear clears out the cached feature flags, for instance if the user
