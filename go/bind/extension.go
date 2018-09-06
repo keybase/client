@@ -2,17 +2,22 @@ package keybase
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbconst"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
@@ -21,6 +26,7 @@ import (
 )
 
 var initExtensionOnce sync.Once
+var ri chat1.RemoteClient
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
@@ -77,14 +83,21 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		kbCtx.SetUIRouter(uir)
 		kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 		svc.SetupCriticalSubServices()
-		svc.SetupChatModules()
+
+		svc.SetupChatModules(func() chat1.RemoteInterface { return ri })
+		gc := globals.NewContext(kbCtx, kbChatCtx)
+		if ri, err = getGregorClient(context.Background(), gc); err != nil {
+			return
+		}
 		kbChatCtx = svc.ChatContextified.ChatG()
 		kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
+		kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return ri })
 	})
 	return err
 }
 
 func ExtensionGetInbox() string {
+	defer kbCtx.Trace("ExtensionGetInbox", func() error { return nil })()
 	var err error
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -117,4 +130,112 @@ func ExtensionGetInbox() string {
 		return ""
 	}
 	return string(dat)
+}
+
+type extensionGregorHandler struct {
+	nist *libkb.NIST
+}
+
+func newExtensionGregorHandler(nist *libkb.NIST) *extensionGregorHandler {
+	return &extensionGregorHandler{
+		nist: nist,
+	}
+}
+
+func (g *extensionGregorHandler) HandlerName() string {
+	return "extensionGregorHandler"
+}
+func (g *extensionGregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
+	gcli := gregor1.AuthClient{Cli: cli}
+	authRes, err := gcli.AuthenticateSessionToken(ctx, gregor1.SessionToken(g.nist.Token().String()))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (g *extensionGregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+}
+func (g *extensionGregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
+}
+func (g *extensionGregorHandler) OnDoCommandError(err error, nextTime time.Duration) {}
+func (g *extensionGregorHandler) ShouldRetry(name string, err error) bool {
+	return false
+}
+func (g *extensionGregorHandler) ShouldRetryOnConnect(err error) bool {
+	return false
+}
+
+func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.RemoteClient, err error) {
+	// Get session token
+	nist, _, err := kbCtx.ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		kbCtx.Log.CDebugf(ctx, "getGregorClient: got a nil NIST, is the user logged out?")
+		return res, errors.New("not logged in")
+	}
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to get logged in session: %s", err)
+		return res, err
+	}
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(kbCtx.GetEnv().GetGregorURI())
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to parse chat server UR: %s", err)
+		return res, err
+	}
+
+	var conn *rpc.Connection
+	handler := newExtensionGregorHandler(nist)
+	if uri.UseTLS() {
+		rawCA := kbCtx.GetEnv().GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to parse CAs: %s", err)
+			return
+		}
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(kbCtx),
+			handler, libkb.NewRPCLogFactory(kbCtx),
+			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(kbCtx))
+		conn = rpc.NewConnectionWithTransport(newExtensionGregorHandler(nist), t,
+			libkb.NewContextifiedErrorUnwrapper(kbCtx),
+			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
+	}
+	defer conn.Shutdown()
+
+	// Make remote successful call on our ad hoc conn
+	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
+}
+
+func stripChannel(name string) string {
+	return strings.Split(name, "#")[0]
+}
+
+func ExtensionPostURL(strConvID, name string, public bool, body string) (err error) {
+	defer kbCtx.Trace("ExtensionPostURL", func() error { return err })()
+	defer func() { err = flattenError(err) }()
+
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		return err
+	}
+	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc), func() chat1.RemoteInterface { return ri })
+	msg := chat1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			MessageType: chat1.MessageType_TEXT,
+			TlfName:     stripChannel(name),
+			TlfPublic:   public,
+		},
+		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: body,
+		}),
+	}
+	if _, _, err = sender.Send(ctx, convID, msg, 0, nil); err != nil {
+		return err
+	}
+	return nil
 }

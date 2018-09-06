@@ -279,7 +279,7 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
-	d.SetupChatModules()
+	d.SetupChatModules(nil)
 
 	d.RunBackgroundOperations(uir)
 
@@ -385,9 +385,11 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
-func (d *Service) SetupChatModules() {
+func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g := globals.NewContext(d.G(), d.ChatG())
-	ri := d.gregor.GetClient
+	if ri == nil {
+		ri = d.gregor.GetClient
+	}
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
@@ -1225,7 +1227,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
-	d.SetupChatModules()
+	d.SetupChatModules(nil)
 	d.startupGregor()
 	d.startChatModules()
 
