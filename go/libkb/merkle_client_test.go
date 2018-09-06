@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
 )
 
@@ -59,6 +60,44 @@ func TestMerkleSkipVectors(t *testing.T) {
 		}
 		if me.t != v.e {
 			t.Fatalf("Got wrong error type in test %s: %v != %v", v.name, me.t, v.e)
+		}
+	}
+}
+
+func TestComputeSetBitsBigEndian(t *testing.T) {
+	tests := []struct {
+		x        int
+		expected []int
+	}{
+		{0, nil},
+		{1, []int{1}},
+		{10, []int{2, 8}},
+		{500, []int{4, 16, 32, 64, 128, 256}},
+		{1024, []int{1024}},
+		{20000, []int{32, 512, 1024, 2048, 16384}},
+	}
+	for _, test := range tests {
+		got := computeSetBitsBigEndian(test.x)
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input %d, expected %v, got %v.", test.x, test.expected, got)
+		}
+	}
+}
+
+func TestComputeLogPatternMerkleSkips(t *testing.T) {
+	tests := []struct {
+		start    int
+		end      int
+		expected []int
+	}{
+		{100, 2033, []int{1009, 497, 241, 113, 105, 101}},
+		{100, 102, nil},
+		{100, 103, []int{101}},
+	}
+	for _, test := range tests {
+		got := computeLogPatternMerkleSkips(test.start, test.end)
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input (%d, %d), expected %v, got %v.", test.start, test.end, test.expected, got)
 		}
 	}
 }

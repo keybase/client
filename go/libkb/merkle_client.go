@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -392,6 +393,34 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 	} else {
 		*nhp = nh
 	}
+}
+
+func computeSetBitsBigEndian(x int) []int {
+	var ret []int
+	bit := 1
+	for i := 0; i <= int(math.Ceil(math.Log2(float64(x)))); i++ {
+		if x&bit != 0 {
+			ret = append(ret, bit)
+		}
+		bit *= 2
+	}
+	return ret
+}
+
+func computeLogPatternMerkleSkips(start int, end int) []int {
+	var ret []int
+	diff := end - start
+	if diff <= 0 {
+		return ret
+	}
+	skips := computeSetBitsBigEndian(diff)
+	curr := end
+	// Ignore first set bit
+	for i := len(skips) - 1; i > 0; i-- {
+		curr -= skips[i]
+		ret = append(ret, curr)
+	}
+	return ret
 }
 
 func NewMerkleClient(g *GlobalContext) *MerkleClient {
@@ -1027,15 +1056,22 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
 	defer m.CVTrace(VLog1, "SkipSequence#verify", func() error { return err })()
 
+	expectedSkips := computeLogPatternMerkleSkips(int(lastRoot), int(thisRoot))
+	// Don't check bookends that were added by client
+	if len(expectedSkips)+2 != len(ss) {
+		return MerkleClientError{fmt.Sprintf("Wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ss)), merkleErrorWrongSkipSequence}
+	}
+	for index := 1; index < len(ss)-1; index++ {
+		root := ss[index].seqno()
+		if keybase1.Seqno(expectedSkips[index-1]) != root {
+			return MerkleClientError{fmt.Sprintf("Unexpected skip index: expected %d, got %d.", expectedSkips[index-1], root), merkleErrorWrongSkipSequence}
+		}
+	}
+
 	for index := 0; index < len(ss)-1; index++ {
 		nextIndex := index + 1
 		thisRoot, prevRoot := ss[index].seqno(), ss[nextIndex].seqno()
 		m.VLogf(VLog1, "| Checking skip %d->%d", thisRoot, prevRoot)
-
-		// First check that the merkle Seqno sequence is strictly decreasing
-		if thisRoot <= prevRoot {
-			return MerkleClientError{fmt.Sprintf("Sequence error: %d <= %d", thisRoot, prevRoot), merkleErrorSkipSequence}
-		}
 
 		// Next compare the skip pointer in this merkle root against the hash of the previous
 		// root in the merkle root sequence. They must be equal.
@@ -1056,16 +1092,6 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 				merkleErrorOutOfOrderCtime,
 			}
 		}
-	}
-
-	// Enforce the invariant that the most recently published merkle root and the last gotten
-	// merkle root are the bookends of the sequence.  we should have set up datastructures
-	// previously so this is the case
-	if thisRoot != ss[0].seqno() {
-		return MerkleClientError{fmt.Sprintf("expected the left bookend of the SkipSequence to be this root, but %d != %d", thisRoot, ss[0].seqno()), merkleErrorNoLeftBookend}
-	}
-	if lastRoot != ss[len(ss)-1].seqno() {
-		return MerkleClientError{fmt.Sprintf("expected the right bookend of the SkipSequence to be last root, but %d != %d", thisRoot, ss[len(ss)-1].seqno()), merkleErrorNoRightBookend}
 	}
 
 	return nil
