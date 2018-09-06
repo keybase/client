@@ -180,7 +180,7 @@ func (s SimpleFSMock) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 
 // SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
 // into its logs.
-func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
 	return keybase1.FSSyncStatus{}, nil
 }
 
@@ -200,11 +200,6 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
 	return keybase1.FSFolderEditHistory{}, nil
-}
-
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSSuppressNotifications(_ context.Context, _ int) error {
-	return nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.

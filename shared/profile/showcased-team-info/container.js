@@ -49,7 +49,7 @@ const mapStateToProps = (state: TypedState, {team}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {team}: OwnProps) => {
   const teamname = team.fqName
   return {
     _checkRequestedAccess: () => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {team}: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')

@@ -67,7 +67,7 @@ export const ReactionTooltip = (props: Props) => {
         {isMobile && (
           <ClickableBox onClick={props.onAddReaction}>
             <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
-              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />{' '}
+              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />
               <Text type="BodySemibold" style={styles.addReactionButtonText}>
                 Add a reaction
               </Text>
@@ -117,7 +117,6 @@ const renderSectionHeader = ({
       conversationIDKey={section.conversationIDKey}
       ordinal={section.ordinal}
       emoji={section.title}
-      tooltipEnabled={false}
     />
     <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}

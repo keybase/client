@@ -64,7 +64,7 @@ func NewSignEncrypter() *SignEncrypter {
 	return &SignEncrypter{}
 }
 
-func (s *SignEncrypter) EncryptedLen(size int) int {
+func (s *SignEncrypter) EncryptedLen(size int64) int64 {
 	return signencrypt.GetSealedSize(size)
 }
 

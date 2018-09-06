@@ -1187,6 +1187,7 @@ type SimpleFSDumpDebuggingInfoArg struct {
 }
 
 type SimpleFSSyncStatusArg struct {
+	Filter ListFilter `codec:"filter" json:"filter"`
 }
 
 type SimpleFSGetHTTPAddressAndTokenArg struct {
@@ -1197,10 +1198,6 @@ type SimpleFSUserEditHistoryArg struct {
 
 type SimpleFSFolderEditHistoryArg struct {
 	Path Path `codec:"path" json:"path"`
-}
-
-type SimpleFSSuppressNotificationsArg struct {
-	SuppressDurationSec int `codec:"suppressDurationSec" json:"suppressDurationSec"`
 }
 
 type SimpleFSGetUserQuotaUsageArg struct {
@@ -1273,7 +1270,7 @@ type SimpleFSInterface interface {
 	// Instructs KBFS to dump debugging info into its logs.
 	SimpleFSDumpDebuggingInfo(context.Context) error
 	// Get sync status.
-	SimpleFSSyncStatus(context.Context) (FSSyncStatus, error)
+	SimpleFSSyncStatus(context.Context, ListFilter) (FSSyncStatus, error)
 	// This RPC generates a random token to be used by a client that needs to
 	// access KBFS content through HTTP. It's fine to call this RPC more than once,
 	// but it's probably best to call this once and keep using it. Clients should
@@ -1295,7 +1292,6 @@ type SimpleFSInterface interface {
 	// The writers are in descending order by the modification time (as
 	// recorded by the server) of their most recent edit.
 	SimpleFSFolderEditHistory(context.Context, Path) (FSFolderEditHistory, error)
-	SimpleFSSuppressNotifications(context.Context, int) error
 	// simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
 	// user.  It results in an RPC to the server, and any usage includes
 	// local journal usage as well.
@@ -1665,7 +1661,12 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.SimpleFSSyncStatus(ctx)
+					typedArgs, ok := args.(*[]SimpleFSSyncStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SimpleFSSyncStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.SimpleFSSyncStatus(ctx, (*typedArgs)[0].Filter)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1704,22 +1705,6 @@ func SimpleFSProtocol(i SimpleFSInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.SimpleFSFolderEditHistory(ctx, (*typedArgs)[0].Path)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"simpleFSSuppressNotifications": {
-				MakeArg: func() interface{} {
-					ret := make([]SimpleFSSuppressNotificationsArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SimpleFSSuppressNotificationsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]SimpleFSSuppressNotificationsArg)(nil), args)
-						return
-					}
-					err = i.SimpleFSSuppressNotifications(ctx, (*typedArgs)[0].SuppressDurationSec)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1908,8 +1893,9 @@ func (c SimpleFSClient) SimpleFSDumpDebuggingInfo(ctx context.Context) (err erro
 }
 
 // Get sync status.
-func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context) (res FSSyncStatus, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{SimpleFSSyncStatusArg{}}, &res)
+func (c SimpleFSClient) SimpleFSSyncStatus(ctx context.Context, filter ListFilter) (res FSSyncStatus, err error) {
+	__arg := SimpleFSSyncStatusArg{Filter: filter}
+	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSyncStatus", []interface{}{__arg}, &res)
 	return
 }
 
@@ -1944,12 +1930,6 @@ func (c SimpleFSClient) SimpleFSUserEditHistory(ctx context.Context) (res []FSFo
 func (c SimpleFSClient) SimpleFSFolderEditHistory(ctx context.Context, path Path) (res FSFolderEditHistory, err error) {
 	__arg := SimpleFSFolderEditHistoryArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSFolderEditHistory", []interface{}{__arg}, &res)
-	return
-}
-
-func (c SimpleFSClient) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) (err error) {
-	__arg := SimpleFSSuppressNotificationsArg{SuppressDurationSec: suppressDurationSec}
-	err = c.Cli.Call(ctx, "keybase.1.SimpleFS.simpleFSSuppressNotifications", []interface{}{__arg}, nil)
 	return
 }
 

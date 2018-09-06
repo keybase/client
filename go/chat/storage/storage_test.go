@@ -954,3 +954,30 @@ func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
 	err = CheckAndRecordPrevPointer(context.Background(), tc.Context(), 1, chat1.ConversationID("bar"), chat1.Hash("foo2"))
 	require.Error(t, err)
 }
+
+func TestStorageMultipleEdits(t *testing.T) {
+	_, s, uid := setupStorageTest(t, "multiEdits")
+
+	msgText := makeText(1, "initial")
+	edit1 := makeEdit(2, msgText.GetMessageID())
+	edit2 := makeEdit(3, msgText.GetMessageID())
+	conv := makeConversation(edit2.GetMessageID())
+
+	// Merge in text message
+	mustMerge(t, s, conv.GetConvID(), uid, []chat1.MessageUnboxed{msgText})
+	conv.ReaderInfo.MaxMsgid = msgText.GetMessageID()
+	fetchRes, err := s.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(fetchRes.Thread.Messages))
+	require.Equal(t, msgText.GetMessageID(), fetchRes.Thread.Messages[0].GetMessageID())
+	require.Zero(t, fetchRes.Thread.Messages[0].Valid().ServerHeader.SupersededBy)
+
+	// Merge in both edits
+	mustMerge(t, s, conv.GetConvID(), uid, []chat1.MessageUnboxed{edit2, edit1})
+	conv.ReaderInfo.MaxMsgid = edit2.GetMessageID()
+	fetchRes, err = s.Fetch(context.TODO(), conv, uid, nil, nil, nil)
+	require.NoError(t, err)
+	require.Equal(t, 3, len(fetchRes.Thread.Messages))
+	require.Equal(t, msgText.GetMessageID(), fetchRes.Thread.Messages[2].GetMessageID())
+	require.Equal(t, edit2.GetMessageID(), fetchRes.Thread.Messages[2].Valid().ServerHeader.SupersededBy)
+}

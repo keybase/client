@@ -98,7 +98,7 @@ const Border = ({
       borderRadius,
       bottom: isTeam ? 0 : 1,
       boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
-        !borderColor ? (isTeam ? globalColors.black_05 : '') : borderColor
+        !borderColor ? (isTeam ? globalColors.black_10 : '') : borderColor
       } ${isTeam ? 'inset' : ''}`,
       flexShrink: 0,
       left: isTeam ? 0 : 1,
@@ -140,7 +140,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
         {(!!this.props.borderColor || this.props.isTeam) && (
           <Border
             isTeam={this.props.isTeam}
-            borderColor={this.props.borderColor || globalColors.black_05}
+            borderColor={this.props.borderColor || globalColors.black_10}
             size={this.props.size}
             borderRadius={borderRadius}
           />

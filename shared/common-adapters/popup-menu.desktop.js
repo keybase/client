@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {ModalLessPopupMenuProps, Props, HeaderTextProps} from './popup-menu'
-import {Box, Text} from '../common-adapters/index'
+import {Box, Divider, Text} from '../common-adapters/index'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../styles'
 
@@ -40,7 +40,7 @@ class ModalLessPopupMenu extends Component<ModalLessPopupMenuProps> {
             >
               {this.props.items.filter(Boolean).map((i, idx) => {
                 if (i === 'Divider') {
-                  return <Divider key={idx} />
+                  return <Divider key={idx} style={{marginBottom: 8, marginTop: 8}} />
                 }
 
                 let hoverClassName
@@ -155,7 +155,7 @@ class OLDPopupMenu extends Component<Props> {
             >
               {this.props.items.filter(Boolean).map((i, idx) => {
                 if (i === 'Divider') {
-                  return <Divider key={idx} />
+                  return <Divider key={idx} style={{marginBottom: 8, marginTop: 8}} />
                 }
 
                 let hoverClassName
@@ -202,10 +202,6 @@ class OLDPopupMenu extends Component<Props> {
     )
   }
 }
-
-const Divider = () => (
-  <Box style={{height: 1, backgroundColor: globalColors.black_05, marginTop: 8, marginBottom: 8}} />
-)
 
 const PopupHeaderText = ({color, backgroundColor, style, children}: HeaderTextProps) => (
   <Text

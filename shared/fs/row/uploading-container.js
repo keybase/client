@@ -9,7 +9,7 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState, {path}: OwnProps) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.makeUnknownPathItem())
+  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
   const _uploads = state.fs.uploads
   const _username = state.config.username
   return {
@@ -35,6 +35,6 @@ const mergeProps = ({_pathItem, _uploads, _username}, dispatchProps, {path}: Own
 }
 
 export default compose(
-  connect(mapStateToProps, undefined, mergeProps),
+  connect(mapStateToProps, () => ({}), mergeProps),
   setDisplayName('ConnectedUploadingRow')
 )(Uploading)

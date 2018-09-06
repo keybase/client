@@ -57,6 +57,7 @@ const onChangeSelectedSearchResultHoc = compose(
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
+  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),

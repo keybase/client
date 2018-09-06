@@ -88,7 +88,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	ad := m.ActiveDevice()
 	// cached paper key status
-	if pk := ad.PaperKey(m); pk != nil {
+	if pk := ad.ProvisioningKey(m); pk != nil {
 		if pk.EncryptionKey() != nil {
 			res.PaperEncKeyCached = true
 		}
@@ -104,7 +104,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	current, all, err := GetAllProvisionedUsernames(m)
 	if err != nil {
-		m.CDebugf("| died in GetAllUseranmes()")
+		m.CDebugf("| died in GetAllUsernames()")
 		return res, err
 	}
 	res.DefaultUsername = current.String()

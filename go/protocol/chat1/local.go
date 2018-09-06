@@ -7,6 +7,7 @@ import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -800,23 +801,23 @@ func (o MessageReaction) DeepCopy() MessageReaction {
 }
 
 type MessageSendPayment struct {
-	KbTxID string `codec:"kbTxID" json:"kbTxID"`
+	PaymentID stellar1.PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
 func (o MessageSendPayment) DeepCopy() MessageSendPayment {
 	return MessageSendPayment{
-		KbTxID: o.KbTxID,
+		PaymentID: o.PaymentID.DeepCopy(),
 	}
 }
 
 type MessageRequestPayment struct {
-	RequestID string `codec:"requestID" json:"requestID"`
-	Note      string `codec:"note" json:"note"`
+	RequestID stellar1.KeybaseRequestID `codec:"requestID" json:"requestID"`
+	Note      string                    `codec:"note" json:"note"`
 }
 
 func (o MessageRequestPayment) DeepCopy() MessageRequestPayment {
 	return MessageRequestPayment{
-		RequestID: o.RequestID,
+		RequestID: o.RequestID.DeepCopy(),
 		Note:      o.Note,
 	}
 }
@@ -3074,6 +3075,7 @@ type GetThreadQuery struct {
 	MarkAsRead               bool              `codec:"markAsRead" json:"markAsRead"`
 	MessageTypes             []MessageType     `codec:"messageTypes" json:"messageTypes"`
 	DisableResolveSupersedes bool              `codec:"disableResolveSupersedes" json:"disableResolveSupersedes"`
+	EnableDeletePlaceholders bool              `codec:"enableDeletePlaceholders" json:"enableDeletePlaceholders"`
 	Before                   *gregor1.Time     `codec:"before,omitempty" json:"before,omitempty"`
 	After                    *gregor1.Time     `codec:"after,omitempty" json:"after,omitempty"`
 	MessageIDControl         *MessageIDControl `codec:"messageIDControl,omitempty" json:"messageIDControl,omitempty"`
@@ -3094,6 +3096,7 @@ func (o GetThreadQuery) DeepCopy() GetThreadQuery {
 			return ret
 		})(o.MessageTypes),
 		DisableResolveSupersedes: o.DisableResolveSupersedes,
+		EnableDeletePlaceholders: o.EnableDeletePlaceholders,
 		Before: (func(x *gregor1.Time) *gregor1.Time {
 			if x == nil {
 				return nil
@@ -4475,6 +4478,9 @@ type PostFileAttachmentMessageLocalNonblockArg struct {
 	TlfName           string                       `codec:"tlfName" json:"tlfName"`
 	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
 	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
+	Filename          string                       `codec:"filename" json:"filename"`
+	Title             string                       `codec:"title" json:"title"`
+	Metadata          []byte                       `codec:"metadata" json:"metadata"`
 	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
 	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }

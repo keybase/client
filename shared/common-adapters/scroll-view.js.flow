@@ -4,7 +4,7 @@ import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {|
   children?: React.Node,
-  contentContainerStyle?: Object,
+  contentContainerStyle?: StylesCrossPlatform,
   style?: StylesCrossPlatform,
 
   // mobile only

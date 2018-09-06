@@ -34,6 +34,7 @@ const AssetInput = (props: Props) => (
           </Text>
         </Box2>
       }
+      containerStyle={styles.inputContainer}
       style={styles.input}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
@@ -48,9 +49,10 @@ const AssetInput = (props: Props) => (
           <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
             {props.warningAsset}
           </Text>
+          .
         </Text>
       )}
-    {props.warningPayee && (
+    {!!props.warningPayee && (
       <Text type="BodySmallError">
         {props.warningPayee} doesn't accept{' '}
         <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
@@ -81,6 +83,9 @@ const styles = styleSheetCreate({
     color: globalColors.purple2,
     position: 'relative',
     top: -8,
+  },
+  inputContainer: {
+    borderWidth: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',

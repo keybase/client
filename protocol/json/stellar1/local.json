@@ -26,6 +26,10 @@
         {
           "type": "string",
           "name": "balanceDescription"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
         }
       ]
     },
@@ -483,22 +487,6 @@
           "name": "amountDescription"
         },
         {
-          "type": "string",
-          "name": "amountStellar"
-        },
-        {
-          "type": "string",
-          "name": "amountStellarDescription"
-        },
-        {
-          "type": "boolean",
-          "name": "completed"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "fundingKbTxID"
-        },
-        {
           "type": "RequestStatus",
           "name": "status"
         }
@@ -745,7 +733,10 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
@@ -1086,6 +1077,10 @@
     "getRequestDetailsLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
@@ -1095,11 +1090,50 @@
     "cancelRequestLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
       ],
       "response": null
+    },
+    "makeRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
     },
     "balancesLocal": {
       "request": [

@@ -170,7 +170,7 @@ class ProfileRender extends PureComponent<Props, State> {
                 ...Styles.globalStyles.flexBoxColumn,
                 padding: Styles.globalMargins.small,
                 alignItems: 'center',
-                borderBottom: `1px solid ${Styles.globalColors.black_05}`,
+                borderBottom: `1px solid ${Styles.globalColors.black_10}`,
               }}
             >
               <PlatformIcon
@@ -460,6 +460,7 @@ class ProfileRender extends PureComponent<Props, State> {
                   )}
                 {proofMenuContent && (
                   <FloatingMenu
+                    closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
                     attachTo={this.state.selectedProofMenuRowRef}

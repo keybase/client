@@ -1,13 +1,13 @@
 // @flow
 import Files from './index'
 import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
 import {connect, compose, lifecycle, type TypedState} from '../../util/container'
-import * as StateMappers from '../../fs/utils/state-mappers'
 import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import {navigateAppend} from '../../actions/route-tree'
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
+  const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
     kbfsEnabled,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
 }
 
 const ConnectedFiles = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidMount() {
       this.props.getFuseStatus()

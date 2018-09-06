@@ -77,9 +77,19 @@ export type DefaultProps = {
   keyboardType: KeyboardType,
   textType: TextType,
 }
+
+export type Selection = {start: number, end: number}
+
+export type TextInfo = {
+  text: string,
+  selection: Selection,
+}
+
 export type InternalProps = DefaultProps & Props
 declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
+  // Supported only on desktop right now
+  transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }

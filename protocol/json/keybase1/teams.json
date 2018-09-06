@@ -415,7 +415,8 @@
             "values": "PerTeamKeySeedItem",
             "keys": "PerTeamKeyGeneration"
           },
-          "name": "perTeamKeySeeds"
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
         },
         {
           "type": {
@@ -447,6 +448,184 @@
             "keys": "TeamApplication"
           },
           "name": "tlfCryptKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamData",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "FastTeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "latestKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LinkTriple",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "SeqType",
+          "name": "seqType"
+        },
+        {
+          "type": "LinkID",
+          "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpPointer",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "ourSeqno"
+        },
+        {
+          "type": "TeamID",
+          "name": "parentID"
+        },
+        {
+          "type": "Seqno",
+          "name": "parentSeqno"
+        },
+        {
+          "type": "boolean",
+          "name": "deletion"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownPointer",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "nameComponent"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamSigChainState",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "TeamName",
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": [
+            null,
+            "LinkTriple"
+          ],
+          "name": "last"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsVerified"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "DownPointer",
+            "keys": "Seqno"
+          },
+          "name": "downPointers"
+        },
+        {
+          "type": [
+            null,
+            "UpPointer"
+          ],
+          "name": "lastUpPointer"
+        },
+        {
+          "type": "UnixTime",
+          "name": "perTeamKeyCTime"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "linkIDs"
         }
       ]
     },
@@ -686,6 +865,14 @@
         {
           "type": "LinkID",
           "name": "lastLinkID"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastHighSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastHighLinkID"
         },
         {
           "type": [
@@ -978,6 +1165,20 @@
         {
           "type": "TeamID",
           "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNewlyAddedRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
         }
       ]
     },
@@ -1343,6 +1544,56 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplication"
+          },
+          "name": "applications"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerTeamKeyGeneration"
+          },
+          "name": "keyGenerationsNeeded"
+        },
+        {
+          "type": "boolean",
+          "name": "needLatestKey"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadRes",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "applicationKeys"
         }
       ]
     },

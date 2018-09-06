@@ -413,7 +413,23 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 	case SCDeleted:
 		return UserDeletedError{Msg: s.Desc}
 	case SCDecryptionError:
-		return DecryptionError{}
+		ret := DecryptionError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
+	case SCSigCannotVerify:
+		ret := VerificationError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "Cause":
+				ret.Cause = fmt.Errorf(field.Value)
+			}
+		}
+		return ret
 	case SCKeyRevoked:
 		return KeyRevokedError{msg: s.Desc}
 	case SCDeviceNameInUse:
@@ -686,13 +702,11 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return e
 	case SCEphemeralPairwiseMACsMissingUIDs:
-		e := EphemeralPairwiseMACsMissingUIDsError{}
 		uids := []keybase1.UID{}
 		for _, field := range s.Fields {
 			uids = append(uids, keybase1.UID(field.Value))
 		}
-		e.UIDs = uids
-		return e
+		return NewEphemeralPairwiseMACsMissingUIDsError(uids)
 	case SCMerkleClientError:
 		e := MerkleClientError{m: s.Desc}
 		for _, field := range s.Fields {
@@ -706,6 +720,8 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 			}
 		}
 		return e
+	case SCTeamFTLOutdated:
+		return NewTeamFTLOutdatedError(s.Desc)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1890,7 +1906,19 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
-		Desc: e.Error(),
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
+	}
+}
+
+func (e VerificationError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCannotVerify,
+		Name: "SC_SIG_CANNOT_VERIFY",
+		Fields: []keybase1.StringKVPair{
+			{Key: "Cause", Value: e.Cause.Error()},
+		},
 	}
 }
 
@@ -2312,5 +2340,12 @@ func (e MerkleClientError) ToStatus() (ret keybase1.Status) {
 	ret.Name = "MERKLE_CLIENT_ERROR"
 	ret.Fields = append(ret.Fields, keybase1.StringKVPair{Key: "type", Value: fmt.Sprintf("%d", int(e.t))})
 	ret.Desc = e.m
+	return ret
+}
+
+func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCTeamFTLOutdated
+	ret.Name = "TEAM_FTL_OUTDATED"
+	ret.Desc = e.msg
 	return ret
 }

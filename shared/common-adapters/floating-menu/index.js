@@ -13,7 +13,7 @@ import MenuLayout, {type MenuItem} from './menu-layout'
 import {type StylesCrossPlatform} from '../../styles'
 
 export type Props = {|
-  closeOnSelect?: boolean,
+  closeOnSelect: boolean,
   containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
   header?: MenuItem,
@@ -43,7 +43,7 @@ export default (props: Props) => {
         header={props.header}
         onHidden={props.onHidden}
         items={props.items}
-        closeOnClick={!!props.closeOnSelect}
+        closeOnClick={props.closeOnSelect}
       />
     </Overlay>
   )

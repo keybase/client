@@ -12,7 +12,7 @@ import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
 import MinWriterRole from './min-writer-role/container'
 
-const border = `1px solid ${globalColors.black_05}`
+const border = `1px solid ${globalColors.black_10}`
 const listStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
@@ -23,13 +23,13 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
+        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
-type InfoPanelProps = {
+type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
   participants: Array<{
     username: string,
@@ -64,7 +64,8 @@ type InfoPanelProps = {
   onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
-} & HeaderHocProps
+  ...$Exact<HeaderHocProps>,
+|}
 
 // FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
 // use this.props in _renderRow instead

@@ -721,12 +721,6 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
-	// switch e := err.(type){
-	// case teams.TeamDoesNotExistError:
-
-	// default:
-	// 	t.Fatalf("expected error type libkb.RecipientNotFoundError, got %T (%s)", err, err)
-	// }
 	if e, ok := err.(libkb.AppStatusError); !ok || e.Code != libkb.SCTeamReadError {
 		t.Fatalf("expected error type libkb.AppStatusError with code %v, got %T (%+v)", libkb.SCTeamReadError, err, err)
 	}
@@ -734,7 +728,7 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 
 	// u2 is part of the team, keyfinding should succeed.
 	u2.Login(tc.G)
-	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
 	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
 	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
 	err = engine.RunEngine2(m, eng)
@@ -830,6 +824,118 @@ func TestSaltpackRecipientKeyfinderTeam(t *testing.T) {
 
 }
 
+func TestSaltpackRecipientKeyfinderTeamWithDeletedUser(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u2, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+
+	_, teamName := createTeam(tc)
+	_, err = teams.AddMember(context.TODO(), tc.G, teamName, u1.Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	// u2 is part of the team, keyfinding should succeed.
+	// We look for keys for the team, including the device keys of the members
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	uis := libkb.UIs{IdentifyUI: trackUI, SecretUI: u2.NewSecretUI()}
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		TeamRecipients: []string{teamName},
+		UseEntityKeys:  true,
+		UseDeviceKeys:  true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 3 { // 1 device key for u1, 1 device key + 1 puk for u2 (as he is the sender).
+		t.Errorf("number of DH keys found: %d, expected 3", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u2PUK := u2.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u2PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u2PUK)
+	}
+
+	key, err := u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID := key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+	key, err = u2.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u2.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+
+	team, err := teams.Load(m.Ctx(), m.G(), keybase1.LoadTeamArg{Name: teamName})
+	require.NoError(t, err)
+	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
+	require.NoError(t, err)
+
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+
+	// Now we delete user u2, and we check that u1 is still able to find keys for the team (which do not include keys for u2).
+	kbtest.DeleteAccount(tc, u2)
+
+	u1.Login(tc.G)
+	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		TeamRecipients: []string{teamName},
+		UseEntityKeys:  true,
+		UseDeviceKeys:  true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys = eng.GetPublicKIDs()
+	if len(fDHKeys) != 2 { // 1 device key + 1 puk for u1 (as he is the sender and the only member of the team).
+		t.Errorf("number of DH keys found: %d, expected 3", len(fDHKeys))
+	}
+	fDHKeyset = make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u1PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u2PUK)
+	}
+
+	key, err = u1.User.GetComputedKeyFamily().GetEncryptionSubkeyForDevice(u1.User.GetComputedKeyFamily().GetAllActiveDevices()[0].ID)
+	require.NoError(t, err)
+	KID = key.GetKID()
+	if _, ok := fDHKeyset[KID]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", KID)
+	}
+
+	symKeys = eng.GetSymmetricKeys()
+
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+}
+
 func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
 	defer tc.Cleanup()
@@ -864,6 +970,74 @@ func TestSaltpackRecipientKeyfinderImplicitTeam(t *testing.T) {
 	u1.Login(tc.G)
 
 	uis = libkb.UIs{IdentifyUI: trackUI, SecretUI: u1.NewSecretUI()}
+	arg = libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+	}
+	eng = NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	m = libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	fDHKeys := eng.GetPublicKIDs()
+	if len(fDHKeys) != 1 { // This is the sender's own PUK
+		t.Errorf("number of DH keys found: %d, expected 1", len(fDHKeys))
+	}
+	fDHKeyset := make(map[keybase1.KID]struct{})
+	for _, fPUK := range fDHKeys {
+		fDHKeyset[fPUK] = struct{}{}
+	}
+
+	u1PUK := u1.User.GetComputedKeyFamily().GetLatestPerUserKey().EncKID
+	if _, ok := fDHKeyset[u1PUK]; !ok {
+		t.Errorf("expected to find key %v, which was not retrieved", u1PUK)
+	}
+
+	symKeys := eng.GetSymmetricKeys()
+	if len(symKeys) != 1 {
+		t.Errorf("number of symmetric keys found: %d, expected 1", len(symKeys))
+	}
+
+	team, _, _, err := teams.LookupImplicitTeam(m.Ctx(), m.G(), u1.Username+","+nonExistingUserAssertion, false)
+	require.NoError(t, err)
+	teamSaltpackKey, err := team.SaltpackEncryptionKeyLatest(m.Ctx())
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(teamSaltpackKey.Key[:], symKeys[0].Key[:]))
+}
+
+func TestSaltpackRecipientKeyfinderImplicitTeamNoSelfEncrypt(t *testing.T) {
+	tc := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine")
+	defer tc.Cleanup()
+
+	teams.ServiceInit(tc.G)
+
+	// First, try to get keys for a non existing user assertion with NoSelfEncrypt, which should fail
+	u1, err := kbtest.CreateAndSignupFakeUser("spkfe", tc.G)
+	require.NoError(t, err)
+	u1.Login(tc.G)
+
+	b, err := libkb.RandBytes(4)
+	require.NoError(tc.T, err)
+	nonExistingUserAssertion := "u_" + hex.EncodeToString(b) + "@rooter"
+
+	trackUI := &kbtest.FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+
+	uis := libkb.UIs{IdentifyUI: trackUI}
+	arg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:    []string{nonExistingUserAssertion},
+		UseEntityKeys: true,
+		NoSelfEncrypt: true,
+	}
+	eng := NewSaltpackRecipientKeyfinderEngineAsInterfaceForTesting(arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	err = engine.RunEngine2(m, eng) // Should fail
+	if _, ok := err.(libkb.RecipientNotFoundError); !ok {
+		t.Fatalf("expected error type libkb.RecipientNotFoundError, got %T (%s)", err, err)
+	}
+
+	// Now, try again without NoSelfEncrypt, which should succeed
 	arg = libkb.SaltpackRecipientKeyfinderArg{
 		Recipients:    []string{nonExistingUserAssertion},
 		UseEntityKeys: true,

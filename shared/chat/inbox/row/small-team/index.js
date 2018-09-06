@@ -16,8 +16,9 @@ import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
 import * as RowSizes from '../sizes'
 
-type Props = {
+export type Props = {
   backgroundColor: string,
+  channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
   hasUnread: boolean,
@@ -37,6 +38,7 @@ type Props = {
   usernameColor: string,
   youAreReset: boolean,
   youNeedToRekey: boolean,
+  isInWidget?: boolean,
 }
 
 type State = {
@@ -63,7 +65,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
     this.props.isSelected
       ? this.props.backgroundColor
       : this.state.isHovered
-        ? globalColors.blue4
+        ? globalColors.blueGrey2
         : this.props.backgroundColor
 
   render() {
@@ -104,10 +106,12 @@ class SmallTeam extends React.PureComponent<Props, State> {
               iconHoverColor={props.iconHoverColor}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
-              showGear={!!props.teamname && !isMobile}
+              showGear={!!props.teamname && !isMobile && !props.isInWidget}
               subColor={props.subColor}
               timestamp={props.timestamp}
               usernameColor={props.usernameColor}
+              teamname={props.teamname}
+              {...(props.channelname ? {channelname: props.channelname} : {})}
             />
 
             <BottomLine

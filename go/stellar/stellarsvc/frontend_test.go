@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -39,10 +43,13 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, accountID, accts[0].AccountID, accountID)
 	require.True(t, accts[0].IsDefault)
 	require.Equal(t, "", accts[0].Name) // TODO: once we can set the name on an account, check this
-	require.Equal(t, "10,000 XLM", accts[0].BalanceDescription)
+	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
+	require.NotEmpty(t, accts[0].Seqno)
+
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, "", accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
+	require.NotEmpty(t, accts[1].Seqno)
 }
 
 func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
@@ -71,7 +78,7 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 	require.Equal(t, "XLM", assets[0].AssetCode)
 	require.Equal(t, "Stellar network", assets[0].IssuerName)
 	require.Equal(t, "", assets[0].IssuerAccountID)
-	require.Equal(t, "10,000", assets[0].BalanceTotal)
+	require.Equal(t, "10,000.00", assets[0].BalanceTotal)
 	require.Equal(t, "9,998.9999900", assets[0].BalanceAvailableToSend)
 	require.Equal(t, "USD", assets[0].WorthCurrency)
 	require.Equal(t, "$3,183.28", assets[0].Worth)
@@ -628,6 +635,12 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "recipient: Stellar account ID must be 56 chars long: was 15", err.Error())
 	}
 
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		From:          accountIDSender,
 		To:            tcs[1].Fu.Username,
@@ -683,6 +696,52 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
 
+	// pretend that the chat message was unboxed and call the payment loader to load the info:
+	loader := stellar.DefaultPaymentLoader(tcs[0].G)
+	convID := chat1.ConversationID("abcd")
+	msgID := chat1.MessageID(987)
+	loader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+
+	// for the recipient too
+	recipLoader := stellar.NewPaymentLoader(tcs[1].G)
+	recipLoader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+
+	// check the sender chat notification
+	select {
+	case info := <-listenerSender.paymentInfos:
+		t.Logf("info from listener: %+v", info)
+		require.NotNil(t, info)
+		require.Equal(t, info.Uid, tcs[0].Fu.User.GetUID())
+		require.Equal(t, info.MsgID, msgID)
+		require.True(t, info.ConvID.Eq(convID))
+		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
+		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_DECREASE)
+		require.Equal(t, info.Info.Worth, "$321.87")
+		require.Equal(t, info.Info.Note, "here you go")
+		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
+		require.Equal(t, info.Info.StatusDescription, "completed")
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
+
+	// check the recipient chat notification
+	select {
+	case info := <-listenerRecip.paymentInfos:
+		t.Logf("info from listener: %+v", info)
+		require.NotNil(t, info)
+		require.Equal(t, info.Uid, tcs[1].Fu.User.GetUID())
+		require.Equal(t, info.MsgID, msgID)
+		require.True(t, info.ConvID.Eq(convID))
+		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
+		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_INCREASE)
+		require.Equal(t, info.Info.Worth, "$321.87")
+		require.Equal(t, info.Info.Note, "here you go")
+		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
+		require.Equal(t, info.Info.StatusDescription, "completed")
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
+
 	// check the details
 	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
 		require.NotEmpty(t, p.Id)
@@ -710,7 +769,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	argDetails := stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
-		AccountID: accountIDSender,
+		AccountID: &accountIDSender,
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -718,7 +777,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 
 	argDetails = stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
-		AccountID: accountIDRecip,
+		AccountID: &accountIDRecip,
 	}
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
 	require.NoError(t, err)
@@ -772,6 +831,55 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 }
 
+func TestPaymentDetailsEmptyAccId(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	backend := tcs[0].Backend
+	backend.ImportAccountsForUser(tcs[0])
+	backend.ImportAccountsForUser(tcs[1])
+
+	accID := getPrimaryAccountID(tcs[0])
+	backend.accounts[accID].AddBalance("1000")
+
+	const secretNote string = "pleasure doing business 🤔"
+
+	_, err := tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accID,
+		To:            tcs[1].Fu.Username,
+		ToIsAccountID: false,
+		Amount:        "505.612",
+		Asset:         stellar1.AssetNative(),
+		WorthAmount:   "160.93",
+		WorthCurrency: &usd,
+		SecretNote:    secretNote,
+		PublicMemo:    "",
+	})
+	require.NoError(t, err)
+
+	senderMsgs := kbtest.MockSentMessages(tcs[0].G, tcs[0].T)
+	require.Len(t, senderMsgs, 1)
+	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_SENDPAYMENT)
+
+	// Imagine this is the receiver reading chat.
+	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
+
+	detailsRes, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+		// Chat uses nil AccountID because it does not know it. It
+		// derives delta and formatting (whether it's a debit or
+		// credit) by checking chat message sender and receiver.
+		AccountID: nil,
+		Id:        paymentID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
+	require.Equal(t, "505.6120000 XLM", detailsRes.AmountDescription)
+	require.Equal(t, "$160.93", detailsRes.Worth)
+	require.Equal(t, "USD", detailsRes.WorthCurrency)
+	require.Equal(t, secretNote, detailsRes.Note)
+	require.Equal(t, "", detailsRes.NoteErr)
+}
+
 func TestBuildPaymentLocal(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
@@ -780,6 +888,24 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
+
+	for _, toIsAccountID := range []bool{false, true} {
+		t.Logf("toIsAccountID: %v", toIsAccountID)
+		bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			From:          senderAccountID,
+			ToIsAccountID: toIsAccountID,
+		})
+		require.NoError(t, err)
+		t.Logf(spew.Sdump(bres))
+		require.Equal(t, false, bres.ReadyToSend)
+		require.Equal(t, "", bres.ToErrMsg)
+		require.Equal(t, "", bres.AmountErrMsg)
+		require.Equal(t, "", bres.SecretNoteErrMsg)
+		require.Equal(t, "", bres.PublicMemoErrMsg)
+		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, worthInfo, bres.WorthInfo)
+		requireBannerSet(t, bres, nil)
+	}
 
 	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From: senderAccountID,
@@ -792,7 +918,27 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$0.00*", bres.WorthDescription)
+	require.Equal(t, "$0.00", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+	}})
+
+	recipientAccountID := getPrimaryAccountID(tcs[1])
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            recipientAccountID.String(),
+		ToIsAccountID: true,
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "$0.00", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -830,7 +976,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Your available to send is *0 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$9.55*", bres.WorthDescription)
+	require.Equal(t, "$9.55", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -852,7 +998,27 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Your available to send is *18.9999900 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$9.55*", bres.WorthDescription)
+	require.Equal(t, "$9.55", bres.WorthDescription)
+	require.Equal(t, worthInfo, bres.WorthInfo)
+	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
+		Level:   "info",
+		Message: fmt.Sprintf("Because it's %v's first transaction, you must send at least 1 XLM.", tcs[1].Fu.Username),
+	}})
+
+	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		From:          senderAccountID,
+		To:            recipientAccountID.String(),
+		ToIsAccountID: true,
+		Amount:        "0.01",
+	})
+	require.NoError(t, err)
+	t.Logf(spew.Sdump(bres))
+	require.Equal(t, false, bres.ReadyToSend)
+	require.Equal(t, "", bres.ToErrMsg)
+	require.Equal(t, "You must send at least *1* XLM", bres.AmountErrMsg)
+	require.Equal(t, "", bres.SecretNoteErrMsg)
+	require.Equal(t, "", bres.PublicMemoErrMsg)
+	require.Equal(t, "$0.00", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -871,7 +1037,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$4.77*", bres.WorthDescription)
+	require.Equal(t, "$4.77", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -899,7 +1065,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg) // too many potatoes
-	require.Equal(t, "This is *$4.77*", bres.WorthDescription)
+	require.Equal(t, "$4.77", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{}) // recipient is funded so banner's gone
 
@@ -916,7 +1082,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "Your available to send is *3.9999800 XLM*", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$1.27*", bres.WorthDescription)
+	require.Equal(t, "$1.27", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 
@@ -935,7 +1101,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "Memo is too long.", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *$0.95*", bres.WorthDescription)
+	require.Equal(t, "$0.95", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "error",
@@ -958,7 +1124,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 
@@ -978,7 +1144,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{{
 		Level:   "info",
@@ -1001,7 +1167,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 
@@ -1027,7 +1193,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
 	require.Equal(t, "", bres.PublicMemoErrMsg)
-	require.Equal(t, "This is *26.7020180 XLM*", bres.WorthDescription)
+	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
 }
@@ -1149,4 +1315,21 @@ func TestGetSendAssetChoices(t *testing.T) {
 		require.False(t, v.Enabled)
 		require.Contains(t, v.Subtext, "Recipient does not accept")
 	}
+}
+
+type chatListener struct {
+	libkb.NoopNotifyListener
+
+	paymentInfos chan chat1.ChatPaymentInfoArg
+}
+
+func newChatListener() *chatListener {
+	x := &chatListener{
+		paymentInfos: make(chan chat1.ChatPaymentInfoArg, 1),
+	}
+	return x
+}
+
+func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+	c.paymentInfos <- chat1.ChatPaymentInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
 }

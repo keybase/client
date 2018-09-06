@@ -31,9 +31,10 @@ type packetHandler struct {
 	fieldDecoder  *fieldDecoder
 	protocols     *protocolHandler
 	calls         *callContainer
+	log           LogInterface
 }
 
-func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callContainer) *packetHandler {
+func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callContainer, log LogInterface) *packetHandler {
 	wrappedReader := &lastErrReader{reader, nil}
 	return &packetHandler{
 		lengthDecoder: codec.NewDecoder(wrappedReader, newCodecMsgpackHandle()),
@@ -41,6 +42,7 @@ func newPacketHandler(reader io.Reader, protocols *protocolHandler, calls *callC
 		fieldDecoder:  newFieldDecoder(),
 		protocols:     protocols,
 		calls:         calls,
+		log:           log,
 	}
 }
 
@@ -66,6 +68,12 @@ func (p *packetHandler) NextFrame() (rpcMessage, error) {
 	if len(bytes) < 1 {
 		return nil, NewPacketizerError("invalid frame size: %d", len(bytes))
 	}
+
+	// Log the bytes as the last thing, just in case the logger
+	// mutates those bytes (which it shouldn't).
+	defer func() {
+		p.log.FrameRead(bytes)
+	}()
 
 	// Attempt to read the fixarray
 	nb := int(bytes[0])

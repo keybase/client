@@ -13,11 +13,11 @@ import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
 import {ErrorBoundary} from '../../../../common-adapters'
-import {copyToClipboard} from '../../../../util/clipboard'
 import {debounce, throttle, chunk} from 'lodash-es'
-import {globalColors, globalStyles} from '../../../../styles'
+import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
+import {globalMargins} from '../../../../styles/shared'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -210,10 +210,10 @@ class Thread extends React.PureComponent<Props, State> {
     />
   )
 
-  _onCopyCapture(e) {
+  _onCopyCapture = e => {
     // Copy text only, not HTML/styling.
     e.preventDefault()
-    copyToClipboard(window.getSelection().toString())
+    this.props.copyToClipboard(window.getSelection().toString())
   }
 
   _handleListClick = (ev: SyntheticMouseEvent<Element>) => {
@@ -501,21 +501,7 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
 // Chrome.
 const realCSS = `
 .message {
-  border: 1px solid transparent;
   contain: content;
-}
-.message .menu-button {
-  visibility: hidden;
-  height: 17;
-  flex-shrink: 0;
-  opacity: 0;
-}
-.message:hover {
-  border: 1px solid ${globalColors.black_10};
-}
-.message:hover .menu-button {
-  visibility: visible;
-  opacity: 1;
 }
 `
 const containerStyle = {
@@ -531,6 +517,7 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
+  paddingBottom: globalMargins.tiny,
   // get our own layer so we can scroll faster
   willChange: 'transform',
 }

@@ -2,6 +2,7 @@ package teams
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -28,7 +29,7 @@ type LoaderContext interface {
 	merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error)
 	merkleLookupTripleAtHashMeta(ctx context.Context, isPublic bool, leafID keybase1.UserOrTeamID, hm keybase1.HashMeta) (triple *libkb.MerkleTriple, err error)
 	forceLinkMapRefreshForUser(ctx context.Context, uid keybase1.UID) (linkMap linkMapT, err error)
-	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
+	loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (keybase1.UserVersion, *keybase1.PublicKeyV2NaCl, linkMapT, error)
 }
 
 // The main LoaderContext is G.
@@ -42,6 +43,62 @@ func NewLoaderContextFromG(g *libkb.GlobalContext) LoaderContext {
 	return &LoaderContextG{
 		Contextified: libkb.NewContextified(g),
 	}
+}
+
+type rawTeam struct {
+	ID             keybase1.TeamID                                        `json:"id"`
+	Name           keybase1.TeamName                                      `json:"name"`
+	Status         libkb.AppStatus                                        `json:"status"`
+	Chain          []json.RawMessage                                      `json:"chain"`
+	Box            *TeamBox                                               `json:"box"`
+	Prevs          map[keybase1.PerTeamKeyGeneration]prevKeySealedEncoded `json:"prevs"`
+	ReaderKeyMasks []keybase1.ReaderKeyMask                               `json:"reader_key_masks"`
+	// Whether the user is only being allowed to view the chain
+	// because they are a member of a descendent team.
+	SubteamReader    bool                               `json:"subteam_reader"`
+	Showcase         keybase1.TeamShowcase              `json:"showcase"`
+	LegacyTLFUpgrade []keybase1.TeamGetLegacyTLFUpgrade `json:"legacy_tlf_upgrade"`
+}
+
+func (r *rawTeam) GetAppStatus() *libkb.AppStatus {
+	return &r.Status
+}
+
+func (r *rawTeam) unpackLinks(ctx context.Context) ([]*ChainLinkUnpacked, error) {
+	if r == nil {
+		return nil, nil
+	}
+	parsedLinks, err := r.parseLinks(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var links []*ChainLinkUnpacked
+	for _, pLink := range parsedLinks {
+		pLink2 := pLink
+		link, err := unpackChainLink(&pLink2)
+		if err != nil {
+			return nil, err
+		}
+		if !link.isStubbed() {
+			if !link.innerTeamID.Eq(r.ID) {
+				return nil, fmt.Errorf("link has wrong team ID in response: %v != %v", link.innerTeamID, r.ID)
+			}
+		}
+		links = append(links, link)
+	}
+	return links, nil
+}
+
+func (r *rawTeam) parseLinks(ctx context.Context) ([]SCChainLink, error) {
+	var links []SCChainLink
+	for _, raw := range r.Chain {
+		link, err := ParseTeamChainLink(string(raw))
+		if err != nil {
+			return nil, err
+		}
+		links = append(links, link)
+	}
+	return links, nil
 }
 
 // Get new links from the server.
@@ -78,16 +135,20 @@ func (l *LoaderContextG) getNewLinksFromServer(ctx context.Context,
 	return &rt, nil
 }
 
+func seqnosToString(v []keybase1.Seqno) string {
+	var s []string
+	for _, e := range v {
+		s = append(s, fmt.Sprintf("%d", int(e)))
+	}
+	return strings.Join(s, ",")
+}
+
 // Get full links from the server.
 // Does not guarantee that the server returned the correct links, nor that they are unstubbed.
 func (l *LoaderContextG) getLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	var seqnoStrs []string
-	for _, seqno := range requestSeqnos {
-		seqnoStrs = append(seqnoStrs, fmt.Sprintf("%d", int(seqno)))
-	}
-	seqnoCommas := strings.Join(seqnoStrs, ",")
+	seqnoCommas := seqnosToString(requestSeqnos)
 
 	arg := libkb.NewAPIArgWithNetContext(ctx, "team/get")
 	arg.SessionType = libkb.APISessionTypeREQUIRED
@@ -133,11 +194,15 @@ func (l *LoaderContextG) lookupEldestSeqno(ctx context.Context, uid keybase1.UID
 }
 
 func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
-	kr, err := l.G().GetPerUserKeyring()
+	return perUserEncryptionKey(l.MetaContext(ctx), userSeqno)
+}
+
+func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
+	kr, err := m.G().GetPerUserKeyring()
 	if err != nil {
 		return nil, err
 	}
-	return kr.GetEncryptionKeyBySeqnoOrSync(l.MetaContext(ctx), userSeqno)
+	return kr.GetEncryptionKeyBySeqnoOrSync(m, userSeqno)
 }
 
 func (l *LoaderContextG) merkleLookup(ctx context.Context, teamID keybase1.TeamID, public bool) (r1 keybase1.Seqno, r2 keybase1.LinkID, err error) {
@@ -188,17 +253,10 @@ func (l *LoaderContextG) forceLinkMapRefreshForUser(ctx context.Context, uid key
 	return upak.SeqnoLinkIDs, nil
 }
 
-func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (
-	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT,
-	err error) {
+func (l *LoaderContextG) loadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID, lkc *loadKeyCache) (
+	uv keybase1.UserVersion, pubKey *keybase1.PublicKeyV2NaCl, linkMap linkMapT, err error) {
+	ctx, tbs := l.G().CTimeBuckets(ctx)
+	defer tbs.Record("LoaderContextG.loadKeyV2")()
 
-	user, pubKey, linkMap, err := l.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
-	if err != nil {
-		return
-	}
-	if user == nil {
-		return uv, pubKey, linkMap, libkb.NotFoundError{}
-	}
-
-	return user.ToUserVersion(), pubKey, linkMap, nil
+	return lkc.loadKeyV2(l.MetaContext(ctx), uid, kid)
 }

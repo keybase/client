@@ -9,6 +9,8 @@ import * as Types from '../../../../constants/types/chat2'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
 import {propProvider as ReactionTooltipProvider} from '../../messages/reaction-tooltip/index.stories'
+import {type OwnProps as ExplodingMetaOwnProps} from '../../messages/wrapper/exploding-meta/container'
+import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/exploding-meta/'
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
@@ -34,6 +36,7 @@ const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
   conversationIDKey,
+  copyToClipboard: Sb.action('copyToClipboard'),
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
@@ -124,6 +127,14 @@ const provider = Sb.createPropProviderWithCommon({
   ...ReactionsRowProvider,
   ...ReactionTooltipProvider,
   Channel: p => ({name: p.name}),
+  ExplodingMeta: (p: ExplodingMetaOwnProps): ExplodingMetaViewProps => ({
+    // no exploding messages here
+    exploded: false,
+    explodesAt: 0,
+    messageKey: '',
+    onClick: null,
+    pending: false,
+  }),
   Mention: p => ({username: p.username}),
   BottomMessage: p => ({
     showResetParticipants: null,
@@ -165,32 +176,33 @@ const provider = Sb.createPropProviderWithCommon({
     yourMessage: false,
   }),
   WrapperTimestamp: p => {
-    const {children, message, previous} = p
+    const {children, isEditing, measure, message, previous} = p
     // Want to mimick the timestamp logic in WrapperTimestamp
-    const oldEnough = !!(
-      previous &&
-      previous.timestamp &&
-      message.timestamp &&
-      message.timestamp - previous.timestamp > Message.howLongBetweenTimestampsMs
-    )
+    const oldEnough = Message.enoughTimeBetweenMessages(message, previous)
     return {
       children,
       conversationIDKey: message.conversationIDKey,
-      ordinal: message.ordinal,
+      decorate: true,
+      exploded: false,
+      isEditing,
+      measure,
+      message,
       orangeLineAbove: false,
+      ordinal: message.ordinal,
       previous,
       timestamp: !previous || oldEnough ? formatTimeForMessages(message.timestamp) : null,
+      type: ['text', 'attachment'].includes(message.type) ? 'wrapper-author' : 'children',
     }
   },
   WrapperAuthor: p => ({
-    author: 'a',
+    author: p.message.author,
+    conversationIDKey: p.message.conversationIDKey,
     exploded: false,
     explodedBy: '',
     explodesAt: 0,
     exploding: false,
     failureDescription: '',
     includeHeader: false,
-    innerClass: p.innerClass,
     isBroken: false,
     isEdited: false,
     isEditing: false,
@@ -204,12 +216,15 @@ const provider = Sb.createPropProviderWithCommon({
     messageKey: p.message.ordinal,
     messagePending: false,
     messageSent: true,
-    onRetry: null,
-    onEdit: null,
-    onCancel: null,
     onAuthorClick: Sb.action('onAuthorclick'),
+    onCancel: null,
+    onEdit: null,
+    onRetry: null,
     orangeLineAbove: false,
+    ordinal: p.message.ordinal,
     timestamp: '',
+    toggleMessageMenu: Sb.action('toggleMessageMenu'),
+    type: p.message.type,
   }),
 })
 

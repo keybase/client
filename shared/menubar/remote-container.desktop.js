@@ -4,7 +4,7 @@ import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
-import {connect, compose, type Dispatch} from '../util/container'
+import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
@@ -20,7 +20,7 @@ const closeWindow = () => {
 }
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _showUser: (username: string) => {
     const link = urlHelper('user', {username})
     link && openUrl(link)
@@ -72,4 +72,4 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   showUser: () => dispatchProps._showUser(stateProps.username),
   ...ownProps,
 })
-export default compose(connect(state => state, mapDispatchToProps, mergeProps))(Menubar)
+export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

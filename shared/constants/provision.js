@@ -22,6 +22,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   error: new HiddenString(''),
   existingDevices: I.List(),
   finalError: null,
+  gpgImportError: null,
   selectedDevice: null,
   usernameOrEmail: '',
 })

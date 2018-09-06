@@ -50,8 +50,7 @@ const sent = platformStyles({
     wordBreak: 'break-word',
   },
   isMobile: {
-    backgroundColor: globalColors.fastBlank,
-    color: globalColors.black_75_on_white,
+    color: globalColors.black_75,
   },
 })
 const sentEditing = {

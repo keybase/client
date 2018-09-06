@@ -114,10 +114,15 @@ const TeamTabs = (props: TeamTabsProps) => {
 }
 
 const styles = styleSheetCreate({
-  badge: {
-    marginLeft: 2,
-    marginTop: 1,
-  },
+  badge: platformStyles({
+    isElectron: {
+      marginLeft: globalMargins.xtiny,
+    },
+    isMobile: {
+      marginLeft: 2,
+      marginTop: 1,
+    },
+  }),
   clickableBox: platformStyles({
     isMobile: {
       flexGrow: 1,

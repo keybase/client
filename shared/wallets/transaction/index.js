@@ -22,7 +22,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'account':
+    case 'otherAccount':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -55,11 +55,13 @@ type CounterpartyTextProps = {|
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -77,14 +79,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
-    case 'account':
+    case 'otherAccount':
       return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
+        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
       ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
       )
     default:
       /*::
@@ -129,18 +131,18 @@ const Detail = (props: DetailProps) => {
     </React.Fragment>
   )
 
-  if (props.counterpartyType === 'account') {
+  if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
-        <Text type={textType}>
+        <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
@@ -149,7 +151,7 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
@@ -157,14 +159,14 @@ const Detail = (props: DetailProps) => {
 
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
-    <Text type={textType}>
+    <Text type={textTypeSemibold}>
       {counterparty} {verbPhrase} {amount}.
     </Text>
   )
 }
 
 type AmountXLMProps = {|
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -227,7 +229,7 @@ export type Props = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.

@@ -12,7 +12,7 @@ type OwnProps = {
   visible: boolean,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => {
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
       dispatch(
@@ -35,4 +35,4 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => {
   }
 }
 
-export default connect(undefined, mapDispatchToProps)(AddPeopleHow)
+export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(AddPeopleHow)

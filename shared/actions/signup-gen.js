@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of signup but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'signup:'
 export const checkDevicename = 'signup:checkDevicename'
 export const checkInviteCode = 'signup:checkInviteCode'
 export const checkPassphrase = 'signup:checkPassphrase'

@@ -15,10 +15,11 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
-const MB = 1024 * 1024
+const MB int64 = 1024 * 1024
 
 func TestSignEncrypter(t *testing.T) {
 	e := NewSignEncrypter()
@@ -178,8 +179,8 @@ func (b *bytesReadResetter) Reset() error {
 	return nil
 }
 
-func makeUploadTask(t *testing.T, size int) (plaintext []byte, task *UploadTask) {
-	plaintext = randBytes(t, size)
+func makeUploadTask(t *testing.T, size int64) (plaintext []byte, task *UploadTask) {
+	plaintext = randBytes(t, int(size))
 	outboxID, _ := storage.NewOutboxID()
 	task = &UploadTask{
 		S3Params: chat1.S3Params{
@@ -200,7 +201,7 @@ func TestUploadAssetSmall(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 1*MB)
-	a, err := s.UploadAsset(ctx, task, nil)
+	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +222,7 @@ func TestUploadAssetLarge(t *testing.T) {
 	s := makeTestStore(t, nil)
 	ctx := context.Background()
 	plaintext, task := makeUploadTask(t, 12*MB)
-	a, err := s.UploadAsset(ctx, task, nil)
+	a, err := s.UploadAsset(ctx, task, ioutil.Discard)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,6 +239,81 @@ func TestUploadAssetLarge(t *testing.T) {
 	assertNumMultis(t, s, 1)
 }
 
+// dumbBuffer wraps a bytes.Buffer so io.Copy doesn't use WriteTo and we get a better test
+type dumbBuffer struct {
+	buf bytes.Buffer
+}
+
+func (d *dumbBuffer) Write(b []byte) (n int, err error) {
+	return d.buf.Write(b)
+}
+
+func (d *dumbBuffer) Bytes() []byte {
+	return d.buf.Bytes()
+}
+
+func newDumbBuffer() *dumbBuffer {
+	return &dumbBuffer{}
+}
+
+func TestStreamAsset(t *testing.T) {
+	s := makeTestStore(t, nil)
+	ctx := context.Background()
+
+	testCase := func(mb, kb int64) {
+		total := mb*MB + kb
+		t.Logf("total: %d mb: %d kb: %d", total, mb, kb)
+		plaintext, task := makeUploadTask(t, total)
+		a, err := s.UploadAsset(ctx, task, ioutil.Discard)
+		require.NoError(t, err)
+
+		// basic
+		var buf bytes.Buffer
+		t.Logf("basic")
+		s.streamCache = nil
+		rs, err := s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = io.Copy(&buf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+		// use the cache
+		buf.Reset()
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = io.Copy(&buf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, buf.Bytes()))
+
+		// seek to half and copy
+		t.Logf("half")
+		dbuf := newDumbBuffer()
+		s.streamCache = nil
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = rs.Seek(total/2, io.SeekStart)
+		require.NoError(t, err)
+		_, err = io.Copy(dbuf, rs)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext[total/2:], dbuf.Bytes()))
+
+		// use a fixed size buffer (like video playback)
+		t.Logf("buffer")
+		dbuf = newDumbBuffer()
+		s.streamCache = nil
+		scratch := make([]byte, 64*1024)
+		rs, err = s.StreamAsset(ctx, task.S3Params, a, task.S3Signer)
+		require.NoError(t, err)
+		_, err = io.CopyBuffer(dbuf, rs, scratch)
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(plaintext, dbuf.Bytes()))
+	}
+
+	testCase(2, 0)
+	testCase(2, 400)
+	testCase(12, 0)
+	testCase(12, 543)
+}
+
 type uploader struct {
 	t             *testing.T
 	s             *S3Store
@@ -252,7 +328,7 @@ type uploader struct {
 	fullSigKey    []byte
 }
 
-func newUploader(t *testing.T, size int) *uploader {
+func newUploader(t *testing.T, size int64) *uploader {
 	u := &uploader{t: t}
 	u.s = makeTestStore(t, u.keyTracker)
 	u.plaintext, u.task = makeUploadTask(t, size)
@@ -266,12 +342,13 @@ func (u *uploader) keyTracker(e, s []byte) {
 
 func (u *uploader) UploadResume() chat1.Asset {
 	u.s.blockLimit = 0
-	a, err := u.s.UploadAsset(context.Background(), u.task, nil)
+	a, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
 	if err != nil {
 		u.t.Fatalf("expected second UploadAsset call to work, got: %s", err)
 	}
-	if a.Size != int64(signencrypt.GetSealedSize(len(u.plaintext))) {
-		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size, signencrypt.GetSealedSize(len(u.plaintext)))
+	if a.Size != int64(signencrypt.GetSealedSize(int64(len(u.plaintext)))) {
+		u.t.Errorf("uploaded asset size: %d, expected %d", a.Size,
+			signencrypt.GetSealedSize(int64(len(u.plaintext))))
 	}
 	u.fullEncKey = u.encKey
 	u.fullSigKey = u.sigKey
@@ -280,8 +357,8 @@ func (u *uploader) UploadResume() chat1.Asset {
 	assertNumMultis(u.t, u.s, 1)
 
 	// after resumed upload, all parts should have been uploaded
-	numParts := (len(u.plaintext) / (5 * MB)) + 1
-	assertNumParts(u.t, u.s, 0, numParts)
+	numParts := (int64(len(u.plaintext)) / (5 * MB)) + 1
+	assertNumParts(u.t, u.s, 0, int(numParts))
 
 	return a
 }
@@ -289,7 +366,7 @@ func (u *uploader) UploadResume() chat1.Asset {
 func (u *uploader) UploadPartial(blocks int) {
 	u.s.blockLimit = blocks
 
-	_, err := u.s.UploadAsset(context.Background(), u.task, nil)
+	_, err := u.s.UploadAsset(context.Background(), u.task, ioutil.Discard)
 	if err == nil {
 		u.t.Fatal("expected incomplete upload to have error")
 	}
@@ -399,7 +476,7 @@ func TestUploadAssetResumeChange(t *testing.T) {
 
 	// try again, changing the file and the hash (but same destination on s3):
 	// this simulates the file changing between upload attempt 1 and this attempt.
-	u.plaintext = randBytes(t, size)
+	u.plaintext = randBytes(t, int(size))
 	u.ResetReader()
 	u.ResetHash()
 	a := u.UploadResume()

@@ -5,9 +5,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/encrypteddb"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -61,6 +64,12 @@ type inboxDiskData struct {
 	InboxVersion  chat1.InboxVers            `codec:"I"`
 	Conversations []types.RemoteConversation `codec:"C"`
 	Queries       []inboxDiskQuery           `codec:"Q"`
+}
+
+type SharedInboxItem struct {
+	ConvID string
+	Name   string
+	Public bool
 }
 
 type Inbox struct {
@@ -143,6 +152,43 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 	return ibox, nil
 }
 
+func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
+	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mpack")
+	return encrypteddb.NewFile(i.G().ExternalG(), path,
+		func(ctx context.Context) ([32]byte, error) {
+			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
+		})
+}
+
+func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
+	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
+	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
+		return
+	}
+	var writable []SharedInboxItem
+	for _, rc := range ibox.Conversations {
+		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
+			// need local metadata for channel names, so skip if we don't have it
+			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
+				rc.GetConvID())
+			continue
+		}
+		name := rc.GetName()
+		if len(name) == 0 {
+			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, no name", rc.GetConvID())
+			continue
+		}
+		writable = append(writable, SharedInboxItem{
+			ConvID: rc.GetConvID().String(),
+			Name:   name,
+			Public: rc.Conv.IsPublic(),
+		})
+	}
+	if err := i.sharedInboxFile(ctx).Put(ctx, writable); err != nil {
+		i.Debug(ctx, "writeMobileSharedInbox: failed to write: %s", err)
+	}
+}
+
 func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 
 	// Get latest server version
@@ -161,6 +207,7 @@ func (i *Inbox) writeDiskInbox(ctx context.Context, ibox inboxDiskData) Error {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s",
 			i.uid, ierr.Error())
 	}
+	i.writeMobileSharedInbox(ctx, ibox)
 	return nil
 }
 
@@ -644,6 +691,15 @@ func (i *Inbox) Read(ctx context.Context, query *chat1.GetInboxQuery, p *chat1.P
 	return ibox.InboxVersion, res, pagination, nil
 }
 
+func (i *Inbox) ReadShared(ctx context.Context) (res []SharedInboxItem, err Error) {
+	// no lock required here since we are just reading from a separate file
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("ReadShared(%s)", i.uid))()
+	if ierr := i.sharedInboxFile(ctx).Get(ctx, &res); ierr != nil {
+		return res, NewInternalError(ctx, i.DebugLabeler, "error reading shared inbox: %s", ierr)
+	}
+	return res, nil
+}
+
 func (i *Inbox) Clear(ctx context.Context) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "Clear")()
 	inboxMemCache.Clear(i.uid)
@@ -1044,6 +1100,41 @@ func (i *Inbox) Expunge(ctx context.Context, vers chat1.InboxVers,
 
 	i.Debug(ctx, "Expunge: setting max messages from server payload")
 	conv.Conv.MaxMsgSummaries = maxMsgs
+
+	// Write out to disk
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, ibox)
+}
+
+func (i *Inbox) SubteamRename(ctx context.Context, vers chat1.InboxVers, convIDs []chat1.ConversationID) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey())
+
+	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
+	ibox, err := i.readDiskInbox(ctx)
+	if err != nil {
+		if _, ok := err.(MissError); !ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Update convs
+	for _, convID := range convIDs {
+		_, conv := i.getConv(convID, ibox.Conversations)
+		if conv == nil {
+			i.Debug(ctx, "SubteamRename: no conversation found: convID: %s", convID)
+			continue
+		}
+		conv.Conv.Metadata.Version = vers.ToConvVers()
+	}
 
 	// Write out to disk
 	ibox.InboxVersion = vers

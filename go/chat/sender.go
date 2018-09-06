@@ -199,15 +199,33 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		return fmt.Errorf("Chat public-ness does not match reference message")
 	}
 	if headerQ.TlfName != headerRef.TlfName {
-		// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
-		namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
-			headerQ.TlfPublic)
-		if err != nil {
-			return err
-		}
-		if !namesEq {
-			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+		// If we're of type TEAM, we lookup the name info for the team and
+		// verify it matches what is on the message itself. If we rename a
+		// subteam the names between the current and reference message will
+		// differ so we cannot rely on that.
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// Cannonicalize the given TlfName
+			teamNameParsed, err := keybase1.TeamNameFromString(headerQ.TlfName)
+			if err != nil {
+				return fmt.Errorf("invalid team name: %v", err)
+			}
+			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
+				conv.Metadata.IdTriple.Tlfid,
+				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				return err
+			} else if info.CanonicalName != teamNameParsed.String() {
+				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
+			}
+		default:
+			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
+			if namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName,
+				conv.GetMembersType(), headerQ.TlfPublic); err != nil {
+				return err
+			} else if !namesEq {
+				s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
+				return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+			}
 		}
 	}
 
@@ -1108,6 +1126,16 @@ func (s *Deliverer) cancelPendingDuplicateReactions(ctx context.Context, obr cha
 	return false, nil
 }
 
+func (s *Deliverer) shouldRecordError(ctx context.Context, err error) bool {
+	switch err {
+	case ErrDuplicateConnection:
+		// This just happens when threads are racing to reconnect to Gregor, don't count it as
+		// an error to send.
+		return false
+	}
+	return true
+}
+
 func (s *Deliverer) deliverLoop() {
 	bgctx := context.Background()
 	s.Debug(bgctx, "deliverLoop: starting non blocking sender deliver loop: uid: %s duration: %v",
@@ -1146,7 +1174,7 @@ func (s *Deliverer) deliverLoop() {
 			bctx := Context(context.Background(), s.G(), obr.IdentifyBehavior, &breaks,
 				s.identNotifier)
 			if s.testingNameInfoSource != nil {
-				CtxKeyFinder(bctx, s.G()).SetNameInfoSourceOverride(s.testingNameInfoSource)
+				bctx = CtxAddTestingNameInfoSource(bctx, s.testingNameInfoSource)
 			}
 			if !s.connected {
 				err = errors.New("disconnected from chat server")
@@ -1193,8 +1221,8 @@ func (s *Deliverer) deliverLoop() {
 					}); err != nil {
 						s.Debug(bctx, "deliverLoop: unable to fail message: err: %s", err.Error())
 					}
-				} else {
-					if err = s.outbox.RecordFailedAttempt(bgctx, obr); err != nil {
+				} else if s.shouldRecordError(bctx, err) {
+					if err = s.outbox.RecordFailedAttempt(bctx, obr); err != nil {
 						s.Debug(bgctx, "deliverLoop: unable to record failed attempt on outbox: uid %s err: %s",
 							s.outbox.GetUID(), err.Error())
 					}

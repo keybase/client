@@ -1,37 +1,39 @@
 // @flow
-import GlobalError from './index'
-import {connect, type TypedState, type Dispatch} from '../../util/container'
+import GlobalError from '.'
+import {connect} from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import {settingsTab} from '../../constants/tabs'
 import {feedbackTab} from '../../constants/settings'
-import {navigateTo, switchTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   daemonError: state.config.daemonError,
   debugDump: state.config.debugDump,
   error: state.config.globalError,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onDismiss: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
     dispatch(ConfigGen.createDebugDump({items: []}))
   },
   onFeedback: () => {
     dispatch(ConfigGen.createGlobalError({globalError: null}))
-    dispatch(switchTo([settingsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [settingsTab]}))
     dispatch(
-      navigateTo(
-        [
+      RouteTreeGen.createNavigateTo({
+        path: [
           {
             props: {heading: 'Oh no, a bug!'},
             selected: feedbackTab,
           },
         ],
-        [settingsTab]
-      )
+        parentPath: [settingsTab],
+      })
     )
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(GlobalError)
+const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(GlobalError)
+export default Connected

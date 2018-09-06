@@ -11,24 +11,27 @@ import (
 	context "golang.org/x/net/context"
 )
 
-var ActionNewConversation = "newConversation"
-var ActionNewMessage = "newMessage"
-var ActionReadMessage = "readMessage"
-var ActionSetStatus = "setStatus"
-var ActionSetAppNotificationSettings = "setAppNotificationSettings"
-var ActionTeamType = "teamType"
-var ActionExpunge = "expunge"
+const (
+	ActionNewConversation            = "newConversation"
+	ActionNewMessage                 = "newMessage"
+	ActionReadMessage                = "readMessage"
+	ActionSetStatus                  = "setStatus"
+	ActionSetAppNotificationSettings = "setAppNotificationSettings"
+	ActionTeamType                   = "teamType"
+	ActionExpunge                    = "expunge"
 
-var PushActivity = "chat.activity"
-var PushTyping = "chat.typing"
-var PushMembershipUpdate = "chat.membershipUpdate"
-var PushTLFFinalize = "chat.tlffinalize"
-var PushTLFResolve = "chat.tlfresolve"
-var PushTeamChannels = "chat.teamchannels"
-var PushKBFSUpgrade = "chat.kbfsupgrade"
-var PushConvRetention = "chat.convretention"
-var PushTeamRetention = "chat.teamretention"
-var PushConvSettings = "chat.convsettings"
+	PushActivity         = "chat.activity"
+	PushTyping           = "chat.typing"
+	PushMembershipUpdate = "chat.membershipUpdate"
+	PushTLFFinalize      = "chat.tlffinalize"
+	PushTLFResolve       = "chat.tlfresolve"
+	PushTeamChannels     = "chat.teamchannels"
+	PushKBFSUpgrade      = "chat.kbfsupgrade"
+	PushConvRetention    = "chat.convretention"
+	PushTeamRetention    = "chat.teamretention"
+	PushConvSettings     = "chat.convsettings"
+	PushSubteamRename    = "chat.subteamrename"
+)
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
@@ -43,13 +46,10 @@ type NameInfo struct {
 	ID               chat1.TLFID
 	CanonicalName    string
 	IdentifyFailures []keybase1.TLFIdentifyFailure
-	CryptKeys        map[chat1.ConversationMembersType][]CryptKey
 }
 
 func NewNameInfo() *NameInfo {
-	return &NameInfo{
-		CryptKeys: make(map[chat1.ConversationMembersType][]CryptKey),
-	}
+	return &NameInfo{}
 }
 
 type MembershipUpdateRes struct {
@@ -92,6 +92,21 @@ func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 
 func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 	return rc.Conv.Metadata.Version
+}
+
+func (rc RemoteConversation) GetName() string {
+	switch rc.Conv.Metadata.TeamType {
+	case chat1.TeamType_COMPLEX:
+		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
+			return fmt.Sprintf("%s#%s", rc.Conv.MaxMsgSummaries[0].TlfName, rc.LocalMetadata.TopicName)
+		}
+		fallthrough
+	default:
+		if len(rc.Conv.MaxMsgSummaries) == 0 {
+			return ""
+		}
+		return rc.Conv.MaxMsgSummaries[0].TlfName
+	}
 }
 
 type Inbox struct {
@@ -161,6 +176,11 @@ func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer
 	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
 	progress ProgressReporter) error {
 	return nil
+}
+
+func (d DummyAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error) {
+	return nil, nil
 }
 
 func (d DummyAttachmentFetcher) DeleteAssets(ctx context.Context,

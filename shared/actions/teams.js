@@ -12,18 +12,19 @@ import * as SearchConstants from '../constants/search'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
-import * as RouteTypes from '../constants/types/route-tree'
-import * as RouteConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
+import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
+import * as GregorGen from './gregor-gen'
 import * as WaitingGen from './waiting-gen'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
-import {putActionIfOnPath, navigateAppend, navigateTo, navigateUp} from './route-tree'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
 
+import type {RetentionPolicy} from '../constants/types/retention-policy'
 import type {TypedState} from '../constants/reducer'
 
 const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
@@ -38,15 +39,30 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
 
     // Dismiss the create team dialog.
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
 
     // No error if we get here.
     yield Saga.all([
-      Saga.put(navigateTo(isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}], [teamsTab])),
+      Saga.put(
+        RouteTreeGen.createNavigateTo({
+          path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
+          parentPath: [teamsTab],
+        })
+      ),
       // Show the avatar editor on desktop.
       ...(!isMobile
-        ? [Saga.put(navigateAppend([{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}]))]
+        ? [
+            Saga.put(
+              RouteTreeGen.createNavigateAppend({
+                path: [{props: {createdTeam: true, teamname}, selected: 'editTeamAvatar'}],
+              })
+            ),
+          ]
         : []),
     ])
   } catch (error) {
@@ -111,7 +127,11 @@ const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
     // Success, dismiss the create team dialog and clear out search results
     logger.info(`Successfully added ${ids.length} users to ${teamname}`)
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
     yield Saga.put(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     yield Saga.put(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -138,7 +158,7 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
     {teamID, waitingKey: Constants.teamWaitingKey(teamname)}
   )
-  let retentionPolicy: Types.RetentionPolicy = Constants.makeRetentionPolicy()
+  let retentionPolicy: RetentionPolicy = Constants.makeRetentionPolicy()
   try {
     retentionPolicy = Constants.serviceRetentionPolicyToRetentionPolicy(policy)
     if (retentionPolicy.type === 'inherit') {
@@ -229,7 +249,18 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
             : `There was an error parsing ${malformed.length} address${malformed.length > 1 ? 'es' : ''}.`,
         })
       )
+    } else {
+      // no malformed emails, assume everything went swimmingly
+      yield Saga.put(
+        TeamsGen.createSetEmailInviteError({
+          malformed: [],
+          message: '',
+        })
+      )
     }
+  } catch (err) {
+    // other error. display messages and leave all emails in input box
+    yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: err.desc}))
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
@@ -265,7 +296,7 @@ const _editDescription = function*(action: TeamsGen.EditTeamDescriptionPayload) 
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO We don't get a team changed notification for this. Delete this call when CORE-7125 is finished.
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+    yield Saga.put(TeamsGen.createGetDetails({teamname}))
   }
 }
 
@@ -278,7 +309,7 @@ function _uploadAvatar(action: TeamsGen.UploadTeamAvatarPayload) {
       sendChatNotification,
       teamname,
     }),
-    Saga.put(navigateUp()),
+    Saga.put(RouteTreeGen.createNavigateUp()),
   ])
 }
 
@@ -363,7 +394,7 @@ const _ignoreRequest = function*(action: TeamsGen.IgnoreRequestPayload) {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
     // TODO get rid of this once core sends us a notification for this (CORE-7125)
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname}))) // getDetails will unset loading
+    yield Saga.put(TeamsGen.createGetDetails({teamname})) // getDetails will unset loading
   }
 }
 
@@ -481,7 +512,6 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
         if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
           return ''
         }
-        // $ForceType
         const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
         return `${invite.name}@${sbs}`
       })()
@@ -503,7 +533,9 @@ const _getDetails = function*(action: TeamsGen.GetDetailsPayload): Saga.SagaGene
     const teamTree = yield Saga.call(RPCTypes.teamsTeamTreeRpcPromise, {
       name: {parts: teamname.split('.')},
     })
-    const subteams = teamTree.entries.map(team => team.name.parts.join('.')).filter(team => team !== teamname)
+    const subteams = teamTree.entries
+      .map(team => team.name.parts.join('.'))
+      .filter(team => team !== teamname && team.startsWith(teamname))
 
     yield Saga.put(
       TeamsGen.createSetTeamDetails({
@@ -625,13 +657,14 @@ const _getTeamPublicity = function*(action: TeamsGen.GetTeamPublicityPayload): S
 
 function _getChannelInfo(action: TeamsGen.GetChannelInfoPayload) {
   const {teamname, conversationIDKey} = action.payload
+  // TODO promise
   return Saga.all([
     Saga.call(RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise, {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
       query: ChatConstants.makeInboxQuery([conversationIDKey]),
     }),
-    Saga.identity(teamname),
-    Saga.identity(conversationIDKey),
+    Saga.call(() => teamname),
+    Saga.call(() => conversationIDKey),
   ])
 }
 
@@ -668,8 +701,9 @@ function _getChannels(action: TeamsGen.GetChannelsPayload) {
       tlfName: teamname,
       topicType: RPCChatTypes.commonTopicType.chat,
     }),
-    Saga.identity(teamname),
-    Saga.identity(waitingKey),
+    // TODO promise
+    Saga.call(() => teamname),
+    Saga.call(() => waitingKey),
     Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
   ])
 }
@@ -696,74 +730,77 @@ function _afterGetChannels(fromGetChannels: any[]) {
   ])
 }
 
-const _getTeams = function*(action: TeamsGen.GetTeamsPayload): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
-  const username = state.config.username
-  if (!username) {
-    logger.warn('getTeams while logged out')
-    return
-  }
-  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
-  try {
-    const results: RPCTypes.AnnotatedTeamList = yield Saga.call(RPCTypes.teamsTeamListUnverifiedRpcPromise, {
-      includeImplicitTeams: false,
-      userAssertion: username,
-    })
-
-    const teams = results.teams || []
-    const teamnames = []
-    const teammembercounts = {}
-    const teamNameToRole: {[Types.Teamname]: Types.MaybeTeamRoleType} = {}
-    const teamNameToIsOpen = {}
-    const teamNameToAllowPromote = {}
-    const teamNameToIsShowcasing = {}
-    const teamNameToID = {}
-    teams.forEach(team => {
-      teamnames.push(team.fqName)
-      teammembercounts[team.fqName] = team.memberCount
-      teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
-      teamNameToIsOpen[team.fqName] = team.isOpenTeam
-      teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
-      teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
-      teamNameToID[team.fqName] = team.teamID
-    })
-
-    // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
-    const teamNameSet = I.Set(teamnames)
-    const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
-      if (!teamNameSet.has(key)) {
-        ids.push(...value.toArray().map(ru => ru.badgeIDKey))
-      }
-      return ids
-    }, [])
-    yield Saga.all(
-      dismissIDs.map(id =>
-        Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
-      )
-    )
-
-    yield Saga.put(
-      TeamsGen.createSetTeamInfo({
-        teamnames: teamNameSet,
-        teammembercounts: I.Map(teammembercounts),
-        teamNameToIsOpen: I.Map(teamNameToIsOpen),
-        teamNameToRole: I.Map(teamNameToRole),
-        teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
-        teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
-        teamNameToID: I.Map(teamNameToID),
-      })
-    )
-  } catch (err) {
-    if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
-      // Ignore API errors due to offline
-    } else {
-      throw err
+const getTeams = (state: TypedState) =>
+  Saga.call(function*() {
+    const username = state.config.username
+    if (!username) {
+      logger.warn('getTeams while logged out')
+      return
     }
-  } finally {
-    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
-  }
-}
+    yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
+    try {
+      const results: RPCTypes.AnnotatedTeamList = yield Saga.call(
+        RPCTypes.teamsTeamListUnverifiedRpcPromise,
+        {
+          includeImplicitTeams: false,
+          userAssertion: username,
+        }
+      )
+
+      const teams = results.teams || []
+      const teamnames = []
+      const teammembercounts = {}
+      const teamNameToRole: {[Types.Teamname]: Types.MaybeTeamRoleType} = {}
+      const teamNameToIsOpen = {}
+      const teamNameToAllowPromote = {}
+      const teamNameToIsShowcasing = {}
+      const teamNameToID = {}
+      teams.forEach(team => {
+        teamnames.push(team.fqName)
+        teammembercounts[team.fqName] = team.memberCount
+        teamNameToRole[team.fqName] = Constants.teamRoleByEnum[team.role]
+        teamNameToIsOpen[team.fqName] = team.isOpenTeam
+        teamNameToAllowPromote[team.fqName] = team.allowProfilePromote
+        teamNameToIsShowcasing[team.fqName] = team.isMemberShowcased
+        teamNameToID[team.fqName] = team.teamID
+      })
+
+      // Dismiss any stale badges for teams we're no longer in
+      const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
+      const teamNameSet = I.Set(teamnames)
+      const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
+        if (!teamNameSet.has(key)) {
+          ids.push(...value.toArray().map(ru => ru.badgeIDKey))
+        }
+        return ids
+      }, [])
+      yield Saga.all(
+        dismissIDs.map(id =>
+          Saga.call(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+        )
+      )
+
+      yield Saga.put(
+        TeamsGen.createSetTeamInfo({
+          teamnames: teamNameSet,
+          teammembercounts: I.Map(teammembercounts),
+          teamNameToIsOpen: I.Map(teamNameToIsOpen),
+          teamNameToRole: I.Map(teamNameToRole),
+          teamNameToAllowPromote: I.Map(teamNameToAllowPromote),
+          teamNameToIsShowcasing: I.Map(teamNameToIsShowcasing),
+          teamNameToID: I.Map(teamNameToID),
+        })
+      )
+    } catch (err) {
+      if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
+        // Ignore API errors due to offline
+      } else {
+        throw err
+      }
+    } finally {
+      yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
+    }
+  })
 
 const _checkRequestedAccess = (action: TeamsGen.CheckRequestedAccessPayload) =>
   Saga.call(RPCTypes.teamsTeamListMyAccessRequestsRpcPromise, {})
@@ -882,7 +919,11 @@ function* _createChannel(action: TeamsGen.CreateChannelPayload) {
 
     // Dismiss the create channel dialog.
     yield Saga.put(
-      putActionIfOnPath(rootPath.concat(sourceSubPath), navigateTo(destSubPath, rootPath), rootPath)
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: rootPath.concat(sourceSubPath),
+        otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+        parentPath: rootPath,
+      })
     )
 
     // Select the new channel, and switch to the chat tab.
@@ -910,7 +951,7 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
   } finally {
     // TODO handle error, but for now make sure loading is unset
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
-    yield Saga.put((dispatch: Dispatch) => dispatch(TeamsGen.createGetDetails({teamname})))
+    yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
     // The profile showcasing page gets this data from teamList rather than teamGet, so trigger one of those too.
     yield Saga.put(TeamsGen.createGetTeams())
@@ -941,51 +982,71 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   const calls = []
   if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsTeamSetSettingsRpcPromise, {
-        name: teamname,
-        settings: {
-          joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
-          open: settings.openTeam,
-        },
+      Saga.call(function*() {
+        RPCTypes.teamsTeamSetSettingsRpcPromise({
+          name: teamname,
+          settings: {
+            joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+            open: settings.openTeam,
+          },
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTarsDisabledRpcPromise, {
-        disabled: settings.ignoreAccessRequests,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTarsDisabledRpcPromise({
+          disabled: settings.ignoreAccessRequests,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityAnyMember !== settings.publicityAnyMember) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        anyMemberShowcase: settings.publicityAnyMember,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamShowcaseRpcPromise({
+          anyMemberShowcase: settings.publicityAnyMember,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityMember !== settings.publicityMember) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamMemberShowcaseRpcPromise, {
-        isShowcased: settings.publicityMember,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamMemberShowcaseRpcPromise({
+          isShowcased: settings.publicityMember,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   if (publicityTeam !== settings.publicityTeam) {
     calls.push(
-      Saga.callAndWrap(RPCTypes.teamsSetTeamShowcaseRpcPromise, {
-        isShowcased: settings.publicityTeam,
-        name: teamname,
+      Saga.call(function*() {
+        RPCTypes.teamsSetTeamShowcaseRpcPromise({
+          isShowcased: settings.publicityTeam,
+          name: teamname,
+        })
+          .then(payload => ({type: 'ok', payload}))
+          .catch(payload => ({type: 'error', payload}))
       })
     )
   }
   return Saga.all([
     Saga.all(calls),
     Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
-    Saga.identity(
+    Saga.call(() =>
       Saga.all([
         // TODO delete this getDetails call when CORE-7125 is finished
         Saga.put(TeamsGen.createGetDetails({teamname})),
@@ -995,7 +1056,7 @@ const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: Type
   ])
 }
 
-function _setupTeamHandlers() {
+const setupEngineListeners = () => {
   engine().setIncomingActionCreators(
     'keybase.1.NotifyTeam.teamChangedByName',
     (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
@@ -1016,7 +1077,7 @@ function _setupTeamHandlers() {
       const {teamID} = args
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
+        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
       }
       return getLoadCalls()
     }
@@ -1028,7 +1089,7 @@ function _setupTeamHandlers() {
       const {teamID} = args
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [navigateTo([], [teamsTab]), ...getLoadCalls()]
+        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
       }
       return getLoadCalls()
     }
@@ -1222,7 +1283,7 @@ function _badgeAppForTeams(action: TeamsGen.BadgeAppForTeamsPayload, state: Type
 }
 
 let _wasOnTeamsTab = false
-const _onTabChange = (action: RouteTypes.SwitchTo) => {
+const _onTabChange = (action: RouteTreeGen.SwitchToPayload) => {
   const list = I.List(action.payload.path)
   const root = list.first()
 
@@ -1242,6 +1303,39 @@ const _onTabChange = (action: RouteTypes.SwitchTo) => {
   }
 }
 
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) =>
+  Saga.put(
+    TeamsGen.createBadgeAppForTeams({
+      newTeamAccessRequests: action.payload.badgeState.newTeamAccessRequests || [],
+      newTeamNames: action.payload.badgeState.newTeamNames || [],
+      teamsWithResetUsers: action.payload.badgeState.teamsWithResetUsers || [],
+    })
+  )
+
+const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
+  const actions = []
+  const items = action.payload.state
+  const sawChatBanner = items.find(i => i.item && i.item.category === 'sawChatBanner')
+  if (sawChatBanner) {
+    actions.push(Saga.put(TeamsGen.createSetTeamSawChatBanner()))
+  }
+
+  const sawSubteamsBanner = items.find(i => i.item && i.item.category === 'sawSubteamsBanner')
+  if (sawSubteamsBanner) {
+    actions.push(Saga.put(TeamsGen.createSetTeamSawSubteamsBanner()))
+  }
+
+  const chosenChannels = items.find(i => i.item && i.item.category === Constants.chosenChannelsGregorKey)
+  const teamsWithChosenChannelsStr =
+    chosenChannels && chosenChannels.item && chosenChannels.item.body && chosenChannels.item.body.toString()
+  const teamsWithChosenChannels = teamsWithChosenChannelsStr
+    ? I.Set(JSON.parse(teamsWithChosenChannelsStr))
+    : I.Set()
+  actions.push(Saga.put(TeamsGen.createSetTeamsWithChosenChannels({teamsWithChosenChannels})))
+
+  return Saga.sequentially(actions)
+}
+
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
@@ -1253,10 +1347,9 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
-  yield Saga.safeTakeEvery(TeamsGen.getTeams, _getTeams)
+  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams], getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
-  yield Saga.safeTakeEveryPure(TeamsGen.setupTeamHandlers, _setupTeamHandlers)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addPeopleToTeam, _addPeopleToTeam)
   yield Saga.safeTakeEvery(TeamsGen.addUserToTeams, _addUserToTeams)
@@ -1271,7 +1364,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.updateChannelName, _updateChannelname, last)
   yield Saga.safeTakeEveryPure(TeamsGen.deleteChannelConfirmed, _deleteChannelConfirmed)
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
-  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange, null, logError)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
   yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
   yield Saga.safeTakeEveryPure(
@@ -1283,6 +1376,9 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.saveTeamRetentionPolicy, _saveTeamRetentionPolicy)
   yield Saga.safeTakeEveryPure(Chat2Gen.updateTeamRetentionPolicy, _updateTeamRetentionPolicy)
   yield Saga.safeTakeEvery(TeamsGen.addTeamWithChosenChannels, _addTeamWithChosenChannels)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
 }
 
 export default teamsSaga

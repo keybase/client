@@ -398,6 +398,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 	}
 }
 
+func (d DebugLabeler) GetLog() logger.Logger {
+	return d.log
+}
+
 func (d DebugLabeler) showVerbose() bool {
 	return false
 }
@@ -421,7 +425,7 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, 
 		start := time.Now()
 		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
@@ -841,7 +845,23 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
@@ -1007,6 +1027,37 @@ func formatVideoDuration(ms int) string {
 	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
+func formatVideoSize(bytes int64) string {
+	const (
+		BYTE = 1.0 << (10 * iota)
+		KILOBYTE
+		MEGABYTE
+		GIGABYTE
+		TERABYTE
+	)
+	unit := ""
+	value := float64(bytes)
+	switch {
+	case bytes >= TERABYTE:
+		unit = "TB"
+		value = value / TERABYTE
+	case bytes >= GIGABYTE:
+		unit = "GB"
+		value = value / GIGABYTE
+	case bytes >= MEGABYTE:
+		unit = "MB"
+		value = value / MEGABYTE
+	case bytes >= KILOBYTE:
+		unit = "KB"
+		value = value / KILOBYTE
+	case bytes >= BYTE:
+		unit = "B"
+	case bytes == 0:
+		return "0"
+	}
+	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1045,14 +1096,33 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
 		}
 		atyp, err := asset.Metadata.AssetType()
-		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && asset.Metadata.Video().DurationMs > 1 {
-			info.VideoDuration = new(string)
-			*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs)
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
+			if asset.Metadata.Video().DurationMs > 1 {
+				info.VideoDuration = new(string)
+				*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+					formatVideoSize(asset.Size)
+			}
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
 		}
 		return &info
+	}
+	return nil
+}
+
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.PaymentLoader.Load(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
 	}
 	return nil
 }
@@ -1112,9 +1182,10 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1124,6 +1195,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1133,6 +1210,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1394,4 +1473,12 @@ func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []key
 		return &tmp
 	}
 	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
+}
+
+func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithPlaceholder(
+		chat1.MessageUnboxedPlaceholder{
+			MessageID: msgID,
+			Hidden:    true,
+		})
 }

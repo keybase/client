@@ -258,12 +258,12 @@ func (s *SimpleFSHandler) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 }
 
 // SimpleFSSyncStatus - Get sync status.
-func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+func (s *SimpleFSHandler) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.FSSyncStatus{}, err
 	}
-	return cli.SimpleFSSyncStatus(ctx)
+	return cli.SimpleFSSyncStatus(ctx, filter)
 }
 
 // SimpleFSGetHTTPAddressAndToken implements the SimpleFSInterface.
@@ -294,15 +294,6 @@ func (s *SimpleFSHandler) SimpleFSFolderEditHistory(
 		return keybase1.FSFolderEditHistory{}, err
 	}
 	return cli.SimpleFSFolderEditHistory(ctx, path)
-}
-
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s *SimpleFSHandler) SimpleFSSuppressNotifications(ctx context.Context, suppressDurationSec int) error {
-	cli, err := s.client()
-	if err != nil {
-		return err
-	}
-	return cli.SimpleFSSuppressNotifications(ctx, suppressDurationSec)
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.

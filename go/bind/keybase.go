@@ -47,6 +47,9 @@ var startOnce sync.Once
 var logSendContext libkb.LogSendContext
 var kbfsConfig libkbfs.Config
 
+var initMutex sync.Mutex
+var initComplete bool
+
 type PushNotifier interface {
 	LocalNotification(ident string, msg string, badgeCount int, soundName string, convID string, typ string)
 }
@@ -104,22 +107,39 @@ func flattenError(err error) error {
 	return err
 }
 
+func isInited() bool {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+	return initComplete
+}
+
+func setInited() {
+	initMutex.Lock()
+	defer initMutex.Unlock()
+	initComplete = true
+}
+
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
-	defer func() { err = flattenError(err) }()
+func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+	defer func() {
+		err = flattenError(err)
+		if err == nil {
+			setInited()
+		}
+	}()
 
-	fmt.Println("Go: Initializing")
+	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
@@ -155,6 +175,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 	config := libkb.AppConfig{
 		HomeDir:                        homeDir,
+		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
 		Debug:                          true,
@@ -225,7 +246,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		ctx, config, nil)
 	additionalProtocols := []rpc.Protocol{
 		keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(ctx.GetGlobalContext(), config)),
+			simplefs.NewSimpleFS(ctx, config)),
 		keybase1.KBFSGitProtocol(gitrpc),
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	}
@@ -243,10 +264,11 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (res string, err error) {
+func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
+	logSendContext.Logs.CPUProfile = cpuProfileDir
 	env := kbCtx.Env
 	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
@@ -334,23 +356,57 @@ func Version() string {
 }
 
 func SetAppStateForeground() {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("SetAppStateForeground", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_FOREGROUND)
 }
 func SetAppStateBackground() {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("SetAppStateBackground", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUND)
 }
 func SetAppStateInactive() {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("SetAppStateInactive", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_INACTIVE)
 }
 func SetAppStateBackgroundActive() {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("SetAppStateBackgroundActive", func() error { return nil })()
 	kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 }
 
+func waitForInit(maxDur time.Duration) error {
+	if isInited() {
+		return nil
+	}
+	maxCh := time.After(maxDur)
+	for {
+		select {
+		case <-time.After(200 * time.Millisecond):
+			if isInited() {
+				return nil
+			}
+		case <-maxCh:
+			return errors.New("waitForInit timeout")
+		}
+	}
+}
+
 func BackgroundSync() {
+	// On Android there is a race where this function can be called before Init when starting up in the
+	// background. Let's wait a little bit here for Init to get run, and bail out if it never does.
+	if err := waitForInit(5 * time.Second); err != nil {
+		return
+	}
 	defer kbCtx.Trace("BackgroundSync", func() error { return nil })()
 
 	// Skip the sync if we aren't in the background
@@ -379,6 +435,9 @@ func BackgroundSync() {
 
 func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool, intMessageID int,
 	pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
+	if err := waitForInit(5 * time.Second); err != nil {
+		return nil
+	}
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -441,6 +500,9 @@ func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier)
 // AppWillExit is called reliably on iOS when the app is about to terminate
 // not as reliably on android
 func AppWillExit(pusher PushNotifier) {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("AppWillExit", func() error { return nil })()
 	ctx := context.Background()
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
@@ -455,6 +517,9 @@ func AppWillExit(pusher PushNotifier) {
 // AppDidEnterBackground notifies the service that the app is in the background
 // [iOS] returning true will request about ~3mins from iOS to continue execution
 func AppDidEnterBackground() bool {
+	if !isInited() {
+		return false
+	}
 	defer kbCtx.Trace("AppDidEnterBackground", func() error { return nil })()
 	ctx := context.Background()
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
@@ -472,6 +537,9 @@ func AppDidEnterBackground() bool {
 }
 
 func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("AppBeginBackgroundTaskNonblock", func() error { return nil })()
 	go AppBeginBackgroundTask(pusher)
 }
@@ -479,6 +547,9 @@ func AppBeginBackgroundTaskNonblock(pusher PushNotifier) {
 // AppBeginBackgroundTask notifies us that an app background task has been started on our behalf. This
 // function will return once we no longer need any time in the background.
 func AppBeginBackgroundTask(pusher PushNotifier) {
+	if !isInited() {
+		return
+	}
 	defer kbCtx.Trace("AppBeginBackgroundTask", func() error { return nil })()
 	ctx := context.Background()
 	// Poll active deliveries in case we can shutdown early

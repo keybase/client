@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
+import Divider from './divider'
 
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
@@ -44,7 +45,7 @@ const ListItem = (props: Props) => (
         direction="horizontal"
         style={props.type === 'Small' ? styles.contentContainerSmall : styles.contentContainerLarge}
       >
-        {!props.firstItem && <Box2 direction="vertical" style={styles.divider} />}
+        {!props.firstItem && <Divider style={styles.divider} />}
         <Box2
           direction="horizontal"
           style={props.type === 'Small' ? styles.bodySmallContainer : styles.bodyLargeContainer}
@@ -64,7 +65,7 @@ const ListItem = (props: Props) => (
 
 const smallHeight = Styles.isMobile ? 48 : 40
 const largeHeight = Styles.isMobile ? 64 : 56
-const smallIconWidth = Styles.isMobile ? 56 : 48
+const smallIconWidth = Styles.isMobile ? 56 : 56
 const largeIconWidth = Styles.isMobile ? 72 : 72
 
 const styles = Styles.styleSheetCreate({
@@ -123,8 +124,6 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   divider: {
-    backgroundColor: Styles.globalColors.black_05,
-    height: 1,
     left: 0,
     position: 'absolute',
     right: 0,

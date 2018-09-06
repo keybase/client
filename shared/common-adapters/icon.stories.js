@@ -13,7 +13,7 @@ const commonProps = {
   onMouseEnter: Sb.action('onMouseEnter'),
   onMouseLeave: Sb.action('onMouseLeave'),
   style: {
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderWidth: 1,
     margin: 5,
     ...(isMobile

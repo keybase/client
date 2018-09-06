@@ -45,17 +45,17 @@ type Server struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	serverConn     ServerConnection
-	uiSource       UISource
-	boxer          *Boxer
-	identNotifier  types.IdentifyNotifier
-	clock          clockwork.Clock
-	convPageStatus map[string]chat1.Pagination
+	serverConn        ServerConnection
+	uiSource          UISource
+	boxer             *Boxer
+	identNotifier     types.IdentifyNotifier
+	clock             clockwork.Clock
+	convPageStatus    map[string]chat1.Pagination
+	cachedThreadDelay *time.Duration
 
 	// Only for testing
 	rc                chat1.RemoteInterface
 	mockChatUI        libkb.ChatUI
-	cachedThreadDelay *time.Duration
 	remoteThreadDelay *time.Duration
 }
 
@@ -91,6 +91,9 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
+	if err == nil {
+		return nil
+	}
 
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)
@@ -173,11 +176,12 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	chatUI := h.getChatUI(arg.SessionID)
 	localizeCb := make(chan NonblockInboxResult, 1)
 
-	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	// Invoke nonblocking inbox read and get remote inbox version to send back
+	// as our result
 	localizer := NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox)
-	_, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
-	if err != nil {
-		// If this is a convID based query, let's go ahead and drop those onto the retrier
+	if _, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination); err != nil {
+		// If this is a convID based query, let's go ahead and drop those onto
+		// the retrier
 		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
@@ -482,28 +486,28 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			if state == chat1.MessageUnboxedState_PLACEHOLDER && !rm[m.GetMessageID()] {
 				h.Debug(ctx, "mergeLocalRemoteThread: subbing in dead placeholder: msgID: %d",
 					m.GetMessageID())
-				res.Messages = append(res.Messages, chat1.NewMessageUnboxedWithPlaceholder(
-					chat1.MessageUnboxedPlaceholder{
-						MessageID: m.GetMessageID(),
-						Hidden:    true,
-					},
-				))
+				res.Messages = append(res.Messages, utils.CreateHiddenPlaceholder(m.GetMessageID()))
 			}
 		}
 		sort.Sort(utils.ByMsgUnboxedMsgID(res.Messages))
 	}()
 
-	shouldAppend := func(oldMsg chat1.MessageUnboxed) bool {
-		state, err := oldMsg.State()
-		if err != nil {
+	shouldAppend := func(newMsg chat1.MessageUnboxed, oldMsgs map[chat1.MessageID]chat1.MessageUnboxed) bool {
+		oldMsg, ok := oldMsgs[newMsg.GetMessageID()]
+		if !ok {
 			return true
 		}
-		switch state {
-		case chat1.MessageUnboxedState_VALID:
-			return false
-		default:
+		// If either message is not valid, return the new one, something weird might be going on
+		if !oldMsg.IsValid() || !newMsg.IsValid() {
 			return true
 		}
+		// If newMsg is now superseded by something different than what we sent, then let's include it
+		if newMsg.Valid().ServerHeader.SupersededBy != oldMsg.Valid().ServerHeader.SupersededBy {
+			h.Debug(ctx, "mergeLocalRemoteThread: including supersededBy change: msgID: %d",
+				newMsg.GetMessageID())
+			return true
+		}
+		return false
 	}
 	switch mode {
 	case chat1.GetThreadNonblockCbMode_FULL:
@@ -516,8 +520,7 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			}
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
-				oldMsg, ok := lm[m.GetMessageID()]
-				if !ok || shouldAppend(oldMsg) {
+				if shouldAppend(m, lm) {
 					res.Messages = append(res.Messages, m)
 				}
 			}
@@ -658,6 +661,12 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	if pagination, err = utils.DecodePagination(arg.Pagination); err != nil {
 		return res, err
 	}
+
+	// Enable delete placeholders for supersede transform
+	if arg.Query == nil {
+		arg.Query = new(chat1.GetThreadQuery)
+	}
+	arg.Query.EnableDeletePlaceholders = true
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
@@ -1371,7 +1380,7 @@ func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res
 }
 
 func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
-	inOutboxID *chat1.OutboxID, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
+	inOutboxID *chat1.OutboxID, filename, title string, md []byte, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
 	if inOutboxID == nil {
 		if outboxID, err = storage.NewOutboxID(); err != nil {
 			return msg, outboxID, err
@@ -1386,6 +1395,13 @@ func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 			TlfPublic:   vis == keybase1.TLFVisibility_PUBLIC,
 			OutboxID:    &outboxID,
 		},
+		MessageBody: chat1.NewMessageBodyWithAttachment(chat1.MessageAttachment{
+			Object: chat1.Asset{
+				Title:    title,
+				Filename: filename,
+			},
+			Metadata: md,
+		}),
 	}
 	if ephemeralLifetime != nil {
 		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
@@ -1403,7 +1419,7 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.TlfName, arg.Visibility, nil,
-		arg.EphemeralLifetime)
+		arg.Filename, arg.Title, arg.Metadata, arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
@@ -1442,7 +1458,7 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	// Get base of message we are going to send
 	uid := h.getUID()
 	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.Arg.TlfName, arg.Arg.Visibility,
-		arg.Arg.OutboxID, arg.Arg.EphemeralLifetime)
+		arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title, arg.Arg.Metadata, arg.Arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
@@ -1766,8 +1782,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	}
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, chat1.ConversationMembersType_TEAM,
-		arg.Visibility == keybase1.TLFVisibility_PUBLIC)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		arg.TlfName, arg.Visibility == keybase1.TLFVisibility_PUBLIC)
 	if err != nil {
 		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err
@@ -1928,7 +1944,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	uid := gregor1.UID(h.G().Env.GetUID().ToBytes())
 
 	// Fetch the TLF ID from specified name
-	nameInfo, err := CtxKeyFinder(ctx, h.G()).Find(ctx, arg.TlfName, arg.MembersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, h.G(), arg.MembersType).LookupID(ctx, arg.TlfName, false)
 	if err != nil {
 		h.Debug(ctx, "GetTLFConversationsLocal: failed to get TLFID from name: %s", err.Error())
 		return res, err

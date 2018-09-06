@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -278,16 +279,35 @@ func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 	delete(u.uploads, outboxID.String())
 }
 
-func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
+func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *os.File, err error) {
 	baseDir := u.G().GetCacheDir()
 	if u.tempDir != "" {
 		baseDir = u.tempDir
 	}
-	dir := filepath.Join(baseDir, "uploadedpreviews")
+	dir := filepath.Join(baseDir, dirname)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	return ioutil.TempFile(dir, "up")
+	return ioutil.TempFile(dir, prefix)
+}
+
+func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
+	return u.uploadFile(ctx, "uploadedpreviews", "up")
+}
+
+func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (f *os.File, err error) {
+	// make sure we want to stash this full asset in our local cache
+	typ, err := md.AssetType()
+	if err != nil {
+		return nil, err
+	}
+	switch typ {
+	case chat1.AssetMetadataType_IMAGE:
+		// we will stash these guys
+	default:
+		return nil, fmt.Errorf("not storing full of type: %v", typ)
+	}
+	return u.uploadFile(ctx, "uploadedfulls", "fl")
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -363,11 +383,24 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		case <-bgctx.Done():
 			return bgctx.Err()
 		}
+
+		// set up file to write out encrypted preview to
+		var encryptedOut io.Writer
+		uf, err := u.uploadFullFile(ctx, pre.BaseMetadata())
+		if err != nil {
+			u.Debug(bgctx, "upload: failed to create uploaded full file: %s", err)
+			encryptedOut = ioutil.Discard
+			uf = nil
+		} else {
+			defer uf.Close()
+			encryptedOut = uf
+		}
+
 		u.Debug(bgctx, "upload: uploading assets")
 		task := UploadTask{
 			S3Params:       s3params,
 			Filename:       filename,
-			FileSize:       int(finfo.Size()),
+			FileSize:       finfo.Size(),
 			Plaintext:      src,
 			S3Signer:       u.s3signer,
 			ConversationID: convID,
@@ -376,13 +409,19 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			Preview:        false,
 			Progress:       progress,
 		}
-		ures.Object, err = u.store.UploadAsset(bgctx, &task, nil)
+		ures.Object, err = u.store.UploadAsset(bgctx, &task, encryptedOut)
 		if err != nil {
 			u.Debug(bgctx, "upload: error uploading primary asset to s3: %s", err)
 		} else {
 			ures.Object.Title = title
 			ures.Object.MimeType = pre.ContentType
 			ures.Object.Metadata = pre.BaseMetadata()
+			if uf != nil {
+				if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
+					uf.Name(), ures.Object); err != nil {
+					u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
+				}
+			}
 		}
 		u.Debug(bgctx, "upload: asset upload complete")
 		return err
@@ -398,12 +437,15 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			previewParams := s3params
 
 			// set up file to write out encrypted preview to
-			encryptedOut, err := u.uploadPreviewFile(ctx)
+			var encryptedOut io.Writer
+			up, err := u.uploadPreviewFile(ctx)
 			if err != nil {
 				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
-				encryptedOut = nil
+				encryptedOut = ioutil.Discard
+				up = nil
 			} else {
-				defer encryptedOut.Close()
+				defer up.Close()
+				encryptedOut = up
 			}
 
 			// add preview suffix to object key (P in hex)
@@ -412,7 +454,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			task := UploadTask{
 				S3Params:       previewParams,
 				Filename:       filename,
-				FileSize:       len(pre.Preview),
+				FileSize:       int64(len(pre.Preview)),
 				Plaintext:      newBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
@@ -426,10 +468,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 				ures.Preview.MimeType = pre.PreviewContentType
 				ures.Preview.Metadata = pre.PreviewMetadata()
 				ures.Preview.Tag = chat1.AssetTag_PRIMARY
-				if encryptedOut != nil {
+				if up != nil {
 					if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
-						encryptedOut.Name(), preview); err != nil {
-						u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
+						up.Name(), preview); err != nil {
+						u.Debug(bgctx, "upload: failed to put uploaded preview asset into fetcher: %s", err)
 					}
 				}
 			} else {

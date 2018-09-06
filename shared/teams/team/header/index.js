@@ -9,6 +9,7 @@ import {
   Button,
   ButtonBar,
   Icon,
+  InfoNote,
   Meta,
   Text,
   OverlayParentHOC,
@@ -39,7 +40,6 @@ export type Props = {
   role: Types.MaybeTeamRoleType,
   showingMenu: boolean,
   teamname: Types.Teamname,
-  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
@@ -135,23 +135,12 @@ const _TeamHeader = (props: Props) => (
 
       {/* CLI hint */}
       {!isMobile && (
-        <Box style={styles.cliContainer}>
-          <Box style={styles.cliIconWrapper}>
-            <Box style={styles.cliIconLine} />
-            <Icon
-              style={iconCastPlatformStyles(styles.cliIcon)}
-              color={globalColors.black_10}
-              type="iconfont-info"
-            />
-            <Box style={styles.cliIconLine} />
-          </Box>
-          <Text type="BodySmall" style={styles.cliInstructionText}>
-            You can also manage teams from the terminal:
-          </Text>
+        <InfoNote>
+          <Text type="BodySmall">You can also manage teams from the terminal:</Text>
           <Text type="TerminalInline" selectable={true} style={styles.cliTerminalText}>
             keybase team --help
           </Text>
-        </Box>
+        </InfoNote>
       )}
     </Box>
   </Box>
@@ -197,28 +186,6 @@ const styles = styleSheetCreate({
   chatIcon: {
     marginRight: 8,
   },
-  cliContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    margin: 20,
-  },
-  cliIcon: {
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  cliIconLine: {
-    backgroundColor: globalColors.black_05,
-    height: 1,
-    width: 24,
-  },
-  cliIconWrapper: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: globalMargins.xtiny,
-  },
-  cliInstructionText: {
-    textAlign: 'center',
-  },
   cliTerminalText: {
     marginLeft: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
@@ -234,6 +201,7 @@ const styles = styleSheetCreate({
   description: {
     maxWidth: 560,
     paddingTop: globalMargins.tiny,
+    textAlign: 'center',
   },
   meta: {
     alignSelf: 'center',

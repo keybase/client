@@ -11,11 +11,11 @@ const mapStateToProps = (state: TypedState, {message}) => ({
   timestamp: message.timestamp,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {message}) => ({
+const mapDispatchToProps = (dispatch, {message}) => ({
   onUsernameClicked: () =>
     isMobile
       ? dispatch(createShowUserProfile({username: message.author}))
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username: message.author})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(SetDescription)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(SetDescription)

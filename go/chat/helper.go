@@ -198,17 +198,22 @@ func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID
 	defer h.Trace(ctx, func() error { return err }, "ChatHelper.UpgradeKBFSToImpteam(%s,%s,%v)",
 		tlfID, tlfName, public)()
 	var cryptKeys []keybase1.CryptKey
-	ni, err := CtxKeyFinder(ctx, h.G()).FindForEncryption(ctx, tlfName, tlfID,
-		chat1.ConversationMembersType_KBFS, public)
+	nis := NewKBFSNameInfoSource(h.G())
+	keys, err := nis.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
 		return err
 	}
-	for _, key := range ni.CryptKeys[chat1.ConversationMembersType_KBFS] {
+	for _, key := range keys[chat1.ConversationMembersType_KBFS] {
 		cryptKeys = append(cryptKeys, keybase1.CryptKey{
 			KeyGeneration: key.Generation(),
 			Key:           key.Material(),
 		})
 	}
+	ni, err := nis.LookupID(ctx, tlfName, public)
+	if err != nil {
+		return err
+	}
+
 	tlfName = ni.CanonicalName
 	h.Debug(ctx, "UpgradeKBFSToImpteam: upgrading: TlfName: %s TLFID: %s public: %v keys: %d",
 		tlfName, tlfID, public, len(cryptKeys))
@@ -593,8 +598,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 			continue
 		}
 		if !msg.IsValid() {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message",
-				conv.GetConvID())
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message: %v",
+				conv.GetConvID(), msg.DebugString())
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
@@ -662,7 +667,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			// are not any public team chats.
 
 			// Fetch the TLF ID from specified name
-			nameInfo, err := CtxKeyFinder(ctx, g).Find(ctx, tlfName, membersType, false)
+			nameInfo, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, false)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
 				return res, err
@@ -846,6 +851,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
+		return err
+	}
+	defer g.ConvSource.ReleaseConversationLock(ctx, uid, convID)
+
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
 	if err != nil {
 		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
@@ -1025,7 +1035,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
 
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	info, err := CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+	nis := CreateNameInfoSource(ctx, n.G(), n.membersType)
+	info, err := nis.LookupID(ctx, n.tlfName, isPublic)
 	if err != nil {
 		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
 			return res, err
@@ -1040,7 +1051,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		if err != nil {
 			return res, err
 		}
-		info, err = CtxKeyFinder(ctx, n.G()).Find(ctx, n.tlfName, n.membersType, isPublic)
+		info, err = nis.LookupID(ctx, n.tlfName, isPublic)
 		if err != nil {
 			return res, err
 		}
@@ -1218,4 +1229,23 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
 	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
 	return mbox, topicNameState, err
+}
+
+func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
+	if override := ctx.Value(nameInfoOverrideKey); override != nil {
+		g.GetLog().CDebugf(ctx, "createNameInfoSource: using override: %T", override)
+		return override.(types.NameInfoSource)
+	}
+	switch membersType {
+	case chat1.ConversationMembersType_KBFS:
+		return NewKBFSNameInfoSource(g)
+	case chat1.ConversationMembersType_TEAM:
+		return NewTeamsNameInfoSource(g)
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		return NewImplicitTeamsNameInfoSource(g, false)
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return NewImplicitTeamsNameInfoSource(g, true)
+	}
+	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
+	return NewKBFSNameInfoSource(g)
 }

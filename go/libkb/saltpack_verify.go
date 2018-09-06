@@ -35,39 +35,40 @@ func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteClos
 
 	var skey saltpack.SigningPublicKey
 	var vs io.Reader
-	var frame saltpack.Frame
+	var brand string
 	if sc.Armored {
-		skey, vs, frame, err = saltpack.NewDearmor62VerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
+		skey, vs, brand, err = saltpack.NewDearmor62VerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	} else {
 		skey, vs, err = saltpack.NewVerifyStream(saltpack.CheckKnownMajorVersion, source, kr)
 	}
 	if err != nil {
 		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
-		return err
+		return VerificationError{Cause: err}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return err
+			return VerificationError{Cause: err}
 		}
 	}
 
 	n, err := io.Copy(sink, vs)
 	if err != nil {
-		return err
+		return VerificationError{Cause: err}
 	}
 
 	if sc.Armored {
-		if brand, err := saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeAttachedSignature); err != nil {
-			return err
-		} else if err = checkSaltpackBrand(brand); err != nil {
-			return err
+		if err = checkSaltpackBrand(brand); err != nil {
+			return VerificationError{Cause: err}
 		}
 	}
 
 	g.GetLog().Debug("Verify: read %d bytes", n)
 
-	return sink.Close()
+	if err := sink.Close(); err != nil {
+		return VerificationError{Cause: err}
+	}
+	return nil
 }
 
 func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
@@ -91,22 +92,22 @@ func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signatur
 		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, string(signature), kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
-			return err
+			return VerificationError{Cause: err}
 		}
 		if err = checkSaltpackBrand(brand); err != nil {
-			return err
+			return VerificationError{Cause: err}
 		}
 	} else {
 		skey, err = saltpack.VerifyDetachedReader(saltpack.CheckKnownMajorVersion, message, signature, kr)
 		if err != nil {
 			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
-			return err
+			return VerificationError{Cause: err}
 		}
 	}
 
 	if checkSender != nil {
 		if err = checkSender(skey); err != nil {
-			return err
+			return VerificationError{Cause: err}
 		}
 	}
 

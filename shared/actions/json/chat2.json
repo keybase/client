@@ -4,7 +4,7 @@
     "import * as Types from '../constants/types/chat2'",
     "import * as TeamsTypes from '../constants/types/teams'",
     "import HiddenString from '../util/hidden-string'",
-    "import type {RetentionPolicy} from '../constants/types/teams'"
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     // Select a conversation (or leave nothing selected)
@@ -69,8 +69,6 @@
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
     },
-    // Setup sagas
-    "setupChatHandlers": {},
     // Refresh the inbox
     "inboxRefresh": {
       "reason": [
@@ -111,7 +109,8 @@
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
       "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
-      "fromExpunge?": "boolean" // If true, use meta updating logic for retention policy deletes
+      "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
+      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -214,6 +213,9 @@
     "setPendingMode": {
       "pendingMode": "Types.PendingMode",
       "noneDestination?": ["'inbox'", "'thread'"]
+    },
+    "setPendingStatus": {
+      "pendingStatus": "Types.PendingStatus"
     },
     // Load some more messages for a conversation
     "loadOlderMessagesDueToScroll": {

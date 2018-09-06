@@ -23,14 +23,10 @@ public class BackgroundSyncJob extends Job {
     }
 
     public static void scheduleJob() {
-        try {
         new JobRequest.Builder(TAG)
                 .setRequiredNetworkType(JobRequest.NetworkType.ANY)
                 .setPeriodic(TimeUnit.HOURS.toMillis(1))
                 .build()
                 .schedule();
-        } catch (Exception e) {
-            Log.d(TAG, "Background sync failed: " + e.getMessage());
-        }
     }
 }

@@ -304,9 +304,9 @@ function Account({
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
       <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
-      <Divider style={{backgroundColor: globalColors.black_05}} />
+      <Divider />
       <AccountPassphrase onChangePassphrase={onChangePassphrase} />
-      <Divider style={{backgroundColor: globalColors.black_05}} />
+      <Divider />
       <Checkbox
         checked={rememberPassphrase}
         label="Remember my passphrase"

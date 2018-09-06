@@ -238,6 +238,27 @@
       ]
     },
     {
+      "type": "record",
+      "name": "AllProvisionedUsernames",
+      "fields": [
+        {
+          "type": "string",
+          "name": "defaultUsername"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "provisionedUsernames"
+        },
+        {
+          "type": "boolean",
+          "name": "hasProvisionedUser"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ForkType",
       "symbols": [
@@ -433,6 +454,15 @@
         }
       ],
       "response": "ExtendedStatus"
+    },
+    "getAllProvisionedUsernames": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AllProvisionedUsernames"
     },
     "getConfig": {
       "request": [

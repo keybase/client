@@ -3,7 +3,7 @@ import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 import {fsTab} from '../../../constants/tabs'
 import {navigateTo} from '../../../actions/route-tree'
@@ -12,18 +12,10 @@ import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
 import Banner from '.'
 
-const mapStateToProps = (state: TypedState, {path}) => {
-  const _pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  const _username = state.config.username || undefined
-  return {
-    _pathItem,
-    _username,
-    path,
-    resetParticipants:
-      _pathItem.type === 'folder' && _pathItem.tlfMeta ? _pathItem.tlfMeta.resetParticipants : [],
-    _teamId: _pathItem.type === 'folder' && _pathItem.tlfMeta ? _pathItem.tlfMeta.teamId : '',
-  }
-}
+const mapStateToProps = (state: TypedState, {path}) => ({
+  _tlf: Constants.getTlfFromPath(state.fs.tlfs, path),
+  _username: state.config.username,
+})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onReAddToTeam: (id: RPCTypes.TeamID, username: string) =>
@@ -41,22 +33,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
       : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}) => {
-  const resetParticipants = stateProps.resetParticipants.map(i => i.username)
+const mergeProps = (stateProps, {_onReAddToTeam, _onOpenWithoutResetUsers, onViewProfile}, {path}) => {
+  const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
-    isUserReset: resetParticipants.includes(stateProps._username),
+    isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     onReAddToTeam: (username: string) => () =>
-      stateProps._teamId ? _onReAddToTeam(stateProps._teamId, username) : undefined,
+      stateProps._tlf.teamId ? _onReAddToTeam(stateProps._tlf.teamId, username) : undefined,
     onOpenWithoutResetUsers: () =>
       _onOpenWithoutResetUsers(
-        stateProps.path,
-        resetParticipants.reduce((acc, i) => {
+        path,
+        resetParticipants.reduce((acc, i: string) => {
           acc[i] = true
           return acc
         }, {})
       ),
     onViewProfile,
-    path: stateProps.path,
+    path,
     resetParticipants,
   }
 }

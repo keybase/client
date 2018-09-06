@@ -10,7 +10,7 @@ import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
 import {pathFromFolder} from '../constants/favorite'
 import {isInSomeTeam} from '../constants/teams'
-import ErrorComponent from '../common-adapters/error-profile'
+import ErrorComponent from './error-profile'
 import Profile from './index'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
@@ -69,22 +69,21 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
-  onAcceptProofs: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
-  onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
+  _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),
-  onBrowsePublicFolder: (username: string) =>
+  _onBrowsePublicFolder: (username: string) =>
     dispatch(
       KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
     ),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onChat: username =>
+  _onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
-  onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
-  onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
-  onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
+  _onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
+  _onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
+  _onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
   onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
   onEditAvatar: (image?: Response) =>
     flags.avatarUploadsEnabled
@@ -92,10 +91,10 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
   onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
-  onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
+  _onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
-  onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
+  _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
     dispatch(
       KBFSGen.createOpen({
         path: pathFromFolder({
@@ -122,14 +121,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {setRouteState}: OwnProps) => ({
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
     dispatch(navigateAppend([{props: {}, selected: 'search'}]))
   },
-  onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
+  _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
   onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
   updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
-  const {username} = stateProps
+  const username = stateProps.username || ''
   const refresh = () => {
     dispatchProps.getProfile(username)
     dispatchProps.updateTrackers(username)
@@ -155,32 +154,34 @@ const mergeProps = (stateProps, dispatchProps) => {
     }
   }
 
+  // TODO entirely change how this works
   const okProps = {
     ...stateProps.trackerState,
     ...dispatchProps,
     addUserToTeamsResults: stateProps.addUserToTeamsResults,
     bioEditFns,
     currentFriendshipsTab: stateProps.currentFriendshipsTab,
-    followersLoaded: stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false,
+    followersLoaded: (stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false) || false,
     followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
     following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
     isYou,
     loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
-    onAcceptProofs: () => dispatchProps.onFollow(username),
-    onAddToTeam: () => dispatchProps.onAddToTeam(username),
+    onAcceptProofs: () => dispatchProps._onFollow(username),
+    onAddToTeam: () => dispatchProps._onAddToTeam(username),
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-    onBrowsePublicFolder: () => dispatchProps.onBrowsePublicFolder(username),
-    onChat: () => dispatchProps.onChat(username),
+    onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
+    onChat: () => dispatchProps._onChat(username),
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
-    onClickAvatar: () => dispatchProps.onClickAvatar(username),
-    onClickFollowers: () => dispatchProps.onClickFollowers(username),
-    onClickFollowing: () => dispatchProps.onClickFollowing(username),
+    onClickAvatar: () => dispatchProps._onClickAvatar(username),
+    onClickFollowers: () => dispatchProps._onClickFollowers(username),
+    onClickFollowing: () => dispatchProps._onClickFollowing(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
-    onOpenPrivateFolder: () =>
-      stateProps.myUsername && dispatchProps.onOpenPrivateFolder(stateProps.myUsername, username),
-    onFollow: () => dispatchProps.onFollow(username),
+    onOpenPrivateFolder: () => {
+      stateProps.myUsername && dispatchProps._onOpenPrivateFolder(stateProps.myUsername || '', username || '')
+    },
+    onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onUnfollow: () => dispatchProps.onUnfollow(username),
+    onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,
     youAreInTeams: stateProps.youAreInTeams,

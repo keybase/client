@@ -71,7 +71,7 @@ func (e *SaltpackRecipientKeyfinderEngine) Run(m libkb.MetaContext) (err error) 
 
 	// CORE-8423 remove this after most clients update
 	// Note: we do not add tlf keys for users added as members of a recipient team.
-	if !e.SkipTlfKeysForTesting && len(e.Arg.Recipients) > 0 {
+	if !e.SkipTlfKeysForTesting && !e.Arg.NoSelfEncrypt && len(e.Arg.Recipients) > 0 {
 		kf := NewSaltpackKBFSKeyfinderEngineForTesting(e.Arg)
 		if err := engine.RunEngine2(m, kf); err != nil {
 			return err
@@ -174,6 +174,9 @@ func (e *SaltpackRecipientKeyfinderEngine) identifyAndAddUserRecipient(m libkb.M
 		if !e.Arg.UseEntityKeys {
 			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove `--no-entity-keys` for users not yet on keybase)", u))
 		}
+		if e.Arg.NoSelfEncrypt {
+			return libkb.NewRecipientNotFoundError(fmt.Sprintf("Cannot encrypt for %v: it is not a registered user (you can remove `--no-self-encrypt` for users not yet on keybase)", u))
+		}
 
 		m.CDebugf("%v is not an existing user, trying to create an implicit team")
 		err = e.lookupAndAddImplicitTeamKeys(m, u)
@@ -239,7 +242,7 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddTeam(m libkb.MetaContext,
 				m.CDebugf("skipping device and paper keys for %v as part of team %v because of NoSelfEncrypt", uid, teamName)
 				continue
 			}
-			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true)
+			arg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(uid).WithForcePoll(true).WithPublicKeyOptional()
 			upak, _, err := upakLoader.LoadV2(arg)
 			if err != nil {
 				return err
@@ -274,6 +277,9 @@ func (e *SaltpackRecipientKeyfinderEngine) lookupAndAddImplicitTeamKeys(m libkb.
 	}
 	if e.Arg.UseRepudiableAuth {
 		return fmt.Errorf("cannot encrypt for %v with --auth-type=repudiable", validSocialAssertionOrExistingUser)
+	}
+	if e.Arg.NoSelfEncrypt {
+		return libkb.NewRecipientNotFoundError(fmt.Sprintf("cannot encrypt for %v with --no-self-encrypt", validSocialAssertionOrExistingUser))
 	}
 
 	team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(m.Ctx(), m.G(), m.CurrentUsername().String()+","+validSocialAssertionOrExistingUser, false)

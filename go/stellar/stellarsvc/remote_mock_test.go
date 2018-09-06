@@ -345,7 +345,7 @@ func (a *FakeAccount) Check() bool {
 	case b < 0:
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
 	case b < int64(minimumReserve):
-		require.Fail(a.T, "account has less than the minimum blaance balance", "%v < %v %v",
+		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
 			stellaramount.StringFromInt64(b), stellaramount.String(minimumReserve), a.accountID)
 	default:
 		return true
@@ -834,6 +834,7 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a.accountID
 }
 
@@ -852,6 +853,7 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 	}
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
+	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
 	return a
 }
 

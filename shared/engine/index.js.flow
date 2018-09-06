@@ -1,29 +1,26 @@
 // @flow
-// Sep. engine file so we can avoid import cycles w/ rpc-gen.js
-// A lot of weak typing here as we're usually interfacing with this through helpers, could make it more accurate later
-declare export class EngineChannel {
-  map: () => any;
-  close(): void;
-  take(key: string): Generator<any, any, any>;
-  race(options: ?{timeout?: number, racers?: Object}): Generator<any, any, any>;
-}
+import type {TypedState, TypedActions, Dispatch} from '../util/container'
 
 declare export class Engine {
-  static dispatchWaitingAction: (key: string, waiting: boolean) => void;
+  dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
   cancelSession(sessionID: any): void;
   rpc(): void;
   setFailOnError(): void;
-  listenOnConnect(key: string, f: () => void): void;
-  listenOnDisconnect(key: string, f: () => void): void;
+  actionOnConnect(key: string, f: () => ?TypedActions): void;
+  actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
   setIncomingActionCreators(
     method: string,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch, getState: () => any) => ?any
+    actionCreator: (
+      param: Object,
+      response: ?Object,
+      dispatch: Dispatch,
+      getState: () => TypedState
+    ) => null | false | void | TypedActions | Array<TypedActions | null | false | void>
   ): void;
   createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
-  _channelMapRpcHelper(configKeys: Array<string>, method: string, params: any): EngineChannel;
   _rpcOutgoing({
     method: string,
     params: ?Object,

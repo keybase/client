@@ -2,20 +2,27 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
 
 type OwnProps = {
   message: Types.MessageAttachment,
-  toggleShowingMenu: () => void,
+  toggleMessageMenu: () => void,
 }
 
 const mapStateToProps = (state: TypedState) => ({})
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onClick: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createAttachmentPreviewSelect({
+        message,
+      })
+    )
+  },
+  _onDoubleClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
@@ -36,8 +43,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       ? globalColors.green
       : message.transferState === 'downloading'
         ? globalColors.blue
-        : null
-    : null
+        : ''
+    : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
@@ -45,14 +52,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         ? 'Uploading'
         : message.transferState === 'remoteUploading'
           ? 'waiting...'
-          : null
-  const buttonType = message.showPlayButton ? (message.fileURLCached && isMobile ? 'play' : 'film') : null
-  const hasProgress = message.transferState && message.transferState !== 'remoteUploading'
+          : ''
+  const buttonType = message.showPlayButton ? 'play' : null
+  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+
   return {
     arrowColor,
     height: message.previewHeight,
     message,
     onClick: () => dispatchProps._onClick(message),
+    onDoubleClick: () => dispatchProps._onDoubleClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
         ? (e: SyntheticEvent<any>) => {
@@ -62,12 +71,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
+    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
-    title: message.title || message.fileName,
-    toggleShowingMenu: ownProps.toggleShowingMenu,
+    inlineVideoPlayable: message.inlineVideoPlayable,
+    title: message.title,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,
   }

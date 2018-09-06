@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 #include <jni.h>
-#include "seq.h"
+#include "seq_android.h"
 #include "_cgo_export.h"
 
 JNIEXPORT void JNICALL

@@ -188,7 +188,7 @@ func (s *Server) SendCLILocal(ctx context.Context, arg stellar1.SendCLILocalArg)
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	sendRes, err := stellar.SendPayment(m, s.remoter, stellar.SendPaymentArg{
+	sendRes, err := stellar.SendPaymentCLI(m, s.remoter, stellar.SendPaymentArg{
 		From:           arg.FromAccountID,
 		To:             stellarcommon.RecipientInput(arg.Recipient),
 		Amount:         arg.Amount,
@@ -306,7 +306,7 @@ const defaultOutsideCurrency = "USD"
 // for accountID and fetches exchange rate is set.
 //
 // Arguments `account` and `exchangeRates` may end up mutated.
-func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
+func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, account *stellar1.OwnAccountCLILocal, exchangeRates exchangeRateMap) error {
 	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, g, account.AccountID)
 	if err != nil {
 		return err
@@ -319,7 +319,7 @@ func getLocalCurrencyAndExchangeRate(ctx context.Context, g *libkb.GlobalContext
 	rate, ok := exchangeRates[displayCurrency]
 	if !ok {
 		var err error
-		rate, err = remote.ExchangeRate(ctx, g, displayCurrency)
+		rate, err = remoter.ExchangeRate(ctx, displayCurrency)
 		if err != nil {
 			return err
 		}
@@ -364,7 +364,7 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 
 		acc.Balance = balances
 
-		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), &acc, exchangeRates); err != nil {
+		if err := getLocalCurrencyAndExchangeRate(ctx, s.G(), s.remoter, &acc, exchangeRates); err != nil {
 			s.G().Log.Warning("Could not load local currency exchange rate for %q", accID)
 		}
 
@@ -396,7 +396,7 @@ func (s *Server) ExchangeRateLocal(ctx context.Context, currency stellar1.Outsid
 		return res, err
 	}
 
-	return remote.ExchangeRate(ctx, s.G(), string(currency))
+	return s.remoter.ExchangeRate(ctx, string(currency))
 }
 
 func (s *Server) GetAvailableLocalCurrencies(ctx context.Context) (ret map[stellar1.OutsideCurrencyCode]stellar1.OutsideCurrencyDefinition, err error) {
@@ -481,7 +481,7 @@ func (s *Server) MakeRequestCLILocal(ctx context.Context, arg stellar1.MakeReque
 	}
 	m := libkb.NewMetaContext(ctx, s.G()).WithUIs(uis)
 
-	return stellar.MakeRequest(m, s.remoter, stellar.MakeRequestArg{
+	return stellar.MakeRequestCLI(m, s.remoter, stellar.MakeRequestArg{
 		To:       stellarcommon.RecipientInput(arg.Recipient),
 		Amount:   arg.Amount,
 		Asset:    arg.Asset,
@@ -507,7 +507,7 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	}
 	m := s.mctx(ctx).WithUIs(uis)
 
-	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(arg))
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(arg), true)
 	if err != nil {
 		return res, err
 	}

@@ -5,8 +5,6 @@ const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
-  fsEnabled: true,
-  fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: true,
 }

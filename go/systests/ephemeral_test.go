@@ -362,6 +362,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 
 	teamID, teamName := user1.createTeam2()
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	ephemeral.ServiceInit(user1.tc.G)
 	ekLib := user1.tc.G.GetEKLib()
@@ -383,6 +384,7 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.Error(t, err)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	// Test that user1 and user2 both have access to the currentTeamEK
 	// (whether we recreated or reboxed)
@@ -395,10 +397,10 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	require.Equal(t, teamEK2U1, teamEK2U2)
 }
 
-func TestTeamEKMemberLeaveAndReadd(t *testing.T) {
+func TestEphemeralTeamMemberLeaveAndReadd(t *testing.T) {
 	readdToTeamWithEKs(t, true /* leave */)
 }
 
-func TestTeamEKMemberRemoveAndReadd(t *testing.T) {
+func TestEphemeralTeamMemberRemoveAndReadd(t *testing.T) {
 	readdToTeamWithEKs(t, false /* leave */)
 }

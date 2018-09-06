@@ -709,8 +709,8 @@ func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
 }
 
-func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
-	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
+func NewBadUsernameErrorWithFullMessage(msg string) BadUsernameError {
+	return BadUsernameError{msg: msg}
 }
 
 //=============================================================================
@@ -741,10 +741,15 @@ func (u UnmarshalError) Error() string {
 	return "Bad " + u.T + " packet"
 }
 
-type VerificationError struct{}
+type VerificationError struct {
+	Cause error
+}
 
-func (v VerificationError) Error() string {
-	return "Verification failed"
+func (e VerificationError) Error() string {
+	if e.Cause == nil {
+		return "Verification failed"
+	}
+	return fmt.Sprintf("Verification failed: %v", e.Cause)
 }
 
 //=============================================================================
@@ -1380,10 +1385,15 @@ func (e NoDecryptionKeyError) Error() string {
 
 //=============================================================================
 
-type DecryptionError struct{}
+type DecryptionError struct {
+	Cause error
+}
 
 func (e DecryptionError) Error() string {
-	return "Decryption error"
+	if e.Cause == nil {
+		return "Decryption error"
+	}
+	return fmt.Sprintf("Decryption error: %v", e.Cause)
 }
 
 //=============================================================================
@@ -2394,6 +2404,14 @@ func (e TeamInviteBadTokenError) Error() string {
 
 //=============================================================================
 
+type TeamWritePermDeniedError struct{}
+
+func (e TeamWritePermDeniedError) Error() string {
+	return "permission denied to modify team"
+}
+
+//=============================================================================
+
 type TeamInviteTokenReusedError struct{}
 
 func (e TeamInviteTokenReusedError) Error() string {
@@ -2455,6 +2473,12 @@ func (e HexWrongLengthError) Error() string { return e.msg }
 
 type EphemeralPairwiseMACsMissingUIDsError struct{ UIDs []keybase1.UID }
 
+func NewEphemeralPairwiseMACsMissingUIDsError(uids []keybase1.UID) EphemeralPairwiseMACsMissingUIDsError {
+	return EphemeralPairwiseMACsMissingUIDsError{
+		UIDs: uids,
+	}
+}
+
 func (e EphemeralPairwiseMACsMissingUIDsError) Error() string {
 	return fmt.Sprintf("Missing %d uids from pairwise macs", len(e.UIDs))
 }
@@ -2469,4 +2493,18 @@ func NewRecipientNotFoundError(message string) error {
 	return RecipientNotFoundError{
 		error: fmt.Errorf(message),
 	}
+}
+
+//=============================================================================
+
+type TeamFTLOutdatedError struct {
+	msg string
+}
+
+func NewTeamFTLOutdatedError(s string) error {
+	return TeamFTLOutdatedError{s}
+}
+
+func (t TeamFTLOutdatedError) Error() string {
+	return fmt.Sprintf("FTL outdated: %s", t.msg)
 }

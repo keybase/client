@@ -3,7 +3,7 @@ import {showImagePicker, type Response} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'
 import * as Constants from '../constants/tracker'
-import ErrorComponent from '../common-adapters/error-profile'
+import ErrorComponent from './error-profile'
 import LoadingWrapper from '../common-adapters/loading-wrapper.native'
 import React, {Component} from 'react'
 import {orderBy, chunk} from 'lodash-es'
@@ -440,7 +440,7 @@ class Profile extends Component<Props, State> {
             backgroundColor: globalColors.white,
             paddingTop: globalMargins.tiny + statusBarHeight,
             borderBottomWidth: 1,
-            borderBottomColor: globalColors.black_05,
+            borderBottomColor: globalColors.black_10,
             borderStyle: 'solid',
           }}
         >
@@ -544,6 +544,7 @@ class Profile extends Component<Props, State> {
         />
         {!!activeMenuProof && (
           <FloatingMenu
+            closeOnSelect={true}
             onHidden={() => this._handleToggleMenu(this.props.proofs.indexOf(activeMenuProof))}
             visible={!!activeMenuProof}
             {...this._proofMenuContent(activeMenuProof)}

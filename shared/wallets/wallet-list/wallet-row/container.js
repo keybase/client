@@ -1,6 +1,6 @@
 // @flow
 import {WalletRow, type Props} from '.'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
+import {connect, type TypedState} from '../../../util/container'
 import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import {createSelectAccount} from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) =>
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onSelectAccount: (accountID: AccountID) => {
-    dispatch(createSelectAccount({accountID}))
+    dispatch(createSelectAccount({accountID, show: true}))
   },
 })
 

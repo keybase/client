@@ -12,6 +12,11 @@
       "import_as": "keybase1"
     },
     {
+      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     },
@@ -549,8 +554,8 @@
       "name": "MessageSendPayment",
       "fields": [
         {
-          "type": "string",
-          "name": "kbTxID"
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
         }
       ]
     },
@@ -559,7 +564,7 @@
       "name": "MessageRequestPayment",
       "fields": [
         {
-          "type": "string",
+          "type": "stellar1.KeybaseRequestID",
           "name": "requestID"
         },
         {
@@ -1726,6 +1731,10 @@
         {
           "type": "boolean",
           "name": "disableResolveSupersedes"
+        },
+        {
+          "type": "boolean",
+          "name": "enableDeletePlaceholders"
         },
         {
           "type": [
@@ -3303,6 +3312,18 @@
         {
           "name": "clientPrev",
           "type": "MessageID"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "metadata",
+          "type": "bytes"
         },
         {
           "name": "ephemeralLifetime",

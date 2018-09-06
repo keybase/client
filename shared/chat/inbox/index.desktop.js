@@ -7,7 +7,7 @@ import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
-import Divider from './row/divider/container'
+import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
@@ -61,7 +61,7 @@ class Inbox extends PureComponent<Props, State> {
     const row = this.props.rows[index]
     if (row.type === 'divider') {
       return (
-        <Divider
+        <TeamsDivider
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
           showButton={row.showButton}
@@ -167,8 +167,7 @@ class Inbox extends PureComponent<Props, State> {
 
 const _containerStyle = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.blue5,
-  borderRight: `1px solid ${globalColors.black_05}`,
+  backgroundColor: globalColors.blueGrey,
   contain: 'strict',
   height: '100%',
   maxWidth: 260,

@@ -74,6 +74,15 @@ protocol config {
 
   ExtendedStatus getExtendedStatus(int sessionID);
 
+
+  record AllProvisionedUsernames {
+    string defaultUsername;
+    array<string> provisionedUsernames;
+    boolean hasProvisionedUser;
+  }
+
+  AllProvisionedUsernames getAllProvisionedUsernames(int sessionID);
+
   enum ForkType {
     NONE_0,
     AUTO_1,

@@ -65,6 +65,14 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 16,
     styleOverride: globalStyles.fontSemibold,
   },
+  HeaderItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: {
+      ...globalStyles.fontSemibold,
+      fontStyle: 'italic',
+    },
+  },
   HeaderExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 16,
@@ -88,11 +96,24 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontSemibold,
   },
+  BodyBigExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 14,
+    styleOverride: globalStyles.fontExtrabold,
+  },
   // Body
   Body: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     fontSize: 13,
     styleOverride: globalStyles.fontRegular,
+  },
+  BodyItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 13,
+    styleOverride: {
+      ...globalStyles.fontRegular,
+      fontStyle: 'italic',
+    },
   },
   BodyExtrabold: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,

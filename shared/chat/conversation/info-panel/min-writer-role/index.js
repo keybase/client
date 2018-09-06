@@ -6,17 +6,17 @@ import * as TeamConstants from '../../../../constants/teams'
 import * as Style from '../../../../styles'
 import {upperFirst} from 'lodash-es'
 
-type Props = {
+type Props = {|
   canSetMinWriterRole: boolean,
   isSmallTeam: boolean,
   minWriterRole: TeamTypes.TeamRoleType,
   onSetNewRole: (newRole: TeamTypes.TeamRoleType) => void,
-}
+|}
 
-type State = {
+type State = {|
   saving: boolean,
   selected: TeamTypes.TeamRoleType,
-}
+|}
 
 class MinWriterRole extends React.Component<Props, State> {
   state = {saving: false, selected: this.props.minWriterRole}
@@ -54,7 +54,7 @@ class MinWriterRole extends React.Component<Props, State> {
         style={styles.container}
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodySmallSemibold">Minimum writer role</Kb.Text>
+          <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
           <Kb.Icon
             type="iconfont-compose"
             color={Style.globalColors.black_20}
@@ -64,7 +64,7 @@ class MinWriterRole extends React.Component<Props, State> {
         {this.props.canSetMinWriterRole ? (
           <Dropdown minWriterRole={this.state.selected} items={items} saving={this.state.saving} />
         ) : (
-          <Display isSmallTeam={this.props.isSmallTeam} minWriterRole={this.props.minWriterRole} />
+          <Display minWriterRole={this.props.minWriterRole} />
         )}
       </Kb.Box2>
     )
@@ -111,11 +111,10 @@ const _Dropdown = ({
 )
 const Dropdown = Kb.OverlayParentHOC(_Dropdown)
 
-const Display = ({isSmallTeam, minWriterRole}) => (
+const Display = ({minWriterRole}) => (
   <Kb.Text type="BodySmall">
     You must be at least {'aeiou'.includes(minWriterRole[0]) ? 'an' : 'a'}{' '}
-    <Kb.Text type="BodySmallSemibold">{minWriterRole}</Kb.Text> to write in this{' '}
-    {isSmallTeam ? 'chat' : 'channel'}.
+    <Kb.Text type="BodySmallSemibold">“{minWriterRole}”</Kb.Text> to post in this channel.
   </Kb.Text>
 )
 

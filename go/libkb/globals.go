@@ -72,6 +72,7 @@ type GlobalContext struct {
 	linkCache        *LinkCache       // cache of ChainLinks
 	upakLoader       UPAKLoader       // Load flat users with the ability to hit the cache
 	teamLoader       TeamLoader       // Play back teams for id/name properties
+	fastTeamLoader   FastTeamLoader   // Play back team in "fast" mode for keys and names only
 	stellar          Stellar          // Stellar related ops
 	deviceEKStorage  DeviceEKStorage  // Store device ephemeral keys
 	userEKBoxStorage UserEKBoxStorage // Store user ephemeral key boxes
@@ -122,6 +123,7 @@ type GlobalContext struct {
 	UserChangedHandlers []UserChangedHandler // a list of handlers that deal generically with userchanged events
 	ConnectivityMonitor ConnectivityMonitor  // Detect whether we're connected or not.
 	localSigchainGuard  *LocalSigchainGuard  // Non-strict guard for shoeing away bg tasks when the user is doing sigchain actions
+	FeatureFlags        *FeatureFlagSet      // user's feature flag set
 
 	StandaloneChatConnector StandaloneChatConnector
 
@@ -182,6 +184,7 @@ func NewGlobalContext() *GlobalContext {
 		ActiveDevice:       NewActiveDevice(),
 		switchUserMu:       new(sync.Mutex),
 		NetContext:         context.TODO(),
+		FeatureFlags:       NewFeatureFlagSet(),
 	}
 	return ret
 }
@@ -217,6 +220,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RateLimits = NewRateLimits(g)
 	g.upakLoader = NewUncachedUPAKLoader(g)
 	g.teamLoader = newNullTeamLoader(g)
+	g.fastTeamLoader = newNullFastTeamLoader()
 	g.stellar = newNullStellar(g)
 	g.fullSelfer = NewUncachedFullSelf(g)
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
@@ -282,6 +286,11 @@ func (g *GlobalContext) Logout() error {
 		tl.OnLogout()
 	}
 
+	ftl := g.fastTeamLoader
+	if ftl != nil {
+		ftl.OnLogout()
+	}
+
 	st := g.stellar
 	if st != nil {
 		st.OnLogout()
@@ -303,6 +312,8 @@ func (g *GlobalContext) Logout() error {
 
 	// send logout notification
 	g.NotifyRouter.HandleLogout()
+
+	g.FeatureFlags.Clear()
 
 	return nil
 }
@@ -518,6 +529,12 @@ func (g *GlobalContext) GetTeamLoader() TeamLoader {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
 	return g.teamLoader
+}
+
+func (g *GlobalContext) GetFastTeamLoader() FastTeamLoader {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.fastTeamLoader
 }
 
 func (g *GlobalContext) GetStellar() Stellar {
@@ -1010,6 +1027,12 @@ func (g *GlobalContext) SetTeamLoader(l TeamLoader) {
 	g.teamLoader = l
 }
 
+func (g *GlobalContext) SetFastTeamLoader(l FastTeamLoader) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.fastTeamLoader = l
+}
+
 func (g *GlobalContext) SetStellar(s Stellar) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
@@ -1073,7 +1096,6 @@ func (g *GlobalContext) KeyfamilyChanged(u keybase1.UID) {
 		// TODO: remove this when KBFS handles KeyfamilyChanged
 		g.NotifyRouter.HandleUserChanged(u)
 	}
-
 }
 
 func (g *GlobalContext) UserChanged(u keybase1.UID) {

@@ -7,13 +7,15 @@ import {isIOS} from '../../../../constants/platform'
 
 const Prompt = () => (
   <Box2 direction="horizontal" fullWidth={true} gap="xtiny" style={promptContainerStyle}>
-    <Text type="BodySmallSemibold">Select Attachment Type</Text>
+    <Text type="BodySmallSemibold">Select attachment type</Text>
   </Box2>
 )
 
 const promptContainerStyle = {
   alignItems: 'center',
   justifyContent: 'center',
+  paddingBottom: 24,
+  paddingTop: 24,
 }
 
 class FilePickerPopup extends React.Component<Props> {
