@@ -39,10 +39,10 @@ const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
   const uploadPaths = _uploads.syncingPaths.toJS() // get array of paths
   const filePaths = []
 
-  uploadPaths.map(path => {
-    if (!folders.has(path)) {
+  uploadPaths.map(uPath => {
+    if (!folders.has(uPath)) {
       //  path is not part of the folders
-      filePaths.push(path)
+      filePaths.push(uPath)
     }
   })
 
