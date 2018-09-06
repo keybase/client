@@ -28,7 +28,7 @@ const AccountEntry = (props: AccountEntryProps) => {
       {props.showWalletIcon && (
         <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
-          color={Styles.globalColors.darkBlue}
+          color={Styles.globalColors.black_75}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
       )}
@@ -85,7 +85,7 @@ const styles = Styles.styleSheetCreate({
   rightColumn: rightColumnStyle,
   title: {
     ...rightColumnStyle,
-    color: Styles.globalColors.darkBlue,
+    color: Styles.globalColors.black_75,
   },
   user: {
     alignItems: 'center',
