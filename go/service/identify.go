@@ -167,7 +167,7 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(arg.Assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
 		return res, err
 	}

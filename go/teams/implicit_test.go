@@ -187,7 +187,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 	// It will probably fail because <uid>@keybase is the wrong format.
 
 	makeAssertionContext := func() libkb.AssertionContext {
-		return libkb.MakeAssertionContext(externals.GetServices())
+		return libkb.MakeAssertionContext(externals.NewExternalServices(tc.G))
 	}
 
 	for _, public := range []bool{true, false} {

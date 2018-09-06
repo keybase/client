@@ -6,8 +6,8 @@ import (
 )
 
 func NewGlobalContextInit() *libkb.GlobalContext {
-	ret := libkb.NewGlobalContext().Init()
-	ret.SetServices(GetServices())
-	pvlsource.NewPvlSourceAndInstall(ret)
-	return ret
+	g := libkb.NewGlobalContext().Init()
+	g.SetServices(NewExternalServices(g))
+	pvlsource.NewPvlSourceAndInstall(g)
+	return g
 }

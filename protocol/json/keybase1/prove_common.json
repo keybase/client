@@ -84,6 +84,64 @@
         "PGP_1002",
         "ROOTER_100001"
       ]
+    },
+    {
+      "type": "record",
+      "name": "GenericServiceGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GenericServiceConfig",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "enabled"
+        },
+        {
+          "type": "boolean",
+          "name": "isDevel"
+        },
+        {
+          "type": "string",
+          "name": "displayName"
+        },
+        {
+          "type": "string",
+          "name": "domain"
+        },
+        {
+          "type": [
+            null,
+            "GenericServiceGroup"
+          ],
+          "name": "group"
+        },
+        {
+          "type": "string",
+          "name": "usernameRe"
+        },
+        {
+          "type": "string",
+          "name": "prefillUrl"
+        },
+        {
+          "type": "string",
+          "name": "checkUrl"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "checkPath"
+        }
+      ]
     }
   ],
   "messages": {},

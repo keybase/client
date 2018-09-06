@@ -1100,26 +1100,31 @@ func TestResolveAndCheck(t *testing.T) {
 	evilResolver := evilResolver{goodResolver, "t_alice", tracyUID}
 
 	var tests = []struct {
-		s string
-		e error
-		r libkb.Resolver
+		s       string
+		e       error
+		useEvil bool
 	}{
-		{"tacovontaco@twitter+t_tracy@rooter", nil, nil},
-		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, nil},
-		{"t_tracy", nil, nil},
-		{"t_tracy+" + string(tracyUID) + "@uid", nil, nil},
-		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, nil},
-		{"foobunny@github", libkb.ResolutionError{}, nil},
-		{"foobunny", libkb.NotFoundError{}, nil},
-		{"foobunny+foobunny@github", libkb.NotFoundError{}, nil},
-		{"t_alice", libkb.UIDMismatchError{}, &evilResolver},
-		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, &evilResolver},
-		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, &evilResolver},
+		{"tacovontaco@twitter+t_tracy@rooter", nil, false},
+		{"tacovontaco@twitter+t_tracy@rooter+t_tracy", nil, false},
+		{"t_tracy", nil, false},
+		{"t_tracy+" + string(tracyUID) + "@uid", nil, false},
+		{"tacovontaco@twitter+t_tracy@rooter+foobunny@github", libkb.UnmetAssertionError{}, false},
+		{"foobunny@github", libkb.ResolutionError{}, false},
+		{"foobunny", libkb.NotFoundError{}, false},
+		{"foobunny+foobunny@github", libkb.NotFoundError{}, false},
+		{"t_alice", libkb.UIDMismatchError{}, true},
+		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
+		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
+		// NOTE: Generic proofs are a WIP, this should change to a
+		// NotFoundError and a success case as the implementation proceeds
+		{"foobunny@mastodon.social", libkb.AppStatusError{}, false},
+		// TODO set this up for success!
+		{"t_alice@mastodon.social", libkb.AppStatusError{}, false},
 	}
 	for _, test := range tests {
 		tc.G.Resolver = goodResolver
-		if test.r != nil {
-			tc.G.Resolver = test.r
+		if test.useEvil {
+			tc.G.Resolver = &evilResolver
 		}
 		upk, err := ResolveAndCheck(m, test.s, true)
 		require.IsType(t, test.e, err)

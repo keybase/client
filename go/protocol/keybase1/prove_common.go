@@ -265,6 +265,58 @@ func (e ProofType) String() string {
 	return ""
 }
 
+type GenericServiceGroup struct {
+	Id string `codec:"id" json:"id"`
+}
+
+func (o GenericServiceGroup) DeepCopy() GenericServiceGroup {
+	return GenericServiceGroup{
+		Id: o.Id,
+	}
+}
+
+type GenericServiceConfig struct {
+	Enabled     bool                 `codec:"enabled" json:"enabled"`
+	IsDevel     bool                 `codec:"isDevel" json:"isDevel"`
+	DisplayName string               `codec:"displayName" json:"displayName"`
+	Domain      string               `codec:"domain" json:"domain"`
+	Group       *GenericServiceGroup `codec:"group,omitempty" json:"group,omitempty"`
+	UsernameRe  string               `codec:"usernameRe" json:"usernameRe"`
+	PrefillUrl  string               `codec:"prefillUrl" json:"prefillUrl"`
+	CheckUrl    string               `codec:"checkUrl" json:"checkUrl"`
+	CheckPath   []string             `codec:"checkPath" json:"checkPath"`
+}
+
+func (o GenericServiceConfig) DeepCopy() GenericServiceConfig {
+	return GenericServiceConfig{
+		Enabled:     o.Enabled,
+		IsDevel:     o.IsDevel,
+		DisplayName: o.DisplayName,
+		Domain:      o.Domain,
+		Group: (func(x *GenericServiceGroup) *GenericServiceGroup {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Group),
+		UsernameRe: o.UsernameRe,
+		PrefillUrl: o.PrefillUrl,
+		CheckUrl:   o.CheckUrl,
+		CheckPath: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.CheckPath),
+	}
+}
+
 type ProveCommonInterface interface {
 }
 

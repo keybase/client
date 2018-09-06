@@ -13,7 +13,7 @@ import (
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {
 	tc = libkb.SetupTest(tb, name, depth+1)
 	InstallInsecureTriplesec(tc.G)
-	tc.G.SetServices(externals.GetServices())
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 	teams.ServiceInit(tc.G)
 	return tc

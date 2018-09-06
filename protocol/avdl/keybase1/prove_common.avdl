@@ -86,4 +86,22 @@ protocol proveCommon {
     PGP_1002,
     ROOTER_100001
   }
+
+  record GenericServiceGroup {
+    // TODO need to spec out
+    string id;
+  }
+
+  record GenericServiceConfig {
+    boolean enabled;
+    boolean isDevel;
+    string displayName;
+    string domain;
+    union { null, GenericServiceGroup } group;
+    string usernameRe;
+    string prefillUrl;
+    string checkUrl;
+    array<string> checkPath;
+  }
+
 }

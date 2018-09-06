@@ -412,7 +412,7 @@ func TestMemberAddNotAUser(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	tc.G.SetServices(externals.GetServices())
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
 
 	_, err := AddMember(context.TODO(), tc.G, name, "not_a_kb_user", keybase1.TeamRole_READER)
 	if err == nil {
@@ -427,7 +427,7 @@ func TestMemberAddSocial(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	tc.G.SetServices(externals.GetServices())
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
 
 	res, err := AddMember(context.TODO(), tc.G, name, "not_on_kb_yet@twitter", keybase1.TeamRole_OWNER)
 	if err == nil {
@@ -1081,7 +1081,7 @@ func TestMemberCancelInviteSocial(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	tc.G.SetServices(externals.GetServices())
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
 
 	username := "not_on_kb_yet@twitter"
 	_, err := AddMember(context.TODO(), tc.G, name, username, keybase1.TeamRole_READER)
@@ -1101,7 +1101,7 @@ func TestMemberCancelInviteEmail(t *testing.T) {
 	tc, _, name := memberSetup(t)
 	defer tc.Cleanup()
 
-	tc.G.SetServices(externals.GetServices())
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
 
 	address := "noone@keybase.io"
 

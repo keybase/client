@@ -15,10 +15,10 @@ import (
 // SetupTest ignores the third argument.
 func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.TestContext) {
 	// libkb.SetupTest ignores the third argument (depth).
-	ret := libkb.SetupTest(tb, name, depthIgnored)
+	tc = libkb.SetupTest(tb, name, depthIgnored)
 
-	ret.G.SetServices(externals.GetServices())
-	ret.G.SetUIDMapper(uidmap.NewUIDMap(10000))
-	pvlsource.NewPvlSourceAndInstall(ret.G)
-	return ret
+	tc.G.SetServices(externals.NewExternalServices(tc.G))
+	tc.G.SetUIDMapper(uidmap.NewUIDMap(10000))
+	pvlsource.NewPvlSourceAndInstall(tc.G)
+	return tc
 }
