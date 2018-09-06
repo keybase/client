@@ -2,8 +2,7 @@
 import net from 'net'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-import type {createClientType, incomingRPCCallbackType, connectDisconnectCB, SendArg} from './index.platform'
-import {pack} from 'purepack'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -19,21 +18,10 @@ class NativeTransport extends TransportShared {
     windowsHack()
   }
 
-  // Override Packetizer.send -- see packetizer.iced in
-  // framed-msgpack-rpc.
-  send = (msg: SendArg) => {
-    const b2 = pack(msg)
-    const b1 = pack(b2.length)
-    const bufs = [b1, b2]
-    const enc = 'binary'
-    bufs.forEach(b => {
-      // _raw_write is defined in Transport in transport.iced in
-      // framed-msgpack-rpc.
-      //
-      // $FlowIssue Flow doesn't see inherited methods.
-      this._raw_write(b.toString(enc), enc)
-    })
-    return true
+  // Override Transport._raw_write.
+  _raw_write = (msg: string, encoding: string) => {
+    // $FlowIssue Flow doesn't see inherited methods.
+    super._raw_write(msg, encoding)
   }
 }
 
