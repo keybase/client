@@ -67,7 +67,7 @@ const styleSearchContainer = {
   ...desktopStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.black_05,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   zIndex: 20,

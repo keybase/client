@@ -423,7 +423,7 @@ func (d *Service) createChatModules() {
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
-	g.PaymentLoader = stellar.DefaultPaymentLoader(g.ExternalG())
+	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
