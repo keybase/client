@@ -191,6 +191,9 @@ type TestParameters struct {
 	// If we need to use the real clock for NIST generation (as in really
 	// whacky tests liks TestRekey).
 	UseTimeClockForNISTs bool
+
+	// TeamNoHeadMerkleStore
+	TeamNoHeadMerkleStore bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {

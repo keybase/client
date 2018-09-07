@@ -1169,6 +1169,7 @@ type TeamSigChainState struct {
 	OpenTeamJoinAs   TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 	TlfID            TLFID                                             `codec:"tlfID" json:"tlfID"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
+	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -1321,6 +1322,13 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.TlfLegacyUpgrade),
+		HeadMerkle: (func(x *MerkleRootV2) *MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.HeadMerkle),
 	}
 }
 
