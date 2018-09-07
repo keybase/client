@@ -63,7 +63,7 @@ public class MainActivity extends ReactActivity {
         }
 
         createDummyFile();
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
+        initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
                 new DNSNSFetcher(), new VideoHelper());
 
         super.onCreate(savedInstanceState);

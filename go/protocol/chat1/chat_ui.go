@@ -7,6 +7,7 @@ import (
 	"errors"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -420,6 +421,26 @@ func (o UIAssetUrlInfo) DeepCopy() UIAssetUrlInfo {
 	}
 }
 
+type UIPaymentInfo struct {
+	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
+	Worth             string                 `codec:"worth" json:"worth"`
+	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
+	Note              string                 `codec:"note" json:"note"`
+	Status            stellar1.PaymentStatus `codec:"status" json:"status"`
+	StatusDescription string                 `codec:"statusDescription" json:"statusDescription"`
+}
+
+func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
+	return UIPaymentInfo{
+		AmountDescription: o.AmountDescription,
+		Worth:             o.Worth,
+		Delta:             o.Delta.DeepCopy(),
+		Note:              o.Note,
+		Status:            o.Status.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
@@ -440,6 +461,7 @@ type UIMessageValid struct {
 	Etime                 gregor1.Time           `codec:"etime" json:"etime"`
 	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
+	PaymentInfo           *UIPaymentInfo         `codec:"paymentInfo,omitempty" json:"paymentInfo,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -507,6 +529,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 		Etime:           o.Etime.DeepCopy(),
 		Reactions:       o.Reactions.DeepCopy(),
 		HasPairwiseMacs: o.HasPairwiseMacs,
+		PaymentInfo: (func(x *UIPaymentInfo) *UIPaymentInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.PaymentInfo),
 	}
 }
 
@@ -517,6 +546,8 @@ type UIMessageOutbox struct {
 	Body        string          `codec:"body" json:"body"`
 	Ctime       gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal     float64         `codec:"ordinal" json:"ordinal"`
+	Filename    string          `codec:"filename" json:"filename"`
+	Title       string          `codec:"title" json:"title"`
 	Preview     *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
@@ -528,6 +559,8 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Body:        o.Body,
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
+		Filename:    o.Filename,
+		Title:       o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

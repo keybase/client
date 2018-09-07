@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 )
 
@@ -75,6 +76,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
 
 	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.KbTxID, msg.TxID)
+	stellar.DefaultPaymentLoader(h.G()).Update(mctx.Ctx(), stellar1.PaymentID{TxID: msg.TxID})
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
@@ -93,6 +95,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	}
 
 	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
+	stellar.DefaultPaymentLoader(h.G()).Update(mctx.Ctx(), msg.PaymentID)
 
 	// Note: these messages are not getting dismissed except by their
 	// expiration time (7 days).  Once frontend starts handling them,

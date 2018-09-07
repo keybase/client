@@ -236,6 +236,14 @@ const setFontMetrics = () => {
    * $3: descent value
    */
   const kbTtf = path.resolve(paths.fonts, 'kb.ttf')
+  // Nav icons need to be shifted more because the grid size is 24.
+  // Without shifting to -(64 + 21) the nav icons will be aligned on
+  // a half pixel which will cause blurriness.
+  const icon24 = getSvgNames(true)
+    .filter(({size}) => size === '24')
+    .map(({filePath}) => `'${filePath.replace('.svg', '')}'`)
+  const icon24First = icon24[0]
+  const icon24Last = icon24[icon24.length - 1]
   let script = `
   Open('${kbTtf}');
   SetOS2Value('WinAscent', ${fontHeight - descent + 2});
@@ -245,7 +253,12 @@ const setFontMetrics = () => {
   SetOS2Value('TypoDescent', ${-descent});
   SetOS2Value('HHeadAscent', ${fontHeight - descent + 2});
   SetOS2Value('HHeadDescent', ${-(descent * 2 + 20)});
-  SetGasp(65535, 3);
+  SetGasp(65535, 15);
+  SelectAll();
+  Move(0, ${-descent});
+  SelectNone();
+  Select(${icon24First}, ${icon24Last});
+  Move(0, ${-22});
   ScaleToEm(${fontHeight - descent}, ${descent});
   Generate('${kbTtf}');
   `
