@@ -5,6 +5,7 @@ import {
   connect,
   lifecycle,
   setDisplayName,
+  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
@@ -69,11 +70,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
   onBack: () => dispatchProps._onBack(stateProps.accountID),
-  refresh: () => dispatchProps._refresh(),
-  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onCurrencyChange: (code: Types.CurrencyCode) =>
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
+  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
+  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
+  refresh: () => dispatchProps._refresh(),
 })
 
 export default compose(
@@ -83,5 +84,6 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings')
+  setDisplayName('Settings'),
+  safeSubmit(['onCurrencyChange'], ['currency'])
 )(Settings)
