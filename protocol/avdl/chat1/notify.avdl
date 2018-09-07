@@ -225,4 +225,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
 }
