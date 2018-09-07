@@ -18,6 +18,7 @@ const buildPayment = (state: TypedState) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
+    fromPrimaryAccount: false,
     from: state.wallets.selectedAccount,
     fromSeqno: '',
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
