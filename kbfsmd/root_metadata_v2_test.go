@@ -10,9 +10,10 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/tlf"
@@ -171,8 +172,9 @@ func TestWriterMetadataV2UnchangedEncoding(t *testing.T) {
 
 // Test that WriterMetadataV2 has only a fixed (frozen) set of fields.
 func TestWriterMetadataV2EncodedFields(t *testing.T) {
-	sa1, _ := externals.NormalizeSocialAssertion("uid1@twitter")
-	sa2, _ := externals.NormalizeSocialAssertion("uid2@twitter")
+	kbCtx := env.NewContext()
+	sa1, _ := libkb.NormalizeSocialAssertion(kbCtx.GlobalContext().MakeAssertionContext(), "uid1@twitter")
+	sa2, _ := libkb.NormalizeSocialAssertion(kbCtx.GlobalContext().MakeAssertionContext(), "uid2@twitter")
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadataV2{
@@ -257,7 +259,7 @@ func (wmf writerMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
 	return wmf.toCurrent()
 }
 
-func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
+func makeFakeWriterMetadataV2Future(t *testing.T, kbCtx env.Context) writerMetadataV2Future {
 	wmd := WriterMetadataV2{
 		// This needs to be list format so it fails to compile if new fields
 		// are added, effectively checking at compile time whether new fields
@@ -277,7 +279,7 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 		WriterMetadataExtraV2{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertion("foo@twitter")
+	sa, _ := libkb.NormalizeSocialAssertion(kbCtx.GlobalContext().MakeAssertionContext(), "foo@twitter")
 	return writerMetadataV2Future{
 		wmd,
 		tlfWriterKeyGenerationsV2Future{&wkb},
@@ -295,7 +297,8 @@ func makeFakeWriterMetadataV2Future(t *testing.T) writerMetadataV2Future {
 }
 
 func TestWriterMetadataV2UnknownFields(t *testing.T) {
-	testStructUnknownFields(t, makeFakeWriterMetadataV2Future(t))
+	kbCtx := env.NewContext()
+	testStructUnknownFields(t, makeFakeWriterMetadataV2Future(t, kbCtx))
 }
 
 type tlfReaderKeyGenerationsV2Future []*tlfReaderKeyBundleV2Future
@@ -341,9 +344,10 @@ func (brmf *rootMetadataV2Future) ToCurrentStruct() kbfscodec.CurrentStruct {
 }
 
 func makeFakeRootMetadataV2Future(t *testing.T) *rootMetadataV2Future {
-	wmf := makeFakeWriterMetadataV2Future(t)
+	kbCtx := env.NewContext()
+	wmf := makeFakeWriterMetadataV2Future(t, kbCtx)
 	rkb := makeFakeTLFReaderKeyBundleV2Future(t)
-	sa, _ := externals.NormalizeSocialAssertion("bar@github")
+	sa, _ := libkb.NormalizeSocialAssertion(kbCtx.GlobalContext().MakeAssertionContext(), "bar@github")
 	rmf := rootMetadataV2Future{
 		wmf,
 		rootMetadataWrapper{

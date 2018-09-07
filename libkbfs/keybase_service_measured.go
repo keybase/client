@@ -22,6 +22,8 @@ type KeybaseServiceMeasured struct {
 	delegate                         KeybaseService
 	resolveTimer                     metrics.Timer
 	identifyTimer                    metrics.Timer
+	normalizeSocialAssertionTimer    metrics.Timer
+	assertionParseAndOnlyTimer       metrics.Timer
 	resolveIdentifyImplicitTeamTimer metrics.Timer
 	resolveImplicitTeamByIDTimer     metrics.Timer
 	loadUserPlusKeysTimer            metrics.Timer
@@ -46,6 +48,8 @@ var _ KeybaseService = KeybaseServiceMeasured{}
 func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) KeybaseServiceMeasured {
 	resolveTimer := metrics.GetOrRegisterTimer("KeybaseService.Resolve", r)
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseService.Identify", r)
+	normalizeSocialAssertionTimer := metrics.GetOrRegisterTimer("KeybaseService.NormalizeSocialAssertion", r)
+	assertionParseAndOnlyTimer := metrics.GetOrRegisterTimer("KeybaseService.AssertionParseAndOnly", r)
 	resolveIdentifyImplicitTeamTimer := metrics.GetOrRegisterTimer(
 		"KeybaseService.ResolveIdentifyImplicitTeam", r)
 	resolveImplicitTeamByIDTimer := metrics.GetOrRegisterTimer(
@@ -68,6 +72,8 @@ func NewKeybaseServiceMeasured(delegate KeybaseService, r metrics.Registry) Keyb
 		delegate:                         delegate,
 		resolveTimer:                     resolveTimer,
 		identifyTimer:                    identifyTimer,
+		normalizeSocialAssertionTimer:    normalizeSocialAssertionTimer,
+		assertionParseAndOnlyTimer:       assertionParseAndOnlyTimer,
 		resolveIdentifyImplicitTeamTimer: resolveIdentifyImplicitTeamTimer,
 		resolveImplicitTeamByIDTimer:     resolveImplicitTeamByIDTimer,
 		loadUserPlusKeysTimer:            loadUserPlusKeysTimer,
@@ -102,6 +108,28 @@ func (k KeybaseServiceMeasured) Identify(ctx context.Context, assertion, reason 
 		name, id, err = k.delegate.Identify(ctx, assertion, reason)
 	})
 	return name, id, err
+}
+
+// NormalizeSocialAssertion implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NormalizeSocialAssertion(
+	ctx context.Context, assertion string) (res keybase1.SocialAssertion, err error) {
+	k.normalizeSocialAssertionTimer.Time(func() {
+		res, err = k.delegate.NormalizeSocialAssertion(
+			ctx, assertion)
+	})
+	return res, err
+}
+
+// AssertionParseAndOnly implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) AssertionParseAndOnly(
+	ctx context.Context, assertion string) (res keybase1.AssertionExpressionLite, err error) {
+	k.assertionParseAndOnlyTimer.Time(func() {
+		res, err = k.delegate.AssertionParseAndOnly(
+			ctx, assertion)
+	})
+	return res, err
 }
 
 // ResolveIdentifyImplicitTeam implements the KeybaseService interface

@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -380,7 +379,7 @@ func (rp resolvableNameUIDPair) resolve(ctx context.Context) (
 // returns itself.  If uid != keybase1.UID(""), it only allows
 // assertions that resolve to uid.
 func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
-	idGetter tlfIDGetter, uid keybase1.UID) (*TlfHandle, error) {
+	idGetter tlfIDGetter, asserter asserter, uid keybase1.UID) (*TlfHandle, error) {
 	if len(h.unresolvedWriters)+len(h.unresolvedReaders) == 0 {
 		return h, nil
 	}
@@ -390,7 +389,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
 	for _, uw := range h.unresolvedWriters {
-		writers = append(writers, resolvableAssertion{resolver, nil,
+		writers = append(writers, resolvableAssertion{resolver, nil, asserter,
 			uw.String(), uid})
 	}
 
@@ -401,7 +400,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
 		for _, ur := range h.unresolvedReaders {
-			readers = append(readers, resolvableAssertion{resolver, nil,
+			readers = append(readers, resolvableAssertion{resolver, nil, asserter,
 				ur.String(), uid})
 		}
 	}
@@ -420,13 +419,13 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 // optimization, if h contains no unresolved assertions, it just
 // returns itself.
 func (h *TlfHandle) ResolveAgain(
-	ctx context.Context, resolver resolver, idGetter tlfIDGetter) (
+	ctx context.Context, resolver resolver, idGetter tlfIDGetter, asserter asserter) (
 	*TlfHandle, error) {
 	if h.IsFinal() {
 		// Don't attempt to further resolve final handles.
 		return h, nil
 	}
-	return h.ResolveAgainForUser(ctx, resolver, idGetter, keybase1.UID(""))
+	return h.ResolveAgainForUser(ctx, resolver, idGetter, asserter, keybase1.UID(""))
 }
 
 type partialResolver struct {
@@ -450,7 +449,7 @@ func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
 // equal other if and only if true is returned.
 func (h TlfHandle) ResolvesTo(
 	ctx context.Context, codec kbfscodec.Codec, resolver resolver,
-	idGetter tlfIDGetter, teamChecker teamMembershipChecker, other TlfHandle) (
+	idGetter tlfIDGetter, asserter asserter, teamChecker teamMembershipChecker, other TlfHandle) (
 	resolvesTo bool, partialResolvedH *TlfHandle,
 	err error) {
 	// Check the conflict extension.
@@ -490,7 +489,7 @@ func (h TlfHandle) ResolvesTo(
 		// TlfHandle, restrict the resolver to use other's assertions
 		// only, so that we don't hit the network at all.
 		partialResolvedH, err = h.ResolveAgain(
-			ctx, partialResolver{resolver, unresolvedAssertions}, idGetter)
+			ctx, partialResolver{resolver, unresolvedAssertions}, idGetter, asserter)
 		if err != nil {
 			return false, nil, err
 		}
@@ -559,17 +558,17 @@ func (h TlfHandle) ResolvesTo(
 // `other` handle, resolve to each other.
 func (h TlfHandle) MutuallyResolvesTo(
 	ctx context.Context, codec kbfscodec.Codec,
-	resolver resolver, idGetter tlfIDGetter, other TlfHandle,
+	resolver resolver, idGetter tlfIDGetter, asserter asserter, other TlfHandle,
 	rev kbfsmd.Revision, tlfID tlf.ID, log logger.Logger) error {
 	handleResolvesToOther, partialResolvedHandle, err :=
-		h.ResolvesTo(ctx, codec, resolver, idGetter, nil, other)
+		h.ResolvesTo(ctx, codec, resolver, idGetter, asserter, nil, other)
 	if err != nil {
 		return err
 	}
 
 	// TODO: If h has conflict info, other should, too.
 	otherResolvesToHandle, partialResolvedOther, err :=
-		other.ResolvesTo(ctx, codec, resolver, idGetter, nil, h)
+		other.ResolvesTo(ctx, codec, resolver, idGetter, asserter, nil, h)
 	if err != nil {
 		return err
 	}
@@ -628,6 +627,7 @@ func (ra resolvableAssertionWithChangeReport) resolve(ctx context.Context) (
 type resolvableAssertion struct {
 	resolver   resolver
 	identifier identifier // only needed until KBFS-2022 is fixed
+	asserter   asserter
 	assertion  string
 	mustBeUser keybase1.UID
 }
@@ -688,8 +688,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			id:   id,
 		}, keybase1.SocialAssertion{}, tlfID, nil
 	case NoSuchUserError:
-		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
-		if !ok {
+		socialAssertion, serr := ra.asserter.NormalizeSocialAssertion(ctx, ra.assertion)
+		if serr != nil {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 		}
 		return nameIDPair{}, socialAssertion, tlf.NullID, nil
@@ -746,7 +746,7 @@ func parseTlfHandleLoose(
 	ctx context.Context, kbpki KBPKI, idGetter tlfIDGetter, name string,
 	t tlf.Type) (*TlfHandle, error) {
 	writerNames, readerNames, extensionSuffix, err :=
-		splitAndNormalizeTLFName(name, t)
+		splitAndNormalizeTLFName(ctx, kbpki, name, t)
 	if err != nil {
 		return nil, err
 	}
@@ -817,12 +817,12 @@ func parseTlfHandleLoose(
 			w = "team:" + w
 		}
 		writers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, kbpki, w, keybase1.UID("")}, changesCh}
+			resolvableAssertion{kbpki, kbpki, kbpki, w, keybase1.UID("")}, changesCh}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
 		readers[i] = resolvableAssertionWithChangeReport{
-			resolvableAssertion{kbpki, kbpki, r, keybase1.UID("")}, changesCh}
+			resolvableAssertion{kbpki, kbpki, kbpki, r, keybase1.UID("")}, changesCh}
 	}
 
 	h, err := makeTlfHandleHelper(
@@ -870,7 +870,7 @@ func parseTlfHandleLoose(
 			canonExtensionString = extensionList.Suffix()
 		}
 		_, _, currExtensionSuffix, _ :=
-			splitAndNormalizeTLFName(canonicalName, t)
+			splitAndNormalizeTLFName(ctx, kbpki, canonicalName, t)
 		canonicalName = strings.Replace(
 			canonicalName, tlf.HandleExtensionSep+currExtensionSuffix,
 			canonExtensionString, 1)

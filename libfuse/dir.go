@@ -161,7 +161,7 @@ func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
 	// updates yet for this folder, we might have missed a name
 	// change.
 	handle, err := f.h.ResolveAgain(
-		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps())
+		ctx, f.fs.config.KBPKI(), f.fs.config.MDOps(), f.fs.config.KBPKI())
 	if err != nil {
 		return nil, err
 	}

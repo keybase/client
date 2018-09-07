@@ -5,6 +5,9 @@
 package libkbfs
 
 import (
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	kbun "github.com/keybase/client/go/kbun"
 	logger "github.com/keybase/client/go/logger"
@@ -18,8 +21,6 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
-	reflect "reflect"
-	time "time"
 )
 
 // MockdataVersioner is a mock of dataVersioner interface
@@ -1905,6 +1906,32 @@ func (mr *MockKeybaseServiceMockRecorder) Identify(ctx, assertion, reason interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKeybaseService)(nil).Identify), ctx, assertion, reason)
 }
 
+// NormalizeSocialAssertion mocks base method
+func (m *MockKeybaseService) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion mocks base method
+func (mr *MockKeybaseServiceMockRecorder) NormalizeSocialAssertion(ctx context.Context, assertion string) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKeybaseService)(nil).NormalizeSocialAssertion), ctx, assertion)
+}
+
+// AssertionParseAndOnly mocks base method
+func (m *MockKeybaseService) AssertionParseAndOnly(ctx context.Context, assertion string) (keybase1.AssertionExpressionLite, error) {
+	ret := m.ctrl.Call(m, "AssertionExpressionLite", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.AssertionExpressionLite)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AssertionParseAndOnly mocks base method
+func (mr *MockKeybaseServiceMockRecorder) AssertionParseAndOnly(ctx context.Context, assertion string) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssertionParseAndOnly", reflect.TypeOf((*MockKeybaseService)(nil).AssertionParseAndOnly), ctx, assertion)
+}
+
 // ResolveIdentifyImplicitTeam mocks base method
 func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
 	ret := m.ctrl.Call(m, "ResolveIdentifyImplicitTeam", ctx, assertions, suffix, tlfType, doIdentifies, reason)
@@ -2606,6 +2633,22 @@ func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (kbu
 	ret1, _ := ret[1].(keybase1.UserOrTeamID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
+}
+
+// NormalizeSocialAssertion mocks base method
+func (m *MockKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AssertionParseAndOnly mocks base method
+func (m *MockKBPKI) AssertionParseAndOnly(ctx context.Context, assertion string) (keybase1.AssertionExpressionLite, error) {
+	ret := m.ctrl.Call(m, "AssertionExpressionLite", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.AssertionExpressionLite)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Identify indicates an expected call of Identify

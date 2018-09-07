@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -143,7 +143,8 @@ func MakeTestConfigOrBustLoggedInWithMode(
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[loggedInIndex]
 
-	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
+	kbCtx := env.NewContext()
+	daemon := NewKeybaseDaemonMemory(kbCtx, loggedInUser.UID, localUsers, nil,
 		config.Codec())
 	config.SetKeybaseService(daemon)
 	config.SetChat(newChatLocal(config))
@@ -265,7 +266,8 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	for _, u := range daemon.localUsers {
 		localUsers = append(localUsers, u)
 	}
-	newDaemon := NewKeybaseDaemonMemory(
+	kbCtx := env.NewContext()
+	newDaemon := NewKeybaseDaemonMemory(kbCtx,
 		loggedInUID.AsUserOrBust(), localUsers, nil, c.Codec())
 	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c, c.MakeLogger("")))
@@ -433,6 +435,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 // given config.
 func AddNewAssertionForTest(
 	config Config, oldAssertion, newAssertion string) error {
+	kbCtx := env.NewContext()
 	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
@@ -452,7 +455,7 @@ func AddNewAssertionForTest(
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	newSocialAssertion, ok := externals.NormalizeSocialAssertion(newAssertion)
+	newSocialAssertion, ok := libkb.NormalizeSocialAssertion(kbCtx.GlobalContext().MakeAssertionContext(), newAssertion)
 	if !ok {
 		return errors.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
 	}

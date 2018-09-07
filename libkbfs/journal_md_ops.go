@@ -144,7 +144,7 @@ func (j journalMDOps) getHeadFromJournal(
 		}
 
 		if err := headHandle.MutuallyResolvesTo(ctx, j.jServer.config.Codec(),
-			j.jServer.config.KBPKI(), j.jServer.config.MDOps(), *handle,
+			j.jServer.config.KBPKI(), j.jServer.config.MDOps(), j.jServer.config.KBPKI(), *handle,
 			head.RevisionNumber(), head.TlfID(), j.jServer.log); err != nil {
 			return ImmutableRootMetadata{}, err
 		}

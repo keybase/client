@@ -338,7 +338,7 @@ func testMakeRekeyReadErrorResolvedHandle(t *testing.T, ver kbfsmd.MetadataVer) 
 	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil)
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI(), nil, config.KBPKI())
 	require.NoError(t, err)
 
 	dummyErr := errors.New("dummy")

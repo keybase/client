@@ -49,7 +49,7 @@ func makeRekeyReadError(
 	ctx context.Context, err error, kbpki KBPKI, kmd KeyMetadata,
 	uid keybase1.UID, username kbname.NormalizedUsername) error {
 	h := kmd.GetTlfHandle()
-	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil)
+	resolvedHandle, resolveErr := h.ResolveAgain(ctx, kbpki, nil, kbpki)
 	if resolveErr != nil {
 		// Ignore error and pretend h is already fully
 		// resolved.
