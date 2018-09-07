@@ -6,6 +6,7 @@ import {
   lifecycle,
   setDisplayName,
   safeSubmit,
+  safeSubmitPerMount,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
@@ -85,5 +86,6 @@ export default compose(
     },
   }),
   setDisplayName('Settings'),
-  safeSubmit(['onCurrencyChange'], ['currency'])
+  safeSubmit(['onCurrencyChange'], ['currency']),
+  safeSubmitPerMount(['onBack'])
 )(Settings)
