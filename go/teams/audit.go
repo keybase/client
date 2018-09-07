@@ -202,6 +202,13 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 
 	for _, tuple := range probeTuples {
 		m.CDebugf("postProbe: checking probe at %+v", tuple)
+
+		// Note that we might see tuple.team == 0 in a legit case. There is a race here. If seqno=1
+		// of team foo was made when the last merkle seqno was 2000, let's say, then for merkle seqnos
+		// 2000-2001, the team foo might not be in the tree. So we'd expect the tuple.team to be 0
+		// in that (unlikely) case. So we don't check the validity of the linkID in that case
+		// (since it doesn't exist). However, we still do check that tuple.team's are non-decreasing,
+		// so this 0 value is checked below (see comment).
 		if tuple.team > keybase1.Seqno(0) {
 			expectedLinkID, ok := chain[tuple.team]
 			if !ok {
@@ -212,6 +219,9 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 			}
 		}
 		history.PostProbes[tuple.merkle] = keybase1.Probe{Index: probeID, TeamSeqno: tuple.team}
+
+		// This condition is the key ordering condition. It is still checked in the case of the race
+		// condition at tuple.team==0 mentioned just above.
 		if prev != nil && prev.team > tuple.team {
 			return maxMerkleProbe, NewAuditError("team chain unexpected jump: %d > %d via merkle seqno %d", prev.team, tuple.team, tuple.merkle)
 		}

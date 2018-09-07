@@ -330,6 +330,7 @@ type NativeVideoHelper interface {
 	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
 }
 
-type PaymentLoader interface {
-	Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+type StellarLoader interface {
+	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }

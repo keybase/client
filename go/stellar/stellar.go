@@ -118,7 +118,6 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		return
 	}
 	_, _, err = CreateWalletGated(ctx, g)
-	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -256,7 +255,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return nil
 	}
 
-	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+	if strings.Contains(string(to), stellarAddress.Separator) {
 		name, domain, err := stellarAddress.Split(string(to))
 		if err != nil {
 			return res, err
@@ -1188,6 +1187,16 @@ func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
 		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
+	}
+
+	if arg.Asset != nil {
+		a, err := amount.ParseInt64(arg.Amount)
+		if err != nil {
+			return ret, err
+		}
+		if a <= 0 {
+			return ret, fmt.Errorf("must request positive amount of XLM")
+		}
 	}
 
 	if arg.Currency != nil {
