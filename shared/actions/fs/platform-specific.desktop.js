@@ -288,17 +288,16 @@ function installCachedDokan() {
   })
 }
 
-function uninstallDokan(uninstallString: string) {
+function uninstallDokan(uninstallString: string): boolean {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan uninstaller')
     try {
       execSync(uninstallString, {windowsHide: true})
+      resolve(true)
     } catch (err) {
       logger.error('uninstallDokan caught', err)
       reject(err)
-      return
     }
-    resolve()
   })
 }
 
@@ -338,9 +337,7 @@ function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
   if (!uninstallString) {
     uninstallString = yield Saga.call(getDokanUninstallString, false)
   }
-  if (uninstallString) {
-    yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
-  }
+  yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
 }
 
 function installDokanSaga() {
@@ -350,7 +347,9 @@ function installDokanSaga() {
 function* uninstallDokanSaga() {
   const state: TypedState = yield Saga.select()
   const uninstallString = state.fs.dokanUninstallString
-  return yield Saga.call(uninstallDokan, uninstallString)
+  if (yield Saga.call(uninstallDokan, uninstallString)) {
+    yield Saga.call(getDokanUninstallStringSaga)
+  }
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
