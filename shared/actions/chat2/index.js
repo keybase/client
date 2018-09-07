@@ -749,12 +749,11 @@ const setupEngineListeners = () => {
       const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo(notif.info)
       if (!paymentInfo) {
         // This should never happen
-        logger.error(
-          `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
-            notif.msgID
-          }. The local version may be absent or out of date.`
-        )
-        return
+        const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
+          notif.msgID
+        }. The local version may be absent or out of date.`
+        logger.error(errMsg)
+        throw new Error(errMsg)
       }
       return Chat2Gen.createPaymentInfoReceived({
         conversationIDKey,
