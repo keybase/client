@@ -14,8 +14,8 @@ type MemDb struct {
 
 var _ LocalDb = (*MemDb)(nil)
 
-func NewMemDb() *MemDb {
-	c, _ := lru.New(10000)
+func NewMemDb(size int) *MemDb {
+	c, _ := lru.New(size)
 	return &MemDb{
 		lru: c,
 	}

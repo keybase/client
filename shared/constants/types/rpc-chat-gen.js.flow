@@ -226,6 +226,7 @@ export const localOutboxStateType = {
 export const localPreviewLocationTyp = {
   url: 0,
   file: 1,
+  bytes: 2,
 }
 
 export const notifyChatChatActivitySource = {
@@ -654,10 +655,11 @@ export type PostFileAttachmentArg = $ReadOnly<{conversationID: ConversationID, t
 export type PostLocalNonblockRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, outboxID: OutboxID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostLocalRes = $ReadOnly<{rateLimits?: ?Array<RateLimit>, messageID: MessageID, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type PostRemoteRes = $ReadOnly<{msgHeader: MessageServerHeader, rateLimit?: ?RateLimit}>
-export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String}
+export type PreviewLocation = {ltyp: 0, url: ?String} | {ltyp: 1, file: ?String} | {ltyp: 2, bytes: ?Bytes}
 export type PreviewLocationTyp =
   | 0 // URL_0
   | 1 // FILE_1
+  | 2 // BYTES_2
 
 export type RateLimit = $ReadOnly<{name: String, callsRemaining: Int, windowReset: Int, maxCalls: Int}>
 export type Reaction = $ReadOnly<{ctime: Gregor1.Time, reactionMsgID: MessageID}>

@@ -523,6 +523,7 @@ func Decode(r io.Reader, opts *DecodeOpts) (image.Image, Config, error) {
 		flipMode FlipDirection
 	)
 
+	fmt.Printf("DECODING IMAGE\n")
 	tr := io.TeeReader(io.LimitReader(r, 2<<20), &buf)
 	if opts.useEXIF() {
 		angle, flipMode = exifOrientation(tr)
@@ -550,6 +551,7 @@ func Decode(r io.Reader, opts *DecodeOpts) (image.Image, Config, error) {
 	c.Modified = rescaled
 
 	if angle != 0 {
+		fmt.Printf("ROTATING IMAGE\n")
 		im = rotate(im, angle)
 		c.Modified = true
 	}

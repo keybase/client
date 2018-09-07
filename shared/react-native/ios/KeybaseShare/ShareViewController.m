@@ -8,6 +8,8 @@
 
 #import "ShareViewController.h"
 #import "keybase/keybase.h"
+#import "Pusher.h"
+#import <MobileCoreServices/MobileCoreServices.h>
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget;
@@ -42,6 +44,29 @@
   return item;
 }
 
+- (void)didReceiveMemoryWarning {
+    KeybaseForceGC();
+    [super didReceiveMemoryWarning];
+}
+
+- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSData*))resultCb  {
+  UIImage* original = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+  CFURLRef cfurl = CFBridgingRetain(url);
+  CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
+  NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
+                    (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
+                    (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                    [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
+                    nil];
+  CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
+  UIImage* scaled = [UIImage imageWithCGImage:image];
+  CGImageRelease(image);
+  CFRelease(cfurl);
+  CFRelease(is);
+  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
+  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+}
+
 - (void)didSelectPost {
   if (!self.convTarget) {
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
@@ -50,10 +75,11 @@
   
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
   NSItemProvider* item = [self getFirstSendableAttachment:[input attachments]];
+  PushNotifier* pusher = [[PushNotifier alloc] init];
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     NSString* body = (self.contentText.length) ? [NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteString] : url.absoluteString;
-    KeybaseExtensionPostURL(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, &error);
+    KeybaseExtensionPostURL(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, pusher, &error);
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
       [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
     }];
@@ -61,7 +87,16 @@
   
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
     NSString* filePath = [url relativePath];
-    KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, &error);
+    if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+      // Generate image preview here, since it runs out of memory easy in Go
+      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+        NSError* error = NULL;
+        KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
+                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+      }];
+    } else {
+      KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, pusher, &error);
+    }
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
       [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
     }];

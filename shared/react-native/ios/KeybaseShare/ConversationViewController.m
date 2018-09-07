@@ -26,7 +26,7 @@ const BOOL isSimulator = NO;
 
 - (void)viewDidLoad {
   NSError* error = NULL;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:NO setupSharedHome:NO];
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
   KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   if (error != nil) {
     NSLog(@"Failed to init: %@", error);
@@ -66,8 +66,8 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+  KeybaseForceGC();
+  [super didReceiveMemoryWarning];
 }
 
 #pragma mark - Table view data source

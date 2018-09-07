@@ -87,11 +87,11 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	}
 	if err = kbCtx.LocalDb.ForceOpen(); err != nil {
 		kbCtx.Log.Debug("Failed to open local db, using memory db: %s", err)
-		kbCtx.LocalDb = libkb.NewJSONLocalDb(libkb.NewMemDb())
+		kbCtx.LocalDb = libkb.NewJSONLocalDb(libkb.NewMemDb(1000))
 	}
 	if err = kbCtx.LocalChatDb.ForceOpen(); err != nil {
 		kbCtx.Log.Debug("Failed to open local chat db, using memory db: %s", err)
-		kbCtx.LocalChatDb = libkb.NewJSONLocalDb(libkb.NewMemDb())
+		kbCtx.LocalChatDb = libkb.NewJSONLocalDb(libkb.NewMemDb(1000))
 	}
 
 	svc := service.NewService(kbCtx, false)
@@ -259,9 +259,15 @@ func restoreName(gc *globals.Context, name string) string {
 	return name + "," + username
 }
 
-func ExtensionPostURL(strConvID, name string, public bool, body string) (err error) {
+func ExtensionPostURL(strConvID, name string, public bool, body string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostURL", func() error { return err })()
 	defer func() { err = flattenError(err) }()
+	defer func() {
+		if err == nil {
+			pusher.LocalNotification("extension", "Your message was shared successfully.", -1, "default",
+				strConvID, "chat.extension")
+		}
+	}()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -289,9 +295,16 @@ func ExtensionPostURL(strConvID, name string, public bool, body string) (err err
 	return nil
 }
 
-func ExtensionPostFile(strConvID, name string, public bool, caption string, filename string) (err error) {
-	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
+func ExtensionPostJPEG(strConvID, name string, public bool, caption string, filename string,
+	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
+	defer kbCtx.Trace("ExtensionPostJPEG", func() error { return err })()
 	defer func() { err = flattenError(err) }()
+	defer func() {
+		if err == nil {
+			pusher.LocalNotification("extension", "Your file was shared successfully.", -1, "default",
+				strConvID, "chat.extension")
+		}
+	}()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -305,6 +318,62 @@ func ExtensionPostFile(strConvID, name string, public bool, caption string, file
 		return err
 	}
 
+	vis := keybase1.TLFVisibility_PRIVATE
+	if public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
+		func() chat1.RemoteInterface { return extensionRi })
+	name = restoreName(gc, name)
+
+	// Compute preview result from the native params
+	mimeType := "image/jpeg"
+	location := chat1.NewPreviewLocationWithBytes(previewData)
+	baseMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+		Width:  baseWidth,
+		Height: baseHeight,
+	})
+	previewMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+		Width:  previewWidth,
+		Height: previewHeight,
+	})
+	callerPreview := chat1.MakePreviewRes{
+		MimeType:        mimeType,
+		PreviewMimeType: &mimeType,
+		Location:        &location,
+		Metadata:        &previewMD,
+		BaseMetadata:    &baseMD,
+	}
+
+	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
+		filename, caption, nil, 0, nil, &callerPreview); err != nil {
+		return err
+	}
+	return nil
+}
+
+func ExtensionPostFile(strConvID, name string, public bool, caption string, filename string,
+	pusher PushNotifier) (err error) {
+	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
+	defer func() { err = flattenError(err) }()
+	defer func() {
+		if err == nil {
+			pusher.LocalNotification("extension", "Your file was shared successfully.", -1, "default",
+				strConvID, "chat.extension")
+		}
+	}()
+
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		return err
+	}
 	vis := keybase1.TLFVisibility_PRIVATE
 	if public {
 		vis = keybase1.TLFVisibility_PUBLIC
