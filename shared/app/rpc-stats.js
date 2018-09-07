@@ -17,9 +17,9 @@ type State = {
   markOut: boolean,
   markEOF: boolean,
   // counts
-  smallInCount: number,
-  smallOutCount: number,
-  smallEOFCount: number,
+  inCount: number,
+  outCount: number,
+  eofCount: number,
   // clicking hides it
   visible: boolean,
 }
@@ -55,9 +55,9 @@ class RpcStats extends React.Component<Props, State> {
     markIn: false,
     markOut: false,
     markEOF: false,
-    smallInCount: 0,
-    smallOutCount: 0,
-    smallEOFCount: 0,
+    inCount: 0,
+    outCount: 0,
+    eofCount: 0,
     visible: false,
   }
 
@@ -88,22 +88,22 @@ class RpcStats extends React.Component<Props, State> {
       this._intervalID = setInterval(() => {
         this._mounted &&
           this.setState(p => {
-            const smallInCount = this._iterateStats(['in'], s => s.count)
-            const smallOutCount = this._iterateStats(['out'], s => s.count)
-            const smallEOFCount = Stats.getStats()['eof']
+            const inCount = this._iterateStats(['in'], s => s.count)
+            const outCount = this._iterateStats(['out'], s => s.count)
+            const eofCount = Stats.getStats()['eof']
 
-            const inDiff = p.smallInCount !== smallInCount
-            const outDiff = p.smallOutCount !== smallOutCount
-            const eofDiff = p.smallEOFCount !== smallEOFCount
+            const inDiff = p.inCount !== inCount
+            const outDiff = p.outCount !== outCount
+            const eofDiff = p.eofCount !== eofCount
             const markDiff = p.markIn || p.markOut || p.markEOF
             if (inDiff || outDiff || eofDiff || markDiff) {
               return {
                 markIn: inDiff,
                 markOut: outDiff,
                 markEOF: eofDiff,
-                smallInCount,
-                smallOutCount,
-                smallEOFCount,
+                inCount,
+                outCount,
+                eofCount,
               }
             }
           })
@@ -144,7 +144,7 @@ class RpcStats extends React.Component<Props, State> {
   render() {
     if (!this.state.visible) return null
 
-    const showIcon = this.state.smallInCount < 100 && this.state.smallOutCount < 100
+    const showIcon = this.state.inCount < 100 && this.state.outCount < 100
 
     return (
       <ClickableBox onClick={this._onClick} style={styles.clickableBox}>
@@ -159,7 +159,7 @@ class RpcStats extends React.Component<Props, State> {
                 ⤵️{' '}
               </Text>
             )}
-            {this.state.smallInCount}
+            {this.state.inCount}
           </Text>
           <Text
             type={this.state.markOut ? 'BodySmallExtrabold' : 'BodySmall'}
@@ -171,9 +171,9 @@ class RpcStats extends React.Component<Props, State> {
                 ↗️{' '}
               </Text>
             )}
-            {this.state.smallOutCount}
+            {this.state.outCount}
           </Text>
-          {this.state.smallEOFCount && (
+          {this.state.eofCount > 0 && (
             <Text
               type={this.state.markEOF ? 'BodySmallExtrabold' : 'BodySmall'}
               style={styles.text}
@@ -184,7 +184,7 @@ class RpcStats extends React.Component<Props, State> {
                   🔚️{' '}
                 </Text>
               )}
-              {this.state.smallEOFCount}
+              {this.state.eofCount}
             </Text>
           )}
         </Box2>
