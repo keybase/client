@@ -4,28 +4,63 @@
 package externals
 
 import (
+	"context"
 	"strings"
+	"sync"
 
 	libkb "github.com/keybase/client/go/libkb"
 )
 
-type externalServicesCollection map[string]libkb.ServiceType
+type proofServices struct {
+	sync.Mutex
+	libkb.Contextified
+	collection map[string]libkb.ServiceType
+	loaded     bool
+}
 
-var externalServices = externalServicesCollection(make(map[string]libkb.ServiceType))
+func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
+	p := &proofServices{
+		Contextified: libkb.NewContextified(g),
+		collection:   make(map[string]libkb.ServiceType),
+	}
 
-func (e externalServicesCollection) Register(st libkb.ServiceType) {
+	staticServices := []libkb.ServiceType{
+		DNSServiceType{},
+		FacebookServiceType{},
+		GithubServiceType{},
+		HackerNewsServiceType{},
+		RedditServiceType{},
+		RooterServiceType{},
+		TwitterServiceType{},
+		WebServiceType{},
+	}
+	p.Lock()
+	defer p.Unlock()
+	for _, st := range staticServices {
+		p.register(st)
+	}
+	return p
+}
+
+func (p *proofServices) register(st libkb.ServiceType) {
 	for _, k := range st.AllStringKeys() {
-		e[k] = st
+		p.collection[k] = st
 	}
 }
 
-func (e externalServicesCollection) GetServiceType(s string) libkb.ServiceType {
-	return e[strings.ToLower(s)]
+func (p *proofServices) GetServiceType(s string) libkb.ServiceType {
+	p.Lock()
+	defer p.Unlock()
+	p.loadParamProofServices()
+	return p.collection[strings.ToLower(s)]
 }
 
-func (e externalServicesCollection) ListProofCheckers(mode libkb.RunMode) []string {
+func (p *proofServices) ListProofCheckers(mode libkb.RunMode) []string {
+	p.Lock()
+	defer p.Unlock()
+	p.loadParamProofServices()
 	var ret []string
-	for k, v := range e {
+	for k, v := range p.collection {
 		if useDevelProofCheckers || !v.IsDevelOnly() {
 			ret = append(ret, k)
 		}
@@ -33,8 +68,23 @@ func (e externalServicesCollection) ListProofCheckers(mode libkb.RunMode) []stri
 	return ret
 }
 
-var _ libkb.ExternalServicesCollector = externalServices
+func (p *proofServices) loadParamProofServices() {
+	// TODO need to hook this into storage for parameterized configs, CORE-8655
+	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
-func GetServices() libkb.ExternalServicesCollector {
-	return externalServices
+	if !shouldRun || p.loaded {
+		return
+	}
+
+	loader := NullConfigLoader{}
+	proofTypes, err := loader.LoadAll()
+	if err != nil {
+		// TODO CORE-8655
+		p.G().Log.CDebugf(context.TODO(), "unable to load configs: %v", err)
+		return
+	}
+	for _, params := range proofTypes {
+		p.register(NewParamProofServiceType(params))
+	}
+	p.loaded = true
 }
