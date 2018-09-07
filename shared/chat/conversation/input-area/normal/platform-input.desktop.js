@@ -14,6 +14,7 @@ import {
 } from '../../../../styles'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
+import {TypingAnimation} from '../../../../common-adapters/animations/typing/index.desktop'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import flags from '../../../../util/feature-flags'
@@ -347,6 +348,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           />
         </Kb.Box>
         <Kb.Box style={styles.footerContainer}>
+          <TypingAnimation />
           <Kb.Text type="BodySmall" style={styles.isTyping}>
             {isTyping(this.props.typing)}
           </Kb.Text>
