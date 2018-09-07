@@ -319,6 +319,7 @@ export {
   accountResultToAccount,
   assetsResultToAssets,
   currenciesResultToCurrencies,
+  balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
@@ -355,4 +356,5 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  statusSimplifiedToString,
 }
