@@ -198,19 +198,19 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       bottom: 80,
-      height: 20,
+      height: 35,
       left: 0,
       width: 80,
     },
     isMobile: isIPhoneX
       ? {
           bottom: 0,
-          height: 20,
+          height: 35,
           left: 20,
           width: 100,
         }
       : {
-          height: 20,
+          height: 35,
           left: 0,
           top: 10,
           width: 100,
