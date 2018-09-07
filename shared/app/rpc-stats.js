@@ -173,18 +173,20 @@ class RpcStats extends React.Component<Props, State> {
             )}
             {this.state.smallOutCount}
           </Text>
-          <Text
-            type={this.state.markEOF ? 'BodySmallExtrabold' : 'BodySmall'}
-            style={styles.text}
-            title="EOF errors"
-          >
-            {showIcon && (
-              <Text type="BodySmall" style={styles.emoji}>
-                🔚️{' '}
-              </Text>
-            )}
-            {this.state.smallEOFCount}
-          </Text>
+          {this.state.smallEOFCount && (
+            <Text
+              type={this.state.markEOF ? 'BodySmallExtrabold' : 'BodySmall'}
+              style={styles.text}
+              title="EOF errors"
+            >
+              {showIcon && (
+                <Text type="BodySmall" style={styles.emoji}>
+                  🔚️{' '}
+                </Text>
+              )}
+              {this.state.smallEOFCount}
+            </Text>
+          )}
         </Box2>
       </ClickableBox>
     )
@@ -198,19 +200,19 @@ const styles = styleSheetCreate({
     },
     isElectron: {
       bottom: 80,
-      height: 35,
+      height: 20,
       left: 0,
       width: 80,
     },
     isMobile: isIPhoneX
       ? {
           bottom: 0,
-          height: 35,
+          height: 20,
           left: 20,
           width: 100,
         }
       : {
-          height: 35,
+          height: 20,
           left: 0,
           top: 10,
           width: 100,
