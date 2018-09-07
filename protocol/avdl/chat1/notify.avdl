@@ -222,4 +222,7 @@ protocol NotifyChat {
   @lint("ignore")
   void ChatAttachmentUploadProgress(keybase1.UID uid, ConversationID convID, OutboxID outboxID, long bytesComplete, long bytesTotal);
 
+  @notify("")
+  @lint("ignore")
+  void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
 }

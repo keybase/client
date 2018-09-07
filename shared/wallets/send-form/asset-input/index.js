@@ -49,6 +49,7 @@ const AssetInput = (props: Props) => (
           <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
             {props.warningAsset}
           </Text>
+          .
         </Text>
       )}
     {!!props.warningPayee && (
