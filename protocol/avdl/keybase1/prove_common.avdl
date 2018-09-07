@@ -87,17 +87,17 @@ protocol proveCommon {
     ROOTER_100001
   }
 
-  record DynamicProofServiceGroup {
+  record ProofServiceGroup {
     // TODO need to spec out
     string id;
   }
 
-  record DynamicProofServiceConfig {
+  record ParamProofServiceConfig {
     boolean enabled;
     boolean isDevel;
     string displayName;
     string domain;
-    union { null, DynamicProofServiceGroup } group;
+    union { null, ProofServiceGroup } group;
     string usernameRe;
     string prefillUrl;
     string checkUrl;

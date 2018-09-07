@@ -1776,8 +1776,6 @@ export type DismissReasonType =
 export type DownPointer = $ReadOnly<{id: TeamID, nameComponent: String, isDeleted: Boolean}>
 export type DowngradeReferenceRes = $ReadOnly<{completed?: ?Array<BlockReferenceCount>, failed: BlockReference}>
 export type DurationSec = Double
-export type DynamicProofServiceConfig = $ReadOnly<{enabled: Boolean, isDevel: Boolean, displayName: String, domain: String, group?: ?DynamicProofServiceGroup, usernameRe: String, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
-export type DynamicProofServiceGroup = $ReadOnly<{id: String}>
 export type ED25519PublicKey = ?string
 export type ED25519Signature = ?string
 export type ED25519SignatureInfo = $ReadOnly<{sig: ED25519Signature, publicKey: ED25519PublicKey}>
@@ -2088,6 +2086,7 @@ export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Bo
 export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
 export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
+export type ParamProofServiceConfig = $ReadOnly<{enabled: Boolean, isDevel: Boolean, displayName: String, domain: String, group?: ?ProofServiceGroup, usernameRe: String, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
   | 0 // NONE_0
@@ -2128,6 +2127,7 @@ export type PromptOverwriteType =
   | 1 // SITE_1
 
 export type ProofResult = $ReadOnly<{state: ProofState, status: ProofStatus, desc: String}>
+export type ProofServiceGroup = $ReadOnly<{id: String}>
 export type ProofState =
   | 0 // NONE_0
   | 1 // OK_1

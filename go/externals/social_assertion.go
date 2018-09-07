@@ -6,7 +6,7 @@ import (
 )
 
 func MakeAssertionContext(g *libkb.GlobalContext) libkb.AssertionContext {
-	return libkb.MakeAssertionContext(NewExternalServices(g))
+	return libkb.MakeAssertionContext(NewProofServices(g))
 }
 
 func NormalizeSocialAssertion(g *libkb.GlobalContext, s string) (keybase1.SocialAssertion, bool) {

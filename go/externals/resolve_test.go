@@ -23,7 +23,7 @@ var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 
 func TestResolveSimple(t *testing.T) {
 	tc := libkb.SetupTest(t, "resolveSimple", 1)
-	tc.G.Services = NewExternalServices(tc.G)
+	tc.G.Services = NewProofServices(tc.G)
 	r, clock := newTestResolverCache(tc.G)
 	m := libkb.NewMetaContextForTest(tc)
 
@@ -80,7 +80,7 @@ func TestResolveSimple(t *testing.T) {
 func TestResolveNeedUsername(t *testing.T) {
 	ctx := context.Background()
 	tc := libkb.SetupTest(t, "resolveSimple", 1)
-	tc.G.Services = NewExternalServices(tc.G)
+	tc.G.Services = NewProofServices(tc.G)
 	r, clock := newTestResolverCache(tc.G)
 	goodResolve := func(s string) {
 		lctx := libkb.WithLogTag(ctx, "RSLV")

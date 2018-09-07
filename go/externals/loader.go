@@ -3,7 +3,7 @@ package externals
 import "github.com/keybase/client/go/protocol/keybase1"
 
 type ConfigLoader interface {
-	LoadAll() ([]keybase1.DynamicProofServiceConfig, error)
+	LoadAll() ([]keybase1.ParamProofServiceConfig, error)
 }
 
 type NullConfigLoader struct{}
@@ -12,9 +12,9 @@ var _ ConfigLoader = (*NullConfigLoader)(nil)
 
 // TODO these values will live on the server and be cached locally, we'll have
 // a dev setup with a similar config to below so we can run integration tests.
-func (l *NullConfigLoader) LoadAll() ([]keybase1.DynamicProofServiceConfig, error) {
-	return []keybase1.DynamicProofServiceConfig{
-		keybase1.DynamicProofServiceConfig{
+func (l *NullConfigLoader) LoadAll() ([]keybase1.ParamProofServiceConfig, error) {
+	return []keybase1.ParamProofServiceConfig{
+		keybase1.ParamProofServiceConfig{
 			Enabled:    true,
 			IsDevel:    true,
 			Domain:     "mastodon.social",

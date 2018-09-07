@@ -265,35 +265,35 @@ func (e ProofType) String() string {
 	return ""
 }
 
-type DynamicProofServiceGroup struct {
+type ProofServiceGroup struct {
 	Id string `codec:"id" json:"id"`
 }
 
-func (o DynamicProofServiceGroup) DeepCopy() DynamicProofServiceGroup {
-	return DynamicProofServiceGroup{
+func (o ProofServiceGroup) DeepCopy() ProofServiceGroup {
+	return ProofServiceGroup{
 		Id: o.Id,
 	}
 }
 
-type DynamicProofServiceConfig struct {
-	Enabled     bool                      `codec:"enabled" json:"enabled"`
-	IsDevel     bool                      `codec:"isDevel" json:"isDevel"`
-	DisplayName string                    `codec:"displayName" json:"displayName"`
-	Domain      string                    `codec:"domain" json:"domain"`
-	Group       *DynamicProofServiceGroup `codec:"group,omitempty" json:"group,omitempty"`
-	UsernameRe  string                    `codec:"usernameRe" json:"usernameRe"`
-	PrefillUrl  string                    `codec:"prefillUrl" json:"prefillUrl"`
-	CheckUrl    string                    `codec:"checkUrl" json:"checkUrl"`
-	CheckPath   []string                  `codec:"checkPath" json:"checkPath"`
+type ParamProofServiceConfig struct {
+	Enabled     bool               `codec:"enabled" json:"enabled"`
+	IsDevel     bool               `codec:"isDevel" json:"isDevel"`
+	DisplayName string             `codec:"displayName" json:"displayName"`
+	Domain      string             `codec:"domain" json:"domain"`
+	Group       *ProofServiceGroup `codec:"group,omitempty" json:"group,omitempty"`
+	UsernameRe  string             `codec:"usernameRe" json:"usernameRe"`
+	PrefillUrl  string             `codec:"prefillUrl" json:"prefillUrl"`
+	CheckUrl    string             `codec:"checkUrl" json:"checkUrl"`
+	CheckPath   []string           `codec:"checkPath" json:"checkPath"`
 }
 
-func (o DynamicProofServiceConfig) DeepCopy() DynamicProofServiceConfig {
-	return DynamicProofServiceConfig{
+func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
+	return ParamProofServiceConfig{
 		Enabled:     o.Enabled,
 		IsDevel:     o.IsDevel,
 		DisplayName: o.DisplayName,
 		Domain:      o.Domain,
-		Group: (func(x *DynamicProofServiceGroup) *DynamicProofServiceGroup {
+		Group: (func(x *ProofServiceGroup) *ProofServiceGroup {
 			if x == nil {
 				return nil
 			}

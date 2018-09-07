@@ -28,7 +28,7 @@ func InstallInsecureTriplesec(g *libkb.GlobalContext) {
 
 func setupTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 1)
-	tc.G.SetServices(externals.NewExternalServices(tc.G))
+	tc.G.SetServices(externals.NewProofServices(tc.G))
 	InstallInsecureTriplesec(tc.G)
 	teams.NewTeamLoaderAndInstall(tc.G)
 	teams.NewAuditorAndInstall(tc.G)

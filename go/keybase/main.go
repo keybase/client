@@ -69,7 +69,7 @@ func main() {
 	g.Init()
 
 	// Set our panel of external services.
-	g.SetServices(externals.NewExternalServices(g))
+	g.SetServices(externals.NewProofServices(g))
 
 	go HandleSignals(g)
 	err := mainInner(g, startupErrors)
