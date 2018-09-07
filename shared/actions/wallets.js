@@ -157,10 +157,13 @@ const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDispl
   }).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
-  RPCTypes.localDeleteWalletAccountLocalRpcPromise({
-    accountID: action.payload.accountID,
-    userAcknowledged: 'yes',
-  }).then(res => WalletsGen.createDeletedAccount())
+  RPCTypes.localDeleteWalletAccountLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      userAcknowledged: 'yes',
+    },
+    Constants.deleteAccountWaitingKey
+  ).then(res => WalletsGen.createDeletedAccount())
 
 const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
   RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise(

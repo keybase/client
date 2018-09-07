@@ -9,6 +9,7 @@ type Props = Kb.PropsWithTimer<{|
   onCopyKey: () => void,
   onFinish: () => void,
   onCancel: () => void,
+  waitingKey: string,
 |}>
 
 type State = {
@@ -43,12 +44,13 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             type="Wallet"
             ref={r => (this._attachmentRef = r)}
           />,
-          <Kb.Button
+          <Kb.WaitingButton
             fullWidth={Styles.isMobile}
             key={1}
             label="Finish"
             onClick={this.props.onFinish}
             type="Secondary"
+            waitingKey={this.props.waitingKey}
           />,
         ]}
       >

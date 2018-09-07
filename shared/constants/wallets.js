@@ -266,6 +266,7 @@ const loadEverythingWaitingKey = 'wallets:loadEverything'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
 const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
+const deleteAccountWaitingKey = 'wallets:deleteAccount'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -319,6 +320,7 @@ export {
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
+  deleteAccountWaitingKey,
   getAccountIDs,
   getAccount,
   getAssets,

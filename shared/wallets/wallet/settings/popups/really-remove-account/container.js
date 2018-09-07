@@ -12,8 +12,9 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   return {
     accountID,
-    secretKey,
     name: Constants.getAccount(state, accountID).name,
+    secretKey,
+    waitingKey: Constants.deleteAccountWaitingKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -28,6 +29,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   name: stateProps.name,
+  waitingKey: stateProps.waitingKey,
   onCancel: () => dispatchProps._onClose(),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.accountID),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
