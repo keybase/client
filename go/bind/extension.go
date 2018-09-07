@@ -84,6 +84,14 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
 	}
+	if err = kbCtx.LocalDb.ForceOpen(); err != nil {
+		kbCtx.Log.Debug("Failed to open local db, using memory db: %s", err)
+		kbCtx.LocalDb = libkb.NewJSONLocalDb(libkb.NewMemDb())
+	}
+	if err = kbCtx.LocalChatDb.ForceOpen(); err != nil {
+		kbCtx.Log.Debug("Failed to open local chat db, using memory db: %s", err)
+		kbCtx.LocalChatDb = libkb.NewJSONLocalDb(libkb.NewMemDb())
+	}
 
 	svc := service.NewService(kbCtx, false)
 	if err = svc.StartLoopbackServer(); err != nil {
