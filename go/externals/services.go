@@ -4,7 +4,7 @@
 package externals
 
 import (
-	"fmt"
+	"context"
 	"strings"
 	"sync"
 
@@ -24,7 +24,7 @@ func NewExternalServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector
 		collection:   make(map[string]libkb.ServiceType),
 	}
 
-	nonGenericServiceTypes := []libkb.ServiceType{
+	staticServices := []libkb.ServiceType{
 		DNSServiceType{},
 		FacebookServiceType{},
 		GithubServiceType{},
@@ -36,7 +36,7 @@ func NewExternalServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector
 	}
 	e.Lock()
 	defer e.Unlock()
-	for _, st := range nonGenericServiceTypes {
+	for _, st := range staticServices {
 		e.register(st)
 	}
 	return e
@@ -51,14 +51,14 @@ func (e *externalServices) register(st libkb.ServiceType) {
 func (e *externalServices) GetServiceType(s string) libkb.ServiceType {
 	e.Lock()
 	defer e.Unlock()
-	e.loadGenericServices()
+	e.loadDynamicProofServices()
 	return e.collection[strings.ToLower(s)]
 }
 
 func (e *externalServices) ListProofCheckers(mode libkb.RunMode) []string {
 	e.Lock()
 	defer e.Unlock()
-	e.loadGenericServices()
+	e.loadDynamicProofServices()
 	var ret []string
 	for k, v := range e.collection {
 		if useDevelProofCheckers || !v.IsDevelOnly() {
@@ -68,8 +68,8 @@ func (e *externalServices) ListProofCheckers(mode libkb.RunMode) []string {
 	return ret
 }
 
-func (e *externalServices) loadGenericServices() {
-	// TODO need to hook this into storage for generic configs
+func (e *externalServices) loadDynamicProofServices() {
+	// TODO need to hook this into storage for dynamic configs, CORE-8655
 	shouldRun := e.G().Env.GetFeatureFlags().Admin() || e.G().Env.GetRunMode() == libkb.DevelRunMode || e.G().Env.RunningInCI()
 
 	if !shouldRun || e.loaded {
@@ -79,11 +79,12 @@ func (e *externalServices) loadGenericServices() {
 	loader := NullConfigLoader{}
 	configs, err := loader.LoadAll()
 	if err != nil {
-		// TODO we probably don't want it to work this way..
-		panic(fmt.Sprintf("Unable to load proofs: %v", err))
+		// TODO CORE-8655
+		e.G().Log.CDebugf(context.TODO(), "unable to load configs: %v", err)
+		return
 	}
 	for _, conf := range configs {
-		e.register(NewGenericServiceType(conf))
+		e.register(NewDynamicProofServiceType(conf))
 	}
 	e.loaded = true
 }

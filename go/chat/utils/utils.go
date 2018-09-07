@@ -113,9 +113,9 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(m libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
 	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(m.G(), tlfname, false)
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx.G(), tlfname, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -123,7 +123,7 @@ func ReorderParticipants(m libkb.MetaContext, g libkb.UIDMapperContext, umapper 
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(m.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
+	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
 		true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {

@@ -87,7 +87,7 @@
     },
     {
       "type": "record",
-      "name": "GenericServiceGroup",
+      "name": "DynamicProofServiceGroup",
       "fields": [
         {
           "type": "string",
@@ -97,7 +97,7 @@
     },
     {
       "type": "record",
-      "name": "GenericServiceConfig",
+      "name": "DynamicProofServiceConfig",
       "fields": [
         {
           "type": "boolean",
@@ -118,7 +118,7 @@
         {
           "type": [
             null,
-            "GenericServiceGroup"
+            "DynamicProofServiceGroup"
           ],
           "name": "group"
         },

@@ -1116,7 +1116,8 @@ func TestResolveAndCheck(t *testing.T) {
 		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
 		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
 		// NOTE: Generic proofs are a WIP, this should change to a
-		// NotFoundError and a success case as the implementation proceeds
+		// NotFoundError and a success case as the implementation proceeds.
+		// See CORE-8787
 		{"foobunny@mastodon.social", libkb.AppStatusError{}, false},
 		// TODO set this up for success!
 		{"t_alice@mastodon.social", libkb.AppStatusError{}, false},
