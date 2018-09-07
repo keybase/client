@@ -224,8 +224,13 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
     })
 }
 
-const navigateToTop = () =>
-  Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+const deletedAccount = (state: TypedState) =>
+  Saga.put(
+    WalletsGen.createSelectAccount({
+      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
+      show: true,
+    })
+  )
 
 const navigateUp = (
   state: TypedState,
@@ -362,7 +367,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     buildPayment
   )
 
-  yield Saga.actionToAction(WalletsGen.deletedAccount, navigateToTop)
+  yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
