@@ -75,7 +75,7 @@ func (s *Sender) makeBaseAttachmentMessage(ctx context.Context, tlfName string, 
 	return msg, outboxID, nil
 }
 
-func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sender, uid gregor1.UID,
+func (s *Sender) PostFileAttachmentMessage(ctx context.Context, sender types.Sender,
 	convID chat1.ConversationID, tlfName string, vis keybase1.TLFVisibility, filename, title string,
 	md []byte, clientPrev chat1.MessageID, ephemeralLifetime *gregor1.DurationSec) (outboxID chat1.OutboxID, msgID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, "PostFileAttachmentMessage")()

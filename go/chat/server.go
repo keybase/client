@@ -1374,9 +1374,8 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	// Create non block sender
-	uid := h.getUID()
 	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
-	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender, uid,
+	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
 		arg.ConvID, arg.TlfName, arg.Visibility, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
 		arg.EphemeralLifetime)
 	if err != nil {
