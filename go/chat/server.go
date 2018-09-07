@@ -1421,6 +1421,9 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	if err != nil {
 		return res, err
 	}
+	if msgID == nil {
+		return res, errors.New("no message ID returned from post")
+	}
 	return chat1.PostLocalRes{
 		MessageID:        *msgID,
 		IdentifyFailures: identBreaks,
