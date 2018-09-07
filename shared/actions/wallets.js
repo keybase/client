@@ -163,9 +163,12 @@ const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayloa
   }).then(res => WalletsGen.createDeletedAccount())
 
 const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
-  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise({
-    accountID: action.payload.accountID,
-  }).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
+  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+    },
+    Constants.setAccountAsDefaultWaitingKey
+  ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({

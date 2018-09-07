@@ -12,6 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     accountID,
     accountName: Constants.getAccount(state, accountID).name,
     username: state.config.username,
+    waitingKey: Constants.setAccountAsDefaultWaitingKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -26,6 +27,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountName: stateProps.accountName,
   username: stateProps.username,
+  waitingKey: stateProps.waitingKey,
   onClose: () => dispatchProps._onClose(),
   onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })

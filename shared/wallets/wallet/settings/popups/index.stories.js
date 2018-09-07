@@ -29,6 +29,7 @@ const load = () => {
         onAccept={Sb.action('onAccept')}
         onClose={Sb.action('onClose')}
         username="cecileb"
+        waitingKey="waitingKey"
       />
     ))
 }

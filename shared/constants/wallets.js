@@ -265,6 +265,7 @@ const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
+const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -351,4 +352,5 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  setAccountAsDefaultWaitingKey,
 }
