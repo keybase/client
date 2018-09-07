@@ -94,7 +94,7 @@ const descriptionForStatus = (status: Types.StatusSimplified) =>
   status === 'completed' ? 'Sent' : capitalize(status)
 
 class TransactionDetails extends React.Component<Props> {
-  componentWillMount() {
+  componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
 
