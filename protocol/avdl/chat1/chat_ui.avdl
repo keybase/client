@@ -4,6 +4,7 @@ protocol chatUi {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
 
   record UIPagination {
@@ -111,6 +112,15 @@ protocol chatUi {
     boolean inlineVideoPlayable;
   }
 
+  record UIPaymentInfo {
+    string amountDescription;       // "1,323.1234567 XLM"
+    string worth;                   // "$123.23"
+    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                    // secret note
+    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;       // "pending", "completed", "error"
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -132,6 +142,7 @@ protocol chatUi {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     boolean hasPairwiseMacs;
+    union { null, UIPaymentInfo } paymentInfo;
   }
 
   record UIMessageOutbox {

@@ -737,6 +737,7 @@ type FastTeamSigChainState struct {
 	LastUpPointer           *UpPointer                              `codec:"lastUpPointer,omitempty" json:"lastUpPointer,omitempty"`
 	PerTeamKeyCTime         UnixTime                                `codec:"perTeamKeyCTime" json:"perTeamKeyCTime"`
 	LinkIDs                 map[Seqno]LinkID                        `codec:"linkIDs" json:"linkIDs"`
+	MerkleInfo              map[Seqno]MerkleRootV2                  `codec:"merkleInfo" json:"merkleInfo"`
 }
 
 func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
@@ -808,6 +809,98 @@ func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
 			}
 			return ret
 		})(o.LinkIDs),
+		MerkleInfo: (func(x map[Seqno]MerkleRootV2) map[Seqno]MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]MerkleRootV2, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.MerkleInfo),
+	}
+}
+
+type Audit struct {
+	Time           Time  `codec:"time" json:"time"`
+	MaxMerkleSeqno Seqno `codec:"maxMerkleSeqno" json:"maxMerkleSeqno"`
+	MaxChainSeqno  Seqno `codec:"maxChainSeqno" json:"maxChainSeqno"`
+	MaxMerkleProbe Seqno `codec:"maxMerkleProbe" json:"maxMerkleProbe"`
+}
+
+func (o Audit) DeepCopy() Audit {
+	return Audit{
+		Time:           o.Time.DeepCopy(),
+		MaxMerkleSeqno: o.MaxMerkleSeqno.DeepCopy(),
+		MaxChainSeqno:  o.MaxChainSeqno.DeepCopy(),
+		MaxMerkleProbe: o.MaxMerkleProbe.DeepCopy(),
+	}
+}
+
+type Probe struct {
+	Index     int   `codec:"i" json:"index"`
+	TeamSeqno Seqno `codec:"s" json:"teamSeqno"`
+}
+
+func (o Probe) DeepCopy() Probe {
+	return Probe{
+		Index:     o.Index,
+		TeamSeqno: o.TeamSeqno.DeepCopy(),
+	}
+}
+
+type AuditHistory struct {
+	ID               TeamID          `codec:"ID" json:"ID"`
+	Public           bool            `codec:"public" json:"public"`
+	PriorMerkleSeqno Seqno           `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Audits           []Audit         `codec:"audits" json:"audits"`
+	PreProbes        map[Seqno]Probe `codec:"preProbes" json:"preProbes"`
+	PostProbes       map[Seqno]Probe `codec:"postProbes" json:"postProbes"`
+}
+
+func (o AuditHistory) DeepCopy() AuditHistory {
+	return AuditHistory{
+		ID:               o.ID.DeepCopy(),
+		Public:           o.Public,
+		PriorMerkleSeqno: o.PriorMerkleSeqno.DeepCopy(),
+		Audits: (func(x []Audit) []Audit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]Audit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Audits),
+		PreProbes: (func(x map[Seqno]Probe) map[Seqno]Probe {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]Probe, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PreProbes),
+		PostProbes: (func(x map[Seqno]Probe) map[Seqno]Probe {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]Probe, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.PostProbes),
 	}
 }
 

@@ -191,6 +191,7 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
@@ -622,6 +623,11 @@ type TeamLoader interface {
 
 type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	OnLogout()
+}
+
+type TeamAuditor interface {
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
 	OnLogout()
 }
 

@@ -21,9 +21,9 @@ import {
   UserProofs,
   Usernames,
   BackButton,
+  PopupHeaderText,
 } from '../common-adapters'
 import UserActions from './user-actions'
-import {PopupHeaderText} from '../common-adapters/popup-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
