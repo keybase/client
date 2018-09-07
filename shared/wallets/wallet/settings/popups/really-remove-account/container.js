@@ -1,5 +1,11 @@
 // @flow
-import {connect, type TypedState} from '../../../../../util/container'
+import {
+  compose,
+  connect,
+  safeSubmitPerMount,
+  setDisplayName,
+  type TypedState,
+} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -42,4 +48,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ReallyRemoveAccountPopup)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ReallyRemoveAccountPopup'),
+  safeSubmitPerMount(['onCancel'])
+)(ReallyRemoveAccountPopup)
