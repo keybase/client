@@ -59,8 +59,20 @@
     }];
   };
   
+  NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
+    NSString* filePath = [url relativePath];
+    KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, &error);
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+    }];
+  };
+  
   if([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
+    [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
   } else {
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
   }

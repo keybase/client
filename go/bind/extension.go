@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +13,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"github.com/keybase/client/go/chat"
+	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/externals"
@@ -291,30 +289,32 @@ func ExtensionPostURL(strConvID, name string, public bool, body string) (err err
 	return nil
 }
 
-func getAttachmentTempFile(gc *globals.Context) (*os.File, error) {
-	dir := filepath.Join(gc.GetEnv().GetCacheDir(), "shareattachments")
-	if err := os.MkdirAll(dir, 0644); err != nil {
-		return nil, err
-	}
-	return ioutil.TempFile(dir, "att")
-}
-
-func ExtensionPostImage(strConvID, name string, public bool, caption string, imageData []byte) (err error) {
-	defer kbCtx.Trace("ExtensionPostImage", func() error { return err })()
+func ExtensionPostFile(strConvID, name string, public bool, caption string, filename string) (err error) {
+	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
 	}
 
-	// Write the image data to a file
-	tempFile, err := getAttachmentTempFile(gc)
-	if err != nil {
+	vis := keybase1.TLFVisibility_PRIVATE
+	if public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
+		func() chat1.RemoteInterface { return extensionRi })
+	name = restoreName(gc, name)
+	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
+		filename, caption, nil, 0, nil, nil); err != nil {
 		return err
 	}
-
+	return nil
 }
