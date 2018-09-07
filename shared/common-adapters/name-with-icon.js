@@ -181,7 +181,10 @@ const TextOrComponent = ({
 const styles = styleSheetCreate({
   fullWidthText: platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
   fullWidthTextContainer: platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
-  hAvatarStyle: {marginRight: isMobile ? globalMargins.small : globalMargins.tiny},
+  hAvatarStyle: platformStyles({
+    isElectron: {marginRight: globalMargins.tiny},
+    isMobile: {marginRight: globalMargins.small},
+  }),
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
