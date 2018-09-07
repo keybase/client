@@ -7,17 +7,18 @@ import WalletPopup from '../wallet-popup'
 type EnterNameProps = {|
   error?: string,
   name: string,
+  primaryLabel: 'Save' | 'Done',
   onBack?: () => void,
   onCancel: () => void,
   onNameChange: string => void,
-  onDone: () => void,
+  onPrimaryClick: () => void,
   waiting: boolean,
 |}
 
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
     <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
-    <Kb.Button key={1} type="Wallet" onClick={props.onDone} label="Done" waiting={props.waiting} />,
+    <Kb.Button key={1} type="Wallet" onClick={props.onPrimaryClick} label="Done" waiting={props.waiting} />,
   ]
   return (
     <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
@@ -52,6 +53,9 @@ const EnterNamePopup = (props: EnterNameProps) => {
       </Kb.InfoNote>
     </WalletPopup>
   )
+}
+EnterNamePopup.defaultProps = {
+  primaryLabel: 'Done',
 }
 
 const styles = Styles.styleSheetCreate({

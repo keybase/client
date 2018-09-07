@@ -79,7 +79,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
             onBack={() => this._onViewChange('key')}
             onCancel={this.props.onCancel}
             onNameChange={this.props.onNameChange}
-            onDone={this._onCheckName}
+            onPrimaryClick={this._onCheckName}
             waiting={this.props.nameValidationState === 'waiting' || this.props.waiting}
           />
         )

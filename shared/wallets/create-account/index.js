@@ -27,7 +27,7 @@ class CreateAccount extends React.Component<Props> {
         onBack={this.props.onBack}
         onCancel={this.props.onCancel}
         onNameChange={this.props.onNameChange}
-        onDone={this.props.onDone}
+        onPrimaryClick={this.props.onDone}
         waiting={this.props.waiting}
       />
     )
