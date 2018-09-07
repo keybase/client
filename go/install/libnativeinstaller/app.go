@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
@@ -101,10 +102,45 @@ func UninstallRedirector(runMode libkb.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--uninstall-redirector"}, runMode, log)
 }
 
+const mountsPresentErrorCode = 7 // See Installer/Installer.m
+
 // InstallFuse calls the installer with --install-fuse.
 func InstallFuse(runMode libkb.RunMode, log Log) error {
 	log.Info("Installing KBFuse")
-	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
+	err := execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
+	switch e := err.(type) {
+	case nil:
+		return nil
+	case (*exec.ExitError):
+		if waitStatus, ok := e.Sys().(syscall.WaitStatus); ok {
+			if waitStatus.ExitStatus() != mountsPresentErrorCode {
+				return err
+			}
+			// Otherwise, continue with the logic after switch.
+		} else {
+			return err
+		}
+	default:
+		return err
+	}
+
+	log.Info("Can't install/upgrade fuse when mounts are present. " +
+		"Assuming it's the redirector and trying to uninstall it first.")
+	if err = UninstallRedirector(runMode, log); err != nil {
+		log.Info("Uninstalling redirector failed. " +
+			"Fuse should be able to update next time the OS reboots.")
+		return err
+	}
+	defer InstallRedirector(runMode, log)
+	log.Info(
+		"Uninstalling redirector succeeded. Trying to install KBFuse again.")
+	if err = execNativeInstallerWithArg(
+		[]string{"--install-fuse"}, runMode, log); err != nil {
+		log.Info("Installing fuse failed again. " +
+			"Fuse should be able to update next time the OS reboots.")
+		return err
+	}
+	return nil
 }
 
 // UninstallFuse calls the installer with --uninstall-fuse.
