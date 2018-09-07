@@ -36,22 +36,15 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 
 const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
   const folders = _pathItems.filter(path => path.type === 'folder')
-  const uploadPaths = _uploads.syncingPaths.toJS() // get array of paths
-  const filePaths = []
-
-  uploadPaths.map(uPath => {
-    if (!folders.has(uPath)) {
-      //  path is not part of the folders
-      filePaths.push(uPath)
-    }
-  })
+  const uploadPaths = _uploads.syncingPaths // get array of paths
+  const filePaths = uploadPaths.filter(item => !folders.get(item))
 
   return ({
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     files: _uploads.syncingPaths.size,
-    filePaths: filePaths,
+    filePaths,
     endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
     totalSyncingBytes: _uploads.totalSyncingBytes,
     debugToggleShow,

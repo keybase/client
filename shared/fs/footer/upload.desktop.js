@@ -4,6 +4,7 @@ import {globalStyles, globalColors, backgroundURL} from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {type UploadProps} from './upload'
+import {getPathName} from '../../constants/types/fs'
 
 const patternImage = 'upload-pattern-2-600.png'
 
@@ -46,8 +47,8 @@ const Upload = ({showing, files, filePaths, totalSyncingBytes, timeLeft, debugTo
           <style>{realCSS}</style>
           <Text key="files" type="BodySemibold" style={stylesTextElipsis}>
             {files
-              ? filePaths && filePaths.length === 1
-                ? `Encrypting and uploading ${filePaths[0]}...`
+              ? filePaths && filePaths.count() === 1
+                ? `Encrypting and uploading ${getPathName(filePaths.first())}...`
                 : `Encrypting and uploading ${files} files...`
               : totalSyncingBytes
                 ? 'Encrypting and uploading...'
@@ -66,14 +67,14 @@ const stylesText = {
   color: globalColors.white,
 }
 
-const stylesTextElipsis = {
-  color: globalColors.white,
-  maxWidth: '60vw',
-  whiteSpace: 'nowrap',
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  textAlign: 'center',
-}
+const stylesTextElipsis = `
+  color: globalColors.white;
+  max-width: '60vw';
+  white-space: 'nowrap';
+  overflow: 'hidden';
+  text-overflow: 'ellipsis';
+  text-align: 'center';
+`
 
 const stylesBox = {
   ...globalStyles.flexBoxColumn,

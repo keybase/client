@@ -8,7 +8,7 @@ import {type UploadProps} from './upload'
 export type UploadCountdownHOCProps = {
   endEstimate?: number,
   files: number,
-  filePaths: Array<string>,
+  filePaths: string,
   totalSyncingBytes: number,
   debugToggleShow?: () => void,
 }
