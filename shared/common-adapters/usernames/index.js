@@ -1,9 +1,72 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Text from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
-import type {Props, PlaintextProps} from '.'
+import type {TextType, Background} from '../text'
+
+export type UserListItem = {
+  username: string,
+  readOnly?: boolean,
+  broken?: boolean,
+  you?: boolean,
+  following?: boolean,
+}
+
+export type UserList = Array<UserListItem>
+
+export type Props = {
+  type: TextType,
+  backgroundMode?: Background,
+  style?: Styles.StylesCrossPlatform,
+  joinerStyle?: Styles.StylesCrossPlatform,
+  commaColor?: string,
+  containerStyle?: Styles.StylesCrossPlatform,
+  inline?: boolean,
+  redColor?: string,
+  title?: string,
+  prefix?: ?string,
+  suffix?: ?string,
+  colorFollowing?: boolean,
+  colorBroken?: boolean,
+  colorYou?: boolean | string,
+  inlineGrammar?: boolean,
+  showAnd?: boolean,
+  onUsernameClicked?: (username: string) => void,
+  underline?: boolean,
+  users: UserList,
+}
+
+export type PlaintextProps = {
+  type: TextType,
+  users: UserList,
+  backgroundMode?: Background,
+  containerStyle?: Styles.StylesCrossPlatform,
+  title?: string,
+}
+
+export type ConnectedProps = {|
+  backgroundMode?: Background,
+  colorBroken?: boolean,
+  colorFollowing?: boolean,
+  colorYou?: boolean | string,
+  commaColor?: string,
+  containerStyle?: Styles.StylesCrossPlatform,
+  inline?: boolean,
+  inlineGrammar?: boolean,
+  joinerStyle?: Styles.StylesCrossPlatform,
+  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile',
+  prefix?: ?string,
+  redColor?: string,
+  showAnd?: boolean,
+  skipSelf?: boolean,
+  style?: Styles.StylesCrossPlatform,
+  suffix?: ?string,
+  title?: string,
+  type: TextType,
+  underline?: boolean,
+  usernames: Array<string>,
+|}
 
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([

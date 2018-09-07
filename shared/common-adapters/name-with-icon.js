@@ -5,7 +5,7 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
 import Text, {type TextType} from './text'
-import {ConnectedUsernames} from './usernames'
+import ConnectedUsernames from './usernames/container'
 import {
   collapseStyles,
   globalStyles,

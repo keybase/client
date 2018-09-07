@@ -3,7 +3,7 @@ import {compose, connect, setDisplayName} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
-import {Usernames} from '.'
+import {Usernames, type Props, type ConnectedProps} from '.'
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
@@ -24,7 +24,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => {
   const userData = ownProps.usernames
     .map(username => ({
       broken: stateProps._broken.trackerState === 'error',
@@ -39,15 +39,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onUsernameClicked = dispatchProps.onOpenTracker
   } else if (ownProps.onUsernameClicked === 'profile') {
     onUsernameClicked = dispatchProps.onOpenProfile
-  } else {
+  } else if (typeof ownProps === 'function') {
     onUsernameClicked = ownProps.onUsernameClicked
   }
 
-  return {
-    ...ownProps,
-    onUsernameClicked,
-    users: userData,
-  }
+  // $FlowIssue
+  const props: Props = {...ownProps, onUsernameClicked, users: userData}
+
+  return props
 }
 
 const ConnectedUsernames = compose(
