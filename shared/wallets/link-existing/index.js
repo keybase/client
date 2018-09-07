@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import EnterKey from './enter-key'
+import EnterKeyPopup from './enter-key-popup'
 import {EnterNamePopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
 
@@ -62,7 +62,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     switch (this.state.view) {
       case 'key':
         return (
-          <EnterKey
+          <EnterKeyPopup
             error={this.props.keyError || this.props.linkExistingAccountError}
             secretKey={this.props.secretKey}
             onCancel={this.props.onCancel}
