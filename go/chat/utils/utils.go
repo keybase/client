@@ -1122,7 +1122,9 @@ func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
-		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		if g.StellarLoader != nil {
+			return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		}
 	}
 	return nil
 }
@@ -1137,7 +1139,9 @@ func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.Mes
 	switch typ {
 	case chat1.MessageType_REQUESTPAYMENT:
 		body := msg.MessageBody.Requestpayment()
-		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+		if g.StellarLoader != nil {
+			return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+		}
 	}
 	return nil
 }
