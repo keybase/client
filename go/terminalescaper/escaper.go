@@ -6,10 +6,12 @@ import (
 )
 
 // Taken from unexported data at golang.org/x/crypto/ssh/terminal
+// and expanded with data at github.com/keybase/client/go/client:color.go
 type EscapeCode []byte
 
 var keyEscape byte = 27
 var vt100EscapeCodes = []EscapeCode{
+	// Foreground colors
 	EscapeCode{keyEscape, '[', '3', '0', 'm'},
 	EscapeCode{keyEscape, '[', '3', '1', 'm'},
 	EscapeCode{keyEscape, '[', '3', '2', 'm'},
@@ -18,6 +20,28 @@ var vt100EscapeCodes = []EscapeCode{
 	EscapeCode{keyEscape, '[', '3', '5', 'm'},
 	EscapeCode{keyEscape, '[', '3', '6', 'm'},
 	EscapeCode{keyEscape, '[', '3', '7', 'm'},
+	// Background colors
+	EscapeCode{keyEscape, '[', '4', '0', 'm'},
+	EscapeCode{keyEscape, '[', '4', '1', 'm'},
+	EscapeCode{keyEscape, '[', '4', '2', 'm'},
+	EscapeCode{keyEscape, '[', '4', '3', 'm'},
+	EscapeCode{keyEscape, '[', '4', '4', 'm'},
+	EscapeCode{keyEscape, '[', '4', '5', 'm'},
+	EscapeCode{keyEscape, '[', '4', '6', 'm'},
+	EscapeCode{keyEscape, '[', '4', '7', 'm'},
+	// Bold
+	EscapeCode{keyEscape, '[', '1', 'm'},
+	// Italic
+	EscapeCode{keyEscape, '[', '3', 'm'},
+	// Underline
+	EscapeCode{keyEscape, '[', '4', 'm'},
+	// Reset bold
+	EscapeCode{keyEscape, '[', '2', '1', 'm'},
+	// Reset italic
+	EscapeCode{keyEscape, '[', '2', '3', 'm'},
+	// Reset underline
+	EscapeCode{keyEscape, '[', '2', '4', 'm'},
+	// Reset all formatting
 	EscapeCode{keyEscape, '[', '0', 'm'},
 }
 
