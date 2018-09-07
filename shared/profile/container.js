@@ -56,6 +56,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
+  // TODO: Remove this after CORE-8785 is merged in and allows us to skip explictly setting the from account if it's from the default account
   const myAccountID = WalletConstants.getDefaultAccountID(state)
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
