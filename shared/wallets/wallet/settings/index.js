@@ -5,7 +5,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 
-export type SettingsProps = {
+export type SettingsProps = {|
   accountID: Types.AccountID,
   name: string,
   user: string,
@@ -18,7 +18,7 @@ export type SettingsProps = {
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
   refresh: () => void,
-}
+|}
 
 const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
