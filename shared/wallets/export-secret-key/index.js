@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
-  componentWillMount() {
+  componentDidMount() {
     this.props.onLoadSecretKey()
   }
 
