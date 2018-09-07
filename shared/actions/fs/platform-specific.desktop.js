@@ -302,35 +302,41 @@ function uninstallDokan(uninstallString: string) {
   })
 }
 
-function getDokanUninstallString(force32: boolean) {
+function getDokanUninstallString(force32: boolean): Promise<string> {
+  return new Promise((resolve, reject) => {
     const regedit = require('regedit')
     const regListFunc = force32 ? regedit.arch.list32 : regedit.list
     const uninstallRegPath = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
-    let result = ''
     try {
       regListFunc(uninstallRegPath).on('data', function(entry) {
         const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
-        regListFunc(paths).on('data', function(subentry) {
-          if (subentry.data &&
-              subentry.data.values &&
-              subentry.data.values.DisplayName &&
-              subentry.data.values.DisplayName.value.startsWith('Dokan Library') &&
-              subentry.data.values.DisplayName.value.includes('Bundle')) {
-            result = subentry.data.values.UninstallString.value
-          }
-        })
+        regListFunc(paths)
+          .on('data', function(subentry) {
+            if (subentry.data &&
+                subentry.data.values &&
+                subentry.data.values.DisplayName &&
+                subentry.data.values.DisplayName.value.startsWith('Dokan Library') &&
+                subentry.data.values.DisplayName.value.includes('Bundle')) {
+              resolve(subentry.data.values.UninstallString.value)
+            }
+          })
+          .on('finish', function() {
+            resolve('')
+          })
       })
     } catch (err) {
       logger.error('getDokanUninstallString error', err)
+      reject(err)
     }
-    return result
+  })
 }
 
 function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
   logger.info('getDokanUninstallString')
-  let uninstallString = yield Saga.call(getDokanUninstallString, false)
+  // Most ppl will be on 64 bit, so we want the wow6432 node, so try it first.
+  let uninstallString = yield Saga.call(getDokanUninstallString, true)
   if (!uninstallString) {
-    uninstallString = yield Saga.call(getDokanUninstallString, true)
+    uninstallString = yield Saga.call(getDokanUninstallString, false)
   }
   if (uninstallString) {
     yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
