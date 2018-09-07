@@ -11,7 +11,7 @@ extension. See the "Notes on 10.10" below for how to build for 10.10.
 
 #### Xcode
 
-First of all, we can't have a kernele extension built for a newer kernel and
+First of all, we can't have a kernel extension built for a newer kernel and
 run in on older kernels, but we can generally have a kernel extension built for
 an older kernel and run it on newer kernels. So we'll try to build for the
 oldest possible (compatible) kernel, to have a fewer kernel extensions built as
@@ -25,9 +25,8 @@ appropriate SDKs to build against.
 
 Xcode 7.3.1 is the latest version that includes the macOS 10.11 SDK, so we'll
 need it installed on the macOS where you build the KBFuse bundle.
-he macOS where you build the KBFuse bundle.
 
-Older versions of the Xcode can be downloaded from [Apple official developer
+Older versions of Xcode can be downloaded from the [Apple official developer
 site](https://developer.apple.com/download/more/). It has to live under
 `/Applications`, but under a different name, e.g. `/Applications/Xcode-7.3.1`.
 Don't worry about making the naming scheme exact, as the OSXFuse builder is
