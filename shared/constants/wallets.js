@@ -295,6 +295,10 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
 
+const getAccountName = (account: Types.Account) =>
+  account.name ||
+  (account.accountID !== Types.noAccountID ? Types.accountIDToString(account.accountID) : null)
+
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
@@ -319,6 +323,7 @@ export {
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   getAccountIDs,
+  getAccountName,
   getAccount,
   getAssets,
   getDisplayCurrencies,

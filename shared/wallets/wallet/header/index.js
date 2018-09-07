@@ -13,7 +13,7 @@ type Props = {
   onSettings: () => void,
   onShowSecretKey: () => void,
   keybaseUser?: string,
-  walletName: string,
+  walletName: ?string,
 }
 
 const Header = (props: Props) => (
@@ -28,9 +28,19 @@ const Header = (props: Props) => (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
         {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
-        <Kb.Text selectable={true} type="BodyBig">
-          {props.walletName}
-        </Kb.Text>
+        {props.walletName ? (
+          <Kb.Text selectable={true} type="BodyBig">
+            {props.walletName}
+          </Kb.Text>
+        ) : (
+          <Kb.ProgressIndicator
+            style={{
+              height: Styles.globalMargins.small,
+              width: Styles.globalMargins.small,
+            }}
+            type="Small"
+          />
+        )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
         {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
