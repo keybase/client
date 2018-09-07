@@ -4,6 +4,7 @@
 const _stats = {
   in: {},
   out: {},
+  eofErrors: 0,
 }
 
 export const gotStat = (method: string, incoming: boolean) => {
@@ -16,6 +17,10 @@ export const gotStat = (method: string, incoming: boolean) => {
 
   const i = _stats[inKey][method]
   i.count++
+}
+
+export const gotEOF = () => {
+  ++_stats.eofErrors
 }
 
 export const getStats = () => _stats
