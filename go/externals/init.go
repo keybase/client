@@ -7,7 +7,7 @@ import (
 
 func NewGlobalContextInit() *libkb.GlobalContext {
 	g := libkb.NewGlobalContext().Init()
-	g.SetServices(NewProofServices(g))
+	g.SetProofServices(NewProofServices(g))
 	pvlsource.NewPvlSourceAndInstall(g)
 	return g
 }

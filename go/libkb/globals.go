@@ -1029,7 +1029,7 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 	return MakeAssertionContext(g.Services)
 }
 
-func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
+func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
 	g.Services = s
 }
 

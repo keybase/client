@@ -160,7 +160,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
-	kbCtx.SetServices(externals.NewProofServices(kbCtx))
+	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
