@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-
 #
 # This is a script to install KBFuse fsbundle and load the kext.
 # It is likely used by build or test machines since it requires
