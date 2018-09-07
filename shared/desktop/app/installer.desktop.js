@@ -87,11 +87,6 @@ export default (callback: (err: any) => void): void => {
       }
     }
 
-    logger.info('SONGGAO-stdout')
-    logger.info(stdout)
-    logger.info('SONGGAO-stderr')
-    logger.info(stderr)
-
     if (errorsResult.errors.length > 0) {
       logger.info(errorsResult.errors.join('\n'))
       logger.info(`Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
