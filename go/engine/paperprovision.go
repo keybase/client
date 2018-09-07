@@ -19,6 +19,8 @@ type PaperProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
+
+	deviceWrapEng *DeviceWrap
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
@@ -54,20 +56,11 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	e.G().Logout()
 
-	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
 	m = m.WithNewProvisionalLoginContext()
 
 	// From this point on, if there's an error, we abort the
 	// transaction.
 	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
 		if err == nil {
 			m = m.CommitProvisionalLogin()
 		}
@@ -121,14 +114,11 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := e.deviceWrapEng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	e.sendNotification()
 	return nil
@@ -222,11 +212,11 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	}, nil
 }
 
-// copied from loginProvision
-// makeDeviceKeys uses DeviceWrap to generate device keys.
+// Copied from loginProvision. makeDeviceKeys uses DeviceWrap to
+// generate device keys and sets active device.
 func (e *PaperProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
+	e.deviceWrapEng = NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, e.deviceWrapEng)
 }
 
 // copied from loginProvision

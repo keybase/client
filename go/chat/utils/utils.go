@@ -1112,6 +1112,21 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	return nil
 }
 
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.PaymentLoader.Load(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+	}
+	return nil
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1167,6 +1182,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

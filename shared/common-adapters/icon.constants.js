@@ -1385,11 +1385,29 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-placeholder-avatar-960.png'),
   },
+  'icon-placeholder-secret-user-16': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-16.png'),
+  },
+  'icon-placeholder-secret-user-32': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-32.png'),
+  },
   'icon-placeholder-secret-user-48': {
     isFont: false,
     extension: 'png',
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-placeholder-secret-user-48.png'),
+  },
+  'icon-placeholder-secret-user-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-placeholder-secret-user-64.png'),
   },
   'icon-play-64': {
     isFont: false,
