@@ -15,9 +15,11 @@ type State = {
   // mark* means to make it bold for a single render cause it changed
   markIn: boolean,
   markOut: boolean,
+  markEOF: boolean,
   // counts
   smallInCount: number,
   smallOutCount: number,
+  smallEOFCount: number,
   // clicking hides it
   visible: boolean,
 }
@@ -52,8 +54,10 @@ class RpcStats extends React.Component<Props, State> {
   state = {
     markIn: false,
     markOut: false,
+    markEOF: false,
     smallInCount: 0,
     smallOutCount: 0,
+    smallEOFCount: 0,
     visible: false,
   }
 
@@ -86,16 +90,20 @@ class RpcStats extends React.Component<Props, State> {
           this.setState(p => {
             const smallInCount = this._iterateStats(['in'], s => s.count)
             const smallOutCount = this._iterateStats(['out'], s => s.count)
+            const smallEOFCount = Stats.getStats()['eof']
 
             const inDiff = p.smallInCount !== smallInCount
             const outDiff = p.smallOutCount !== smallOutCount
-            const markDiff = p.markIn || p.markOut
-            if (inDiff || outDiff || markDiff) {
+            const eofDiff = p.smallEOFCount !== smallEOFCount
+            const markDiff = p.markIn || p.markOut || p.markEOF
+            if (inDiff || outDiff || eofDiff || markDiff) {
               return {
                 markIn: inDiff,
                 markOut: outDiff,
+                markEOF: eofDiff,
                 smallInCount,
                 smallOutCount,
+                smallEOFCount,
               }
             }
           })
@@ -164,6 +172,18 @@ class RpcStats extends React.Component<Props, State> {
               </Text>
             )}
             {this.state.smallOutCount}
+          </Text>
+          <Text
+            type={this.state.markEOF ? 'BodySmallExtrabold' : 'BodySmall'}
+            style={styles.text}
+            title="EOF errors"
+          >
+            {showIcon && (
+              <Text type="BodySmall" style={styles.emoji}>
+                🔚️{' '}
+              </Text>
+            )}
+            {this.state.smallEOFCount}
           </Text>
         </Box2>
       </ClickableBox>

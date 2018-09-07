@@ -4,7 +4,7 @@
 const _stats = {
   in: {},
   out: {},
-  eofErrors: 0,
+  eof: 0,
 }
 
 export const gotStat = (method: string, incoming: boolean) => {
@@ -20,7 +20,7 @@ export const gotStat = (method: string, incoming: boolean) => {
 }
 
 export const gotEOF = () => {
-  ++_stats.eofErrors
+  ++_stats.eof
 }
 
 export const getStats = () => _stats
