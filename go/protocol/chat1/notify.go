@@ -966,6 +966,13 @@ type ChatPaymentInfoArg struct {
 	Info   UIPaymentInfo  `codec:"info" json:"info"`
 }
 
+type ChatRequestInfoArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Info   UIRequestInfo  `codec:"info" json:"info"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -987,6 +994,7 @@ type NotifyChatInterface interface {
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
 	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
+	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1313,6 +1321,22 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatRequestInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatRequestInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatRequestInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatRequestInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatRequestInfo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1422,5 +1446,10 @@ func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __ar
 
 func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPaymentInfoArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg})
 	return
 }

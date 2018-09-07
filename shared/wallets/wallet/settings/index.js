@@ -101,7 +101,7 @@ const AccountSettings = (props: SettingsProps) => {
         <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
         <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
-          <Kb.ClickableBox style={styles.remove} onClick={props.onDelete}>
+          <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
             <Kb.Icon
               type="iconfont-trash"
               style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
@@ -110,7 +110,7 @@ const AccountSettings = (props: SettingsProps) => {
             <Kb.Text
               type="BodySemibold"
               style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-              className="hover-underline"
+              className={props.isDefault ? '' : 'hover-underline'}
             >
               Remove account
             </Kb.Text>

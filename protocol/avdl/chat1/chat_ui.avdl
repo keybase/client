@@ -121,6 +121,13 @@ protocol chatUi {
     string statusDescription;       // "pending", "completed", "error"
   }
 
+  record UIRequestInfo {
+    string amount; 
+    string amountDescription; 
+    union { null, stellar1.Asset } asset;
+    union { null, stellar1.OutsideCurrencyCode } currency;
+  }
+
   record UIMessageValid {
     MessageID messageID;
     gregor1.Time ctime;
@@ -143,6 +150,7 @@ protocol chatUi {
     ReactionMap reactions;
     boolean hasPairwiseMacs;
     union { null, UIPaymentInfo } paymentInfo;
+    union { null, UIRequestInfo } requestInfo;
   }
 
   record UIMessageOutbox {
