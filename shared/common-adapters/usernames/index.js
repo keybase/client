@@ -1,13 +1,9 @@
 // @flow
-import React, {Component} from 'react'
+import React from 'react'
 import Text from '../text'
 import shallowEqual from 'shallowequal'
 import * as Styles from '../../styles'
-import {compose, connect, setDisplayName} from '../../util/container'
-import {type TypedState} from '../../constants/reducer'
-import * as ProfileGen from '../../actions/profile-gen'
-import * as TrackerGen from '../../actions/tracker-gen'
-import type {Props, PlaintextProps} from '../usernames'
+import type {Props, PlaintextProps} from '.'
 
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([
@@ -54,15 +50,10 @@ function UsernameText(props: Props) {
         >
           {u.username}
         </Text>
+        {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
         {i !== props.users.length - 1 &&
           (!props.inlineGrammar || props.users.length > 2) && (
-            <Text
-              type={
-                props.type // Injecting the commas here so we never wrap and have newlines starting with a ,
-              }
-              backgroundMode={props.backgroundMode}
-              style={derivedJoinerStyle}
-            >
+            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
               ,
             </Text>
           )}
@@ -80,7 +71,7 @@ UsernameText.defaultProps = {
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
 
-class Usernames extends Component<Props> {
+class Usernames extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['style', 'containerStyle', 'users'].includes(key)) {
@@ -131,7 +122,7 @@ class Usernames extends Component<Props> {
 
 const divider = Styles.isMobile ? ', ' : ',\u200a'
 
-class PlaintextUsernames extends Component<PlaintextProps> {
+class PlaintextUsernames extends React.Component<PlaintextProps> {
   shouldComponentUpdate(nextProps: PlaintextProps) {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (['containerStyle', 'users'].includes(key)) {
@@ -156,51 +147,6 @@ class PlaintextUsernames extends Component<PlaintextProps> {
         {rwers.map(u => u.username).join(divider)}
       </Text>
     )
-  }
-}
-
-// Connected username component
-// instead of username objects supply array of username strings & this will fill in the rest
-const mapStateToProps = (state: TypedState) => {
-  const _following = state.config.following
-  const _broken = state.tracker.userTrackers
-  const _you = state.config.username
-  return {
-    _broken,
-    _following,
-    _you,
-  }
-}
-
-const mapDispatchToProps = dispatch => ({
-  onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
-  onOpenTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-})
-
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const userData = ownProps.usernames
-    .map(username => ({
-      broken: stateProps._broken.trackerState === 'error',
-      following: stateProps._following.has(username),
-      username,
-      you: stateProps._you === username,
-    }))
-    .filter(u => !ownProps.skipSelf || !u.you)
-
-  let onUsernameClicked
-  if (ownProps.onUsernameClicked === 'tracker') {
-    onUsernameClicked = dispatchProps.onOpenTracker
-  } else if (ownProps.onUsernameClicked === 'profile') {
-    onUsernameClicked = dispatchProps.onOpenProfile
-  } else {
-    onUsernameClicked = ownProps.onUsernameClicked
-  }
-
-  return {
-    ...ownProps,
-    users: userData,
-    onUsernameClicked,
   }
 }
 
@@ -229,8 +175,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-const ConnectedUsernames = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Usernames')
-)(Usernames)
-export {UsernameText, Usernames, PlaintextUsernames, ConnectedUsernames}
+export {UsernameText, Usernames, PlaintextUsernames}

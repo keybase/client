@@ -82,7 +82,7 @@ const NameWithIconVertical = (props: Props) => {
         )}
         {!!props.username && (
           <ConnectedUsernames
-            onUsernameClicked="tracker"
+            onUsernameClicked="profile"
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -132,7 +132,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
-            onUsernameClicked="tracker"
+            onUsernameClicked="profile"
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}
