@@ -29,6 +29,8 @@ func TestChatSubteamRename(t *testing.T) {
 		listener2 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener2)
+		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
 		// Root team conv
 		teamConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, ctc.as(t, users[1]).user())
@@ -54,6 +56,7 @@ func TestChatSubteamRename(t *testing.T) {
 		require.NoError(t, err)
 		ctc.teamCache[subSubteamName.String()] = subSubteamName.String()
 
+		versMap := make(map[string]chat1.ConversationVers)
 		var convs []chat1.ConversationInfoLocal
 		for _, name := range []string{subteamName.String(), subSubteamName.String()} {
 			for i := 0; i < 2; i++ {
@@ -75,6 +78,7 @@ func TestChatSubteamRename(t *testing.T) {
 					})
 				require.NoError(t, err)
 				convs = append(convs, ncres.Conv.Info)
+				versMap[ncres.Conv.GetConvID().String()] = ncres.Conv.Info.Version
 			}
 		}
 
@@ -135,6 +139,8 @@ func TestChatSubteamRename(t *testing.T) {
 			} else if convID.Eq(subSubConv1.Id) || convID.Eq(subSubConv2.Id) {
 				require.Equal(t, newSubSubteamName.String(), conv.Info.TlfName)
 			}
+			require.NotEqual(t, versMap[conv.GetConvID().String()], conv.Info.Version)
+
 			// Make sure we can send to each conversation
 			_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
 				ConversationID: convID,

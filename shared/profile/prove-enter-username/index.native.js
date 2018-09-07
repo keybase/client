@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, Button, Input, PlatformIcon, StandardScreen} from '../../common-adapters'
+import {Linking} from 'react-native'
+import {Box, Box2, Text, Button, InfoNote, Input, PlatformIcon, StandardScreen} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {platformText} from './shared'
 import type {PlatformsExpandedType} from '../../constants/types/more'
@@ -13,14 +14,36 @@ type State = {
 function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
-      <Box style={styleInfoBanner}>
-        <Text backgroundMode="Information" type="BodySemibold">
+      <Box style={styleYellowBanner}>
+        <Text backgroundMode="Information" type="BodySmallSemibold">
           &bull; You must have karma &ge; 2
         </Text>
-        <Text backgroundMode="Information" type="BodySemibold">
+        <Text backgroundMode="Information" type="BodySmallSemibold">
           &bull; You must enter your uSeRName with exact case
         </Text>
       </Box>
+    )
+  }
+
+  if (platform === 'facebook') {
+    return (
+      <InfoNote>
+        <Box2 direction="vertical">
+          <Text type="BodySmall" style={{textAlign: 'center'}}>
+            You can find your Facebook username at
+          </Text>
+          <Box2 direction="horizontal">
+            <Text
+              type="BodySmallSecondaryLink"
+              onClick={() => Linking.openURL('http://www.facebook.com/settings')}
+              style={{textAlign: 'center'}}
+            >
+              http://www.facebook.com/settings
+            </Text>
+            <Text type="BodySmall">.</Text>
+          </Box2>
+        </Box2>
+      </InfoNote>
     )
   }
 
@@ -64,7 +87,6 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           overlay={'icon-proof-pending'}
           overlayColor={globalColors.grey}
         />
-        <UsernameTips platform={this.props.platform} />
         <Input
           style={styleInput}
           autoFocus={true}
@@ -74,6 +96,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
           onChangeText={username => this.handleUsernameChange(username)}
           onEnterKeyDown={() => this.handleContinue()}
         />
+        <UsernameTips platform={this.props.platform} />
         <Button
           style={styleButton}
           type="Primary"
@@ -103,7 +126,7 @@ const styleInput = {
   marginTop: globalMargins.mediumLarge,
 }
 
-const styleInfoBanner = {
+const styleYellowBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,

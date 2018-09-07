@@ -53,6 +53,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
   exportedSecretKey: new HiddenString(''),
+  exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
   pendingMap: I.Map(),
@@ -62,6 +63,8 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  currencies: I.List(),
+  currencyMap: I.Map(),
 })
 
 const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
@@ -119,6 +122,21 @@ const assetsResultToAssets = (w: RPCTypes.AccountAssetLocal) =>
     reserves: I.List((w.reserves || []).map(makeReserve)),
   })
 
+const makeCurrencies: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '',
+  name: '',
+})
+
+const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
+  makeCurrencies({
+    description: w.description,
+    code: w.code,
+    symbol: w.symbol,
+    name: w.name,
+  })
+
 const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
@@ -139,6 +157,13 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   txID: '',
   worth: '',
   worthCurrency: '',
+})
+
+const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
+  description: '',
+  code: '',
+  symbol: '',
+  name: '',
 })
 
 const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
@@ -246,6 +271,11 @@ const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().t
 
 const getSelectedAccount = (state: TypedState) => state.wallets.selectedAccount
 
+const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
+
+const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
+  state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
+
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
 
@@ -280,17 +310,24 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
-const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
+  accountID === state.wallets.exportedSecretKeyAccountID
+    ? state.wallets.exportedSecretKey
+    : new HiddenString('')
 
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  currenciesResultToCurrencies,
+  balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   getAccountIDs,
   getAccount,
   getAssets,
+  getDisplayCurrencies,
+  getDisplayCurrency,
   getDefaultAccountID,
   getFederatedAddress,
   getPayment,
@@ -304,6 +341,7 @@ export {
   loadEverythingWaitingKey,
   makeAccount,
   makeAssets,
+  makeCurrencies,
   makeBuildingPayment,
   makeBuiltPayment,
   makePayment,
@@ -318,4 +356,5 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  statusSimplifiedToString,
 }

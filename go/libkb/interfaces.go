@@ -33,6 +33,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
@@ -190,6 +191,7 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
@@ -621,6 +623,11 @@ type TeamLoader interface {
 
 type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	OnLogout()
+}
+
+type TeamAuditor interface {
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
 	OnLogout()
 }
 

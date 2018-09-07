@@ -177,9 +177,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTestWithPaper(paper)
-	if err := signup.Run(); err != nil {
-		tt.t.Fatal(err)
-	}
+	require.NoError(tt.t, signup.Run())
 	tt.t.Logf("signed up %s", userInfo.username)
 
 	u.tc = tc
@@ -189,9 +187,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	u.uid = libkb.UsernameToUID(u.username)
 
 	cli, xp, err := client.GetRPCClientWithContext(g)
-	if err != nil {
-		tt.t.Fatal(err)
-	}
+	require.NoError(tt.t, err)
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
 	u.device.userClient = keybase1.UserClient{Cli: cli}
@@ -200,23 +196,19 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
 	srv := rpc.NewServer(xp, nil)
-	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
-	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
-	if err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
+	err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications))
+	require.NoError(tt.t, err)
+	err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications))
+	require.NoError(tt.t, err)
+	err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications))
+	require.NoError(tt.t, err)
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
-	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+	err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 		Team:      true,
 		Badges:    true,
 		Ephemeral: true,
-	}); err != nil {
-		tt.t.Fatal(err)
-	}
+	})
+	require.NoError(tt.t, err)
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)

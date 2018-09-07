@@ -12,6 +12,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  children: ownProps.children,
   navigateAppend: ownProps.navigateAppend,
   onBack: dispatchProps.onBack,
   refresh: dispatchProps.refresh,
