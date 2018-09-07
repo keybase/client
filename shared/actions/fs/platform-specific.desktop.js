@@ -302,29 +302,36 @@ function uninstallDokan(uninstallString: string) {
   })
 }
 
-function getDokanUninstallString(): Promise<string> {
-  logger.info('getDokanUninstallString')
-  return new Promise((resolve, reject) => {
+function getDokanUninstallString(force32: boolean) {
     const regedit = require('regedit')
+    const regListFunc = force32 ? regedit.arch.list32 : regedit.list
     const uninstallRegPath = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
+    let result = ''
     try {
-      regedit.list(uninstallRegPath).on('data', function(entry) {
+      regListFunc(uninstallRegPath).on('data', function(entry) {
         const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
-        regedit.list(paths).on('data', function(subentry) {
-            if (subentry.data && subentry.data.values && subentry.data.values.DisplayName && subentry.data.values.DisplayName.value.startsWith('Dokan Library')) {
-              resolve(subentry.data.values.UninstallString.value)
-            }
+        regListFunc(paths).on('data', function(subentry) {
+          if (subentry.data &&
+              subentry.data.values &&
+              subentry.data.values.DisplayName &&
+              subentry.data.values.DisplayName.value.startsWith('Dokan Library') &&
+              subentry.data.values.DisplayName.value.includes('Bundle')) {
+            result = subentry.data.values.UninstallString.value
+          }
         })
       })
     } catch (err) {
       logger.error('getDokanUninstallString error', err)
-      reject(new Error('Failed to find dokan uninstall string'))
     }
-  })
+    return result
 }
 
 function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
-  const uninstallString = yield Saga.call(getDokanUninstallString)
+  logger.info('getDokanUninstallString')
+  let uninstallString = yield Saga.call(getDokanUninstallString, false)
+  if (!uninstallString) {
+    uninstallString = yield Saga.call(getDokanUninstallString, true)
+  }
   if (uninstallString) {
     yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
   }
