@@ -36,7 +36,7 @@ const PathItemInfo = (props: Props) => (
     {!!props.resetParticipants && props.resetParticipants.length > 0 ? (
       <Box style={resetInfoBoxStyle}>
         {props.isUserReset ? (
-          <Text type="BodyError">Participants have to let you back in.</Text>
+          <Text type="BodySmallError">Participants have to let you back in.</Text>
         ) : (
           <Box style={globalStyles.flexBoxRow}>
             <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
