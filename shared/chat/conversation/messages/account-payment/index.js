@@ -27,7 +27,10 @@ export type Props = {|
 
 const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
-    <ProgressIndicator style={styles.progressIndicator} />
+    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
+      <ProgressIndicator style={styles.progressIndicator} />
+      <Text type="BodySmall">loading Stellar ledger...</Text>
+    </Box2>
   ) : (
     <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>

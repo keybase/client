@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -392,14 +391,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	return payment, nil
 }
 
-func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	uname, err := s.G().GetUPAKLoader().LookupUsername(ctx, uid)
-	if err != nil {
-		return "", err
-	}
-	return uname.String(), nil
-}
-
 type balanceList []stellar1.Balance
 
 // Example: "56.0227002 XLM + more"
@@ -425,7 +416,7 @@ func (a balanceList) balanceDescription() (res string, err error) {
 }
 
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateAccountIDLocal",
 		Err:     &err,
 	})
@@ -438,7 +429,7 @@ func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.Valida
 }
 
 func (s *Server) ValidateSecretKeyLocal(ctx context.Context, arg stellar1.ValidateSecretKeyLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateSecretKeyLocal",
 		Err:     &err,
 	})
@@ -563,7 +554,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:        "GetWalletAccountPublicKeyLocal",
 		Err:            &err,
 		AllowLoggedOut: true,
@@ -1142,63 +1133,21 @@ func (s *Server) GetRequestDetailsLocal(ctx context.Context, arg stellar1.GetReq
 	})
 	defer fin()
 	if err != nil {
-		return res, err
+		return stellar1.RequestDetailsLocal{}, err
 	}
 
 	details, err := s.remoter.RequestDetails(ctx, arg.ReqID)
 	if err != nil {
-		return res, err
+		return stellar1.RequestDetailsLocal{}, err
 	}
 
-	fromAssertion, err := s.lookupUsername(ctx, details.FromUser.Uid)
+	m := libkb.NewMetaContext(ctx, s.G())
+	local, err := stellar.TransformRequestDetails(m, details)
 	if err != nil {
-		return res, fmt.Errorf("Failed to lookup username for %s: %s", details.FromUser.Uid, err)
+		return stellar1.RequestDetailsLocal{}, err
 	}
 
-	res = stellar1.RequestDetailsLocal{
-		Id:              details.Id,
-		FromAssertion:   fromAssertion,
-		FromCurrentUser: s.G().GetMyUID().Equal(details.FromUser.Uid),
-		ToAssertion:     details.ToAssertion,
-		Amount:          details.Amount,
-		Asset:           details.Asset,
-		Currency:        details.Currency,
-		Status:          details.Status,
-	}
-
-	if details.ToUser != nil {
-		res.ToUserType = stellar1.ParticipantType_KEYBASE
-	} else {
-		res.ToUserType = stellar1.ParticipantType_SBS
-	}
-
-	if details.Currency != nil {
-		amountDesc, err := stellar.FormatCurrency(ctx, s.G(), details.Amount, *details.Currency)
-		if err != nil {
-			amountDesc = details.Amount
-			s.G().Log.CDebugf(ctx, "Error formatting external currency: %v", err)
-		}
-		res.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
-	} else if details.Asset != nil {
-		var code string
-		if details.Asset.IsNativeXLM() {
-			code = "XLM"
-		} else {
-			code = details.Asset.Code
-		}
-
-		amountDesc, err := stellar.FormatAmountWithSuffix(details.Amount,
-			false /* precisionTwo */, true /* simplify */, code)
-		if err != nil {
-			amountDesc = fmt.Sprintf("%s %s", details.Amount, code)
-			s.G().Log.CDebugf(ctx, "Error formatting amount for asset: %v", err)
-		}
-		res.AmountDescription = amountDesc
-	} else {
-		return stellar1.RequestDetailsLocal{}, fmt.Errorf("malformed request - currency/asset not defined")
-	}
-
-	return res, nil
+	return *local, nil
 }
 
 func (s *Server) MakeRequestLocal(ctx context.Context, arg stellar1.MakeRequestLocalArg) (res stellar1.KeybaseRequestID, err error) {

@@ -53,6 +53,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
   exportedSecretKey: new HiddenString(''),
+  exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
   pendingMap: I.Map(),
@@ -309,12 +310,16 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
-const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
+  accountID === state.wallets.exportedSecretKeyAccountID
+    ? state.wallets.exportedSecretKey
+    : new HiddenString('')
 
 export {
   accountResultToAccount,
   assetsResultToAssets,
   currenciesResultToCurrencies,
+  balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
@@ -351,4 +356,5 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  statusSimplifiedToString,
 }
