@@ -48,7 +48,7 @@ var tests = map[string]string{
 	"foo\x1b[30mbar": "foo\x1b[30mbar",
 
 	// But non-color escapes should be escaped properly
-	"f\x1b[4Poo\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar\x1b312": "f^[[4Poo\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar^[312",
+	"fo\x1b[4Po\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar\x1b312": "fo^[[4Po\x1b[30mbarf\x1b[34moobarfo\x1b[0mobarfoobar^[312",
 
 	// Edge-cases with colors
 	"foo\x1b[30mbar\x1b":         "foo\x1b[30mbar^[",
