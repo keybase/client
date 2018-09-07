@@ -11,7 +11,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -392,14 +391,6 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	return payment, nil
 }
 
-func (s *Server) lookupUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	uname, err := s.G().GetUPAKLoader().LookupUsername(ctx, uid)
-	if err != nil {
-		return "", err
-	}
-	return uname.String(), nil
-}
-
 type balanceList []stellar1.Balance
 
 // Example: "56.0227002 XLM + more"
@@ -425,7 +416,7 @@ func (a balanceList) balanceDescription() (res string, err error) {
 }
 
 func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.ValidateAccountIDLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateAccountIDLocal",
 		Err:     &err,
 	})
@@ -438,7 +429,7 @@ func (s *Server) ValidateAccountIDLocal(ctx context.Context, arg stellar1.Valida
 }
 
 func (s *Server) ValidateSecretKeyLocal(ctx context.Context, arg stellar1.ValidateSecretKeyLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName: "ValidateSecretKeyLocal",
 		Err:     &err,
 	})
@@ -563,7 +554,7 @@ func (s *Server) GetDisplayCurrencyLocal(ctx context.Context, arg stellar1.GetDi
 }
 
 func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar1.GetWalletAccountPublicKeyLocalArg) (res string, err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
+	_, err, fin := s.Preamble(ctx, preambleArg{
 		RPCName:        "GetWalletAccountPublicKeyLocal",
 		Err:            &err,
 		AllowLoggedOut: true,

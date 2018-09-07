@@ -118,7 +118,6 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		return
 	}
 	_, _, err = CreateWalletGated(ctx, g)
-	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -256,7 +255,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		return nil
 	}
 
-	if strings.Index(string(to), stellarAddress.Separator) >= 0 {
+	if strings.Contains(string(to), stellarAddress.Separator) {
 		name, domain, err := stellarAddress.Split(string(to))
 		if err != nil {
 			return res, err
