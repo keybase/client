@@ -1,6 +1,7 @@
 package io.keybase.ossifrage;
 
 import android.app.Application;
+import android.util.Log;
 
 import com.evernote.android.job.JobManager;
 import com.facebook.react.ReactApplication;
@@ -17,6 +18,8 @@ import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import org.reactnative.camera.RNCameraPackage;
 
 import java.io.File;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,10 +30,15 @@ import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
 
 public class MainApplication extends Application implements ReactApplication {
-  private File logFile;
+  private static final String NAME = "MainApplication";
+
+  private Instant appStart;
 
   @Override
-  public void onCreate () {
+  public void onCreate() {
+    Clock clock = Clock.systemDefaultZone();
+    appStart = clock.instant();
+    Log.i(NAME, "App started on " + appStart.toString());
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     JobManager manager = JobManager.create(this);
@@ -44,8 +52,6 @@ public class MainApplication extends Application implements ReactApplication {
         manager.cancelAllForTag(BackgroundSyncJob.TAG);
         BackgroundSyncJob.scheduleJob();
     }
-
-    logFile = this.getFileStreamPath("android.log");
   }
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
@@ -60,7 +66,7 @@ public class MainApplication extends Application implements ReactApplication {
       if (BuildConfig.BUILD_TYPE == "storyBook") {
         return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-          new KBReactPackage("") {
+          new KBReactPackage(appStart) {
             @Override
             public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
               List<NativeModule> modules = new ArrayList<>();
@@ -78,7 +84,7 @@ public class MainApplication extends Application implements ReactApplication {
 
       return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
-              new KBReactPackage(logFile.getAbsolutePath()),
+              new KBReactPackage(appStart),
               new ReactNativePushNotificationPackage(),
               new RNCameraPackage(),
               new ImagePickerPackage(),

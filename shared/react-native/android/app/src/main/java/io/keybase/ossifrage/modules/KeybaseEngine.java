@@ -10,6 +10,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -27,6 +28,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
+    private Instant appStart;
     private ExecutorService executor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
@@ -58,10 +60,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
-    public KeybaseEngine(final ReactApplicationContext reactContext) {
+  public KeybaseEngine(final ReactApplicationContext reactContext, Instant appStart) {
         super(reactContext);
         this.reactContext = reactContext;
-
+        this.appStart = appStart;
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -120,6 +122,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
+        constants.put("appStart", appStart.toEpochMilli());
         return constants;
     }
 
