@@ -356,10 +356,10 @@ func (f *FastTeamChainLoader) findStateInCache(m libkb.MetaContext, id keybase1.
 	return state
 }
 
-// stateHasKeySeed returns true/false if the state has the seed material for th egiven
+// stateHasKeySeed returns true/false if the state has the seed material for the given
 // generation. Either the fully verified PTK seed, or the public portion and
 // unverified PTK seed.
-func (f *FastTeamChainLoader) stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, state *keybase1.FastTeamData) bool {
+func stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, state *keybase1.FastTeamData) bool {
 	_, foundVerified := state.Chain.PerTeamKeySeedsVerified[gen]
 	if foundVerified {
 		return true
@@ -397,10 +397,18 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 
 	for _, app := range arg.Applications {
 		for _, gen := range arg.KeyGenerationsNeeded {
+			add := false
 			if state.ReaderKeyMasks[app] == nil || state.ReaderKeyMasks[app][gen] == nil {
+				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)
+				add = true
+			}
+			if !stateHasKeySeed(m, gen, state) {
+				m.CDebugf("state doesn't have key seed for gen=%d", gen)
+				add = true
+			}
+			if add {
 				gens[gen] = struct{}{}
 				apps[app] = struct{}{}
-				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)
 				fresh = false
 			}
 		}
