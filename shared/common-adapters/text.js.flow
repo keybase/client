@@ -15,6 +15,7 @@ type TextType =
   | 'Body'
   | 'BodyItalic'
   | 'BodyBig'
+  | 'BodyBigExtrabold'
   | 'BodyBigLink'
   | 'BodyError'
   | 'BodyExtrabold'

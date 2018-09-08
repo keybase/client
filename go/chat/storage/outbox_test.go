@@ -49,7 +49,8 @@ func makeMsgPlaintextEphemeral(body string, uid gregor1.UID, ephemeralMetadata *
 
 func TestChatOutbox(t *testing.T) {
 
-	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+	tc, ob, uid, cl := setupOutboxTest(t, "outbox")
+	defer tc.Cleanup()
 
 	var obrs []chat1.OutboxRecord
 	conv := makeConvo(gregor1.Time(5), 1, 1)
@@ -154,7 +155,8 @@ func TestChatOutbox(t *testing.T) {
 
 func TestChatOutboxPurge(t *testing.T) {
 
-	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+	tc, ob, uid, cl := setupOutboxTest(t, "outbox")
+	defer tc.Cleanup()
 
 	var obrs []chat1.OutboxRecord
 	conv := makeConvo(gregor1.Time(5), 1, 1)
@@ -224,7 +226,8 @@ func TestChatOutboxPurge(t *testing.T) {
 }
 
 func TestChatOutboxMarkAll(t *testing.T) {
-	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+	tc, ob, uid, cl := setupOutboxTest(t, "outbox")
+	defer tc.Cleanup()
 
 	var obrs []chat1.OutboxRecord
 	conv := makeConvo(gregor1.Time(5), 1, 1)
@@ -261,7 +264,8 @@ func TestChatOutboxMarkAll(t *testing.T) {
 }
 
 func TestChatOutboxCancelMessagesWithPredicate(t *testing.T) {
-	_, ob, uid, cl := setupOutboxTest(t, "outbox")
+	tc, ob, uid, cl := setupOutboxTest(t, "outbox")
+	defer tc.Cleanup()
 	ctx := context.TODO()
 
 	var obrs []chat1.OutboxRecord

@@ -203,7 +203,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
 const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.darkBlue
+const privateTextColor = globalColors.black_75
 const publicIconColor = globalColors.yellowGreen
 const publicTextColor = globalColors.yellowGreen2
 const unknownTextColor = globalColors.grey

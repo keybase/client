@@ -4,13 +4,12 @@ import {
   Avatar,
   NativeSafeAreaView,
   NativeRefreshControl,
-  NativeStyleSheet,
   ScrollView,
   avatarCastPlatformStyles,
 } from '../common-adapters/mobile.native'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
-import {globalColors, globalStyles, styleSheetCreate} from '../styles'
+import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
 const People = (props: Props) => (
@@ -51,9 +50,7 @@ const styles = styleSheetCreate({
     ...globalStyles.fullHeight,
   },
   searchContainer: {
-    borderColor: globalColors.black_20,
-    borderWidth: NativeStyleSheet.hairlineWidth,
-    minHeight: 33,
+    minHeight: 32,
     width: 200,
   },
   searchRow: {

@@ -2,7 +2,11 @@ package storage
 
 import (
 	"context"
+	"fmt"
+	"os"
+	"runtime"
 	"sort"
+	"strings"
 	"testing"
 
 	"encoding/hex"
@@ -11,6 +15,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -82,7 +87,8 @@ func convListCompare(t *testing.T, l []types.RemoteConversation, r []types.Remot
 
 func TestInboxBasic(t *testing.T) {
 
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -118,7 +124,8 @@ func TestInboxBasic(t *testing.T) {
 }
 
 func TestInboxSummarize(t *testing.T) {
-	_, inbox, _ := setupInboxTest(t, "summarize")
+	tc, inbox, _ := setupInboxTest(t, "summarize")
+	defer tc.Cleanup()
 
 	conv := makeConvo(gregor1.Time(1), 1, 1)
 	maxMsgID := chat1.MessageID(6)
@@ -140,8 +147,8 @@ func TestInboxSummarize(t *testing.T) {
 }
 
 func TestInboxQueries(t *testing.T) {
-
-	_, inbox, _ := setupInboxTest(t, "queries")
+	tc, inbox, _ := setupInboxTest(t, "queries")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 20
@@ -261,8 +268,8 @@ func TestInboxQueries(t *testing.T) {
 }
 
 func TestInboxEmptySuperseder(t *testing.T) {
-
-	_, inbox, _ := setupInboxTest(t, "queries")
+	tc, inbox, _ := setupInboxTest(t, "queries")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 20
@@ -311,7 +318,9 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	mergeReadAndCheck(t, superseded, "superseded")
 
 	// Now test OneChatTypePerTLF
-	_, inbox, _ = setupInboxTest(t, "queries2")
+	tc, inbox, _ = setupInboxTest(t, "queries2")
+	defer tc.Cleanup()
+
 	full = []types.RemoteConversation{}
 	superseded = []types.RemoteConversation{}
 	for i := len(convs) - 1; i >= 0; i-- {
@@ -334,7 +343,8 @@ func TestInboxEmptySuperseder(t *testing.T) {
 
 func TestInboxPagination(t *testing.T) {
 
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 50
@@ -411,7 +421,8 @@ func validateBadUpdate(t *testing.T, inbox *Inbox, f func() error) {
 }
 
 func TestInboxNewConversation(t *testing.T) {
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -455,7 +466,8 @@ func TestInboxNewConversation(t *testing.T) {
 
 func TestInboxNewMessage(t *testing.T) {
 
-	_, inbox, uid := setupInboxTest(t, "basic")
+	tc, inbox, uid := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -538,7 +550,8 @@ func TestInboxNewMessage(t *testing.T) {
 
 func TestInboxReadMessage(t *testing.T) {
 
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	uid2, err := hex.DecodeString("22")
 	require.NoError(t, err)
@@ -574,7 +587,8 @@ func TestInboxReadMessage(t *testing.T) {
 
 func TestInboxSetStatus(t *testing.T) {
 
-	_, inbox, uid := setupInboxTest(t, "basic")
+	tc, inbox, uid := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -611,7 +625,8 @@ func TestInboxSetStatus(t *testing.T) {
 
 func TestInboxSetStatusMuted(t *testing.T) {
 
-	_, inbox, uid := setupInboxTest(t, "basic")
+	tc, inbox, uid := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -648,7 +663,8 @@ func TestInboxSetStatusMuted(t *testing.T) {
 
 func TestInboxTlfFinalize(t *testing.T) {
 
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -673,7 +689,8 @@ func TestInboxTlfFinalize(t *testing.T) {
 }
 
 func TestInboxSync(t *testing.T) {
-	_, inbox, _ := setupInboxTest(t, "basic")
+	tc, inbox, _ := setupInboxTest(t, "basic")
+	defer tc.Cleanup()
 
 	// Create an inbox with a bunch of convos, merge it and read it back out
 	numConvs := 10
@@ -760,7 +777,8 @@ func TestInboxServerVersion(t *testing.T) {
 }
 
 func TestInboxKBFSUpgrade(t *testing.T) {
-	_, inbox, _ := setupInboxTest(t, "kbfs")
+	tc, inbox, _ := setupInboxTest(t, "kbfs")
+	defer tc.Cleanup()
 	numConvs := 10
 	var convs []types.RemoteConversation
 	for i := numConvs - 1; i >= 0; i-- {
@@ -777,8 +795,50 @@ func TestInboxKBFSUpgrade(t *testing.T) {
 	require.Equal(t, chat1.ConversationMembersType_IMPTEAMUPGRADE, res[5].Conv.Metadata.MembersType)
 }
 
+func TestMobileSharedInbox(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip()
+	}
+	tc, inbox, _ := setupInboxTest(t, "shared")
+	defer tc.Cleanup()
+	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
+		MobileSharedHomeDir: os.TempDir(),
+	}, nil, tc.Context().GetLog)
+	numConvs := 10
+	var convs []types.RemoteConversation
+	for i := numConvs - 1; i >= 0; i-- {
+		conv := makeConvo(gregor1.Time(i), 1, 1)
+		if i == 5 {
+			conv.Conv.Metadata.TeamType = chat1.TeamType_COMPLEX
+			conv.Conv.MaxMsgSummaries[0].TlfName = "team"
+		} else {
+			conv.Conv.MaxMsgSummaries[0].TlfName = fmt.Sprintf("msg:%d", i)
+		}
+		convs = append(convs, conv)
+	}
+	require.NoError(t, inbox.Merge(context.TODO(), 1, utils.PluckConvs(convs), nil, nil))
+	diskIbox, err := inbox.readDiskInbox(context.TODO())
+	require.NoError(t, err)
+	diskIbox.Conversations[4].LocalMetadata = &types.RemoteConversationMetadata{
+		TopicName: "mike",
+	}
+	require.NoError(t, inbox.writeDiskInbox(context.TODO(), diskIbox))
+	sharedInbox, err := inbox.ReadShared(context.TODO())
+	require.NoError(t, err)
+	require.Equal(t, numConvs, len(sharedInbox))
+	convs = diskIbox.Conversations
+	for i := 0; i < numConvs; i++ {
+		require.Equal(t, convs[i].GetConvID().String(), sharedInbox[i].ConvID)
+		require.Equal(t, convs[i].GetName(), sharedInbox[i].Name)
+		if i == 4 {
+			require.True(t, strings.Contains(sharedInbox[i].Name, "#"))
+		}
+	}
+}
+
 func TestInboxMembershipUpdate(t *testing.T) {
 	ctc, inbox, uid := setupInboxTest(t, "membership")
+	defer ctc.Cleanup()
 
 	u2, err := kbtest.CreateAndSignupFakeUser("ib", ctc.G)
 	require.NoError(t, err)

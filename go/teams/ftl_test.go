@@ -143,7 +143,6 @@ func TestFastLoaderMultilevel(t *testing.T) {
 }
 
 func TestFastLoaderUpPointerUnstub(t *testing.T) {
-
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 

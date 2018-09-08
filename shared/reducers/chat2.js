@@ -298,6 +298,24 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           )
         })
       })
+    case Chat2Gen.paymentInfoReceived: {
+      const {conversationIDKey, messageID, paymentInfo} = action.payload
+      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
+      if (!ordinal) {
+        return messageMap
+      }
+      return messageMap.update(conversationIDKey, messages => {
+        return messages.update(ordinal, msg => {
+          if (msg.type !== 'sendPayment') {
+            logger.error(
+              `Got paymentInfoNotif for non-payment message. convID: ${conversationIDKey}, msgID: ${messageID}`
+            )
+            return msg
+          }
+          return msg.set('paymentInfo', paymentInfo)
+        })
+      })
+    }
     default:
       return messageMap
   }
@@ -358,6 +376,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       return state.withMutations(_s => {
         const s = (_s: Types.State)
         s.set('pendingMode', action.payload.pendingMode)
+        s.set('pendingStatus', 'none')
         if (action.payload.pendingMode === 'none') {
           s.setIn(['metaMap', Constants.pendingConversationIDKey, 'participants'], I.List())
           s.setIn(
@@ -369,6 +388,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPendingStatus:
+      return state.set('pendingStatus', action.payload.pendingStatus)
+    case Chat2Gen.createConversation:
+      return state.set('pendingStatus', 'none')
     case Chat2Gen.setPendingConversationUsers:
       return state.setIn(
         ['metaMap', Constants.pendingConversationIDKey, 'participants'],
@@ -792,6 +815,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
+    case Chat2Gen.paymentInfoReceived:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -825,7 +849,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateNotificationSettings:
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
-    case Chat2Gen.createConversation:
     case Chat2Gen.setConvExplodingMode:
     case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
