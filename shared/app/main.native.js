@@ -8,8 +8,9 @@ import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
 import {View} from 'react-native'
 import {globalStyles} from '../styles'
-import {isAndroid} from '../constants/platform'
+import {isAndroid, appStart} from '../constants/platform'
 import {getPath} from '../route-tree'
+import log from '../logger'
 
 type Props = {
   routeDef: any,
@@ -17,6 +18,12 @@ type Props = {
   showPushPrompt: any,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
+}
+
+const logFirstLoad = () => {
+  const now = new Date()
+  const elapsed = (now - appStart) / 1000.0
+  log.info(`First render completed ${now.toString()} (${elapsed}s after app start)`)
 }
 
 class Main extends React.Component<Props> {
@@ -37,7 +44,7 @@ class Main extends React.Component<Props> {
       return <PushPrompt />
     }
 
-    return (
+    const rendered = (
       <React.Fragment>
         <RenderRoute
           routeDef={this.props.routeDef}
@@ -52,6 +59,8 @@ class Main extends React.Component<Props> {
         />
       </React.Fragment>
     )
+    logFirstLoad()
+    return rendered
   }
 }
 
@@ -61,7 +70,7 @@ const mapStateToProps = (state: TypedState) => ({
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })
