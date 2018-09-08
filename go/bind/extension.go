@@ -260,8 +260,8 @@ func restoreName(gc *globals.Context, name string) string {
 	return name + "," + username
 }
 
-func ExtensionPostURL(strConvID, name string, public bool, body string, pusher PushNotifier) (err error) {
-	defer kbCtx.Trace("ExtensionPostURL", func() error { return err })()
+func ExtensionPostText(strConvID, name string, public bool, body string, pusher PushNotifier) (err error) {
+	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() {
 		if err == nil {

@@ -22,21 +22,28 @@
     return YES;
 }
 
-- (NSItemProvider*)getFirstSendableAttachment:(NSArray*)attachments {
-  NSItemProvider* item = nil;
+- (NSItemProvider*)satisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
   for (NSItemProvider* a in attachments) {
-    if ([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]) {
-      item = a;
-      break;
+    if (cond(a)) {
+      return a;
     }
   }
-  if(!item) {
-    for (NSItemProvider* a in attachments) {
-      if ([a hasItemConformingToTypeIdentifier:@"public.image"]) {
-        item = a;
-        break;
-      }
-    }
+  return nil;
+}
+
+- (NSItemProvider*)getFirstSendableAttachment:(NSArray*)attachments {
+  NSItemProvider* item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+    return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]);
+  }];
+  if (!item) {
+    item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+      return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.text"]);
+    }];
+  }
+  if (!item) {
+    item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+      return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.image"]);
+    }];
   }
   if(!item) {
     item = attachments.firstObject;
@@ -79,13 +86,25 @@
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     NSString* body = (self.contentText.length) ? [NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteString] : url.absoluteString;
-    KeybaseExtensionPostURL(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, pusher, &error);
+    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, pusher, &error);
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
+      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+    }];
+  };
+  
+  NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
+    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, text, pusher, &error);
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
       [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
     }];
   };
   
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
+    // Check for no URL
+    if (url == nil) {
+      return;
+    }
+    
     NSString* filePath = [url relativePath];
     if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
@@ -109,6 +128,8 @@
     [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
+    [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
