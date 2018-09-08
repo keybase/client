@@ -1354,7 +1354,10 @@ func (c AppConfig) GetLinkCacheSize() (int, bool) {
 }
 
 func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
-	return c.AttachmentHTTPStartPort, true
+	if c.AttachmentHTTPStartPort != 0 {
+		return c.AttachmentHTTPStartPort, true
+	}
+	return 0, false
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

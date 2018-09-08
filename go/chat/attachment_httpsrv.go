@@ -49,10 +49,11 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	if err != nil {
 		panic(err)
 	}
+	startPort := g.GetEnv().GetAttachmentHTTPStartPort()
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         kbhttp.NewSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000)),
+		httpSrv:         kbhttp.NewSrv(g.GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
 		ri:              ri,
