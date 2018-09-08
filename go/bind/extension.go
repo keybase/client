@@ -81,6 +81,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
 		ChatInboxSourceLocalizeThreads: 5,
+		AttachmentHTTPStartPort:        16500,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err

@@ -91,6 +91,7 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
+	GetAttachmentHTTPStartPort() (int, bool)
 }
 
 type CommandLine interface {

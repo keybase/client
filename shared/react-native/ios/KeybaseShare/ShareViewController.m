@@ -95,6 +95,7 @@
                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else {
+      NSError* error = NULL;
       KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, pusher, &error);
     }
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
@@ -102,12 +103,14 @@
     }];
   };
   
-  if([item hasItemConformingToTypeIdentifier:@"public.url"]) {
-    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
+  if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
+    [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
+    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
     [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
   }

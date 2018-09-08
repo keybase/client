@@ -104,6 +104,7 @@ func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { re
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
+func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -736,6 +737,14 @@ func (e *Env) GetChatDelivererInterval() time.Duration {
 	)
 }
 
+func (e *Env) GetAttachmentHTTPStartPort() int {
+	return e.GetInt(16423,
+		e.cmd.GetAttachmentHTTPStartPort,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_ATTACHMENT_HTTP_START") },
+		e.GetConfig().GetAttachmentHTTPStartPort,
+	)
+}
+
 func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
@@ -1276,6 +1285,7 @@ type AppConfig struct {
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
 	MobileExtension                bool
+	AttachmentHTTPStartPort        int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1341,6 +1351,10 @@ func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 // Default is 4000. Turning down on mobile to reduce memory usage.
 func (c AppConfig) GetLinkCacheSize() (int, bool) {
 	return 1000, true
+}
+
+func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
+	return c.AttachmentHTTPStartPort, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

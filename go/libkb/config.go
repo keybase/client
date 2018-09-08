@@ -829,3 +829,7 @@ func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
 }
+
+func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
+	return f.GetIntAtPath("attachment_httpsrv_port")
+}
