@@ -7,6 +7,7 @@ import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import GetNewestConvMetas from '../chat/inbox/container/remote'
+import GetFileRows from '../fs/remote-container'
 
 const windowOpts = {}
 
@@ -58,6 +59,7 @@ const mapStateToProps = (state: TypedState) => ({
   loggedIn: state.config.loggedIn,
   username: state.config.username,
   conversations: GetNewestConvMetas(state),
+  fileRows: GetFileRows(state),
 })
 
 const mergeProps = stateProps => ({
@@ -68,6 +70,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
+  fileRows: stateProps.fileRows,
   conversations: stateProps.conversations,
   broken: stateProps.broken,
   following: stateProps._following.toJS(),

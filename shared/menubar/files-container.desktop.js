@@ -9,27 +9,7 @@ import {remoteConnect, compose} from '../util/container'
 
 const mapStateToProps = (state) => ({
   _username: state.username,
-  _userTlfUpdates: [
-    {
-      tlf: FsTypes.stringToPath('/keybase/team/zila.test'),
-      writer: 'jzila',
-      timestamp: 1535497273,
-      updates: [
-        FsTypes.stringToPath('/keybase/team/zila.test/abc'),
-      ],
-    },
-    {
-      tlf: FsTypes.stringToPath('/keybase/team/zila.test'),
-      writer: 'songgao',
-      timestamp: 1535497273,
-      updates: [
-        FsTypes.stringToPath('/keybase/team/zila.test/ghi.txt'),
-        FsTypes.stringToPath('/keybase/team/zila.test/def'),
-        FsTypes.stringToPath('/keybase/team/zila.test/abc'),
-      ],
-      moreUpdateCount: 17,
-    },
-  ],
+  _userTlfUpdates: state.fileRows,
 })
 
 const mapDispatchToProps = dispatch => ({
