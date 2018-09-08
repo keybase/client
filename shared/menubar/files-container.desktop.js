@@ -1,10 +1,11 @@
 // @flow
+import * as React from 'react'
 import * as FsTypes from '../constants/types/fs'
 import * as FsGen from '../actions/fs-gen'
 import * as FsUtil from '../util/kbfs'
 import * as FsConstants from '../constants/fs'
 import * as TimestampUtil from '../util/timestamp'
-import {FilesPreview} from './files.desktop'
+import {FilesPreview, type UserTlfUpdateRowProps} from './files.desktop'
 import {remoteConnect, compose} from '../util/container'
 
 const mapStateToProps = (state) => ({
@@ -14,12 +15,15 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = dispatch => ({
   _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
+  loadTlfUpdates: () => dispatch(FsGen.createUserFileEditsLoad()),
   onViewAll: () => dispatch(FsGen.createOpenFilesFromWidget({})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
   onViewAll: dispatchProps.onViewAll,
-  userTlfUpdates: stateProps._userTlfUpdates.map(c => {
+  loadTlfUpdates: dispatchProps.loadTlfUpdates,
+  // TODO: fix this slice once the UI is fixed.
+  userTlfUpdates: stateProps._userTlfUpdates.slice(0, 2).map(c => {
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(FsTypes.pathToString(c.tlf))
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
@@ -40,6 +44,23 @@ const mergeProps = (stateProps, dispatchProps) => ({
   }),
 })
 
+type TlfUpdateHocProps = {|
+  loadTlfUpdates: () => void,
+  onViewAll: () => void,
+  userTlfUpdates: Array<UserTlfUpdateRowProps>,
+|}
+
+const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<TlfUpdateHocProps> {
+    componentDidMount() {
+      this.props.loadTlfUpdates()
+    }
+    render() {
+      return <ComposedComponent {...this.props} />
+    }
+  }
+
 export default compose(
-  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)
+  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  TlfUpdateHoc,
 )(FilesPreview)
