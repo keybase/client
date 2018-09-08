@@ -178,10 +178,13 @@ const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
 
 const version = 'TODO'
+// TODO: Use now?
+const appStart = new Date(0)
 const appVersionName = 'Not Implemented - Mobile only'
 const appVersionCode = 'Not Implemented - Mobile only'
 
 export {
+  appStart,
   appVersionCode,
   appVersionName,
   cacheRoot,

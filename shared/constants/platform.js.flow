@@ -17,6 +17,7 @@ export const isAndroidNewerThanM: boolean = false
 export const isAndroidNewerThanN: boolean = false
 declare export var fileUIName: string
 declare export var version: string
+declare export var appStart: Date
 declare export var appVersionName: string
 declare export var appVersionCode: string
 declare export var mobileOsVersion: string

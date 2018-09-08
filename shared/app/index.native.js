@@ -9,11 +9,17 @@ import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {refreshRouteDef, setInitialRouteDef} from '../actions/route-tree'
+import {appStart} from '../constants/platform'
+import log from '../logger'
 
 // We don't want global font scaling as this messes up a TON of stuff. let's opt in
 function disallowFontScalingByDefault() {
   Text.defaultProps.allowFontScaling = false
 }
+
+const now = Date.now()
+const elapsed = (now - appStart) / 1000.0
+log.info(`JS code started on ${now} (${elapsed}s after app start)`)
 
 disallowFontScalingByDefault()
 
