@@ -379,20 +379,14 @@ func stateHasKeySeed(m libkb.MetaContext, gen keybase1.PerTeamKeyGeneration, sta
 // modify the shopping list and return false. If yes, it will leave the shopping list unchanged and return
 // true.
 func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadArg, state *keybase1.FastTeamData) (fresh bool) {
-	apps := make(map[keybase1.TeamApplication]struct{})
 	gens := make(map[keybase1.PerTeamKeyGeneration]struct{})
 
 	fresh = true
 
-	if arg.NeedLatestKey {
-		for _, app := range arg.Applications {
-			apps[app] = struct{}{}
-		}
-		if !state.LoadedLatest {
-			m.CDebugf("latest was never loaded, we need to load it")
-			shoppingList.needRefresh = true
-			fresh = false
-		}
+	if arg.NeedLatestKey && !state.LoadedLatest {
+		m.CDebugf("latest was never loaded, we need to load it")
+		shoppingList.needRefresh = true
+		fresh = false
 	}
 
 	for _, app := range arg.Applications {
@@ -408,15 +402,12 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 			}
 			if add {
 				gens[gen] = struct{}{}
-				apps[app] = struct{}{}
 				fresh = false
 			}
 		}
 	}
 
-	for app := range apps {
-		shoppingList.applications = append(shoppingList.applications, app)
-	}
+	shoppingList.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
 
 	if !fresh {
 		for gen := range gens {
