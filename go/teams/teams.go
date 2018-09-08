@@ -1295,6 +1295,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 	v2Sig, _, newLinkID, err := libkb.MakeSigchainV2OuterSig(
+		t.MetaContext(ctx),
 		deviceSigningKey,
 		linkType,
 		nextSeqno,

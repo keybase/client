@@ -195,6 +195,7 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 	}
 
 	p.sig, p.sigID, _, err = libkb.MakeSig(
+		m,
 		p.signingKey,
 		libkb.LinkTypeWebServiceBinding,
 		p.sigInner,

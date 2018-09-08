@@ -200,9 +200,10 @@ type OuterLinkV2 struct {
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 	// -- Links exist in the wild that are missing fields below this line too.
 	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
+	// Currently, when not provided, these fields are removed from the link due to `omitempty`.
 	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
-	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno,omitempty"`
-	HPrevHash  *LinkID         `codec:"high_skip_hash,omitempty"`
+	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
+	HPrevHash  *LinkID         `codec:"high_skip_hash"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -240,6 +241,7 @@ type SigHasRevokes bool
 func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
 func MakeSigchainV2OuterSig(
+	m MetaContext,
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	seqno keybase1.Seqno,
@@ -257,24 +259,55 @@ func MakeSigchainV2OuterSig(
 		return sig, sigid, linkID, err
 	}
 
-	var hPrevSeqno *keybase1.Seqno
-	var hPrevHash *LinkID
-	if hPrevInfo != nil {
-		hPrevSeqno = &hPrevInfo.Seqno
-		hPrevHash = &hPrevInfo.Hash
+	var encodedOuterLink []byte
+
+	// When 2.3 links are mandatory, it will be invalid for hPrevInfo == nil,
+	// so the featureflag check will be removed and the nil check will result
+	// in an error.
+	if m.G().FeatureFlags.Enabled(m, FeatureHighSkip) && hPrevInfo != nil {
+		hPrevSeqno := &hPrevInfo.Seqno
+		hPrevHash := &hPrevInfo.Hash
+		outerLink := OuterLinkV2{
+			Version:             2,
+			Seqno:               seqno,
+			Prev:                prevLinkID,
+			Curr:                currLinkID,
+			LinkType:            v2LinkType,
+			SeqType:             seqType,
+			IgnoreIfUnsupported: ignoreIfUnsupported,
+			HPrevSeqno:          hPrevSeqno,
+			HPrevHash:           hPrevHash,
+		}
+		encodedOuterLink, err = outerLink.Encode()
+	} else {
+		// This is a helper struct. When the code for Sigchain 2.3
+		// is released, it is possible some clients will still post 2.2
+		// links, i.e., without high_skip information. Due to a bug
+		// in Keybase's fork of go-codec, omitempty does not work
+		// for arrays. So, we send up the serialization of the
+		// appropriate struct depending on whether we are making a 2.3 link.
+		// When 2.3 links are mandatory, this struct can be deleted.
+		encodedOuterLink, err = MsgpackEncode(
+			struct {
+				_struct             bool                   `codec:",toarray"`
+				Version             int                    `codec:"version"`
+				Seqno               keybase1.Seqno         `codec:"seqno"`
+				Prev                LinkID                 `codec:"prev"`
+				Curr                LinkID                 `codec:"curr"`
+				LinkType            SigchainV2Type         `codec:"type"`
+				SeqType             keybase1.SeqType       `codec:"seqtype"`
+				IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
+			}{
+				Version:             2,
+				Seqno:               seqno,
+				Prev:                prevLinkID,
+				Curr:                currLinkID,
+				LinkType:            v2LinkType,
+				SeqType:             seqType,
+				IgnoreIfUnsupported: ignoreIfUnsupported,
+			})
 	}
-	outerLink := OuterLinkV2{
-		Version:             2,
-		Seqno:               seqno,
-		Prev:                prevLinkID,
-		Curr:                currLinkID,
-		LinkType:            v2LinkType,
-		SeqType:             seqType,
-		IgnoreIfUnsupported: ignoreIfUnsupported,
-		HPrevSeqno:          hPrevSeqno,
-		HPrevHash:           hPrevHash,
-	}
-	encodedOuterLink, err := outerLink.Encode()
+
 	if err != nil {
 		return sig, sigid, linkID, err
 	}

@@ -205,6 +205,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 
 	sigVersion := libkb.SigVersion(e.arg.SigVersion)
 	sig, sigID, _, err := libkb.MakeSig(
+		m,
 		signingKey,
 		libkb.LinkTypeUntrack,
 		e.untrackStatementBytes,

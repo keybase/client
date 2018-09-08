@@ -118,7 +118,7 @@ func serdeOuterLink(t *testing.T, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID, 
 		o.HPrevSeqno = hPrevSeqno
 	}
 	if addHPrevHash {
-		o.HPrevHash = hPrevHash
+		o.HPrevHash = &hPrevHash
 	}
 
 	s, err := o.Encode()

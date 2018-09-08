@@ -360,39 +360,40 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("prev", prev)
 
 	var hPrevInfo *HPrevInfo
-	if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
-		return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
-	} else if arg.Me != nil {
-		hPrevInfoPre, err := arg.Me.GetExpectedNextHPrevInfo()
-		switch err.(type) {
-		// If we haven't computed the next expected HPrevInfo,
-		// yet, leave it as nil and postpone writing for now.
-		case UserReverifyNeededError:
-			break
-		case nil:
-			hPrevInfo = &hPrevInfoPre
-		default:
-			return nil, err
-		}
-	} else {
-		hPrevInfo = arg.HPrevInfoFallback
-	}
-
-	if hPrevInfo != nil {
-		hPrevInfoObj := jsonw.NewDictionary()
-		hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
-		if hash := hPrevInfo.Hash; hash != nil {
-			hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
+	if m.G().FeatureFlags.Enabled(m, FeatureHighSkip) {
+		if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
+			return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
+		} else if arg.Me != nil {
+			hPrevInfoPre, err := arg.Me.GetExpectedNextHPrevInfo()
+			switch err.(type) {
+			// If we haven't computed the next expected HPrevInfo,
+			// yet, leave it as nil and postpone writing for now.
+			case UserReverifyNeededError:
+				break
+			case nil:
+				hPrevInfo = &hPrevInfoPre
+			default:
+				return nil, err
+			}
 		} else {
-			hPrevInfoObj.SetKey("hash", jsonw.NewNil())
+			hPrevInfo = arg.HPrevInfoFallback
 		}
-		ret.SetKey("high_skip", hPrevInfoObj)
 
-		if arg.IgnoreIfUnsupported {
-			ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+		if hPrevInfo != nil {
+			hPrevInfoObj := jsonw.NewDictionary()
+			hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
+			if hash := hPrevInfo.Hash; hash != nil {
+				hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
+			} else {
+				hPrevInfoObj.SetKey("hash", jsonw.NewNil())
+			}
+			ret.SetKey("high_skip", hPrevInfoObj)
 		}
 	}
 
+	if arg.IgnoreIfUnsupported {
+		ret.SetKey("ignore_if_unsupported", jsonw.NewBool(true))
+	}
 	eldest := arg.Eldest
 	if eldest == "" {
 		eldest = arg.Me.GetEldestKID()
@@ -574,6 +575,7 @@ func GetDefaultSigVersion(g *GlobalContext) SigVersion {
 }
 
 func MakeSig(
+	m MetaContext,
 	signingKey GenericKey,
 	v1LinkType LinkType,
 	innerLinkJSON []byte,
@@ -589,11 +591,12 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrevInfo, err := me.GetExpectedNextHPrevInfo()
-		if err != nil {
-			return sig, sigID, linkID, err
+		hPrevInfo, hPrevErr := me.GetExpectedNextHPrevInfo()
+		if hPrevErr != nil {
+			return sig, sigID, linkID, hPrevErr
 		}
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
+			m,
 			signingKey,
 			v1LinkType,
 			prevSeqno+1,
@@ -903,6 +906,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 		return nil, err
 	}
 	sig, sigID, linkID, err := MakeSig(
+		m,
 		signer,
 		LinkTypeWalletStellar,
 		innerJSON,
