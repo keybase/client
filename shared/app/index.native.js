@@ -17,9 +17,9 @@ function disallowFontScalingByDefault() {
   Text.defaultProps.allowFontScaling = false
 }
 
-const now = Date.now()
+const now = new Date()
 const elapsed = (now - appStart) / 1000.0
-log.info(`JS code started on ${now} (${elapsed}s after app start)`)
+log.info(`JS code started on ${now.toString()} (${elapsed}s after app start)`)
 
 disallowFontScalingByDefault()
 
