@@ -6,12 +6,14 @@ import {cachesDirectoryPath} from '../util/file.native'
 const nativeBridge = NativeModules.KeybaseEngine ||
   NativeModules.ObjcEngine || {
     version: 'fallback',
+    appStart: null,
     appVersionName: 'fallback',
     appVersionCode: 'fallback',
     usingSimulator: 'fallback',
     isDeviceSecure: 'fallback',
   }
 const version = nativeBridge.version
+const appStart = nativeBridge.appStart
 const appVersionName = nativeBridge.appVersionName
 const appVersionCode = nativeBridge.appVersionCode
 const isSimulator = nativeBridge.usingSimulator === '1'
@@ -57,10 +59,15 @@ function pprofDir(): string {
   return _dir
 }
 
+function getAppStart(): ?number {
+  return appStart
+}
+
 export {
   appVersionCode,
   appVersionName,
   fileUIName,
+  getAppStart,
   isAndroid,
   isAndroidNewerThanM,
   isAndroidNewerThanN,

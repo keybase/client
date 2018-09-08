@@ -118,11 +118,11 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("appStart", appStart.toEpochMilli());
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
-        constants.put("appStart", appStart.toEpochMilli());
         return constants;
     }
 
