@@ -33,13 +33,7 @@ const Header = (props: Props) => (
             {props.walletName}
           </Kb.Text>
         ) : (
-          <Kb.ProgressIndicator
-            style={{
-              height: Styles.globalMargins.small,
-              width: Styles.globalMargins.small,
-            }}
-            type="Small"
-          />
+          <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
@@ -151,7 +145,6 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 }
 
 const styles = Styles.styleSheetCreate({
-  noShrink: {flexShrink: 0},
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -162,6 +155,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.xsmall,
     },
   }),
+  noShrink: {flexShrink: 0},
+  spinner: {
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
 })
 
 const SendButton = Kb.OverlayParentHOC(_SendButton)
