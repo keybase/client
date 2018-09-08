@@ -9,6 +9,7 @@ import (
 )
 
 func TestFastLoaderBasic(t *testing.T) {
+	t.Skip()
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
@@ -39,6 +40,7 @@ func TestFastLoaderBasic(t *testing.T) {
 
 // Test fast loading a team that does several key rotations.
 func TestFastLoaderKeyGen(t *testing.T) {
+	t.Skip()
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -101,6 +103,7 @@ func TestFastLoaderKeyGen(t *testing.T) {
 
 // Test loading a sub-sub-team: a.b.c.
 func TestFastLoaderMultilevel(t *testing.T) {
+	t.Skip()
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
@@ -143,7 +146,7 @@ func TestFastLoaderMultilevel(t *testing.T) {
 }
 
 func TestFastLoaderUpPointerUnstub(t *testing.T) {
-
+	t.Skip()
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
