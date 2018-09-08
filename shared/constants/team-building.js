@@ -2,9 +2,12 @@
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 
+// The I.List is used as a tuple
+type SearchKey = I.List<Types.SearchString | Types.ServiceIdWithContact>
+
 class SearchCache {
   userMap: I.Map<Types.UserID, Types.User>
-  searchCacheMap: I.Map<Types.SearchString, I.Set<Types.UserID>>
+  searchCacheMap: I.Map<SearchKey, I.Set<Types.UserID>>
   searchBuffer: Array<Types.SearchString>
   cacheSize: number
 
@@ -15,8 +18,8 @@ class SearchCache {
     this.userMap = I.Map()
   }
 
-  getSearchCache = (search: Types.SearchString): Array<Types.UserID> => {
-    return this.searchCacheMap.get(search, I.Set()).toArray()
+  getSearchCache = (searchKey: SearchKey): Array<Types.UserID> => {
+    return this.searchCacheMap.get(searchKey, I.Set()).toArray()
   }
 
   getUserInfo = (id: Types.UserID): ?Types.User => {
@@ -27,16 +30,24 @@ class SearchCache {
     return ids.map(this.getUserInfo).filter(v => !!v)
   }
 
-  hasSearchQuery = (searchQuery: Types.SearchString): boolean => {
-    return this.searchCacheMap.has(searchQuery)
+  _keyFn = (search: SearchString, service: ServiceIdWithContact): SearchKey => I.List([search, service])
+
+  hasSearchQuery = (search: SearchString, service: ServiceIdWithContact): boolean => {
+    const k = this._keyFn(search, service)
+    return this.searchCacheMap.has(k)
   }
 
-  addSearchResult = (searchQuery: Types.SearchString, results: Array<Types.User>): void => {
+  addSearchResult = (
+    searchQuery: Types.SearchString,
+    service: ServiceIdWithContact,
+    results: Array<Types.User>
+  ): void => {
+    const k = this._keyFn(searchQuery, service)
     // We've hit our cache size limit, let's remote the oldest search result
-    this.searchBuffer.push(searchQuery)
+    this.searchBuffer.push(k)
     if (this.searchBuffer.length >= this.cacheSize) {
-      let searchQueryToRemove = this.searchBuffer.splice(0, 1)[0] // pop from the front
-      this._removeSearchResultFromCache(searchQueryToRemove)
+      let searchKeyToRemove = this.searchBuffer.splice(0, 1)[0] // pop from the front
+      this._removeSearchResultFromCache(k)
     }
 
     let toMergeUserMap = results.reduce((acc, v) => {
@@ -44,16 +55,16 @@ class SearchCache {
       return acc
     }, {})
     this.userMap = this.userMap.merge(toMergeUserMap)
-    this.searchCacheMap = this.searchCacheMap.set(searchQuery, I.Set(results.map(u => u.id)))
+    this.searchCacheMap = this.searchCacheMap.set(k, I.Set(results.map(u => u.id)))
   }
 
   _unusedId = (id: Types.UserID): boolean => {
     return this.searchCacheMap.some(searchResultIds => !searchResultIds.has(id))
   }
 
-  _removeSearchResultFromCache = (searchQuery: Types.SearchString) => {
-    const idsToMaybeClear = this.getSearchCache(searchQuery)
-    this.searchCacheMap = this.searchCacheMap.delete(searchQuery)
+  _removeSearchResultFromCache = (searchKey: SearchKey) => {
+    const idsToMaybeClear = this.getSearchCache(searchKey)
+    this.searchCacheMap = this.searchCacheMap.delete(searchKey)
     // Figure out if these ids are present anywhere else
     let idsToClear = idsToMaybeClear.filter(this._unusedId)
     this.userMap = this.userMap.deleteAll(idsToClear)

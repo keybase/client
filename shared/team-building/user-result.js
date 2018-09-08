@@ -5,7 +5,6 @@ import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToLogo14} from './shared'
-import type {ServiceIdWithContact} from '../constants/team-building'
 import type {FollowingState} from '../constants/types/search'
 
 // TODO

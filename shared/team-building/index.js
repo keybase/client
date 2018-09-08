@@ -14,13 +14,13 @@ import type {Props as ResultProps} from './user-result'
 // Text Input
 // Go button
 // Services Search Results count bar (
+// Handle pending state
 
 type SearchResult = {
   userId: string,
   username: string,
   prettyName: string,
   services: {[key: ServiceId]: string},
-  service: ServiceId,
   inTeam: boolean,
   followingState: FollowingState,
 }
@@ -38,9 +38,10 @@ type Props = {
   onChangeService: (newService: ServiceIdWithContact) => void,
   serviceResultCount: {[key: ServiceIdWithContact]: ?number},
   showServiceResultCount: boolean,
-  searchResults: Array<SearchResult>,
+  searchResults: ?Array<SearchResult>,
   highlightedIndex: ?number,
   onAdd: (userId: string) => void,
+  clearTextTrigger: number,
 }
 
 const TeamBuilding = (props: Props) => (
@@ -63,23 +64,27 @@ const TeamBuilding = (props: Props) => (
       serviceResultCount={props.serviceResultCount}
       showServiceResultCount={props.showServiceResultCount}
     />
-    <Kb.List
-      items={props.searchResults}
-      renderItem={(index, result) => (
-        <UserResult
-          key={result.userId}
-          fixedHeight={400}
-          username={result.username}
-          prettyName={result.prettyName}
-          services={result.services}
-          inTeam={result.inTeam}
-          followingState={result.followingState}
-          highlight={index === props.highlightedIndex}
-          onAdd={() => props.onAdd(result.userId)}
-          onRemove={() => props.onRemove(result.userId)}
-        />
-      )}
-    />
+    {props.searchResults ? (
+      <Kb.Text type="Body"> TODO: Add Pending state</Kb.Text>
+    ) : (
+      <Kb.List
+        items={props.searchResults}
+        renderItem={(index, result) => (
+          <UserResult
+            key={result.userId}
+            fixedHeight={400}
+            username={result.username}
+            prettyName={result.prettyName}
+            services={result.services}
+            inTeam={result.inTeam}
+            followingState={result.followingState}
+            highlight={index === props.highlightedIndex}
+            onAdd={() => props.onAdd(result.userId)}
+            onRemove={() => props.onRemove(result.userId)}
+          />
+        )}
+      />
+    )}
   </Kb.Box2>
 )
 

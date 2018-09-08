@@ -52,6 +52,11 @@ export type _State = {
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
+
+  // TeamBuilding
+  teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
+  teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
+  teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
 }
 
 export type State = I.RecordOf<_State>

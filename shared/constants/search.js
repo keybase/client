@@ -44,6 +44,23 @@ function followStateHelper(state: TypedState, _username: ?string, _service: ?Typ
   return 'NoState'
 }
 
+function isKeybaseUserId(userId) {
+  // Only keybase user id's do not have
+  return userId.indexOf('@') < 0
+}
+
+function followStateHelperWithId(state: TypedState, userId: ?string) {
+  const me = state.config.username
+  if (isKeybaseUserId(userId)) {
+    if (userId === me) {
+      return 'You'
+    } else {
+      return amIFollowing(state, userId) ? 'Following' : 'NotFollowing'
+    }
+  }
+  return 'NoState'
+}
+
 function maybeUpgradeSearchResultIdToKeybaseId(
   searchResultMap: $PropertyType<$PropertyType<TypedState, 'entities'>, 'searchResults'>,
   id: Types.SearchResultId
@@ -90,6 +107,7 @@ const getClearSearchTextInput = ({entities}: TypedState, {searchKey}: {searchKey
 export {
   serviceIdToService,
   followStateHelper,
+  followStateHelperWithId,
   maybeUpgradeSearchResultIdToKeybaseId,
   platformToLogo24,
   getClearSearchTextInput,
