@@ -59,15 +59,12 @@ function pprofDir(): string {
   return _dir
 }
 
-function getAppStart(): ?number {
-  return appStart
-}
+console.log('APP START IS', appStart)
 
 export {
   appVersionCode,
   appVersionName,
   fileUIName,
-  getAppStart,
   isAndroid,
   isAndroidNewerThanM,
   isAndroidNewerThanN,
