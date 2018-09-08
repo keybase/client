@@ -169,7 +169,7 @@
     },
     "userFileEditsLoad": {},
     "userFileEditsLoaded": {
-      "writerEdits": "Array<RPCTypes.FSFolderEditHistory>"
+      "tlfUpdates": "Types.UserTlfUpdates"
     },
 
     "placeholderAction": {}

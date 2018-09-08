@@ -174,6 +174,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   uploads: makeUploads(),
   localHTTPServerInfo: null,
   errors: I.Map(),
+  tlfUpdates: I.List(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({

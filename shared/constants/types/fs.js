@@ -208,10 +208,6 @@ export type _TlfUpdate = {
 
 export type TlfUpdate = I.RecordOf<_TlfUpdate>
 
-export type _UserTlfUpdates = {
-  updates: I.List<TlfUpdate>,
-}
-
 export type UserTlfUpdates = I.List<TlfUpdate>
 
 export type _State = {

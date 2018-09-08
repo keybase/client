@@ -230,7 +230,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           return nextState
       }
     case FsGen.userFileEditsLoaded:
-      return state.set('tlfUpdates', Constants.userTlfHistoryRPCToState(action.payload.writerEdits))
+      return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.placeholderAction:

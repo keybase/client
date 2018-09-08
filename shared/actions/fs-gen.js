@@ -199,7 +199,7 @@ type _UploadPayload = $ReadOnly<{|
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
 type _UserFileEditsLoadPayload = void
-type _UserFileEditsLoadedPayload = $ReadOnly<{|writerEdits: Array<RPCTypes.FSFolderEditHistory>|}>
+type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|}>
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})

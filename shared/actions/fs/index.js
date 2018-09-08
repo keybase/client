@@ -77,11 +77,15 @@ const filePreview = (state: TypedState, action) =>
 
 const loadUserFileEdits = (state: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-    .then(writerEdits =>
-      FsGen.createUserFileEditsLoaded({
-        writerEdits: writerEdits || [],
+    .then(writerEdits => {
+      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+      Saga.all(tlfUpdates.map(u =>
+        Saga.put(FsGen.createFilePreviewLoad({path: u.path}))
+      ))
+      return FsGen.createUserFileEditsLoaded({
+        tlfUpdates: tlfUpdates,
       })
-    )
+    })
     .catch(makeRetriableErrorHandler(action))
 
 // See constants/types/fs.js on what this is for.
