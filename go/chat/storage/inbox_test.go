@@ -787,6 +787,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		t.Skip()
 	}
 	tc, inbox, _ := setupInboxTest(t, "shared")
+	defer tc.Cleanup()
 	tc.G.Env = libkb.NewEnv(libkb.AppConfig{
 		MobileSharedHomeDir: os.TempDir(),
 	}, nil, tc.Context().GetLog)
