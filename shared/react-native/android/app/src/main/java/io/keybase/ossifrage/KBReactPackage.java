@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.time.Instant;
 
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
@@ -20,11 +19,11 @@ import io.keybase.ossifrage.modules.ScreenProtector;
 import io.keybase.ossifrage.modules.ShareFiles;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
-    private Instant appStart;
+    private long appStartMilli;
     private List<KillableModule> killableModules = new ArrayList<>();
 
-    public KBReactPackage(Instant appStart) {
-        this.appStart = appStart;
+    public KBReactPackage(long appStartMilli) {
+        this.appStartMilli = appStartMilli;
     }
 
     @Override
@@ -36,7 +35,7 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
             i.remove();
         }
 
-        final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext, appStart);
+        final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext, appStartMilli);
         final LogSend logSend = new LogSend(reactApplicationContext);
         final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
         final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);

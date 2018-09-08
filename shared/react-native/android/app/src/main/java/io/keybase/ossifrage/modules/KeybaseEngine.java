@@ -10,7 +10,6 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -28,7 +27,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
-    private Instant appStart;
+    private long appStartMilli;
     private ExecutorService executor;
     private Boolean started = false;
     private ReactApplicationContext reactContext;
@@ -60,10 +59,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
-  public KeybaseEngine(final ReactApplicationContext reactContext, Instant appStart) {
+  public KeybaseEngine(final ReactApplicationContext reactContext, long appStartMilli) {
         super(reactContext);
         this.reactContext = reactContext;
-        this.appStart = appStart;
+        this.appStartMilli = appStartMilli;
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -118,7 +117,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
-        constants.put("appStart", appStart.toEpochMilli());
+        constants.put("appStartMilli", appStartMilli);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
