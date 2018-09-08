@@ -20,7 +20,14 @@ type Props = {
   navigateUp: () => void,
 }
 
-const logFirstLoad = () => {
+let isFirstRender = true
+
+const logFirstRender = () => {
+  if (!isFirstRender) {
+    return
+  }
+
+  isFirstRender = false
   const now = new Date()
   const elapsed = (now - appStart) / 1000.0
   log.info(`First render completed ${now.toString()} (${elapsed}s after app start)`)
@@ -59,7 +66,7 @@ class Main extends React.Component<Props> {
         />
       </React.Fragment>
     )
-    logFirstLoad()
+    logFirstRender()
     return rendered
   }
 }
