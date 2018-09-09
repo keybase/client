@@ -31,7 +31,9 @@
   return nil;
 }
 
-- (NSItemProvider*)getFirstSendableAttachment:(NSArray*)attachments {
+- (NSItemProvider*)getFirstSendableAttachment {
+  NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
+  NSArray* attachments = [input attachments];
   NSItemProvider* item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
     return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]);
   }];
@@ -51,8 +53,21 @@
   return item;
 }
 
+- (UIView*)loadPreviewView {
+  NSItemProvider* item = [self getFirstSendableAttachment];
+  if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
+    [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:^(NSURL *url, NSError *error) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        [self.textView setText:[NSString stringWithFormat:@"%@\n%@", self.contentText, [url absoluteString]]];
+      });
+    }];
+    return nil;
+  }
+  return [super loadPreviewView];
+}
+
 - (void)didReceiveMemoryWarning {
-    KeybaseForceGC();
+    KeybaseExtensionForceGC();
     [super didReceiveMemoryWarning];
 }
 
@@ -80,13 +95,11 @@
     return;
   }
   
-  NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
-  NSItemProvider* item = [self getFirstSendableAttachment:[input attachments]];
+  NSItemProvider* item = [self getFirstSendableAttachment];
   PushNotifier* pusher = [[PushNotifier alloc] init];
   
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    NSString* body = (self.contentText.length) ? [NSString stringWithFormat:@"%@ %@", self.contentText, url.absoluteString] : url.absoluteString;
-    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, body, pusher, &error);
+    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, pusher, &error);
     [[NSOperationQueue mainQueue] addOperationWithBlock:^{
       [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
     }];

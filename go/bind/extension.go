@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"runtime"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -29,6 +31,12 @@ import (
 var extensionRi chat1.RemoteClient
 var extensionInited bool
 var extensionInitMu sync.Mutex
+
+func ExtensionIsInited() bool {
+	extensionInitMu.Lock()
+	defer extensionInitMu.Unlock()
+	return extensionInited
+}
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
@@ -387,4 +395,25 @@ func ExtensionPostFile(strConvID, name string, public bool, caption string, file
 		return err
 	}
 	return nil
+}
+
+// ExtensionForceGC Forces a gc
+func ExtensionForceGC() {
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	fmt.Printf("ALLOC BEFORE: %v\n", m.Alloc)
+	fmt.Printf("SYS BEFORE: %v\n", m.Sys)
+	fmt.Printf("Starting force gc\n")
+	debug.FreeOSMemory()
+	fmt.Printf("Done force gc\n")
+	runtime.ReadMemStats(&m)
+	fmt.Printf("ALLOC AFTER: %v\n", m.Alloc)
+	fmt.Printf("SYS AFTER: %v\n", m.Sys)
+	if !ExtensionIsInited() {
+		fmt.Printf("Not initialized, bailing")
+		return
+	}
+	fmt.Printf("Flushing global caches\n")
+	kbCtx.FlushCaches()
+	fmt.Printf("Done flushing global caches\n")
 }

@@ -66,7 +66,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-  KeybaseForceGC();
+  KeybaseExtensionForceGC();
   [super didReceiveMemoryWarning];
 }
 
