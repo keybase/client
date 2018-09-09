@@ -10,6 +10,7 @@
 #import "keybase/keybase.h"
 #import "Pusher.h"
 #import <MobileCoreServices/MobileCoreServices.h>
+#import <AVFoundation/AVFoundation.h>
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget;
@@ -96,22 +97,39 @@
     [super didReceiveMemoryWarning];
 }
 
+- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSData*))resultCb  {
+  NSError *error = NULL;
+  CMTime time = CMTimeMake(1, 1);
+  AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
+  AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+  CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+  [generateImg setMaximumSize:CGSizeMake(640, 640)];
+  CGImageRef cgThumb = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
+  int duration = CMTimeGetSeconds([asset duration]);
+  UIImage* original = [UIImage imageWithCGImage:cgOriginal];
+  UIImage* scaled = [UIImage imageWithCGImage:cgThumb];
+  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
+  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  CGImageRelease(cgOriginal);
+  CGImageRelease(cgThumb);
+}
+
 - (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSData*))resultCb  {
   UIImage* original = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
   CFURLRef cfurl = CFBridgingRetain(url);
   CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
-                    (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
-                    (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
-                    [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
-                    nil];
+                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
+                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                        [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
+                        nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
+  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
+  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
   CGImageRelease(image);
   CFRelease(cfurl);
   CFRelease(is);
-  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
-  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
 }
 
 - (void) maybeCompleteRequest:(BOOL)lastItem {
@@ -143,6 +161,13 @@
     if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
       [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+        NSError* error = NULL;
+        KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
+                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+      }];
+    } else if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
+      // Generate image preview here, since it runs out of memory easy in Go
+      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
         NSError* error = NULL;
         KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);

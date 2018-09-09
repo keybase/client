@@ -361,6 +361,66 @@ func ExtensionPostJPEG(strConvID, name string, public bool, caption string, file
 	return nil
 }
 
+func ExtensionPostVideo(strConvID, name string, public bool, caption string, filename string,
+	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
+	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
+	defer func() { err = flattenError(err) }()
+	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
+
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	uid, err := assertLoggedInUID(ctx, gc)
+	if err != nil {
+		return err
+	}
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		return err
+	}
+
+	vis := keybase1.TLFVisibility_PRIVATE
+	if public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
+		func() chat1.RemoteInterface { return extensionRi })
+	name = restoreName(gc, name)
+
+	// Compute preview result from the native params
+	mimeType := "video/quicktime"
+	previewMimeType := "image/jpeg"
+	location := chat1.NewPreviewLocationWithBytes(previewData)
+	if duration < 1 {
+		// clamp to 1 so we know it is a video, but also not to compute a duration for it
+		duration = 1
+	} else {
+		duration *= 1000
+	}
+	baseMD := chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
+		Width:      baseWidth,
+		Height:     baseHeight,
+		DurationMs: duration,
+	})
+	previewMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+		Width:  previewWidth,
+		Height: previewHeight,
+	})
+	callerPreview := chat1.MakePreviewRes{
+		MimeType:        mimeType,
+		PreviewMimeType: &previewMimeType,
+		Location:        &location,
+		Metadata:        &previewMD,
+		BaseMetadata:    &baseMD,
+	}
+
+	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
+		filename, caption, nil, 0, nil, &callerPreview); err != nil {
+		return err
+	}
+	return nil
+}
+
 func ExtensionPostFile(strConvID, name string, public bool, caption string, filename string,
 	pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
@@ -396,14 +456,12 @@ func ExtensionPostFile(strConvID, name string, public bool, caption string, file
 func ExtensionForceGC() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	fmt.Printf("ALLOC BEFORE: %v\n", m.Alloc)
-	fmt.Printf("SYS BEFORE: %v\n", m.Sys)
+	fmt.Printf("mem stats (before): alloc: %v sys: %v\n", m.Alloc, m.Sys)
 	fmt.Printf("Starting force gc\n")
 	debug.FreeOSMemory()
 	fmt.Printf("Done force gc\n")
 	runtime.ReadMemStats(&m)
-	fmt.Printf("ALLOC AFTER: %v\n", m.Alloc)
-	fmt.Printf("SYS AFTER: %v\n", m.Sys)
+	fmt.Printf("mem stats (after): alloc: %v sys: %v\n", m.Alloc, m.Sys)
 	if !ExtensionIsInited() {
 		fmt.Printf("Not initialized, bailing")
 		return
