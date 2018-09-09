@@ -41,12 +41,16 @@
   return res;
 }
 
+- (BOOL)isRealURL:(NSItemProvider*)item {
+  return (BOOL)([item hasItemConformingToTypeIdentifier:@"public.url"] && ![item hasItemConformingToTypeIdentifier:@"public.file-url"]);
+}
+
 - (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
   NSArray* attachments = [input attachments];
   NSMutableArray* res = [NSMutableArray array];
   NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
-    return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]);
+    return [self isRealURL:a];
   }];
   if (item) {
    [res addObject:item];
@@ -76,7 +80,7 @@
     return [super loadPreviewView];
   }
   NSItemProvider* item = items[0];
-  if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
+  if ([self isRealURL:item]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:^(NSURL *url, NSError *error) {
       dispatch_async(dispatch_get_main_queue(), ^{
         [self.textView setText:[NSString stringWithFormat:@"%@\n%@", self.contentText, [url absoluteString]]];
