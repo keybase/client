@@ -271,12 +271,7 @@ func restoreName(gc *globals.Context, name string) string {
 func ExtensionPostText(strConvID, name string, public bool, body string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	defer func() { err = flattenError(err) }()
-	defer func() {
-		if err == nil {
-			pusher.LocalNotification("extension", "Your message was shared successfully.", -1, "default",
-				strConvID, "chat.extension")
-		}
-	}()
+	defer func() { extensionPushResult(pusher, err, strConvID, "message") }()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -304,16 +299,21 @@ func ExtensionPostText(strConvID, name string, public bool, body string, pusher 
 	return nil
 }
 
+func extensionPushResult(pusher PushNotifier, err error, strConvID, typ string) {
+	var msg string
+	if err != nil {
+		msg = fmt.Sprintf("We could not send your %s. Please try from the Keybase app.", typ)
+	} else {
+		msg = fmt.Sprintf("Your %s was shared successfully.", typ)
+	}
+	pusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
+}
+
 func ExtensionPostJPEG(strConvID, name string, public bool, caption string, filename string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostJPEG", func() error { return err })()
 	defer func() { err = flattenError(err) }()
-	defer func() {
-		if err == nil {
-			pusher.LocalNotification("extension", "Your file was shared successfully.", -1, "default",
-				strConvID, "chat.extension")
-		}
-	}()
+	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
@@ -365,12 +365,7 @@ func ExtensionPostFile(strConvID, name string, public bool, caption string, file
 	pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	defer func() { err = flattenError(err) }()
-	defer func() {
-		if err == nil {
-			pusher.LocalNotification("extension", "Your file was shared successfully.", -1, "default",
-				strConvID, "chat.extension")
-		}
-	}()
+	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,

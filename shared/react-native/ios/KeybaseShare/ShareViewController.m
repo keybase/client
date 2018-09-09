@@ -22,7 +22,7 @@
     return YES;
 }
 
-- (NSItemProvider*)satisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
+- (NSItemProvider*)firstSatisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
   for (NSItemProvider* a in attachments) {
     if (cond(a)) {
       return a;
@@ -31,30 +31,51 @@
   return nil;
 }
 
-- (NSItemProvider*)getFirstSendableAttachment {
+- (NSMutableArray*)allSatisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
+  NSMutableArray* res = [NSMutableArray array];
+  for (NSItemProvider* a in attachments) {
+    if (cond(a)) {
+      [res addObject:a];
+    }
+  }
+  return res;
+}
+
+- (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
   NSArray* attachments = [input attachments];
-  NSItemProvider* item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+  NSMutableArray* res = [NSMutableArray array];
+  NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
     return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.url"] && ![a hasItemConformingToTypeIdentifier:@"public.file-url"]);
   }];
-  if (!item) {
-    item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+  if (item) {
+   [res addObject:item];
+  }
+  if ([res count] == 0) {
+    item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
       return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.text"]);
     }];
+    if (item) {
+      [res addObject:item];
+    }
   }
-  if (!item) {
-    item = [self satisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
-      return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.image"]);
+  if ([res count] == 0) {
+    res = [self allSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
+      return (BOOL)([a hasItemConformingToTypeIdentifier:@"public.image"] || [a hasItemConformingToTypeIdentifier:@"public.movie"]);
     }];
   }
-  if(!item) {
-    item = attachments.firstObject;
+  if([res count] == 0 && attachments.firstObject != nil) {
+    [res addObject:attachments.firstObject];
   }
-  return item;
+  return res;
 }
 
 - (UIView*)loadPreviewView {
-  NSItemProvider* item = [self getFirstSendableAttachment];
+  NSArray* items = [self getSendableAttachments];
+  if ([items count] == 0) {
+    return [super loadPreviewView];
+  }
+  NSItemProvider* item = items[0];
   if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:^(NSURL *url, NSError *error) {
       dispatch_async(dispatch_get_main_queue(), ^{
@@ -89,35 +110,31 @@
   resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
 }
 
-- (void)didSelectPost {
-  if (!self.convTarget) {
-    [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
-    return;
-  }
-  
-  NSItemProvider* item = [self getFirstSendableAttachment];
+- (void) maybeCompleteRequest:(BOOL)lastItem {
+  if (!lastItem) { return; }
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
+  });
+}
+
+- (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   PushNotifier* pusher = [[PushNotifier alloc] init];
-  
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
     KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, pusher, &error);
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
-    }];
+    [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
     KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, text, pusher, &error);
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
-    }];
+    [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
     // Check for no URL
     if (url == nil) {
+      [self maybeCompleteRequest:lastItem];
       return;
     }
-    
     NSString* filePath = [url relativePath];
     if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
@@ -130,9 +147,7 @@
       NSError* error = NULL;
       KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, pusher, &error);
     }
-    [[NSOperationQueue mainQueue] addOperationWithBlock:^{
-      [self.extensionContext completeRequestReturningItems:nil completionHandler:nil];
-    }];
+    [self maybeCompleteRequest:lastItem];
   };
   
   if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
@@ -146,7 +161,25 @@
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:urlHandler];
   } else {
-    [self.extensionContext completeRequestReturningItems:@[] completionHandler:nil];
+    [pusher localNotification:@"extension" msg:@"We failed to send your message. Please try from the Keybase app."
+                   badgeCount:-1 soundName:@"default" convID:@"" typ:@"chat.extension"];
+    [self maybeCompleteRequest:lastItem];
+  }
+}
+
+- (void)didSelectPost {
+  if (!self.convTarget) {
+    [self maybeCompleteRequest:YES];
+    return;
+  }
+  NSArray* items = [self getSendableAttachments];
+  if ([items count] == 0) {
+    [self maybeCompleteRequest:YES];
+    return;
+  }
+  for (int i = 0; i < [items count]; i++) {
+    BOOL lastItem = (BOOL)(i == [items count]-1);
+    [self processItem:items[i] lastItem:lastItem];
   }
 }
 
