@@ -20,7 +20,7 @@ import (
 func NewCmdPGPImport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "import",
-		Usage: "Import a PGP key into keybase",
+		Usage: "Get a PGP secret key (from stdin by default) and add the public half to your Keybase profile",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPImport{Contextified: libkb.NewContextified(g)}, "import", c)
 		},
