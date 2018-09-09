@@ -261,15 +261,21 @@ func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.Remote
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
 }
 
-func restoreName(gc *globals.Context, name string) string {
-	if strings.Contains(name, "#") {
-		return strings.Split(name, "#")[0]
+func restoreName(gc *globals.Context, name string, membersType chat1.ConversationMembersType) string {
+	switch membersType {
+	case chat1.ConversationMembersType_TEAM:
+		if strings.Contains(name, "#") {
+			return strings.Split(name, "#")[0]
+		}
+		return name
+	default:
+		username := gc.GetEnv().GetUsername().String()
+		return name + "," + username
 	}
-	username := gc.GetEnv().GetUsername().String()
-	return name + "," + username
 }
 
-func ExtensionPostText(strConvID, name string, public bool, body string, pusher PushNotifier) (err error) {
+func ExtensionPostText(strConvID, name string, public bool, membersType int,
+	body string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "message") }()
@@ -287,7 +293,7 @@ func ExtensionPostText(strConvID, name string, public bool, body string, pusher 
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			MessageType: chat1.MessageType_TEXT,
-			TlfName:     restoreName(gc, name),
+			TlfName:     restoreName(gc, name, chat1.ConversationMembersType(membersType)),
 			TlfPublic:   public,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -310,7 +316,8 @@ func extensionPushResult(pusher PushNotifier, err error, strConvID, typ string) 
 	pusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
-func ExtensionPostJPEG(strConvID, name string, public bool, caption string, filename string,
+func ExtensionPostJPEG(strConvID, name string, public bool, membersType int,
+	caption string, filename string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostJPEG", func() error { return err })()
 	defer func() { err = flattenError(err) }()
@@ -334,7 +341,7 @@ func ExtensionPostJPEG(strConvID, name string, public bool, caption string, file
 	}
 	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
 		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name)
+	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 
 	// Compute preview result from the native params
 	mimeType := "image/jpeg"
@@ -362,7 +369,8 @@ func ExtensionPostJPEG(strConvID, name string, public bool, caption string, file
 	return nil
 }
 
-func ExtensionPostVideo(strConvID, name string, public bool, caption string, filename string,
+func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
+	caption string, filename string,
 	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
 	defer func() { err = flattenError(err) }()
@@ -386,7 +394,7 @@ func ExtensionPostVideo(strConvID, name string, public bool, caption string, fil
 	}
 	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
 		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name)
+	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 
 	// Compute preview result from the native params
 	mimeType := "video/quicktime"
@@ -422,8 +430,8 @@ func ExtensionPostVideo(strConvID, name string, public bool, caption string, fil
 	return nil
 }
 
-func ExtensionPostFile(strConvID, name string, public bool, caption string, filename string,
-	pusher PushNotifier) (err error) {
+func ExtensionPostFile(strConvID, name string, public bool, membersType int,
+	caption string, filename string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
@@ -445,7 +453,7 @@ func ExtensionPostFile(strConvID, name string, public bool, caption string, file
 	}
 	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
 		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name)
+	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
 		filename, caption, nil, 0, nil, nil); err != nil {
 		return err

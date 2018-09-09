@@ -141,13 +141,16 @@
 
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   PushNotifier* pusher = [[PushNotifier alloc] init];
+  NSString* convID = self.convTarget[@"ConvID"];
+  NSString* name = self.convTarget[@"Name"];
+  NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, pusher, &error);
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, pusher, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    KeybaseExtensionPostText(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, text, pusher, &error);
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], text, pusher, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -162,19 +165,19 @@
       // Generate image preview here, since it runs out of memory easy in Go
       [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostVideo(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
+        KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath,
                                  duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
       [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
+        KeybaseExtensionPostJPEG(convID, name, NO, [membersType longValue], self.contentText, filePath,
                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     }  else {
       NSError* error = NULL;
-      KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, pusher, &error);
+      KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
     }
     [self maybeCompleteRequest:lastItem];
   };
