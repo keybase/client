@@ -55,7 +55,7 @@ const sendPayment = (state: TypedState) =>
       from: state.wallets.buildingPayment.from,
       fromSeqno: '',
       publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
-      quickReturn: false,
+      quickReturn: true,
       secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
       to: state.wallets.buildingPayment.to,
       toIsAccountID: state.wallets.buildingPayment.recipientType !== 'keybaseUser',
