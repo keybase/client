@@ -49,7 +49,6 @@ const setupEngineListeners = () => {
 
   getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', refreshPayments)
   getEngine().setIncomingActionCreators('stellar.1.notify.paymentStatusNotification', refreshPayments)
-  getEngine().setIncomingActionCreators('stellar.1.notify.requestStatusNotification', refreshPayments)
 }
 
 const refreshPayments = ({accountID}) => WalletsGen.createRefreshPayments({accountID})
