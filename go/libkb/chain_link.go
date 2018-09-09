@@ -145,7 +145,7 @@ var badChainLinks = map[keybase1.SigID]string{
 	"e66998426a3bdba3b75aaec84d1fa75494061114abe9983da4e4495821a7ecf40f": fmt.Sprintf(badJamGregory, 18),
 	"bb92cc0c57bf99764b56ab54dbf489527c2744154706c07acd03007dcd7001480f": fmt.Sprintf(badJamGregory, 19),
 	"355e098e9e686dfa4758e25d56c7da58558fae2b281a2c8bcca9ed895f23767a0f": badDens,
-	"b175aaafbab6faf5740334039bb547a626c3b47b3ef4e55032b6aeaf6ce690520f": barAjar,
+	"b175aaafbab6faf5740334039bb547a626c3b47b3ef4e55032b6aeaf6ce690520f": badAjar,
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
