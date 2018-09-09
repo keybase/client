@@ -105,6 +105,7 @@ func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { re
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
+func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -745,6 +746,14 @@ func (e *Env) GetAttachmentHTTPStartPort() int {
 	)
 }
 
+func (e *Env) GetAttachmentDisableMulti() bool {
+	return e.GetBool(false,
+		e.cmd.GetAttachmentDisableMulti,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ATTACHMENT_DISABLE_MULTI") },
+		e.GetConfig().GetAttachmentDisableMulti,
+	)
+}
+
 func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
@@ -1286,6 +1295,7 @@ type AppConfig struct {
 	ChatInboxSourceLocalizeThreads int
 	MobileExtension                bool
 	AttachmentHTTPStartPort        int
+	AttachmentDisableMulti         bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1358,6 +1368,10 @@ func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
 		return c.AttachmentHTTPStartPort, true
 	}
 	return 0, false
+}
+
+func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
+	return c.AttachmentDisableMulti, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

@@ -416,7 +416,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
 	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)

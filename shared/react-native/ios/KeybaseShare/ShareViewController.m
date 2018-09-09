@@ -158,31 +158,31 @@
       return;
     }
     NSString* filePath = [url relativePath];
-    if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+    if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
+      // Generate image preview here, since it runs out of memory easy in Go
+      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+        NSError* error = NULL;
+        KeybaseExtensionPostVideo(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
+                                 duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+      }];
+    } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
       [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
         NSError* error = NULL;
         KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
-    } else if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
-      // Generate image preview here, since it runs out of memory easy in Go
-      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
-        NSError* error = NULL;
-        KeybaseExtensionPostJPEG(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath,
-                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
-      }];
-    } else {
+    }  else {
       NSError* error = NULL;
       KeybaseExtensionPostFile(self.convTarget[@"ConvID"], self.convTarget[@"Name"], NO, self.contentText, filePath, pusher, &error);
     }
     [self maybeCompleteRequest:lastItem];
   };
   
-  if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
-    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
-  } else if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
+  if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
     [item loadItemForTypeIdentifier:@"public.movie" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
+    [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {

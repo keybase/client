@@ -833,3 +833,7 @@ func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
 	return f.GetIntAtPath("attachment_httpsrv_port")
 }
+
+func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
+	return f.GetBoolAtPath("attachment_disable_multi")
+}

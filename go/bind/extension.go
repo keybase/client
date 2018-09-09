@@ -90,6 +90,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		SecurityAccessGroupOverride:    accessGroupOverride,
 		ChatInboxSourceLocalizeThreads: 5,
 		AttachmentHTTPStartPort:        16500,
+		AttachmentDisableMulti:         true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -469,4 +470,6 @@ func ExtensionForceGC() {
 	fmt.Printf("Flushing global caches\n")
 	kbCtx.FlushCaches()
 	fmt.Printf("Done flushing global caches\n")
+	runtime.ReadMemStats(&m)
+	fmt.Printf("mem stats (after flush): alloc: %v sys: %v\n", m.Alloc, m.Sys)
 }

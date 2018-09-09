@@ -92,6 +92,7 @@ type configGetter interface {
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
+	GetAttachmentDisableMulti() (bool, bool)
 }
 
 type CommandLine interface {
