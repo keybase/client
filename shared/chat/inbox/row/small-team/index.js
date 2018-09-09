@@ -75,6 +75,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
         onClick={props.onSelectConversation}
         onMouseLeave={() => this.setState({isHovered: false})}
         onMouseOver={() => this.setState({isHovered: true})}
+        onMouseUp={() => this.setState({isHovered: false})}
         style={collapseStyles([
           {
             backgroundColor: this._backgroundColor(),
