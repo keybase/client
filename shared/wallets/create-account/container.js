@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   _onCreateAccount: (name: string) =>
-    dispatch(WalletsGen.createCreateNewAccount({name, show: routeProps.show})),
+    dispatch(WalletsGen.createCreateNewAccount({name, show: routeProps.get('show')})),
   _onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
