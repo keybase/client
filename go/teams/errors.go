@@ -306,6 +306,24 @@ func (e SubteamOwnersError) Error() string {
 }
 
 // The sigchain link is problematically new.
+type CantVerifyNewLinkAttrsError struct {
+	seqno keybase1.Seqno
+	msg   string
+}
+
+func NewCantVerifyNewLinkAttrsError(seqno keybase1.Seqno) error {
+	return CantVerifyNewLinkAttrsError{seqno: seqno}
+}
+
+func (e CantVerifyNewLinkAttrsError) Error() string {
+	// Report the probable cause for this error.
+	if e.msg == "" {
+		return fmt.Sprintf("client needs to reload the team sigchain to verify new high_skip fields (seqno: %v)", e.seqno)
+	}
+	return e.msg
+}
+
+// The sigchain link is problematically new.
 type GreenLinkError struct {
 	seqno keybase1.Seqno
 	msg   string

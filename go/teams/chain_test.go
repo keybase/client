@@ -205,6 +205,55 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	assertHighSeqForTeam(t, tc, teamID, teamPrevHighSeqno)
 }
 
+// Here we're testing a specific upgrade path. A new client on this code
+// that previously knows nothing about high_skips (i.e. it does not have
+// any hprev details in it's TeamSigchainState) needs to be able to load
+// and validate a new link that has high_skips. To test this, we save the
+// TeamSigchainState before creating a new link. On that saved state, we
+// wipe the high_skip data, and then write that saved state back to the app.
+// The next load of the team will error, but that error should be handled
+// and the team should load correctly.
+func TestTeamSigChainHighLinksUpgradePath(t *testing.T) {
+	tc := SetupTest(t, "team_sig_chain_high_links_upgrade_path", 1)
+	defer tc.Cleanup()
+	ctx := context.TODO()
+
+	// Create a couple users and a team with two links in its chain
+	u2, err := kbtest.CreateAndSignupFakeUser("rg", tc.G) //non-owner
+	require.NoError(t, err)
+	u1, err := kbtest.CreateAndSignupFakeUser("ag", tc.G) //owner
+	require.NoError(t, err)
+	teamName := u1.Username + "y"
+	require.NoError(t, err)
+	teamID, err := CreateRootTeam(ctx, tc.G, teamName, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	_, err = AddMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+
+	t.Logf("verifying the sigchain gets reloaded when it first sees high_skips...")
+	// load the team to get a snapshot of its teamdata. nil out the snapshot's high_skips
+	team, _ := Load(ctx, tc.G, keybase1.LoadTeamArg{
+		Name: teamName,
+	})
+	teamLoader := NewTeamLoaderAndInstall(tc.G)
+	storedTeamData := teamLoader.storage.Get(ctx, team.ID, false)
+	oldTeamData := storedTeamData.DeepCopy()
+	oldTeamData.Chain.LastHighSeqno = 0
+	oldTeamData.Chain.LastHighLinkID = keybase1.LinkID("")
+	// add and verify a new link
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
+	assertHighSeqFromServer(t, tc, teamID, 2, 1)
+	assertHighSeqForTeam(t, tc, teamID, 3)
+	// overwrite with the snapshot, and reload
+	teamLoader.storage.Put(ctx, &oldTeamData)
+	_, err = Load(ctx, tc.G, keybase1.LoadTeamArg{
+		Name:        teamName,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
 func TestTeamSigChainPlay1(t *testing.T) {
 	tc := SetupTest(t, "test_team_chains", 1)
 	defer tc.Cleanup()

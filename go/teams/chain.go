@@ -1640,11 +1640,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 	hPrevInfo := payload.HPrevInfo
 	reverifyNeeded := res.newState.ReverifyNeededForHighSkips()
 	highSkipVerifyDesired := !isInflate && !precheck
-	// If presented with an hPrevInfo, and we are unable to verify it,
-	// but would like to, throw a GreenLinkError to force a repoll.
-	if hPrevInfo != nil && highSkipVerifyDesired && reverifyNeeded {
-		fmt.Printf("THROWING GREEN LINK ERROR! %v\n", payload.Seqno)
-		return res, GreenLinkError{msg: "Did not have information to compute expected team high skip; reverifying."}
+	// If presented with an hPrevInfo, and we are unable to verify it
+	// but would like to, throw a CantVerifyNewLinkAttrsError.
+	if highSkipVerifyDesired && reverifyNeeded {
+		t.G().GetLog().Debug("throwing CantVerifyNewLinkAttrsError for high_skip")
+		return res, NewCantVerifyNewLinkAttrsError(payload.Seqno)
 	}
 	// We only run addInnerLink out of order when inflating, and so we skip
 	// computing high skips during it.

@@ -395,7 +395,7 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 	const nRetries = 3
 	for i := 0; i < nRetries; i++ {
 		res, err = l.load2InnerLockedRetry(ctx, arg)
-		switch err.(type) {
+		switch e := err.(type) {
 		case nil:
 			return res, nil
 		case ProofError:
@@ -417,6 +417,13 @@ func (l *TeamLoader) load2InnerLocked(ctx context.Context, arg load2ArgT) (res *
 			l.G().Log.CDebugf(ctx, "TeamLoader retrying after green link")
 			arg.forceRepoll = true
 			continue
+		case AppendLinkError:
+			if _, ok := e.inner.(CantVerifyNewLinkAttrsError); ok {
+				// force a full reload and try again
+				l.G().Log.CDebugf(ctx, "TeamLoader retrying for new fields")
+				arg.forceFullReload = true
+				continue
+			}
 		}
 		return res, err
 	}
