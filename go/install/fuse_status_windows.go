@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strings"
+	"regexp"
 
 	"github.com/gonutz/w32"
 	"github.com/keybase/client/go/libkb"
@@ -57,6 +57,7 @@ func detectDokanDll(dokanPath string, log Log) bool {
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library"
 // and containing "Bundle"
 func findDokanUninstall(wow64 bool) (result string) {
+	dokanRegexp := regexp.MustCompile("^Dokan Library.*Bundle")
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
 	// Assume this is build 32 bit, so we need this flag to see 64 bit registry
 	//   https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129(v=vs.110).aspx
@@ -83,19 +84,25 @@ func findDokanUninstall(wow64 bool) (result string) {
 		}
 
 		displayName, _, err := subKey.GetStringValue("DisplayName")
-		if err == nil && strings.HasPrefix(displayName, "Dokan Library") && strings.Contains(displayName, "Bundle") {
-
-			fmt.Printf("Found %s  %s\n", displayName, name)
-			result, _, err := subKey.GetStringValue("UninstallString")
-			if err != nil {
-				result, _, err = subKey.GetStringValue("QuietUninstallString")
-			}
-			if err != nil {
-				fmt.Printf("Error %s opening subkey UninstallString", err.Error())
-			} else {
-				return result
-			}
+		if err != nil {
+			// this error is not interesting to log
+			continue
 		}
+		if !dokanRegexp.MatchString(displayName) {
+			continue
+		}
+
+		fmt.Printf("Found %s  %s\n", displayName, name)
+		result, _, err := subKey.GetStringValue("UninstallString")
+		if err != nil {
+			result, _, err = subKey.GetStringValue("QuietUninstallString")
+		}
+		if err != nil {
+			fmt.Printf("Error %s opening subkey UninstallString", err.Error())
+		} else {
+			return result
+		}
+
 	}
 	return
 }
