@@ -19,7 +19,7 @@ const mapStateToProps = (state: TypedState) => {
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
-    dokanUninstallString: state.fs.dokanUninstallString,
+    dokanUninstallString: Constants.kbfsUninstallString(state),
   }
 }
 
@@ -30,7 +30,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => {
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
     _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-    getDokanUninstallString: () => dispatch(FsGen.createGetDokanUninstallString()),
   }
 }
 
@@ -42,7 +41,6 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onUninstall: dispatchProps.onUninstall,
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
-  getDokanUninstallString: dispatchProps.getDokanUninstallString,
   dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })
 
@@ -54,7 +52,6 @@ const ConnectedBanner = isMobile
       lifecycle({
         componentDidMount() {
           this.props.getFuseStatus()
-          this.props.getDokanUninstallString()
         },
       })
     )(Banner)

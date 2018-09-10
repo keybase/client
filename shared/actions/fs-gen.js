@@ -30,8 +30,6 @@ export const folderListLoaded = 'fs:folderListLoaded'
 export const fsError = 'fs:fsError'
 export const fuseStatus = 'fs:fuseStatus'
 export const fuseStatusResult = 'fs:fuseStatusResult'
-export const getDokanUninstallString = 'fs:getDokanUninstallString'
-export const getDokanUninstallStringResult = 'fs:getDokanUninstallStringResult'
 export const installFuse = 'fs:installFuse'
 export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
@@ -121,8 +119,6 @@ type _FuseStatusResultPayload = $ReadOnly<{|
   prevStatus: ?RPCTypes.FuseStatus,
   status: RPCTypes.FuseStatus,
 |}>
-type _GetDokanUninstallStringPayload = void
-type _GetDokanUninstallStringResultPayload = $ReadOnly<{|uninstallString: string|}>
 type _InstallFusePayload = void
 type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
@@ -221,8 +217,6 @@ export const createFolderListLoaded = (payload: _FolderListLoadedPayload) => ({e
 export const createFsError = (payload: _FsErrorPayload) => ({error: false, payload, type: fsError})
 export const createFuseStatus = (payload: _FuseStatusPayload) => ({error: false, payload, type: fuseStatus})
 export const createFuseStatusResult = (payload: _FuseStatusResultPayload) => ({error: false, payload, type: fuseStatusResult})
-export const createGetDokanUninstallString = (payload: _GetDokanUninstallStringPayload) => ({error: false, payload, type: getDokanUninstallString})
-export const createGetDokanUninstallStringResult = (payload: _GetDokanUninstallStringResultPayload) => ({error: false, payload, type: getDokanUninstallStringResult})
 export const createInstallFuse = (payload: _InstallFusePayload) => ({error: false, payload, type: installFuse})
 export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => ({error: false, payload, type: installFuseResult})
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
@@ -273,8 +267,6 @@ export type FolderListLoadedPayload = $Call<typeof createFolderListLoaded, _Fold
 export type FsErrorPayload = $Call<typeof createFsError, _FsErrorPayload>
 export type FuseStatusPayload = $Call<typeof createFuseStatus, _FuseStatusPayload>
 export type FuseStatusResultPayload = $Call<typeof createFuseStatusResult, _FuseStatusResultPayload>
-export type GetDokanUninstallStringPayload = $Call<typeof createGetDokanUninstallString, _GetDokanUninstallStringPayload>
-export type GetDokanUninstallStringResultPayload = $Call<typeof createGetDokanUninstallStringResult, _GetDokanUninstallStringResultPayload>
 export type InstallFusePayload = $Call<typeof createInstallFuse, _InstallFusePayload>
 export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _InstallFuseResultPayload>
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
@@ -327,8 +319,6 @@ export type Actions =
   | FsErrorPayload
   | FuseStatusPayload
   | FuseStatusResultPayload
-  | GetDokanUninstallStringPayload
-  | GetDokanUninstallStringResultPayload
   | InstallFusePayload
   | InstallFuseResultPayload
   | InstallKBFSPayload

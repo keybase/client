@@ -107,8 +107,6 @@
     },
     "installKBFS": {},
     "uninstallKBFSConfirm": {},
-    "getDokanUninstallString": {},
-    "getDokanUninstallStringResult": {"uninstallString": "string"},
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },
