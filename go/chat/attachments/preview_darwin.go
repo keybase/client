@@ -24,6 +24,7 @@ void MakeVideoThumbnail(const char* inFilename) {
 
 	AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:videoURL options:nil];
 	AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+	[generateImg setAppliesPreferredTrackTransform:YES];
 	NSError *error = NULL;
 	CMTime time = CMTimeMake(1, 1);
 	CGImageRef image = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
