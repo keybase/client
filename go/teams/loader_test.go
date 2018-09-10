@@ -939,3 +939,34 @@ func TestLoaderCORE_8445(t *testing.T) {
 	require.NotNil(t, subB.Data.ReaderKeyMasks)
 	require.Len(t, subB.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 1, "number of chat rkms")
 }
+
+// Earlier versions of the app didn't store the merkle head in the TeamChainState, but
+// we need it to perform an audit. This code tests the path that refetches that data
+// from the server.
+func TestLoaderUpgradeMerkleHead(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	tc.G.Env.Test.TeamNoHeadMerkleStore = true
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("create a team")
+	teamName, teamID := createTeam2(tc)
+
+	t.Logf("load the team")
+	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("load the team again")
+	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+}

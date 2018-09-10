@@ -452,6 +452,12 @@ protocol teams {
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
     map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
+
+    // The head merkle object is the merkle root signed into the head of the team
+    // It was rolled out in 2018-09, so isn't available for all stored copies
+    // of TeamSigChainState. Thus, if you need it, you should check if it's there,
+    // and if not, fetch the chainlink from the server and check against linksIDs[1].
+    union { null, MerkleRootV2 } headMerkle;
   }
 
   // The team got this name at this point in time.
