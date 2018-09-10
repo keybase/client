@@ -252,8 +252,8 @@ const itemStylesKeybase = {
   textType: folderTextType,
 }
 
-const getIconSpecFromUsernames = (usernames?: ?Array<string>, me?: ?string) => {
-  return !usernames || usernames.length === 0
+const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
+  return usernames.length === 0
     ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
     : usernames.length === 1
       ? makeAvatarPathItemIconSpec(usernames[0])
@@ -262,7 +262,7 @@ const getIconSpecFromUsernames = (usernames?: ?Array<string>, me?: ?string) => {
 export const getIconSpecFromUsernamesAndTeamname = (usernames: ?Array<string>, teamname: ?string, me?: ?string) => {
   return teamname && teamname.length > 0
     ? makeTeamAvatarPathItemIconSpec(teamname)
-    : getIconSpecFromUsernames(usernames, me)
+    : getIconSpecFromUsernames(usernames || [], me)
 }
 const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf

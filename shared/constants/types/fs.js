@@ -210,8 +210,10 @@ export type TlfUpdate = I.RecordOf<_TlfUpdate>
 
 export type UserTlfUpdates = I.List<TlfUpdate>
 
+export type PathItems = I.Map<Path, PathItem>
+
 export type _State = {
-  pathItems: I.Map<Path, PathItem>,
+  pathItems: PathItems,
   tlfs: Tlfs,
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,

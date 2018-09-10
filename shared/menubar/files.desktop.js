@@ -18,7 +18,7 @@ type FileUpdatesProps = {|
   moreUpdateCount?: number,
 |}
 
-type UserTlfUpdateRowProps = {|
+export type UserTlfUpdateRowProps = {|
   // TODO: uncomment once we make this.
   // ...$Exact<RemoteContainer.RemoteTlfMeta>,
   tlf: string,
