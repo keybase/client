@@ -40,17 +40,15 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  return {
-    ...ownProps,
-    copyToClipboard: dispatchProps.copyToClipboard,
-    daemonError: stateProps.daemonError,
-    debugDump: stateProps.debugDump,
-    error: stateProps.error,
-    onDismiss: dispatchProps.onDismiss,
-    onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
-  }
-}
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...ownProps,
+  copyToClipboard: dispatchProps.copyToClipboard,
+  daemonError: stateProps.daemonError,
+  debugDump: stateProps.debugDump,
+  error: stateProps.error,
+  onDismiss: dispatchProps.onDismiss,
+  onFeedback: () => dispatchProps.onFeedback(stateProps._loggedIn),
+})
 
 const Connected = connect(mapStateToProps, mapDispatchToProps, mergeProps)(GlobalError)
 export default Connected
