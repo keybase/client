@@ -305,12 +305,12 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function* uninstallDokanSaga() {
-  const state: TypedState = yield Saga.select()
+const uninstallDokanPromise = (state: TypedState) => {
   const uninstallString = Constants.kbfsUninstallString(state)
   if (uninstallString) {
-    yield Saga.call(uninstallDokan, uninstallString)
+    return uninstallDokan(uninstallString)
   }
+  return new Promise(resolve => resolve())
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -347,7 +347,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
     yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)

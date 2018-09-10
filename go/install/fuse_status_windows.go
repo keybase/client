@@ -58,7 +58,7 @@ func detectDokanDll(dokanPath string, log Log) bool {
 // and containing "Bundle"
 func findDokanUninstall(wow64 bool) (result string) {
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
-	// Assume this is build 32 bit, so we need this flag to see 64 but registry
+	// Assume this is build 32 bit, so we need this flag to see 64 bit registry
 	//   https://msdn.microsoft.com/en-us/library/windows/desktop/aa384129(v=vs.110).aspx
 	if wow64 {
 		access = access | registry.WOW64_64KEY
