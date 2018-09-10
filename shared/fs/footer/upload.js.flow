@@ -4,7 +4,7 @@ import * as React from 'react'
 export type UploadProps = {
   showing: boolean,
   files: number,
-  filePaths: string,
+  fileName: string,
   totalSyncingBytes: number,
   timeLeft: string,
   debugToggleShow?: () => void,

@@ -36,19 +36,27 @@ const realCSS = `
   top: ${height}px;
   transition: all .3s ${easing};
 }
+.text-overflow {
+  color: ${globalColors.white};
+  max-width: 60vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
 `
 
-const Upload = ({showing, files, filePaths, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
+const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
   return (
     <React.Fragment>
       {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
       <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
         <Box className="upload-animation-loop" style={stylesBox}>
           <style>{realCSS}</style>
-          <Text key="files" type="BodySemibold" style={stylesTextElipsis}>
+          <Text key="files" type="BodySemibold" className="text-overflow">
             {files
-              ? filePaths && filePaths.count() === 1
-                ? `Encrypting and uploading ${getPathName(filePaths.first())}...`
+              ? fileName
+                ? `Encrypting and uploading ${getPathName(fileName)}...`
                 : `Encrypting and uploading ${files} files...`
               : totalSyncingBytes
                 ? 'Encrypting and uploading...'
@@ -66,15 +74,6 @@ const Upload = ({showing, files, filePaths, totalSyncingBytes, timeLeft, debugTo
 const stylesText = {
   color: globalColors.white,
 }
-
-const stylesTextElipsis = `
-  color: globalColors.white;
-  max-width: '60vw';
-  white-space: 'nowrap';
-  overflow: 'hidden';
-  text-overflow: 'ellipsis';
-  text-align: 'center';
-`
 
 const stylesBox = {
   ...globalStyles.flexBoxColumn,

@@ -4,6 +4,7 @@ import * as Types from '../../constants/types/fs'
 import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
+import {unknownPathItem} from '../../constants/fs'
 
 const mapStateToProps = (state: TypedState) => ({
   _uploads: state.fs.uploads,
@@ -35,16 +36,16 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
-  const folders = _pathItems.filter(path => path.type === 'folder')
-  const uploadPaths = _uploads.syncingPaths // get array of paths
-  const filePaths = uploadPaths.filter(item => !folders.get(item))
+  const filePaths = _uploads.syncingPaths.filter(
+    path => _pathItems.get(path, unknownPathItem).type !== 'folder'
+  )
 
   return ({
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    files: _uploads.syncingPaths.size,
-    filePaths,
+    files: filePaths.size,
+    fileName: filePaths.size === 1 ? filePaths.first() : undefined,
     endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
     totalSyncingBytes: _uploads.totalSyncingBytes,
     debugToggleShow,
