@@ -249,6 +249,7 @@ export {
   showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
+  uiPaymentInfoToChatPaymentInfo,
   upgradeMessage,
 } from './message'
 
