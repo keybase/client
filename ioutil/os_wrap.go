@@ -42,9 +42,17 @@ func Mkdir(path string, perm os.FileMode) error {
 
 // MkdirAll wraps MkdirAll from "os".
 func MkdirAll(path string, perm os.FileMode) error {
+	twoAttempts := false
 	err := os.MkdirAll(path, perm)
+	// KBFS-3245: Simple workaround for test flake where a directory
+	// seems to disappear out from under us.
+	if os.IsNotExist(err) {
+		twoAttempts = true
+		err = os.MkdirAll(path, perm)
+	}
 	if err != nil {
-		return errors.Wrapf(err, "failed to mkdir (all) %q", path)
+		return errors.Wrapf(err,
+			"failed to mkdir (all) %q, twoAttempts=%t", path, twoAttempts)
 	}
 
 	return nil
