@@ -192,8 +192,15 @@ type TestParameters struct {
 	// whacky tests liks TestRekey).
 	UseTimeClockForNISTs bool
 
-	// TeamNoHeadMerkleStore
+	// TeamNoHeadMerkleStore is used for testing to emulate older clients
+	// that didn't store the head merkle sequence to team chain state. We
+	// have an upgrade path in the code that we'd like to test.
 	TeamNoHeadMerkleStore bool
+
+	// TeamSkipAudit is on because some team chains are "canned" and therefore
+	// might point off of the merkle sequence in the database. So it's just
+	// easiest to skip the audit in those cases.
+	TeamSkipAudit bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {

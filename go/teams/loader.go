@@ -1453,6 +1453,11 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
 	mctx := libkb.NewMetaContext(ctx, l.G())
 
+	if l.G().Env.Test.TeamSkipAudit {
+		mctx.CDebugf("skipping audit in test due to flag")
+		return nil
+	}
+
 	headMerklSeqno, err := l.getHeadMerkleSeqno(mctx, readSubteamID, state)
 	if err != nil {
 		return err
