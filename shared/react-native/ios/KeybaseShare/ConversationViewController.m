@@ -27,14 +27,6 @@ const BOOL isSimulator = NO;
 - (void)viewDidLoad {
   [super viewDidLoad];
   
-  NSError* error = NULL;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
-  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
-  if (error != nil) {
-    NSLog(@"Failed to init: %@", error);
-    return;
-  }
-  
   self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
   self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
   self.searchController.searchResultsUpdater = self;
@@ -42,15 +34,49 @@ const BOOL isSimulator = NO;
   self.searchController.dimsBackgroundDuringPresentation = false;
   self.definesPresentationContext = YES;
   [self.tableView setTableHeaderView:self.searchController.searchBar];
-  [self setUnfilteredInboxItems:[NSArray new]];
-  [self setFilteredInboxItems:[NSArray new]];
   
-  NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
-  if (jsonInbox == nil) {
-    NSLog(@"failed to get inbox: %@", error);
-  } else {
-    [self parseInbox:jsonInbox];
-  }
+  UIActivityIndicatorView* av = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+  [self.view addSubview:av];
+  [av setTranslatesAutoresizingMaskIntoConstraints:NO];
+  [av setHidesWhenStopped:YES];
+  [av bringSubviewToFront:self.view];
+  [av startAnimating];
+  [self.tableView addConstraints:@[
+     [NSLayoutConstraint constraintWithItem:av
+                                  attribute:NSLayoutAttributeCenterX
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.tableView
+                                  attribute:NSLayoutAttributeCenterX
+                                 multiplier:1 constant:0],
+     [NSLayoutConstraint constraintWithItem:av
+                                  attribute:NSLayoutAttributeCenterY
+                                  relatedBy:NSLayoutRelationEqual
+                                     toItem:self.tableView
+                                  attribute:NSLayoutAttributeCenterY
+                                 multiplier:1 constant:0]
+     ]
+   ];
+  
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSError* error = NULL;
+    NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
+    if (error != nil) {
+      NSLog(@"Failed to init: %@", error);
+      return;
+    }
+   
+    [self setUnfilteredInboxItems:[NSArray new]];
+    [self setFilteredInboxItems:[NSArray new]];
+    NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
+    if (jsonInbox == nil) {
+      NSLog(@"failed to get inbox: %@", error);
+    } else {
+      [self parseInbox:jsonInbox];
+    }
+    [av stopAnimating];
+    [self.tableView reloadData];
+  });
 }
 
 - (void)parseInbox:(NSString*)jsonInbox {
