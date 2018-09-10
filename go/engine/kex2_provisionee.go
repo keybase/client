@@ -334,11 +334,18 @@ func (e *Kex2Provisionee) handleDidCounterSign(m libkb.MetaContext, sig []byte, 
 		return err
 	}
 
-	// store the ephemeralkeys, if any. If this fails after we have posted the
-	// client will no not have access to the userEK it was just reboxed for
-	// unfortunately. Without any EKs, the normal generation machinery will
-	// take over and they will make a new userEK
-	return e.ekReboxer.storeEKs(m)
+	// Store the ephemeralkeys, if any. If this fails after we have
+	// posted the client will not have access to the userEK it was
+	// just reboxed for unfortunately. Without any EKs, the normal
+	// generation machinery will take over and they will make a new
+	// userEK.
+	if err := e.ekReboxer.storeEKs(m); err != nil {
+		// Swallow the error - provisioning has already happened and
+		// we've already save the config, there's no going back.
+		m.CDebugf("Unable to store EKs: %s", err)
+	}
+
+	return nil
 }
 
 // updateTemporarySession commits the session token and csrf token to our temporary session,

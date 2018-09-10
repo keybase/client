@@ -106,6 +106,7 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	// transaction.
 	defer func() {
 		if tx != nil {
+			tx.Rollback()
 			tx.Abort()
 		}
 	}()

@@ -156,7 +156,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     // Upgrades currently unsupported for Fuse if there are mounts
     if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
       DDLogError(@"Fuse needs upgrade but not supported yet if mounts are present");
-      completion(nil);
+      completion(KBMakeError(KBErrorCodeFuseKextMountsPresent, @"mounts are present"));
       return;
     }
 

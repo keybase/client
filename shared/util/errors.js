@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {capitalize} from 'lodash-es'
 import {errors as transportErrors} from 'framed-msgpack-rpc'
+import ff from './feature-flags'
 
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
@@ -130,12 +131,14 @@ export const niceError = (e: RPCError) => {
 
 export function isErrorTransient(error: RPCError | Error) {
   if (
+    !ff.admin &&
     error.code &&
     error.code === transportErrors['EOF'] &&
     error.message === transportErrors.msg[error.code]
   ) {
-    // 'EOF from server' error from rpc library thrown when service restarts
-    // no need to show to user
+    // 'EOF from server' error from rpc library thrown when service
+    // restarts no need to show to user, except for when we're in an
+    // admin build (since unexpected EOFs could indicate a bug)
     return true
   }
   return false
