@@ -39,11 +39,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => {
     onUsernameClicked = dispatchProps.onOpenTracker
   } else if (ownProps.onUsernameClicked === 'profile') {
     onUsernameClicked = dispatchProps.onOpenProfile
-  } else {
+  } else if (typeof onUsernameClicked === 'function') {
     onUsernameClicked = ownProps.onUsernameClicked
   }
 
-  // $FlowIssue for some reason, Flow seems to think that onUsernameClicked can be "tracker" or "profile", even though we've explicitly overridden those
+  // $FlowIssue for some reason, Flow seems to think that onUsernameClicked can be "tracker" or "profile", even though we've explicitly overridden those and made clear ownProps.onUsernameClicked has to be a function.
   const props: Props = {...ownProps, onUsernameClicked, users: userData}
 
   return props
