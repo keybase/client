@@ -37,7 +37,7 @@ const realCSS = `
 }
 .text-overflow {
   color: ${globalColors.white};
-  max-width: 60vw;
+  max-width: 60%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
