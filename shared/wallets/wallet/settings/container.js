@@ -6,11 +6,9 @@ import {
   lifecycle,
   setDisplayName,
   safeSubmit,
-  safeSubmitPerMount,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -34,7 +32,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigateAppend}) => {
   return {
     _onBack: (accountID: Types.AccountID) => {
       dispatch(navigateUp())
@@ -86,6 +84,5 @@ export default compose(
     },
   }),
   setDisplayName('Settings'),
-  safeSubmit(['onCurrencyChange'], ['currency']),
-  safeSubmitPerMount(['onBack'])
+  safeSubmit(['onCurrencyChange'], ['currency'])
 )(Settings)
