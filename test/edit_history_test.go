@@ -326,6 +326,11 @@ func TestEditHistoryUnflushed(t *testing.T) {
 			flushJournal(),
 		),
 		as(alice,
+			// Extra flush to make sure the edit history messages have
+			// been received by all users.
+			flushJournal(),
+		),
+		as(alice,
 			checkUserEditHistory(expectedEdits3),
 		),
 		as(bob,
