@@ -38,6 +38,8 @@ func NewRandomPortListenerSource() *RandomPortListenerSource {
 	return &RandomPortListenerSource{}
 }
 
+var ErrPinnedPortInUse = errors.New("unable to bind to pinned port")
+
 // PortRangeListenerSource means listen on the given range.
 type PortRangeListenerSource struct {
 	sync.Mutex
@@ -64,27 +66,23 @@ func NewFixedPortListenerSource(port int) *PortRangeListenerSource {
 func (p *PortRangeListenerSource) GetListener() (listener net.Listener, address string, err error) {
 	p.Lock()
 	defer p.Unlock()
-	var errMsg string
 	localhost := "127.0.0.1"
 	if p.pinnedPort > 0 {
 		address = fmt.Sprintf("%s:%d", localhost, p.pinnedPort)
+		if listener, err = net.Listen("tcp", address); err != nil {
+			return listener, address, ErrPinnedPortInUse
+		}
+		return listener, address, nil
+	}
+	for port := p.low; port <= p.high; port++ {
+		address = fmt.Sprintf("%s:%d", localhost, port)
 		listener, err = net.Listen("tcp", address)
 		if err == nil {
+			p.pinnedPort = port
 			return listener, address, nil
 		}
-		errMsg = fmt.Sprintf("failed to bind to pinned port: %d err: %s", p.pinnedPort, err)
-	} else {
-		for port := p.low; port <= p.high; port++ {
-			address = fmt.Sprintf("%s:%d", localhost, port)
-			listener, err = net.Listen("tcp", address)
-			if err == nil {
-				p.pinnedPort = port
-				return listener, address, nil
-			}
-		}
-		errMsg = "failed to bind to port in range"
 	}
-	return listener, address, errors.New(errMsg)
+	return listener, address, errors.New("failed to bind to port in range")
 }
 
 var errAlreadyRunning = errors.New("http server already running")
