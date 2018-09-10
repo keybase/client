@@ -12,7 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   renameAccountError: state.wallets.createNewAccountError,
-  waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
+  waiting: anyWaiting(state, Constants.changeAccountNameWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({

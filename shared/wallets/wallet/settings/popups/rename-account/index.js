@@ -32,10 +32,6 @@ class RenameAccountPopup extends React.Component<Props> {
     )
   }
 
-  _onCheckName = () => {
-    this.props.onCheckName(this.props.name)
-  }
-
   componentDidMount() {
     this.props.onClearErrors()
   }

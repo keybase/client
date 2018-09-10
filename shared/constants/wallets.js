@@ -261,6 +261,7 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
   return p.delta === 'increase' ? 'receiver' : 'sender'
 }
 
+const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
@@ -323,6 +324,7 @@ export {
   accountResultToAccount,
   assetsResultToAssets,
   currenciesResultToCurrencies,
+  changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
