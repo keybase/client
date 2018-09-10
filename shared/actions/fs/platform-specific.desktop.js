@@ -288,7 +288,7 @@ function installCachedDokan() {
   })
 }
 
-function uninstallDokan(uninstallString: string): boolean {
+function uninstallDokan(uninstallString: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan uninstaller')
     try {
