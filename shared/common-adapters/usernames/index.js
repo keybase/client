@@ -45,29 +45,6 @@ export type PlaintextProps = {
   title?: string,
 }
 
-export type ConnectedProps = {|
-  backgroundMode?: Background,
-  colorBroken?: boolean,
-  colorFollowing?: boolean,
-  colorYou?: boolean | string,
-  commaColor?: string,
-  containerStyle?: Styles.StylesCrossPlatform,
-  inline?: boolean,
-  inlineGrammar?: boolean,
-  joinerStyle?: Styles.StylesCrossPlatform,
-  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile',
-  prefix?: ?string,
-  redColor?: string,
-  showAnd?: boolean,
-  skipSelf?: boolean,
-  style?: Styles.StylesCrossPlatform,
-  suffix?: ?string,
-  title?: string,
-  type: TextType,
-  underline?: boolean,
-  usernames: Array<string>,
-|}
-
 function UsernameText(props: Props) {
   const derivedJoinerStyle = Styles.collapseStyles([
     props.joinerStyle,

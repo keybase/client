@@ -1,6 +1,7 @@
 // @flow
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
+import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
 import * as _CopyText from '../common-adapters/copy-text'
@@ -21,7 +22,7 @@ const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
-  Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
+  Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
     const {usernames, onUsernameClicked, ...props} = ownProps
     const users = (usernames || [])
       .map(username => ({username, following: following.includes(username), you: username === you}))

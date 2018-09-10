@@ -3,7 +3,32 @@ import {compose, connect, setDisplayName} from '../../util/container'
 import {type TypedState} from '../../constants/reducer'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
-import {Usernames, type Props, type ConnectedProps} from '.'
+import * as Styles from '../../styles'
+import type {TextType, Background} from '../text'
+import {Usernames, type Props} from '.'
+
+export type ConnectedProps = {|
+  backgroundMode?: Background,
+  colorBroken?: boolean,
+  colorFollowing?: boolean,
+  colorYou?: boolean | string,
+  commaColor?: string,
+  containerStyle?: Styles.StylesCrossPlatform,
+  inline?: boolean,
+  inlineGrammar?: boolean,
+  joinerStyle?: Styles.StylesCrossPlatform,
+  onUsernameClicked?: ((username: string) => void) | 'tracker' | 'profile',
+  prefix?: ?string,
+  redColor?: string,
+  showAnd?: boolean,
+  skipSelf?: boolean,
+  style?: Styles.StylesCrossPlatform,
+  suffix?: ?string,
+  title?: string,
+  type: TextType,
+  underline?: boolean,
+  usernames: Array<string>,
+|}
 
 // Connected username component
 // instead of username objects supply array of username strings & this will fill in the rest
