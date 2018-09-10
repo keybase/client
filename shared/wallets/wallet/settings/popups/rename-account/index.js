@@ -17,7 +17,7 @@ type Props = {|
   waiting: boolean,
 |}
 
-class RenameAccount extends React.Component<Props> {
+class RenameAccountPopup extends React.Component<Props> {
   render() {
     return (
       <EnterNamePopup
@@ -50,4 +50,4 @@ class RenameAccount extends React.Component<Props> {
   }
 }
 
-export default RenameAccount
+export default RenameAccountPopup

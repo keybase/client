@@ -27,53 +27,52 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     currency,
     isDefault: account.isDefault,
     name,
-    onEditName: () => {},
     user,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
-  return {
-    _onBack: (accountID: Types.AccountID) => {
-      dispatch(navigateUp())
-      dispatch(WalletsGen.createRefreshPayments({accountID}))
-    },
-    _refresh: () => {
-      dispatch(WalletsGen.createLoadDisplayCurrencies())
-      dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
-    },
-    _onDelete: (accountID: Types.AccountID) =>
-      dispatch(
-        navigateAppend([
-          {
-            props: {accountID},
-            selected: 'removeAccount',
-          },
-        ])
-      ),
-    _onSetDefault: (accountID: Types.AccountID) =>
-      dispatch(
-        navigateAppend([
-          {
-            props: {accountID},
-            selected: 'setDefaultAccount',
-          },
-        ])
-      ),
-    _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
-      dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
-    onAddNew: () => {},
-  }
-}
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+  _onBack: (accountID: Types.AccountID) => {
+    dispatch(navigateUp())
+    dispatch(WalletsGen.createRefreshPayments({accountID}))
+  },
+  _refresh: () => {
+    dispatch(WalletsGen.createLoadDisplayCurrencies())
+    dispatch(WalletsGen.createLoadDisplayCurrency({accountID: routeProps.get('accountID')}))
+  },
+  _onDelete: (accountID: Types.AccountID) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {accountID},
+          selected: 'removeAccount',
+        },
+      ])
+    ),
+  _onSetDefault: (accountID: Types.AccountID) =>
+    dispatch(
+      navigateAppend([
+        {
+          props: {accountID},
+          selected: 'setDefaultAccount',
+        },
+      ])
+    ),
+  _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
+    dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
+  _onEditName: (accountID: Types.AccountID) =>
+    dispatch(navigateAppend([{props: {accountID}, selected: 'renameAccount'}])),
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
   onBack: () => dispatchProps._onBack(stateProps.accountID),
-  refresh: () => dispatchProps._refresh(),
-  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onCurrencyChange: (code: Types.CurrencyCode) =>
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
+  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
+  onEditName: () => dispatchProps._onEditName(stateProps.accountID),
+  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
+  refresh: () => dispatchProps._refresh(),
 })
 
 export default compose(
