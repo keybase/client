@@ -22,8 +22,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps) => ({
   onViewAll: dispatchProps.onViewAll,
   loadTlfUpdates: dispatchProps.loadTlfUpdates,
-  // TODO: fix this slice once the UI is fixed.
-  userTlfUpdates: stateProps._userTlfUpdates.slice(0, 2).map(c => {
+  userTlfUpdates: stateProps._userTlfUpdates.map(c => {
     console.log(c.tlf)
     const tlf = FsTypes.pathToString(c.tlf)
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
