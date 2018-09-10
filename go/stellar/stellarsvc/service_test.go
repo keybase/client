@@ -36,6 +36,8 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 
+	tc.G.SetService()
+
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 
 	return tc
@@ -798,6 +800,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
 		tc2.Srv = New(tc.G, newTestUISource(), rcm)
+		stellar.ServiceInit(tc.G, rcm)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

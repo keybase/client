@@ -455,6 +455,8 @@ func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoa
 func (s *shoppingList) computeFreshLoad(m libkb.MetaContext, arg fastLoadArg) {
 	s.needRefresh = true
 	s.applications = append([]keybase1.TeamApplication{}, arg.Applications...)
+	s.downPointers = append([]keybase1.Seqno{}, arg.downPointersNeeded...)
+	s.generations = append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
 }
 
 // applicationsToString converts the list of applications to a comma-separated string.
@@ -729,9 +731,16 @@ func (f *FastTeamChainLoader) checkPrevs(m libkb.MetaContext, last *keybase1.Lin
 
 // audit runs probabilistic merkle tree audit on the new links, to make sure that the server isn't
 // running odd-even-style attacks against members in a group.
-// TODO, see CORE-8466
-func (f *FastTeamChainLoader) audit(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, newLinks []*ChainLinkUnpacked) (err error) {
-	return nil
+func (f *FastTeamChainLoader) audit(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) (err error) {
+	head, ok := state.Chain.MerkleInfo[1]
+	if !ok {
+		return NewAuditError("cannot run audit without merkle info for head")
+	}
+	last := state.Chain.Last
+	if last == nil {
+		return NewAuditError("cannot run audit, no last chain data")
+	}
+	return m.G().GetTeamAuditor().AuditTeam(m, arg.ID, arg.Public, head, state.Chain.LinkIDs, last.Seqno)
 }
 
 // readDownPointer reads a down pointer out of a given link, if it's unstubbed. Down pointers
@@ -763,6 +772,15 @@ func readDownPointer(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.Do
 		NameComponent: lastPart,
 		IsDeleted:     del,
 	}, nil
+}
+
+// readMerkleRoot reads the merkle root out of the link if this link is unstubbed.
+func readMerkleRoot(m libkb.MetaContext, link *ChainLinkUnpacked) (*keybase1.MerkleRootV2, error) {
+	if link.inner == nil {
+		return nil, nil
+	}
+	ret := link.inner.Body.MerkleRoot.ToMerkleRootV2()
+	return &ret, nil
 }
 
 // readUpPointer reads an up pointer out the given link, if it's unstubbed. Up pointers are
@@ -877,6 +895,13 @@ func (f *FastTeamChainLoader) putLinks(m libkb.MetaContext, arg fastLoadArg, sta
 		if ptk != nil {
 			state.Chain.PerTeamKeys[ptk.Gen] = *ptk
 		}
+		merkleRoot, err := readMerkleRoot(m, link)
+		if err != nil {
+			return err
+		}
+		if merkleRoot != nil {
+			state.Chain.MerkleInfo[link.Seqno()] = *merkleRoot
+		}
 	}
 	newLast := newLinks[len(newLinks)-1]
 	if state.Chain.Last == nil || state.Chain.Last.Seqno < newLast.Seqno() {
@@ -946,6 +971,7 @@ func makeState(arg fastLoadArg, s *keybase1.FastTeamData) *keybase1.FastTeamData
 			PerTeamKeySeedsVerified: make(map[keybase1.PerTeamKeyGeneration]keybase1.PerTeamKeySeed),
 			DownPointers:            make(map[keybase1.Seqno]keybase1.DownPointer),
 			LinkIDs:                 make(map[keybase1.Seqno]keybase1.LinkID),
+			MerkleInfo:              make(map[keybase1.Seqno]keybase1.MerkleRootV2),
 		},
 	}
 }
@@ -980,13 +1006,13 @@ func (f *FastTeamChainLoader) refresh(m libkb.MetaContext, arg fastLoadArg, stat
 		return nil, err
 	}
 
-	// peform a probabilistic audit on the new links
-	err = f.audit(m, arg.ID, arg.Public, groceries.newLinks)
+	err = f.mutateState(m, arg, state, groceries)
 	if err != nil {
 		return nil, err
 	}
 
-	err = f.mutateState(m, arg, state, groceries)
+	// peform a probabilistic audit on the new links
+	err = f.audit(m, arg, state)
 	if err != nil {
 		return nil, err
 	}

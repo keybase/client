@@ -4,6 +4,7 @@ import {Box2, Text, Button, Icon} from '../../../../common-adapters'
 import {styleSheetCreate, platformStyles, globalColors, globalMargins} from '../../../../styles'
 
 type Props = {
+  isError: boolean,
   isLoading: boolean,
   onStart: () => void,
   participants: string,
@@ -25,6 +26,16 @@ const StartConversation = (props: Props) => (
       />
     </Button>
     {props.showAddParticipants && <Text type="BodySmall">or add more participants.</Text>}
+    {props.isError && (
+      <React.Fragment>
+        <Text style={styles.error} type="Body">
+          An error occurred while creating the conversation, please try again.
+        </Text>
+        <Text style={styles.error} type="Body">
+          If the problem persists, please send us feedback.
+        </Text>
+      </React.Fragment>
+    )}
   </Box2>
 )
 
@@ -50,6 +61,9 @@ const styles = styleSheetCreate({
   },
   spacer: {
     flex: 1,
+  },
+  error: {
+    color: globalColors.red,
   },
 })
 

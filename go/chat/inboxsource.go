@@ -936,6 +936,22 @@ func (s *HybridInboxSource) SetConvSettings(ctx context.Context, uid gregor1.UID
 	})
 }
 
+func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convIDs []chat1.ConversationID) (convs []chat1.ConversationLocal, err error) {
+	defer s.Trace(ctx, func() error { return err }, "SubteamRename")()
+	ib := storage.NewInbox(s.G(), uid)
+	if cerr := ib.SubteamRename(ctx, vers, convIDs); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return nil, err
+	}
+	if convs, err = s.getConvsLocal(ctx, uid, convIDs); err != nil {
+		s.Debug(ctx, "SubteamRename: unable to load conversations: convIDs: %v err: %s",
+			convIDs, err.Error())
+		return nil, nil
+	}
+	return convs, nil
+}
+
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
 	mod func(context.Context, *storage.Inbox) error) (
 	conv *chat1.ConversationLocal, err error) {
@@ -1308,14 +1324,27 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS name. Only attempt
-	// this if we are online
+	// Only do this check if there is a chance the TLF name might be an SBS
+	// name. Only attempt this if we are online
 	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-		info, err := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType()).LookupID(ctx,
-			conversationLocal.Info.TLFNameExpanded(),
-			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
-		if err != nil {
-			errMsg := err.Error()
+		infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
+		var info *types.NameInfo
+		var ierr error
+		// If we are of type TEAM, it's possible that our subteam has been
+		// renamed so we have to rely on the Tlfid, not the TLFName to get the
+		// latest info.
+		switch conversationRemote.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			info, ierr = infoSource.LookupName(ctx,
+				conversationLocal.Info.Triple.Tlfid,
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		default:
+			info, ierr = infoSource.LookupID(ctx,
+				conversationLocal.Info.TLFNameExpanded(),
+				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+		}
+		if ierr != nil {
+			errMsg := ierr.Error()
 			conversationLocal.Error = chat1.NewConversationErrorLocal(
 				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT,
 				nil)

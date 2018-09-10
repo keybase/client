@@ -793,6 +793,8 @@ export type AsyncOps =
   | 7 // LIST_RECURSIVE_TO_DEPTH_7
   | 8 // GET_REVISIONS_8
 
+export type Audit = $ReadOnly<{time: Time, maxMerkleSeqno: Seqno, maxChainSeqno: Seqno, maxMerkleProbe: Seqno}>
+export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
 export type AuthenticityType =
   | 0 // SIGNED_0
   | 1 // REPUDIABLE_1
@@ -986,7 +988,7 @@ export type FSSyncStatusRequest = $ReadOnly<{requestID: Int}>
 export type FastTeamData = $ReadOnly<{name: TeamName, chain: FastTeamSigChainState, perTeamKeySeeds /* perTeamKeySeedsUnverified */: {[key: string]: PerTeamKeySeed}, latestKeyGeneration: PerTeamKeyGeneration, readerKeyMasks: {[key: string]: {[key: string]: MaskB64}}, latestSeqnoHint: Seqno, cachedAt: Time}>
 export type FastTeamLoadArg = $ReadOnly<{ID: TeamID, public: Boolean, applications?: ?Array<TeamApplication>, keyGenerationsNeeded?: ?Array<PerTeamKeyGeneration>, needLatestKey: Boolean}>
 export type FastTeamLoadRes = $ReadOnly<{name: TeamName, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}}>
+export type FastTeamSigChainState = $ReadOnly<{ID: TeamID, public: Boolean, rootAncestor: TeamName, nameDepth: Int, last?: ?LinkTriple, perTeamKeys: {[key: string]: PerTeamKey}, perTeamKeySeedsVerified: {[key: string]: PerTeamKeySeed}, downPointers: {[key: string]: DownPointer}, lastUpPointer?: ?UpPointer, perTeamKeyCTime: UnixTime, linkIDs: {[key: string]: LinkID}, merkleInfo: {[key: string]: MerkleRootV2}}>
 export type FavoriteGetFavoritesResult = FavoritesResult
 export type FavoritesResult = $ReadOnly<{favoriteFolders?: ?Array<Folder>, ignoredFolders?: ?Array<Folder>, newFolders?: ?Array<Folder>}>
 export type Feature = $ReadOnly<{allow: Boolean, defaultValue: Boolean, readonly: Boolean, label: String}>
@@ -1322,6 +1324,7 @@ export type PgpUiShouldPushPrivateResult = Boolean
 export type Pics = $ReadOnly<{square40: String, square200: String, square360: String}>
 export type PingResponse = $ReadOnly<{timestamp: Time}>
 export type PlatformInfo = $ReadOnly<{os: String, osVersion: String, arch: String, goVersion: String}>
+export type Probe = $ReadOnly<{i /* index */: Int, s /* teamSeqno */: Seqno}>
 export type ProblemSet = $ReadOnly<{user: User, kid: KID, tlfs?: ?Array<ProblemTLF>}>
 export type ProblemSetDevices = $ReadOnly<{problemSet: ProblemSet, devices?: ?Array<Device>}>
 export type ProblemTLF = $ReadOnly<{tlf: TLF, score: Int, solution_kids?: ?Array<KID>}>
