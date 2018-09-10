@@ -75,6 +75,7 @@ const styles = styleSheetCreate({
   },
   rowContainer: platformStyles({
     common: {
+      alignItems: 'center',
       ...globalStyles.flexBoxRow,
       height: '100%',
     },
