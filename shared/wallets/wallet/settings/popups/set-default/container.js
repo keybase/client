@@ -1,11 +1,5 @@
 // @flow
-import {
-  compose,
-  connect,
-  setDisplayName,
-  safeSubmitPerMount,
-  type TypedState,
-} from '../../../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -40,6 +34,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('SetDefaultAccountPopup'),
-  safeSubmitPerMount(['onClose'])
+  setDisplayName('SetDefaultAccountPopup')
 )(SetDefaultAccountPopup)
