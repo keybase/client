@@ -237,7 +237,7 @@ func TestTeamSigChainPlay1(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer), false)
 		require.NoError(t, err)
 		state = &newState
 	}
@@ -322,7 +322,7 @@ func TestTeamSigChainPlay2(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer), false)
 		require.NoError(t, err)
 		state = &newState
 	}
@@ -421,7 +421,7 @@ func TestTeamSigChainWithInvites(t *testing.T) {
 				EldestSeqno: keybase1.Seqno(1),
 			}
 		}
-		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer))
+		newState, err := AppendChainLink(context.TODO(), tc.G, consumer, state, link, signerToX(signer), false)
 		require.NoError(t, err)
 		state = &newState
 	}

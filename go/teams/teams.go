@@ -1659,12 +1659,12 @@ func (t *Team) precheckLinksToPost(ctx context.Context, sigMultiItems []libkb.Si
 	return precheckLinksToPost(ctx, t.G(), sigMultiItems, t.chain(), uv, true)
 }
 
-func (t *Team) playSigItem(ctx context.Context, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, checkHPrevInfo bool) (newState *TeamSigChainState, err error) {
+func (t *Team) playSigItem(ctx context.Context, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, precheck bool) (newState *TeamSigChainState, err error) {
 	uv, err := t.currentUserUV(ctx)
 	if err != nil {
 		return nil, err
 	}
-	return playSigItem(ctx, t.G(), uv, state, sigMultiItem, checkHPrevInfo)
+	return playSigItem(ctx, t.G(), uv, state, sigMultiItem, precheck)
 }
 
 // Try to run `post` (expected to post new team sigchain links).

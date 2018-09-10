@@ -264,7 +264,11 @@ func MakeSigchainV2OuterSig(
 	// When 2.3 links are mandatory, it will be invalid for hPrevInfo == nil,
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
-	if m.G().FeatureFlags.Enabled(m, FeatureHighSkip) && hPrevInfo != nil {
+	if m.G().FeatureFlags.Enabled(m, FeatureRequireHighSkips) && hPrevInfo == nil {
+		// TODO: Need to cache bust to force reverification
+		return sig, sigid, linkID, fmt.Errorf("High skip must be provided: please update your client.")
+	}
+	if m.G().FeatureFlags.Enabled(m, FeatureAllowHighSkips) && hPrevInfo != nil {
 		hPrevSeqno := &hPrevInfo.Seqno
 		hPrevHash := &hPrevInfo.Hash
 		outerLink := OuterLinkV2{

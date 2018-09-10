@@ -237,6 +237,7 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
 		}
 	}
+	fmt.Printf("Changesig %v\n", hPrevInfo)
 	ret, err := libkb.ProofMetadata{
 		LinkType:          linkType,
 		SigningUser:       me,
@@ -285,7 +286,7 @@ func precheckLinkToPost(ctx context.Context, g *libkb.GlobalContext,
 }
 
 func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
-	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion, checkHPrevInfo bool) (err error) {
+	sigMultiItems []libkb.SigMultiItem, state *TeamSigChainState, me keybase1.UserVersion, precheck bool) (err error) {
 	defer g.CTraceTimed(ctx, "precheckLinksToPost", func() error { return err })()
 
 	// As an optimization, AppendChainLink consumes its state.
@@ -305,7 +306,7 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	return nil
 }
 
-func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, checkHPrevInfo bool) (*TeamSigChainState, error) {
+func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, precheck bool) (*TeamSigChainState, error) {
 	isAdmin := true
 	if state != nil {
 		role, err := state.GetUserRole(me)
@@ -341,7 +342,7 @@ func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVe
 		return nil, NewPrecheckStructuralError("link missing inner", nil)
 	}
 
-	newState, err := AppendChainLink(ctx, g, me, state, link2, &signer, checkHPrevInfo)
+	newState, err := AppendChainLink(ctx, g, me, state, link2, &signer, precheck)
 	if err != nil {
 		return nil, NewPrecheckAppendError(err)
 	}

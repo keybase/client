@@ -91,7 +91,6 @@ func (t TeamSigChainState) GetHPrevInfo() (libkb.HPrevInfo, error) {
 	}
 	hPrevInfo := libkb.NewHPrevInfo(t.GetLatestHighSeqno(), linkID)
 	return hPrevInfo, nil
-	// could refac w get latest libkbd linkid..
 }
 
 // If the chain has posted any link and still has a LatestHighSeqno
@@ -610,7 +609,7 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 // If `state` is nil this is the first link of the chain.
 // `signer` may be nil iff link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
-	link *ChainLinkUnpacked, signer *SignerX, checkHPrevInfo bool) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer *SignerX, precheck bool) (res TeamSigChainState, err error) {
 	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
@@ -619,7 +618,7 @@ func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase
 	if state != nil {
 		latestSeqno = state.GetLatestSeqno()
 	}
-	res, err = t.appendChainLinkHelper(ctx, state, link, signer, checkHPrevInfo)
+	res, err = t.appendChainLinkHelper(ctx, state, link, signer, precheck)
 	if err != nil {
 		return TeamSigChainState{}, NewAppendLinkError(link, latestSeqno, err)
 	}
@@ -657,7 +656,7 @@ func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.Us
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
 	}
-	iRes, err := t.addInnerLink(&state, link, signer, true, true)
+	iRes, err := t.addInnerLink(&state, link, signer, true, false)
 	if err != nil {
 		return TeamSigChainState{}, err
 	}
@@ -680,7 +679,7 @@ type teamSigchainPlayer struct {
 // If `prevState` is nil this is the first chain link.
 func (t *teamSigchainPlayer) appendChainLinkHelper(
 	ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *SignerX,
-	checkHPrevInfo bool) (
+	precheck bool) (
 	res TeamSigChainState, err error) {
 
 	err = t.checkOuterLink(ctx, prevState, link)
@@ -699,7 +698,7 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		if signer == nil || !signer.signer.Uid.Exists() {
 			return res, NewInvalidLink(link, "signing user not provided for team link")
 		}
-		iRes, err := t.addInnerLink(prevState, link, *signer, false, checkHPrevInfo)
+		iRes, err := t.addInnerLink(prevState, link, *signer, false, precheck)
 		if err != nil {
 			return res, err
 		}
@@ -762,7 +761,7 @@ type checkInnerLinkResult struct {
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(
 	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
-	isInflate bool, checkHPrevInfo bool) (
+	isInflate bool, precheck bool) (
 	res checkInnerLinkResult, err error) {
 
 	if link.inner == nil {
@@ -1640,35 +1639,42 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 	hPrevInfo := payload.HPrevInfo
 	reverifyNeeded := res.newState.ReverifyNeededForHighSkips()
-
-	// If presented with an hPrevInfo, and we are unable to verify it currently and we want to check it,
-	// throw a GreenLinkError to force a repoll.
-	if hPrevInfo != nil && reverifyNeeded && checkHPrevInfo {
+	highSkipVerifyDesired := !isInflate && !precheck
+	// If presented with an hPrevInfo, and we are unable to verify it,
+	// but would like to, throw a GreenLinkError to force a repoll.
+	if hPrevInfo != nil && highSkipVerifyDesired && reverifyNeeded {
 		return res, GreenLinkError{msg: "Did not have information to compute expected team high skip; reverifying."}
 	}
-	// We only run addInnerLink out of order when inflating. This incorrectly
-	// updates high prev data, so we skip it.
-	// If hPrevInfo is presented and either we don't need to reverify or we want to check it, check it.
-	if !isInflate && hPrevInfo != nil && (!reverifyNeeded || checkHPrevInfo) {
-		if hPrevInfo.Seqno != res.newState.GetLatestHighSeqno() {
-			return res, fmt.Errorf("Expected HPrevSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
-		}
-		lastHighLinkID := res.newState.GetLatestHighLinkID()
-		if string(lastHighLinkID) == "" {
-			if hPrevInfo.Hash != nil {
-				return res, fmt.Errorf("Expected nil HPrevHash, got %s", *hPrevInfo.Hash)
+	// We only run addInnerLink out of order when inflating, and so we skip
+	// computing high skips during it.
+	// updates high prev data, so we skip it. If hPrevInfo is presented and
+	// either we don't need to reverify or we want to check it, check it.
+	if highSkipVerifyDesired {
+		if hPrevInfo != nil && !reverifyNeeded {
+			if hPrevInfo.Seqno != res.newState.GetLatestHighSeqno() {
+				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
 			}
-		} else {
-			if hPrevInfo.Hash == nil {
-				return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
-			}
-			if *hPrevInfo.Hash != string(lastHighLinkID) {
-				return res, fmt.Errorf("Expected HPrevHash=%s, got %s", string(lastHighLinkID), *hPrevInfo.Hash)
+			lastHighLinkID := res.newState.GetLatestHighLinkID()
+			if string(lastHighLinkID) == "" {
+				if hPrevInfo.Hash != nil {
+					return res, fmt.Errorf("Expected nil HPrevHash, got %s", *hPrevInfo.Hash)
+				}
+			} else {
+				if hPrevInfo.Hash == nil {
+					return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
+				}
+				if *hPrevInfo.Hash != string(lastHighLinkID) {
+					return res, fmt.Errorf("Expected HPrevHash=%s, got %s", string(lastHighLinkID), *hPrevInfo.Hash)
+				}
 			}
 		}
 		if isHighLink {
 			res.newState.inner.LastHighLinkID = link.LinkID().Export()
 			res.newState.inner.LastHighSeqno = link.Seqno()
+			z, err := res.newState.GetHPrevInfo()
+			if err != nil {
+				return res, err
+			}
 		}
 	}
 	return res, nil

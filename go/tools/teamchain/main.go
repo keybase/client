@@ -47,7 +47,7 @@ func main2() (err error) {
 		}
 
 		signerX := teams.NewSignerX(keybase1.NewUserVersion(prelink.UID, prelink.EldestSeqno), false)
-		newState, err := teams.AppendChainLink(mctx.Ctx(), g, reader, state, link, &signerX)
+		newState, err := teams.AppendChainLink(mctx.Ctx(), g, reader, state, link, &signerX, false)
 		if err != nil {
 			return err
 		}
