@@ -29,8 +29,8 @@ const Banner = ({kbfsEnabled, kbfsOutdated, showBanner, onInstall, onDismiss, op
     alignItems: 'center',
     position: 'relative',
   }
-  const promptText = kbfsOutdated ? ( dokanUninstall ?
-      'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
+  const promptText = kbfsOutdated ? (dokanUninstall
+      ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
       : 'A newer version of Dokan is available. Please remove the old version before installing it.')
     : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
   const buttonText = dokanUninstall ? 'Yes, uninstall' : 'Yes, enable'
