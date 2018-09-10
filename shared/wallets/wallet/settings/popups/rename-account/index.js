@@ -11,7 +11,7 @@ type Props = {|
   onCancel: () => void,
   onCheckName: (name: string) => void,
   onClearErrors: () => void,
-  onCreateAccount: () => void,
+  onChangeAccountName: () => void,
   onDone: () => void,
   onNameChange: string => void,
   waiting: boolean,
@@ -45,7 +45,7 @@ class RenameAccountPopup extends React.Component<Props> {
   componentDidUpdate(prevProps: Props) {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
-      this.props.onCreateAccount()
+      this.props.onChangeAccountName()
     }
   }
 }
