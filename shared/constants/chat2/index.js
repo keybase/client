@@ -233,6 +233,7 @@ export {
   getMessageID,
   isSpecialMention,
   isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
