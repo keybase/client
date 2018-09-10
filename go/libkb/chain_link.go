@@ -122,6 +122,7 @@ type ChainLinkUnpacked struct {
 const badAkalin = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
 const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
 const badDens = "Link 8 of dens's sigchain, which signs in a revoked PGP key"
+const badAjar = "Link 98 of ajar's sigchain allowed a PGP update with a broken PGP key"
 
 // A map from SigIDs of bad chain links that should be ignored to the
 // reasons why they're ignored.
@@ -133,6 +134,9 @@ var badChainLinks = map[keybase1.SigID]string{
 	// Link 8 of dens's sigchain is to a revoked PGP key, which wasn't
 	// properly checked for on the server side.
 	// See: https://github.com/keybase/client/issues/4754
+	// Link 98 of ajar's sigchain is a PGP update with a broken PGP key,
+	// that doesn't have a valid cross-sig on a signing key. It was a server
+	// bug to allow it be uploaded.
 	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": fmt.Sprintf(badAkalin, 22),
 	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": fmt.Sprintf(badAkalin, 23),
 	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": fmt.Sprintf(badAkalin, 24),
@@ -141,6 +145,7 @@ var badChainLinks = map[keybase1.SigID]string{
 	"e66998426a3bdba3b75aaec84d1fa75494061114abe9983da4e4495821a7ecf40f": fmt.Sprintf(badJamGregory, 18),
 	"bb92cc0c57bf99764b56ab54dbf489527c2744154706c07acd03007dcd7001480f": fmt.Sprintf(badJamGregory, 19),
 	"355e098e9e686dfa4758e25d56c7da58558fae2b281a2c8bcca9ed895f23767a0f": badDens,
+	"b175aaafbab6faf5740334039bb547a626c3b47b3ef4e55032b6aeaf6ce690520f": badAjar,
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
