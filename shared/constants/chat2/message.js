@@ -289,7 +289,7 @@ export const uiRequestInfoToChatRequestInfo = (
   }
   let asset = 'native'
   let currencyCode = ''
-  if (!r.asset || r.currency) {
+  if (!(r.asset || r.currency)) {
     logger.error('Received UIRequestInfo with no asset or currency code')
     return null
   } else if (r.asset && r.asset.type !== 'native') {
