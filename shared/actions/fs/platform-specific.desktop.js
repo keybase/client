@@ -12,7 +12,7 @@ import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
-import {spawn, execFileSync} from 'child_process'
+import {spawn, execFileSync, execSync} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
 
@@ -288,8 +288,68 @@ function installCachedDokan() {
   })
 }
 
+function uninstallDokan(uninstallString: string): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    logger.info('Invoking dokan uninstaller')
+    try {
+      execSync(uninstallString, {windowsHide: true})
+      resolve(true)
+    } catch (err) {
+      logger.error('uninstallDokan caught', err)
+      reject(err)
+    }
+  })
+}
+
+function getDokanUninstallString(force32: boolean): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const regedit = require('regedit')
+    const regListFunc = force32 ? regedit.arch.list32 : regedit.list
+    const uninstallRegPath = 'HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\'
+    try {
+      regListFunc(uninstallRegPath).on('data', function(entry) {
+        const paths = entry.data.keys.map(key => uninstallRegPath + '\\' + key)
+        regListFunc(paths)
+          .on('data', function(subentry) {
+            if (subentry.data &&
+                subentry.data.values &&
+                subentry.data.values.DisplayName &&
+                subentry.data.values.DisplayName.value.startsWith('Dokan Library') &&
+                subentry.data.values.DisplayName.value.includes('Bundle')) {
+              resolve(subentry.data.values.UninstallString.value)
+            }
+          })
+          .on('finish', function() {
+            resolve('')
+          })
+      })
+    } catch (err) {
+      logger.error('getDokanUninstallString error', err)
+      reject(err)
+    }
+  })
+}
+
+function* getDokanUninstallStringSaga(): Saga.SagaGenerator<any, any> {
+  logger.info('getDokanUninstallString')
+  // Most ppl will be on 64 bit, so we want the wow6432 node, so try it first.
+  let uninstallString = yield Saga.call(getDokanUninstallString, true)
+  if (!uninstallString) {
+    uninstallString = yield Saga.call(getDokanUninstallString, false)
+  }
+  yield Saga.put(FsGen.createGetDokanUninstallStringResult({uninstallString}))
+}
+
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
+}
+
+function* uninstallDokanSaga() {
+  const state: TypedState = yield Saga.select()
+  const uninstallString = state.fs.dokanUninstallString
+  if (yield Saga.call(uninstallDokan, uninstallString)) {
+    yield Saga.call(getDokanUninstallStringSaga)
+  }
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -323,12 +383,14 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.safeTakeLatest(FsGen.getDokanUninstallString, getDokanUninstallStringSaga)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }

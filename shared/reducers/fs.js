@@ -231,6 +231,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       }
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.getDokanUninstallStringResult:
+      return state.merge({dokanUninstallString: action.payload.uninstallString})
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:
@@ -252,6 +254,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
+    case FsGen.getDokanUninstallString:
       return state
     default:
       /*::

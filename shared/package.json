@@ -247,7 +247,7 @@
     "webpack-merge": "4.1.2"
   },
   "optionalDependencies": {
-    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master",
-    "regedit": "2.2.7"
+    "regedit": "2.2.7",
+    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master"
   }
 }
