@@ -69,6 +69,7 @@ const styles = styleSheetCreate({
   conversationRow: {
     ...globalStyles.flexBoxColumn,
     flexGrow: 1,
+    height: '100%',
     justifyContent: 'center',
     paddingLeft: 0,
     paddingRight: 8,

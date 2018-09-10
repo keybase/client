@@ -25,7 +25,9 @@ class FilteredTopLine extends PureComponent<Props> {
       >
         <Box
           style={{
-            ...globalStyles.flexBoxColumn,
+            ...globalStyles.fillAbsolute,
+            ...globalStyles.flexBoxRow,
+            alignItems: 'center',
           }}
         >
           <PlaintextUsernames
