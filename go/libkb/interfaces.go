@@ -626,6 +626,11 @@ type FastTeamLoader interface {
 	OnLogout()
 }
 
+type TeamAuditor interface {
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	OnLogout()
+}
+
 type Stellar interface {
 	OnLogout()
 	CreateWalletGated(context.Context) error

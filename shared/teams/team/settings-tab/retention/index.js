@@ -10,7 +10,7 @@ import {
   type StylesCrossPlatform,
 } from '../../../../styles'
 import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
-import {type MenuItem} from '../../../../common-adapters/popup-menu'
+import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'

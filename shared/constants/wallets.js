@@ -53,6 +53,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   builtPayment: makeBuiltPayment(),
   createNewAccountError: '',
   exportedSecretKey: new HiddenString(''),
+  exportedSecretKeyAccountID: Types.noAccountID,
   linkExistingAccountError: '',
   paymentsMap: I.Map(),
   pendingMap: I.Map(),
@@ -295,6 +296,10 @@ const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
 const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
 
+const getAccountName = (account: Types.Account) =>
+  account.name ||
+  (account.accountID !== Types.noAccountID ? Types.accountIDToString(account.accountID) : null)
+
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
@@ -309,16 +314,21 @@ const getFederatedAddress = (state: TypedState, accountID?: Types.AccountID) => 
   return username && account.isDefault ? `${username}*keybase.io` : ''
 }
 
-const getSecretKey = (state: TypedState, accountID: Types.AccountID) => state.wallets.exportedSecretKey
+const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
+  accountID === state.wallets.exportedSecretKeyAccountID
+    ? state.wallets.exportedSecretKey
+    : new HiddenString('')
 
 export {
   accountResultToAccount,
   assetsResultToAssets,
   currenciesResultToCurrencies,
+  balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   getAccountIDs,
+  getAccountName,
   getAccount,
   getAssets,
   getDisplayCurrencies,
@@ -351,4 +361,5 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  statusSimplifiedToString,
 }
