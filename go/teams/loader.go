@@ -1436,6 +1436,10 @@ func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID ke
 		return ret, fmt.Errorf("expected only one chainlink back; got %d", len(newLinks))
 	}
 	headLink := newLinks[0]
+	err = headLink.AssertInnerOuterMatch()
+	if err != nil {
+		return ret, err
+	}
 	if headLink.Seqno() != headSeqno {
 		return ret, NewInvalidLink(headLink, "wrong head seqno; wanted 1 but got something else")
 	}
