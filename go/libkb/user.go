@@ -155,6 +155,13 @@ func (u *User) GetExpectedNextHPrevInfo() (HPrevInfo, error) {
 	return u.sigChain().GetExpectedNextHPrevInfo()
 }
 
+func (u *User) GetLastLink() *ChainLink {
+	if u.sigChain() == nil {
+		return nil
+	}
+	return u.sigChain().GetLastLink()
+}
+
 func (u *User) ToUserVersion() keybase1.UserVersion {
 	return keybase1.UserVersion{
 		Uid:         u.GetUID(),

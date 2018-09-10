@@ -116,28 +116,45 @@ func TestMerkleHashMetaAndFirstAppearedInKeyFamily(t *testing.T) {
 	}
 }
 
+func assertPostedHighSkipSeqno(t *testing.T, tc libkb.TestContext, name string, seqno int) {
+	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, name))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	hPrevInfo := u.GetLastLink().GetHPrevInfo()
+	require.Equal(t, hPrevInfo.Seqno, keybase1.Seqno(seqno))
+}
+
 func TestBlankUserHPrevInfo(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(tc, "login")
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
-		t.Fatal(err)
-	}
-	nextExpected, err := me.GetExpectedNextHPrevInfo()
-	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(1))
+	i := CreateAndSignupFakeUser(tc, "login")
+
+	assertPostedHighSkipSeqno(t, tc, i.Username, 1)
 }
 
 func TestPaperUserHPrevInfo(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
+	them, _ := createFakeUserWithNoKeys(tc)
 
-	CreateAndSignupFakeUserPaper(tc, "login")
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
-	if err != nil {
+	i := CreateAndSignupFakeUserPaper(tc, "login")
+	assertPostedHighSkipSeqno(t, tc, i.Username, 4)
+
+	trackUser(tc, i, libkb.NewNormalizedUsername(them), libkb.GetDefaultSigVersion(tc.G))
+	assertPostedHighSkipSeqno(t, tc, i.Username, 4)
+
+	eng := NewPaperKey(tc.G)
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
+		LoginUI:  &libkb.TestLoginUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
-	nextExpected, err := me.GetExpectedNextHPrevInfo()
-	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(4))
+	assertPostedHighSkipSeqno(t, tc, i.Username, 7)
 }

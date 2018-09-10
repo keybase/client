@@ -237,7 +237,6 @@ func ChangeSig(g *libkb.GlobalContext, me libkb.UserForSignatures, prev libkb.Li
 			return nil, errors.New("ChangeMembershipSig called with PerTeamKey.ReverseSig already set")
 		}
 	}
-	fmt.Printf("Changesig %v\n", hPrevInfo)
 	ret, err := libkb.ProofMetadata{
 		LinkType:          linkType,
 		SigningUser:       me,

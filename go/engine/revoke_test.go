@@ -145,15 +145,19 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 	user, err := libkb.LoadUser(arg)
 	require.NoError(t, err)
 
-	var seqno int
+	var nextSeqno int
+	var postedSeqno int
 	if upgradePerUserKey {
-		seqno = 7
+		nextSeqno = 7
+		postedSeqno = 4
 	} else {
-		seqno = 5
+		nextSeqno = 5
+		postedSeqno = 3
 	}
 	nextExpected, err := user.GetExpectedNextHPrevInfo()
 	require.NoError(t, err)
-	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(seqno))
+	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(nextSeqno))
+	assertPostedHighSkipSeqno(t, tc, user.GetName(), postedSeqno)
 }
 
 func TestRevokerPaperDeviceTwice(t *testing.T) {
