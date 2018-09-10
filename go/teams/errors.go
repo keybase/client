@@ -319,9 +319,8 @@ func (e GreenLinkError) Error() string {
 	// Report the probable cause for this error.
 	if e.msg == "" {
 		return fmt.Sprintf("team sigchain is being rapidly updated (seqno: %v)", e.seqno)
-	} else {
-		return e.msg
 	}
+	return e.msg
 }
 
 type UnsupportedLinkTypeError struct {

@@ -475,9 +475,8 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 	if err != nil {
 		if err == jsonparser.KeyPathNotFoundError {
 			return nil, nil
-		} else {
-			return nil, err
 		}
+		return nil, err
 	}
 
 	if dataType != jsonparser.Object {
