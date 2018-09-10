@@ -41,11 +41,23 @@ var mobileParams = AuditParams{
 	LRUSize:               500,
 }
 
+var devParams = AuditParams{
+	RootFreshness:         10 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(10000),
+	NumPreProbes:          3,
+	NumPostProbes:         3,
+	Parallelism:           3,
+	LRUSize:               500,
+}
+
 // getAuditParams will return parameters based on the platform. On mobile,
 // we're going to be performing a smaller audit, and therefore have a smaller
 // security margin (1-2^10). But it's worth it given the bandwidth and CPU
 // constraints.
 func getAuditParams(m libkb.MetaContext) AuditParams {
+	if m.G().Env.GetRunMode() == libkb.DevelRunMode {
+		return devParams
+	}
 	if libkb.IsMobilePlatform() {
 		return mobileParams
 	}
@@ -82,10 +94,10 @@ func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
 // The security factor of the audit is a function of the hardcoded parameters above,
 // and the amount of time since the last audit. This method should use some sort of
 // long-lived cache (via local DB) so that previous audits can be combined with the
-// current one. headMerkle is is the Merkle Root claimed in the head of the team.
+// current one. headMerkleSeqno is is the Merkle Root claimed in the head of the team.
 // maxSeqno is the maximum seqno of the chainLinks passed; that is, the highest
 // Seqno for which chain[s] is defined.
-func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
 
 	m = m.WithLogTag("AUDIT")
 	defer m.CTraceTimed(fmt.Sprintf("Auditor#AuditTeam(%+v)", id), func() error { return err })()
@@ -98,7 +110,7 @@ func (a *Auditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bo
 	lock := a.locktab.AcquireOnName(m.Ctx(), m.G(), id.String())
 	defer lock.Release(m.Ctx())
 
-	return a.auditLocked(m, id, headMerkle, chain, maxSeqno)
+	return a.auditLocked(m, id, headMerkleSeqno, chain, maxSeqno)
 }
 
 func (a *Auditor) getLRU() *lru.Cache {
@@ -190,14 +202,14 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 	return &ret
 }
 
-func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkle keybase1.MerkleRootV2, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (maxMerkleProbe keybase1.Seqno, err error) {
+func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno, latestMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (maxMerkleProbe keybase1.Seqno, err error) {
 	defer m.CTrace("Auditor#doPostProbes", func() error { return err })()
 
 	var low keybase1.Seqno
 	last := lastAudit(history)
 	var prev *probeTuple
 	if last == nil {
-		low = headMerkle.Seqno
+		low = headMerkleSeqno
 	} else {
 		low = last.MaxMerkleSeqno
 		probe, ok := history.PostProbes[last.MaxMerkleProbe]
@@ -246,7 +258,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 // doPreProbes probabilistically checks that no team occupied the slot before the team
 // in question was created. It selects probes from before the team was created. Each
 // probed leaf must not be occupied.
-func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkle keybase1.MerkleRootV2) (err error) {
+func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistory, probeID int, headMerkleSeqno keybase1.Seqno) (err error) {
 	defer m.CTrace("Auditor#doPreProbes", func() error { return err })()
 
 	first := m.G().MerkleClient.FirstSeqnoWithSkips(m)
@@ -254,7 +266,7 @@ func (a *Auditor) doPreProbes(m libkb.MetaContext, history *keybase1.AuditHistor
 		return NewAuditError("cannot find a first modern merkle sequence")
 	}
 
-	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkle.Seqno, len(history.PreProbes), getAuditParams(m).NumPreProbes)
+	probeTuples, err := a.computeProbes(m, history.ID, history.PreProbes, probeID, *first, headMerkleSeqno, len(history.PreProbes), getAuditParams(m).NumPreProbes)
 	if err != nil {
 		return err
 	}
@@ -360,7 +372,7 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 	return err
 }
 
-func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkle keybase1.MerkleRootV2, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
 
 	defer m.CTrace(fmt.Sprintf("Auditor#auditLocked(%v)", id), func() error { return err })()
 
@@ -391,12 +403,12 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 
 	newAuditIndex := len(history.Audits)
 
-	err = a.doPreProbes(m, history, newAuditIndex, headMerkle)
+	err = a.doPreProbes(m, history, newAuditIndex, headMerkleSeqno)
 	if err != nil {
 		return err
 	}
 
-	maxMerkleProbe, err := a.doPostProbes(m, history, newAuditIndex, headMerkle, *root.Seqno(), chain, maxChainSeqno)
+	maxMerkleProbe, err := a.doPostProbes(m, history, newAuditIndex, headMerkleSeqno, *root.Seqno(), chain, maxChainSeqno)
 	if err != nil {
 		return err
 	}
@@ -407,7 +419,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		MaxMerkleProbe: maxMerkleProbe,
 	}
 	history.Audits = append(history.Audits, audit)
-	history.PriorMerkleSeqno = headMerkle.Seqno
+	history.PriorMerkleSeqno = headMerkleSeqno
 
 	err = a.putToCache(m, id, lru, history)
 	if err != nil {
