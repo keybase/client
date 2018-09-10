@@ -18,7 +18,13 @@ type EnterNameProps = {|
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
     <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
-    <Kb.Button key={1} type="Wallet" onClick={props.onPrimaryClick} label="Done" waiting={props.waiting} />,
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={props.onPrimaryClick}
+      label={props.primaryLabel}
+      waiting={props.waiting}
+    />,
   ]
   return (
     <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
