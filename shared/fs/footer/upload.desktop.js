@@ -46,8 +46,6 @@ const styles = Styles.styleSheetCreate({
       whiteSpace: 'nowrap',
       overflow: 'hidden',
       textAlign: 'center',
-    },
-    isMobile: {
       textOverflow: 'ellipsis',
     },
     isElectron: {
@@ -63,7 +61,7 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
       <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
         <Box className="upload-animation-loop" style={stylesBox}>
           <style>{realCSS}</style>
-          <Text key="files" type="BodySemibold" className={styles.textOverflow}>
+          <Text key="files" type="BodySemibold" style={styles.textOverflow}>
             {files
               ? fileName
                 ? `Encrypting and uploading ${fileName}...`
