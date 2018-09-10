@@ -10,6 +10,7 @@
 
 @protocol ConversationViewDelegate<NSObject>
 -(void)convSelected:(NSDictionary*)conv;
+-(void)inboxLoadFailed;
 @end
 
 @interface ConversationViewController : UITableViewController <UISearchResultsUpdating>

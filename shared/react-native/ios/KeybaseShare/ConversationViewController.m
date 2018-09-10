@@ -63,6 +63,9 @@ const BOOL isSimulator = NO;
     KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
     if (error != nil) {
       NSLog(@"Failed to init: %@", error);
+      if (self.delegate) {
+        [self.delegate inboxLoadFailed];
+      }
       return;
     }
    
@@ -71,6 +74,11 @@ const BOOL isSimulator = NO;
     NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
     if (jsonInbox == nil) {
       NSLog(@"failed to get inbox: %@", error);
+      if (self.delegate) {
+        [self.delegate inboxLoadFailed];
+        [av stopAnimating];
+        return;
+      }
     } else {
       [self parseInbox:jsonInbox];
     }
