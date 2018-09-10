@@ -60,7 +60,6 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
   conversations: GetNewestConvMetas(state),
   _tlfUpdates: state.fs.tlfUpdates,
-  _pathItems: state.fs.pathItems,
 })
 
 const mergeProps = stateProps => ({
@@ -71,7 +70,7 @@ const mergeProps = stateProps => ({
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
-  fileRows: GetFileRows(stateProps._tlfUpdates, stateProps._pathItems),
+  fileRows: GetFileRows(stateProps._tlfUpdates),
   conversations: stateProps.conversations,
   broken: stateProps.broken,
   following: stateProps._following.toArray(),

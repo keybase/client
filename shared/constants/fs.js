@@ -619,7 +619,7 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
 export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
   const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
   if (!visibility) return Types.stringToPath('')
-  return Types.stringToPath(`/keybase/${visibility}/name`)
+  return Types.stringToPath(`/keybase/${visibility}/${folder.name}`)
 }
 
 export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {
