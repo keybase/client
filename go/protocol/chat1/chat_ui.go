@@ -441,6 +441,34 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 	}
 }
 
+type UIRequestInfo struct {
+	Amount            string                        `codec:"amount" json:"amount"`
+	AmountDescription string                        `codec:"amountDescription" json:"amountDescription"`
+	Asset             *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency          *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+}
+
+func (o UIRequestInfo) DeepCopy() UIRequestInfo {
+	return UIRequestInfo{
+		Amount:            o.Amount,
+		AmountDescription: o.AmountDescription,
+		Asset: (func(x *stellar1.Asset) *stellar1.Asset {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Asset),
+		Currency: (func(x *stellar1.OutsideCurrencyCode) *stellar1.OutsideCurrencyCode {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Currency),
+	}
+}
+
 type UIMessageValid struct {
 	MessageID             MessageID              `codec:"messageID" json:"messageID"`
 	Ctime                 gregor1.Time           `codec:"ctime" json:"ctime"`
@@ -462,6 +490,7 @@ type UIMessageValid struct {
 	Reactions             ReactionMap            `codec:"reactions" json:"reactions"`
 	HasPairwiseMacs       bool                   `codec:"hasPairwiseMacs" json:"hasPairwiseMacs"`
 	PaymentInfo           *UIPaymentInfo         `codec:"paymentInfo,omitempty" json:"paymentInfo,omitempty"`
+	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -536,6 +565,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.PaymentInfo),
+		RequestInfo: (func(x *UIRequestInfo) *UIRequestInfo {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RequestInfo),
 	}
 }
 

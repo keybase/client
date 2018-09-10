@@ -697,14 +697,14 @@ func TestGetPaymentsLocal(t *testing.T) {
 	checkPayment(*recipPayments[0].Payment, false)
 
 	// pretend that the chat message was unboxed and call the payment loader to load the info:
-	loader := stellar.DefaultPaymentLoader(tcs[0].G)
+	loader := stellar.DefaultLoader(tcs[0].G)
 	convID := chat1.ConversationID("abcd")
 	msgID := chat1.MessageID(987)
-	loader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+	loader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
 	// for the recipient too
-	recipLoader := stellar.NewPaymentLoader(tcs[1].G)
-	recipLoader.Load(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+	recipLoader := stellar.NewLoader(tcs[1].G)
+	recipLoader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
 
 	// check the sender chat notification
 	select {
@@ -1317,19 +1317,120 @@ func TestGetSendAssetChoices(t *testing.T) {
 	}
 }
 
+func TestMakeRequestLocalBasics(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	xlm := stellar1.AssetNative()
+	_, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "0",
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "-1.2345",
+	})
+	require.Error(t, err)
+
+	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "1.2345",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, reqID)
+}
+
+func TestMakeRequestLocalNotifications(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
+	xlm := stellar1.AssetNative()
+	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "1.2345",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, reqID)
+
+	// pretend that the chat message was unboxed and call the request loader to load the info:
+	loaderSender := stellar.DefaultLoader(tcs[0].G)
+	convID := chat1.ConversationID("efef")
+	msgID := chat1.MessageID(654)
+	loaderSender.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+
+	loaderRecip := stellar.NewLoader(tcs[1].G)
+	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+
+	// check the sender chat notification
+	select {
+	case info := <-listenerSender.requestInfos:
+		require.NotNil(t, info)
+		require.Equal(t, tcs[0].Fu.User.GetUID(), info.Uid)
+		require.Equal(t, convID, info.ConvID)
+		require.Equal(t, msgID, info.MsgID)
+		require.Equal(t, "1.2345", info.Info.Amount)
+		require.Equal(t, "1.2345 XLM", info.Info.AmountDescription)
+		require.NotNil(t, info.Info.Asset)
+		require.Equal(t, "native", info.Info.Asset.Type)
+		require.Nil(t, info.Info.Currency)
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat request info notification to sender")
+	}
+
+	// check the recipient chat notification
+	select {
+	case info := <-listenerRecip.requestInfos:
+		require.NotNil(t, info)
+		require.Equal(t, tcs[1].Fu.User.GetUID(), info.Uid)
+		require.Equal(t, convID, info.ConvID)
+		require.Equal(t, msgID, info.MsgID)
+		require.Equal(t, "1.2345", info.Info.Amount)
+		require.Equal(t, "1.2345 XLM", info.Info.AmountDescription)
+		require.NotNil(t, info.Info.Asset)
+		require.Equal(t, "native", info.Info.Asset.Type)
+		require.Nil(t, info.Info.Currency)
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat request info notification to sender")
+	}
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 
 	paymentInfos chan chat1.ChatPaymentInfoArg
+	requestInfos chan chat1.ChatRequestInfoArg
 }
 
 func newChatListener() *chatListener {
 	x := &chatListener{
 		paymentInfos: make(chan chat1.ChatPaymentInfoArg, 1),
+		requestInfos: make(chan chat1.ChatRequestInfoArg, 1),
 	}
 	return x
 }
 
 func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
 	c.paymentInfos <- chat1.ChatPaymentInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
+}
+
+func (c *chatListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
+	c.requestInfos <- chat1.ChatRequestInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
 }
