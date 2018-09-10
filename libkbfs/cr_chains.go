@@ -1052,6 +1052,13 @@ func (ccs *crChains) copyOpAndRevertUnrefsToOriginals(currOp op) op {
 // original, which originated in some other branch.
 func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 	newOriginal BlockPointer) error {
+	if oldOriginal == newOriginal {
+		// This apparently can happen, but I'm not sure how.  (See
+		// KBFS-2946.)  Maybe because of a self-conflict in some weird
+		// error conditions. In this case, we can just pretend the
+		// change worked, and let CR continue it's normal process.
+		return nil
+	}
 	chain, ok := ccs.byOriginal[oldOriginal]
 	if !ok {
 		return NoChainFoundError{oldOriginal}

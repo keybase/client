@@ -649,6 +649,9 @@ func (cr *ConflictResolver) checkPathForMerge(ctx context.Context,
 			continue
 		} else if err != nil {
 			return nil, err
+		} else if unmergedOriginal == mergedOriginal {
+			cr.log.CDebugf(ctx,
+				"Treating self-conflicting directory like a normal conflict")
 		}
 
 		unmergedChain, ok := unmergedChains.byOriginal[mergedOriginal]
