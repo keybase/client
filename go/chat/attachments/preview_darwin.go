@@ -3,7 +3,7 @@
 package attachments
 
 /*
-#cgo CFLAGS: -x objective-c
+#cgo CFLAGS: -x objective-c -fobjc-arc
 #cgo LDFLAGS: -framework AVFoundation -framework CoreFoundation -framework ImageIO -framework CoreMedia  -framework Foundation -framework CoreGraphics -lobjc
 
 #include <TargetConditionals.h>
@@ -44,19 +44,13 @@ void MakeVideoThumbnail(const char* inFilename) {
 	];
 	CGImageDestinationAddImage(idst, image, (CFDictionaryRef)props);
 	CGImageDestinationFinalize(idst);
-	imageData = [NSData dataWithData:(NSData *)mutableData];
-	[props release];
+	imageData = [NSData dataWithData:(__bridge_transfer NSData *)mutableData];
 	CFRelease(idst);
-	CFRelease(mutableData);
 	CGImageRelease(image);
 }
 
 const void* ImageData() {
 	return [imageData bytes];
-}
-
-void ImageFree() {
-	[imageData release];
 }
 
 int ImageLength() {
@@ -96,7 +90,6 @@ func previewVideo(ctx context.Context, g *globals.Context, log utils.DebugLabele
 	}
 	localDat := make([]byte, C.ImageLength())
 	copy(localDat, (*[1 << 30]byte)(unsafe.Pointer(C.ImageData()))[0:C.ImageLength()])
-	C.ImageFree()
 	imagePreview, err := previewImage(ctx, log, bytes.NewReader(localDat), basename, "image/jpeg")
 	if err != nil {
 		return res, err
