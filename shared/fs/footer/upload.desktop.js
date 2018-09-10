@@ -4,7 +4,6 @@ import {globalStyles, globalColors, backgroundURL} from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {type UploadProps} from './upload'
-import {getPathName} from '../../constants/types/fs'
 
 const patternImage = 'upload-pattern-2-600.png'
 
@@ -56,7 +55,7 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
           <Text key="files" type="BodySemibold" className="text-overflow">
             {files
               ? fileName
-                ? `Encrypting and uploading ${getPathName(fileName)}...`
+                ? `Encrypting and uploading ${fileName}...`
                 : `Encrypting and uploading ${files} files...`
               : totalSyncingBytes
                 ? 'Encrypting and uploading...'

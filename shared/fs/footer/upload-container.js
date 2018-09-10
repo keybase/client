@@ -45,7 +45,7 @@ const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     files: filePaths.size,
-    fileName: filePaths.size === 1 ? filePaths.first() : undefined,
+    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
     endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
     totalSyncingBytes: _uploads.totalSyncingBytes,
     debugToggleShow,
