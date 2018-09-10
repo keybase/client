@@ -102,7 +102,7 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 				r.initHTTPSrv()
 				continue
 			}
-			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
+			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
 			break
 		}
 		success = true
