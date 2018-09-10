@@ -499,7 +499,7 @@ func (l *TeamLoader) applyNewLink(ctx context.Context,
 		state = nil
 	}
 
-	ntrueewChainState, err := AppendChainLink(ctx, l.G(), me, chainState, link, signer, false)
+	newChainState, err := AppendChainLink(ctx, l.G(), me, chainState, link, signer, false)
 	if err != nil {
 		return nil, err
 	}

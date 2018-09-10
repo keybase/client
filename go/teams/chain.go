@@ -1671,10 +1671,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if isHighLink {
 			res.newState.inner.LastHighLinkID = link.LinkID().Export()
 			res.newState.inner.LastHighSeqno = link.Seqno()
-			z, err := res.newState.GetHPrevInfo()
-			if err != nil {
-				return res, err
-			}
 		}
 	}
 	return res, nil
