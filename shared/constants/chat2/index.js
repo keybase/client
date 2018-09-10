@@ -250,6 +250,7 @@ export {
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
 } from './message'
 

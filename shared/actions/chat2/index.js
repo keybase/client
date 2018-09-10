@@ -762,6 +762,26 @@ const setupEngineListeners = () => {
       })
     }
   )
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatRequestInfo',
+    (notif: RPCChatTypes.NotifyChatChatRequestInfoRpcParam) => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const requestInfo = Constants.uiRequestInfoToChatRequestInfo(notif.info)
+      if (!requestInfo) {
+        // This should never happen
+        const errMsg = `ChatHandler: got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${
+          notif.msgID
+        }. The local version may be absent or out of date.`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      return Chat2Gen.createRequestInfoReceived({
+        conversationIDKey,
+        messageID: notif.msgID,
+        requestInfo,
+      })
+    }
+  )
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
