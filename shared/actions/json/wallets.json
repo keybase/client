@@ -40,11 +40,13 @@
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
+      "show?": "boolean",
     },
     "createdNewAccount": {
       "_description":
         "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
+      "show?": "boolean",
       "canError": {
         "name": "string",
         "error": "string",
@@ -197,11 +199,13 @@
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString",
+      "show?": "boolean",
     },
     "linkedExistingAccount": {
       "_description":
         "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
+      "show?": "boolean",
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",

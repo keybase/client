@@ -32,14 +32,9 @@ const buildPayment = (state: TypedState) =>
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
-  return RPCTypes.localCreateWalletAccountLocalRpcPromise(
-    {
-      name,
-    },
-    Constants.createNewAccountWaitingKey
-  )
+  return RPCTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createCreatedNewAccount({accountID}))
+    .then(accountID => WalletsGen.createCreatedNewAccount({accountID, show: action.payload.show}))
     .catch(err => {
       logger.warn(`Error creating new account: ${err.desc}`)
       return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
@@ -191,7 +186,7 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     Constants.linkExistingWaitingKey
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID}))
+    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID, show: action.payload.show}))
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
       return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
@@ -221,7 +216,7 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
 const navigateToTop = () =>
   Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
 
-const navigateUp = (
+const createdOrLinkedAccount = (
   state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
@@ -232,6 +227,9 @@ const navigateUp = (
   if (action.type === WalletsGen.linkedExistingAccount && action.error) {
     // Link existing failed, don't nav
     return
+  }
+  if (action.payload.show) {
+    Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID}))
   }
   return Saga.put(Route.navigateUp())
 }
@@ -342,7 +340,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     [WalletsGen.selectAccount, WalletsGen.didSetAccountAsDefault],
     navigateToAccount
   )
-  yield Saga.actionToAction([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
+  yield Saga.actionToAction(
+    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount],
+    createdOrLinkedAccount
+  )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [

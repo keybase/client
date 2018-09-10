@@ -13,8 +13,9 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {name, navigateUp}) => ({
-  _onCreateAccount: (name: string) => dispatch(WalletsGen.createCreateNewAccount({name})),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  _onCreateAccount: (name: string) =>
+    dispatch(WalletsGen.createCreateNewAccount({name, show: routeProps.show})),
   _onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },

@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
   waiting: anyWaiting(state, Constants.linkExistingWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onCancel: () => dispatch(navigateUp()),
   onCheckKey: (key: string) => {
     dispatch(
@@ -29,7 +29,9 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   },
   onClearErrors: () => dispatch(WalletsGen.createClearErrors()),
   onDone: (sk: string, name: string) =>
-    dispatch(WalletsGen.createLinkExistingAccount({name, secretKey: new HiddenString(sk)})),
+    dispatch(
+      WalletsGen.createLinkExistingAccount({name, secretKey: new HiddenString(sk), show: routeProps.show})
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
