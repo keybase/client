@@ -322,7 +322,7 @@ class Engine {
           }
           cb(...args)
         }
-        this._rpcClient.invoke(method, param, callback(method))
+        this._rpcClient.invoke(method, param || [{}], callback(method))
       },
       sessionID,
       waitingKey,

@@ -26,7 +26,7 @@ declare class Session {
     sessionID: number,
     incomingCallMap: ?IncomingCallMap,
     waitingKey?: string,
-    invoke: (method: string, param: ?Object, cb: (err: any, data: any) => void) => void,
+    invoke: (method: string, param: ?[Object], cb: (err: any, data: any) => void) => void,
     endHandler: (session: Object) => void,
     cancelHandler?: (session: Session) => void,
     dangling?: boolean,
