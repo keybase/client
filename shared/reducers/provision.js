@@ -58,7 +58,8 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
-      if (state.existingDevices.find(ed => ed.toLowerCase() === action.payload.name.toLowerCase())) {
+      const newNameLowerCase = action.payload.name.toLowerCase()
+      if (state.existingDevices.find(ed => ed.toLowerCase() === newNameLowerCase)) {
         return state.merge({
           deviceName: action.payload.name,
           error: new HiddenString(
