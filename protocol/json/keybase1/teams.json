@@ -626,6 +626,94 @@
             "keys": "Seqno"
           },
           "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Audit",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxChainSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleProbe"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Probe",
+      "fields": [
+        {
+          "type": "int",
+          "name": "index",
+          "mpackkey": "i"
+        },
+        {
+          "type": "Seqno",
+          "name": "teamSeqno",
+          "mpackkey": "s"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AuditHistory",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "Seqno",
+          "name": "priorMerkleSeqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Audit"
+          },
+          "name": "audits"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "preProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "postProbes"
         }
       ]
     },

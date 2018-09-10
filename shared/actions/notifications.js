@@ -47,10 +47,11 @@ const setupEngineListeners = () => {
     NotificationsGen.createReceivedBadgeState({badgeState})
   )
 
-  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', ({accountID}) =>
-    WalletsGen.createRefreshPayments({accountID})
-  )
+  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', refreshPayments)
+  getEngine().setIncomingActionCreators('stellar.1.notify.paymentStatusNotification', refreshPayments)
 }
+
+const refreshPayments = ({accountID}) => WalletsGen.createRefreshPayments({accountID})
 
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const payload = Constants.badgeStateToBadges(action.payload.badgeState, state)

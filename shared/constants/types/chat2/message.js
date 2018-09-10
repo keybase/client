@@ -3,6 +3,7 @@
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
+import * as WalletTypes from '../wallets'
 // $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
@@ -171,6 +172,16 @@ export type _MessageRequestPayment = {
 }
 export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
 
+export type _ChatPaymentInfo = {
+  amountDescription: string,
+  delta: 'none' | 'increase' | 'decrease',
+  note: HiddenString,
+  status: WalletTypes.StatusSimplified,
+  statusDescription: string,
+  worth: string,
+}
+export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
+
 export type _MessageSendPayment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
@@ -182,7 +193,7 @@ export type _MessageSendPayment = {
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
-  paymentID: RPCStellarTypes.PaymentID,
+  paymentInfo: ?ChatPaymentInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'sendPayment',
 }

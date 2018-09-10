@@ -10,11 +10,12 @@ import {
   ProgressIndicator,
   Text,
   type PropsWithTimer,
+  PopupHeaderText,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
+import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'

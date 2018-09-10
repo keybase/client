@@ -2,6 +2,7 @@
 import * as Chat2Gen from '../chat2-gen'
 import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
+import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
 import * as KBFSGen from '../kbfs-gen'
 import * as NotificationsGen from '../notifications-gen'
@@ -492,6 +493,14 @@ const onChatThreadStale = updates => {
   return actions
 }
 
+const onChatSubteamRename = convs => {
+  const conversationIDKeys = (convs || []).map(c => Types.stringToConversationIDKey(c.convID))
+  return Chat2Gen.createMetaRequestTrusted({
+    conversationIDKeys,
+    force: true,
+  })
+}
+
 // Some participants are broken/fixed now
 const onChatIdentifyUpdate = update => {
   const usernames = update.CanonicalName.split(',')
@@ -655,6 +664,11 @@ const setupEngineListeners = () => {
   )
 
   engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatSubteamRename',
+    ({convs}: RPCChatTypes.NotifyChatChatSubteamRenameRpcParam) => onChatSubteamRename(convs)
+  )
+
+  engine().setIncomingActionCreators(
     'chat.1.NotifyChat.ChatAttachmentUploadProgress',
     ({
       convID,
@@ -728,6 +742,26 @@ const setupEngineListeners = () => {
       `ChatHandler: got NotifyChat.ChatSetConvSettings with no valid minWriterRole for convID ${conversationIDKey}. The local version may be out of date.`
     )
   })
+  engine().setIncomingActionCreators(
+    'chat.1.NotifyChat.ChatPaymentInfo',
+    (notif: RPCChatTypes.NotifyChatChatPaymentInfoRpcParam) => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const paymentInfo = Constants.uiPaymentInfoToChatPaymentInfo(notif.info)
+      if (!paymentInfo) {
+        // This should never happen
+        const errMsg = `ChatHandler: got 'NotifyChat.ChatPaymentInfo' with no valid paymentInfo for convID ${conversationIDKey} messageID: ${
+          notif.msgID
+        }. The local version may be absent or out of date.`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      return Chat2Gen.createPaymentInfoReceived({
+        conversationIDKey,
+        messageID: notif.msgID,
+        paymentInfo,
+      })
+    }
+  )
 }
 
 const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduce((arr, key) => {
@@ -1468,13 +1502,16 @@ const _maybeAutoselectNewestConversation = (
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
-  const selected = Constants.getSelectedConversation(state)
+  let selected = Constants.getSelectedConversation(state)
+  if (!state.chat2.metaMap.get(selected)) {
+    selected = Constants.noConversationIDKey
+  }
   if (action.type === Chat2Gen.metaDelete) {
     if (!action.payload.selectSomethingElse) {
       return
     }
     // only do this if we blocked the current conversation
-    if (selected !== action.payload.conversationIDKey) {
+    if (selected !== Constants.noConversationIDKey && selected !== action.payload.conversationIDKey) {
       return
     }
     // only select something if we're leaving a pending conversation
@@ -1498,11 +1535,7 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (
-    Constants.isValidConversationIDKey(selected) &&
-    !action.payload.findNewConversation &&
-    !action.payload.selectSomethingElse
-  ) {
+  } else if (Constants.isValidConversationIDKey(selected)) {
     // Stay with our existing convo if it was not empty or pending
     return
   }
@@ -2169,6 +2202,10 @@ const createConversationSelectIt = (result: RPCChatTypes.NewConversationLocalRes
   ])
 }
 
+const createConversationError = () => {
+  return Saga.put(Chat2Gen.createSetPendingStatus({pendingStatus: 'failed'}))
+}
+
 const setConvExplodingMode = (action: Chat2Gen.SetConvExplodingModePayload) => {
   const {conversationIDKey, seconds} = action.payload
   const actions = []
@@ -2361,6 +2398,45 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
+  const actions = []
+  const items = action.payload.state
+
+  const explodingItems = items.filter(i => i.item.category.startsWith(Constants.explodingModeGregorKeyPrefix))
+  if (!explodingItems.length) {
+    // No conversations have exploding modes, clear out what is set
+    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes: []})))
+  } else {
+    logger.info('Got push state with some exploding modes')
+    const modes = explodingItems.reduce((current, i) => {
+      const {category, body} = i.item
+      const secondsString = body.toString()
+      const seconds = parseInt(secondsString, 10)
+      if (isNaN(seconds)) {
+        logger.warn(`Got dirty exploding mode ${secondsString} for category ${category}`)
+        return current
+      }
+      const _conversationIDKey = category.substring(Constants.explodingModeGregorKeyPrefix.length)
+      const conversationIDKey = Types.stringToConversationIDKey(_conversationIDKey)
+      current.push({conversationIDKey, seconds})
+      return current
+    }, [])
+    actions.push(Saga.put(Chat2Gen.createUpdateConvExplodingModes({modes})))
+  }
+
+  const seenExploding = items.find(i => i.item.category === Constants.seenExplodingGregorKey)
+  let isNew = true
+  if (seenExploding) {
+    const body = seenExploding.item.body.toString()
+    const when = parseInt(body, 10)
+    if (!isNaN(when)) {
+      isNew = Date.now() - when < Constants.newExplodingGregorOffset
+    }
+  }
+  actions.push(Saga.put(Chat2Gen.createSetExplodingMessagesNew({new: isNew})))
+  return Saga.sequentially(actions)
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2479,7 +2555,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield Saga.safeTakeEveryPure(Chat2Gen.setConvRetentionPolicy, setConvRetentionPolicy)
   yield Saga.actionToAction(Chat2Gen.messageReplyPrivately, messageReplyPrivately)
-  yield Saga.safeTakeEveryPure(Chat2Gen.createConversation, createConversation, createConversationSelectIt)
+  yield Saga.safeTakeEveryPure(
+    Chat2Gen.createConversation,
+    createConversation,
+    createConversationSelectIt,
+    createConversationError
+  )
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
 
   // Exploding things
@@ -2496,6 +2577,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
+  yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
 }
 
 export default chat2Saga
