@@ -32,7 +32,7 @@ const folderItemStyles = {
     iconType: 'icon-folder-private-32',
     iconColor: globalColors.darkBlue2,
   },
-  textColor: globalColors.darkBlue,
+  textColor: globalColors.black_75,
   textType: 'BodySemibold',
 }
 
@@ -42,7 +42,7 @@ const fileItemStyles = {
     iconType: 'icon-file-private-32',
     iconColor: globalColors.darkBlue2,
   },
-  textColor: globalColors.darkBlue,
+  textColor: globalColors.black_75,
   textType: 'Body',
 }
 

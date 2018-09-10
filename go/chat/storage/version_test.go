@@ -16,6 +16,7 @@ func TestServerVersionSync(t *testing.T) {
 		TestContext: ltc,
 		ChatG:       &globals.ChatContext{},
 	}
+	defer tc.Cleanup()
 	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
 
 	err := tc.Context().ServerCacheVersions.Set(context.TODO(), chat1.ServerCacheVers{

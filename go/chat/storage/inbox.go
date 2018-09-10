@@ -153,7 +153,7 @@ func (i *Inbox) readDiskInbox(ctx context.Context) (inboxDiskData, Error) {
 }
 
 func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile {
-	path := filepath.Join(i.G().GetEnv().GetMobileSharedHome(), "inbox.mpack")
+	path := filepath.Join(i.G().GetEnv().GetConfigDir(), "inbox.mpack")
 	return encrypteddb.NewFile(i.G().ExternalG(), path,
 		func(ctx context.Context) ([32]byte, error) {
 			return GetSecretBoxKey(ctx, i.G().ExternalG(), DefaultSecretUI)
@@ -162,7 +162,8 @@ func (i *Inbox) sharedInboxFile(ctx context.Context) *encrypteddb.EncryptedFile 
 
 func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) {
 	// Bail out if we are an extension or we aren't also writing into a mobile shared directory
-	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" {
+	if i.G().GetEnv().IsMobileExtension() || i.G().GetEnv().GetMobileSharedHome() == "" ||
+		i.G().GetAppType() != libkb.MobileAppType {
 		return
 	}
 	var writable []SharedInboxItem

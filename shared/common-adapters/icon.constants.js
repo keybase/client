@@ -1973,6 +1973,12 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-website-64.png'),
   },
+  'icon-windows-badge': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-windows-badge.png'),
+  },
   'icon-zcash-logo-48': {
     isFont: false,
     extension: 'png',
@@ -2509,6 +2515,11 @@ const iconMeta_ = {
     isFont: true,
     gridSize: 16,
     charCode: 0xe969,
+  },
+  'iconfont-return': {
+    isFont: true,
+    gridSize: 16,
+    charCode: 0xe96a,
   } /* eslint-enable */,
 }
 

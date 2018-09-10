@@ -61,6 +61,7 @@ export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
+export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const previewConversation = 'chat2:previewConversation'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
@@ -262,6 +263,11 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
 |}>
 type _OpenChatFromWidgetPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey|}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _PaymentInfoReceivedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  paymentInfo: Types.ChatPaymentInfo,
+|}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
@@ -419,6 +425,10 @@ export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) 
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({error: false, payload, type: saveMinWriterRole})
 /**
+ * We received payment info for a sendPayment message
+ */
+export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({error: false, payload, type: paymentInfoReceived})
+/**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
@@ -529,6 +539,7 @@ export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _Navi
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
+export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
@@ -608,6 +619,7 @@ export type Actions =
   | NotificationSettingsUpdatedPayload
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
+  | PaymentInfoReceivedPayload
   | PreviewConversationPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
