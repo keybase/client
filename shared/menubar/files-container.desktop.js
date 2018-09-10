@@ -24,11 +24,12 @@ const mergeProps = (stateProps, dispatchProps) => ({
   loadTlfUpdates: dispatchProps.loadTlfUpdates,
   // TODO: fix this slice once the UI is fixed.
   userTlfUpdates: stateProps._userTlfUpdates.slice(0, 2).map(c => {
-    const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(FsTypes.pathToString(c.tlf))
+    const tlf = FsTypes.pathToString(c.tlf)
+    const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
       onSelectPath: () => dispatchProps._onSelectPath(c.tlf),
-      tlf: FsTypes.pathToString(c.tlf),
+      tlf,
       // Default to private visibility--this should never happen though.
       tlfType: FsTypes.getPathVisibility(c.tlf) || 'private',
       writer: c.writer,
