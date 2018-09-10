@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Styles from '../../../styles'
 import {globalStyles, globalColors, backgroundURL} from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
@@ -35,15 +36,25 @@ const realCSS = `
   top: ${height}px;
   transition: all .3s ${easing};
 }
-.text-overflow {
-  color: ${globalColors.white};
-  max-width: 60%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-}
 `
+
+const styles = Styles.styleSheetCreate({
+  textOverflow: Styles.platformStyles({
+    common: {
+      color: globalColors.white,
+      maxWidth: '60%',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textAlign: 'center',
+    },
+    isMobile: {
+      textOverflow: 'ellipsis',
+    },
+    isElectron: {
+      overflowWrap: 'ellipsis',
+    },
+  }),
+})
 
 const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
   return (
@@ -52,7 +63,7 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
       <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
         <Box className="upload-animation-loop" style={stylesBox}>
           <style>{realCSS}</style>
-          <Text key="files" type="BodySemibold" className="text-overflow">
+          <Text key="files" type="BodySemibold" className={styles.textOverflow}>
             {files
               ? fileName
                 ? `Encrypting and uploading ${fileName}...`
