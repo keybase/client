@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import * as Styles from '../../../styles'
+import * as Styles from '../../styles'
 import {globalStyles, globalColors, backgroundURL} from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
