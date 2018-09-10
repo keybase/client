@@ -108,7 +108,7 @@
   int duration = CMTimeGetSeconds([asset duration]);
   UIImage* original = [UIImage imageWithCGImage:cgOriginal];
   UIImage* scaled = [UIImage imageWithCGImage:cgThumb];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
+  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
   resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
   CGImageRelease(cgOriginal);
   CGImageRelease(cgThumb);
@@ -125,7 +125,7 @@
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 1.0);
+  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
   resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
   CGImageRelease(image);
   CFRelease(cfurl);
