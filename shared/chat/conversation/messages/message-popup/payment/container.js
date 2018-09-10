@@ -36,24 +36,16 @@ const commonLoadingProps = {
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
+const sendMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  _you: state.config.username,
+})
+
+const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
   if (ownProps.message.type !== 'sendPayment') {
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
-  const {paymentID} = ownProps.message
-  const accountID = WalletConstants.getDefaultAccountID(state)
-  let _payment = null
-  if (accountID) {
-    _payment = WalletConstants.getPayment(state, accountID, paymentID)
-  }
-  return {
-    _payment,
-    _you: state.config.username,
-  }
-}
-
-const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
-  if (!stateProps._payment) {
+  const {paymentInfo} = ownProps.message
+  if (!paymentInfo) {
     return {
       ...commonLoadingProps,
       attachTo: ownProps.attachTo,
@@ -62,14 +54,15 @@ const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
       visible: ownProps.visible,
     }
   }
-  const {_payment: payment, _you: you} = stateProps
+  const {_you: you} = stateProps
   return {
-    amountNominal: payment.worth || payment.amountDescription,
+    amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
     attachTo: ownProps.attachTo,
-    balanceChange: `${payment.delta === 'increase' ? '+' : '-'}${payment.amountDescription}`,
-    balanceChangeColor: payment.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+    balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
+    balanceChangeColor:
+      paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
     bottomLine: '', // TODO on asset support in payment
-    icon: payment.delta === 'increase' ? 'receiving' : 'sending',
+    icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
     onCancel: null,
     onHidden: ownProps.onHidden,
@@ -78,7 +71,7 @@ const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
     senderDeviceName: ownProps.message.deviceName,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
-      payment.worthCurrency ? ' lumens worth' : ''
+      paymentInfo.worth ? ' lumens worth' : ''
     }`,
     txVerb: 'sent',
     visible: ownProps.visible,
@@ -100,7 +93,7 @@ const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps)
   }
 }
 
-const requestMapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const requestMapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onCancel: () => {
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)

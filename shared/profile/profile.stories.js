@@ -189,6 +189,7 @@ const props = {
   onRecheckProof: Sb.action('onRecheckProof'),
   onRevokeProof: Sb.action('onRevokeProof'),
   onSearch: Sb.action('onSearch'),
+  onSendOrRequestLumens: Sb.action('onSendOrRequestLumens'),
   onUnfollow: Sb.action('onUnfollow'),
   onUserClick: Sb.action('showUserProfile'),
   onViewProof: Sb.action('onViewProof'),

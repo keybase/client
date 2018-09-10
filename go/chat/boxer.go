@@ -137,9 +137,10 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
 			err.Msg = fmt.Sprintf("user deleted in chat '%v'", tlfName)
 		}
 		return NewPermanentUnboxingError(err)
-	case teams.TeamDoesNotExistError:
-		return NewPermanentUnboxingError(err)
-	case DecryptionKeyNotFoundError:
+	case teams.TeamDoesNotExistError,
+		DecryptionKeyNotFoundError,
+		NotAuthenticatedForThisDeviceError,
+		InvalidMACError:
 		return NewPermanentUnboxingError(err)
 	case ephemeral.EphemeralKeyError:
 		// Normalize error message with EphemeralUnboxingError
@@ -760,7 +761,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
 		if err != nil {
-			return nil, NewPermanentUnboxingError(err)
+			// Return a transient error if possible
+			return nil, b.detectPermanentError(err, boxed.ClientHeader.TlfName)
 		}
 	} else if bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 		// Note that this can happen if the server is stripping MACs for some
