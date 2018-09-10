@@ -1296,6 +1296,10 @@ type AppConfig struct {
 	MobileExtension                bool
 	AttachmentHTTPStartPort        int
 	AttachmentDisableMulti         bool
+	LinkCacheSize                  int
+	UPAKCacheSize                  int
+	PayloadCacheSize               int
+	ProofCacheSize                 int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1358,14 +1362,37 @@ func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
 }
 
-// Default is 4000. Turning down on mobile to reduce memory usage.
-func (c AppConfig) GetLinkCacheSize() (int, bool) {
-	return 1000, true
-}
-
 func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
 	if c.AttachmentHTTPStartPort != 0 {
 		return c.AttachmentHTTPStartPort, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetLinkCacheSize() (int, bool) {
+	if c.LinkCacheSize != 0 {
+		return c.LinkCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetUPAKCacheSize() (int, bool) {
+	if c.UPAKCacheSize != 0 {
+		return c.UPAKCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetPayloadCacheSize() (int, bool) {
+	if c.PayloadCacheSize != 0 {
+		return c.PayloadCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetProofCacheSize() (int, bool) {
+	if c.ProofCacheSize != 0 {
+		return c.ProofCacheSize, true
 	}
 	return 0, false
 }

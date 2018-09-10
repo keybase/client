@@ -25,12 +25,13 @@ const BOOL isSimulator = NO;
 @implementation ConversationViewController
 
 - (void)viewDidLoad {
+  [super viewDidLoad];
+  
   NSError* error = NULL;
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
   KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   if (error != nil) {
     NSLog(@"Failed to init: %@", error);
-    [super viewDidLoad];
     return;
   }
   
@@ -50,7 +51,6 @@ const BOOL isSimulator = NO;
   } else {
     [self parseInbox:jsonInbox];
   }
-  [super viewDidLoad];
 }
 
 - (void)parseInbox:(NSString*)jsonInbox {

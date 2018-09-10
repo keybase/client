@@ -91,6 +91,10 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		ChatInboxSourceLocalizeThreads: 5,
 		AttachmentHTTPStartPort:        16500,
 		AttachmentDisableMulti:         true,
+		LinkCacheSize:                  100,
+		UPAKCacheSize:                  50,
+		PayloadCacheSize:               50,
+		ProofCacheSize:                 50,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -465,18 +469,32 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 func ExtensionForceGC() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
+
+	// Free up gc memory first
 	fmt.Printf("mem stats (before): alloc: %v sys: %v\n", m.Alloc, m.Sys)
 	fmt.Printf("Starting force gc\n")
 	debug.FreeOSMemory()
 	fmt.Printf("Done force gc\n")
 	runtime.ReadMemStats(&m)
 	fmt.Printf("mem stats (after): alloc: %v sys: %v\n", m.Alloc, m.Sys)
+
 	if !ExtensionIsInited() {
-		fmt.Printf("Not initialized, bailing")
+		fmt.Printf("Not initialized, bailing\n")
 		return
 	}
+
+	// Free all caches, and run gc again to clear out anything
 	fmt.Printf("Flushing global caches\n")
 	kbCtx.FlushCaches()
+	if _, ok := kbCtx.LocalChatDb.GetEngine().(*libkb.MemDb); ok {
+		fmt.Printf("Nuking in memory chat db\n")
+		kbCtx.LocalChatDb.Nuke()
+	}
+	if _, ok := kbCtx.LocalDb.GetEngine().(*libkb.MemDb); ok {
+		fmt.Printf("Nuking in memory local db\n")
+		kbCtx.LocalDb.Nuke()
+	}
+	debug.FreeOSMemory()
 	fmt.Printf("Done flushing global caches\n")
 	runtime.ReadMemStats(&m)
 	fmt.Printf("mem stats (after flush): alloc: %v sys: %v\n", m.Alloc, m.Sys)
