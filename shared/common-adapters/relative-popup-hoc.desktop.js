@@ -81,7 +81,7 @@ function _computePopupStyle(
   popupCoords: ClientRect,
   offset: ?number
 ): ComputedStyle {
-  const style: ComputedStyle = {position: 'absolute', zIndex: 2}
+  const style: ComputedStyle = {position: 'absolute', zIndex: 30}
 
   const {pageYOffset, pageXOffset} = window
   const {clientWidth, clientHeight} = document.documentElement || {clientWidth: 800, clientHeight: 800}
