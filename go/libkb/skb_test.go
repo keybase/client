@@ -234,7 +234,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		UseCancelCache: true,
 	}
 	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
-	require.NotNil(t, err)
+	require.Error(t, err)
 	require.Nil(t, key)
 	return err
 }
