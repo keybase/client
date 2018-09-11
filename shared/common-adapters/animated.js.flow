@@ -1,0 +1,8 @@
+// @flow
+import * as React from 'react'
+export type Props = {|
+  children?: Function,
+  from?: any,
+  to?: any,
+|}
+export default class Animated extends React.Component<Props> {}

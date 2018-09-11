@@ -1,4 +1,6 @@
 // @flow
+export {default as Animated} from './animated'
+export {animated, interpolate} from 'react-spring'
 export {default as Avatar, castPlatformStyles as avatarCastPlatformStyles} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Badge} from './badge'

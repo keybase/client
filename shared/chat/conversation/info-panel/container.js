@@ -1,19 +1,18 @@
 // @flow
 import * as I from 'immutable'
-import {Spring} from 'react-spring'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as Route from '../../../actions/route-tree'
 import * as TeamTypes from '../../../constants/types/teams'
 import * as Types from '../../../constants/types/chat2'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import {InfoPanel} from '.'
 import {teamsTab} from '../../../constants/tabs'
 import {connect, isMobile} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
-import {Box} from '../../../common-adapters'
-import {collapseStyles} from '../../../styles'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -158,18 +157,21 @@ class InfoPanelSelector extends React.PureComponent<Props> {
     return isMobile ? (
       <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
     ) : (
-      <Box onClick={this.props.onBack} style={clickCatcherStyle}>
-        <Spring from={{right: -320}} to={{right: 0}}>
+      <Kb.Box onClick={this.props.onBack} style={clickCatcherStyle}>
+        <Kb.Animated from={{right: -320}} to={{right: 0}}>
           {styles => (
-            <Box style={collapseStyles([styles, panelContainerStyle])} onClick={evt => evt.stopPropagation()}>
+            <Kb.Box
+              style={Styles.collapseStyles([styles, panelContainerStyle])}
+              onClick={evt => evt.stopPropagation()}
+            >
               <ConnectedInfoPanel
                 onBack={this.props.onBack}
                 conversationIDKey={this.props.conversationIDKey}
               />
-            </Box>
+            </Kb.Box>
           )}
-        </Spring>
-      </Box>
+        </Kb.Animated>
+      </Kb.Box>
     )
   }
 }
