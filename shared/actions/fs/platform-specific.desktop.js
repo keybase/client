@@ -288,14 +288,12 @@ function installCachedDokan() {
   })
 }
 
-function uninstallDokan(uninstallString: string) {
+function uninstallDokan(uninstallString: string): Promise<boolean> {
   return new Promise((resolve, reject) => {
     logger.info('Invoking dokan uninstaller')
     try {
-      if (uninstallString) {
-        execSync(uninstallString, {windowsHide: true})
-      }
-      resolve()
+      execSync(uninstallString, {windowsHide: true})
+      resolve(true)
     } catch (err) {
       logger.error('uninstallDokan caught', err)
       reject(err)
@@ -307,8 +305,13 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-const uninstallDokanPromise = (state: TypedState) => {
-  return uninstallDokan(Constants.kbfsUninstallString(state))
+function* uninstallDokanSaga() {
+  const state: TypedState = yield Saga.select()
+  const uninstallString = Constants.kbfsUninstallString(state)
+  if (uninstallString) {
+    yield Saga.call(uninstallDokan, uninstallString)
+    yield Saga.put(FsGen.createFuseStatus())
+  }
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -345,7 +348,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
+    yield Saga.safeTakeEvery(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
     yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
