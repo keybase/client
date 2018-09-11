@@ -99,7 +99,7 @@ function _open(openPath: string): Promise<void> {
 
 function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
   const state: TypedState = yield Saga.select()
-  const prevStatus = state.favorite.fuseStatus
+  const prevStatus = state.fs.fuseStatus
 
   let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== 4) {
@@ -251,7 +251,7 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
 function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
   const openPath = action.payload.path || Constants.defaultKBFSPath
   const state: TypedState = yield Saga.select()
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
 
   if (isLinux || enabled) {
     logger.info('openInKBFS:', openPath)
@@ -263,7 +263,7 @@ function* openSaga(action: KBFSGen.OpenPayload): Saga.SagaGenerator<any, any> {
 }
 
 function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state: TypedState) {
-  const enabled = state.favorite.fuseStatus && state.favorite.fuseStatus.kextStarted
+  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
     return Saga.call(_open, path)
   } else {
