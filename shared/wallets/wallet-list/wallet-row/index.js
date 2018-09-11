@@ -3,13 +3,13 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
-type Props = {
+type Props = {|
   isSelected: boolean,
   name: string,
   keybaseUser: string,
   contents: string,
   onSelect: () => void,
-}
+|}
 
 const rightColumnStyle = Styles.platformStyles({
   isElectron: {
@@ -19,24 +19,11 @@ const rightColumnStyle = Styles.platformStyles({
   },
 })
 
-const rowHeight = Styles.isMobile ? 56 : 48
-
-const backgroundColorSelected = Styles.globalColors.blue
-
 const styles = Styles.styleSheetCreate({
   avatar: {marginRight: Styles.globalMargins.xtiny},
-
-  containerSelected: {
-    backgroundColor: backgroundColorSelected,
-  },
-
   containerBox: {
-    height: rowHeight,
+    height: Styles.isMobile ? 56 : 48,
   },
-  containerBoxSelected: {
-    height: rowHeight,
-  },
-
   icon: {
     alignSelf: 'center',
     height: 32,
@@ -54,7 +41,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
     color: Styles.globalColors.white,
-    backgroundColor: backgroundColorSelected,
   },
 
   amount: {
@@ -65,7 +51,6 @@ const styles = Styles.styleSheetCreate({
   amountSelected: {
     ...rightColumnStyle,
     color: Styles.globalColors.white,
-    backgroundColor: backgroundColorSelected,
     fontSize: 11,
   },
 })
@@ -78,11 +63,11 @@ const HoverBox = Styles.isMobile
 
 const WalletRow = (props: Props) => {
   return (
-    <Kb.ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
+    <Kb.ClickableBox onClick={props.onSelect}>
       <HoverBox
         style={Styles.collapseStyles([
           styles.containerBox,
-          props.isSelected ? {backgroundColor: backgroundColorSelected} : {},
+          props.isSelected ? {backgroundColor: Styles.globalColors.blue} : {},
         ])}
         direction="horizontal"
         fullWidth={true}
