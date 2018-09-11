@@ -316,13 +316,14 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (string, keybase1.SigID, er
 }
 
 func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
-	var kidInSig keybase1.KID
+	var keyInSignature *kbcrypto.NaclSigningKeyPublic
 	var fullSigBody []byte
-	kidInSig, msg, fullSigBody, err = kbcrypto.NaclVerifyAndExtract(sig)
+	keyInSignature, msg, fullSigBody, err = kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
 		return
 	}
 
+	kidInSig := keyInSignature.GetKID()
 	kidWanted := k.GetKID()
 	if kidWanted.NotEqual(kidInSig) {
 		err = WrongKidError{kidInSig, kidWanted}

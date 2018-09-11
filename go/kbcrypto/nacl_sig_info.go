@@ -115,25 +115,24 @@ func DecodeArmoredNaclSigInfoPacket(s string) (NaclSigInfo, error) {
 
 // NaclVerifyAndExtract interprets the given string as a NaCl-signed messaged, in
 // the keybase NaclSigInfo (v1) format. It will check that the signature verified, and if so,
-// will return the KID of the key that was used for the verification, the payload of the signature,
+// will return the public key that was used for the verification, the payload of the signature,
 // the full body of the decoded SignInfo, and an error
-func NaclVerifyAndExtract(s string) (kid keybase1.KID, payload []byte, fullBody []byte, err error) {
+func NaclVerifyAndExtract(s string) (nk *NaclSigningKeyPublic, payload []byte, fullBody []byte, err error) {
 	fullBody, err = base64.StdEncoding.DecodeString(s)
 	if err != nil {
-		return "", nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
 	if err != nil {
-		return "", nil, nil, err
+		return nil, nil, nil, err
 	}
 
-	var nk *NaclSigningKeyPublic
 	nk, err = naclSig.Verify()
 	if err != nil {
-		return "", nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	payload = naclSig.Payload
-	return nk.GetKID(), payload, fullBody, nil
+	return nk, payload, fullBody, nil
 }

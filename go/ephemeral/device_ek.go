@@ -205,16 +205,16 @@ func allDeviceEKMetadataMaybeStale(ctx context.Context, g *libkb.GlobalContext, 
 	metadata = map[keybase1.DeviceID]keybase1.DeviceEkMetadata{}
 	for _, sig := range parsedResponse.Sigs {
 		// Verify the sig.
-		signerKID, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
+		signerKey, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 		if err != nil {
 			return nil, err
 		}
 
 		// Find the device that matches the signing key. This checks
 		// authenticity.
-		matchingDevice, ok := kidToDevice[signerKID]
+		matchingDevice, ok := kidToDevice[signerKey.GetKID()]
 		if !ok {
-			return nil, fmt.Errorf("deviceEK returned for unknown device KID %s", signerKID)
+			return nil, fmt.Errorf("deviceEK returned for unknown device KID %s", signerKey.GetKID())
 		}
 
 		// Decode the signed JSON.

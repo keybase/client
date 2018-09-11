@@ -98,16 +98,16 @@ func (t Token) String() string {
 
 func VerifyToken(signature, server, challenge string, maxExpireIn int) (*Token, error) {
 	var t *Token
-	kid, token, _, err := kbcrypto.NaclVerifyAndExtract(signature)
+	key, token, _, err := kbcrypto.NaclVerifyAndExtract(signature)
 	if err != nil {
 		return nil, err
 	}
 	if t, err = parseToken(token); err != nil {
 		return nil, err
 	}
-	if kid != t.KID() {
+	if key.GetKID() != t.KID() {
 		return nil, InvalidTokenKeyError{
-			expected: kid.String(),
+			expected: key.GetKID().String(),
 			received: t.KID().String(),
 		}
 	}

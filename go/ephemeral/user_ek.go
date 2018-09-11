@@ -293,17 +293,17 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	return statement, latestGeneration, false, nil
 }
 
-func extractUserEKStatementFromSig(sig string) (signerKID keybase1.KID, statement *keybase1.UserEkStatement, err error) {
-	signerKID, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
+func extractUserEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningKeyPublic, statement *keybase1.UserEkStatement, err error) {
+	signerKey, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return signerKID, nil, err
+		return signerKey, nil, err
 	}
 
 	parsedStatement := keybase1.UserEkStatement{}
 	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
-		return signerKID, nil, err
+		return signerKey, nil, err
 	}
-	return signerKID, &parsedStatement, nil
+	return signerKey, &parsedStatement, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -319,7 +319,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PUK roll that didn't
 	// include a userEK statement), we'll still return the generation number.
-	signerKID, parsedStatement, err := extractUserEKStatementFromSig(sig)
+	signerKey, parsedStatement, err := extractUserEKStatementFromSig(sig)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -334,14 +334,14 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 		return nil, latestGeneration, false, err
 	}
 	latestPUK := upak.Current.GetLatestPerUserKey()
-	if latestPUK == nil || !latestPUK.SigKID.Equal(signerKID) {
+	if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
 		// The latest PUK might be stale. Force a reload, then check this over again.
 		upak, _, err = g.GetUPAKLoader().LoadV2(libkb.NewLoadUserByUIDForceArg(g, uid))
 		if err != nil {
 			return nil, latestGeneration, false, err
 		}
 		latestPUK = upak.Current.GetLatestPerUserKey()
-		if latestPUK == nil || !latestPUK.SigKID.Equal(signerKID) {
+		if latestPUK == nil || !latestPUK.SigKID.Equal(signerKey.GetKID()) {
 			// The latest PUK still doesn't match the signing key after a
 			// forced reload. Bail out, and set the `wrongKID` flag.
 			latestPUKSigningKIDString := "<nil>"
@@ -349,7 +349,7 @@ func verifySigWithLatestPUK(ctx context.Context, g *libkb.GlobalContext, uid key
 				latestPUKSigningKIDString = fmt.Sprint(latestPUK.SigKID)
 			}
 			err = fmt.Errorf("userEK returned for PUK signing KID %s, but latest is %s",
-				signerKID, latestPUKSigningKIDString)
+				signerKey.GetKID(), latestPUKSigningKIDString)
 			return nil, latestGeneration, true, err
 		}
 	}

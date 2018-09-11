@@ -289,17 +289,17 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	return statement, latestGeneration, false, nil
 }
 
-func extractTeamEKStatementFromSig(sig string) (signerKID keybase1.KID, statement *keybase1.TeamEkStatement, err error) {
-	signerKID, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
+func extractTeamEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningKeyPublic, statement *keybase1.TeamEkStatement, err error) {
+	signerKey, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
-		return signerKID, nil, err
+		return signerKey, nil, err
 	}
 
 	parsedStatement := keybase1.TeamEkStatement{}
 	if err = json.Unmarshal(payload, &parsedStatement); err != nil {
-		return signerKID, nil, err
+		return signerKey, nil, err
 	}
-	return signerKID, &parsedStatement, nil
+	return signerKey, &parsedStatement, nil
 }
 
 // Verify that the blob is validly signed, and that the signing key is the
@@ -314,7 +314,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	// Parse the statement before we verify the signing key. Even if the
 	// signing key is bad (likely because of a legacy PTK roll that didn't
 	// include a teamEK statement), we'll still return the generation number.
-	signerKID, parsedStatement, err := extractTeamEKStatementFromSig(sig)
+	signerKey, parsedStatement, err := extractTeamEKStatementFromSig(sig)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -334,7 +334,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
-	if !teamSigningKey.GetKID().Equal(signerKID) {
+	if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
 		// The latest PTK might be stale. Force a reload, then check this over again.
 		team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 			ID:          teamID,
@@ -347,9 +347,9 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 		if err != nil {
 			return nil, latestGeneration, false, err
 		}
-		if !teamSigningKey.GetKID().Equal(signerKID) {
+		if !teamSigningKey.GetKID().Equal(signerKey.GetKID()) {
 			return nil, latestGeneration, true, fmt.Errorf("teamEK returned for PTK signing KID %s, but latest is %s",
-				signerKID, teamSigningKey.GetKID())
+				signerKey.GetKID(), teamSigningKey.GetKID())
 		}
 	}
 
