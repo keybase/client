@@ -19,13 +19,17 @@ type Props = {
   selected?: React.Node,
   items: Array<React.Node>,
   style?: StylesCrossPlatform,
-  disabled?: boolean,
+  disabled: boolean,
 }
 type State = {
   expanded: boolean,
 }
 class Dropdown extends React.Component<Props, State> {
   state = {expanded: false}
+
+  static defaultProps = {
+    disabled: false,
+  }
 
   _toggleOpen = () => {
     this.setState(prevProps => ({
