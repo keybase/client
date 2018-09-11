@@ -1,22 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box2,
-  ClickableBox,
-  Text,
-  Avatar,
-  Icon,
-  iconCastPlatformStyles,
-  avatarCastPlatformStyles,
-} from '../../../common-adapters'
-import {
-  globalStyles,
-  globalMargins,
-  globalColors,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 type Props = {
   isSelected: boolean,
@@ -26,7 +11,7 @@ type Props = {
   onSelect: () => void,
 }
 
-const rightColumnStyle = platformStyles({
+const rightColumnStyle = Styles.platformStyles({
   isElectron: {
     overflow: 'hidden',
     textOverflow: 'ellipsis',
@@ -34,12 +19,12 @@ const rightColumnStyle = platformStyles({
   },
 })
 
-const rowHeight = isMobile ? 56 : 48
+const rowHeight = Styles.isMobile ? 56 : 48
 
-const backgroundColorSelected = globalColors.blue
+const backgroundColorSelected = Styles.globalColors.blue
 
-const styles = styleSheetCreate({
-  avatar: {marginRight: globalMargins.xtiny},
+const styles = Styles.styleSheetCreate({
+  avatar: {marginRight: Styles.globalMargins.xtiny},
 
   containerSelected: {
     backgroundColor: backgroundColorSelected,
@@ -56,31 +41,31 @@ const styles = styleSheetCreate({
   icon: {
     alignSelf: 'center',
     height: 32,
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
 
   rightColumn: rightColumnStyle,
 
   title: {
     ...rightColumnStyle,
-    color: globalColors.black_75,
+    color: Styles.globalColors.black_75,
   },
   titleSelected: {
-    ...globalStyles.fontSemibold,
+    ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     backgroundColor: backgroundColorSelected,
   },
 
   amount: {
     ...rightColumnStyle,
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
     fontSize: 11,
   },
   amountSelected: {
     ...rightColumnStyle,
-    color: globalColors.white,
+    color: Styles.globalColors.white,
     backgroundColor: backgroundColorSelected,
     fontSize: 11,
   },
@@ -88,36 +73,36 @@ const styles = styleSheetCreate({
 
 const WalletRow = (props: Props) => {
   return (
-    <ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
-      <Box2
+    <Kb.ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
+      <Kb.Box2
         style={props.isSelected ? styles.containerBoxSelected : styles.containerBox}
         direction="horizontal"
         fullWidth={true}
       >
-        <Icon
+        <Kb.Icon
           type="icon-wallet-64"
-          color={globalColors.black_75}
-          style={iconCastPlatformStyles(styles.icon)}
+          color={Styles.globalColors.black_75}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
         />
-        <Box2 direction="vertical" style={styles.rightColumn}>
-          <Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="vertical" style={styles.rightColumn}>
+          <Kb.Box2 direction="horizontal" fullWidth={true}>
             {props.keybaseUser && (
-              <Avatar
+              <Kb.Avatar
                 size={16}
-                style={avatarCastPlatformStyles(styles.avatar)}
+                style={Kb.avatarCastPlatformStyles(styles.avatar)}
                 username={props.keybaseUser}
               />
             )}
-            <Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
+            <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
               {props.name}
-            </Text>
-          </Box2>
-          <Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Text type="BodySmall" style={props.isSelected ? styles.amountSelected : styles.amount}>
             {props.contents}
-          </Text>
-        </Box2>
-      </Box2>
-    </ClickableBox>
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ClickableBox>
   )
 }
 
