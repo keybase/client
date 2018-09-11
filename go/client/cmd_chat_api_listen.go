@@ -5,12 +5,14 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -67,12 +69,7 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 
-	jsonStr, _ := json.Marshal(struct {
-		What string `json:"what"`
-	}{
-		What: "listening",
-	})
-	display.printf("%s\n", jsonStr)
+	display.errorf("Listening for chat notifications...\n")
 	for {
 		time.Sleep(time.Second)
 	}
@@ -91,12 +88,25 @@ func (d *chatNotificationDisplay) printf(fmt string, args ...interface{}) error 
 	return err
 }
 
+func (d *chatNotificationDisplay) errorf(format string, args ...interface{}) error {
+	_, err := d.G().UI.GetTerminalUI().ErrorWriter().Write([]byte(fmt.Sprintf(format, args...)))
+	return err
+}
+
 type incomingMessage struct {
-	ConvName string `json:"conv_name"`
-	Channel  string `json:"channel,omitempty"`
-	Type     string `json:"type"`
-	Message  string `json:"message,omitempty"`
-	Sender   string `json:"sender,omitempty"`
+	ConvName string          `json:"conv_name"`
+	Channel  string          `json:"channel,omitempty"`
+	ID       chat1.MessageID `json:"id"`
+	Type     string          `json:"type"`
+	Body     string          `json:"message,omitempty"`
+	Sender   string          `json:"sender,omitempty"`
+	Ctime    gregor1.Time    `json:"ctime"`
+
+	// For messages that affect other messages (like edits, reactions)
+	TargetMsgID chat1.MessageID `json:"target_msg_id,omitempty"`
+
+	// Message deletions
+	DeletedMessageIDs []chat1.MessageID `json:"target_msg_ids,omitempty"`
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
@@ -112,17 +122,33 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 					ConvName: inMsg.Conv.Name,
 					Channel:  inMsg.Conv.Channel,
 					Sender:   mv.SenderUsername,
+					ID:       mv.MessageID,
+					Ctime:    mv.Ctime,
 				}
 				bodyType, err := mv.MessageBody.MessageType()
 				if err == nil {
 					msgJSON.Type = bodyType.String()
 					switch bodyType {
 					case chat1.MessageType_TEXT:
-						msgJSON.Message = mv.MessageBody.Text().Body
+						msgJSON.Body = mv.MessageBody.Text().Body
+					case chat1.MessageType_REACTION:
+						r := mv.MessageBody.Reaction()
+						msgJSON.Body = r.Body
+						msgJSON.TargetMsgID = r.MessageID
+					case chat1.MessageType_EDIT:
+						e := mv.MessageBody.Edit()
+						msgJSON.Body = e.Body
+						msgJSON.TargetMsgID = e.MessageID
+					case chat1.MessageType_DELETE:
+						msgJSON.DeletedMessageIDs = mv.MessageBody.Delete().MessageIDs
 					}
 				}
-				jsonStr, _ := json.Marshal(msgJSON)
-				d.printf("%s\n", string(jsonStr))
+
+				if jsonStr, err := json.Marshal(msgJSON); err == nil {
+					d.printf("%s\n", string(jsonStr))
+				} else {
+					d.errorf("Error while marshaling JSON: %s\n", err)
+				}
 			}
 		}
 	}
