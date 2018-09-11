@@ -262,6 +262,7 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
 }
 
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
+const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
@@ -324,6 +325,7 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,

@@ -10,6 +10,7 @@ export type SettingsProps = {|
   name: string,
   user: string,
   isDefault: boolean,
+  currencyWaiting: boolean,
   currency: Types.Currency,
   currencies: I.List<Types.Currency>,
   onBack: () => void,
@@ -85,18 +86,21 @@ const AccountSettings = (props: SettingsProps) => {
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
         </Kb.Box2>
-        <Kb.Dropdown
-          items={makeDropdownItems(props.currencies, props.currency)}
-          selected={makeDropdownItem(props.currency, false)}
-          onChanged={(node: React.Node) => {
-            // $ForceType doesn't understand key will be string
-            const selectedCode: Types.CurrencyCode = node.key
-            if (selectedCode !== props.currency.code) {
-              props.onCurrencyChange(selectedCode)
-            }
-          }}
-          style={styles.dropdown}
-        />
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.dropdownContainer} gap="tiny">
+          <Kb.Dropdown
+            items={makeDropdownItems(props.currencies, props.currency)}
+            selected={makeDropdownItem(props.currency, false)}
+            onChanged={(node: React.Node) => {
+              // $ForceType doesn't understand key will be string
+              const selectedCode: Types.CurrencyCode = node.key
+              if (selectedCode !== props.currency.code) {
+                props.onCurrencyChange(selectedCode)
+              }
+            }}
+            style={styles.dropdown}
+          />
+          <Kb.SaveIndicator saving={props.currencyWaiting} minSavingTimeMs={300} savedTimeoutMs={300} />
+        </Kb.Box2>
         <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
         <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
         <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
@@ -186,6 +190,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xlarge,
     },
   }),
+  dropdownContainer: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
   dropdown: {
     alignItems: 'center',
     marginBottom: Styles.globalMargins.xtiny,

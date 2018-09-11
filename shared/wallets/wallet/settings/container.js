@@ -5,9 +5,11 @@ import {
   connect,
   lifecycle,
   setDisplayName,
+  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
+import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -20,10 +22,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
+  const currencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+
   return {
     accountID,
     currencies,
     currency,
+    currencyWaiting,
     isDefault: account.isDefault,
     name,
     onEditName: () => {},
@@ -61,7 +66,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigat
       ),
     _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
       dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
-    onAddNew: () => {},
   }
 }
 
@@ -82,5 +86,6 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings')
+  setDisplayName('Settings'),
+  safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

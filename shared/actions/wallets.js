@@ -151,10 +151,13 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   )
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
-  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise({
-    accountID: action.payload.accountID,
-    currency: action.payload.code, // called currency, though it is a code
-  }).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      currency: action.payload.code, // called currency, though it is a code
+    },
+    Constants.changeDisplayCurrencyWaitingKey
+  ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
   RPCTypes.localDeleteWalletAccountLocalRpcPromise(
