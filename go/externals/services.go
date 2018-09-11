@@ -11,6 +11,58 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 )
 
+func getStaticProofServices() []libkb.ServiceType {
+	return []libkb.ServiceType{
+		DNSServiceType{},
+		FacebookServiceType{},
+		GithubServiceType{},
+		HackerNewsServiceType{},
+		RedditServiceType{},
+		RooterServiceType{},
+		TwitterServiceType{},
+		WebServiceType{},
+	}
+}
+
+// staticProofServies are only used for testing or for basic assertion
+// validation
+type staticProofServices struct {
+	collection map[string]libkb.ServiceType
+}
+
+func NewStaticProofServices() libkb.ExternalServicesCollector {
+	staticServices := getStaticProofServices()
+	p := staticProofServices{
+		collection: make(map[string]libkb.ServiceType),
+	}
+	for _, st := range staticServices {
+		p.register(st)
+	}
+	return &p
+}
+
+func (p *staticProofServices) register(st libkb.ServiceType) {
+	for _, k := range st.AllStringKeys() {
+		p.collection[k] = st
+	}
+}
+
+func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
+	return p.collection[strings.ToLower(s)]
+}
+
+func (p *staticProofServices) ListProofCheckers(mode libkb.RunMode) []string {
+	var ret []string
+	for k, v := range p.collection {
+		if useDevelProofCheckers || !v.IsDevelOnly() {
+			ret = append(ret, k)
+		}
+	}
+	return ret
+}
+
+// Contains both the statically known services and loads the configurations for
+// known services from the server
 type proofServices struct {
 	sync.Mutex
 	libkb.Contextified
@@ -24,16 +76,7 @@ func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
 		collection:   make(map[string]libkb.ServiceType),
 	}
 
-	staticServices := []libkb.ServiceType{
-		DNSServiceType{},
-		FacebookServiceType{},
-		GithubServiceType{},
-		HackerNewsServiceType{},
-		RedditServiceType{},
-		RooterServiceType{},
-		TwitterServiceType{},
-		WebServiceType{},
-	}
+	staticServices := getStaticProofServices()
 	p.Lock()
 	defer p.Unlock()
 	for _, st := range staticServices {

@@ -152,3 +152,22 @@ func (a assertionContext) NormalizeSocialName(service string, username string) (
 }
 
 //=============================================================================
+
+type staticAssertionContext struct {
+	esc ExternalServicesCollector
+}
+
+func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
+	return staticAssertionContext{esc: s}
+}
+
+func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.esc.GetServiceType(service)
+	if st == nil {
+		// If we don't know about this service, normalize by going to lowercase
+		return strings.ToLower(username), nil
+	}
+	return st.NormalizeUsername(username)
+}
+
+//=============================================================================
