@@ -586,6 +586,7 @@ func (k *KeybaseServiceBase) ResolveImplicitTeamByID(
 func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 	ctx context.Context, currUserInfo UserInfo, kid keybase1.KID) (
 	newUserInfo UserInfo, exists bool, err error) {
+	newUserInfo = currUserInfo
 	for key, info := range currUserInfo.RevokedVerifyingKeys {
 		if !key.KID().Equal(kid) {
 			continue
@@ -635,12 +636,13 @@ func (k *KeybaseServiceBase) checkForRevokedVerifyingKey(
 			}
 		}
 		info.filledInMerkle = true
-		currUserInfo.RevokedVerifyingKeys[key] = info
-		k.setCachedUserInfo(currUserInfo.UID, currUserInfo)
+		newUserInfo = currUserInfo.DeepCopy()
+		newUserInfo.RevokedVerifyingKeys[key] = info
+		k.setCachedUserInfo(newUserInfo.UID, newUserInfo)
 		break
 	}
 
-	return currUserInfo, exists, nil
+	return newUserInfo, exists, nil
 }
 
 // LoadUserPlusKeys implements the KeybaseService interface for

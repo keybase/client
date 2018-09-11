@@ -59,6 +59,35 @@ type UserInfo struct {
 	RevokedCryptPublicKeys map[kbfscrypto.CryptPublicKey]revokedKeyInfo
 }
 
+// DeepCopy returns a copy of `ui`, including deep copies of all slice
+// and map members.
+func (ui UserInfo) DeepCopy() UserInfo {
+	copyUI := ui
+	copyUI.VerifyingKeys = make(
+		[]kbfscrypto.VerifyingKey, len(ui.VerifyingKeys))
+	copy(copyUI.VerifyingKeys, ui.VerifyingKeys)
+	copyUI.CryptPublicKeys = make(
+		[]kbfscrypto.CryptPublicKey, len(ui.CryptPublicKeys))
+	copy(copyUI.CryptPublicKeys, ui.CryptPublicKeys)
+	copyUI.KIDNames = make(map[keybase1.KID]string, len(ui.KIDNames))
+	for k, v := range ui.KIDNames {
+		copyUI.KIDNames[k] = v
+	}
+	copyUI.RevokedVerifyingKeys = make(
+		map[kbfscrypto.VerifyingKey]revokedKeyInfo,
+		len(ui.RevokedVerifyingKeys))
+	for k, v := range ui.RevokedVerifyingKeys {
+		copyUI.RevokedVerifyingKeys[k] = v
+	}
+	copyUI.RevokedCryptPublicKeys = make(
+		map[kbfscrypto.CryptPublicKey]revokedKeyInfo,
+		len(ui.RevokedCryptPublicKeys))
+	for k, v := range ui.RevokedCryptPublicKeys {
+		copyUI.RevokedCryptPublicKeys[k] = v
+	}
+	return copyUI
+}
+
 // TeamInfo contains all the info about a keybase team that kbfs cares
 // about.
 type TeamInfo struct {
