@@ -9,6 +9,7 @@ type Props = {|
   onAccept: () => void,
   onClose: () => void,
   username: string,
+  waitingKey: string,
 |}
 
 const SetDefaultAccountPopup = (props: Props) => {
@@ -21,8 +22,9 @@ const SetDefaultAccountPopup = (props: Props) => {
       onClick={props.onClose}
       label="Cancel"
     />,
-    <Kb.Button
+    <Kb.WaitingButton
       key={1}
+      waitingKey={props.waitingKey}
       fullWidth={Styles.isMobile}
       type="Wallet"
       style={styles.button}

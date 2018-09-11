@@ -5,7 +5,8 @@ import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as ConfigGen from '../actions/config-gen'
-import {isErrorTransient} from '../util/errors'
+import * as Stats from '../engine/stats'
+import {isEOFError, isErrorTransient} from '../util/errors'
 
 const initialState = Constants.makeState()
 
@@ -139,6 +140,9 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       const {globalError} = action.payload
       if (globalError) {
         logger.error('Error (global):', globalError)
+        if (isEOFError(globalError)) {
+          Stats.gotEOF()
+        }
         if (isErrorTransient(globalError)) {
           logger.info('globalError silencing:', globalError)
           return state

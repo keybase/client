@@ -98,22 +98,15 @@ function actionToAction<A, E>(pattern: RS.Pattern, f: (state: TypedState, action
 // It can also return all([put(action1), put(action2)]) to dispatch multiple actions
 function safeTakeEveryPure<A, R, FinalEffect, FinalErrorEffect>(
   pattern: RS.Pattern,
-  pureWorker: ((action: A, state: TypedState) => any) | ((action: A) => any),
+  pureWorker: (action: A, state: TypedState) => any,
   actionCreatorsWithResult?: ?(result: R, action: A, updatedState: TypedState) => FinalEffect,
   actionCreatorsWithError?: ?(result: R, action: A) => FinalErrorEffect
 ) {
   return safeTakeEvery(pattern, function* safeTakeEveryPureWorker(action: A) {
     // If the pureWorker fn takes two arguments, let's pass the state
     try {
-      let result
-      if (pureWorker.length === 2) {
-        const state: TypedState = yield Effects.select()
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action, state)
-      } else {
-        // $FlowIssue - doesn't understand checking for arity
-        result = yield pureWorker(action)
-      }
+      const state: TypedState = yield Effects.select()
+      const result = yield pureWorker(action, state)
 
       if (actionCreatorsWithResult) {
         if (actionCreatorsWithResult.length === 3) {

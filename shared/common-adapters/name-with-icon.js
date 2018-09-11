@@ -5,7 +5,7 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
 import Text, {type TextType} from './text'
-import {ConnectedUsernames} from './usernames'
+import ConnectedUsernames from './usernames/container'
 import {
   collapseStyles,
   globalStyles,
@@ -82,7 +82,7 @@ const NameWithIconVertical = (props: Props) => {
         )}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -132,7 +132,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}

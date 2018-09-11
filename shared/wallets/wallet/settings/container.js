@@ -5,10 +5,11 @@ import {
   connect,
   lifecycle,
   setDisplayName,
+  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -21,17 +22,20 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
+  const currencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+
   return {
     accountID,
     currencies,
     currency,
+    currencyWaiting,
     isDefault: account.isDefault,
     name,
     user,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => ({
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigateAppend}) => ({
   _onBack: (accountID: Types.AccountID) => {
     dispatch(navigateUp())
     dispatch(WalletsGen.createRefreshPayments({accountID}))
@@ -82,5 +86,6 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings')
+  setDisplayName('Settings'),
+  safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)
