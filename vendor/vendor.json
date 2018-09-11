@@ -225,10 +225,10 @@
 			"revisionTime": "2018-09-04T14:42:24-07:00"
 		},
 		{
-			"checksumSHA1": "kU5excBxuurP0pDkEZFF3ZFYlgw=",
+			"checksumSHA1": "MB+yYsvF3iykSuyLqKsvQAtxXz4=",
 			"path": "github.com/keybase/client/go/kbhttp",
-			"revision": "dc0ddc1b0f54255d4e33fa5e217a84fa0bc853e7",
-			"revisionTime": "2018-09-04T14:42:24-07:00"
+			"revision": "df15a7336dec72486ad6a45a2ad9ad162ef92cec",
+			"revisionTime": "2018-09-11T20:44:15Z"
 		},
 		{
 			"checksumSHA1": "7DHjUlM/cuxNxp9xLUnMDzIzNRY=",

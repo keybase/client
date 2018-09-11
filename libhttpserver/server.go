@@ -162,11 +162,22 @@ const requestPathRoot = "/files/"
 func (s *Server) restart() (err error) {
 	s.serverLock.Lock()
 	defer s.serverLock.Unlock()
-	s.server.Stop()
-	// Have to start this first to populate the ServeMux object.
-	if err = s.server.Start(); err != nil {
+	if s.server != nil {
+		s.server.Stop()
+		err = s.server.Start()
+	}
+	if s.server == nil ||
+		// If pinned port is in use, just pick a new one like we never had a
+		// server before.
+		err == kbhttp.ErrPinnedPortInUse {
+		s.server = kbhttp.NewSrv(s.logger,
+			kbhttp.NewPortRangeListenerSource(portStart, portEnd))
+		err = s.server.Start()
+	}
+	if err != nil {
 		return err
 	}
+	// Have to start this first to populate the ServeMux object.
 	s.server.Handle(requestPathRoot,
 		http.StripPrefix(requestPathRoot, http.HandlerFunc(s.serve)))
 	return nil
@@ -206,8 +217,6 @@ func New(appStateUpdater env.AppStateUpdater, config libkbfs.Config) (
 		appStateUpdater: appStateUpdater,
 		config:          config,
 		logger:          logger,
-		server: kbhttp.NewSrv(
-			logger, kbhttp.NewPortRangeListenerSource(portStart, portEnd)),
 	}
 	if s.tokens, err = lru.New(tokenCacheSize); err != nil {
 		return nil, err
