@@ -12,7 +12,7 @@ import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
-import {spawn, execFileSync, execSync} from 'child_process'
+import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
 
@@ -287,30 +287,24 @@ function installCachedDokan() {
   })
 }
 
-function uninstallDokan(uninstallString: string): Promise<boolean> {
-  return new Promise((resolve, reject) => {
-    logger.info('Invoking dokan uninstaller')
-    try {
-      execSync(uninstallString, {windowsHide: true})
-      resolve(true)
-    } catch (err) {
-      logger.error('uninstallDokan caught', err)
-      reject(err)
-    }
-  })
-}
-
 function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function* uninstallDokanSaga() {
-  const state: TypedState = yield Saga.select()
+const uninstallDokanPromise = (state: TypedState) => {
   const uninstallString = Constants.kbfsUninstallString(state)
-  if (uninstallString) {
-    yield Saga.call(uninstallDokan, uninstallString)
-    yield Saga.put(FsGen.createFuseStatus())
+  if (!uninstallString) {
+      return
   }
+  logger.info('Invoking dokan uninstaller')
+  return new Promise(resolve => {
+    try {
+      exec(uninstallString, {windowsHide: true}, resolve)
+    } catch (e) {
+        logger.error('uninstallDokan caught', e)
+        resolve()
+    }
+  }).then(() => FsGen.createFuseStatus())
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -347,7 +341,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.safeTakeEvery(FsGen.uninstallKBFSConfirm, uninstallDokanSaga)
+    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
     yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
