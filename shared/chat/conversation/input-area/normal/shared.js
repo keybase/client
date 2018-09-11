@@ -49,7 +49,7 @@ const TypingNames = ({typing}: {typing: I.Set<string>}) => {
   return names
 }
 
-export const IsTyping = ({style, typing}: {style: Styles.StylesCrossPlatform, typing: I.Set<string>}) => (
+export const IsTyping = ({style, typing}: {style?: Styles.StylesCrossPlatform, typing: I.Set<string>}) => (
   <Kb.Box style={Styles.collapseStyles([styles.isTypingContainer, style])}>
     {typing.size > 0 && (
       <Kb.Box style={styles.typingIconContainer}>
