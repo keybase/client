@@ -25,7 +25,7 @@ const requestPaperKey = () =>
           phrase,
         }: RPCTypes.LoginUiDisplayPaperKeyPhraseRpcParam) =>
           Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response, __) => {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
           response.result(false)
         },
       },
@@ -94,7 +94,7 @@ const showPaperKeyPage = () =>
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked], load)
+  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device
   yield Saga.actionToPromise(DevicesGen.revoke, revoke)
 
