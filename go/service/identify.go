@@ -335,55 +335,6 @@ func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
-func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
-	ctx = libkb.WithLogTag(ctx, "NSA")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
-	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
-	if !isSocialAssertion {
-		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
-	}
-	return socialAssertion, nil
-}
-
-func (h *IdentifyHandler) AssertionParseAndOnly(ctx context.Context, assertion string) (res keybase1.AssertionExpressionLite, err error) {
-	ctx = libkb.WithLogTag(ctx, "APRS")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#AssertionParseAndOnly(%s)", assertion), func() error { return err })()
-	expr, err := libkb.AssertionParseAndOnly(h.G().MakeAssertionContext(), assertion)
-	if err != nil {
-		return res, err
-	}
-	urls := expr.CollectUrls(nil)
-	urlsLite := []keybase1.AssertionUrlLite{}
-	for _, url := range urls {
-		k, v := url.ToKeyValuePair()
-		kvPair := keybase1.KVPair{
-			Key:   k,
-			Value: v,
-		}
-		urlsLite = append(urlsLite, keybase1.AssertionUrlLite{
-			Keys:          url.Keys(),
-			IsKeybase:     url.IsKeybase(),
-			IsUID:         url.IsUID(),
-			IsTeamID:      url.IsTeamID(),
-			IsSocial:      url.IsSocial(),
-			IsRemote:      url.IsRemote(),
-			IsFingerprint: url.IsFingerprint(),
-			Uid:           url.ToUID(),
-			TeamID:        url.ToTeamID(),
-			TeamName:      url.ToTeamName(),
-			KeyValuePair:  kvPair,
-		})
-	}
-
-	res = keybase1.AssertionExpressionLite{
-		Str:           expr.String(),
-		HasOr:         expr.HasOr(),
-		NeedsParens:   expr.NeedsParens(),
-		AssertionUrls: urlsLite,
-	}
-	return res, nil
-}
-
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
 	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
 }
