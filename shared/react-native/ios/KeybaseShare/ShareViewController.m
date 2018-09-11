@@ -22,6 +22,7 @@ const BOOL isSimulator = NO;
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget;
+@property BOOL hasInited;
 @end
 
 @implementation ShareViewController
@@ -39,6 +40,20 @@ const BOOL isSimulator = NO;
     InitFailedViewController* initFailed = [InitFailedViewController alloc];
     [initFailed setDelegate:self];
     [self pushConfigurationViewController:initFailed];
+    return;
+  }
+  [self setHasInited:YES];
+  
+  NSString* jsonSavedConv = KeybaseExtensionGetSavedConv();
+  if ([jsonSavedConv length] > 0) {
+    NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
+    NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
+    if (!conv) {
+      NSLog(@"failed to parse saved conv: %@", error);
+    } else {
+      [self setConvTarget:conv];
+      [self reloadConfigurationItems];
+    }
   }
 }
 
@@ -242,9 +257,10 @@ const BOOL isSimulator = NO;
 - (NSArray *)configurationItems {
   SLComposeSheetConfigurationItem *item = [[SLComposeSheetConfigurationItem alloc] init];
   item.title = @"Share to...";
+  item.valuePending = !self.hasInited;
   if (self.convTarget) {
     item.value = self.convTarget[@"Name"];
-  } else {
+  } else if (self.hasInited) {
     item.value = @"Please choose";
   }
   item.tapHandler = ^{

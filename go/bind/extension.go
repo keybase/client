@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/kbconst"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -146,6 +148,16 @@ func assertLoggedInUID(ctx context.Context, gc *globals.Context) (uid gregor1.UI
 	return gregor1.UID(k1uid.ToBytes()), nil
 }
 
+func presentInboxItem(item storage.SharedInboxItem, username string) storage.SharedInboxItem {
+	// Check for self conv or big team conv
+	if item.Name == username || strings.Contains(item.Name, "#") {
+		return item
+	}
+	item.Name = strings.Replace(item.Name, fmt.Sprintf(",%s", username), "", -1)
+	item.Name = strings.Replace(item.Name, fmt.Sprintf("%s,", username), "", -1)
+	return item
+}
+
 func ExtensionGetInbox() (res string, err error) {
 	defer kbCtx.Trace("ExtensionGetInbox", func() error { return err })()
 	gc := globals.NewContext(kbCtx, kbChatCtx)
@@ -163,17 +175,8 @@ func ExtensionGetInbox() (res string, err error) {
 
 	// Pretty up the names
 	username := kbCtx.GetEnv().GetUsername().String()
-	filterCurrentUsername := func(name string) string {
-		// Check for self conv or big team conv
-		if name == username || strings.Contains(name, "#") {
-			return name
-		}
-		name = strings.Replace(name, fmt.Sprintf(",%s", username), "", -1)
-		name = strings.Replace(name, fmt.Sprintf("%s,", username), "", -1)
-		return name
-	}
 	for index := range sharedInbox {
-		sharedInbox[index].Name = filterCurrentUsername(sharedInbox[index].Name)
+		sharedInbox[index] = presentInboxItem(sharedInbox[index], username)
 	}
 
 	// JSON up to send to native
@@ -287,6 +290,11 @@ func ExtensionPostText(strConvID, name string, public bool, membersType int,
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	defer func() {
+		if err == nil {
+			putSavedConv(ctx, strConvID, name, public, membersType)
+		}
+	}()
 
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
@@ -406,6 +414,7 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
+
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -418,7 +427,15 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 
 func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UID,
 	strConvID, name string, public bool, membersType int, filename, caption string,
-	callerPreview *chat1.MakePreviewRes) error {
+	callerPreview *chat1.MakePreviewRes) (err error) {
+
+	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
+	defer func() {
+		if err == nil {
+			putSavedConv(ctx, strConvID, name, public, membersType)
+		}
+	}()
+
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
@@ -429,12 +446,53 @@ func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UI
 	}
 	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
 		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
 		filename, caption, nil, 0, nil, callerPreview); err != nil {
 		return err
 	}
 	return nil
+}
+
+func savedConvFile() *encrypteddb.EncryptedFile {
+	path := filepath.Join(kbCtx.GetEnv().GetDataDir(), "saveconv.mpack")
+	return encrypteddb.NewFile(kbCtx, path,
+		func(ctx context.Context) ([32]byte, error) {
+			return storage.GetSecretBoxKey(ctx, kbCtx, storage.DefaultSecretUI)
+		})
+}
+
+func putSavedConv(ctx context.Context, strConvID, name string, public bool, membersType int) {
+	item := storage.SharedInboxItem{
+		ConvID:      strConvID,
+		Name:        name,
+		Public:      public,
+		MembersType: chat1.ConversationMembersType(membersType),
+	}
+	if err := savedConvFile().Put(ctx, item); err != nil {
+		kbCtx.Log.CDebugf(ctx, "putSavedConv: failed to write file: %s", err)
+	}
+}
+
+func ExtensionGetSavedConv() string {
+	defer kbCtx.Trace("ExtensionGetSavedConv", func() error { return nil })()
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	if _, err := assertLoggedInUID(ctx, gc); err != nil {
+		kbCtx.Log.CDebugf(ctx, "ExtensionGetSavedConv: failed to get uid: %s", err)
+		return ""
+	}
+	var item storage.SharedInboxItem
+	if err := savedConvFile().Get(ctx, &item); err != nil {
+		kbCtx.Log.CDebugf(ctx, "ExtensionGetSavedConv: failed to read saved conv: %s", err)
+		return ""
+	}
+	dat, err := json.Marshal(presentInboxItem(item, kbCtx.GetEnv().GetUsername().String()))
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "ExtensionGetSavedConv: failed to marshal: %s", err)
+		return ""
+	}
+	return string(dat)
 }
 
 // ExtensionForceGC Forces a gc
