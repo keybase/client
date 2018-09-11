@@ -243,10 +243,10 @@
 			"revisionTime": "2018-08-28T18:44:39Z"
 		},
 		{
-			"checksumSHA1": "51xvj1eVGKOxzLavE9jSfB+7QLc=",
+			"checksumSHA1": "1bG8xhp17iMKNYJbEMeqkvOzYps=",
 			"path": "github.com/keybase/client/go/externals",
-			"revision": "a37046a40a020eaa224eb67888ab57c88c8d703a",
-			"revisionTime": "2018-09-07T17:11:28Z"
+			"revision": "1818388cf20260cf72792b9690fdb26e90ac8e48",
+			"revisionTime": "2018-09-11T21:13:48Z"
 		},
 		{
 			"checksumSHA1": "sN2RBTeKHJ2ZTm1dgQQWOdCHiG8=",
@@ -285,10 +285,10 @@
 			"revisionTime": "2018-09-04T14:42:24-07:00"
 		},
 		{
-			"checksumSHA1": "+bQx8RbUOzmss+tsyqfBvbU4Oi8=",
+			"checksumSHA1": "TJrSfq2dinON3JBu3jtol1nbqag=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "dc0ddc1b0f54255d4e33fa5e217a84fa0bc853e7",
-			"revisionTime": "2018-09-04T14:42:24-07:00"
+			"revision": "1818388cf20260cf72792b9690fdb26e90ac8e48",
+			"revisionTime": "2018-09-11T21:13:48Z"
 		},
 		{
 			"checksumSHA1": "HCbc7z1ulXWC8N18wF9ZwIknbNg=",

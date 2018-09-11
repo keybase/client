@@ -99,6 +99,7 @@ func (n NullConfiguration) GetMountDir() string                             { re
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
+func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
@@ -190,6 +191,16 @@ type TestParameters struct {
 	// If we need to use the real clock for NIST generation (as in really
 	// whacky tests liks TestRekey).
 	UseTimeClockForNISTs bool
+
+	// TeamNoHeadMerkleStore is used for testing to emulate older clients
+	// that didn't store the head merkle sequence to team chain state. We
+	// have an upgrade path in the code that we'd like to test.
+	TeamNoHeadMerkleStore bool
+
+	// TeamSkipAudit is on because some team chains are "canned" and therefore
+	// might point off of the merkle sequence in the database. So it's just
+	// easiest to skip the audit in those cases.
+	TeamSkipAudit bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -982,6 +993,14 @@ func (e *Env) GetAppType() AppType {
 	}
 }
 
+func (e *Env) IsMobileExtension() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.IsMobileExtension() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_MOBILE_EXTENSION") },
+		func() (bool, bool) { return e.GetConfig().IsMobileExtension() },
+	)
+}
+
 func (e *Env) GetSlowGregorConn() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
@@ -1266,6 +1285,7 @@ type AppConfig struct {
 	VDebugSetting                  string
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
+	MobileExtension                bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1304,6 +1324,10 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
+}
+
+func (c AppConfig) IsMobileExtension() (bool, bool) {
+	return c.MobileExtension, true
 }
 
 func (c AppConfig) GetSlowGregorConn() (bool, bool) {
