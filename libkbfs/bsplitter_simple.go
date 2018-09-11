@@ -104,7 +104,6 @@ func NewBlockSplitterSimple(desiredBlockSize int64,
 	if err != nil {
 		return nil, err
 	}
-	// TODO(KBFS-3306): call `SetMaxDirEntriesByBlockSize()` here.
 
 	return &BlockSplitterSimple{
 		maxSize:                 maxSize,
