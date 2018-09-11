@@ -293,10 +293,14 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
-    'stellar.1.notify.paymentNotification': ({accountID}) =>
-      Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)})),
+    'stellar.1.notify.paymentNotification': refreshPayments,
+    // $FlowIssue @cjb this needs to be fixed
+    'stellar.1.notify.paymentStatusNotification': refreshPayments,
   })
 }
+
+const refreshPayments = ({accountID}) =>
+  Saga.put(WalletsGen.createRefreshPayments({accountID: Types.stringToAccountID(accountID)}))
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
