@@ -54,7 +54,6 @@ type Context interface {
 	NewRPCLogFactory() rpc.LogFactory
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
-	GlobalContext() *libkb.GlobalContext
 }
 
 // KBFSContext is an implementation for libkbfs.Context
@@ -263,10 +262,4 @@ func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
 		return nil, err
 	}
 	return c.kbfsSocket.BindToSocket()
-}
-
-// GlobalContext returns a reference to libkb.GlobalContext for use with
-// library functions
-func (c *KBFSContext) GlobalContext() *libkb.GlobalContext {
-	return c.g
 }

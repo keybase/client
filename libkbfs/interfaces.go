@@ -511,7 +511,6 @@ type gitMetadataPutter interface {
 // KeybaseService is an interface for communicating with the keybase
 // service.
 type KeybaseService interface {
-	asserter
 	merkleRootGetter
 	gitMetadataPutter
 
@@ -685,21 +684,6 @@ type identifier interface {
 		reason string) (ImplicitTeamInfo, error)
 }
 
-type asserter interface {
-	// NormalizeSocialAssertion creates a SocialAssertion from its input and
-	// normalizes it.  The service name will be lowercased.  If the service is
-	// case-insensitive, then the username will also be lowercased.  Colon
-	// assertions (twitter:user) will be transformed to the user@twitter
-	// format.  Only registered services are allowed.
-	NormalizeSocialAssertion(
-		ctx context.Context, assertion string) (keybase1.SocialAssertion, error)
-	//AssertionParseAndOnly will parse the given assertion, allowing only AND
-	//conjunctions.
-	AssertionParseAndOnly(ctx context.Context, assertion string) (keybase1.AssertionExpressionLite, error)
-	// IdentifyImplicitTeam identifies (and creates if necessary) the
-	// given implicit team.
-}
-
 type normalizedUsernameGetter interface {
 	// GetNormalizedUsername returns the normalized username
 	// corresponding to the given UID.
@@ -764,7 +748,6 @@ type KBPKI interface {
 	CurrentSessionGetter
 	resolver
 	identifier
-	asserter
 	normalizedUsernameGetter
 	merkleRootGetter
 	teamMembershipChecker

@@ -224,7 +224,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	return libkbfs.CheckTlfHandleOffline(ctx, fl.fs.config.KBPKI(), nameToTry, fl.tlfType) == nil
+	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.tlfType) == nil
 }
 
 func (fl *FolderList) lockedAddChild(name string, val fileOpener) {

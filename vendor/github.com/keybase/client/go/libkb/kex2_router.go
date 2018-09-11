@@ -89,7 +89,7 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 		},
 		MetaContext: mctx.BackgroundWithLogTags(),
 	}
-	kexAPITimeout(&arg, 2*poll)
+	kexAPITimeout(&arg, poll)
 	var j kexResp
 
 	if err = mctx.G().API.GetDecode(arg, &j); err != nil {

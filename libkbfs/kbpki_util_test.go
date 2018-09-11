@@ -9,7 +9,6 @@ import (
 
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/tlf"
 	"golang.org/x/net/context"
@@ -70,8 +69,7 @@ func interposeDaemonKBPKI(
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
 
-	kbCtx := env.NewContext()
-	daemon := NewKeybaseDaemonMemory(kbCtx, loggedInUser.UID, localUsers, nil,
+	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers, nil,
 		kbfscodec.NewMsgpack())
 	config.SetKeybaseService(daemon)
 

@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
@@ -436,7 +437,7 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 // look canonical.
 // Note that ordering differences do not result in TlfNameNotCanonical
 // being returned.
-func splitAndNormalizeTLFName(ctx context.Context, asserter asserter, name string, t tlf.Type) (
+func splitAndNormalizeTLFName(name string, t tlf.Type) (
 	writerNames, readerNames []string,
 	extensionSuffix string, err error) {
 	writerNames, readerNames, extensionSuffix, err = tlf.SplitName(name)
@@ -455,7 +456,7 @@ func splitAndNormalizeTLFName(ctx context.Context, asserter asserter, name strin
 	}
 
 	normalizedName, changes, err := normalizeNamesInTLF(
-		ctx, asserter, writerNames, readerNames, t, extensionSuffix)
+		writerNames, readerNames, t, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -469,14 +470,14 @@ func splitAndNormalizeTLFName(ctx context.Context, asserter asserter, name strin
 
 // TODO: this function can likely be replaced with a call to
 // AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
-func normalizeAssertionOrName(ctx context.Context, asserter asserter, s string, t tlf.Type) (string, error) {
+func normalizeAssertionOrName(s string, t tlf.Type) (string, error) {
 	if kbname.CheckUsername(s) {
 		return kbname.NewNormalizedUsername(s).String(), nil
 	}
 
 	// TODO: this fails for http and https right now (see CORE-2968).
-	socialAssertion, err := asserter.NormalizeSocialAssertion(ctx, s)
-	if err == nil {
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertion(s)
+	if isSocialAssertion {
 		if t == tlf.SingleTeam {
 			return "", fmt.Errorf(
 				"No social assertions allowed for team TLF: %s", s)
@@ -488,13 +489,13 @@ func normalizeAssertionOrName(ctx context.Context, asserter asserter, s string, 
 	if t == tlf.SingleTeam {
 		sAssertion = "team:" + s
 	}
-	if expr, err := asserter.AssertionParseAndOnly(ctx, sAssertion); err == nil {
+	if expr, err := externals.AssertionParseAndOnly(sAssertion); err == nil {
 		// If the expression only contains a single url, make sure
 		// it's not a just considered a single keybase username.  If
 		// it is, then some non-username slipped into the default
 		// "keybase" case and should be considered an error.
-		urls := expr.AssertionUrls
-		if len(urls) == 1 && urls[0].IsKeybase {
+		urls := expr.CollectUrls(nil)
+		if len(urls) == 1 && urls[0].IsKeybase() {
 			return "", NoSuchUserError{s}
 		}
 
@@ -511,9 +512,9 @@ func normalizeAssertionOrName(ctx context.Context, asserter asserter, s string, 
 
 // normalizeNames normalizes a slice of names and returns
 // whether any of them changed.
-func normalizeNames(ctx context.Context, asserter asserter, names []string, t tlf.Type) (changesMade bool, err error) {
+func normalizeNames(names []string, t tlf.Type) (changesMade bool, err error) {
 	for i, name := range names {
-		x, err := normalizeAssertionOrName(ctx, asserter, name, t)
+		x, err := normalizeAssertionOrName(name, t)
 		if err != nil {
 			return false, err
 		}
@@ -530,17 +531,17 @@ func normalizeNames(ctx context.Context, asserter asserter, names []string, t tl
 // name. It then returns the normalized name and a boolean flag
 // whether any names were modified.
 // This modifies the slices passed as arguments.
-func normalizeNamesInTLF(ctx context.Context, asserter asserter, writerNames, readerNames []string,
+func normalizeNamesInTLF(writerNames, readerNames []string,
 	t tlf.Type, extensionSuffix string) (normalizedName string,
 	changesMade bool, err error) {
-	changesMade, err = normalizeNames(ctx, asserter, writerNames, t)
+	changesMade, err = normalizeNames(writerNames, t)
 	if err != nil {
 		return "", false, err
 	}
 	sort.Strings(writerNames)
 	normalizedName = strings.Join(writerNames, ",")
 	if len(readerNames) > 0 {
-		rchanges, err := normalizeNames(ctx, asserter, readerNames, t)
+		rchanges, err := normalizeNames(readerNames, t)
 		if err != nil {
 			return "", false, err
 		}
@@ -562,8 +563,8 @@ func normalizeNamesInTLF(ctx context.Context, asserter asserter, writerNames, re
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
 // it avoids all network calls.
 func CheckTlfHandleOffline(
-	ctx context.Context, kbpki KBPKI, name string, t tlf.Type) error {
-	_, _, _, err := splitAndNormalizeTLFName(ctx, kbpki, name, t)
+	ctx context.Context, name string, t tlf.Type) error {
+	_, _, _, err := splitAndNormalizeTLFName(name, t)
 	return err
 }
 

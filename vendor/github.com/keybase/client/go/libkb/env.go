@@ -99,7 +99,6 @@ func (n NullConfiguration) GetMountDir() string                             { re
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
-func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
@@ -983,14 +982,6 @@ func (e *Env) GetAppType() AppType {
 	}
 }
 
-func (e *Env) IsMobileExtension() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.IsMobileExtension() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_MOBILE_EXTENSION") },
-		func() (bool, bool) { return e.GetConfig().IsMobileExtension() },
-	)
-}
-
 func (e *Env) GetSlowGregorConn() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetSlowGregorConn() },
@@ -1275,7 +1266,6 @@ type AppConfig struct {
 	VDebugSetting                  string
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
-	MobileExtension                bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1314,10 +1304,6 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 
 func (c AppConfig) GetAppType() AppType {
 	return MobileAppType
-}
-
-func (c AppConfig) IsMobileExtension() (bool, bool) {
-	return c.MobileExtension, true
 }
 
 func (c AppConfig) GetSlowGregorConn() (bool, bool) {

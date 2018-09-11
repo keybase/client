@@ -510,7 +510,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	idGetter := constIDGetter{md.TlfID()}
 	resolvedHandle, err := handle.ResolveAgain(
-		ctx, km.config.KBPKI(), idGetter, km.config.KBPKI())
+		ctx, km.config.KBPKI(), idGetter)
 	if err != nil {
 		return false, nil, err
 	}
@@ -525,7 +525,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		} else {
 			// Only allow yourself to change
 			resolvedHandle, err = handle.ResolveAgainForUser(
-				ctx, km.config.KBPKI(), idGetter, km.config.KBPKI(), session.UID)
+				ctx, km.config.KBPKI(), idGetter, session.UID)
 			if err != nil {
 				return false, nil, err
 			}

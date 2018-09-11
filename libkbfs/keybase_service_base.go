@@ -510,20 +510,6 @@ func (k *KeybaseServiceBase) Identify(ctx context.Context, assertion, reason str
 	return name, res.Ul.Id, nil
 }
 
-// NormalizeSocialAssertion implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *KeybaseServiceBase) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	return k.identifyClient.NormalizeSocialAssertion(ctx, assertion)
-}
-
-// AssertionParseAndOnly implements the KeybaseService interface for
-// KeybaseServiceBase.
-func (k *KeybaseServiceBase) AssertionParseAndOnly(
-	ctx context.Context, assertion string) (keybase1.AssertionExpressionLite, error) {
-	return k.identifyClient.AssertionParseAndOnly(ctx, assertion)
-}
-
 // ResolveIdentifyImplicitTeam implements the KeybaseService interface
 // for KeybaseServiceBase.
 func (k *KeybaseServiceBase) ResolveIdentifyImplicitTeam(

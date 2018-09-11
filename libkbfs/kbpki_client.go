@@ -58,23 +58,6 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
-// NormalizeSocialAssertion creates a SocialAssertion from its input and
-// normalizes it.  The service name will be lowercased.  If the service is
-// case-insensitive, then the username will also be lowercased.  Colon
-// assertions (twitter:user) will be transformed to the user@twitter format.
-// Only registered services are allowed.
-func (k *KBPKIClient) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	return k.serviceOwner.KeybaseService().NormalizeSocialAssertion(ctx, assertion)
-}
-
-// AssertionParseAndOnly will parse the given assertion, allowing only AND
-// conjunctions.
-func (k *KBPKIClient) AssertionParseAndOnly(
-	ctx context.Context, assertion string) (keybase1.AssertionExpressionLite, error) {
-	return k.serviceOwner.KeybaseService().AssertionParseAndOnly(ctx, assertion)
-}
-
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (

@@ -12,8 +12,8 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -153,7 +153,6 @@ func (c memoryFavoriteClient) Shutdown() {}
 // KeybaseDaemonLocal implements KeybaseDaemon using an in-memory user
 // and session store, and a given favorite store.
 type KeybaseDaemonLocal struct {
-	kbCtx Context
 	codec kbfscodec.Codec
 
 	// lock protects everything below.
@@ -181,7 +180,7 @@ func (k *KeybaseDaemonLocal) setCurrentUID(uid keybase1.UID) {
 
 func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 	assertion string) (id keybase1.UserOrTeamID, err error) {
-	expr, err := libkb.AssertionParseAndOnly(k.kbCtx.GlobalContext().MakeAssertionContext(), assertion)
+	expr, err := externals.AssertionParseAndOnly(assertion)
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -279,7 +278,7 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 		r = append(r, u.Name)
 		resolvedIDs[u.Name] = id
 	} else {
-		a, ok := libkb.NormalizeSocialAssertion(k.kbCtx.GlobalContext().MakeAssertionContext(), name)
+		a, ok := externals.NormalizeSocialAssertion(name)
 		if !ok {
 			return nil, nil, fmt.Errorf("Bad assertion: %s", name)
 		}
@@ -307,7 +306,7 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 
 	// Canonicalize the name.
 	writerNames, readerNames, _, err :=
-		splitAndNormalizeTLFName(ctx, k, assertions, tlfType)
+		splitAndNormalizeTLFName(assertions, tlfType)
 	if err != nil {
 		return ImplicitTeamInfo{}, err
 	}
@@ -391,57 +390,6 @@ func (k *KeybaseDaemonLocal) ResolveIdentifyImplicitTeam(
 	}
 	k.localImplicitTeams[tid] = iteamInfo
 	return iteamInfo, nil
-}
-
-// NormalizeSocialAssertion implements the KeybaseService interface for
-// KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) NormalizeSocialAssertion(
-	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(k.kbCtx.GlobalContext().MakeAssertionContext(), assertion)
-	if !isSocialAssertion {
-		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
-	}
-	return socialAssertion, nil
-}
-
-// AssertionParseAndOnly implements the KeybaseService interface for
-// KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) AssertionParseAndOnly(
-	ctx context.Context, assertion string) (res keybase1.AssertionExpressionLite, err error) {
-	expr, err := libkb.AssertionParseAndOnly(k.kbCtx.GlobalContext().MakeAssertionContext(), assertion)
-	if err != nil {
-		return res, err
-	}
-	urls := expr.CollectUrls(nil)
-	urlsLite := []keybase1.AssertionUrlLite{}
-	for _, url := range urls {
-		k, v := url.ToKeyValuePair()
-		kvPair := keybase1.KVPair{
-			Key:   k,
-			Value: v,
-		}
-		urlsLite = append(urlsLite, keybase1.AssertionUrlLite{
-			Keys:          url.Keys(),
-			IsKeybase:     url.IsKeybase(),
-			IsUID:         url.IsUID(),
-			IsTeamID:      url.IsTeamID(),
-			IsSocial:      url.IsSocial(),
-			IsRemote:      url.IsRemote(),
-			IsFingerprint: url.IsFingerprint(),
-			Uid:           url.ToUID(),
-			TeamID:        url.ToTeamID(),
-			TeamName:      url.ToTeamName(),
-			KeyValuePair:  kvPair,
-		})
-	}
-
-	res = keybase1.AssertionExpressionLite{
-		Str:           expr.String(),
-		HasOr:         expr.HasOr(),
-		NeedsParens:   expr.NeedsParens(),
-		AssertionUrls: urlsLite,
-	}
-	return res, nil
 }
 
 // ResolveImplicitTeamByID implements the KeybaseService interface for
@@ -930,8 +878,8 @@ func (k *KeybaseDaemonLocal) FavoriteDelete(
 }
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k *KeybaseDaemonLocal) FavoriteList(ctx context.Context,
-	sessionID int) ([]keybase1.Folder, error) {
+func (k *KeybaseDaemonLocal) FavoriteList(
+	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
 	if err := checkContext(ctx); err != nil {
 		return nil, err
 	}
@@ -986,7 +934,7 @@ func (k *KeybaseDaemonLocal) Shutdown() {
 // NewKeybaseDaemonDisk constructs a KeybaseDaemonLocal object given a
 // set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) persists to disk.
-func NewKeybaseDaemonDisk(kbCtx Context, currentUID keybase1.UID, users []LocalUser,
+func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser,
 	teams []TeamInfo, favDBFile string, codec kbfscodec.Codec) (
 	*KeybaseDaemonLocal, error) {
 	favoriteDb, err := leveldb.OpenFile(favDBFile, leveldbOptions)
@@ -995,22 +943,22 @@ func NewKeybaseDaemonDisk(kbCtx Context, currentUID keybase1.UID, users []LocalU
 	}
 	favoriteStore := diskFavoriteClient{favoriteDb, codec}
 	return newKeybaseDaemonLocal(
-		kbCtx, codec, currentUID, users, teams, favoriteStore), nil
+		codec, currentUID, users, teams, favoriteStore), nil
 }
 
 // NewKeybaseDaemonMemory constructs a KeybaseDaemonLocal object given
 // a set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) is kept in memory only.
-func NewKeybaseDaemonMemory(kbCtx Context, currentUID keybase1.UID,
+func NewKeybaseDaemonMemory(currentUID keybase1.UID,
 	users []LocalUser, teams []TeamInfo,
 	codec kbfscodec.Codec) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
 		favorites: make(map[keybase1.UID]map[string]keybase1.Folder),
 	}
-	return newKeybaseDaemonLocal(kbCtx, codec, currentUID, users, teams, favoriteStore)
+	return newKeybaseDaemonLocal(codec, currentUID, users, teams, favoriteStore)
 }
 
-func newKeybaseDaemonLocal(kbCtx Context, codec kbfscodec.Codec,
+func newKeybaseDaemonLocal(codec kbfscodec.Codec,
 	currentUID keybase1.UID, users []LocalUser, teams []TeamInfo,
 	favoriteStore favoriteStore) *KeybaseDaemonLocal {
 	localUserMap := make(localUserMap)
@@ -1023,7 +971,6 @@ func newKeybaseDaemonLocal(kbCtx Context, codec kbfscodec.Codec,
 		asserts[string(u.Name)] = u.UID.AsUserOrTeam()
 	}
 	k := &KeybaseDaemonLocal{
-		kbCtx:              kbCtx,
 		codec:              codec,
 		localUsers:         localUserMap,
 		localTeams:         make(localTeamMap),

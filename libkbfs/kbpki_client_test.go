@@ -13,7 +13,6 @@ import (
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/kbfscodec"
 	"github.com/keybase/kbfs/kbfscrypto"
 	"github.com/keybase/kbfs/kbfsmd"
@@ -38,8 +37,7 @@ func makeTestKBPKIClient(t *testing.T) (
 	teamNames := []kbname.NormalizedUsername{"test_team1", "test_team2"}
 	teams = MakeLocalTeams(teamNames)
 	codec := kbfscodec.NewMsgpack()
-	kbCtx := env.NewContext()
-	daemon := NewKeybaseDaemonMemory(kbCtx, currentUID, users, teams, codec)
+	daemon := NewKeybaseDaemonMemory(currentUID, users, teams, codec)
 	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
 		logger.NewTestLogger(t)), currentUID, users, teams
 }
@@ -60,8 +58,7 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		users[i] = user
 	}
 	codec := kbfscodec.NewMsgpack()
-	kbCtx := env.NewContext()
-	daemon := NewKeybaseDaemonMemory(kbCtx, currentUID, users, nil, codec)
+	daemon := NewKeybaseDaemonMemory(currentUID, users, nil, codec)
 	return NewKBPKIClient(keybaseServiceSelfOwner{daemon},
 		logger.NewTestLogger(t)), currentUID, users
 }

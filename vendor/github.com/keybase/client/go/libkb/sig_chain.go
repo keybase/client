@@ -824,26 +824,23 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		}
 
 		i := len(allLinks) - 1
-		link := allLinks[i]
-		eldest := link.ToEldestKID()
-		seqno := link.GetSeqno()
-
+		eldest := allLinks[i].ToEldestKID()
 		if eldest.IsNil() {
-			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", seqno)
+			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", i)
 			break
 		}
-		m.CDebugf("Examining subchain that ends at %d with eldest %s", seqno, eldest)
+		m.CDebugf("Examining subchain that ends at %d with eldest %s", i, eldest)
 
 		var links ChainLinks
 		links, err = cropToRightmostSubchain(allLinks, eldest)
 		if err != nil {
-			m.CInfof("Error backtracking all links from %d: %s", seqno, err)
+			m.CInfof("Error backtracking all links from %d: %s", i, err)
 			break
 		}
 
 		cached, _, err = sc.verifySubchain(m, kf, links)
 		if err != nil {
-			m.CInfof("Error verifying subchain from %d: %s", seqno, err)
+			m.CInfof("Error verifying subchain from %d: %s", i, err)
 			break
 		}
 		if !cached {
