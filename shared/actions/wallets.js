@@ -152,21 +152,30 @@ const loadDisplayCurrency = (state: TypedState, action: WalletsGen.LoadDisplayCu
   )
 
 const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDisplayCurrencyPayload) =>
-  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise({
-    accountID: action.payload.accountID,
-    currency: action.payload.code, // called currency, though it is a code
-  }).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
+  RPCTypes.localChangeDisplayCurrencyLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      currency: action.payload.code, // called currency, though it is a code
+    },
+    Constants.changeDisplayCurrencyWaitingKey
+  ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
-  RPCTypes.localDeleteWalletAccountLocalRpcPromise({
-    accountID: action.payload.accountID,
-    userAcknowledged: 'yes',
-  }).then(res => WalletsGen.createDeletedAccount())
+  RPCTypes.localDeleteWalletAccountLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      userAcknowledged: 'yes',
+    },
+    Constants.deleteAccountWaitingKey
+  ).then(res => WalletsGen.createDeletedAccount())
 
 const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsDefaultPayload) =>
-  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise({
-    accountID: action.payload.accountID,
-  }).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
+  RPCTypes.localSetWalletAccountAsDefaultLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+    },
+    Constants.setAccountAsDefaultWaitingKey
+  ).then(res => WalletsGen.createDidSetAccountAsDefault({accountID: action.payload.accountID}))
 
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
@@ -219,8 +228,13 @@ const validateSecretKey = (state: TypedState, action: WalletsGen.ValidateSecretK
     })
 }
 
-const navigateToTop = () =>
-  Saga.put(Route.navigateTo([{props: {}, selected: walletsTab}, {props: {}, selected: null}]))
+const deletedAccount = (state: TypedState) =>
+  Saga.put(
+    WalletsGen.createSelectAccount({
+      accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
+      show: true,
+    })
+  )
 
 const navigateUp = (
   state: TypedState,
@@ -357,7 +371,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     buildPayment
   )
 
-  yield Saga.actionToAction(WalletsGen.deletedAccount, navigateToTop)
+  yield Saga.actionToAction(WalletsGen.deletedAccount, deletedAccount)
 
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
