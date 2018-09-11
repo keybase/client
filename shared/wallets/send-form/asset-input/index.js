@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
@@ -16,23 +16,23 @@ type Props = {|
 |}
 
 const AssetInput = (props: Props) => (
-  <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
     {!!props.topLabel && (
-      <Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
+      <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
         {props.topLabel}
-      </Text>
+      </Kb.Text>
     )}
-    <NewInput
+    <Kb.NewInput
       type="number"
       decoration={
-        <Box2 direction="vertical" style={styles.flexEnd}>
-          <Text type="HeaderBigExtrabold" style={styles.unit}>
+        <Kb.Box2 direction="vertical" style={styles.flexEnd}>
+          <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
             {props.displayUnit}
-          </Text>
-          <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
+          </Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
             Change
-          </Text>
-        </Box2>
+          </Kb.Text>
+        </Kb.Box2>
       }
       containerStyle={styles.inputContainer}
       style={styles.input}
@@ -44,35 +44,35 @@ const AssetInput = (props: Props) => (
     />
     {props.warningAsset &&
       !props.warningPayee && (
-        <Text type="BodySmallError">
+        <Kb.Text type="BodySmallError">
           Your available to send is{' '}
-          <Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
+          <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
             {props.warningAsset}
-          </Text>
+          </Kb.Text>
           .
-        </Text>
+        </Kb.Text>
       )}
     {!!props.warningPayee && (
-      <Text type="BodySmallError">
+      <Kb.Text type="BodySmallError">
         {props.warningPayee} doesn't accept{' '}
-        <Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
           {props.warningAsset}
-        </Text>
+        </Kb.Text>
         . Please pick another asset.
-      </Text>
+      </Kb.Text>
     )}
-    <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.labelMargin} selectable={true}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+      <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
         {props.bottomLabel}
-      </Text>
-      <Icon
+      </Kb.Text>
+      <Kb.Icon
         type="iconfont-question-mark"
         color={Styles.globalColors.black_40}
         fontSize={12}
         onClick={props.onClickInfo}
       />
-    </Box2>
-  </Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
