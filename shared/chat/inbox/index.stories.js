@@ -53,7 +53,7 @@ const commonSmallTeam = {
   teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
-  usernameColor: globalColors.darkBlue,
+  usernameColor: globalColors.black_75,
   youAreReset: false,
   youNeedToRekey: false,
 }
@@ -67,7 +67,7 @@ const commonSmallFilter = {
   participants: ['chris', 'mikem'],
   showBold: false,
   teamname: '',
-  usernameColor: globalColors.darkBlue,
+  usernameColor: globalColors.black_75,
 }
 
 const commonBigChannel = {

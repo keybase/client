@@ -122,7 +122,7 @@ class _SimpleTopLine extends React.Component<Props> {
           style={platformStyles({
             common: {
               ...boldOverride,
-              color: this.props.subColor,
+              color: this.props.hasBadge ? globalColors.blue : this.props.subColor,
             },
           })}
         >

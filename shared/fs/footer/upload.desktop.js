@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalColors, backgroundURL} from '../../styles'
+import * as Styles from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {type UploadProps} from './upload'
@@ -19,7 +19,7 @@ const realCSS = `
 .upload-animation-loop {
   animation: slideUp 4s linear infinite normal;
   background-repeat: repeat-x;
-  background-image: ${backgroundURL(patternImage)};
+  background-image: ${Styles.backgroundURL(patternImage)};
 }
 .upload-animation-enter {
   top: ${height}px;
@@ -37,37 +37,54 @@ const realCSS = `
 }
 `
 
-const Upload = ({showing, files, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => (
-  <React.Fragment>
-    {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
-    <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
-      <Box className="upload-animation-loop" style={stylesBox}>
-        <style>{realCSS}</style>
-        <Text key="files" type="BodySemibold" style={stylesText}>
-          {files
-            ? `Encrypting and uploading ${files} files...`
-            : totalSyncingBytes
-              ? 'Encrypting and uploading...'
-              : 'Done!'}
-        </Text>
-        {!!(timeLeft && timeLeft.length) && (
-          <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
-        )}
-      </Box>
-    </CSSTransition>
-  </React.Fragment>
-)
+const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
+  return (
+    <React.Fragment>
+      {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
+      <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
+        <Box className="upload-animation-loop" style={stylesBox}>
+          <style>{realCSS}</style>
+          <Text key="files" type="BodySemibold" style={styles.textOverflow}>
+            {files
+              ? fileName
+                ? `Encrypting and uploading ${fileName}...`
+                : `Encrypting and uploading ${files} files...`
+              : totalSyncingBytes
+                ? 'Encrypting and uploading...'
+                : 'Done!'}
+          </Text>
+          {!!(timeLeft && timeLeft.length) && (
+            <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
+          )}
+        </Box>
+      </CSSTransition>
+    </React.Fragment>
+  )
+}
+
+const styles = Styles.styleSheetCreate({
+  textOverflow: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.white,
+      maxWidth: '60%',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textAlign: 'center',
+      textOverflow: 'ellipsis',
+    },
+  }),
+})
 
 const stylesText = {
-  color: globalColors.white,
+  color: Styles.globalColors.white,
 }
 
 const stylesBox = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   position: 'relative',
   alignItems: 'center',
   justifyContent: 'center',
-  height,
+  maxHeight: height,
 }
 
 export default Upload

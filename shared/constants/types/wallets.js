@@ -155,6 +155,7 @@ export type _State = {
   builtPayment: BuiltPayment,
   createNewAccountError: string,
   exportedSecretKey: HiddenString,
+  exportedSecretKeyAccountID: AccountID,
   linkExistingAccountError: string,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   secretKey: HiddenString,

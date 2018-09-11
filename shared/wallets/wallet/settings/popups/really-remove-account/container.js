@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -12,12 +12,17 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 
   return {
     accountID,
-    secretKey,
+    loading: !secretKey,
     name: Constants.getAccount(state, accountID).name,
+    secretKey,
+    waitingKey: Constants.deleteAccountWaitingKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _onClose: () => dispatch(navigateUp()),
+  _onClose: (accountID: Types.AccountID) => {
+    dispatch(WalletsGen.createSecretKeySeen({accountID}))
+    dispatch(navigateUp())
+  },
   _onCopyKey: (secretKey: string) => dispatch(ConfigGen.createCopyToClipboard({text: secretKey})),
   _onFinish: (accountID: Types.AccountID) =>
     dispatch(
@@ -25,12 +30,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
         accountID,
       })
     ),
+  _onLoadSecretKey: (accountID: Types.AccountID) => dispatch(WalletsGen.createExportSecretKey({accountID})),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  loading: stateProps.loading,
   name: stateProps.name,
-  onCancel: () => dispatchProps._onClose(),
-  onCopyKey: () => dispatchProps._onCopyKey(stateProps.accountID),
+  waitingKey: stateProps.waitingKey,
+  onCancel: () => dispatchProps._onClose(stateProps.accountID),
+  onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
+  onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ReallyRemoveAccountPopup)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ReallyRemoveAccountPopup')
+)(ReallyRemoveAccountPopup)

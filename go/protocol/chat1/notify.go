@@ -959,6 +959,20 @@ type ChatAttachmentUploadProgressArg struct {
 	BytesTotal    int64          `codec:"bytesTotal" json:"bytesTotal"`
 }
 
+type ChatPaymentInfoArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Info   UIPaymentInfo  `codec:"info" json:"info"`
+}
+
+type ChatRequestInfoArg struct {
+	Uid    keybase1.UID   `codec:"uid" json:"uid"`
+	ConvID ConversationID `codec:"convID" json:"convID"`
+	MsgID  MessageID      `codec:"msgID" json:"msgID"`
+	Info   UIRequestInfo  `codec:"info" json:"info"`
+}
+
 type NotifyChatInterface interface {
 	NewChatActivity(context.Context, NewChatActivityArg) error
 	ChatIdentifyUpdate(context.Context, keybase1.CanonicalTLFNameAndIDWithBreaks) error
@@ -979,6 +993,8 @@ type NotifyChatInterface interface {
 	ChatKBFSToImpteamUpgrade(context.Context, ChatKBFSToImpteamUpgradeArg) error
 	ChatAttachmentUploadStart(context.Context, ChatAttachmentUploadStartArg) error
 	ChatAttachmentUploadProgress(context.Context, ChatAttachmentUploadProgressArg) error
+	ChatPaymentInfo(context.Context, ChatPaymentInfoArg) error
+	ChatRequestInfo(context.Context, ChatRequestInfoArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
@@ -1289,6 +1305,38 @@ func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"ChatPaymentInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatPaymentInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatPaymentInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatPaymentInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatPaymentInfo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
+			"ChatRequestInfo": {
+				MakeArg: func() interface{} {
+					ret := make([]ChatRequestInfoArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChatRequestInfoArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChatRequestInfoArg)(nil), args)
+						return
+					}
+					err = i.ChatRequestInfo(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -1393,5 +1441,15 @@ func (c NotifyChatClient) ChatAttachmentUploadStart(ctx context.Context, __arg C
 
 func (c NotifyChatClient) ChatAttachmentUploadProgress(ctx context.Context, __arg ChatAttachmentUploadProgressArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatAttachmentUploadProgress", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatPaymentInfo(ctx context.Context, __arg ChatPaymentInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatPaymentInfo", []interface{}{__arg})
+	return
+}
+
+func (c NotifyChatClient) ChatRequestInfo(ctx context.Context, __arg ChatRequestInfoArg) (err error) {
+	err = c.Cli.Notify(ctx, "chat.1.NotifyChat.ChatRequestInfo", []interface{}{__arg})
 	return
 }

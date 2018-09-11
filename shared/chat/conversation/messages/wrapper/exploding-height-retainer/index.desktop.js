@@ -126,7 +126,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
         EXPLODED BY{' '}
         <ConnectedUsernames
           type="BodySmallSemibold"
-          clickable={true}
+          onUsernameClicked="profile"
           usernames={[props.explodedBy]}
           inline={true}
           colorFollowing={true}

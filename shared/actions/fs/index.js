@@ -417,14 +417,13 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () =>
-    FsGen.createNotifySyncActivity()
-  )
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({path}) =>
-    // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
-    // now.
-    FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})
-  )
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
+    'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
+      // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
+      // now.
+      Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),
+  })
 }
 
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {

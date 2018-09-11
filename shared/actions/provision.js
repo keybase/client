@@ -6,6 +6,7 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
+import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
@@ -69,10 +70,7 @@ class ProvisioningManager {
   }
 
   // Choosing a device to use to provision
-  chooseDeviceHandler = (
-    params: RPCTypes.ProvisionUiChooseDeviceRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  chooseDeviceHandler = (params, response) => {
     this._stashResponse('keybase.1.provisionUi.chooseDevice', response)
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
@@ -96,10 +94,7 @@ class ProvisioningManager {
   }
 
   // Telling the daemon the other device type when adding a new device
-  chooseDeviceTypeHandler = (
-    params: RPCTypes.ProvisionUiChooseDeviceTypeRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  chooseDeviceTypeHandler = (params, response) => {
     return Saga.call(function*() {
       const state: TypedState = yield Saga.select()
       let type
@@ -122,10 +117,7 @@ class ProvisioningManager {
   }
 
   // Choosing a name for this new device
-  promptNewDeviceNameHandler = (
-    params: RPCTypes.ProvisionUiPromptNewDeviceNameRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  promptNewDeviceNameHandler = (params, response) => {
     this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({
@@ -155,10 +147,7 @@ class ProvisioningManager {
   }
 
   // We now need to exchange a secret sentence. Either side can move the process forward
-  displayAndPromptSecretHandler = (
-    params: RPCTypes.ProvisionUiDisplayAndPromptSecretRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  displayAndPromptSecretHandler = (params, response) => {
     this._stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
     return Saga.put(
       ProvisionGen.createShowCodePage({
@@ -188,10 +177,7 @@ class ProvisioningManager {
   }
 
   // Trying to use gpg flow
-  chooseGPGMethodHandler = (
-    params: RPCTypes.ProvisionUiChooseGPGMethodRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  chooseGPGMethodHandler = (params, response) => {
     this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
@@ -214,10 +200,7 @@ class ProvisioningManager {
     )
   }
 
-  switchToGPGSignOKHandler = (
-    params: RPCTypes.ProvisionUiSwitchToGPGSignOKRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  switchToGPGSignOKHandler = (params, response) => {
     this._stashResponse('keybase.1.provisionUi.switchToGPGSignOK', response)
     return Saga.all([
       Saga.put(ProvisionGen.createSwitchToGPGSignOnly({importError: params.importError})),
@@ -235,10 +218,7 @@ class ProvisioningManager {
   }
 
   // User has an uploaded key so we can use a passphrase OR they selected a paperkey
-  getPassphraseHandler = (
-    params: RPCTypes.SecretUiGetPassphraseRpcParam,
-    response: CommonResponseHandler
-  ) => {
+  getPassphraseHandler = (params, response) => {
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
 
     let error = ''
@@ -377,6 +357,7 @@ const addNewDevice = (state: TypedState) =>
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== Constants.cancelDesc) {
+        logger.error(`Provision -> Add device error: ${e.message}`)
         yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
       }
     }

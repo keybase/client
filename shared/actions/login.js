@@ -24,7 +24,7 @@ const cancelOnCallback = (params, response) => {
 }
 const ignoreCallback = params => {}
 
-const getPassphraseHandler = passphrase => (params: RPCTypes.SecretUiGetPassphraseRpcParam, response) => {
+const getPassphraseHandler = passphrase => (params, response) => {
   if (params.pinentry.type === RPCTypes.passphraseCommonPassphraseType.passPhrase) {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {

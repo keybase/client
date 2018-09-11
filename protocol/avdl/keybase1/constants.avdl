@@ -32,6 +32,7 @@ protocol constants {
     SCBadEmail_472,
     SCBadSignupUsernameTaken_701,
     SCBadInvitationCode_707,
+    SCFeatureFlag_712,
     SCMissingResult_801,
     SCKeyNotFound_901,
     SCKeyCorrupted_905,

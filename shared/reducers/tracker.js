@@ -91,7 +91,7 @@ export default function(
           isPrivate: nonUser.isPrivate,
           name: nonUser.assertion,
           reason: `You opened ${nonUser.folderName}`,
-          serviceName: nonUser.socialAssertion.service,
+          serviceName: nonUser.service,
           type: 'nonUser',
         }
       })
