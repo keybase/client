@@ -178,8 +178,9 @@ const dataRoot = findDataRoot()
 const cacheRoot = findCacheRoot()
 
 const version = 'TODO'
-// TODO: Use now?
-const appStart = new Date(0)
+// TODO: Ideally we'd get the real app start time, i.e. before JS is
+// loaded.
+const appStart = new Date()
 const appVersionName = 'Not Implemented - Mobile only'
 const appVersionCode = 'Not Implemented - Mobile only'
 
