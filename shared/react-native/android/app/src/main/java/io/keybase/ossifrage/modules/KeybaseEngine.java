@@ -59,7 +59,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         }
     }
 
-  public KeybaseEngine(final ReactApplicationContext reactContext, long appStartMilli) {
+    public KeybaseEngine(final ReactApplicationContext reactContext, long appStartMilli) {
         super(reactContext);
         this.reactContext = reactContext;
         this.appStartMilli = appStartMilli;
