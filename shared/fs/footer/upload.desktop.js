@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {globalStyles, globalColors, backgroundURL} from '../../styles'
 import {Button, Box, Text} from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {type UploadProps} from './upload'
@@ -20,7 +19,7 @@ const realCSS = `
 .upload-animation-loop {
   animation: slideUp 4s linear infinite normal;
   background-repeat: repeat-x;
-  background-image: ${backgroundURL(patternImage)};
+  background-image: ${Styles.backgroundURL(patternImage)};
 }
 .upload-animation-enter {
   top: ${height}px;
@@ -37,22 +36,6 @@ const realCSS = `
   transition: all .3s ${easing};
 }
 `
-
-const styles = Styles.styleSheetCreate({
-  textOverflow: Styles.platformStyles({
-    common: {
-      color: globalColors.white,
-      maxWidth: '60%',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textAlign: 'center',
-      textOverflow: 'ellipsis',
-    },
-    isElectron: {
-      overflowWrap: 'ellipsis',
-    },
-  }),
-})
 
 const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
   return (
@@ -79,12 +62,25 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
   )
 }
 
+const styles = Styles.styleSheetCreate({
+  textOverflow: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.white,
+      maxWidth: '60%',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textAlign: 'center',
+      textOverflow: 'ellipsis',
+    },
+  }),
+})
+
 const stylesText = {
-  color: globalColors.white,
+  color: Styles.globalColors.white,
 }
 
 const stylesBox = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   position: 'relative',
   alignItems: 'center',
   justifyContent: 'center',
