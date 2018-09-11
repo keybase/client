@@ -28,7 +28,7 @@ func TestPGPDecryptBasic(t *testing.T) {
 	}
 
 	out := NewBufferCloser()
-	if _, err := PGPDecryptWithBundles(G, mid, out, recipients); err != nil {
+	if _, err := PGPDecryptWithBundles(tc.G, mid, out, recipients); err != nil {
 		t.Fatal(err)
 	}
 

@@ -23,6 +23,7 @@ project.xcworkspace
 xcuserdata
 Pods
 shared
+fastlane/README.md
 
 keybase.framework
 
@@ -36,3 +37,7 @@ android/keybaselib/keybaselib.aar
 android/.idea
 *.iml
 index.bundle
+
+# Builds
+ios/dist
+android/dist

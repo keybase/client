@@ -16,7 +16,7 @@ func rawBoxKeyFromSlice(slice []byte) (*RawBoxKey, error) {
 	if len(slice) != len(result) {
 		return nil, ErrBadBoxKey
 	}
-	copy(result[:], slice)
+	result = sliceToByte32(slice)
 	return &result, nil
 }
 
@@ -24,13 +24,29 @@ func rawBoxKeyFromSlice(slice []byte) (*RawBoxKey, error) {
 // buffer. Used for NaCl SecretBox.
 type SymmetricKey [32]byte
 
+func newRandomSymmetricKey() (*SymmetricKey, error) {
+	var s SymmetricKey
+	err := csprngRead(s[:])
+	if err != nil {
+		return nil, err
+	}
+	return &s, nil
+}
+
 func symmetricKeyFromSlice(slice []byte) (*SymmetricKey, error) {
 	var result SymmetricKey
 	if len(slice) != len(result) {
 		return nil, ErrBadSymmetricKey
 	}
-	copy(result[:], slice)
+	result = sliceToByte32(slice)
 	return &result, nil
+}
+
+// EphemeralKeyCreator is an interface for objects that can create
+// random ephemeral keys.
+type EphemeralKeyCreator interface {
+	// CreateEmphemeralKey creates a random ephemeral key.
+	CreateEphemeralKey() (BoxSecretKey, error)
 }
 
 // BasePublicKey types can output a key ID corresponding to the key.
@@ -44,14 +60,12 @@ type BasePublicKey interface {
 // BoxPublicKey is an generic interface to NaCl's public key Box function.
 type BoxPublicKey interface {
 	BasePublicKey
+	// Implement EphemeralKeyCreator to avoid breaking the public API.
+	EphemeralKeyCreator
 
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
 	ToRawBoxKeyPointer() *RawBoxKey
-
-	// CreateEmphemeralKey creates an ephemeral key of the same type,
-	// but totally random.
-	CreateEphemeralKey() (BoxSecretKey, error)
 
 	// HideIdentity returns true if we should hide the identity of this
 	// key in our output message format.
@@ -60,8 +74,8 @@ type BoxPublicKey interface {
 
 // BoxPrecomputedSharedKey results from a Precomputation below.
 type BoxPrecomputedSharedKey interface {
-	Unbox(nonce *Nonce, msg []byte) ([]byte, error)
-	Box(nonce *Nonce, msg []byte) []byte
+	Unbox(nonce Nonce, msg []byte) ([]byte, error)
+	Box(nonce Nonce, msg []byte) []byte
 }
 
 // BoxSecretKey is the secret key corresponding to a BoxPublicKey
@@ -69,17 +83,17 @@ type BoxSecretKey interface {
 
 	// Box boxes up data, sent from this secret key, and to the receiver
 	// specified.
-	Box(receiver BoxPublicKey, nonce *Nonce, msg []byte) []byte
+	Box(receiver BoxPublicKey, nonce Nonce, msg []byte) []byte
 
-	// Unobx opens up the box, using this secret key as the receiver key
+	// Unbox opens up the box, using this secret key as the receiver key
 	// abd the give public key as the sender key.
-	Unbox(sender BoxPublicKey, nonce *Nonce, msg []byte) ([]byte, error)
+	Unbox(sender BoxPublicKey, nonce Nonce, msg []byte) ([]byte, error)
 
 	// GetPublicKey gets the public key associated with this secret key.
 	GetPublicKey() BoxPublicKey
 
 	// Precompute computes a DH with the given key
-	Precompute(sender BoxPublicKey) BoxPrecomputedSharedKey
+	Precompute(peer BoxPublicKey) BoxPrecomputedSharedKey
 }
 
 // SigningSecretKey is a secret NaCl key that can sign messages.
@@ -105,6 +119,9 @@ type SigningPublicKey interface {
 // recover public or private keys during the decryption process.
 // Calls can block on network action.
 type Keyring interface {
+	// Implement EphemeralKeyCreator to avoid breaking the public API.
+	EphemeralKeyCreator
+
 	// LookupBoxSecretKey looks in the Keyring for the secret key corresponding
 	// to one of the given Key IDs.  Returns the index and the key on success,
 	// or -1 and nil on failure.

@@ -1,9 +1,8 @@
 // @flow
-import React from 'react'
-import type {IconType} from './icon'
+import * as React from 'react'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import Box from './box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import {isMobile} from '../constants/platform'
 
 type Props = {
@@ -24,24 +23,22 @@ const standardOffsets = {
   offsetRight: isMobile ? -1 : -5,
 }
 
-function _specsForMobileOrDesktop () {
-  const size = isMobile ? 64 : 48
-  return (({
-    'coinbase': {icon: `icon-coinbase-logo-${size}`},
-    'twitter': {icon: `icon-twitter-logo-${size}`},
-    'github': {icon: `icon-github-logo-${size}`},
-    'facebook': {icon: `icon-facebook-logo-${size}`},
-    'reddit': {icon: `icon-reddit-logo-${size}`},
-    'hackernews': {icon: `icon-hacker-news-logo-${size}`},
-    'dns': {icon: `icon-website-${size}`},
-    'http': {icon: `icon-website-${size}`},
-    'https': {icon: `icon-website-${size}`},
-    'dnsOrGenericWebSite': {icon: `icon-website-${size}`},
-    'rooter': {icon: `icon-website-${size}`},
-    'btc': {icon: `icon-bitcoin-logo-${size}`},
-    'zcash': {icon: `icon-zcash-logo-${size}`},
-    'pgp': {icon: `icon-pgp-key-${size}`, offsetBottom: -2, offsetRight: 4},
-  }): any)
+function _specsForMobileOrDesktop() {
+  return ({
+    twitter: {icon: isMobile ? 'icon-twitter-logo-64' : 'icon-twitter-logo-48'},
+    github: {icon: isMobile ? 'icon-github-logo-64' : 'icon-github-logo-48'},
+    facebook: {icon: isMobile ? 'icon-facebook-logo-64' : 'icon-facebook-logo-48'},
+    reddit: {icon: isMobile ? 'icon-reddit-logo-64' : 'icon-reddit-logo-48'},
+    hackernews: {icon: isMobile ? 'icon-hacker-news-logo-64' : 'icon-hacker-news-logo-48'},
+    dns: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    http: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    https: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    dnsOrGenericWebSite: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    rooter: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    btc: {icon: isMobile ? 'icon-bitcoin-logo-64' : 'icon-bitcoin-logo-48'},
+    zcash: {icon: isMobile ? 'icon-zcash-logo-64' : 'icon-zcash-logo-48'},
+    pgp: {icon: isMobile ? 'icon-pgp-key-64' : 'icon-pgp-key-48', offsetBottom: -2, offsetRight: 4},
+  }: any)
 }
 
 const getSpecForPlatform = (platform: PlatformsExpandedType): IconSpec => {
@@ -54,7 +51,14 @@ const Render = ({platform, overlay, overlayColor, style}: Props) => {
   return (
     <Box style={{position: 'relative', ...style}}>
       <Icon type={iconSpec.icon} />
-      <Icon type={overlay} style={{color: overlayColor, position: 'absolute', bottom: iconSpec.offsetBottom, right: iconSpec.offsetRight}} />
+      <Icon
+        type={overlay}
+        style={{
+          position: 'absolute',
+          bottom: iconSpec.offsetBottom,
+          right: iconSpec.offsetRight,
+        }}
+      />
     </Box>
   )
 }

@@ -1,20 +1,23 @@
 // @flow
 import {Component} from 'react'
-import type {PlanLevel} from '../../constants/settings'
+import type {PlanLevel} from '../../constants/types/settings'
 
-export type PaymentVariants = {
-  type: 'credit-card-no-past',
-  onAddCreditCard: () => void,
-} | {
-  type: 'credit-card-with-past',
-  // Something like Visa **** 4242
-  cardInfo: string,
-  onPayWithSavedCard: () => void,
-  onUpdateCard: () => void,
-} | {
-  type: 'apple-pay',
-  onPayWithCardInstead: () => void,
-}
+export type PaymentVariants =
+  | {
+      type: 'credit-card-no-past',
+      onAddCreditCard: () => void,
+    }
+  | {
+      type: 'credit-card-with-past',
+      // Something like Visa **** 4242
+      cardInfo: string,
+      onPayWithSavedCard: () => void,
+      onUpdateCard: () => void,
+    }
+  | {
+      type: 'apple-pay',
+      onPayWithCardInstead: () => void,
+    }
 
 export type Props = {
   plan: PlanLevel,
@@ -25,4 +28,4 @@ export type Props = {
   numStars: number,
 }
 
-export default class PlanDetails extends Component<void, Props, void> {}
+export default class PlanDetails extends Component<Props> {}

@@ -1,8 +1,8 @@
 // @flow
 import {Component} from 'react'
 
-import type {PlanLevel} from '../../constants/settings'
-import type {PaymentInfo, AvailablePlan} from '../../constants/plan-billing'
+import type {PlanLevel} from '../../constants/types/settings'
+import type {PaymentInfo, AvailablePlan} from '../../constants/types/plan-billing'
 
 export type PlanProps = {
   onInfo: (level: PlanLevel) => void,
@@ -19,6 +19,8 @@ export type AccountProps = {
   isVerified: boolean,
   onChangeEmail: () => void,
   onChangePassphrase: () => void,
+  onChangeRememberPassphrase: (remember: boolean) => void,
+  rememberPassphrase: boolean,
 }
 
 export type Props = {
@@ -27,4 +29,4 @@ export type Props = {
   account: AccountProps,
 }
 
-export default class LandingPage extends Component<void, Props, void> { }
+export default class LandingPage extends Component<Props> {}

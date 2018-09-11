@@ -9,7 +9,7 @@ import (
 )
 
 func TestEnvDarwin(t *testing.T) {
-	env := newEnv(nil, nil, "darwin")
+	env := newEnv(nil, nil, "darwin", makeLogGetter(t))
 
 	sockFile, err := env.GetSocketBindFile()
 	if err != nil {

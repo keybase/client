@@ -6,7 +6,18 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "KBFSTeamSettings",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        }
+      ]
+    }
+  ],
   "messages": {
     "FSEvent": {
       "request": [
@@ -19,14 +30,23 @@
       "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients.",
       "lint": "ignore"
     },
+    "FSPathUpdate": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true,
+      "doc": "kbfs calls this whenever the currently subscribed-to folder (via the\n    SimpleFSList[Recursive call) has been updated.",
+      "lint": "ignore"
+    },
     "FSEditList": {
       "request": [
         {
           "name": "edits",
-          "type": {
-            "type": "array",
-            "items": "FSNotification"
-          }
+          "type": "FSFolderEditHistory"
         },
         {
           "name": "requestID",
@@ -62,6 +82,30 @@
       "response": null,
       "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes.",
       "lint": "ignore"
+    },
+    "createTLF": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "tlfID",
+          "type": "TLFID"
+        }
+      ],
+      "response": null,
+      "doc": "createTLF is called by KBFS to associate the tlfID with the given teamID,\n    using the v2 Team-based system."
+    },
+    "getKBFSTeamSettings": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "KBFSTeamSettings",
+      "doc": "getKBFSTeamSettings gets the settings written for the team in the team's sigchain."
     }
   },
   "namespace": "keybase.1"

@@ -1,23 +1,12 @@
 // @flow
-import type {TypedAction} from './types/flux'
-import type {Exact} from './types/more'
+import * as I from 'immutable'
+import type {_State} from './types/dev'
 
-export const serializeRestore = 'dev:restoreState'
-export const serializeSave = 'dev:saveState'
-export const timeTravel = 'dev:timetravel'
-export const timeTravelBack = 'dev:back'
-export const timeTravelForward = 'dev:forward'
+const makeState: I.RecordFactory<_State> = I.Record({
+  debugCount: 0,
+  dumbFilter: '',
+  dumbFullscreen: false,
+  dumbIndex: 0,
+})
 
-export type DebugConfig = {
-  dumbFilter: string,
-  dumbIndex: number,
-  dumbFullscreen: boolean,
-}
-
-export const updateDebugConfig = 'dev:updateDebugConfig'
-export type UpdateDebugConfig = TypedAction<'dev:updateDebugConfig', Exact<DebugConfig>, void>
-
-export const updateReloading = 'dev:updatehmrReloading'
-export type UpdateReloading = TypedAction<'dev:updatehmrReloading', {reloading: boolean}, void>
-
-export type DevAction = UpdateDebugConfig | UpdateReloading
+export {makeState}

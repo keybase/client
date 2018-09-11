@@ -1,44 +1,28 @@
 // @flow
+import * as Types from '../constants/types/gregor'
 import * as Constants from '../constants/gregor'
-import * as CommonConstants from '../constants/common'
-import {keyBy} from 'lodash'
-import {ReachabilityReachable} from '../constants/types/flow-types'
+import * as GregorGen from '../actions/gregor-gen'
 
-import type {GregorActions, MsgMap} from '../constants/gregor'
-import type {Reachability} from '../constants/types/flow-types'
+const initialState = Constants.makeState()
 
-export type State = {
-  seenMsgs: MsgMap,
-  reachability: Reachability,
-}
-
-const initialState: State = {
-  seenMsgs: {},
-  reachability: {reachable: ReachabilityReachable.unknown},
-}
-
-export default function (state: State = initialState, action: GregorActions): State {
+export default function(state: Types.State = initialState, action: GregorGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
+    case GregorGen.resetStore:
       return initialState
-    case Constants.updateSeenMsgs:
-      if (!action.error) {
-        const newMsgs: MsgMap = keyBy(action.payload.seenMsgs, m => m.md.msgID.toString('base64'))
-        return {
-          ...state,
-          seenMsgs: {
-            ...state.seenMsgs,
-            ...newMsgs,
-          },
-        }
-      }
-      break
-    case Constants.updateReachability:
-      const {reachability} = action.payload
-      return {
-        ...state,
-        reachability,
-      }
+    case GregorGen.updateReachable:
+      return state.merge({reachable: action.payload.reachable})
+    // Saga only actions
+    case GregorGen.checkReachability:
+    case GregorGen.pushOOBM:
+    case GregorGen.pushState:
+    case GregorGen.startReachability:
+    case GregorGen.updateCategory:
+      return state
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
+      return state
   }
-  return state
 }

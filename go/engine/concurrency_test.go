@@ -11,13 +11,11 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	context "golang.org/x/net/context"
 )
 
 var runConc = flag.Bool("conc", false, "run (expensive) concurrency tests")
 
-// TestConcurrentLogin tries calling logout, login, and many of
-// the exposed methods in LoginState concurrently.  Use the
-// -race flag to test it.
 func TestConcurrentLogin(t *testing.T) {
 	if !*runConc {
 		t.Skip("Skipping ConcurrentLogin test")
@@ -52,21 +50,9 @@ func TestConcurrentLogin(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-						s.APIArgs()
-					}, "APIArgs")
-					tc.G.LoginState().Account(func(a *libkb.Account) {
-						a.UserInfo()
-					}, "UserInfo")
-					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-						s.GetUID()
-					}, "GetUID")
-					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-						s.Load()
-					}, "session Load")
-					tc.G.LoginState().LoggedIn()
-					tc.G.LoginState().LoggedInLoad()
-					// tc.G.LoginState.Shutdown()
+					tc.G.ActiveDevice.NIST(context.Background())
+					tc.G.ActiveDevice.UID()
+					tc.G.ActiveDevice.Valid()
 				}
 			}
 		}(i)
@@ -114,10 +100,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 					fmt.Printf("func caller %d done\n", index)
 					return
 				default:
-					_, err := tc.G.LoginState().GetPassphraseStream(u.NewSecretUI())
-					if err != nil {
-						tc.G.Log.Warning("GetPassphraseStream err: %s", err)
-					}
+					tc.G.ActiveDevice.PassphraseStream()
 				}
 			}
 		}(i)
@@ -129,7 +112,7 @@ func TestConcurrentGetPassphraseStream(t *testing.T) {
 }
 
 // TestConcurrentLogin tries calling logout, login, and many of
-// the exposed methods in LoginState concurrently.  Use the
+// the exposed methods in ActiveDevice concurrently.  Use the
 // -race flag to test it.
 func TestConcurrentSignup(t *testing.T) {
 	if !*runConc {
@@ -202,7 +185,7 @@ func genv(g *libkb.GlobalContext) {
 	g.Env.GetConfigWriter()
 	g.Env.GetCommandLine()
 	cf := libkb.NewJSONConfigFile(g, "")
-	g.Env.SetConfig(*cf, cf)
+	g.Env.SetConfig(cf, cf)
 }
 
 func gkeyring() {

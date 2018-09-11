@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -11,11 +12,15 @@ import (
 )
 
 type DeviceKeygenArgs struct {
-	Me         *libkb.User
-	DeviceID   keybase1.DeviceID
-	DeviceName string
-	DeviceType string
-	Lks        *libkb.LKSec
+	Me              *libkb.User
+	DeviceID        keybase1.DeviceID
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	IsSelfProvision bool
+	PerUserKeyring  *libkb.PerUserKeyring
+	EkReboxer       *ephemeralKeyReboxer
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -38,7 +43,6 @@ type DeviceKeygenArgs struct {
 // user's sigchain changes between key generation and key push.
 //
 type DeviceKeygenPushArgs struct {
-	IsEldest       bool
 	SkipSignerPush bool
 	Signer         libkb.GenericKey
 	EldestKID      keybase1.KID
@@ -54,11 +58,14 @@ type DeviceKeygen struct {
 	naclSignGen *libkb.NaclKeyGen
 	naclEncGen  *libkb.NaclKeyGen
 
+	// can be nil
+	perUserKeySeed *libkb.PerUserKeySeed
+
 	libkb.Contextified
 }
 
 // NewDeviceKeygen creates a DeviceKeygen engine.
-func NewDeviceKeygen(args *DeviceKeygenArgs, g *libkb.GlobalContext) *DeviceKeygen {
+func NewDeviceKeygen(g *libkb.GlobalContext, args *DeviceKeygenArgs) *DeviceKeygen {
 	return &DeviceKeygen{
 		args:         args,
 		Contextified: libkb.NewContextified(g),
@@ -72,7 +79,7 @@ func (e *DeviceKeygen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *DeviceKeygen) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{TemporarySession: true}
 }
 
 // RequiredUIs returns the required UIs.
@@ -88,10 +95,12 @@ func (e *DeviceKeygen) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *DeviceKeygen) Run(ctx *Context) error {
-	e.setup(ctx)
-	e.generate()
-	e.localSave(ctx)
+func (e *DeviceKeygen) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceKeygen#Run", func() error { return err })()
+
+	e.setup(m)
+	e.generate(m)
+	e.localSave(m)
 	return e.runErr
 }
 
@@ -108,65 +117,114 @@ func (e *DeviceKeygen) SigningKey() libkb.NaclKeyPair {
 	return e.naclSignGen.GetKeyPair()
 }
 
-func (e *DeviceKeygen) EncryptionKey() libkb.NaclKeyPair {
-	return e.naclEncGen.GetKeyPair()
+func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
+	return e.naclEncGen.GetKeyPair().(libkb.NaclDHKeyPair)
 }
 
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
-func (e *DeviceKeygen) Push(ctx *Context, pargs *DeviceKeygenPushArgs) error {
+func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (err error) {
 	var encSigner libkb.GenericKey
 	eldestKID := pargs.EldestKID
 
 	ds := []libkb.Delegator{}
 
+	m.CDebugf("DeviceKeygen#Push PUK(upgrade:%v)", m.G().Env.GetUpgradePerUserKey())
+
+	var pukBoxes = []keybase1.PerUserKeyBox{}
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
+		if e.perUserKeySeed == nil {
+			return errors.New("missing new per user key")
+		}
+		// Encrypt the new per-user-key for this eldest device.
+		pukBox, err := libkb.NewPerUserKeyBox(
+			*e.perUserKeySeed, // inner key to be encrypted
+			e.EncryptionKey(), // receiver key (device enc key)
+			e.EncryptionKey(), // sender key   (device enc key)
+			keybase1.PerUserKeyGeneration(1))
+		if err != nil {
+			return err
+		}
+		pukBoxes = append(pukBoxes, pukBox)
+	}
+	if !e.args.IsEldest || e.args.IsSelfProvision {
+		boxes, err := e.preparePerUserKeyBoxFromProvisioningKey(m)
+		if err != nil {
+			return err
+		}
+		pukBoxes = append(pukBoxes, boxes...)
+	}
+
 	// append the signing key
-	if pargs.IsEldest {
-		ds = e.appendEldest(ds, ctx, pargs)
+	if e.args.IsEldest {
+		ds = e.appendEldest(m, ds, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
 		eldestKID = encSigner.GetKID()
 	} else if !pargs.SkipSignerPush {
-		ds = e.appendSibkey(ds, ctx, pargs)
+		ds = e.appendSibkey(m, ds, pargs)
 		encSigner = e.naclSignGen.GetKeyPair()
 	} else {
 		encSigner = pargs.Signer
 	}
 
-	ds = e.appendEncKey(ds, ctx, encSigner, eldestKID, pargs.User)
+	ds = e.appendEncKey(m, ds, encSigner, eldestKID, pargs.User)
 
-	e.pushErr = libkb.DelegatorAggregator(ctx.LoginContext, ds)
+	var userEKReboxArg *keybase1.UserEkReboxArg
+	if e.args.IsSelfProvision {
+		userEKReboxArg, err = e.reboxUserEK(m, encSigner)
+		if err != nil {
+			return err
+		}
+	}
+
+	var pukSigProducer libkb.AggSigProducer // = nil
+	// PerUserKey does not use Delegator.
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
+		// Sign in the new per-user-key
+		if e.perUserKeySeed == nil {
+			return errors.New("missing new per user key")
+		}
+
+		pukSigProducer = func() (libkb.JSONPayload, error) {
+			gen := keybase1.PerUserKeyGeneration(1)
+			return libkb.PerUserKeyProofReverseSigned(m, e.args.Me, *e.perUserKeySeed, gen, encSigner)
+		}
+	}
+
+	e.pushErr = libkb.DelegatorAggregator(m, ds, pukSigProducer, pukBoxes, nil, userEKReboxArg)
 
 	// push the LKS server half
-	e.pushLKS(ctx)
+	e.pushLKS(m)
 
 	return e.pushErr
 }
 
-func (e *DeviceKeygen) setup(ctx *Context) {
+func (e *DeviceKeygen) setup(m libkb.MetaContext) {
+	defer m.CTrace("DeviceKeygen#setup", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
 
-	signArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+	e.naclSignGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
 		kp, err := libkb.GenerateNaclSigningKeyPair()
 		if err != nil {
 			return nil, err
 		}
 		return kp, nil
-	}, libkb.NaclEdDSAExpireIn)
-	e.naclSignGen = libkb.NewNaclKeyGen(signArg)
+	}, e.device(), libkb.NaclEdDSAExpireIn)
 
-	encArg := e.newNaclArg(ctx, func() (libkb.NaclKeyPair, error) {
+	e.naclEncGen = e.newNaclKeyGen(m, func() (libkb.NaclKeyPair, error) {
 		kp, err := libkb.GenerateNaclDHKeyPair()
 		if err != nil {
 			return nil, err
 		}
 		return kp, nil
-	}, libkb.NaclDHExpireIn)
-	e.naclEncGen = libkb.NewNaclKeyGen(encArg)
+	}, e.device(), libkb.NaclDHExpireIn)
+
 }
 
-func (e *DeviceKeygen) generate() {
+func (e *DeviceKeygen) generate(m libkb.MetaContext) {
+	defer m.CTrace("DeviceKeygen#generate", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
@@ -178,125 +236,138 @@ func (e *DeviceKeygen) generate() {
 	if e.runErr = e.naclEncGen.Generate(); e.runErr != nil {
 		return
 	}
+
+	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
+		seed, err := libkb.GeneratePerUserKeySeed()
+		if err != nil {
+			e.runErr = err
+			return
+		}
+		e.perUserKeySeed = &seed
+	}
+
 }
 
-func (e *DeviceKeygen) localSave(ctx *Context) {
+func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
+	defer m.CTrace("DeviceKeygen#localSave", func() error { return e.runErr })()
 	if e.runErr != nil {
 		return
 	}
-
-	if e.runErr = e.naclSignGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclSignGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
-	if e.runErr = e.naclEncGen.SaveLKS(e.G(), e.args.Lks, ctx.LoginContext); e.runErr != nil {
+	if e.runErr = e.naclEncGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
 }
 
-func (e *DeviceKeygen) appendEldest(ds []libkb.Delegator, ctx *Context, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
+func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.GenericKey) (reboxArg *keybase1.UserEkReboxArg, err error) {
+	defer m.CTrace("DeviceKeygen#reboxUserEK", func() error { return err })()
+	ekKID, err := e.args.EkReboxer.getDeviceEKKID()
+	if err != nil {
+		return nil, err
+	}
+	userEKBox, err := makeUserEKBoxForProvisionee(m, ekKID)
+	if err != nil {
+		return nil, err
+	}
+	return e.args.EkReboxer.getReboxArg(m, userEKBox, e.args.DeviceID, signingKey)
+}
+
+func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
+	defer m.CTrace("DeviceKeygen#appendEldest", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
 
 	var d libkb.Delegator
-	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
+	d, e.pushErr = e.naclSignGen.Push(m, true)
 	if e.pushErr == nil {
-		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 
 	return ds
 }
 
-func (e *DeviceKeygen) appendSibkey(ds []libkb.Delegator, ctx *Context, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
+func (e *DeviceKeygen) appendSibkey(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
+	defer m.CTrace("DeviceKeygen#appendSibkey", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
 
 	var d libkb.Delegator
 
-	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, true, pargs.User)
-	d, e.pushErr = e.naclSignGen.Push(ctx.LoginContext, true)
+	e.naclSignGen.UpdateArg(pargs.Signer, pargs.EldestKID, libkb.DelegationTypeSibkey, pargs.User)
+	d, e.pushErr = e.naclSignGen.Push(m, true)
 	if e.pushErr == nil {
-		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 
 	return ds
 }
 
-func (e *DeviceKeygen) appendEncKey(ds []libkb.Delegator, ctx *Context, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) []libkb.Delegator {
+func (e *DeviceKeygen) appendEncKey(m libkb.MetaContext, ds []libkb.Delegator, signer libkb.GenericKey, eldestKID keybase1.KID, user *libkb.User) []libkb.Delegator {
+	defer m.CTrace("DeviceKeygen#appendEncKey", func() error { return e.pushErr })()
 	if e.pushErr != nil {
 		return ds
 	}
 
-	e.naclEncGen.UpdateArg(signer, eldestKID, false, user)
+	e.naclEncGen.UpdateArg(signer, eldestKID, libkb.DelegationTypeSubkey, user)
 
 	var d libkb.Delegator
-	d, e.pushErr = e.naclEncGen.Push(ctx.LoginContext, true)
+	d, e.pushErr = e.naclEncGen.Push(m, true)
 	if e.pushErr == nil {
-		d.SetGlobalContext(e.G())
 		return append(ds, d)
 	}
 
 	return ds
 }
 
-func (e *DeviceKeygen) generateClientHalfRecovery() (string, keybase1.KID, error) {
+func (e *DeviceKeygen) generateClientHalfRecovery(m libkb.MetaContext) (ctext string, kid keybase1.KID, err error) {
+	defer m.CTrace("DeviceKeygen#generateClientHalfRecovery", func() error { return err })()
 	key := e.naclEncGen.GetKeyPair()
-	kid := key.GetKID()
-	ctext, err := e.args.Lks.EncryptClientHalfRecovery(key)
+	kid = key.GetKID()
+	ctext, err = e.args.Lks.EncryptClientHalfRecovery(key)
 	return ctext, kid, err
 }
 
-func (e *DeviceKeygen) pushLKS(ctx *Context) {
+func (e *DeviceKeygen) pushLKS(m libkb.MetaContext) {
+	defer m.CTrace("DeviceKeygen#pushLKS", func() error { return e.pushErr })()
+
 	if e.pushErr != nil {
 		return
 	}
 
 	if e.args.Lks == nil {
-		e.pushErr = fmt.Errorf("no local key security set")
+		e.pushErr = errors.New("no local key security set")
 		return
 	}
 
 	serverHalf := e.args.Lks.GetServerHalf()
 	if serverHalf.IsNil() {
-		e.pushErr = fmt.Errorf("LKS server half is empty, and should not be")
+		e.pushErr = errors.New("LKS server half is empty, and should not be")
 		return
 	}
 
 	var chr string
 	var chrk keybase1.KID
-	if chr, chrk, e.pushErr = e.generateClientHalfRecovery(); e.pushErr != nil {
+	if chr, chrk, e.pushErr = e.generateClientHalfRecovery(m); e.pushErr != nil {
 		return
 	}
 
-	// send it to api server
-	var sr libkb.SessionReader
-	if ctx.LoginContext != nil {
-		sr = ctx.LoginContext.LocalSession()
-	}
-	e.pushErr = libkb.PostDeviceLKS(e.G(), sr, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
+	e.pushErr = libkb.PostDeviceLKS(m, e.args.DeviceID, e.args.DeviceType, serverHalf, e.args.Lks.Generation(), chr, chrk)
 	if e.pushErr != nil {
 		return
 	}
-
-	// Sync the LKS stuff back from the server, so that subsequent
-	// attempts to use public key login will work.
-	if ctx.LoginContext != nil {
-		e.pushErr = ctx.LoginContext.RunSecretSyncer(e.args.Me.GetUID())
-	} else {
-		e.pushErr = e.G().LoginState().RunSecretSyncer(e.args.Me.GetUID())
-	}
 }
 
-func (e *DeviceKeygen) newNaclArg(ctx *Context, gen libkb.NaclGenerator, expire int) libkb.NaclKeyGenArg {
-	return libkb.NaclKeyGenArg{
+func (e *DeviceKeygen) newNaclKeyGen(m libkb.MetaContext, gen libkb.NaclGenerator, device *libkb.Device, expire int) *libkb.NaclKeyGen {
+	return libkb.NewNaclKeyGen(libkb.NaclKeyGenArg{
 		Generator: gen,
-		Device:    e.device(),
+		Device:    device,
 		Me:        e.args.Me,
 		ExpireIn:  expire,
-	}
+	})
 }
 
 func (e *DeviceKeygen) device() *libkb.Device {
@@ -307,4 +378,60 @@ func (e *DeviceKeygen) device() *libkb.Device {
 		Type:        e.args.DeviceType,
 		Status:      &s,
 	}
+}
+
+// Can return no boxes if there are no per-user-keys.
+func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
+	// Assuming this is a paperkey or self provision.
+
+	upak := e.args.Me.ExportToUserPlusAllKeys()
+	if len(upak.Base.PerUserKeys) == 0 {
+		m.CDebugf("DeviceKeygen skipping per-user-keys, none exist")
+		return nil, nil
+	}
+
+	pukring := e.args.PerUserKeyring
+	if pukring == nil {
+		return nil, errors.New("missing PerUserKeyring")
+	}
+
+	provisioningKey := m.ActiveDevice().ProvisioningKey(m)
+	var provisioningSigKey, provisioningEncKeyGeneric libkb.GenericKey
+	if provisioningKey != nil {
+		provisioningSigKey = provisioningKey.SigningKey()
+		provisioningEncKeyGeneric = provisioningKey.EncryptionKey()
+	}
+
+	if provisioningSigKey == nil && provisioningEncKeyGeneric == nil {
+		// GPG provisioning is not supported when the user has per-user-keys.
+		// This is the error that manifests. See CORE-4960
+		return nil, errors.New("missing provisioning key in login context")
+	}
+	if provisioningSigKey == nil {
+		return nil, errors.New("missing provisioning sig key")
+	}
+	if provisioningEncKeyGeneric == nil {
+		return nil, errors.New("missing provisioning enc key")
+	}
+	provisioningEncKey, ok := provisioningEncKeyGeneric.(libkb.NaclDHKeyPair)
+	if !ok {
+		return nil, errors.New("Unexpected encryption key type")
+	}
+
+	provisioningDeviceID, err := upak.GetDeviceID(provisioningSigKey.GetKID())
+	if err != nil {
+		return nil, err
+	}
+	err = pukring.SyncAsProvisioningKey(m, &upak, provisioningDeviceID, provisioningEncKey)
+	if err != nil {
+		return nil, err
+	}
+	if !pukring.HasAnyKeys() {
+		return nil, nil
+	}
+	pukBox, err := pukring.PrepareBoxForNewDevice(m,
+		e.EncryptionKey(),  // receiver key: provisionee enc
+		provisioningEncKey, // sender key: provisioning key enc
+	)
+	return []keybase1.PerUserKeyBox{pukBox}, err
 }

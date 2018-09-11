@@ -1,0 +1,52 @@
+{
+  "prelude": [
+    "import * as RPCTypesGregor from '../constants/types/rpc-gregor-gen'",
+    "import * as Types from '../constants/types/git'"
+  ],
+  "actions": {
+    "loadGit": {},
+    "loaded": {
+      "repos": "{\"[key: string]\": Types.GitInfo}",
+      "errors": "Array<Error>"
+    },
+    "navToGit": {"switchTab": "boolean", "routeState": "?{\"expandedSet\": I.Set<string>}"},
+    "createTeamRepo": {
+      "name": "string",
+      "teamname": "string",
+      "notifyTeam": "boolean"
+    },
+    "createPersonalRepo": {
+      "name": "string"
+    },
+    "repoDeleted": {},
+    "repoCreated": {},
+    "deleteTeamRepo": {
+      "name": "string",
+      "teamname": "string",
+      "notifyTeam": "boolean"
+    },
+    "deletePersonalRepo": {
+      "name": "string"
+    },
+    "setError": {
+      "error": "?Error"
+    },
+    "badgeAppForGit": {
+      "ids": "Array<string>"
+    },
+    "setTeamRepoSettings": {
+      "chatDisabled": "boolean",
+      "channelName": "?string",
+      "teamname": "string",
+      "repoID": "string"
+    },
+    "loadGitRepo": {
+      "username": "?string",
+      "teamname": "?string"
+    },
+    "navigateToTeamRepo": {
+      "repoID": "string",
+      "teamname": "string"
+    }
+  }
+}

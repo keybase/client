@@ -1,0 +1,91 @@
+// Copyright 2017 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package client
+
+import (
+	"context"
+
+	"github.com/keybase/cli"
+	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+)
+
+type CmdTeamEditMember struct {
+	libkb.Contextified
+	Team     string
+	Username string
+	Role     keybase1.TeamRole
+}
+
+func newCmdTeamEditMember(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "edit-member",
+		ArgumentHelp: "<team name> --user=<username> --role=<owner|admin|writer|reader>",
+		Usage:        "Change a user's role on a team.",
+		Action: func(c *cli.Context) {
+			cmd := &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
+			cl.ChooseCommand(cmd, "edit-member", c)
+		},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "u, user",
+				Usage: "username",
+			},
+			cli.StringFlag{
+				Name:  "r, role",
+				Usage: "team role (owner, admin, writer, reader)",
+			},
+		},
+	}
+}
+
+func NewCmdTeamEditMemberRunner(g *libkb.GlobalContext) *CmdTeamEditMember {
+	return &CmdTeamEditMember{Contextified: libkb.NewContextified(g)}
+}
+
+func (c *CmdTeamEditMember) ParseArgv(ctx *cli.Context) error {
+	var err error
+	c.Team, err = ParseOneTeamName(ctx)
+	if err != nil {
+		return err
+	}
+
+	c.Username, c.Role, err = ParseUserAndRole(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CmdTeamEditMember) Run() error {
+	cli, err := GetTeamsClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	arg := keybase1.TeamEditMemberArg{
+		Name:     c.Team,
+		Username: c.Username,
+		Role:     c.Role,
+	}
+
+	if err = cli.TeamEditMember(context.Background(), arg); err != nil {
+		return err
+	}
+
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Success! %s's role in %s is now %s.\n", c.Username, c.Team, c.Role)
+
+	return nil
+}
+
+func (c *CmdTeamEditMember) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		Config:    true,
+		API:       true,
+		KbKeyring: true,
+	}
+}

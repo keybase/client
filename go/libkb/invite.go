@@ -54,7 +54,7 @@ func GenerateInvitationCodeForAssertion(g *GlobalContext, assertion keybase1.Soc
 func callSendInvitation(g *GlobalContext, params HTTPArgs) (*Invitation, error) {
 	arg := APIArg{
 		Endpoint:       "send_invitation",
-		NeedSession:    true,
+		SessionType:    APISessionTypeREQUIRED,
 		Args:           params,
 		AppStatusCodes: []int{SCOk, SCThrottleControl},
 	}

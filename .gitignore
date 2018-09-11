@@ -27,6 +27,7 @@ _testmain.go
 *.prof
 
 go/keybase/keybase
+go/mounter/keybase-mount-helper/keybase-mount-helper
 go/revision
 
 *-fuzz.zip
@@ -43,5 +44,14 @@ shared/node_modules
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
+pvl-tools/node_modules
 
 Keybase.app.dSYM.zip
+
+shared/react-native/ios/fastlane
+shared/react-native/android/keybaselib/keybaselib-sources.jar
+shared/react-native/android/app/.idea/
+shared/react-native/android/app/local.properties
+
+browser/node_modules
+browser/js/bundle.js

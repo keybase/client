@@ -16,7 +16,6 @@ import (
 func NewCmdFuse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "fuse",
-		Usage:        "Manage fuse",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
 			NewCmdFuseStatus(cl, g),

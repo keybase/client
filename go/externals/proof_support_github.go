@@ -9,7 +9,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -29,52 +28,8 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	given := strings.ToLower(h.GetAPIURL())
-	u := strings.ToLower(rc.proof.GetRemoteUsername())
-	ok1 := "https://gist.github.com/" + u + "/"
-	ok2 := "https://gist.githubusercontent.com/" + u + "/"
-	if strings.HasPrefix(given, ok1) || strings.HasPrefix(given, ok2) {
-		return nil
-	}
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
-}
-
-func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GITHUB,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *GithubChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
-
-	if err != nil {
-		return libkb.XapiError(err, h.GetAPIURL())
-	}
-
-	var sigBody []byte
-	sigBody, _, err = libkb.OpenSig(rc.proof.GetArmoredSig())
-	var ret libkb.ProofError
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	}
-
-	if !libkb.FindBase64Block(res.Body, sigBody, false) {
-		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
-	}
-
-	return ret
+func (rc *GithubChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(m, keybase1.ProofType_GITHUB, rc.proof, h, pvlU)
 }
 
 //
@@ -93,7 +48,7 @@ func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
+func (t GithubServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

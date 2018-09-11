@@ -4,20 +4,25 @@
 package service
 
 import (
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
 type DebuggingHandler struct {
+	libkb.Contextified
 	*BaseHandler
 }
 
-func NewDebuggingHandler(xp rpc.Transporter) *DebuggingHandler {
-	return &DebuggingHandler{BaseHandler: NewBaseHandler(xp)}
+func NewDebuggingHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DebuggingHandler {
+	return &DebuggingHandler{
+		Contextified: libkb.NewContextified(g),
+		BaseHandler:  NewBaseHandler(g, xp),
+	}
 }
 
-func (t DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStepArg) (result keybase1.FirstStepResult, err error) {
+func (t *DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStepArg) (result keybase1.FirstStepResult, err error) {
 	client := t.rpcClient()
 	cbArg := keybase1.SecondStepArg{Val: arg.Val + 1, SessionID: arg.SessionID}
 	var cbReply int
@@ -30,12 +35,12 @@ func (t DebuggingHandler) FirstStep(ctx context.Context, arg keybase1.FirstStepA
 	return
 }
 
-func (t DebuggingHandler) SecondStep(_ context.Context, arg keybase1.SecondStepArg) (val int, err error) {
+func (t *DebuggingHandler) SecondStep(_ context.Context, arg keybase1.SecondStepArg) (val int, err error) {
 	val = arg.Val + 1
 	return
 }
 
-func (t DebuggingHandler) Increment(_ context.Context, arg keybase1.IncrementArg) (val int, err error) {
+func (t *DebuggingHandler) Increment(_ context.Context, arg keybase1.IncrementArg) (val int, err error) {
 	val = arg.Val + 1
 	return
 }

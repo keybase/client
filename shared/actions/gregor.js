@@ -1,191 +1,85 @@
 // @flow
-
-import * as Constants from '../constants/gregor'
+import logger from '../logger'
+import * as ConfigGen from './config-gen'
+import * as GregorGen from './gregor-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Saga from '../util/saga'
 import engine from '../engine'
-import {call, put, select} from 'redux-saga/effects'
-import {delegateUiCtlRegisterGregorFirehoseRpc, reachabilityCheckReachabilityRpcPromise, reachabilityStartReachabilityRpc, ReachabilityReachable} from '../constants/types/flow-types'
-import {favoriteList, markTLFCreated} from './favorite'
-import {folderFromPath} from '../constants/favorite.js'
-import {bootstrap} from '../actions/config'
-import {safeTakeEvery, safeTakeLatest} from '../util/saga'
-import {usernameSelector} from '../constants/selectors'
 
-import type {CheckReachability, PushState, PushOOBM, UpdateReachability, UpdateSeenMsgs, MsgMap, NonNullGregorItem} from '../constants/gregor'
-import type {Dispatch} from '../constants/types/flux'
-import type {PushReason, Reachability} from '../constants/types/flow-types'
-import type {State as GregorState, ItemAndMetadata as GregorItem, OutOfBandMessage} from '../constants/types/flow-types-gregor'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {TypedState} from '../constants/reducer'
-
-function pushState (state: GregorState, reason: PushReason): PushState {
-  return {type: Constants.pushState, payload: {state, reason}}
-}
-
-function pushOOBM (messages: Array<OutOfBandMessage>): PushOOBM {
-  return {type: Constants.pushOOBM, payload: {messages}}
-}
-
-function updateReachability (reachability: Reachability): UpdateReachability {
-  return {type: Constants.updateReachability, payload: {reachability}}
-}
-
-function checkReachability (): CheckReachability {
-  return {type: Constants.checkReachability, payload: undefined}
-}
-
-function updateSeenMsgs (seenMsgs: Array<NonNullGregorItem>): UpdateSeenMsgs {
-  return {type: Constants.updateSeenMsgs, payload: {seenMsgs}}
-}
-
-function isTlfItem (gItem: GregorItem): boolean {
-  return !!(gItem && gItem.item && gItem.item.category && gItem.item.category === 'tlf')
-}
-
-function toNonNullGregorItems (state: GregorState): Array<NonNullGregorItem> {
-  if (!state.items) {
-    return []
-  }
-
-  // We need to do this in two steps because flow understands filter(Boolean)
-  // can un-Maybe a type, but it doesn't understand general predicates.
-  return state.items
-    .map(x => {
-      const md = x.md
-      const item = x.item
-      // Gotta copy the object because flow is VERY UNCHILL about casting these maybes.
-      return md && item ? {md, item} : null
-    })
-    .filter(Boolean)
-}
-
-function registerReachability () {
-  return (dispatch: Dispatch) => {
-    engine().setIncomingHandler('keybase.1.reachability.reachabilityChanged', ({reachability}, response) => {
-      dispatch(updateReachability(reachability))
-
-      if (reachability.reachable === ReachabilityReachable.yes) {
-        // TODO: We should be able to recover from connection problems
-        // without re-bootstrapping. Originally we used to do this on HTML5
-        // 'online' event, but reachability is more precise.
-        dispatch(bootstrap({isReconnect: true}))
-      }
-    })
-
-    reachabilityStartReachabilityRpc({
-      callback: (err, reachability) => {
-        if (err) {
-          console.warn('error bootstrapping reachability: ', err)
-          return
-        }
-        dispatch(updateReachability(reachability))
-      },
-    })
-  }
-}
-
-function registerGregorListeners () {
-  return (dispatch: Dispatch) => {
-    delegateUiCtlRegisterGregorFirehoseRpc({
-      callback: (error, response) => {
-        if (error != null) {
-          console.warn('error in registering gregor listener: ', error)
-        } else {
-          console.log('Registered gregor listener')
-        }
-      },
-    })
-
-    // we get this with sessionID == 0 if we call openDialog
-    engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
-      dispatch(pushState(state, reason))
+const setupEngineListeners = () => {
+  // we get this with sessionID == 0 if we call openDialog
+  engine().setIncomingCallMap({
+    'keybase.1.gregorUI.pushState': ({reason, state}, response) => {
       response && response.result()
-    })
+      const items = state.items || []
 
-    engine().setIncomingHandler('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-      if (oobm && oobm.length) {
-        const filteredOOBM = oobm.filter(oobm => !!oobm)
-        if (filteredOOBM.length) {
-          dispatch(pushOOBM(filteredOOBM))
-        }
+      const goodState = items.reduce((arr, {md, item}) => {
+        md && item && arr.push({item, md})
+        return arr
+      }, [])
+
+      if (goodState.length !== items.length) {
+        logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
+      return Saga.put(GregorGen.createPushState({reason, state: goodState}))
+    },
+    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}, response) => {
       response && response.result()
+      const filteredOOBM = (oobm || []).filter(Boolean)
+      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
+    },
+    'keybase.1.reachability.reachabilityChanged': ({reachability}, response, state) => {
+      if (state.config.loggedIn) {
+        // Gregor reachability is only valid if we're logged in
+        return Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
+      }
+    },
+  })
+
+  // Filter this firehose down to the system we care about: "git"
+  // If ever you want to get OOBMs for a different system, then you need to enter it here.
+  engine().actionOnConnect('registerGregorFirehose', () => {
+    RPCTypes.delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise({systems: ['git']})
+      .then(response => {
+        logger.info('Registered gregor listener')
+      })
+      .catch(error => {
+        logger.warn('error in registering gregor listener: ', error)
+      })
+  })
+
+  // The startReachability RPC call both starts and returns the current
+  // reachability state. Then we'll get updates of changes from this state via reachabilityChanged.
+  // This should be run on app start and service re-connect in case the service somehow crashed or was restarted manually.
+  engine().actionOnConnect('startReachability', () => GregorGen.createStartReachability())
+}
+
+const startReachability = () =>
+  RPCTypes.reachabilityStartReachabilityRpcPromise()
+    .then(reachability => GregorGen.createUpdateReachable({reachable: reachability.reachable}))
+    .catch(err => {
+      logger.warn('error bootstrapping reachability: ', err)
     })
-  }
-}
 
-function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
-  const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
+const checkReachability = () =>
+  RPCTypes.reachabilityCheckReachabilityRpcPromise().then(reachability =>
+    GregorGen.createUpdateReachable({reachable: reachability.reachable})
+  )
 
-  // Check if any are a tlf items
-  // $FlowIssue
-  const tlfUpdates = items.filter(isTlfItem)
-  const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
-  if (newTlfUpdates.length) {
-    yield put(updateSeenMsgs(newTlfUpdates))
-    yield put(favoriteList())
-  }
-}
+const updateCategory = (_: any, action: GregorGen.UpdateCategoryPayload) =>
+  RPCTypes.gregorUpdateCategoryRpcPromise({
+    body: action.payload.body,
+    category: action.payload.category,
+    dtime: action.payload.dtime || {offset: 0, time: 0},
+  })
+    .then(() => {})
+    .catch(() => {})
 
-function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
-  if (!pushAction.error) {
-    const {payload: {state}} = pushAction
-    const nonNullItems = toNonNullGregorItems(state)
-    if (nonNullItems.length !== (state.items || []).length) {
-      console.warn('Lost some messages in filtering out nonNull gregor items')
-    }
-
-    yield [
-      call(handleTLFUpdate, nonNullItems),
-    ]
-  } else {
-    console.log('Error in gregor pushState', pushAction.payload)
-  }
-}
-
-function * handleKbfsFavoritesOOBM (kbfsFavoriteMessages: Array<OutOfBandMessage>) {
-  const msgsWithParsedBodies = kbfsFavoriteMessages.map(m => ({...m, body: JSON.parse(m.body.toString())}))
-  const createdTLFs = msgsWithParsedBodies.filter(m => m.body.action === 'create')
-
-  const username: string = ((yield select(usernameSelector)): any)
-  yield createdTLFs.map(m => {
-    const folder = m.body.tlf ? markTLFCreated(folderFromPath(username, m.body.tlf)) : null
-    if (folder != null) {
-      return put(folder)
-    }
-    console.warn('Failed to parse tlf for oobm:', m)
-  }).filter(i => !!i)
-}
-
-function * handlePushOOBM (pushOOBM: pushOOBM) {
-  if (!pushOOBM.error) {
-    const {payload: {messages}} = pushOOBM
-
-    yield [
-      call(handleKbfsFavoritesOOBM, messages.filter(i => i.system === 'kbfs.favorites')),
-    ]
-  } else {
-    console.log('Error in gregor oobm', pushOOBM.payload)
-  }
-}
-
-function * handleCheckReachability (): SagaGenerator<any, any> {
-  const reachability = yield call(reachabilityCheckReachabilityRpcPromise)
-  yield put({type: Constants.updateReachability, payload: {reachability}})
-}
-
-function * gregorSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.pushState, handlePushState),
-    safeTakeEvery(Constants.pushOOBM, handlePushOOBM),
-    safeTakeLatest(Constants.checkReachability, handleCheckReachability),
-  ]
-}
-
-export {
-  checkReachability,
-  pushState,
-  registerGregorListeners,
-  registerReachability,
+function* gregorSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.actionToPromise(GregorGen.updateCategory, updateCategory)
+  yield Saga.actionToPromise(GregorGen.startReachability, startReachability)
+  yield Saga.actionToPromise(GregorGen.checkReachability, checkReachability)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default gregorSaga

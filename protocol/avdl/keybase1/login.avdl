@@ -29,6 +29,20 @@ protocol login {
   void login(int sessionID, string deviceType, string usernameOrEmail, ClientType clientType);
 
   /**
+    Login a user only if the user is on a provisioned device.  Username is optional.
+    If noPassphrasePrompt is set, then only a stored secret will be used to unlock
+    the device keys.
+    */
+  void loginProvisionedDevice(int sessionID, string username, boolean noPassphrasePrompt);
+
+  /**
+    Login and unlock by
+  - trying unlocked device keys if available
+  - prompting for a paper key and using that
+    */
+  void loginWithPaperKey(int sessionID);
+
+  /**
     Removes any existing stored secret for the given username.
     loginWithStoredSecret(_, username) will fail after this is called.
     */
@@ -58,13 +72,14 @@ protocol login {
   void unlockWithPassphrase(int sessionID, string passphrase);
 
   /**
-    pgpProvision is for devel/testing to provision a device via pgp using CLI
-    with no user interaction.
-    */
-  void pgpProvision(int sessionID, string username, string passphrase, string deviceName);
-
-  /**
     accountDelete is for devel/testing to delete the current user's account.
     */
   void accountDelete(int sessionID);
+
+  /**
+   loginOneshot allows a service to have a "onetime login", without
+   provisioning a device. It bootstraps credentials with the given
+   paperkey
+   */
+  void loginOneshot(int sessionID, string username, string paperKey);
 }

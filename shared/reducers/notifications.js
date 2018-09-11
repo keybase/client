@@ -1,71 +1,42 @@
 // @flow
+import * as Types from '../constants/types/notifications'
 import * as Constants from '../constants/notifications'
-import * as CommonConstants from '../constants/common'
+import * as NotificationsGen from '../actions/notifications-gen'
 
-import type {NotificationKeys, NotificationAction, BadgeType, MenuNotificationState} from '../constants/notifications'
+const initialState: Types.State = Constants.makeState()
 
-type State = {
-  menuBadge: BadgeType,
-  menuBadgeCount: number,
-  menuNotifications: MenuNotificationState,
-  keyState: {
-    [key: NotificationKeys]: boolean,
-  },
+const _updateWidgetBadge = (s: Types.State): Types.State => {
+  let widgetBadge = 'regular'
+  if (s.getIn(['keyState', 'kbfsUploading'])) {
+    widgetBadge = 'uploading'
+  } else if (s.desktopAppBadgeCount) {
+    widgetBadge = 'badged'
+  }
+
+  return s.set('widgetBadge', widgetBadge)
 }
 
-const initialState = {
-  menuBadge: 'regular',
-  menuBadgeCount: 0,
-  keyState: {},
-  menuNotifications: {
-    folderBadge: 0,
-    peopleBadge: 0,
-    chatBadge: 0,
-    deviceBadge: 0,
-  },
-}
-
-export default function (state: State = initialState, action: NotificationAction): State {
+export default function(state: Types.State = initialState, action: NotificationsGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
-    case Constants.badgeApp:
-      // $ForceType
-      const badgeAction: BadgeAppAction = action
-
-      if (badgeAction.error) {
-        return state
-      }
-      let keyState = {
-        ...state.keyState,
-      }
-
-      keyState[badgeAction.payload.key] = badgeAction.payload.on
-      const menuNotifications = {...state.menuNotifications}
-
-      let menuBadge = 'regular'
-      if (keyState.kbfsUploading) {
-        menuBadge = 'uploading'
-      } else if (keyState.newTLFs || keyState.chatInbox) {
-        menuBadge = 'badged'
-      }
-
-      if (badgeAction.payload.key === 'newTLFs') {
-        menuNotifications.folderBadge = badgeAction.payload.count || 0
-      } else if (badgeAction.payload.key === 'chatInbox') {
-        menuNotifications.chatBadge = badgeAction.payload.count || 0
-      }
-
-      const menuBadgeCount = Object.keys(menuNotifications).reduce((total, n) => total + menuNotifications[n], 0)
-
-      return {
-        ...state,
-        menuBadge,
-        menuBadgeCount,
-        keyState,
-        menuNotifications,
-      }
+    case NotificationsGen.resetStore:
+      return initialState
+    case NotificationsGen.setAppBadgeState:
+      const newState = state.merge(action.payload)
+      return _updateWidgetBadge(newState)
+    case NotificationsGen.badgeApp: {
+      const newState = state.update('keyState', ks => ks.set(action.payload.key, action.payload.on))
+      return _updateWidgetBadge(newState)
+    }
+    // Saga only actions
+    case NotificationsGen.listenForKBFSNotifications:
+    case NotificationsGen.listenForNotifications:
+    case NotificationsGen.receivedBadgeState:
+      return state
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

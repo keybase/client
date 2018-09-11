@@ -1,0 +1,286 @@
+
+.keybase-reply {
+  text-align: left;
+}
+
+.keybase-reply * {
+  font-family: Open Sans, sans-serif !important;
+}
+
+.fixed-form form, form.fixed-form {
+  position: fixed !important;
+}
+
+li.keybase-reply form, form.keybase-reply {
+  overflow: hidden;
+  z-index: 9999;
+  position: absolute;
+  box-shadow: 3px 3px 13px 0 #a29e9e;
+  border-radius: 4px;
+}
+
+.keybase-reply form, form.keybase-reply {
+  display: block !important;
+  background: #fff;
+  margin-top: 3em;
+  width: 500px;
+  background-color: #ffffff;
+  white-space: normal !important;
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 13px;
+  line-height: 1.5em;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.keybase-reply label {
+  width: 100% !important;
+  display: inline-block;
+}
+
+.keybase-reply a, 
+.keybase-reply a:visited, 
+.keybase-reply a:link {
+  text-decoration: none;
+  font-weight: 600;
+  font-size: inherit !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  cursor: pointer;
+}
+
+.keybase-body {
+  font-weight:normal;
+  margin: 24px;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.keybase-success {
+  text-align: center;
+}
+
+.keybase-reply.keybase-success h3 {
+  background: #3dcca6;
+}
+
+.keybase-reply.keybase-success p {
+  margin: 30px 0 30px 0;
+  font-weight: 600;
+}
+
+.keybase-error {
+  text-align: center;
+}
+
+.keybase-error .keybase-button {
+  margin: 8px 0 54px 0;
+}
+
+.keybase-error img {
+  margin: 16px;
+}
+
+.keybase-error-msg {
+  color: #ff4d61;
+}
+
+.keybase-contact {
+  font-weight: 600;
+  text-align: center;
+}
+.keybase-contact small {
+  display: block;
+  font-weight: inherit;
+  color: rgba(0, 0, 0, 0.4);
+}
+img.keybase-icon {
+  height: 32px;
+  border-radius: 16px;
+}
+.keybase-user span {
+  color: #4C8EFF;
+}
+
+.keybase-reply .keybase-service {
+  font-weight: bold;
+  color: #888;
+}
+
+.keybase-reply a.external-user {
+  color: #3663EA !important;
+  padding: 0 !important;
+  font-weight: normal !important;
+}
+
+.keybase-reply em {
+  font-weight: bold;
+  font-style: italic;
+}
+
+.keybase-reply strong {
+  font-weight: 600;
+}
+
+.keybase-reply textarea, .keybase-reply textarea:focus {
+  width: 97%;
+  font-size: 13px;
+  font-weight:normal;
+  color: rgba(0, 0, 0, 0.75);
+  padding: 0.5em;
+  border-radius: 4px;
+  border: solid 1px #4C8EFF;
+  margin: 8px 0 8px 0;
+  box-shadow: inherit;
+}
+
+.keybase-reply input {
+  margin: 0;
+}
+
+.keybase-reply p {
+  margin: 8px 0 16px 0;
+}
+
+a.keybase-button {
+  font-size: 14px;
+  display: inline-block;
+  border-radius: 50px;
+  background-color: #4C8EFF;
+  color: white !important;
+  padding: 0.6em 1.5em !important;
+  font-weight: normal !important;
+}
+
+.keybase-reply h3 {
+  text-align: center;
+  background: #4C8EFF;
+  color: #fff;
+  height: 40px;
+  line-height: 40px;
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+
+.keybase-reply .keybase-error h3 {
+  background: inherit;
+}
+
+.keybase-reply h3 img {
+  height: 16px;
+  width: 16px;
+  margin: 0 2px -2px 0;
+}
+
+.keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
+  width: 116px;
+  height: 32px;
+  border: 0;
+  border-radius: 50px;
+  background-color: #4C8EFF;
+  color: #fff;
+  font-size: 14px;
+  font-style: normal;
+  font-stretch: normal;
+  font-weight: 600;
+  line-height: normal;
+  cursor: pointer;
+}
+
+.keybase-reply input[type="submit"]:disabled {
+  opacity: 0.3;
+}
+
+.keybase-reply input[type="button"] {
+  background: #e6e6e6;
+  color: rgba(0, 0, 0, 0.75);
+}
+
+span.keybase-close:hover {
+  color: rgba(0,0,0,0.3);
+}
+span.keybase-close {
+  position: absolute;
+  padding: 5px;
+  top: -10px;
+  right: 5px;
+  display: inline-block;
+  font-size: 24px;
+  font-weight: bold;
+  padding: 5px;
+  color: rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+span.keybase-close::before {
+  content: "\00d7"; /* multiply sign */
+}
+
+.keybase-copy {
+  font-family: monospace;
+  white-space: pre;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 2px 2px;
+  cursor: pointer;
+}
+.keybase-copy.copied::after {
+  position: absolute;
+  margin: 3px 0 0 2px;
+  content: "\1f4cb"; /* clipboard */
+}
+
+a.keybase-chat {
+  /* Stand-alone chat button that gets injected */
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  white-space: normal !important;
+  font-family: 'Open Sans', sans-serif !important;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 4px;
+  color: #fff !important;
+  background-color: #4C8EFF;
+  white-space: nowrap !important;
+  cursor: pointer;
+  text-align: center;
+  display: inline-block;
+  height: 28px;
+  width: 134px;
+  line-height: 28px;
+  border-radius: 28px;
+}
+#fbProfileCover a.keybase-chat {
+  vertical-align: bottom;
+}
+a.keybase-chat img {
+  vertical-align: unset;
+  height: 16px;
+  width: 16px;
+  margin-bottom: -2px;
+  margin-right: 4px;
+}
+a.keybase-chat:focus img {
+  border: 0;
+}
+a.keybase-chat:hover {
+  text-decoration: none !important;
+  background-color: #73A6FF;
+}
+
+a.keybase-profile-chat {
+  /* Chat button for keybase profile page. */
+  background-color: #4C8EFF;
+  color: rgb(255,255,255);
+}
+a.keybase-profile-chat img {
+  height: 16px;
+  width: 16px;
+  margin-bottom: 2px;
+  margin-right: 4px;
+}
+
+a.keybase-profile-chat:hover {
+  color: rgb(255,255,255);
+  background-color: #73A6FF;
+}

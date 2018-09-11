@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"fmt"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -22,6 +23,23 @@ const (
 	MethodCancel   MethodType = 3
 )
 
+func (t MethodType) String() string {
+	switch t {
+	case MethodInvalid:
+		return "Invalid"
+	case MethodCall:
+		return "Call"
+	case MethodResponse:
+		return "Response"
+	case MethodNotify:
+		return "Notify"
+	case MethodCancel:
+		return "Cancel"
+	default:
+		return fmt.Sprintf("Method(%d)", t)
+	}
+}
+
 type ErrorUnwrapper interface {
 	MakeArg() interface{}
 	UnwrapError(arg interface{}) (appError error, dispatchError error)
@@ -35,7 +53,7 @@ type Protocol struct {
 
 type protocolMap map[string]Protocol
 
-type seqNumber int
+type SeqNumber int
 
 type protocolHandler struct {
 	wef       WrapErrorFunc

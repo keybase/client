@@ -1,35 +1,28 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import type {Props} from './container'
-import {Box, BackButton} from '../../common-adapters'
-import {globalStyles} from '../../styles'
+import {globalMargins, globalStyles} from '../../styles'
+import {Box, HeaderHoc, NativeScrollView} from '../../common-adapters/mobile.native'
 
-const Container = ({children, onBack, style, outerStyle}: Props) => {
+const Container = ({children, style, outerStyle}: Props) => {
   return (
-    <Box style={{...styles.container, ...outerStyle}}>
-      <Box style={{...styles.innerContainer, ...style}}>
-        {children}
-      </Box>
-      {onBack && <BackButton style={styles.button} onClick={onBack} />}
-    </Box>
+    <NativeScrollView style={{...containerStyle, ...outerStyle}}>
+      <Box style={{...innerContainerStyle, ...style}}>{children}</Box>
+    </NativeScrollView>
   )
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1,
-  },
-  innerContainer: {
-    ...globalStyles.flexBoxColumn,
-    marginTop: 30,
-    flex: 1,
-  },
-  button: {
-    position: 'absolute',
-    top: 22,
-    left: 22,
-  },
+const innerContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  marginTop: globalMargins.medium,
+  flexGrow: 1,
 }
 
-export default Container
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  flexGrow: 1,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+}
+
+export default HeaderHoc(Container)

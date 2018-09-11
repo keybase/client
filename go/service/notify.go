@@ -22,7 +22,7 @@ type NotifyCtlHandler struct {
 func NewNotifyCtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *NotifyCtlHandler {
 	return &NotifyCtlHandler{
 		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		id:           id,
 	}
 }

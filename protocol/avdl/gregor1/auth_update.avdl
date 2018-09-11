@@ -2,5 +2,5 @@
 
 // calls from authd -> gregor
 protocol authUpdate {
-	void revokeSessionIDs(array<SessionID> sessionIDs);
+  void revokeSessionIDs(array<SessionID> sessionIDs);
 }

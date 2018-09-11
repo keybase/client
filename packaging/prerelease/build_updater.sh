@@ -15,23 +15,17 @@ cd "$src_dir"
 
 mkdir -p "$build_dir"
 
-ldflags=""
+echo "Building $build_dir/updater with $(go version)"
+go build -a -o "$dest" "$package"
 
 if [ "$PLATFORM" = "darwin" ]; then
-  # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887
-  ldflags="-s $ldflags"
-fi
-
-echo "Building $build_dir/updater"
-GO15VENDOREXPERIMENT=1 go build -a -ldflags "$ldflags" -o "$dest" "$package"
-
-if [ "$PLATFORM" = "darwin" ]; then
-  code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  echo "Signing binary..."
+  code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" "$dest"
 elif [ "$PLATFORM" = "linux" ]; then
-  echo "No codesigning for linux"
+  echo "No codesigning for Linux"
 elif [ "$PLATFORM" = "windows" ]; then
-  echo "No codesigning for windows"
+  echo "No codesigning for Windows"
 else
   echo "Invalid PLATFORM"
   exit 1

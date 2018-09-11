@@ -12,7 +12,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/ed25519"
 	"github.com/keybase/saltpack"
 )
 
@@ -32,10 +32,8 @@ func (s *sigPubKey) Verify(message []byte, signature []byte) error {
 	if len(signature) != ed25519.SignatureSize {
 		return fmt.Errorf("signature size: %d, expected %d", len(signature), ed25519.SignatureSize)
 	}
-	var fixed [ed25519.SignatureSize]byte
-	copy(fixed[:], signature)
 
-	if !ed25519.Verify(&s.key, message, &fixed) {
+	if !ed25519.Verify(s.key[:], message, signature) {
 		return errors.New("bad signature")
 	}
 	return nil
@@ -51,16 +49,21 @@ func newSigPrivKey() (*sigPrivKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	var pubArray [ed25519.PublicKeySize]byte
+	copy(pubArray[:], pub)
+	var privArray [ed25519.PrivateKeySize]byte
+	copy(privArray[:], priv)
+
 	k := &sigPrivKey{
-		public:  newSigPubKey(*pub),
-		private: *priv,
+		public:  newSigPubKey(pubArray),
+		private: privArray,
 	}
 	return k, nil
 }
 
 func (s *sigPrivKey) Sign(message []byte) ([]byte, error) {
-	sig := ed25519.Sign(&s.private, message)
-	return sig[:], nil
+	return ed25519.Sign(s.private[:], message), nil
 }
 
 func (s *sigPrivKey) PublicKey() saltpack.SigningPublicKey {

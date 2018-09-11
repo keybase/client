@@ -10,8 +10,10 @@ import (
 )
 
 func parse(t *testing.T, kr string) *GpgKeyIndex {
+	tc := SetupTest(t, "parse", 2)
+	defer tc.Cleanup()
 	buf := bytes.NewBufferString(kr)
-	i, w, e := ParseGpgIndexStream(G, buf)
+	i, w, e := ParseGpgIndexStream(tc.G, buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}
@@ -94,6 +96,23 @@ func TestGPGFindGreg(t *testing.T) {
 	}
 }
 
+func TestGPGRevokedID(t *testing.T) {
+	index := parse(t, keyringRevokedID)
+	if index == nil {
+		t.Fatal("parsing failed")
+	}
+	keys := index.Fingerprints.Get("582AB5DE7B6BB11F6E2B7075851B3498422B2DFA")
+	if len(keys) != 1 {
+		t.Fatal("expected to find one key")
+	}
+	if numIds := len(keys[0].identities); numIds != 1 {
+		t.Fatalf("expected to have one identity (got %v)", numIds)
+	}
+	if keys[0].identities[0].Format() != "This One WIll be rev0ked" {
+		t.Fatalf("Invalid identity: %v", keys[0].identities[0])
+	}
+}
+
 const myKeyring = `
 tru::1:1416474053:1439900531:3:1:5
 pub:u:2048:17:76D78F0500D026C4:1282220531:1439900531::u:::scESC:
@@ -124,11 +143,11 @@ fpr:::::::::222B85B0F90BE2D24CFEB93F47484E50656D16C7:
 uid:u::::1384876967::5379B9706C5D468C86A572B07E28EBDB26BE0E97::Keybase.io Code Signing (v1) <code@keybase.io>:
 sub:u:4096:1:5929664098F03378:1384876967:1511107367:::::e:
 fpr:::::::::10F79F9BEB724B73FB673D385929664098F03378:
-pub:u:4096:1:63847B4B83930F0C:1380929487:1507159887::u:::escaESCA:
+pub:u:4096:1:63847B4B83930F0C:1380929487:1607159887::u:::escaESCA:
 fpr:::::::::4475293306243408FA5958DC63847B4B83930F0C:
 uid:u::::1387217771::759D5C7C38AD60551D46D2E6F34BA03640FE4379::Maxwell Krohn <themax@gmail.com>:
 uid:u::::1380929487::14BC0C35326061518657E0B8F71A23E0CA537034::Max Krohn <themax@gmail.com>:
-sub:u:4096:1:2FE01C454348DA39:1380929487:1507159887:::::esa:
+sub:u:4096:1:2FE01C454348DA39:1380929487:1607159887:::::esa:
 fpr:::::::::C4EE7BCBCE2F0953DCF9E8902FE01C454348DA39:
 pub:u:2048:1:2EE0695E30C55BEF:1392816673:1708176673::u:::scESC:
 fpr:::::::::F1DEFAA6B3DB297FB824CB512EE0695E30C55BEF:
@@ -269,4 +288,15 @@ uid:u::::1292846928::C9A8CEFCDA1CEF8706A5B815EE4027F1340F209F::Gregory Martin Pf
 ssb:u:2048:16:35259A50693B4429:1149381489::::::e:::+:::
 fpr:::::::::82E14B2AF315373CFFA88C8335259A50693B4429:
 grp:::::::::36714469BDCD99CD5748B39D9463E3DD06BEE2CC:
+`
+
+const keyringRevokedID = `
+sec:u:256:22:851B3498422B2DFA:1491212600:::u:::scESC:::+::ed25519::
+fpr:::::::::582AB5DE7B6BB11F6E2B7075851B3498422B2DFA:
+grp:::::::::45712C069D5ECB349A11DE7C7155E66D1D3E9BC3:
+uid:u::::1491212618::999BA342C3370F86AAE7A163C67EA2518F69ECFE::This One WIll be rev0ked:::::::::
+uid:r::::::30EC553EACC420881282218E39CEDA11E722D937::Hello AA:::::::::
+ssb:u:256:18:151E2B742F97B843:1491212600::::::e:::+::cv25519:
+fpr:::::::::2DEBE37BF89745512A87C69D151E2B742F97B843:
+grp:::::::::788233E7043694A6C4D9DE4562FEC67972C0CBF9:
 `

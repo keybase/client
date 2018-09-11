@@ -1,162 +1,219 @@
 // @flow
-import ErrorComponent from '../common-adapters/error-profile'
+import logger from '../logger'
+import * as KBFSGen from '../actions/kbfs-gen'
+import * as TrackerGen from '../actions/tracker-gen'
+import * as Chat2Gen from '../actions/chat2-gen'
+import * as ProfileGen from '../actions/profile-gen'
+import * as TeamsGen from '../actions/teams-gen'
+import * as Constants from '../constants/tracker'
+import * as TrackerTypes from '../constants/types/tracker'
+import * as Types from '../constants/types/profile'
+import * as WalletsGen from '../actions/wallets-gen'
+import * as Route from '../actions/route-tree-gen'
+import * as WalletConstants from '../constants/wallets'
+import type {AccountID} from '../constants/types/wallets'
+import {pathFromFolder} from '../constants/favorite'
+import {isInSomeTeam} from '../constants/teams'
+import ErrorComponent from './error-profile'
 import Profile from './index'
-import React, {PureComponent} from 'react'
-import flags from '../util/feature-flags'
-import {addProof, onUserClick, onClickAvatar, onClickFollowers, onClickFollowing, checkProof} from '../actions/profile'
-import {connect} from 'react-redux'
-import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
-import {isLoading} from '../constants/tracker'
+import * as React from 'react'
+import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
-import {openInKBFS} from '../actions/kbfs'
 import {navigateAppend, navigateUp} from '../actions/route-tree'
-import {profileTab} from '../constants/tabs'
+import {peopleTab} from '../constants/tabs'
+import {connect, type TypedState} from '../util/container'
+import flags from '../util/feature-flags'
 
+import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
 import type {RouteProps} from '../route-tree/render-route'
-import type {Props} from './index'
-import type {Tab as FriendshipsTab} from './friendships'
+import type {Props} from '.'
 
-type OwnProps = {
-  routeProps: {
-    username: ?string,
-    uid: ?string,
-  },
-} & RouteProps<{}, {currentFriendshipsTab: FriendshipsTab}>
+type OwnProps = RouteProps<{username: ?string}, {currentFriendshipsTab: Types.FriendshipsTab}>
 
-type EitherProps<P> = {
-  type: 'ok',
-  okProps: P,
-} | {
-  type: 'error',
-  propError: string,
-}
-
-type State = {
-  avatarLoaded: boolean,
-}
-
-class ProfileContainer extends PureComponent<void, EitherProps<Props>, State> {
-  state: State;
-
-  constructor () {
-    super()
-    this.state = {avatarLoaded: false}
-  }
-
-  componentWillReceiveProps (nextProps: EitherProps<Props>) {
-    if (this.props.type === 'error' || nextProps.type === 'error') {
-      return
+type EitherProps<P> =
+  | {
+      type: 'ok',
+      okProps: P,
+    }
+  | {
+      type: 'error',
+      propError: string,
+      onBack: ?() => void,
     }
 
-    const {username} = this.props.okProps
-    const {username: nextUsername} = nextProps.okProps
-    if (username !== nextUsername) {
-      this.setState({avatarLoaded: false})
-    }
-  }
-
-  render () {
+class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
+  render() {
     if (this.props.type === 'error') {
-      return <ErrorComponent error={this.props.propError} />
+      return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />
     }
 
     const props = this.props.okProps
 
-    return <Profile
-      {...props}
-      onAvatarLoaded={() => this.setState({avatarLoaded: true})}
-      followers={this.state.avatarLoaded ? props.followers : null}
-      following={this.state.avatarLoaded ? props.following : null} />
+    return <Profile {...props} followers={props.followers} following={props.following} />
   }
 }
 
-export default connect(
-  (state, {routeProps, routeState, routePath}: OwnProps) => {
-    const myUsername = state.config.username
-    const myUid = state.config.uid
-    const username = routeProps.username ? routeProps.username : myUsername
-    // FIXME: we shouldn't be falling back to myUid here
-    const uid = routeProps.username && routeProps.uid || myUid
-
-    return {
-      username,
-      uid,
-      profileIsRoot: routePath.size === 1 && routePath.first() === profileTab,
-      myUsername,
-      trackerState: state.tracker.trackers[username],
-      currentFriendshipsTab: routeState.currentFriendshipsTab,
-    }
-  },
-  (dispatch: any, {setRouteState}: OwnProps) => ({
-    onUserClick: (username, uid) => { dispatch(onUserClick(username, uid)) },
-    onBack: () => { dispatch(navigateUp()) },
-    onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
-    onEditProfile: () => { dispatch(navigateAppend(['editProfile'])) },
-    onEditAvatar: () => { dispatch(navigateAppend(['editAvatar'])) },
-    onMissingProofClick: (missingProof: MissingProof) => { dispatch(addProof(missingProof.type)) },
-    onRecheckProof: (proof: Proof) => { dispatch(checkProof(proof && proof.id)) },
-    onRevokeProof: (proof: Proof) => {
-      dispatch(navigateAppend([{selected: 'revoke', props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id}}], [profileTab]))
-    },
-    onViewProof: (proof: Proof) => { dispatch(openProofUrl(proof)) },
-    getProfile: username => dispatch(getProfile(username)),
-    updateTrackers: (username, uid) => dispatch(updateTrackers(username, uid)),
-    onFollow: username => { dispatch(onFollow(username, false)) },
-    onUnfollow: username => { dispatch(onUnfollow(username)) },
-    onAcceptProofs: username => { dispatch(onFollow(username, false)) },
-    onClickAvatar: (username, uid) => { dispatch(onClickAvatar(username, uid)) },
-    onClickFollowers: (username, uid) => { dispatch(onClickFollowers(username, uid)) },
-    onClickFollowing: (username, uid) => { dispatch(onClickFollowing(username, uid)) },
-    onChangeFriendshipsTab: currentFriendshipsTab => { setRouteState({currentFriendshipsTab}) },
-  }),
-  (stateProps, dispatchProps) => {
-    const {username, uid} = stateProps
-    if (!uid) {
-      throw new Error('Attempted to render a Profile page with no uid set')
-    }
-
-    const refresh = () => {
-      dispatchProps.getProfile(username)
-      dispatchProps.updateTrackers(username, uid)
-    }
-    const isYou = username === stateProps.myUsername
-    const bioEditFns = isYou ? {
-      onBioEdit: dispatchProps.onEditProfile,
-      onEditAvatarClick: dispatchProps.onEditAvatar,
-      onEditProfile: dispatchProps.onEditProfile,
-      onLocationEdit: dispatchProps.onEditProfile,
-      onNameEdit: dispatchProps.onEditProfile,
-    } : null
-
-    if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
-      const propError = 'Expected a tracker type, trying to show profile for non user'
-      console.warn(propError)
-      return {type: 'error', propError}
-    }
-
-    const okProps = {
-      ...stateProps.trackerState,
-      ...dispatchProps,
-      isYou,
-      bioEditFns,
-      username,
-      currentFriendshipsTab: stateProps.currentFriendshipsTab,
-      refresh,
-      followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
-      following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
-      loading: isLoading(stateProps.trackerState) && !isTesting,
-      onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
-      onFollow: () => dispatchProps.onFollow(username),
-      onUnfollow: () => dispatchProps.onUnfollow(username),
-      onAcceptProofs: () => dispatchProps.onFollow(username),
-      showComingSoon: !flags.tabProfileEnabled,
-      onClickAvatar: () => dispatchProps.onClickAvatar(username, uid),
-      onClickFollowers: () => dispatchProps.onClickFollowers(username, uid),
-      onClickFollowing: () => dispatchProps.onClickFollowing(username, uid),
-    }
-
-    return {type: 'ok', okProps}
+const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
+  const myUsername = state.config.username
+  // TODO: Remove this after CORE-8785 is merged in and allows us to skip explictly setting the from account if it's from the default account
+  const myAccountID = WalletConstants.getDefaultAccountID(state)
+  const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
+  if (username && username !== username.toLowerCase()) {
+    throw new Error('Attempted to navigate to mixed case username.')
   }
-)(ProfileContainer)
+  const youAreInTeams = isInSomeTeam(state)
+
+  return {
+    addUserToTeamsResults: state.teams.addUserToTeamsResults,
+    currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
+    myAccountID,
+    myUsername,
+    profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
+    trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
+    username,
+    youAreInTeams,
+  }
+}
+
+const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
+  getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
+  _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
+  onBack: () => dispatch(navigateUp()),
+  _onBrowsePublicFolder: (username: string) =>
+    dispatch(
+      KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
+    ),
+  onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
+  _onChat: (username: string) =>
+    dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
+  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
+  _onClickAvatar: (username: string) => dispatch(ProfileGen.createOnClickAvatar({username})),
+  _onClickFollowers: (username: string) => dispatch(ProfileGen.createOnClickFollowers({username})),
+  _onClickFollowing: (username: string) => dispatch(ProfileGen.createOnClickFollowing({username})),
+  onClickShowcaseOffer: () => dispatch(navigateAppend(['showcaseTeamOffer'])),
+  onEditAvatar: (image?: Response) =>
+    flags.avatarUploadsEnabled
+      ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
+      : dispatch(navigateAppend(['editAvatarPlaceholder'])),
+  onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
+  onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
+  _onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
+  onMissingProofClick: (missingProof: MissingProof) =>
+    dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
+  _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
+    dispatch(
+      KBFSGen.createOpen({
+        path: pathFromFolder({
+          isPublic: false,
+          isTeam: false,
+          users: [{username: theirUsername}, {username: myUsername}],
+        }).path,
+      })
+    ),
+  onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
+  onRevokeProof: (proof: TrackerTypes.Proof) =>
+    dispatch(
+      navigateAppend(
+        [
+          {
+            props: {platform: proof.type, platformHandle: proof.name, proofId: proof.id},
+            selected: 'revoke',
+          },
+        ],
+        [peopleTab]
+      )
+    ),
+  _onSendOrRequestLumens: (to: string, sendingAccount: ?AccountID) => {
+    dispatch(WalletsGen.createClearBuildingPayment())
+    dispatch(WalletsGen.createClearBuiltPayment())
+    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
+    dispatch(WalletsGen.createSetBuildingFrom({from: sendingAccount || ''}))
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(
+      Route.createNavigateAppend({
+        path: [
+          {
+            props: {isRequest: true},
+            selected: WalletConstants.sendReceiveFormRouteKey,
+          },
+        ],
+      })
+    )
+  },
+  onSearch: () => {
+    dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
+    dispatch(navigateAppend([{props: {}, selected: 'search'}]))
+  },
+  _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
+  onUserClick: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onViewProof: (proof: TrackerTypes.Proof) => dispatch(TrackerGen.createOpenProofUrl({proof})),
+  updateTrackers: (username: string) => dispatch(TrackerGen.createUpdateTrackers({username})),
+})
+
+const mergeProps = (stateProps, dispatchProps) => {
+  const username = stateProps.username || ''
+  const refresh = () => {
+    dispatchProps.getProfile(username)
+    dispatchProps.updateTrackers(username)
+  }
+  const isYou = username === stateProps.myUsername
+  const bioEditFns = isYou
+    ? {
+        onBioEdit: dispatchProps.onEditProfile,
+        onEditAvatarClick: dispatchProps.onEditAvatar,
+        onEditProfile: dispatchProps.onEditProfile,
+        onLocationEdit: dispatchProps.onEditProfile,
+        onNameEdit: dispatchProps.onEditProfile,
+      }
+    : null
+
+  if (stateProps.trackerState && stateProps.trackerState.type !== 'tracker') {
+    const propError = 'Expected a tracker type, trying to show profile for non user'
+    logger.warn(propError)
+    return {
+      propError,
+      type: 'error',
+      onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+    }
+  }
+
+  // TODO entirely change how this works
+  const okProps = {
+    ...stateProps.trackerState,
+    ...dispatchProps,
+    addUserToTeamsResults: stateProps.addUserToTeamsResults,
+    bioEditFns,
+    currentFriendshipsTab: stateProps.currentFriendshipsTab,
+    followersLoaded: (stateProps.trackerState ? stateProps.trackerState.trackersLoaded : false) || false,
+    followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
+    following: stateProps.trackerState ? stateProps.trackerState.tracking : [],
+    isYou,
+    loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
+    onAcceptProofs: () => dispatchProps._onFollow(username),
+    onAddToTeam: () => dispatchProps._onAddToTeam(username),
+    onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+    onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
+    onChat: () => dispatchProps._onChat(username),
+    onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
+    onClickAvatar: () => dispatchProps._onClickAvatar(username),
+    onClickFollowers: () => dispatchProps._onClickFollowers(username),
+    onClickFollowing: () => dispatchProps._onClickFollowing(username),
+    onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
+    onOpenPrivateFolder: () => {
+      stateProps.myUsername && dispatchProps._onOpenPrivateFolder(stateProps.myUsername || '', username || '')
+    },
+    onFollow: () => dispatchProps._onFollow(username),
+    onSearch: () => dispatchProps.onSearch(),
+    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, stateProps.myAccountID),
+    onUnfollow: () => dispatchProps._onUnfollow(username),
+    refresh,
+    username,
+    youAreInTeams: stateProps.youAreInTeams,
+  }
+
+  // TODO remove this, don't do this nested thing, just make a switching component
+  return {okProps, type: 'ok'}
+}
+
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProfileContainer)

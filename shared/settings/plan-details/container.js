@@ -1,21 +1,24 @@
-// @flow
-import PlanDetails from './index'
-import {connect} from 'react-redux'
+// @noflow
+import logger from '../../logger'
+import PlanDetails from '.'
+import {connect} from '../../util/container'
 import {navigateUp} from '../../actions/route-tree'
 import {priceToString, planToStars} from '../../constants/plan-billing'
+import {type AvailablePlan} from '../../constants/types/plan-billing'
+import {type PlanLevel} from '../../constants/types/settings'
+import {type RouteProps} from '../../route-tree/render-route'
+import {type TypedState} from '../../constants/reducer'
 
-import type {AvailablePlan} from '../../constants/plan-billing'
-import type {PlanLevel} from '../../constants/settings'
-import type {RouteProps} from '../../route-tree/render-route'
-import type {TypedState} from '../../constants/reducer'
-
-type OwnProps = RouteProps<{
-  selectedLevel: PlanLevel,
-}, {}>
+type OwnProps = RouteProps<
+  {
+    selectedLevel: PlanLevel,
+  },
+  {}
+>
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
-    const selectedLevel = ownProps.routeProps.selectedLevel
+    const selectedLevel = ownProps.routeProps.get('selectedLevel')
     const availablePlan: ?AvailablePlan = state.planBilling.availablePlans
       ? state.planBilling.availablePlans.find(plan => plan.planLevel === selectedLevel)
       : null
@@ -30,7 +33,7 @@ export default connect(
       numStars: planToStars(selectedLevel),
       paymentOption: {
         type: 'credit-card-no-past',
-        onAddCreditCard: () => console.log('onadd credit'), // TODO
+        onAddCreditCard: () => logger.debug('onadd credit'), // TODO
       },
     }
   },
@@ -42,8 +45,7 @@ export default connect(
     ...dispatchProps,
     paymentOption: {
       ...stateProps.paymentOption,
-      onAddCreditCard: () => console.log('onadd credit'), // TODO
+      onAddCreditCard: () => logger.debug('onadd credit'), // TODO
     },
-  }),
+  })
 )(PlanDetails)
-

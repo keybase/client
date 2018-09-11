@@ -35,7 +35,7 @@ func (c *CmdFavoriteAdd) Run() error {
 	arg := keybase1.FavoriteAddArg{
 		Folder: c.folder,
 	}
-	cli, err := GetFavoriteClient()
+	cli, err := GetFavoriteClient(c.G())
 	if err != nil {
 		return err
 	}

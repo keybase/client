@@ -44,7 +44,7 @@ func TestLinkCacheBasics(t *testing.T) {
 		t.Errorf("c.cache len: %d, expected 51", c.Len())
 	}
 
-	c.cleans <- struct{}{}
+	c.Clean()
 
 	if c.Len() != 10 {
 		t.Errorf("c.cache len: %d, expected 10", c.Len())
@@ -88,7 +88,7 @@ func TestLinkCacheAtime(t *testing.T) {
 		t.Errorf("c.cache len: %d, expected 51", c.Len())
 	}
 
-	c.cleans <- struct{}{}
+	c.Clean()
 
 	if c.Len() != 10 {
 		t.Errorf("c.cache len: %d, expected 10", c.Len())
@@ -122,4 +122,10 @@ func TestLinkCacheConcurrent(t *testing.T) {
 		}()
 	}
 	wg.Wait()
+}
+
+func TestLinkCacheShutdown(t *testing.T) {
+	c := NewLinkCache(10, time.Hour)
+	c.Shutdown()
+	c.Shutdown()
 }

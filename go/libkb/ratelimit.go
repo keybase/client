@@ -12,7 +12,7 @@ type RateLimitCategory string
 
 const (
 	CheckTrackingRateLimit RateLimitCategory = "CheckTrackingRateLimit"
-	TestEventRateLimit                       = "TestEventRateLimit"
+	TestEventRateLimit     RateLimitCategory = "TestEventRateLimit"
 )
 
 type RateLimits struct {

@@ -4,8 +4,10 @@
 package engine
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // TestTrackerList2 creates a new fake user and has that user track
@@ -13,16 +15,22 @@ import (
 // t_alice's trackers and makes sure that the new fake user is in
 // the list.
 func TestListTrackers2(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testListTrackers2(t, sigVersion)
+	})
+}
+
+func _testListTrackers2(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "trackerlist")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "login")
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
 	e := NewListTrackers2(tc.G, keybase1.ListTrackers2Arg{Assertion: "t_alice"})
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
-	if err := RunEngine(e, ctx); err != nil {
+	m := NewMetaContextForTestWithLogUI(tc)
+	if err := RunEngine2(m, e); err != nil {
 		t.Fatal(err)
 	}
 	res := e.GetResults()

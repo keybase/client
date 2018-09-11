@@ -70,23 +70,23 @@ func (t *TrackerSyncer) dbKey(uid keybase1.UID) DbKey {
 	return DbKeyUID(DBTrackers, uid)
 }
 
-func (t *TrackerSyncer) loadFromStorage(uid keybase1.UID) (err error) {
+func (t *TrackerSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err error) {
 	var found bool
 	var tmp Trackers
 	found, err = t.G().LocalDb.GetInto(&tmp, t.dbKey(uid))
 
-	t.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if found {
-		t.G().Log.Debug("| Loaded version %d", tmp.Version)
+		m.CDebugf("| Loaded version %d", tmp.Version)
 		t.trackers = &tmp
 	} else if err == nil {
-		t.G().Log.Debug("| Loaded empty record set")
+		m.CDebugf("| Loaded empty record set")
 	}
 
 	return err
 }
 
-func (t *TrackerSyncer) store(uid keybase1.UID) (err error) {
+func (t *TrackerSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
 	if !t.dirty {
 		return
 	}
@@ -107,9 +107,9 @@ func (t *TrackerSyncer) getLoadedVersion() int {
 	return ret
 }
 
-func (t *TrackerSyncer) needsLogin() bool { return false }
+func (t *TrackerSyncer) needsLogin(m MetaContext) bool { return false }
 
-func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
+func (t *TrackerSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 
 	lv := t.getLoadedVersion()
 
@@ -118,7 +118,7 @@ func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		"limit": I{5000},
 	}
 
-	if lv >= 0 {
+	if lv >= 0 && !forceReload {
 		hargs.Add("version", I{lv})
 	}
 
@@ -126,9 +126,10 @@ func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 	res, err = t.G().API.Get(APIArg{
 		Endpoint:    "user/trackers",
 		Args:        hargs,
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
+		MetaContext: m,
 	})
-	t.G().Log.Debug("| syncFromServer() -> %s", ErrToOk(err))
+	m.CDebugf("| syncFromServer() -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -136,16 +137,16 @@ func (t *TrackerSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 	if err = res.Body.UnmarshalAgain(&tmp); err != nil {
 		return
 	}
-	if lv < 0 || tmp.Version > lv {
-		t.G().Log.Debug("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
+	if lv < 0 || tmp.Version > lv || forceReload {
+		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Trackers))
 		tmp = tmp.compact()
-		t.G().Log.Debug("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
+		m.CDebugf("| syncFromServer(): got update %d > %d (%d records)", tmp.Version, lv,
 			len(tmp.Trackers))
 		t.trackers = &tmp
 		t.dirty = true
 	} else {
-		t.G().Log.Debug("| syncFromServer(): no change needed @ %d", lv)
+		m.CDebugf("| syncFromServer(): no change needed @ %d", lv)
 	}
 
 	return

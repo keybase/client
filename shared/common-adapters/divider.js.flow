@@ -1,9 +1,10 @@
 // @flow
 import {Component} from 'react'
+import {type StylesCrossPlatform} from '../styles'
 
 export type Props = {
-  style?: Object,
-  vertical?: bool,
+  style?: StylesCrossPlatform,
+  vertical?: boolean,
 }
 
-declare export default class Divider extends Component<void, Props, void> { }
+declare export default class Divider extends Component<Props> {}

@@ -4,15 +4,17 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type bgiUser struct {
-	uid     keybase1.UID
-	nextRun time.Time
+	uid       keybase1.UID
+	nextRun   time.Time
+	lastError error // the last error we encountered
 	// The index is needed by update and is maintained by the heap.Interface methods.
 	index int // The index of the item in the heap.
 }
@@ -56,10 +58,27 @@ func (pq *priorityQueue) Pop() interface{} {
 var errDeleted = errors.New("job deleted")
 var errEmpty = errors.New("queue empty")
 
-type identifyJob struct {
-	uid keybase1.UID
-	err error
+type IdentifyJob struct {
+	uid       keybase1.UID
+	err       error // this error
+	lastError error // the error from the last run of the loop
 }
+
+func NewIdentifyJob(uid keybase1.UID, err, lastError error) IdentifyJob {
+	return IdentifyJob{
+		uid:       uid,
+		err:       err,
+		lastError: lastError,
+	}
+}
+
+func (ij IdentifyJob) ErrorChanged() bool {
+	return (ij.err == nil) != (ij.lastError == nil)
+}
+
+func (ij IdentifyJob) UID() keybase1.UID { return ij.uid }
+func (ij IdentifyJob) ThisError() error  { return ij.err }
+func (ij IdentifyJob) LastError() error  { return ij.lastError }
 
 type BackgroundIdentifierTestArgs struct {
 	identify2TestArgs *Identify2WithUIDTestArgs
@@ -71,13 +90,13 @@ type BackgroundIdentifier struct {
 	queue     priorityQueue
 	members   map[keybase1.UID]bool
 	addCh     chan struct{}
-	snooperCh chan<- identifyJob
+	snooperCh chan<- IdentifyJob
 	untilCh   chan struct{}
 	testArgs  *BackgroundIdentifierTestArgs
 	settings  BackgroundIdentifierSettings
 }
 
-var _ (Engine) = (*BackgroundIdentifier)(nil)
+var _ (Engine2) = (*BackgroundIdentifier)(nil)
 
 type BackgroundIdentifierSettings struct {
 	Enabled         bool          // = true
@@ -92,7 +111,7 @@ var BackgroundIdentifierDefaultSettings = BackgroundIdentifierSettings{
 	WaitClean:       4 * time.Hour,
 	WaitHardFailure: 90 * time.Minute,
 	WaitSoftFailure: 10 * time.Minute,
-	DelaySlot:       30 * time.Second,
+	DelaySlot:       3 * time.Minute,
 }
 
 func NewBackgroundIdentifier(g *libkb.GlobalContext, untilCh chan struct{}) *BackgroundIdentifier {
@@ -123,14 +142,13 @@ func (b *BackgroundIdentifier) RequiredUIs() []libkb.UIKind {
 func (b *BackgroundIdentifier) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&Identify2WithUID{
-			arg: &keybase1.Identify2Arg{ChatGUIMode: true},
+			arg: &keybase1.Identify2Arg{IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI},
 		},
 	}
 }
 
-// used mainly for testing. A snooper channel wants to know what's going on
-// and will be notified accordingly.
-func (b *BackgroundIdentifier) setSnooperChannel(ch chan<- identifyJob) {
+// A snooper channel wants to know what's going on and will be notified accordingly.
+func (b *BackgroundIdentifier) SetSnooperChannel(ch chan<- IdentifyJob) {
 	b.snooperCh = ch
 }
 
@@ -170,15 +188,15 @@ func (b *BackgroundIdentifier) waitUntil() time.Time {
 	return lowest.nextRun
 }
 
-func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
+func (b *BackgroundIdentifier) Run(m libkb.MetaContext) (err error) {
 	fn := "BackgroundIdentifier#Run"
-	defer b.G().Trace(fn, func() error { return err })()
+	defer m.CTrace(fn, func() error { return err })()
 
 	// Mark all identifies with background identifier tag / context.
-	netContext := libkb.WithLogTag(ctx.GetNetContext(), "BG")
+	netContext := libkb.WithLogTag(m.Ctx(), "BG")
 
 	if !b.settings.Enabled {
-		b.G().Log.Debug("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
+		m.CDebugf("%s: Bailing out since BackgroundIdentifier isn't enabled", fn)
 		return nil
 	}
 
@@ -186,23 +204,23 @@ func (b *BackgroundIdentifier) Run(ctx *Context) (err error) {
 	for keepGoing {
 		waitUntil := b.waitUntil()
 		if waitUntil.IsZero() {
-			b.G().Log.Debug("%s: not waiting, got an immediate identifiee", fn)
+			m.CDebugf("%s: not waiting, got an immediate identifiee", fn)
 		} else {
-			b.G().Log.Debug("%s: waiting %s", fn, waitUntil.Sub(b.G().Clock().Now()))
+			m.CDebugf("%s: waiting %s", fn, waitUntil.Sub(b.G().Clock().Now()))
 		}
 		select {
 		case <-b.untilCh:
 			keepGoing = false
 		case <-b.addCh:
-			b.G().Log.Debug("| early wake up due to new addition")
+			m.CDebugf("| early wake up due to new addition")
 			continue
 		case <-b.G().Clock().AfterTime(waitUntil):
-			b.G().Log.Debug("| running next after wait")
+			m.CDebugf("| running next after wait")
 
-			// Reset the netContext everytime through the loop, so we don't
+			// Reset the netContext every time through the loop, so we don't
 			// endlessly accumulate WithValues
-			ctx.NetContext = netContext
-			b.runNext(ctx)
+			m = m.WithCtx(netContext)
+			b.runNext(m)
 		}
 	}
 	return nil
@@ -277,7 +295,7 @@ func trackBreaksToError(b *keybase1.IdentifyTrackBreaks) error {
 	return err
 }
 
-func (b *BackgroundIdentifier) runNext(ctx *Context) error {
+func (b *BackgroundIdentifier) runNext(m libkb.MetaContext) error {
 	user, err := b.popNext()
 	if err != nil {
 		return nil
@@ -285,44 +303,52 @@ func (b *BackgroundIdentifier) runNext(ctx *Context) error {
 	if user == nil {
 		panic("should never get an empty user without an error")
 	}
-	tmp := b.runOne(ctx, user.uid)
+	tmp := b.runOne(m, user.uid)
 	waitTime := b.errorToRetryDuration(tmp)
 	user.nextRun = b.G().Clock().Now().Add(waitTime)
-	b.G().Log.Debug("requeuing %s for %s (until %s)", user.uid, waitTime, user.nextRun)
+	lastError := user.lastError
+	user.lastError = tmp
+
+	m.CDebugf("requeuing %s for %s (until %s)", user.uid, waitTime, user.nextRun)
 	b.requeue(user)
 
 	// We should only say we're done with this user after we've requeued him.
 	// Otherwise there could be races -- the Advance() call of a tester might
 	// slip in in before the call to b.G().Clock().Now() above.
 	if b.snooperCh != nil {
-		b.snooperCh <- identifyJob{user.uid, tmp}
+		b.snooperCh <- IdentifyJob{user.uid, tmp, lastError}
 	}
 
 	if d := b.settings.DelaySlot; d != 0 {
-		b.G().Log.Debug("BackgroundIdentifier sleeping for %s", d)
+		m.CDebugf("BackgroundIdentifier sleeping for %s", d)
 		b.G().Clock().Sleep(d)
 	}
 
 	return nil
 }
 
-func (b *BackgroundIdentifier) runOne(ctx *Context, u keybase1.UID) (err error) {
-	defer b.G().Trace(fmt.Sprintf("BackgroundIdentifier#runOne(%s)", u), func() error { return err })()
+func (b *BackgroundIdentifier) runOne(m libkb.MetaContext, u keybase1.UID) (err error) {
+	defer m.CTrace(fmt.Sprintf("BackgroundIdentifier#runOne(%s)", u), func() error { return err })()
 	arg := keybase1.Identify2Arg{
 		Uid: u,
 		Reason: keybase1.IdentifyReason{
 			Type: keybase1.IdentifyReasonType_BACKGROUND,
 		},
-		AlwaysBlock: true,
-		ChatGUIMode: true,
+		AlwaysBlock:      true,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 	}
 	eng := NewIdentify2WithUID(b.G(), &arg)
 	if b.testArgs != nil {
 		eng.testArgs = b.testArgs.identify2TestArgs
 	}
-	err = RunEngine(eng, ctx)
-	if err == nil {
-		err = trackBreaksToError(eng.Result().TrackBreaks)
+	err = RunEngine2(m, eng)
+	if err != nil {
+		return err
 	}
+	res, err := eng.Result()
+	if err != nil {
+		return err
+	}
+	err = trackBreaksToError(res.TrackBreaks)
 	return err
 }

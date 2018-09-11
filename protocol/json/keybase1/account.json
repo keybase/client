@@ -16,6 +16,48 @@
           "name": "hasServerKeys"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LockdownHistory",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "status",
+          "jsonkey": "status"
+        },
+        {
+          "type": "Time",
+          "name": "creationTime",
+          "jsonkey": "ctime"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID",
+          "jsonkey": "device_id"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetLockdownResponse",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "LockdownHistory"
+          },
+          "name": "history"
+        },
+        {
+          "type": "boolean",
+          "name": "status"
+        }
+      ]
     }
   ],
   "messages": {
@@ -77,6 +119,42 @@
       ],
       "response": "HasServerKeysRes",
       "doc": "* Whether the logged-in user has uploaded private keys\n   * Will error if not logged in."
+    },
+    "resetAccount": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "passphrase",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "resetAccount resets the user's account; it's meant only for devel and tests.\n   passphrase is optional and will be prompted for if not supplied."
+    },
+    "getLockdownMode": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "GetLockdownResponse"
+    },
+    "setLockdownMode": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "enabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

@@ -4,7 +4,7 @@
 #   1) Does repo X exist?
 #   2) Does it have master checked out?
 #   3) It is clean?
-#   4) Is is up to date?
+#   4) Is it up to date?
 # This script takes care of all that.
 
 set -e -u -o pipefail
@@ -29,7 +29,10 @@ if [ ! -d ".git" ] ; then
   exit 1
 fi
 
-current_branch="$(git symbolic-ref --short HEAD)"
+# fetch upstream
+git fetch
+
+current_branch="$(git rev-parse --abbrev-ref HEAD)"
 if [ "$current_branch" != "master" ] ; then
   echo "Repo '$repo' doesn't have master checked out."
   exit 1

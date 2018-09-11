@@ -15,21 +15,49 @@ import (
 
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
-		NewCmdAccountDelete(cl, g),
-		NewCmdAPICall(cl, g),
 		NewCmdCheckTracking(cl, g),
 		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdFavorite(cl, g),
-		newCmdFS(cl, g),
 		NewCmdPaperProvision(cl, g),
-		NewCmdPGPProvision(cl, g),
 		NewCmdSecretKey(cl, g),
 		NewCmdShowNotifications(cl, g),
-		NewCmdStress(cl),
+		NewCmdStress(cl, g),
 		NewCmdTestPassphrase(cl, g),
 		NewCmdTestFSNotify(cl, g),
 		newCmdTlf(cl, g),
 		NewCmdScanProofs(cl, g),
+		newCmdTeamGenerateSeitan(cl, g),
+		newCmdTeamRotateKey(cl, g),
+		newCmdTeamDebug(cl, g),
+		newCmdScript(cl, g),
+		newCmdUploadAvatar(cl, g),
+	}
+}
+
+func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		newCmdChatDeleteHistoryDev(cl, g),
+		newCmdChatSetRetentionDev(cl, g),
+		newCmdChatKBFSUpgrade(cl, g),
+	}
+}
+
+func getBuildSpecificAccountCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdAccountReset(cl, g),
+	}
+}
+
+func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		newCmdWalletDump(cl, g),
+		newCmdWalletInit(cl, g),
+	}
+}
+
+func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdLogProfile(cl, g),
 	}
 }
 

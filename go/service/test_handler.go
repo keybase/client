@@ -17,7 +17,7 @@ type TestHandler struct {
 
 func NewTestHandler(xp rpc.Transporter, g *libkb.GlobalContext) *TestHandler {
 	return &TestHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }

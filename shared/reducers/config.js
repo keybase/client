@@ -1,143 +1,214 @@
 // @flow
+import logger from '../logger'
+import * as I from 'immutable'
+import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
-import type {BootStatus} from '../constants/config'
-import * as CommonConstants from '../constants/common'
+import * as ChatConstants from '../constants/chat2'
+import * as ConfigGen from '../actions/config-gen'
+import * as Stats from '../engine/stats'
+import {isEOFError, isErrorTransient} from '../util/errors'
 
-import type {Action} from '../constants/types/flux'
-import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
+const initialState = Constants.makeState()
 
-export type ConfigState = {
-  globalError: ?Error,
-  status: ?GetCurrentStatusRes,
-  config: ?Config,
-  extendedConfig: ?ExtendedStatus,
-  username: ?string,
-  uid: ?string,
-  loggedIn: boolean,
-  kbfsPath: string,
-  error: ?any,
-  bootstrapTriesRemaining: number,
-  bootStatus: BootStatus,
-  followers: {[key: string]: true},
-  following: {[key: string]: true},
-}
-
-const initialState: ConfigState = {
-  globalError: null,
-  status: null,
-  config: null,
-  extendedConfig: null,
-  username: null,
-  uid: null,
-  loggedIn: false,
-  kbfsPath: Constants.defaultKBFSPath,
-  error: null,
-  bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-  bootStatus: 'bootStatusLoading',
-  followers: {},
-  following: {},
-}
-
-export default function (state: ConfigState = initialState, action: Action): ConfigState {
+export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
+    case ConfigGen.resetStore:
+      return initialState.merge({
+        appFocused: state.appFocused,
+        appFocusedCount: state.appFocusedCount,
+        configuredAccounts: state.configuredAccounts,
+        daemonHandshakeState: state.daemonHandshakeState,
+        daemonHandshakeVersion: state.daemonHandshakeVersion,
+        daemonHandshakeWaiters: state.daemonHandshakeWaiters,
+        defaultUsername: state.defaultUsername,
+        logoutHandshakeVersion: state.logoutHandshakeVersion,
+        logoutHandshakeWaiters: state.logoutHandshakeWaiters,
+        menubarWindowID: state.menubarWindowID,
+        pushLoaded: state.pushLoaded,
+        startupDetailsLoaded: state.startupDetailsLoaded,
+      })
+    case ConfigGen.restartHandshake:
+      return state.merge({
+        daemonError: null,
+        daemonHandshakeFailedReason: '',
+        daemonHandshakeRetriesLeft: Math.max(state.daemonHandshakeRetriesLeft - 1, 0),
+        daemonHandshakeState: 'starting',
+      })
+    case ConfigGen.startHandshake:
+      return state.merge({
+        daemonError: null,
+        daemonHandshakeFailedReason: '',
+        daemonHandshakeRetriesLeft: Constants.maxHandshakeTries,
+        daemonHandshakeState: 'starting',
+      })
+    case ConfigGen.logoutHandshake:
+      return state.merge({
+        logoutHandshakeVersion: action.payload.version,
+        logoutHandshakeWaiters: I.Map(),
+      })
+    case ConfigGen.daemonHandshake:
+      return state.merge({
+        daemonHandshakeState: 'waitingForWaiters',
+        daemonHandshakeVersion: action.payload.version,
+        daemonHandshakeWaiters: I.Map(),
+      })
+    case ConfigGen.daemonHandshakeWait: {
+      if (state.daemonHandshakeState !== 'waitingForWaiters') {
+        throw new Error("Should only get a wait while we're waiting")
+      }
 
-    case Constants.configLoaded:
-      if (action.payload && action.payload.config) {
-        return {
-          ...state,
-          config: action.payload.config,
+      if (action.payload.version !== state.daemonHandshakeVersion) {
+        logger.info(
+          'Ignoring handshake wait due to version mismatch',
+          action.payload.version,
+          state.daemonHandshakeVersion
+        )
+        return state
+      }
+
+      const oldCount = state.daemonHandshakeWaiters.get(action.payload.name, 0)
+      const newCount = oldCount + (action.payload.increment ? 1 : -1)
+      const newState =
+        newCount === 0
+          ? state.deleteIn(['daemonHandshakeWaiters', action.payload.name])
+          : state.setIn(['daemonHandshakeWaiters', action.payload.name], newCount)
+
+      if (action.payload.failedFatal) {
+        return newState.merge({
+          daemonHandshakeFailedReason: action.payload.failedReason || '',
+          daemonHandshakeRetriesLeft: 0,
+        })
+      } else {
+        // Keep the first error
+        if (state.daemonHandshakeFailedReason) {
+          return newState
+        }
+        return newState.set('daemonHandshakeFailedReason', action.payload.failedReason || '')
+      }
+    }
+    case ConfigGen.logoutHandshakeWait: {
+      if (action.payload.version !== state.logoutHandshakeVersion) {
+        logger.info(
+          'Ignoring logout handshake due to version mismatch',
+          action.payload.version,
+          state.logoutHandshakeVersion
+        )
+        return state
+      }
+      const oldCount = state.logoutHandshakeWaiters.get(action.payload.name, 0)
+      const newCount = oldCount + (action.payload.increment ? 1 : -1)
+      return newCount === 0
+        ? state.deleteIn(['logoutHandshakeWaiters', action.payload.name])
+        : state.setIn(['logoutHandshakeWaiters', action.payload.name], newCount)
+    }
+    case ConfigGen.setStartupDetails:
+      return state.startupDetailsLoaded
+        ? state
+        : state.merge({
+            startupConversation: action.payload.startupConversation || ChatConstants.noConversationIDKey,
+            startupDetailsLoaded: true,
+            startupFollowUser: action.payload.startupFollowUser,
+            startupLink: action.payload.startupLink,
+            startupTab: action.payload.startupTab,
+            startupWasFromPush: action.payload.startupWasFromPush,
+          })
+    case ConfigGen.pushLoaded:
+      return state.merge({pushLoaded: action.payload.pushLoaded})
+    case ConfigGen.bootstrapStatusLoaded:
+      return state.merge({
+        deviceID: action.payload.deviceID,
+        deviceName: action.payload.deviceName,
+        followers: I.Set(action.payload.followers),
+        following: I.Set(action.payload.following),
+        loggedIn: action.payload.loggedIn,
+        registered: action.payload.registered,
+        uid: action.payload.uid,
+        username: action.payload.username,
+      })
+    case ConfigGen.loggedIn:
+      return state.merge({loggedIn: true})
+    case ConfigGen.loggedOut:
+      return state.merge({loggedIn: false})
+    case ConfigGen.updateFollowing: {
+      const {isTracking, username} = action.payload
+      return state.updateIn(
+        ['following'],
+        following => (isTracking ? following.add(username) : following.delete(username))
+      )
+    }
+    case ConfigGen.globalError: {
+      const {globalError} = action.payload
+      if (globalError) {
+        logger.error('Error (global):', globalError)
+        if (isEOFError(globalError)) {
+          Stats.gotEOF()
+        }
+        if (isErrorTransient(globalError)) {
+          logger.info('globalError silencing:', globalError)
+          return state
         }
       }
+      return state.merge({globalError})
+    }
+    case ConfigGen.debugDump:
+      return state.merge({debugDump: action.payload.items})
+    case ConfigGen.daemonError: {
+      const {daemonError} = action.payload
+      if (daemonError) {
+        logger.error('Error (daemon):', daemonError)
+      }
+      return state.merge({daemonError})
+    }
+    case ConfigGen.changedFocus:
+      return state.merge({
+        appFocused: action.payload.appFocused,
+        appFocusedCount: state.appFocusedCount + 1,
+      })
+    case ConfigGen.changedActive:
+      return state.merge({userActive: action.payload.userActive})
+    case ConfigGen.loadedAvatars: {
+      const {nameToUrlMap} = action.payload
+      return state.merge({
+        avatars: {
+          ...state.avatars,
+          ...nameToUrlMap,
+        },
+      })
+    }
+    case ConfigGen.setNotifySound:
+      return state.merge({notifySound: action.payload.sound})
+    case ConfigGen.setOpenAtLogin:
+      return state.merge({openAtLogin: action.payload.open})
+    case ConfigGen.updateMenubarWindowID:
+      return state.merge({menubarWindowID: action.payload.id})
+    case ConfigGen.setAccounts:
+      return state.merge({
+        configuredAccounts: I.List(action.payload.usernames),
+        defaultUsername: action.payload.defaultUsername,
+      })
+    case ConfigGen.setDeletedSelf:
+      return state.merge({justDeletedSelf: action.payload.deletedUsername})
+    case ConfigGen.daemonHandshakeDone:
+      return state.merge({daemonHandshakeState: 'done'})
+    // Saga only actions
+    case ConfigGen.loadTeamAvatars:
+    case ConfigGen.loadAvatars:
+    case ConfigGen.dumpLogs:
+    case ConfigGen.logout:
+    case ConfigGen.link:
+    case ConfigGen.mobileAppState:
+    case ConfigGen.openAppSettings:
+    case ConfigGen.showMain:
+    case ConfigGen.setupEngineListeners:
+    case ConfigGen.installerRan:
+    case ConfigGen.copyToClipboard:
+    case ConfigGen._avatarQueue:
       return state
-
-    case Constants.extendedConfigLoaded:
-      if (action.payload && action.payload.extendedConfig) {
-        return {
-          ...state,
-          extendedConfig: action.payload.extendedConfig,
-        }
-      }
-      return state
-
-    case Constants.changeKBFSPath:
-      if (action.payload && action.payload.path) {
-        return {
-          ...state,
-          kbfsPath: action.payload.path,
-        }
-      }
-      return state
-
-    case Constants.statusLoaded:
-      if (action.payload && action.payload.status) {
-        const status = action.payload.status
-        return {
-          ...state,
-          status,
-          username: status.user && status.user.username,
-          uid: status.user && status.user.uid,
-          loggedIn: status.loggedIn,
-        }
-      }
-      return state
-
-    case Constants.bootstrapAttemptFailed: {
-      return {
-        ...state,
-        bootstrapTriesRemaining: state.bootstrapTriesRemaining - 1,
-      }
-    }
-
-    case Constants.bootstrapFailed: {
-      return {
-        ...state,
-        bootStatus: 'bootStatusFailure',
-      }
-    }
-
-    case Constants.bootstrapped: {
-      return {
-        ...state,
-        bootStatus: 'bootStatusBootstrapped',
-      }
-    }
-
-    case Constants.bootstrapRetry: {
-      return {
-        ...state,
-        bootstrapTriesRemaining: Constants.MAX_BOOTSTRAP_TRIES,
-        bootStatus: 'bootStatusLoading',
-      }
-    }
-
-    case Constants.updateFollowing: {
-      return {
-        ...state,
-        following: action.payload.following,
-      }
-    }
-    case Constants.updateFollowers: {
-      return {
-        ...state,
-        followers: action.payload.followers,
-      }
-    }
-    case Constants.globalErrorDismiss: {
-      return {
-        ...state,
-        globalError: null,
-      }
-    }
-    case Constants.globalError: {
-      return {
-        ...state,
-        globalError: action.payload,
-      }
-    }
-
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

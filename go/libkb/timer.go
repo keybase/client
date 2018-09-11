@@ -116,7 +116,7 @@ func NewTimerSet(g *GlobalContext) *TimerSet {
 	return &TimerSet{sel: sel, Contextified: Contextified{g}}
 }
 
-// Start alloates and starts a new timer if the passed TimerSelector
+// Start allocates and starts a new timer if the passed TimerSelector
 // is currently enabled.  Otherwise, it just returns a Dummy timer.
 func (s TimerSet) Start(sel TimerSelector) ReportingTimer {
 	var ret ReportingTimer

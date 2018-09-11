@@ -6,7 +6,6 @@ package libcmdline
 import (
 	"fmt"
 	"io"
-	"regexp"
 	"strings"
 	"time"
 
@@ -35,18 +34,20 @@ const (
 )
 
 type CommandLine struct {
-	app          *cli.App
-	ctx          *cli.Context
-	cmd          Command
-	name         string     // the name of the chosen command
-	service      bool       // The server is a special command
-	fork         ForkCmd    // If the command is to stop (then don't start the server)
-	noStandalone bool       // On if this command can't run in standalone mode
-	logForward   LogForward // What do to about log forwarding
-	defaultCmd   string
+	app                *cli.App
+	ctx                *cli.Context
+	cmd                Command
+	name               string     // the name of the chosen command
+	service            bool       // The server is a special command
+	fork               ForkCmd    // If the command is to stop (then don't start the server)
+	noStandalone       bool       // On if this command can't run in standalone mode
+	logForward         LogForward // What do to about log forwarding
+	skipOutOfDateCheck bool       // don't try to check for service being out of date
+	defaultCmd         string
 }
 
 func (p CommandLine) IsService() bool             { return p.service }
+func (p CommandLine) SkipOutOfDateCheck() bool    { return p.skipOutOfDateCheck }
 func (p *CommandLine) SetService()                { p.service = true }
 func (p CommandLine) GetForkCmd() ForkCmd         { return p.fork }
 func (p *CommandLine) SetForkCmd(v ForkCmd)       { p.fork = v }
@@ -54,6 +55,7 @@ func (p *CommandLine) SetNoStandalone()           { p.noStandalone = true }
 func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
 func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
 func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
+func (p *CommandLine) SetSkipOutOfDateCheck()     { p.skipOutOfDateCheck = true }
 
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
@@ -64,6 +66,9 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+func (p CommandLine) GetMobileSharedHome() string {
+	return p.GetGString("mobile-shared-home")
+}
 func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
@@ -72,6 +77,9 @@ func (p CommandLine) GetConfigFilename() string {
 }
 func (p CommandLine) GetUpdaterConfigFilename() string {
 	return p.GetGString("updater-config-file")
+}
+func (p CommandLine) GetDeviceCloneStateFilename() string {
+	return p.GetGString("device-clone-state-file")
 }
 func (p CommandLine) GetSessionFilename() string {
 	return p.GetGString("session-file")
@@ -82,6 +90,9 @@ func (p CommandLine) GetDbFilename() string {
 func (p CommandLine) GetChatDbFilename() string {
 	return p.GetGString("chat-db")
 }
+func (p CommandLine) GetPvlKitFilename() string {
+	return p.GetGString("pvl-kit")
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -91,8 +102,17 @@ func (p CommandLine) GetDebug() (bool, bool) {
 	}
 	return p.GetBool("debug", true)
 }
+func (p CommandLine) GetDisplayRawUntrustedOutput() (bool, bool) {
+	return p.GetBool("display-raw-untrusted-output", true)
+}
 func (p CommandLine) GetVDebugSetting() string {
 	return p.GetGString("vdebug")
+}
+func (p CommandLine) GetUpgradePerUserKey() (bool, bool) {
+	return p.GetBool("upgrade-per-user-key", true)
+}
+func (p CommandLine) GetAutoWallet() (bool, bool) {
+	return p.GetBool("auto-wallet", true)
 }
 func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 	return libkb.PGPFingerprintFromHexNoError(p.GetGString("fingerprint"))
@@ -103,6 +123,11 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
+
+func (p CommandLine) GetLogPrefix() string {
+	return p.GetGString("log-prefix")
+}
+
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
 }
@@ -155,8 +180,20 @@ func (p CommandLine) GetChatDelivererInterval() (time.Duration, bool) {
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
+func (p CommandLine) GetFeatureFlags() (libkb.FeatureFlags, error) {
+	return libkb.StringToFeatureFlags(p.GetGString("features")), nil
+}
 func (p CommandLine) GetPinentry() string {
 	return p.GetGString("pinentry")
+}
+func (p CommandLine) GetAppType() libkb.AppType {
+	return libkb.DesktopAppType
+}
+func (p CommandLine) IsMobileExtension() (bool, bool) {
+	return false, false
+}
+func (p CommandLine) GetSlowGregorConn() (bool, bool) {
+	return p.GetBool("slow-gregor-conn", true)
 }
 func (p CommandLine) GetGString(s string) string {
 	return p.ctx.GlobalString(s)
@@ -200,7 +237,7 @@ func (p CommandLine) GetGpgOptions() []string {
 	var ret []string
 	s := p.GetGString("gpg-options")
 	if len(s) > 0 {
-		ret = regexp.MustCompile(`\s+`).Split(s, -1)
+		ret = strings.Fields(s)
 	}
 	return ret
 }
@@ -237,8 +274,48 @@ func (p CommandLine) GetProofCacheSize() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLevelDBNumFiles() (int, bool) {
+	ret := p.GetGInt("leveldb-num-files")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetChatInboxSourceLocalizeThreads() (int, bool) {
+	ret := p.GetGInt("chat-inboxsource-localizethreads")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetLinkCacheSize() (int, bool) {
 	ret := p.GetGInt("link-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetUPAKCacheSize() (int, bool) {
+	ret := p.GetGInt("upak-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetUIDMapFullNameCacheSize() (int, bool) {
+	ret := p.GetGInt("uid-map-full-name-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
+func (p CommandLine) GetPayloadCacheSize() (int, bool) {
+	ret := p.GetGInt("payload-cache-size")
 	if ret != 0 {
 		return ret, true
 	}
@@ -281,6 +358,10 @@ func (p CommandLine) GetTorProxy() string {
 
 func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
+}
+
+func (p CommandLine) GetRememberPassphrase() (bool, bool) {
+	return p.GetBool("remember-passphrase", true)
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
@@ -333,6 +414,7 @@ func NewCommandLine(addHelp bool, extraFlags []cli.Flag) *CommandLine {
 func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app := p.app
 	app.Name = "keybase"
+	app.EnableBashCompletion = true
 	app.Version = libkb.VersionString()
 	app.Usage = "Keybase command line client."
 
@@ -353,6 +435,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "app-start-mode",
 			Usage: "Specify 'service' to auto-start UI app, or anything else to disable",
 		},
+		cli.BoolFlag{
+			Name:  "bg-identifier-disabled",
+			Usage: "supply to disable the BG identifier loop",
+		},
+		cli.StringFlag{
+			Name:  "chat-db",
+			Usage: "Specify an alternate local Chat DB location.",
+		},
 		cli.StringFlag{
 			Name:  "code-signing-kids",
 			Usage: "Set of code signing key IDs (colon-separated).",
@@ -365,13 +455,17 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "db",
 			Usage: "Specify an alternate local DB location.",
 		},
-		cli.StringFlag{
-			Name:  "chat-db",
-			Usage: "Specify an alternate local Chat DB location.",
-		},
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name:  "display-raw-untrusted-output",
+			Usage: "Display output from users (messages, chats, ...) in the terminal without escaping terminal codes. WARNING: maliciously crafted unescaped outputs can overwrite anything you see on the terminal.",
+		},
+		cli.StringFlag{
+			Name:  "features",
+			Usage: "specify experimental feature flags",
 		},
 		cli.StringFlag{
 			Name:  "gpg",
@@ -384,6 +478,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "home, H",
 			Usage: "Specify an (alternate) home directory.",
+		},
+		cli.IntFlag{
+			Name:  "leveldb-num-files",
+			Usage: "Specify the max number of files LevelDB may open",
 		},
 		cli.StringFlag{
 			Name:  "local-rpc-debug-unsafe",
@@ -398,8 +496,12 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Log format (default, plain, file, fancy).",
 		},
 		cli.StringFlag{
+			Name:  "log-prefix",
+			Usage: "Specify a prefix for a unique log file name.",
+		},
+		cli.StringFlag{
 			Name:  "merkle-kids",
-			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
+			Usage: "Set of admissible Merkle Tree fingerprints (colon-separated).",
 		},
 		cli.BoolFlag{
 			Name:  "no-debug",
@@ -410,12 +512,12 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a PGP directory (default is ~/.gnupg).",
 		},
 		cli.StringFlag{
-			Name:  "pinentry",
-			Usage: "Specify a path to find a pinentry program.",
-		},
-		cli.StringFlag{
 			Name:  "pid-file",
 			Usage: "Location of the keybased pid-file (to ensure only one running daemon).",
+		},
+		cli.StringFlag{
+			Name:  "pinentry",
+			Usage: "Specify a path to find a pinentry program.",
 		},
 		cli.IntFlag{
 			Name:  "proof-cache-size",
@@ -438,6 +540,14 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a URI for contacting the Keybase push server",
 		},
 		cli.StringFlag{
+			Name:  "pvl-kit",
+			Usage: "Specify an alternate local PVL kit file location.",
+		},
+		cli.BoolFlag{
+			Name:  "remember-passphrase",
+			Usage: "Remember keybase passphrase",
+		},
+		cli.StringFlag{
 			Name:  "run-mode",
 			Usage: "Run mode (devel, staging, prod).", // These are defined in libkb/constants.go
 		},
@@ -456,6 +566,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "session-file",
 			Usage: "Specify an alternate session data file.",
+		},
+		cli.BoolFlag{
+			Name:  "slow-gregor-conn",
+			Usage: "Slow responses from gregor for testing",
 		},
 		cli.StringFlag{
 			Name:  "socket-file",
@@ -485,6 +599,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "updater-config-file",
 			Usage: "Specify a path to the updater config file",
 		},
+		cli.BoolFlag{
+			Name:  "upgrade-per-user-key",
+			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
+		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
 			Usage: "Number of User entries to cache.",
@@ -492,10 +610,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
-		},
-		cli.BoolFlag{
-			Name:  "bg-identifier-disabled",
-			Usage: "supply to disable the BG identifier loop",
 		},
 	}
 	if extraFlags != nil {

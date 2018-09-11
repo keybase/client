@@ -56,7 +56,7 @@ func NewCmdPGPDrop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Usage:        "Drop Keybase's use of a PGP key",
 		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPDrop{}, "drop", c)
+			cl.ChooseCommand(&CmdPGPDrop{Contextified: libkb.NewContextified(g)}, "drop", c)
 		},
 		Description: `"keybase pgp drop" signs a statement saying the given PGP
    key should no longer be associated with this account. It will **not** sign a PGP-style

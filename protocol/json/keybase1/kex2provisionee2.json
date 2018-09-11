@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "ephemeral.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -18,8 +22,32 @@
         {
           "type": "HelloRes",
           "name": "sigPayload"
+        },
+        {
+          "type": "KID",
+          "name": "deviceEkKID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PerUserKeyBox",
+      "fields": [
+        {
+          "type": "PerUserKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "string",
+          "name": "box"
+        },
+        {
+          "type": "KID",
+          "name": "receiverKID",
+          "jsonkey": "receiver_kid"
+        }
+      ],
+      "lint": "ignore"
     }
   ],
   "messages": {
@@ -53,6 +81,20 @@
         {
           "name": "ppsEncrypted",
           "type": "string"
+        },
+        {
+          "name": "pukBox",
+          "type": [
+            null,
+            "PerUserKeyBox"
+          ]
+        },
+        {
+          "name": "userEkBox",
+          "type": [
+            null,
+            "UserEkBoxed"
+          ]
         }
       ],
       "response": null

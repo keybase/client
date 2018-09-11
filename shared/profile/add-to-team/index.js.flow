@@ -1,0 +1,40 @@
+// @flow
+import {Component} from 'react'
+import * as React from 'react'
+import * as Types from '../../constants/types/teams'
+import {type StylesCrossPlatform} from '../../styles'
+
+export type RowProps = {
+  canAddThem: boolean,
+  checked: boolean,
+  name: Types.Teamname,
+  isOpen: boolean,
+  memberIsInTeam: boolean,
+  onCheck: () => void,
+  them: string,
+  youCanAddPeople: boolean,
+  waiting: boolean,
+}
+
+export type Props = {
+  canAddThem: {[string]: boolean},
+  customComponent?: ?React.Node,
+  headerStyle?: StylesCrossPlatform,
+  loaded: {[string]: boolean},
+  memberIsInTeam: {[string]: boolean},
+  onBack: () => void,
+  onCancel?: () => void,
+  onOpenRolePicker: (role: string, selectedRole: Types.TeamRoleType => void, styleCover?: Object) => void,
+  onRoleChange: string => void,
+  onSave: (role: string, selectedTeams: {[string]: boolean}) => void,
+  onToggle: string => void,
+  role: Types.TeamRoleType,
+  selectedTeams: {[string]: boolean},
+  setSelectedTeams: ({[string]: boolean}) => void,
+  teamnames: Array<Types.Teamname>,
+  teamNameToIsOpen: {[string]: boolean},
+  them: string,
+  youCanAddPeople: {[string]: boolean},
+}
+
+export default class AddToTeam extends Component<Props> {}

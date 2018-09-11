@@ -173,6 +173,10 @@
           "name": "secretPromptSkip"
         },
         {
+          "type": "boolean",
+          "name": "rememberPassphrase"
+        },
+        {
           "type": [
             null,
             "Device"
@@ -217,6 +221,13 @@
           "lint": "ignore"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "deviceEkNames"
+        },
+        {
           "type": "PlatformInfo",
           "name": "platformInfo"
         },
@@ -227,13 +238,35 @@
       ]
     },
     {
+      "type": "record",
+      "name": "AllProvisionedUsernames",
+      "fields": [
+        {
+          "type": "string",
+          "name": "defaultUsername"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "provisionedUsernames"
+        },
+        {
+          "type": "boolean",
+          "name": "hasProvisionedUser"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ForkType",
       "symbols": [
         "NONE_0",
         "AUTO_1",
         "WATCHDOG_2",
-        "LAUNCHD_3"
+        "LAUNCHD_3",
+        "SYSTEMD_4"
       ]
     },
     {
@@ -271,6 +304,10 @@
         {
           "type": "string",
           "name": "path"
+        },
+        {
+          "type": "string",
+          "name": "binaryRealpath"
         },
         {
           "type": "string",
@@ -353,6 +390,50 @@
           "name": "criticalClockSkew"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BootstrapStatus",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "registered"
+        },
+        {
+          "type": "boolean",
+          "name": "loggedIn"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "following"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "followers"
+        }
+      ]
     }
   ],
   "messages": {
@@ -373,6 +454,15 @@
         }
       ],
       "response": "ExtendedStatus"
+    },
+    "getAllProvisionedUsernames": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AllProvisionedUsernames"
     },
     "getConfig": {
       "request": [
@@ -476,6 +566,37 @@
       ],
       "response": "boolean",
       "doc": "Wait for client type to connect to service."
+    },
+    "getBootstrapStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "BootstrapStatus"
+    },
+    "getRememberPassphrase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setRememberPassphrase": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "remember",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

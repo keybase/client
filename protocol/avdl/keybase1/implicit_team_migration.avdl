@@ -1,0 +1,10 @@
+@namespace("keybase.1")
+
+// implicitTeamMigration defines a protocol that service calls into KBFS for
+// marking the start of migrating a TLF into iTeam backed form.
+protocol implicitTeamMigration {
+    import idl "favorite.avdl";
+
+    void startMigration(Folder folder);
+    void finalizeMigration(Folder folder);
+}

@@ -47,6 +47,10 @@ func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, e
 	return true, nil
 }
 
+func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+	return false, nil
+}
+
 func (g *gpgtestui) Sign(_ context.Context, _ keybase1.SignArg) (string, error) {
 	return "", fmt.Errorf("not implemented")
 }

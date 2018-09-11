@@ -1,14 +1,16 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
+import {type Color, type StylesCrossPlatform} from '../styles'
 
 export type Props = {
+  badgeNumber?: number,
+  hideBackLabel?: boolean,
   onClick: () => void,
   onPress?: void,
-  iconStyle?: Object,
-  textStyle?: Object,
-  style?: ?Object,
-  title?: ?string
+  iconColor?: Color,
+  textStyle?: ?StylesCrossPlatform,
+  style?: ?StylesCrossPlatform,
+  title?: ?string,
 }
 
-declare export default class BackButton extends Component<void, Props, void> {}
-
+declare export default class BackButton extends React.Component<Props> {}

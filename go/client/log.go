@@ -14,32 +14,33 @@ import (
 )
 
 type LogUIServer struct {
-	log libkb.LogUI
+	libkb.Contextified
 }
 
-func NewLogUIProtocol() rpc.Protocol {
-	return keybase1.LogUiProtocol(&LogUIServer{G.Log})
+func NewLogUIProtocol(g *libkb.GlobalContext) rpc.Protocol {
+	return keybase1.LogUiProtocol(&LogUIServer{Contextified: libkb.NewContextified(g)})
 }
 
 func (s LogUIServer) Log(_ context.Context, arg keybase1.LogArg) error {
 	buf := new(bytes.Buffer)
-	RenderText(buf, arg.Text)
+	RenderText(s.G(), buf, arg.Text)
 	msg := buf.String()
+	logger := s.G().Log.CloneWithAddedDepth(1)
 	switch arg.Level {
 	case keybase1.LogLevel_DEBUG:
-		s.log.Debug("%s", msg)
+		logger.Debug("%s", msg)
 	case keybase1.LogLevel_INFO:
-		s.log.Info("%s", msg)
+		logger.Info("%s", msg)
 	case keybase1.LogLevel_WARN:
-		s.log.Warning("%s", msg)
+		logger.Warning("%s", msg)
 	case keybase1.LogLevel_ERROR:
-		s.log.Errorf("%s", msg)
+		logger.Errorf("%s", msg)
 	case keybase1.LogLevel_NOTICE:
-		s.log.Notice("%s", msg)
+		logger.Notice("%s", msg)
 	case keybase1.LogLevel_CRITICAL:
-		s.log.Critical("%s", msg)
+		logger.Critical("%s", msg)
 	default:
-		s.log.Warning("%s", msg)
+		logger.Warning("%s", msg)
 	}
 	return nil
 }

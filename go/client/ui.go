@@ -12,6 +12,9 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/keybase/client/go/terminalescaper"
+	"github.com/mattn/go-isatty"
+
 	"golang.org/x/net/context"
 
 	"sync"
@@ -28,6 +31,9 @@ type UI struct {
 	Terminal    *Terminal
 	SecretEntry *SecretEntry
 
+	outputWriter          io.Writer
+	unescapedOutputWriter io.Writer
+
 	// ttyMutex protects the TTY variable, which may be accessed from
 	// multiple goroutines
 	ttyMutex sync.Mutex
@@ -39,10 +45,12 @@ var _ libkb.TerminalUI = (*UI)(nil)
 
 type BaseIdentifyUI struct {
 	libkb.Contextified
-	parent *UI
+	parent          *UI
+	displayedProofs bool
+	username        string
 }
 
-func (ui BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+func (ui *BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
 	return nil
 }
 
@@ -50,49 +58,50 @@ type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
+func (ui *BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
 		msg = "Generating follower statement for "
 	case keybase1.IdentifyReasonType_ENCRYPT:
 		msg = "Identifying recipient "
-	case keybase1.IdentifyReasonType_DECRYPT:
-		ui.G().Log.Info("Message authored by " + ColorString("bold", username) + "; identifying...")
-		return nil
 	}
-	ui.G().Log.Info(msg + ColorString("bold", username))
+	ui.G().Log.Info(msg + ColorString(ui.G(), "bold", username))
+	ui.username = username
 	return nil
 }
 
-func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
+func (ui *BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
 	return ui.parent.Output(stmt)
 }
 
-func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
+func (ui *BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) Cancel() error {
+func (ui *BaseIdentifyUI) Cancel() error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) Finish() error {
+func (ui *BaseIdentifyUI) Finish() error {
+	if !ui.displayedProofs {
+		ui.ReportHook(ColorString(ui.G(), "bold", ui.username) + " hasn't proven their identity yet.")
+	}
 	return nil
 }
 
-func (ui BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+func (ui *BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (ui *BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
 
 	if o.TrackOptions.BypassConfirm {
-		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
+		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}, nil
 	}
 
 	if len(o.Revoked) > 0 {
@@ -103,21 +112,24 @@ func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmR
 	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
 }
 
-func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) error {
+func (ui *BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
+func (ui *BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
 	if len(del) == 0 {
 		return
 	}
 	ui.G().Log.Warning("Some proofs were revoked:")
 	for _, d := range del {
-		ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
+		ui.ReportHook(BADX + " " + trackDiffToColoredString(ui.G(), d))
 	}
+	ui.displayedProofs = true
 }
 
-func (ui BaseIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+func (ui *BaseIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	ui.displayedProofs = true // hacky, but we don't want to show the message about no proofs in this flow.
+
 	// this will only happen via `keybase favorite add` w/ no gui running:
 	if arg.IsPrivate {
 		ui.parent.Printf("Success! You created a private folder with %s\n", arg.Assertion)
@@ -138,7 +150,7 @@ type IdentifyTrackUI struct {
 	BaseIdentifyUI
 }
 
-func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+func (ui *IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 
 	ignorePrompt := ""
 	inputChecker := libkb.CheckMember{Set: []string{"A", "C"}}
@@ -182,7 +194,7 @@ func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) 
 	return
 }
 
-func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+func (ui *IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	var prompt string
 	username := o.Username
 
@@ -203,6 +215,10 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	trackChanged := true
 	switch o.TrackStatus {
 	case keybase1.TrackStatus_UPDATE_BROKEN_REVOKED, keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS:
+		if o.TrackOptions.BypassConfirm {
+			ui.G().Log.Error("Some proofs failed. Try again without '-y'")
+			return
+		}
 		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your view of " + username +
@@ -214,7 +230,8 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
 			", but they haven't proven their identity. Still follow them?"
-		promptDefault = libkb.PromptDefaultNo
+		ui.displayedProofs = true // If we ask for confimation to follow, we don't want to show the message about no proofs.
+		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
 		verb := "follow"
 		if o.TrackOptions.ForPGPPull {
@@ -223,7 +240,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 		prompt = "Some proofs failed; still " + verb + " " + username + "?"
 		promptDefault = libkb.PromptDefaultNo
 	default:
-		prompt = "Is this the " + ColorString("bold", username) + " you wanted?"
+		prompt = "Is this the " + ColorString(ui.G(), "bold", username) + " you wanted?"
 		promptDefault = libkb.PromptDefaultYes
 	}
 
@@ -234,9 +251,21 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	}
 
 	// Tracking statement doesn't exist or changed, lets prompt them with the details
-	if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
-		return
+	if o.TrackOptions.BypassConfirm {
+		if promptDefault == libkb.PromptDefaultYes {
+			result.IdentityConfirmed = true
+			result.AutoConfirmed = true
+			ui.G().Log.Info("Identity auto-confirmed via command-line flag")
+		} else {
+			ui.G().Log.Error("Not auto-confirming. Try again without '-y'")
+			return
+		}
+	} else {
+		if result.IdentityConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, promptDefault); err != nil {
+			return
+		}
 	}
+
 	if !result.IdentityConfirmed {
 		return
 	}
@@ -245,6 +274,8 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	if !o.TrackOptions.LocalOnly {
 		if o.TrackOptions.BypassConfirm {
 			result.RemoteConfirmed = true
+			result.AutoConfirmed = true
+			ui.G().Log.Info("User auto-remote-followed via command-line flag")
 			return
 		}
 		prompt = "Publicly follow?"
@@ -255,15 +286,15 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	return
 }
 
-func (ui BaseIdentifyUI) ReportHook(s string) {
+func (ui *BaseIdentifyUI) ReportHook(s string) {
 	ui.parent.ErrorWriter().Write([]byte(s + "\n"))
 }
 
-func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
+func (ui *BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
 	w.Warn(ui.G())
 }
 
-func (ui BaseIdentifyUI) PromptForConfirmation(s string) error {
+func (ui *BaseIdentifyUI) PromptForConfirmation(s string) error {
 	return ui.parent.PromptForConfirmation(s)
 }
 
@@ -286,6 +317,17 @@ type LinkCheckResultWrapper struct {
 }
 
 func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
+	return w.lcr.Diff
+}
+
+func (w LinkCheckResultWrapper) GetDiffOrRemoteDiff() *keybase1.TrackDiff {
+	isOK := func(d *keybase1.TrackDiff) bool {
+		return d == nil || d.Type == keybase1.TrackDiffType_NONE
+	}
+
+	if isOK(w.lcr.Diff) && w.lcr.RemoteDiff != nil {
+		return w.lcr.RemoteDiff
+	}
 	return w.lcr.Diff
 }
 
@@ -361,14 +403,14 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 	return msg
 }
 
-func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}
 
-	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = trackDiffToColoredString(*diff) + " "
+	if diff := lcr.GetDiffOrRemoteDiff(); diff != nil {
+		lcrs = trackDiffToColoredString(ui.G(), *diff) + " "
 	}
 	run := s.GetRemoteUsername()
 	mark := lcr.GetBreaksTrackingMark()
@@ -379,18 +421,19 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 			color = "yellow"
 		}
 		msg += (mark + " " + lcrs + `"` +
-			ColorString(color, run) + `" on ` + s.GetService() +
+			ColorString(ui.G(), color, run) + `" on ` + s.GetService() +
 			": " + lcr.GetHint().GetHumanURL())
 	} else {
 		msg += (mark + " " + lcrs +
-			ColorString("red", `"`+run+`" on `+s.GetService()+" "+
-				ColorString("bold", "failed")+": "+
+			ColorString(ui.G(), "red", `"`+run+`" on `+s.GetService()+" "+
+				ColorString(ui.G(), "bold", "failed")+": "+
 				err.Error()))
 	}
 	if cachedMsg := lcr.GetCachedMsg(); len(cachedMsg) > 0 {
-		msg += " " + ColorString("magenta", cachedMsg)
+		msg += " " + ColorString(ui.G(), "magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
+	ui.displayedProofs = true
 
 	return nil
 }
@@ -400,8 +443,8 @@ func trackDiffToColor(typ keybase1.TrackDiffType) string {
 	switch typ {
 	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_REVOKED, keybase1.TrackDiffType_NEW_ELDEST:
 		color = "red"
-	case keybase1.TrackDiffType_UPGRADED:
-		color = "orange"
+	case keybase1.TrackDiffType_UPGRADED, keybase1.TrackDiffType_REMOTE_WORKING:
+		color = "magenta"
 	case keybase1.TrackDiffType_NEW, keybase1.TrackDiffType_NONE_VIA_TEMPORARY:
 		color = "blue"
 	case keybase1.TrackDiffType_NONE:
@@ -410,26 +453,26 @@ func trackDiffToColor(typ keybase1.TrackDiffType) string {
 	return color
 }
 
-func trackDiffToColoredString(t keybase1.TrackDiff) string {
+func trackDiffToColoredString(g *libkb.GlobalContext, t keybase1.TrackDiff) string {
 	s := "<" + t.DisplayMarkup + ">"
 	if color := trackDiffToColor(t.Type); len(color) > 0 {
-		s = ColorString(color, s)
+		s = ColorString(g, color, s)
 	}
 	return s
 }
 
-func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
-	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
+func (ui *BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) string {
+	return ColorString(ui.G(), "orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
 	lcr := LinkCheckResultWrapper{l}
 
-	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = trackDiffToColoredString(*diff) + " "
+	if diff := lcr.GetDiffOrRemoteDiff(); diff != nil {
+		lcrs = trackDiffToColoredString(ui.G(), *diff) + " "
 	}
 
 	mark := lcr.GetBreaksTrackingMark()
@@ -441,13 +484,13 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 		torWarning := ""
 		if lcr.GetTorWarning() {
 			okColor = "red"
-			torWarning = ", " + ColorString("bold", "but the result isn't reliable over Tor")
+			torWarning = ", " + ColorString(ui.G(), "bold", "but the result isn't reliable over Tor")
 		}
 
 		if s.GetProtocol() == "dns" {
 			msg += (mark + " " + lcrs + "admin of " +
-				ColorString(okColor, "DNS") + " zone " +
-				ColorString(okColor, s.GetDomain()) + torWarning +
+				ColorString(ui.G(), okColor, "DNS") + " zone " +
+				ColorString(ui.G(), okColor, s.GetDomain()) + torWarning +
 				": found TXT entry " + lcr.GetHint().GetCheckText())
 		} else {
 			var color string
@@ -457,32 +500,32 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 				color = okColor
 			}
 			msg += (mark + " " + lcrs + "admin of " +
-				ColorString(color, s.GetHostname()) + " via " +
-				ColorString(color, strings.ToUpper(s.GetProtocol())) + torWarning +
+				ColorString(ui.G(), color, s.GetHostname()) + " via " +
+				ColorString(ui.G(), color, strings.ToUpper(s.GetProtocol())) + torWarning +
 				": " + lcr.GetHint().GetHumanURL())
 		}
 	} else {
 		msg = (mark + " " + lcrs +
-			ColorString("red", "Proof for "+s.ToDisplayString()+" "+
-				ColorString("bold", "failed")+": "+
+			ColorString(ui.G(), "red", "Proof for "+s.ToDisplayString()+" "+
+				ColorString(ui.G(), "bold", "failed")+": "+
 				lcr.GetError().Error()))
 	}
 
 	if cachedMsg := lcr.GetCachedMsg(); len(cachedMsg) > 0 {
-		msg += " " + ColorString("magenta", cachedMsg)
+		msg += " " + ColorString(ui.G(), "magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
-
+	ui.displayedProofs = true
 	return nil
 }
 
-func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
-	msg := (BTC + " " + " " + l.Family + " " + ColorString("green", l.Address))
+func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
+	msg := (BTC + " " + " " + l.Family + " " + ColorString(ui.G(), "green", l.Address))
 	ui.ReportHook(msg)
 	return nil
 }
 
-func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
+func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
 		fpq = fp.ToQuads()
@@ -492,26 +535,27 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 		if key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST || key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED {
 			mark = BADX
 		}
-		msg := mark + " " + trackDiffToColoredString(*key.TrackDiff)
+		msg := mark + " " + trackDiffToColoredString(ui.G(), *key.TrackDiff)
 		if len(fpq) > 0 {
-			msg += " " + ColorString(trackDiffToColor(key.TrackDiff.Type), "public key fingerprint: "+fpq)
+			msg += " " + ColorString(ui.G(), trackDiffToColor(key.TrackDiff.Type), "public key fingerprint: "+fpq)
 		}
 		ui.ReportHook(msg)
 	} else if len(fpq) > 0 {
-		msg := CHECK + " " + ColorString("green", "public key fingerprint: "+fpq)
+		msg := CHECK + " " + ColorString(ui.G(), "green", "public key fingerprint: "+fpq)
 		ui.ReportHook(msg)
 	}
 
+	ui.displayedProofs = true
 	return nil
 }
 
-func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
+func (ui *BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
 			locally += "locally "
 		}
-		msg := ColorString("bold", fmt.Sprintf("You last %sfollowed %s on %s",
+		msg := ColorString(ui.G(), "bold", fmt.Sprintf("You last %sfollowed %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}
@@ -519,7 +563,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) Warning(m string) {
+func (ui *BaseIdentifyUI) Warning(m string) {
 	ui.G().Log.Warning(m)
 }
 
@@ -550,7 +594,7 @@ func (ui *UI) GetSecretUI() libkb.SecretUI {
 }
 
 func (ui *UI) GetProveUI() libkb.ProveUI {
-	return ProveUI{parent: ui}
+	return ProveUI{Contextified: libkb.NewContextified(ui.G()), parent: ui}
 }
 
 func (ui *UI) GetLogUI() libkb.LogUI {
@@ -582,17 +626,18 @@ func (ui *UI) GetGPGUI() libkb.GPGUI {
 }
 
 func (ui *UI) GetProvisionUI(role libkb.KexRole) libkb.ProvisionUI {
-	return ProvisionUI{parent: ui, role: role}
+	return ProvisionUI{Contextified: libkb.NewContextified(ui.G()), parent: ui, role: role}
 }
 
 func (ui *UI) GetPgpUI() libkb.PgpUI {
 	// PGPUI goes to stderr so it doesn't munge up stdout
-	return PgpUI{w: ui.ErrorWriter()}
+	return PgpUI{Contextified: libkb.NewContextified(ui.G()), w: ui.ErrorWriter()}
 }
 
 //============================================================
 
 type ProveUI struct {
+	libkb.Contextified
 	parent     *UI
 	outputHook func(string) error
 }
@@ -601,9 +646,9 @@ func (p ProveUI) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwrite
 	var prompt string
 	switch arg.Typ {
 	case keybase1.PromptOverwriteType_SOCIAL:
-		prompt = "You already have a proof for " + ColorString("bold", arg.Account) + "; overwrite?"
+		prompt = "You already have a proof for " + ColorString(p.G(), "bold", arg.Account) + "; overwrite?"
 	case keybase1.PromptOverwriteType_SITE:
-		prompt = "You already have claimed ownership of " + ColorString("bold", arg.Account) + "; overwrite?"
+		prompt = "You already have claimed ownership of " + ColorString(p.G(), "bold", arg.Account) + "; overwrite?"
 	default:
 		prompt = "Overwrite " + arg.Account + "?"
 	}
@@ -611,15 +656,15 @@ func (p ProveUI) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwrite
 }
 
 func (p ProveUI) PromptUsername(_ context.Context, arg keybase1.PromptUsernameArg) (string, error) {
-	err := libkb.ImportStatusAsError(arg.PrevError)
+	err := libkb.ImportStatusAsError(p.G(), arg.PrevError)
 	if err != nil {
-		G.Log.Error(err.Error())
+		p.G().Log.Error(err.Error())
 	}
 	return p.parent.Terminal.Prompt(arg.Prompt + ": ")
 }
 
 func (p ProveUI) render(txt keybase1.Text) {
-	RenderText(p.parent.OutputWriter(), txt)
+	RenderText(p.G(), p.parent.OutputWriter(), txt)
 }
 
 func (p ProveUI) OutputPrechecks(_ context.Context, arg keybase1.OutputPrechecksArg) error {
@@ -637,7 +682,8 @@ func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstru
 	if p.outputHook != nil {
 		err = p.outputHook(arg.Proof)
 	} else {
-		p.parent.Output("\n" + arg.Proof + "\n")
+		// Whitespace is trimmed from proof text before it gets here.
+		p.parent.Output("\n" + arg.Proof + "\n\n")
 	}
 	return
 }
@@ -762,14 +808,15 @@ func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.Se
 }
 
 func (ui *UI) Configure() error {
-	t, err := NewTerminal(ui.G())
-	if err != nil {
-		// XXX this is only temporary so that SecretEntry will still work
-		// when this is run without a terminal.
-		ui.SecretEntry = NewSecretEntry(ui.G(), nil, "")
-		return err
+	ui.unescapedOutputWriter = logger.OutputWriter()
+	if ui.G().Env.GetDisplayRawUntrustedOutput() || !isatty.IsTerminal(os.Stdout.Fd()) {
+		ui.outputWriter = ui.unescapedOutputWriter
+		ui.Terminal = NewTerminalUnescaped(ui.G())
+	} else {
+		ui.outputWriter = &terminalescaper.Writer{Writer: ui.unescapedOutputWriter}
+		ui.Terminal = NewTerminalEscaped(ui.G())
 	}
-	ui.Terminal = t
+
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
 }
@@ -1009,7 +1056,11 @@ func (ui *UI) OutputDesc(_ libkb.OutputDescriptor, s string) error {
 }
 
 func (ui *UI) OutputWriter() io.Writer {
-	return logger.OutputWriter()
+	return ui.outputWriter
+}
+
+func (ui *UI) UnescapedOutputWriter() io.Writer {
+	return ui.unescapedOutputWriter
 }
 
 func (ui *UI) ErrorWriter() io.Writer {
@@ -1018,6 +1069,10 @@ func (ui *UI) ErrorWriter() io.Writer {
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
 	return fmt.Fprintf(ui.OutputWriter(), format, a...)
+}
+
+func (ui *UI) PrintfUnescaped(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(ui.UnescapedOutputWriter(), format, a...)
 }
 
 func (ui *UI) Println(a ...interface{}) (int, error) {

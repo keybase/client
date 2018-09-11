@@ -28,7 +28,7 @@ type PGPDecrypt struct {
 }
 
 // NewPGPDecrypt creates a PGPDecrypt engine.
-func NewPGPDecrypt(arg *PGPDecryptArg, g *libkb.GlobalContext) *PGPDecrypt {
+func NewPGPDecrypt(g *libkb.GlobalContext, arg *PGPDecryptArg) *PGPDecrypt {
 	return &PGPDecrypt{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -59,21 +59,21 @@ func (e *PGPDecrypt) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPDecrypt) Run(ctx *Context) (err error) {
-	defer e.G().Trace("PGPDecrypt::Run", func() error { return err })()
+func (e *PGPDecrypt) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PGPDecrypt#Run", func() error { return err })()
 
-	e.G().Log.Debug("| ScanKeys")
-	sk, err := NewScanKeys(ctx.SecretUI, e.G())
+	m.CDebugf("| ScanKeys")
+	sk, err := NewScanKeys(m)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("| PGPDecrypt")
-	e.signStatus, err = libkb.PGPDecrypt(e.G(), e.arg.Source, e.arg.Sink, sk)
+	m.CDebugf("| PGPDecrypt")
+	e.signStatus, err = libkb.PGPDecrypt(m.G(), e.arg.Source, e.arg.Sink, sk)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("| Sink Close")
+	m.CDebugf("| Sink Close")
 	if err = e.arg.Sink.Close(); err != nil {
 		return err
 	}
@@ -106,18 +106,23 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 
 		// identify the SignedBy assertion
 		arg := keybase1.Identify2Arg{
-			UserAssertion: e.arg.SignedBy,
-			AlwaysBlock:   true,
-			NeedProofSet:  true,
-			NoSkipSelf:    true,
+			UserAssertion:    e.arg.SignedBy,
+			AlwaysBlock:      true,
+			NeedProofSet:     true,
+			NoSkipSelf:       true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		eng := NewResolveThenIdentify2(m.G(), &arg)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
-		signByUser := eng.Result().Upk
+		res, err := eng.Result()
+		if err != nil {
+			return err
+		}
+		signByUser := res.Upk
 
-		if !signByUser.Uid.Equal(e.signer.GetUID()) {
+		if !signByUser.GetUID().Equal(e.signer.GetUID()) {
 			return libkb.BadSigError{
 				E: fmt.Sprintf("Signer %q did not match signed by assertion %q", e.signer.GetName(), e.arg.SignedBy),
 			}
@@ -125,20 +130,20 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 	} else {
 		if e.signer == nil {
 			// signer isn't a keybase user
-			e.G().Log.Debug("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
-			OutputSignatureSuccessNonKeybase(ctx, e.signStatus.KeyID, e.signStatus.SignatureTime)
-			return nil
+			m.CDebugf("message signed by key unknown to keybase: %X", e.signStatus.KeyID)
+			return OutputSignatureSuccessNonKeybase(m, e.signStatus.KeyID, e.signStatus.SignatureTime)
 		}
 
 		// identify the signer
 		arg := keybase1.Identify2Arg{
-			UserAssertion: e.signer.GetName(),
-			AlwaysBlock:   true,
-			NeedProofSet:  true,
-			NoSkipSelf:    true,
+			UserAssertion:    e.signer.GetName(),
+			AlwaysBlock:      true,
+			NeedProofSet:     true,
+			NoSkipSelf:       true,
+			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 		}
-		eng := NewResolveThenIdentify2(e.G(), &arg)
-		if err := RunEngine(eng, ctx); err != nil {
+		eng := NewResolveThenIdentify2(m.G(), &arg)
+		if err := RunEngine2(m, eng); err != nil {
 			return err
 		}
 	}
@@ -147,9 +152,14 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		return libkb.NoKeyError{Msg: fmt.Sprintf("In signature verification: no public key found for PGP ID %x", e.signStatus.KeyID)}
 	}
 
+	if entity := e.signStatus.Entity; len(entity.UnverifiedRevocations) > 0 {
+		return libkb.BadSigError{
+			E: fmt.Sprintf("Key %x belonging to %q has been revoked by its designated revoker.", entity.PrimaryKey.KeyId, e.signer.GetName()),
+		}
+	}
+
 	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
-	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
-	return nil
+	return OutputSignatureSuccess(m, bundle.GetFingerprint(), e.signer, e.signStatus.SignatureTime)
 }
 
 func (e *PGPDecrypt) SignatureStatus() *libkb.SignatureStatus {

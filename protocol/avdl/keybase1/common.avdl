@@ -2,8 +2,13 @@
 @namespace("keybase.1")
 protocol Common {
 
+  // Time in milliseconds
   @typedef("long")
   record Time {}
+
+  // Time in seconds
+  @typedef("long")
+  record UnixTime {}
 
   // Duration in seconds
   @typedef("double")
@@ -30,6 +35,9 @@ protocol Common {
   @typedef("string")
   record SigID {}
 
+  @typedef("string")
+  record LeaseID {}
+
   // Most appearances of KIDs in protocol are in hex....
   @typedef("string")
   record KID {}
@@ -44,6 +52,62 @@ protocol Common {
 
   @typedef("string")
   record TLFID {}
+
+  @typedef("string")
+  record TeamID {}
+
+  @typedef("string")
+  record UserOrTeamID {}
+
+  @typedef("string")
+  record GitRepoName {}
+
+  @typedef("bytes")
+  record HashMeta {}
+
+  record UserVersion {
+    UID uid;
+    Seqno eldestSeqno;
+  }
+
+  enum TeamType {
+    NONE_0,
+    LEGACY_1,
+    MODERN_2
+  }
+
+  // CompatibilityTeamID can refer to either a legacy TLF ID or a new-style team ID.
+  // Might eventually be useful but haven't found a need yet.
+  variant CompatibilityTeamID switch (TeamType typ) {
+    case LEGACY: TLFID;
+    case MODERN: TeamID;
+  }
+
+  enum TLFVisibility {
+    ANY_0,
+    PUBLIC_1,
+    PRIVATE_2
+  }
+
+  record TeamIDWithVisibility {
+    TeamID teamID;
+    TLFVisibility visibility;
+  }
+
+  record TeamIDAndName {
+    TeamID id;
+    TeamName name;
+  }
+
+  @typedef("int64") @lint("ignore")
+  record Seqno {}
+
+  enum SeqType {
+    NONE_0,
+    PUBLIC_1,
+    PRIVATE_2,
+    SEMIPRIVATE_3
+  }
 
   fixed Bytes32(32);
 
@@ -73,11 +137,12 @@ protocol Common {
     string deviceType;
     Time cTime;
     Time eTime;
+    boolean isRevoked;
   }
 
   record KeybaseTime {
     Time unix;
-    int chain;
+    Seqno chain;
   }
 
   record RevokedKey {
@@ -127,8 +192,9 @@ protocol Common {
   enum ClientType {
     NONE_0,
     CLI_1,
-    GUI_2,
-    KBFS_3
+    GUI_MAIN_2,
+    KBFS_3,
+    GUI_HELPER_4
   }
 
   record UserVersionVector {
@@ -136,12 +202,31 @@ protocol Common {
       int sigHints;
       long sigChain;
       Time cachedAt;
-      Time lastIdentifiedAt;
+  }
+
+  // PerUserKeyGeneration describes which generation of secret we're talking about.
+  // The sequence starts at 1, and should increment every time the per-user-secret
+  // rotates, which is every time a device is revoked.
+  @typedef("int")
+  @lint("ignore")
+  record PerUserKeyGeneration {}
+
+  @lint("ignore")
+  record PerUserKey {
+      int gen;
+      Seqno seqno;
+      KID sigKID;
+      KID encKID;
+      KID signedByKID; // The sibkey that delegated this PUK.
   }
 
   record UserPlusKeys {
       UID uid;
       string username;
+      Seqno eldestSeqno;
+
+      // =0 for an active user, and =216 for a deleted user
+      StatusCode status;
 
       // deviceKeys is a list of active device keys.  It does
       // not include PGP keys.
@@ -154,10 +239,28 @@ protocol Common {
       int pgpKeyCount;
 
       UserVersionVector uvv;
-      
+
       // deletedDeviceKeys is a list of deleted device keys.
       // (i.e. keys that were used before an account reset)
       array<PublicKey> deletedDeviceKeys;
+
+      // perUserKeys is the vector of kid-pairs derived from
+      // per-user secrets one for every generation.
+      @lint("ignore")
+      array<PerUserKey> perUserKeys;
+
+      // All resets that follow user incarnations with device keys.
+      array<ResetSummary> resets;
+  }
+
+  record UserOrTeamLite {
+      UserOrTeamID id;
+      string name;
+  }
+
+  enum UserOrTeamResult {
+      USER_1,
+      TEAM_2
   }
 
   record RemoteTrack {
@@ -176,7 +279,8 @@ protocol Common {
   enum MerkleTreeID {
        MASTER_0,
        KBFS_PUBLIC_1,
-       KBFS_PRIVATE_2
+       KBFS_PRIVATE_2,
+       KBFS_PRIVATETEAM_3
   }
 
   /**
@@ -205,4 +309,27 @@ protocol Common {
       UID userID;
   }
 
+  @typedef("string")
+  record FullName {}
+
+  enum FullNamePackageVersion {
+    V0_0,
+    V1_1,
+    V2_2
+  }
+
+  record FullNamePackage {
+    FullNamePackageVersion version;
+    FullName fullName;
+    Seqno eldestSeqno;
+    StatusCode status;
+    Time cachedAt;
+  }
+
+  record ImageCropRect {
+    int x0;
+    int y0;
+    int x1;
+    int y1;
+  }
 }

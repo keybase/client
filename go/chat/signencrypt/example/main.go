@@ -8,9 +8,10 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/agl/ed25519"
 	docopt "github.com/docopt/docopt-go"
 	"github.com/keybase/client/go/chat/signencrypt"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/go-crypto/ed25519"
 )
 
 func fail(args ...interface{}) {
@@ -50,8 +51,8 @@ func zeroSignKey() signencrypt.SignKey {
 	return &key
 }
 
-func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, nonce signencrypt.Nonce, chunklen int) error {
-	encoder := signencrypt.NewEncoder(enckey, signkey, nonce)
+func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
+	encoder := signencrypt.NewEncoder(enckey, signkey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		encoder.ChangePlaintextChunkLenForTesting(chunklen)
 	}
@@ -77,8 +78,8 @@ func seal(enckey signencrypt.SecretboxKey, signkey signencrypt.SignKey, nonce si
 	return nil
 }
 
-func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, nonce signencrypt.Nonce, chunklen int) error {
-	decoder := signencrypt.NewDecoder(enckey, verifykey, nonce)
+func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce signencrypt.Nonce, chunklen int64) error {
+	decoder := signencrypt.NewDecoder(enckey, verifykey, signaturePrefix, nonce)
 	if chunklen != 0 {
 		decoder.ChangePlaintextChunkLenForTesting(chunklen)
 	}
@@ -112,13 +113,16 @@ func open(enckey signencrypt.SecretboxKey, verifykey signencrypt.VerifyKey, nonc
 
 func main() {
 	usage := `Usage:
-    example seal [--enckey=<enckey>] [--signkey=<signkey>] [--nonce=<nonce>] [--chunklen=<chunklen>]
-    example open [--enckey=<enckey>] [--verifykey=<signkey>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example seal [--enckey=<enckey>] [--signkey=<signkey>]
+                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
+    example open [--enckey=<enckey>] [--verifykey=<signkey>]
+                 [--sigprefix=<sigprefix>] [--nonce=<nonce>] [--chunklen=<chunklen>]
 
 Options:
     --enckey=<enckey>        the 32-byte encryption key (in hex)
     --signkey=<signkey>      the 64-byte signing private key (in hex)
     --verifykey=<verifykey>  the 32-byte signing public  key (in hex)
+    --sigprefix=<sigprefix>  the signature prefix (string)
     --nonce=<nonce>          the 16-byte nonce
     --chunklen=<chunklen>    the size of plaintext chunks, for testing, default 2^20 bytes
 `
@@ -139,25 +143,31 @@ Options:
 		copy(verifykey[:], decodeHexArg(arguments["--verifykey"].(string)))
 	}
 
+	signaturePrefix := libkb.SignaturePrefixTesting
+	if arguments["--sigprefix"] != nil {
+		signaturePrefixStr := arguments["--sigprefix"].(string)
+		signaturePrefix = libkb.SignaturePrefix(signaturePrefixStr)
+	}
+
 	nonce := zeroNonce()
 	if arguments["--nonce"] != nil {
 		copy(nonce[:], decodeHexArg(arguments["--nonce"].(string)))
 	}
 
-	chunklen := 0
+	var chunklen int64
 	if arguments["--chunklen"] != nil {
 		parsed, err := strconv.Atoi(arguments["--chunklen"].(string))
 		if err != nil {
 			fail(err)
 		}
-		chunklen = parsed
+		chunklen = int64(parsed)
 	}
 
 	var err error
 	if arguments["seal"].(bool) {
-		err = seal(enckey, signkey, nonce, chunklen)
+		err = seal(enckey, signkey, signaturePrefix, nonce, chunklen)
 	} else {
-		err = open(enckey, verifykey, nonce, chunklen)
+		err = open(enckey, verifykey, signaturePrefix, nonce, chunklen)
 	}
 	if err != nil {
 		fail(err)

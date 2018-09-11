@@ -181,7 +181,7 @@
     "getRevokeWarning": {
       "request": [
         {
-          "name": "session",
+          "name": "sessionID",
           "type": "int"
         },
         {

@@ -1,50 +1,16 @@
 // @flow
-// constants
+import * as I from 'immutable'
+import * as Types from './types/login'
+import HiddenString from '../util/hidden-string'
 
-export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
-export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
-export const codePageDeviceRoleExistingComputer = 'codePageDeviceRoleExistingComputer'
-export const codePageDeviceRoleNewComputer = 'codePageDeviceRoleNewComputer'
+export const waitingKey = 'login:waiting'
 
-export const codePageModeScanCode = 'codePageModeScanCode'
-export const codePageModeShowCode = 'codePageModeShowCode'
-export const codePageModeEnterText = 'codePageModeEnterText'
-export const codePageModeShowText = 'codePageModeShowText'
-
-export const countDownTime = 5 * 60
-
-// actions
-export const login = 'login:login'
-export const loginDone = 'login:loginDone'
-export const logoutDone = 'login:logoutDone'
-export const setMyDeviceCodeState = 'login:setMyDeviceCodeState'
-export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
-export const setCodeMode = 'login:setCodeMode'
-export const setTextCode = 'login:setTextCode'
-export const qrScanned = 'login:qrScanned'
-export const setQRCode = 'login:setQRCode'
-export const cameraBrokenMode = 'login:cameraBrokenMode'
-export const doneRegistering = 'login:doneRegistering'
-export const configuredAccounts = 'login:configuredAccounts'
-export const waitingForResponse = 'login:waitingForResponse'
-export const setRevokedSelf = 'login:setRevokedSelf'
-export const setDeletedSelf = 'login:setDeletedSelf'
-export const setLoginFromRevokedDevice = 'login:setLoginFromRevokedDevice'
-
-export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
-export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
-export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
-
-export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
-export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
-export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
-
-export type DeviceRole = 'codePageDeviceRoleExistingPhone'
-| 'codePageDeviceRoleNewPhone'
-| 'codePageDeviceRoleExistingComputer'
-| 'codePageDeviceRoleNewComputer'
-
-export type Mode = 'codePageModeScanCode'
-| 'codePageModeShowCode'
-| 'codePageModeEnterText'
-| 'codePageModeShowText'
+export const makeState: I.RecordFactory<Types._State> = I.Record({
+  error: new HiddenString(''),
+  forgotPasswordError: null,
+  forgotPasswordSubmitting: false,
+  forgotPasswordSuccess: false,
+  justDeletedSelf: null,
+  justRevokedSelf: null,
+  registerUserPassLoading: false,
+})

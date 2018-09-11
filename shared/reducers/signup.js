@@ -1,202 +1,103 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as Types from '../constants/types/signup'
 import * as Constants from '../constants/signup'
+import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
-import {isMobile} from '../constants/platform'
+import {trim} from 'lodash-es'
+import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
 
-import type {SignupActions} from '../constants/signup'
+const initialState: Types.State = Constants.makeState()
 
-export type SignupState = {
-  inviteCode: ?string,
-  username: ?string,
-  email: ?string,
-  inviteCodeError: ?string,
-  usernameError: ?Error,
-  emailError: ?Error,
-  nameError: ?string,
-  passphraseError: ?HiddenString,
-  passphrase: ?HiddenString,
-  deviceNameError: ?string,
-  deviceName: ?string,
-  paperkey: ?HiddenString,
-  signupError: ?HiddenString,
-  waiting: boolean,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess',
-}
-
-const initialState: SignupState = {
-  inviteCode: null,
-  username: null,
-  email: null,
-  inviteCodeError: null,
-  usernameError: null,
-  emailError: null,
-  nameError: null,
-  passphraseError: null,
-  passphrase: null,
-  deviceNameError: null,
-  paperkey: null,
-  signupError: null,
-  deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
-  waiting: false,
-  phase: 'inviteCode',
-}
-
-/* eslint-disable no-fallthrough */
-export default function (state: SignupState = initialState, action: SignupActions): SignupState {
+export default function(state: Types.State = initialState, action: SignupGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-    case Constants.resetSignup:
-      return {...initialState}
-
-    case Constants.signupWaiting:
-      if (action.error) {
-        return state
+    case SignupGen.resetStore: // fallthrough
+    case SignupGen.restartSignup:
+      return initialState
+    case SignupGen.goBackAndClearErrors:
+      return state.merge({
+        devicenameError: '',
+        emailError: '',
+        inviteCodeError: '',
+        nameError: '',
+        passphraseError: new HiddenString(''),
+        signupError: new HiddenString(''),
+        usernameError: '',
+      })
+    case SignupGen.requestedAutoInvite:
+      return state.set('inviteCode', action.error ? '' : action.payload.inviteCode)
+    case SignupGen.checkInviteCode:
+      return state.set('inviteCode', action.payload.inviteCode)
+    case SignupGen.checkedInviteCode:
+      return action.payload.inviteCode === state.inviteCode
+        ? state.set('inviteCodeError', (action.error && action.payload.error) || '')
+        : state
+    case SignupGen.checkUsernameEmail: {
+      const {email, username} = action.payload
+      const emailError = isValidEmail(email)
+      const usernameError = isValidUsername(username)
+      return state.merge({email, emailError, username, usernameError})
+    }
+    case SignupGen.checkedUsernameEmail:
+      return action.payload.email === state.email && action.payload.username === state.username
+        ? state.merge({
+            emailError: (action.error && action.payload.emailError) || '',
+            usernameError: (action.error && action.payload.usernameError) || '',
+          })
+        : state
+    case SignupGen.requestInvite: {
+      const {email, name} = action.payload
+      const emailError = isValidEmail(email)
+      const nameError = isValidName(name)
+      return state.merge({
+        email: action.payload.email,
+        emailError,
+        name: action.payload.name,
+        nameError,
+      })
+    }
+    case SignupGen.requestedInvite:
+      return action.payload.email === state.email && action.payload.name === state.name
+        ? state.merge({
+            emailError: (action.error && action.payload.emailError) || '',
+            nameError: (action.error && action.payload.nameError) || '',
+          })
+        : state
+    case SignupGen.checkPassphrase: {
+      const {pass1, pass2} = action.payload
+      const p1 = pass1.stringValue()
+      const p2 = pass2.stringValue()
+      let passphraseError = new HiddenString('')
+      if (!p1 || !p2) {
+        passphraseError = new HiddenString('Fields cannot be blank')
+      } else if (p1 !== p2) {
+        passphraseError = new HiddenString('Passphrases must match')
+      } else if (p1.length < 6) {
+        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
       }
-      return {...state, waiting: action.payload}
-
-    case Constants.checkInviteCode:
-      if (action.error) {
-        return {
-          ...state,
-          inviteCodeError: action.payload.errorText,
-        }
-      } else {
-        return {
-          ...state,
-          inviteCode: action.payload.inviteCode,
-          inviteCodeError: null,
-          phase: 'usernameAndEmail',
-        }
-      }
-
-    case Constants.checkUsernameEmail:
-      const {username, email} = action.payload
-      if (action.error) {
-        const {emailError, usernameError} = action.payload
-        return {
-          ...state,
-          emailError,
-          usernameError,
-          username,
-          email,
-        }
-      } else {
-        return {
-          ...state,
-          phase: 'passphraseSignup',
-          emailError: null,
-          usernameError: null,
-          username,
-          email,
-        }
-      }
-
-    case Constants.startRequestInvite:
-      return {
-        ...state,
-        phase: 'requestInvite',
-      }
-
-    case Constants.requestInvite:
-      if (action.error) {
-        const {emailError, nameError, email, name} = action.payload
-        return {
-          ...state,
-          emailError,
-          nameError,
-          email,
-          name,
-        }
-      } else {
-        const {email, name} = action.payload
-        return {
-          ...state,
-          phase: 'requestInviteSuccess',
-          email,
-          name,
-        }
-      }
-
-    case Constants.checkPassphrase:
-      if (action.error) {
-        const {passphraseError} = action.payload
-        return {
-          ...state,
-          passphraseError,
-        }
-      } else {
-        const {passphrase} = action.payload
-        return {
-          ...state,
-          phase: 'deviceName',
-          passphrase,
-          passphraseError: null,
-        }
-      }
-
-    case Constants.submitDeviceName:
-      if (action.error) {
-        const {deviceNameError} = action.payload
-        return {
-          ...state,
-          deviceNameError,
-        }
-      } else {
-        const {deviceName} = action.payload
-        return {
-          ...state,
-          phase: 'signupLoading',
-          deviceName,
-          deviceNameError: null,
-        }
-      }
-
-    case Constants.showPaperKey:
-      if (action.error) {
-        console.warn('Should not get an error from showing paper key')
-        return state
-      } else {
-        const {paperkey} = action.payload
-        return {
-          ...state,
-          paperkey,
-          phase: 'success',
-        }
-      }
-
-    case Constants.showSuccess:
-      if (action.error) {
-        console.warn('Should not get an error from showing success')
-        return state
-      } else {
-        return {
-          ...state,
-          phase: 'success',
-        }
-      }
-
-    case Constants.signup:
-      if (action.error) {
-        return {
-          ...state,
-          signupError: action.payload.signupError,
-          phase: 'signupError',
-        }
-      } else {
-        return state
-      }
-
-    case Constants.restartSignup:
-      return {
-        ...state,
-        phase: 'inviteCode',
-        passphraseError: null,
-        inviteCodeError: null,
-      }
-
+      return state.merge({
+        passphrase: action.payload.pass1,
+        passphraseError,
+      })
+    }
+    case SignupGen.checkDevicename: {
+      const devicename = trim(action.payload.devicename)
+      const devicenameError = devicename.length === 0 ? 'Device name must not be empty.' : ''
+      return state.merge({devicename, devicenameError})
+    }
+    case SignupGen.checkedDevicename:
+      return action.payload.devicename === state.devicename
+        ? state.set('devicenameError', (action.error && action.payload.error) || '')
+        : state
+    case SignupGen.signedup:
+      return state.set('signupError', (action.error && action.payload.error) || new HiddenString(''))
+    // Saga only actions
+    case SignupGen.requestAutoInvite:
+      return state
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }
-/* eslint-enable no-fallthrough */

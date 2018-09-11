@@ -8,16 +8,26 @@ import (
 	"strings"
 	"time"
 
+	"bytes"
+
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
 )
 
-func (u UID) Bytes() []byte                   { return []byte(u) }
-func (u UID) String() string                  { return hex.EncodeToString(u) }
-func (d DeviceID) Bytes() []byte              { return []byte(d) }
-func (d DeviceID) String() string             { return hex.EncodeToString(d) }
+func (u UID) Bytes() []byte  { return []byte(u) }
+func (u UID) String() string { return hex.EncodeToString(u) }
+func (u UID) Eq(other UID) bool {
+	return bytes.Equal(u.Bytes(), other.Bytes())
+}
+
+func (d DeviceID) Bytes() []byte  { return []byte(d) }
+func (d DeviceID) String() string { return hex.EncodeToString(d) }
+func (d DeviceID) Eq(other DeviceID) bool {
+	return bytes.Equal(d.Bytes(), other.Bytes())
+}
 func (m MsgID) Bytes() []byte                 { return []byte(m) }
 func (m MsgID) String() string                { return hex.EncodeToString(m) }
+func (m MsgID) Eq(n MsgID) bool               { return m.String() == n.String() }
 func (s System) String() string               { return string(s) }
 func (c Category) String() string             { return string(c) }
 func (b Body) Bytes() []byte                  { return []byte(b) }
@@ -61,6 +71,12 @@ func (m MsgRange) EndTime() gregor.TimeOrOffset {
 }
 func (m MsgRange) Category() gregor.Category {
 	return m.Category_
+}
+func (m MsgRange) SkipMsgIDs() (res []gregor.MsgID) {
+	for _, s := range m.SkipMsgIDs_ {
+		res = append(res, s)
+	}
+	return res
 }
 
 func (d Dismissal) RangesToDismiss() []gregor.MsgRange {
@@ -162,31 +178,38 @@ func (s StateUpdateMessage) Dismissal() gregor.Dismissal {
 	return s.Dismissal_
 }
 
-func (i InBandMessage) Merge(i2 gregor.InBandMessage) error {
+func (i InBandMessage) Merge(i2 gregor.InBandMessage) (res gregor.InBandMessage, err error) {
 	t2, ok := i2.(InBandMessage)
 	if !ok {
-		return fmt.Errorf("bad merge; wrong type: %T", i2)
+		return res, fmt.Errorf("bad merge; wrong type: %T", i2)
 	}
 	if i.StateSync_ != nil || t2.StateSync_ != nil {
-		return errors.New("Cannot merge sync messages")
+		return res, errors.New("Cannot merge sync messages")
 	}
-	return i.StateUpdate_.Merge(t2.StateUpdate_)
+	st, err := i.StateUpdate_.Merge(t2.StateUpdate_)
+	if err != nil {
+		return res, err
+	}
+	return InBandMessage{StateUpdate_: &st}, nil
 }
 
-func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) error {
+func (s StateUpdateMessage) Merge(s2 *StateUpdateMessage) (res StateUpdateMessage, err error) {
 	if s.Creation_ != nil && s2.Creation_ != nil {
-		return errors.New("clash of creations")
+		return res, errors.New("cannot merge two creation messages")
 	}
-	if s.Creation_ == nil {
-		s.Creation_ = s2.Creation_
+	res.Md_ = s.Md_
+	res.Creation_ = s.Creation_
+	if res.Creation_ == nil {
+		res.Creation_ = s2.Creation_
 	}
-	if s.Dismissal_ == nil {
-		s.Dismissal_ = s2.Dismissal_
-	} else if s.Dismissal_ != nil {
-		s.Dismissal_.MsgIDs_ = append(s.Dismissal_.MsgIDs_, s2.Dismissal_.MsgIDs_...)
-		s.Dismissal_.Ranges_ = append(s.Dismissal_.Ranges_, s2.Dismissal_.Ranges_...)
+	res.Dismissal_ = s.Dismissal_
+	if res.Dismissal_ == nil {
+		res.Dismissal_ = s2.Dismissal_
+	} else if res.Dismissal_ != nil && s2.Dismissal_ != nil {
+		res.Dismissal_.MsgIDs_ = append(res.Dismissal_.MsgIDs_, s2.Dismissal_.MsgIDs_...)
+		res.Dismissal_.Ranges_ = append(res.Dismissal_.Ranges_, s2.Dismissal_.Ranges_...)
 	}
-	return nil
+	return res, nil
 }
 
 func (i InBandMessage) Metadata() gregor.Metadata {
@@ -246,10 +269,36 @@ func (m Message) ToOutOfBandMessage() gregor.OutOfBandMessage {
 	return *m.Oobm_
 }
 
+func (m Message) Marshal() ([]byte, error) {
+	var b []byte
+	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(m)
+	return b, err
+}
+
 func (m *Message) SetCTime(ctime time.Time) {
 	if m.Ibm_ != nil && m.Ibm_.StateUpdate_ != nil {
 		m.Ibm_.StateUpdate_.Md_.Ctime_ = ToTime(ctime)
 	}
+}
+
+func (m *Message) SetUID(uid UID) error {
+	if m.Ibm_ != nil {
+		if m.Ibm_.StateUpdate_ != nil {
+			m.Ibm_.StateUpdate_.Md_.Uid_ = uid
+			return nil
+		}
+		if m.Ibm_.StateSync_ != nil {
+			m.Ibm_.StateSync_.Md_.Uid_ = uid
+			return nil
+		}
+		return errors.New("unable to set uid on inband message (no StatUpdate or StateSync)")
+	}
+	if m.Oobm_ != nil {
+		m.Oobm_.Uid_ = uid
+		return nil
+	}
+
+	return errors.New("unable to set uid (no inband or out-of-band message)")
 }
 
 func (r Reminder) Item() gregor.Item     { return r.Item_ }
@@ -369,6 +418,10 @@ func TimeFromSeconds(seconds int64) Time {
 	return Time(seconds * 1000)
 }
 
+func TimeFromMilliseconds(ms int64) Time {
+	return Time(ms)
+}
+
 func (t Time) IsZero() bool        { return t == 0 }
 func (t Time) After(t2 Time) bool  { return t > t2 }
 func (t Time) Before(t2 Time) bool { return t < t2 }
@@ -376,6 +429,14 @@ func (t Time) Before(t2 Time) bool { return t < t2 }
 func FormatTime(t Time) string {
 	layout := "2006-01-02 15:04:05 MST"
 	return FromTime(t).Format(layout)
+}
+
+func ToDurationMsec(d time.Duration) DurationMsec {
+	return DurationMsec(d / time.Millisecond)
+}
+
+func ToDurationSec(d time.Duration) DurationSec {
+	return DurationSec(d / time.Second)
 }
 
 // DeviceID returns the deviceID in a SyncArc, or interface nil

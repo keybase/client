@@ -45,12 +45,11 @@ fi
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
+build_dir_kbnm="/tmp/build_kbnm"
 build_dir_updater="/tmp/build_updater"
 client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 updater_dir="$gopath/src/github.com/keybase/go-updater"
-
-"$client_dir/packaging/slack/send.sh" "Starting build $platform"
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
@@ -73,14 +72,18 @@ if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git checkout "$client_commit"
-  git pull
+  # If commit is hash, this fails and is unnecessary, if branch it's needed to
+  # update if it has changed.
+  git pull || true
 fi
 
 if [ -n "$kbfs_commit" ]; then
   cd "$kbfs_dir"
   echo "Checking out $kbfs_commit on kbfs (will reset to $kbfs_branch)"
   git checkout "$kbfs_commit"
-  git pull
+  # If commit is hash, this fails and is unnecessary, if branch it's needed to
+  # update if it has changed.
+  git pull || true
 fi
 
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
@@ -108,21 +111,23 @@ for ((i=1; i<=$number_of_builds; i++)); do
   if [ ! "$nobuild" = "1" ]; then
     BUILD_DIR="$build_dir_keybase" "$dir/build_keybase.sh"
     BUILD_DIR="$build_dir_kbfs" "$dir/build_kbfs.sh"
+    BUILD_DIR="$build_dir_kbnm" "$dir/build_kbnm.sh"
     BUILD_DIR="$build_dir_updater" "$dir/build_updater.sh"
   fi
 
   version=`$build_dir_keybase/keybase version -S`
   kbfs_version=`$build_dir_kbfs/kbfs -version`
+  kbnm_version=`$build_dir_kbnm/kbnm -version`
   updater_version=`$build_dir_updater/updater -version`
 
   save_dir="/tmp/build_desktop"
   rm -rf "$save_dir"
 
   if [ "$platform" = "darwin" ]; then
-    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
+    SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" GIT_REMOTE_KEYBASE_BINPATH="$build_dir_kbfs/git-remote-keybase" REDIRECTOR_BINPATH="$build_dir_kbfs/keybase-redirector" KBNM_BINPATH="$build_dir_kbnm/kbnm" \
       UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
   else
-    # TODO: Support linux build here?
+    # TODO: Support Linux build here?
     echo "Unknown platform: $platform"
     exit 1
   fi
@@ -139,8 +144,8 @@ for ((i=1; i<=$number_of_builds; i++)); do
 done
 
 
-if [ ! "$istest" = "" ]; then
-  "$client_dir/packaging/slack/send.sh" "Finished test build $platform (keybase: $version). See $s3host";
+if [ "$istest" = "1" ]; then
+  "$client_dir/packaging/slack/send.sh" "Finished *test* build $platform (keybase: $version). See $s3host/darwin-test/index.html"
 else
   # Promote the build we just made to the test channel -- if smoketest, then
   # promote the first build; if not, then promote the only build.
@@ -148,11 +153,11 @@ else
 
   if [ "$number_of_builds" = "2" ]; then
     # Announce the new builds to the API server.
-    echo "Annoucing builds: $build_a and $build_b."
+    echo "Announcing builds: $build_a and $build_b."
     BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$release_bin" announce-build --build-a="$build_a" --build-b="$build_b" --platform="darwin"
   fi
 
   BUCKET_NAME="$bucket_name" "$dir/report.sh"
 
-  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version). See $s3host";
+  "$client_dir/packaging/slack/send.sh" "Finished build $platform (keybase: $version, kbfs: $kbfs_version, kbnm: $kbnm_version). See $s3host";
 fi

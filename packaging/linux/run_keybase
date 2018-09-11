@@ -5,51 +5,278 @@ set -e -u -o pipefail
 # This is the script responsible for launching keybase on boot on Linux. A
 # .desktop file will be created by the service on first launch in
 # ~/.config/autostart/ to invoke this script.
-#
-# At some point, it would be nice to have all of this done by systemd, so that
-# we could use all the nice facilities for restart-on-crash and dependency
-# relationships and logging. But until systemd is more widely deployed, it's
-# easier to do everything this way.
 
-# Stop any existing services. These commands will return errors if keybase
-# isn't already running, but putting them in if-statements prevents those
-# errors from aborting the whole script.
-if killall Keybase &> /dev/null ; then
-  echo Shutting down Keybase GUI...
-fi
-if fusermount -uz /keybase &> /dev/null ; then
-  echo Unmounting /keybase...
-fi
-if killall kbfsfuse &> /dev/null ; then
-  echo Shutting down kbfsfuse...
-fi
-if killall keybase &> /dev/null ; then
-  echo Shutting down keybase service...
-fi
+runtime_dir="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase"
+mkdir -p "$runtime_dir"
+startup_token="$runtime_dir/startup_mode"
 
-# There is a race condition where if we try to start the keybase service before
-# the previous process has died, we might fail to lock the pid file and error
-# out. Avoid this by waiting for the lock file to be free, on systems with flock
-# installed.
-lockfile="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/keybased.pid"
-if which flock &> /dev/null && [ -e "$lockfile" ] ; then
-  flock "$lockfile" true
-fi
+set_autostart_vars() {
+    # To keep the autostart file stable, so that we don't have to stomp on user
+    # edits, we group everything we need to do on autostart under this one
+    # variable, which the autostart file sets.
+    if [ "${KEYBASE_AUTOSTART:-}" = 1 ] ; then
+        export KEYBASE_START_UI=hideWindow
+        export XDG_CURRENT_DESKTOP=Unity
+    fi
+}
 
-export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
-export KEYBASE_DEBUG=1
-logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
-mkdir -p "$logdir"
+set_empty_mountdir_to_default() {
+    # Set the mount point to a default value if a) nothing is set yet,
+    # or b) both are set to the old default.
+    default=""
+    oldDefault="${XDG_DATA_HOME:-$HOME/.local/share}/keybase/fs"
+    # Use -d to avoid starting up the keybase background daemon here.
+    # For the new default mountpoint, use /run/user/$UID/keybase/kbfs
+    # if at all possible, but if the system doesn't have
+    # $XDG_RUNTIME_DIR defined, we'll have to fall back to something
+    # in the home directory (putting the user at risk of things like
+    # du and find crawling KBFS...).
+    newDefault="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/kbfs"
+    if keybase config get -d -b mountdirdefault &> /dev/null ; then
+        # If the current mount directory is still the old default, force
+        # an update to the new default.
+        default="$(keybase config get -d -b mountdirdefault 2> /dev/null)"
+        if [ "$default" = "$oldDefault" ]; then
+            mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
+            if [ "$mountdir" = "$default" ]; then
+                if fusermount -uz "$mountdir" &> /dev/null ; then
+                    echo "Updating mount directory from $default to $newDefault"
+                fi
+                default=""
+            fi
+        fi
+    fi
 
-echo Launching keybase service...
-# We set the --auto-forked flag here so that updated clients that try to
-# restart this service will know to re-fork it themselves. That's all it does.
-keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
-echo Mounting /keybase...
-kbfsfuse -debug -log-to-file /keybase &>> "$logdir/keybase.start.log" &
-echo Launching Keybase GUI...
-/opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
+    if [ -z "$default" ]; then
+        # The user has no mountpoint configured yet, so pick a default one
+        # and record the default setting in a separate config field, so
+        # later we can tell whether the user changed it away from the
+        # default or not.
+        mountdir="$newDefault"
+        keybase config set mountdir "$mountdir"
+        keybase config set mountdirdefault "$mountdir"
+    fi
+}
 
-echo 'Success!'
-# Magical squirrel produced by https://github.com/erkin/ponysay
-cat /opt/keybase/crypto_squirrel.txt
+set_empty_mountdir_to_default
+mountdir="$(keybase config get -d -b mountdir 2> /dev/null)"
+export KEYBASE_MOUNTDIR=$mountdir
+
+# Don't make the mountpoint until after unmounting/killing the
+# previous mount, otherwise `mkdir` will fail.
+
+# NOTE: This logic is duplicated in systemd_linux.go. If you make changes here,
+# keep them in sync.
+systemd_running() {
+    # First check that systemd is running at all at the system level. See
+    # https://www.freedesktop.org/software/systemd/man/sd_booted.html.
+    if ! [ -d "/run/systemd/system" ] ; then
+        return 1
+    fi
+
+    # There are also systems that have systemd running at the system level (so
+    # they pass the check above), but not at the user level, for whatever
+    # reason. Ask the systemd user daemon for its status directly, to be sure
+    # it's running. Note that "degraded" just means some service has failed to
+    # start -- it could be anything, so we treat it the same as "running". (We
+    # have to `|| true` to ignore non-zero exit status errors also for that
+    # reason.)
+    status="$(systemctl --user is-system-running || true)"
+    if [ "$status" = "running" ] || [ "$status" = "degraded" ] ; then
+        return 0
+    elif [ -z "$status" ] ; then
+        echo "WARNING: Couldn't reach the systemd user-level daemon."
+        echo "Falling back to non-systemd startup."
+        return 1
+    else
+        echo "WARNING: Systemd reported an unexpected status: $status"
+        echo "Falling back to non-systemd startup."
+        return 1
+    fi
+}
+
+was_started_with_systemd() {
+    [ -e "$startup_token" ] && [ "$(cat "$startup_token")" = "systemd" ]
+}
+
+# Defaults to true unless KEYBASE_SYSTEMD=0.
+wants_systemd() {
+    [ "${KEYBASE_SYSTEMD:-1}" != "0" ] && systemd_running
+}
+
+write_startup_token() {
+  echo "$1" > "$startup_token"
+}
+
+# This works no matter how the services were started, because our
+# Restart=on-failure configuration won't restart after SIGTERM.
+kill_all() {
+  if killall Keybase &> /dev/null ; then
+    echo Shutting down Keybase GUI...
+  fi
+  # In case the package upgrade wasn't able to unmount and remove /keybase
+  if fusermount -uz /keybase &> /dev/null ; then
+    # Remove any existing legacy mount.  This should never happen
+    # because it should have already been done by post_install.sh.
+    # Just in case, let the user know how to fix it.
+    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase` and then run this command again.
+    exit -1
+  fi
+  if fusermount -uz $mountdir &> /dev/null ; then
+    echo Unmounting $mountdir...
+  fi
+  if killall kbfsfuse &> /dev/null ; then
+    echo Shutting down kbfsfuse...
+  fi
+  if killall keybase &> /dev/null ; then
+    echo Shutting down keybase service...
+  fi
+
+  # There is a race condition where if we try to start the keybase service before
+  # the previous process has died, we might fail to lock the pid file and error
+  # out. Avoid this by waiting for the lock file to be free, on systems with flock
+  # installed.
+  lockfile="$runtime_dir/keybased.pid"
+  if which flock &> /dev/null && [ -e "$lockfile" ] ; then
+    flock "$lockfile" true
+  fi
+}
+
+forward_vars() {
+  filename="$1"
+  vars=("${!2}")
+  cat /dev/null > "$filename"
+  for varname in "${vars[@]}" ; do
+      # Include set-but-empty variables but not unset variables.
+      if [ -n "${!varname+x}" ] ; then
+          echo "$varname=${!varname}" >> "$filename"
+      fi
+  done
+}
+
+run_redirector() {
+  rootConfigFile="/etc/keybase/config.json"
+  disableConfigKey="disable-root-redirector"
+
+  disable="false"
+  if [ -r "$rootConfigFile" ] ; then
+    if keybase -c "$rootConfigFile" config get -d "$disableConfigKey" &> /dev/null ; then
+      disable="$(keybase -c "$rootConfigFile" config get -d "$disableConfigKey" 2> /dev/null)"
+    fi
+  fi
+
+  # Only start the root redirector if it hasn't been explicitly disabled.
+  if [ "$disable" != "true" ]; then
+    log="${XDG_CACHE_HOME:-$HOME/.cache}/keybase/keybase.redirector.log"
+    # An older version of post_install.sh could have made a redirector log
+    # here that's owned by root.  If we can't write to it, then just nuke it
+    # and overwrite.
+    if [ -e "$log" -a ! -w "$log" ]; then
+      rm -f "$log"
+    fi
+    nohup keybase-redirector /keybase >> "$log" 2>&1 &
+  fi
+}
+
+start_systemd() {
+  echo Starting via systemd.
+  # This script is intended to be run after updates, so we need to reload
+  # potentially changed unit files.
+  systemctl --user daemon-reload
+
+  forwarded_gui_env_vars=(
+      # The autostart file sets this to "hideWindow" to prevent opening the
+      # Keybase main window when the app is autostarted.
+      KEYBASE_START_UI
+
+      # Some older distros (e.g. Ubuntu 16.04) don't make X session variables
+      # available to user units automatically. Whitelisting them is safer than
+      # dumping the entire environment, even though there's a chance we might
+      # miss something, because some environment variables might contain
+      # passwords or keys. Hopefully this section won't be needed someday.
+      # (Arch Linux doesn't need it today.)
+      DISPLAY
+      XAUTHORITY
+      XDG_CURRENT_DESKTOP
+      DBUS_SESSION_BUS_ADDRESS
+      CLUTTER_IM_MODULE
+      GTK_IM_MODULE
+      QT_IM_MODULE
+      QT4_IM_MODULE
+      XMODIFIERS
+  )
+  forward_vars "$runtime_dir/keybase.gui.env" forwarded_gui_env_vars[@]
+
+  run_redirector
+
+  # The keybase.gui.service unit has keybase.service and kbfs.service as
+  # dependencies, so we don't have to list them here. But including them lets
+  # us report an error if they fail to start. Also prefer `restart` to `start`
+  # so that we don't race against the service shutting down.
+  systemctl --user restart keybase.service kbfs.service keybase.gui.service
+  write_startup_token "systemd"
+}
+
+start_background() {
+  export KEYBASE_RUN_MODE="${KEYBASE_RUN_MODE:-prod}"
+  export KEYBASE_DEBUG=1
+  logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
+  mkdir -p "$logdir"
+
+  echo Launching keybase service...
+  # We set the --auto-forked flag here so that updated clients that try to
+  # restart this service will know to re-fork it themselves. That's all it does.
+  keybase -d --log-file="$logdir/keybase.service.log" service --auto-forked &>> "$logdir/keybase.start.log" &
+  echo Mounting the file system...
+  run_redirector
+  kbfsfuse -debug -log-to-file "$mountdir" &>> "$logdir/keybase.start.log" &
+  echo Launching Keybase GUI...
+  /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
+  write_startup_token "background"
+}
+
+# Sometimes people get into weird configurations, where the `keybase` binary in
+# their PATH isn't what it should be. This can particularly happen on machines
+# that used to run an ancient version of Keybase, when it was installed via
+# NPM. Detect cases like this and print a warning.
+warn_if_weird_path() {
+    # Users who know they're doing interesting custom things, and don't want to
+    # see this warning, can set KEYBASE_PATH_WARNING=0 in their environment to
+    # silence it.
+    if [ "${KEYBASE_PATH_WARNING:-}" = "0" ] ; then
+        return
+    fi
+    if [ "$(which keybase)" != "/usr/bin/keybase" ] ; then
+        echo "WARNING: Expected the keybase executable to be /usr/bin/keybase, but it's"
+        echo "         $(which keybase) instead. Do you have multiple versions installed?"
+    fi
+}
+
+main() {
+  set_autostart_vars
+
+  warn_if_weird_path
+
+  # Always stop any running services. With systemd, we could've decided to just
+  # `start` services and no-op if they're already running, however:
+  # 1) We still need to handle the case where services started outside systemd
+  #    are currently running, and making that totally reliable is tricky.
+  # 2) Users have come to expect that run_keybase will restart everything, and
+  #    we tell them to do it after updates.
+  kill_all
+  mkdir -p "$mountdir"
+
+  if wants_systemd ; then
+      start_systemd
+  else
+      start_background
+  fi
+
+  echo 'Success!'
+  # Magical squirrel produced by https://github.com/erkin/ponysay
+  if [ "${KEYBASE_NO_SQUIRREL:-}" != "1" ]; then
+    cat /opt/keybase/crypto_squirrel.txt
+  fi
+}
+
+main

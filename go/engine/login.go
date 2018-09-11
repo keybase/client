@@ -7,6 +7,8 @@ package engine
 
 import (
 	"errors"
+	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -30,7 +32,7 @@ func NewLogin(g *libkb.GlobalContext, deviceType string, usernameOrEmail string,
 	return &Login{
 		Contextified:    libkb.NewContextified(g),
 		deviceType:      deviceType,
-		usernameOrEmail: usernameOrEmail,
+		usernameOrEmail: strings.TrimSpace(usernameOrEmail),
 		clientType:      ct,
 	}
 }
@@ -60,40 +62,63 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *Login) Run(ctx *Context) error {
+func (e *Login) Run(m libkb.MetaContext) (err error) {
+
+	m = m.WithLogTag("LOGIN")
+
+	defer m.CTrace("Login#Run", func() error { return err })()
+	// check to see if already logged in
+
+	var loggedInOK bool
+	loggedInOK, err = e.checkLoggedInAndNotRevoked(m)
+	if err != nil {
+		m.CDebugf("Login: error checking if user is logged in: %s", err)
+		return err
+	}
+	if loggedInOK {
+		return nil
+	}
+	m.CDebugf("Login: not currently logged in")
+
 	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
 		// If e.usernameOrEmail is provided and it is an email address, then
 		// loginProvisionedDevice is pointless.  It would return an error,
 		// but might as well not even use it.
-		e.G().Log.Debug("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
+		m.CDebugf("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
 	} else {
 		// First see if this device is already provisioned and it is possible to log in.
-		eng := NewLoginProvisionedDevice(e.G(), e.usernameOrEmail)
-		err := RunEngine(eng, ctx)
-		if err == nil {
-			// login successful
-			e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
-			e.sendNotification()
+		loggedInOK, err := e.loginProvisionedDevice(m, e.usernameOrEmail)
+		if err != nil {
+			m.CDebugf("loginProvisionedDevice error: %s", err)
+			return err
+		}
+		if loggedInOK {
+			m.CDebugf("loginProvisionedDevice success")
 			return nil
 		}
 
-		// if this device has been provisioned already and there was an error, then
-		// return that error.  Otherwise, ignore it and keep going.
-		if !e.notProvisionedErr(err) {
-			return err
-		}
-
-		e.G().Log.Debug("loginProvisionedDevice error: %s (continuing with device provisioning...)", err)
+		m.CDebugf("loginProvisionedDevice failed, continuing with device provisioning")
 	}
 
-	e.G().Log.Debug("attempting device provisioning")
-
 	// clear out any existing session:
-	e.G().Logout()
+	m.CDebugf("clearing any existing login session with Logout before loading user for login")
+	m.G().Logout()
 
-	// run the LoginLoadUser sub-engine to load a user
-	ueng := newLoginLoadUser(e.G(), e.usernameOrEmail)
-	if err := RunEngine(ueng, ctx); err != nil {
+	// Set up a provisional login context for the purposes of running provisioning.
+	// This is where we'll store temporary session tokens, etc, that are useful
+	// in the context of this provisioning session.
+	m = m.WithNewProvisionalLoginContext()
+	defer func() {
+		if err == nil {
+			// resets the LoginContext to be nil, and also commits cacheable
+			// data like the passphrase stream into the global context.
+			m = m.CommitProvisionalLogin()
+		}
+	}()
+
+	m.CDebugf("loading login user for %q", e.usernameOrEmail)
+	ueng := newLoginLoadUser(m.G(), e.usernameOrEmail)
+	if err := RunEngine2(m, ueng); err != nil {
 		return err
 	}
 
@@ -101,26 +126,44 @@ func (e *Login) Run(ctx *Context) error {
 	// get here if usernameOrEmail is an email address
 	// for an already provisioned on this device user).
 	if ueng.User().HasCurrentDeviceInCurrentInstall() {
+		m.CDebugf("user %q (%s) has previously provisioned this device, trying to login on it", e.usernameOrEmail, ueng.User().GetName())
+		loggedInOK, err := e.loginProvisionedDevice(m, ueng.User().GetName())
+		if err != nil {
+			m.CDebugf("loginProvisionedDevice after loginLoadUser error: %s", err)
+			return err
+		}
+		if loggedInOK {
+			m.CDebugf("loginProvisionedDevice after loginLoadUser success")
+			return nil
+		}
+
+		// this shouldn't happen:
+		m.CDebugf("loginProvisionedDevice after loginLoadUser (and user had current deivce in current install), failed to login [unexpected]")
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
+
+	m.CDebugf("attempting device provisioning")
 
 	darg := &loginProvisionArg{
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,
 		User:       ueng.User(),
 	}
-	deng := newLoginProvision(e.G(), darg)
-	if err := RunEngine(deng, ctx); err != nil {
+	deng := newLoginProvision(m.G(), darg)
+	if err := RunEngine2(m, deng); err != nil {
 		return err
 	}
 
-	e.sendNotification()
+	e.perUserKeyUpgradeSoft(m)
+
+	m.CDebugf("Login provisioning success, sending login notification")
+	e.sendNotification(m)
 	return nil
 }
 
 // notProvisionedErr will return true if err signifies that login
 // failed because this device has not yet been provisioned.
-func (e *Login) notProvisionedErr(err error) bool {
+func (e *Login) notProvisionedErr(m libkb.MetaContext, err error) bool {
 	if err == errNoDevice {
 		return true
 	}
@@ -128,12 +171,82 @@ func (e *Login) notProvisionedErr(err error) bool {
 		return true
 	}
 
-	e.G().Log.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
-
+	m.CDebugf("notProvisioned, not handling error %s (err type: %T)", err, err)
 	return false
 }
 
-func (e *Login) sendNotification() {
-	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
-	e.G().CallLoginHooks()
+func (e *Login) sendNotification(m libkb.MetaContext) {
+	m.G().NotifyRouter.HandleLogin(string(m.G().Env.GetUsername()))
+	m.G().CallLoginHooks()
+}
+
+// Get a per-user key.
+// Wait for attempt but only warn on error.
+func (e *Login) perUserKeyUpgradeSoft(m libkb.MetaContext) error {
+	eng := NewPerUserKeyUpgrade(m.G(), &PerUserKeyUpgradeArgs{})
+	err := RunEngine2(m, eng)
+	if err != nil {
+		m.CWarningf("loginProvision PerUserKeyUpgrade failed: %v", err)
+	}
+	return err
+}
+
+func (e *Login) checkLoggedInAndNotRevoked(m libkb.MetaContext) (bool, error) {
+	m.CDebugf("checkLoggedInAndNotRevoked()")
+
+	username := libkb.NewNormalizedUsername(e.usernameOrEmail)
+
+	// CheckForUsername() gets a consistent picture of the current active device,
+	// and sees if it matches the given username, and isn't revoked. If all goes
+	// well, we return `true,nil`. It could be we're already logged in but for
+	// someone else, in which case we return true and an error.
+	err := m.ActiveDevice().CheckForUsername(m, username)
+
+	switch err := err.(type) {
+	case nil:
+		return true, nil
+	case libkb.NoActiveDeviceError:
+		return false, nil
+	case libkb.UserNotFoundError:
+		m.CDebugf("Login: %s", err.Error())
+		return false, err
+	case libkb.KeyRevokedError, libkb.DeviceNotFoundError:
+		m.CDebugf("Login on revoked or reset device: %s", err.Error())
+		if err = m.G().Logout(); err != nil {
+			m.CDebugf("logout error: %s", err)
+		}
+		return false, err
+	case libkb.LoggedInWrongUserError:
+		if libkb.CheckEmail.F(e.usernameOrEmail) {
+			m.CDebugf("Login: already logged in, but %q email address provided. Can't determine if that is current user (%q) without further work, so just returning LoggedInError", e.usernameOrEmail, err.ExistingName)
+		} else {
+			m.CDebugf(err.Error())
+		}
+		return true, libkb.LoggedInError{}
+	default:
+		m.CDebugf("Login: unexpected error: %s", err.Error())
+		return false, fmt.Errorf("unexpected error in Login: %s", err.Error())
+	}
+}
+
+func (e *Login) loginProvisionedDevice(m libkb.MetaContext, username string) (bool, error) {
+	eng := NewLoginProvisionedDevice(m.G(), username)
+	err := RunEngine2(m, eng)
+	if err == nil {
+		// login successful
+		m.CDebugf("LoginProvisionedDevice.Run() was successful")
+		// Note:  LoginProvisionedDevice Run() will send login notifications, no need to
+		// send here.
+		return true, nil
+	}
+
+	// if this device has been provisioned already and there was an error, then
+	// return that error.  Otherwise, ignore it and keep going.
+	if !e.notProvisionedErr(m, err) {
+		return false, err
+	}
+
+	m.CDebugf("loginProvisionedDevice error: %s (not fatal, can continue to provision this device)", err)
+
+	return false, nil
 }

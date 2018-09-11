@@ -1,150 +1,190 @@
 // @flow
-import React from 'react'
-import type {Folder} from './list'
-import type {IconType} from '../common-adapters/icon'
-import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
+import * as React from 'react'
+import {Box, Button, Text, Icon, MultiAvatar, Avatar, Meta, Usernames} from '../common-adapters'
 import {getStyle} from '../common-adapters/text'
-import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, platformStyles} from '../styles'
+import * as Types from '../constants/types/folders'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
-  let boxStyle: Object = {
-    width: smallMode ? globalMargins.large : 48,
-    minHeight: smallMode ? globalMargins.large : 48,
-    padding: globalMargins.tiny,
-  }
+type Folder = Types.Folder
 
-  if (isPublic) {
-    boxStyle.backgroundColor = globalColors.yellowGreen
-  } else {
-    boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
-  }
-
-  const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
-  return (
-    <Box style={boxStyle}>
-      {groupAvatar
-        ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
-        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
-          backgroundColor={styles.rowContainer.backgroundColor} />}
-    </Box>
-  )
-}
-
-const Modified = ({smallMode, styles, modified}) => {
-  const iconColor = {color: getStyle('BodySmall', styles.modifiedMode).color}
-  const boltStyle = {
-    fontSize: smallMode ? 10 : 10,
-    alignSelf: 'center',
-    ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
-    ...iconColor,
-  }
-
-  return (
-    <Box style={stylesModified}>
-      <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmallInlineLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
-    </Box>
-  )
-}
-
-const RowMeta = ({ignored, meta, styles}) => {
-  const metaColors = {
-    'new': globalColors.white,
-    'rekey': globalColors.white,
-  }
-
-  const metaBGColors = {
-    'new': globalColors.orange,
-    'rekey': globalColors.red,
-  }
-
-  const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
-
-  return <Meta {...metaProps} />
-}
-
-type RowType = {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
-
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
-  onOpen, onClick, groupAvatar, userAvatar, onRekey, path}: RowType & Folder) => {
-  const onOpenClick = event => {
-    event.preventDefault()
-    event.stopPropagation()
-    if (onOpen) {
-      onOpen(path)
+class Avatars extends React.PureComponent<any> {
+  render() {
+    const {ignored, isPublic, isTeam} = this.props
+    let users = this.props.users
+    if (!isPublic && users.length > 1) {
+      users = users.filter(({you}) => !you)
     }
+    const avatarCount = Math.min(2, users.length)
+    const opacity = ignored ? 0.5 : 1
+    const avatarProps = users.slice(0, 2).map(({username}, idx) => ({
+      borderColor: avatarCount > 1 && idx === 0 ? globalColors.white : undefined,
+      loadingColor: globalColors.lightGrey,
+      size: 32,
+      username,
+    }))
+
+    let teamname = 'unknown'
+    if (isTeam && users.length > 0) {
+      teamname = users[0].username
+    }
+
+    return (
+      <Box
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          height: 48,
+          justifyContent: 'flex-start',
+          padding: 0,
+          width: 56,
+        }}
+      >
+        {isTeam ? (
+          <Avatar
+            size={32}
+            teamname={teamname}
+            isTeam={true}
+            style={{opacity, marginLeft: globalMargins.xtiny, marginTop: globalMargins.xtiny}}
+          />
+        ) : (
+          <MultiAvatar singleSize={32} multiSize={32} avatarProps={avatarProps} style={{opacity}} />
+        )}
+      </Box>
+    )
   }
+}
 
-  const styles = isPublic ? stylesPublic : stylesPrivate
+class Modified extends React.PureComponent<any> {
+  render() {
+    const {styles, modified} = this.props
+    const iconColor = getStyle('BodySmall', styles.modifiedMode).color
+    const boltStyle = {
+      alignSelf: 'center',
+      marginTop: 2,
+    }
 
-  let backgroundColor = styles.rowContainer.backgroundColor
-  let nameColor = styles.nameColor
-  let redColor = globalColors.red
-
-  if (ignored) {
-    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
-    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
-    redColor = globalColors.red_75
+    return (
+      <Box style={stylesModified}>
+        <Icon type="iconfont-thunderbolt" style={boltStyle} hint="Modified" color={iconColor} fontSize={10} />
+        <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
+          Modified {modified.when} by&nbsp;
+        </Text>
+        <Text type="BodySmallSecondaryLink" backgroundMode={styles.modifiedMode}>
+          {modified.username}
+        </Text>
+      </Box>
+    )
   }
+}
 
-  const containerStyle = {
-    ...styles.rowContainer,
-    minHeight: smallMode ? 40 : 48,
-    backgroundColor,
+class RowMeta extends React.PureComponent<any> {
+  render() {
+    const {meta} = this.props
+    if (meta === 'ignored') {
+      return
+    }
+
+    const color = {
+      new: globalColors.white,
+      rekey: globalColors.white,
+    }[meta]
+
+    const backgroundColor = {
+      new: globalColors.orange,
+      rekey: globalColors.red,
+    }[meta]
+
+    return <Meta title={meta || ''} color={color} backgroundColor={backgroundColor} />
   }
+}
 
-  const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
+type RowType = {
+  hasReadOnlyUsers: boolean,
+  installed: boolean,
+  sortName: string,
+  onOpen: (path: string) => void,
+  onChat: (tlf: string) => void,
+  onClick: (path: string) => void,
+  onRekey: (path: string) => void,
+}
 
-  return (
-    <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
-      <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} isPublic={isPublic} />
-        <Box style={stylesBodyContainer}>
-          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: nameColor}} redColor={redColor} />
-          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
-        </Box>
-        <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
-          {!smallMode && meta !== 'rekey' && <Text
-            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
-          {meta === 'rekey' && <Button
-            backgroundMode={styles.modifiedMode} small={true} type='Secondary'
-            onClick={e => {
-              if (onRekey) {
-                e.stopPropagation()
-                onRekey(path)
-              }
-            }} label='Rekey' style={styles.action} />}
-          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
+class Row extends React.PureComponent<RowType & Folder> {
+  render() {
+    const {users, isPublic, isTeam, ignored, meta, modified, onClick, onRekey, path} = this.props
+    const styles = isPublic ? stylesPublic : stylesPrivate
+
+    let redColor = globalColors.red
+
+    if (ignored) {
+      redColor = globalColors.red_75
+    }
+
+    const containerStyle = {
+      ...styles.rowContainer,
+      minHeight: 40,
+      backgroundColor: globalColors.white,
+    }
+
+    return (
+      <Box style={containerStyle} className="folder-row" onClick={() => onClick && onClick(path)}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+          <Avatars users={users} styles={styles} ignored={ignored} isPublic={isPublic} isTeam={isTeam} />
+          <Box style={stylesBodyContainer}>
+            <Usernames
+              users={users}
+              type={'BodySmallSemibold'}
+              style={{
+                color: isPublic ? globalColors.yellowGreen2 : globalColors.black_75,
+                opacity: ignored ? 0.6 : 1,
+              }}
+              redColor={redColor}
+            />
+            {meta && !ignored && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
+          </Box>
+          <Box
+            style={{
+              ...stylesActionContainer,
+              width: undefined,
+              marginRight: globalMargins.small,
+            }}
+          >
+            {meta === 'rekey' && (
+              <Button
+                small={true}
+                type="PrimaryPrivate"
+                onClick={e => {
+                  if (onRekey) {
+                    e.stopPropagation()
+                    onRekey(path)
+                  }
+                }}
+                label="Rekey"
+                style={styles.action}
+              />
+            )}
+          </Box>
         </Box>
       </Box>
-      <Box style={{height: 1, backgroundColor: globalColors.black_05, position: 'absolute', bottom: 0, left: 0, right: 0}} />
-    </Box>
-  )
+    )
+  }
 }
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   position: 'relative',
 }
 
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.darkBlue,
+    backgroundColor: globalColors.white,
     color: globalColors.white,
-  },
-  hasStuffIcon: {
-    small: 'icon-folder-private-has-stuff-24',
-    normal: 'icon-folder-private-has-stuff-32',
   },
   ignored: {
     color: globalColors.white_40,
-    backgroundColor: 'rgba(0, 26, 51, 0.4)',
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-private-group-24',
@@ -152,11 +192,13 @@ const stylesPrivate = {
   },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',
-  action: {
-    ...globalStyles.clickable,
-    alignSelf: 'center',
-    color: globalColors.white,
-  },
+  action: platformStyles({
+    isElectron: {
+      ...desktopStyles.clickable,
+      alignSelf: 'center',
+      marginRight: globalMargins.tiny,
+    },
+  }),
 }
 
 const stylesPublic = {
@@ -165,13 +207,9 @@ const stylesPublic = {
     backgroundColor: globalColors.white,
     color: globalColors.yellowGreen2,
   },
-  hasStuffIcon: {
-    small: 'icon-folder-public-has-stuff-24',
-    normal: 'icon-folder-public-has-stuff-32',
-  },
   ignored: {
     color: globalColors.white_75,
-    backgroundColor: globalColors.yellowGreen,
+    backgroundColor: globalColors.white,
   },
   groupIcon: {
     small: 'icon-folder-public-group-24',
@@ -179,11 +217,13 @@ const stylesPublic = {
   },
   nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal',
-  action: {
-    ...globalStyles.clickable,
-    alignSelf: 'center',
-    color: globalColors.black_60,
-  },
+  action: platformStyles({
+    isElectron: {
+      ...desktopStyles.clickable,
+      alignSelf: 'center',
+      marginRight: globalMargins.tiny,
+    },
+  }),
 }
 
 const stylesBodyContainer = {
@@ -197,7 +237,7 @@ const stylesBodyContainer = {
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-end',
+  justifyContent: 'center',
 }
 
 const stylesModified = {

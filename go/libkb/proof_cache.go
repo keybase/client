@@ -14,8 +14,9 @@ import (
 
 type CheckResult struct {
 	Contextified
-	Status ProofError // Or nil if it was a success
-	Time   time.Time  // When the last check was
+	Status  ProofError // Or nil if it was a success
+	Time    time.Time  // When the last check was
+	PvlHash string     // Added after other fields. Some entries may not have this packed.
 }
 
 func (cr CheckResult) Pack() *jsonw.Wrapper {
@@ -27,6 +28,7 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 		p.SetKey("status", s)
 	}
 	p.SetKey("time", jsonw.NewInt64(cr.Time.Unix()))
+	p.SetKey("pvlhash", jsonw.NewString(cr.PvlHash))
 	return p
 }
 
@@ -41,6 +43,10 @@ func (cr CheckResult) Freshness() keybase1.CheckResultFreshness {
 		case age < cr.G().Env.GetProofCacheLongDur():
 			return keybase1.CheckResultFreshness_AGED
 		}
+	case ProofErrorIsPvlBad(cr.Status):
+		// Don't use cache results for pvl problems.
+		// The hope is that they will soon be resolved server-side.
+		return keybase1.CheckResultFreshness_RANCID
 	case !ProofErrorIsSoft(cr.Status):
 		if age < cr.G().Env.GetProofCacheShortDur() {
 			return keybase1.CheckResultFreshness_FRESH
@@ -61,11 +67,14 @@ func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
 }
 
 func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err error) {
+	var ignoreErr error
 	var t int64
 	var code int
 	var desc string
+	var pvlHash string
 
 	jw.AtKey("time").GetInt64Void(&t, &err)
+	jw.AtKey("pvlhash").GetStringVoid(&pvlHash, &ignoreErr)
 	status := jw.AtKey("status")
 	var pe ProofError
 
@@ -79,6 +88,7 @@ func NewCheckResult(g *GlobalContext, jw *jsonw.Wrapper) (res *CheckResult, err 
 			Contextified: NewContextified(g),
 			Status:       pe,
 			Time:         time.Unix(t, 0),
+			PvlHash:      pvlHash,
 		}
 	}
 	return
@@ -89,10 +99,23 @@ type ProofCache struct {
 	capac int
 	lru   *lru.Cache
 	sync.RWMutex
+	noDisk bool
 }
 
 func NewProofCache(g *GlobalContext, capac int) *ProofCache {
 	return &ProofCache{Contextified: NewContextified(g), capac: capac}
+}
+
+func (pc *ProofCache) DisableDisk() {
+	pc.Lock()
+	defer pc.Unlock()
+	pc.noDisk = true
+}
+
+func (pc *ProofCache) Reset() error {
+	pc.Lock()
+	defer pc.Unlock()
+	return pc.initCache()
 }
 
 func (pc *ProofCache) setup() error {
@@ -101,6 +124,10 @@ func (pc *ProofCache) setup() error {
 	if pc.lru != nil {
 		return nil
 	}
+	return pc.initCache()
+}
+
+func (pc *ProofCache) initCache() error {
 	lru, err := lru.New(pc.capac)
 	if err != nil {
 		return err
@@ -144,7 +171,7 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
-func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
+func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash PvlKitHash) *CheckResult {
 	if pc == nil {
 		return nil
 	}
@@ -153,6 +180,19 @@ func (pc *ProofCache) Get(sid keybase1.SigID) *CheckResult {
 	if cr == nil {
 		cr = pc.dbGet(sid)
 	}
+	if cr == nil {
+		return nil
+	}
+
+	if cr.PvlHash == "" {
+		pc.G().Log.Debug("^ ProofCache ignoring entry with pvl-hash empty")
+		return nil
+	}
+	if cr.PvlHash != string(pvlHash) {
+		pc.G().Log.Debug("^ ProofCache ignoring entry with pvl-hash mismatch")
+		return nil
+	}
+
 	return cr
 }
 
@@ -169,6 +209,11 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 	defer func() {
 		pc.G().Log.Debug("- ProofCache.dbGet(%s) -> %v", sidstr, (cr != nil))
 	}()
+
+	if pc.noDisk {
+		pc.G().Log.Debug("| disk proof cache disabled")
+		return nil
+	}
 
 	jw, err := pc.G().LocalDb.Get(dbkey)
 	if err != nil {
@@ -198,12 +243,16 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 }
 
 func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
+	if pc.noDisk {
+		return nil
+	}
+
 	dbkey, _ := pc.dbKey(sid)
 	jw := cr.Pack()
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
-func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
+func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash PvlKitHash) error {
 	if pc == nil {
 		return nil
 	}
@@ -211,6 +260,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 		Contextified: pc.Contextified,
 		Status:       pe,
 		Time:         pc.G().Clock().Now(),
+		PvlHash:      string(pvlHash),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)

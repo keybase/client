@@ -1,4 +1,11 @@
+# Do not set use_frameworks! globally otherwise the helper
+# tool target binary will silently fail to load since it
+# doesn't support dynamic frameworks (for security reasons).
+# Also probably not a good idea to set any global options
+# here at all.
+
 target "Installer" do
+  use_frameworks!
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
@@ -9,6 +16,7 @@ end
 
 
 target "Status" do
+  use_frameworks!
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
@@ -23,3 +31,4 @@ target "keybase.Helper" do
   platform :osx, "10.10"
   pod "MPMessagePack"
 end
+

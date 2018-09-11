@@ -1,29 +1,36 @@
 @namespace("keybase.1")
 protocol NotifyBadges {
   import idl "common.avdl";
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   @typedef("bytes")  record ChatConversationID {}
 
-  record BadgeState {
-    // Total badge count for the app
-    int total;
+  record TeamMemberOutReset {
+    string teamname;
+    string username;
+    UID uid;
+    gregor1.MsgID id;
+  }
 
+  record BadgeState {
     @lint("ignore")
     int newTlfs;
     int rekeysNeeded;
     int newFollowers;
+    int inboxVers;
+    int homeTodoItems;
 
-    // Total number of unread chat messages
-    int unreadChatMessages;
-    // Number of chat conversations with unread messages
-    int unreadChatConversations;
     array<BadgeConversationInfo> conversations;
+    array<string> newGitRepoGlobalUniqueIDs;
+    array<string> newTeamNames;
+    array<string> newTeamAccessRequests;
+    array<TeamMemberOutReset> teamsWithResetUsers;
   }
 
   record BadgeConversationInfo {
     ChatConversationID convID;
-    @lint("ignore")
-    int UnreadMessages;
+    map<DeviceType, int> badgeCounts;
+    int unreadMessages;
   }
 
   @notify("")

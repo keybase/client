@@ -1,13 +1,17 @@
 // @flow
 import React, {Component} from 'react'
+import type {StylesCrossPlatform} from '../styles'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props as InputProps} from './input'
 
-export type Props = {
-  inputProps: InputProps,
-  style?: Object,
-  checkboxContainerStyle?: Object,
-  checkboxesProps: Array<CheckboxProps>
-}
+// TODO: Do we really need this as a common component? It's used in
+// only three places.
 
-declare export default class FormWithCheckbox extends Component<void, Props, void> { }
+export type Props = {|
+  inputProps: InputProps,
+  style?: StylesCrossPlatform,
+  checkboxContainerStyle?: StylesCrossPlatform,
+  checkboxesProps: Array<$Exact<CheckboxProps>>,
+|}
+
+declare export default class FormWithCheckbox extends Component<Props> {}

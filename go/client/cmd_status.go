@@ -62,7 +62,6 @@ type fstatus struct {
 	StoredSecret           bool
 	SecretPromptSkip       bool
 	SessionIsValid         bool
-	SessionStatus          string
 	ConfigPath             string
 
 	Client struct {
@@ -79,6 +78,7 @@ type fstatus struct {
 		Running bool
 		Pid     string
 		Log     string
+		Mount   string
 	}
 	Desktop struct {
 		Version string
@@ -91,12 +91,16 @@ type fstatus struct {
 	Start struct {
 		Log string
 	}
+	Git struct {
+		Log string
+	}
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
 	Clients              []keybase1.ClientDetails
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
+	DeviceEKNames        []string
 }
 
 func (c *CmdStatus) Run() error {
@@ -161,7 +165,6 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
 	}
 
-	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
 	status.TsecCached = extStatus.TsecCached
 	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
@@ -174,6 +177,15 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
 		status.KBFS.Running = true
+		// This just gets the mountpoint from the environment; the
+		// user could have technically passed a different mountpoint
+		// to KBFS on macOS or Linux.  TODO(KBFS-2723): fetch the
+		// actual mountpoint with a new RPC from KBFS.
+		mountDir, err := c.G().Env.GetMountDir()
+		if err != nil {
+			return nil, err
+		}
+		status.KBFS.Mount = mountDir
 	} else {
 		kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
 		if err == nil {
@@ -181,7 +193,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		}
 	}
 
-	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI); desktop != nil {
+	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
 		status.Desktop.Running = true
 		status.Desktop.Version = desktop.Version
 	}
@@ -191,11 +203,13 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.Updater.Log = filepath.Join(extStatus.LogDir, libkb.UpdaterLogFileName)
 
 	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
+	status.Git.Log = filepath.Join(extStatus.LogDir, libkb.GitLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
 	status.Clients = extStatus.Clients
 	status.PlatformInfo = extStatus.PlatformInfo
+	status.DeviceEKNames = extStatus.DeviceEkNames
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -233,7 +247,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 		dui.Printf("    ID:        %s\n", status.Device.DeviceID)
 		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
 	}
-	dui.Printf("Session:       %s\n", status.SessionStatus)
+	dui.Printf("Session:\n")
 	dui.Printf("    is valid:  %s\n", BoolString(status.SessionIsValid, "yes", "no"))
 
 	var deviceKeysLockStatus string
@@ -267,6 +281,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
+	dui.Printf("    mount:     %s\n", status.KBFS.Mount)
 	dui.Printf("\nService:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
@@ -288,6 +303,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Config path:   %s\n", status.ConfigPath)
 	dui.Printf("Default user:  %s\n", status.DefaultUsername)
 	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+	dui.Printf("Known DeviceEKs:\n")
+	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
 
 	c.outputClients(dui, status.Clients)
 	return nil
@@ -323,17 +340,6 @@ func (c *CmdStatus) GetUsage() libkb.Usage {
 		Config: true,
 		API:    true,
 	}
-}
-
-func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
-	if s == nil {
-		return "no session"
-	}
-	if s.SaltOnly {
-		return fmt.Sprintf("%s [salt only]", s.SessionFor)
-	}
-
-	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
 }
 
 // execToString returns the space-trimmed output of a command or an error.

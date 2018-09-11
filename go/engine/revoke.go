@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -19,27 +20,33 @@ const (
 
 type RevokeEngine struct {
 	libkb.Contextified
-	deviceID keybase1.DeviceID
-	kid      keybase1.KID
-	mode     RevokeMode
-	force    bool
+	deviceID             keybase1.DeviceID
+	kid                  keybase1.KID
+	mode                 RevokeMode
+	forceSelf            bool
+	forceLast            bool
+	skipUserEKForTesting bool // Set for testing
 }
 
 type RevokeDeviceEngineArgs struct {
-	ID    keybase1.DeviceID
-	Force bool
+	ID                   keybase1.DeviceID
+	ForceSelf            bool
+	ForceLast            bool
+	SkipUserEKForTesting bool
 }
 
-func NewRevokeDeviceEngine(args RevokeDeviceEngineArgs, g *libkb.GlobalContext) *RevokeEngine {
+func NewRevokeDeviceEngine(g *libkb.GlobalContext, args RevokeDeviceEngineArgs) *RevokeEngine {
 	return &RevokeEngine{
-		deviceID:     args.ID,
-		mode:         RevokeDevice,
-		force:        args.Force,
-		Contextified: libkb.NewContextified(g),
+		deviceID:             args.ID,
+		mode:                 RevokeDevice,
+		forceSelf:            args.ForceSelf,
+		forceLast:            args.ForceLast,
+		skipUserEKForTesting: args.SkipUserEKForTesting,
+		Contextified:         libkb.NewContextified(g),
 	}
 }
 
-func NewRevokeKeyEngine(kid keybase1.KID, g *libkb.GlobalContext) *RevokeEngine {
+func NewRevokeKeyEngine(g *libkb.GlobalContext, kid keybase1.KID) *RevokeEngine {
 	return &RevokeEngine{
 		kid:          kid,
 		mode:         RevokeKey,
@@ -98,62 +105,293 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 	}
 }
 
-func (e *RevokeEngine) Run(ctx *Context) error {
-	currentDevice := e.G().Env.GetDeviceID()
+func (e *RevokeEngine) explicitOrImplicitDeviceID(me *libkb.User) keybase1.DeviceID {
+	if e.mode == RevokeDevice {
+		return e.deviceID
+	}
+	for deviceID, device := range me.GetComputedKeyInfos().Devices {
+		if device.Kid.Equal(e.kid) {
+			return deviceID
+		}
+	}
+	// If we're revoking a PGP key, it won't match any device.
+	return ""
+}
+
+func (e *RevokeEngine) Run(m libkb.MetaContext) error {
+	m.CDebugf("RevokeEngine#Run (mode:%v)", e.mode)
+
+	e.G().LocalSigchainGuard().Set(m.Ctx(), "RevokeEngine")
+	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "RevokeEngine")
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
+	if err != nil {
+		return err
+	}
+
+	currentDevice := m.G().Env.GetDeviceID()
 	var deviceID keybase1.DeviceID
 	if e.mode == RevokeDevice {
 		deviceID = e.deviceID
-		if e.deviceID == currentDevice && !e.force {
-			return fmt.Errorf("Can't revoke the current device.")
-		}
-	}
+		hasPGP := len(me.GetComputedKeyFamily().GetActivePGPKeys(false)) > 0
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return err
+		if len(me.GetComputedKeyFamily().GetAllActiveDevices()) == 1 {
+			if hasPGP {
+				// even w/ forceLast, you cannot revoke your last device
+				// if you have a pgp key
+				return libkb.RevokeLastDevicePGPError{}
+			}
+
+			if !e.forceLast {
+				return libkb.RevokeLastDeviceError{}
+			}
+		}
+
+		if e.deviceID == currentDevice && !(e.forceSelf || e.forceLast) {
+			return libkb.RevokeCurrentDeviceError{}
+		}
+
 	}
 
 	kidsToRevoke, err := e.getKIDsToRevoke(me)
 	if err != nil {
 		return err
 	}
-	ctx.LogUI.Info("Revoking KIDs:")
+
+	lease, merkleRoot, err := libkb.RequestDowngradeLeaseByKID(m.Ctx(), m.G(), kidsToRevoke)
+	if err != nil {
+		return err
+	}
+
+	m.UIs().LogUI.Info("Revoking KIDs:")
 	for _, kid := range kidsToRevoke {
-		ctx.LogUI.Info("  %s", kid)
+		m.UIs().LogUI.Info("  %s", kid)
 	}
 
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke another key"))
+	sigKey, encKey, err := e.getDeviceSecretKeys(m, me)
 	if err != nil {
-		return err
-	}
-	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
 
-	proof, err := me.RevokeKeysProof(sigKey, kidsToRevoke, deviceID)
+	if encKey == nil {
+		return errors.New("Missing encryption key")
+	}
+
+	var pukBoxes []keybase1.PerUserKeyBox
+	var pukPrev *libkb.PerUserKeyPrev
+
+	// Whether this run is creating a new per-user-key. Set later.
+	addingNewPUK := false
+
+	// Only used if addingNewPUK
+	var newPukGeneration keybase1.PerUserKeyGeneration
+	var newPukSeed *libkb.PerUserKeySeed
+
+	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
 		return err
 	}
-	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	err = pukring.Sync(m)
 	if err != nil {
 		return err
 	}
-	kid := sigKey.GetKID()
-	_, err = e.G().API.Post(libkb.APIArg{
-		Endpoint:    "sig/revoke",
-		NeedSession: true,
-		Args: libkb.HTTPArgs{
-			"signing_kid": libkb.S{Val: kid.String()},
-			"sig":         libkb.S{Val: sig},
-		},
+	if pukring.HasAnyKeys() {
+		addingNewPUK = true
+		newPukGeneration = pukring.CurrentGeneration() + 1
+
+		// Make a new per-user-key
+		newPukSeedInner, err := libkb.GeneratePerUserKeySeed()
+		if err != nil {
+			return err
+		}
+		newPukSeed = &newPukSeedInner
+
+		// Create a prev secretbox containing the previous generation seed
+		pukPrevInner, err := pukring.PreparePrev(m, *newPukSeed, newPukGeneration)
+		if err != nil {
+			return err
+		}
+		pukPrev = &pukPrevInner
+
+		// Get the receivers who will be able to decrypt the new per-user-key
+		pukReceivers, err := e.getPukReceivers(m, me, kidsToRevoke)
+		if err != nil {
+			return err
+		}
+
+		// Create boxes of the new per-user-key
+		pukBoxesInner, err := pukring.PrepareBoxesForDevices(m,
+			*newPukSeed, newPukGeneration, pukReceivers, encKey)
+		if err != nil {
+			return err
+		}
+		pukBoxes = pukBoxesInner
+	}
+
+	var sigsList []libkb.JSONPayload
+
+	// Push the per-user-key sig
+
+	// Seqno when the per-user-key will be signed in.
+	var newPukSeqno keybase1.Seqno
+	if addingNewPUK {
+		sig1, err := libkb.PerUserKeyProofReverseSigned(m, me, *newPukSeed, newPukGeneration, sigKey)
+		if err != nil {
+			return err
+		}
+		newPukSeqno = me.GetSigChainLastKnownSeqno()
+		sigsList = append(sigsList, sig1)
+	}
+
+	// Push the revoke sig
+	sig2, err := e.makeRevokeSig(m, me, sigKey, kidsToRevoke, deviceID, merkleRoot)
+	if err != nil {
+		return err
+	}
+	sigsList = append(sigsList, sig2)
+
+	payload := make(libkb.JSONPayload)
+	payload["sigs"] = sigsList
+	payload["downgrade_lease_id"] = lease.LeaseID
+
+	if addingNewPUK {
+		libkb.AddPerUserKeyServerArg(payload, newPukGeneration, pukBoxes, pukPrev)
+	}
+
+	var myUserEKBox *keybase1.UserEkBoxed
+	var newUserEKMetadata *keybase1.UserEkMetadata
+	ekLib := e.G().GetEKLib()
+	if !e.skipUserEKForTesting && addingNewPUK && ekLib != nil {
+		sig, boxes, newMetadata, myBox, err := ekLib.PrepareNewUserEK(m.Ctx(), *merkleRoot, *newPukSeed)
+		if err != nil {
+			return err
+		}
+		// The assembled set of boxes includes one for the device we're in the
+		// middle of revoking. Filter it out.
+		filteredBoxes := []keybase1.UserEkBoxMetadata{}
+		deviceIDToFilter := e.explicitOrImplicitDeviceID(me)
+		for _, boxMetadata := range boxes {
+			if !boxMetadata.RecipientDeviceID.Eq(deviceIDToFilter) {
+				filteredBoxes = append(filteredBoxes, boxMetadata)
+			}
+		}
+		// If there are no active deviceEKs, we can't publish this key. This
+		// should mostly only come up in tests.
+		if len(filteredBoxes) > 0 {
+			myUserEKBox = myBox
+			newUserEKMetadata = &newMetadata
+			userEKSection := make(libkb.JSONPayload)
+			userEKSection["sig"] = sig
+			userEKSection["boxes"] = filteredBoxes
+			payload["user_ek"] = userEKSection
+		} else {
+			m.CDebugf("skipping userEK publishing, there are no valid deviceEKs")
+		}
+	}
+	m.CDebugf("RevokeEngine#Run pukBoxes:%v pukPrev:%v for generation %v, userEKBox: %v",
+		len(pukBoxes), pukPrev != nil, newPukGeneration, myUserEKBox != nil)
+
+	_, err = m.G().API.PostJSON(libkb.APIArg{
+		Endpoint:    "key/multi",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  m.Ctx(),
 	})
 	if err != nil {
 		return err
 	}
+
+	if addingNewPUK {
+		err = pukring.AddKey(m, newPukGeneration, newPukSeqno, *newPukSeed)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Add the new userEK box to local storage, if it was created above.
+	if myUserEKBox != nil {
+		err = e.G().GetUserEKBoxStorage().Put(m.Ctx(), newUserEKMetadata.Generation, *myUserEKBox)
+		if err != nil {
+			m.CWarningf("error while saving userEK box: %s", err)
+		}
+	}
+
 	e.G().UserChanged(me.GetUID())
+
 	return nil
+}
+
+// Get the full keys for this device.
+// Returns (sigKey, encKey, err)
+func (e *RevokeEngine) getDeviceSecretKeys(m libkb.MetaContext, me *libkb.User) (libkb.GenericKey, libkb.GenericKey, error) {
+	skaSig := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	sigKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(skaSig, "to revoke another key"))
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = sigKey.CheckSecretKey(); err != nil {
+		return nil, nil, err
+	}
+
+	skaEnc := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceEncryptionKeyType,
+	}
+	encKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(skaEnc, "to revoke another key"))
+	if err != nil {
+		return nil, nil, err
+	}
+	if err = encKey.CheckSecretKey(); err != nil {
+		return nil, nil, err
+	}
+
+	return sigKey, encKey, err
+}
+
+func (e *RevokeEngine) makeRevokeSig(m libkb.MetaContext, me *libkb.User, sigKey libkb.GenericKey,
+	kidsToRevoke []keybase1.KID, deviceID keybase1.DeviceID, merkleRoot *libkb.MerkleRoot) (libkb.JSONPayload, error) {
+
+	proof, err := me.RevokeKeysProof(m, sigKey, kidsToRevoke, deviceID, merkleRoot)
+	if err != nil {
+		return nil, err
+	}
+	sig, _, _, err := libkb.SignJSON(proof, sigKey)
+	if err != nil {
+		return nil, err
+	}
+
+	sig1 := make(libkb.JSONPayload)
+	sig1["sig"] = sig
+	sig1["signing_kid"] = sigKey.GetKID().String()
+	sig1["type"] = libkb.LinkTypeRevoke
+	return sig1, nil
+}
+
+// Get the receivers of the new per-user-key boxes.
+// Includes all device subkeys except any being revoked by this engine.
+func (e *RevokeEngine) getPukReceivers(m libkb.MetaContext, me *libkb.User, exclude []keybase1.KID) (res []libkb.NaclDHKeyPair, err error) {
+	excludeMap := make(map[keybase1.KID]bool)
+	for _, kid := range exclude {
+		excludeMap[kid] = true
+	}
+
+	ckf := me.GetComputedKeyFamily()
+
+	for _, dev := range ckf.GetAllActiveDevices() {
+		keyGeneric, err := ckf.GetEncryptionSubkeyForDevice(dev.ID)
+		if err != nil {
+			return nil, err
+		}
+		if !excludeMap[keyGeneric.GetKID()] {
+			key, ok := keyGeneric.(libkb.NaclDHKeyPair)
+			if !ok {
+				return nil, fmt.Errorf("Unexpected encryption key type: %T", keyGeneric)
+			}
+			res = append(res, key)
+		}
+	}
+	return res, nil
 }

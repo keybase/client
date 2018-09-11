@@ -3,121 +3,130 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"testing"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
-	"strings"
-	"testing"
 )
 
 type auditLog struct {
 	l     logger.Logger
-	lines []string
+	lines *[]string
+}
+
+func newAuditLog(l logger.Logger) *auditLog {
+	return &auditLog{l: l, lines: &[]string{}}
+}
+
+func (a *auditLog) GetLines() []string {
+	return *a.lines
+}
+
+func (a *auditLog) ClearLines() {
+	a.lines = &[]string{}
 }
 
 func (a *auditLog) Debug(format string, args ...interface{}) {
 	s := fmt.Sprintf(format, args...)
-	a.l.Debug(s)
-	a.lines = append(a.lines, s)
+	a.l.CloneWithAddedDepth(1).Debug(s)
+	*a.lines = append(*a.lines, s)
 }
 func (a *auditLog) CDebugf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CDebugf(ctx, format, args...)
+	s := fmt.Sprintf(format, args...)
+	a.l.CloneWithAddedDepth(1).CDebugf(ctx, s)
+	*a.lines = append(*a.lines, s)
 }
 func (a *auditLog) Info(format string, args ...interface{}) {
-	a.l.Info(format, args...)
+	a.l.CloneWithAddedDepth(1).Info(format, args...)
 }
 func (a *auditLog) CInfof(ctx context.Context, format string, args ...interface{}) {
-	a.l.CInfof(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CInfof(ctx, format, args...)
 }
 func (a *auditLog) Notice(format string, args ...interface{}) {
-	a.l.Notice(format, args...)
+	a.l.CloneWithAddedDepth(1).Notice(format, args...)
 }
 func (a *auditLog) CNoticef(ctx context.Context, format string, args ...interface{}) {
-	a.l.CNoticef(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CNoticef(ctx, format, args...)
 }
 func (a *auditLog) Warning(format string, args ...interface{}) {
-	a.l.Warning(format, args...)
+	a.l.CloneWithAddedDepth(1).Warning(format, args...)
 }
 func (a *auditLog) CWarningf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CWarningf(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CWarningf(ctx, format, args...)
 }
 func (a *auditLog) Error(format string, args ...interface{}) {
-	a.l.Errorf(format, args...)
+	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
 func (a *auditLog) Errorf(format string, args ...interface{}) {
-	a.l.Errorf(format, args...)
+	a.l.CloneWithAddedDepth(1).Errorf(format, args...)
 }
 func (a *auditLog) CErrorf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CErrorf(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CErrorf(ctx, format, args...)
 }
 func (a *auditLog) Critical(format string, args ...interface{}) {
-	a.l.Critical(format, args...)
+	a.l.CloneWithAddedDepth(1).Critical(format, args...)
 }
 func (a *auditLog) CCriticalf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CCriticalf(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CCriticalf(ctx, format, args...)
 }
 func (a *auditLog) Fatalf(format string, args ...interface{}) {
-	a.l.Fatalf(format, args...)
+	a.l.CloneWithAddedDepth(1).Fatalf(format, args...)
 }
 func (a *auditLog) CFatalf(ctx context.Context, format string, args ...interface{}) {
-	a.l.CFatalf(ctx, format, args...)
+	a.l.CloneWithAddedDepth(1).CFatalf(ctx, format, args...)
 }
 func (a *auditLog) Profile(fmts string, args ...interface{}) {
-	a.l.Profile(fmts, args...)
+	a.l.CloneWithAddedDepth(1).Profile(fmts, args...)
 }
 func (a *auditLog) Configure(style string, debug bool, filename string) {
-	a.l.Configure(style, debug, filename)
+	a.l.CloneWithAddedDepth(1).Configure(style, debug, filename)
 }
 func (a *auditLog) RotateLogFile() error {
 	return a.l.RotateLogFile()
 }
 func (a *auditLog) CloneWithAddedDepth(depth int) logger.Logger {
-	return a.l.CloneWithAddedDepth(depth)
+	// Keep the same list of strings. This is important, because the tests here
+	// read the list at the end, and expect all the log lines to be there, even
+	// though some of the loggin calls in the middle call CloneWithAddedDepth.
+	return &auditLog{
+		l:     a.l.CloneWithAddedDepth(depth),
+		lines: a.lines,
+	}
 }
 func (a *auditLog) SetExternalHandler(handler logger.ExternalHandler) {
 	a.l.SetExternalHandler(handler)
 }
 
 func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.DeviceKey, error) {
-	ls1 := dev1.G.LoginState()
-	ls2 := dev2.G.LoginState()
+	m2 := NewMetaContextForTest(dev2)
+	m1 := NewMetaContextForTest(dev1)
 
-	err := ls1.RunSecretSyncer(dev1.G.Env.GetUID())
-	if err != nil {
-		return nil, err
-	}
-	var e2 error
 	var ret libkb.DeviceKey
 
-	err = ls1.SecretSyncer(func(s *libkb.SecretSyncer) {
-		ret, e2 = s.FindDevice(dev1.G.Env.GetDeviceID())
-	}, "corruptDevice2")
+	ss, err := m1.G().ActiveDevice.SyncSecrets(m1)
 	if err != nil {
 		return nil, err
 	}
-	if e2 != nil {
-		return nil, e2
+	ret, err = ss.FindDevice(m1.G().Env.GetDeviceID())
+	if err != nil {
+		return nil, err
 	}
-	var goodLksec *libkb.LKSec
 
 	// Dev1 has a passphrase cached, but dev2 doesn't (since it was provisioned).
 	// For this test though it's fine to take the passphrase from dev1.
-	err = ls1.PassphraseStreamCache(func(ppc *libkb.PassphraseStreamCache) {
-		if !ppc.Valid() {
-			e2 = errors.New("invalid stream cache")
-			return
-		}
-		goodLksec = libkb.NewLKSec(ppc.PassphraseStream(), dev2.G.Env.GetUID(), dev2.G)
-	}, "corruptDevice2")
-
+	pps, err := libkb.GetPassphraseStreamStored(m1)
 	if err != nil {
 		return nil, err
 	}
-	if e2 != nil {
-		return nil, e2
+	if pps == nil {
+		return nil, errors.New("empty passphrase stream on m1, but expected one since we just signed up")
 	}
-	if err = goodLksec.LoadServerHalf(nil); err != nil {
+	goodLksec := libkb.NewLKSec(pps, m2.CurrentUID())
+
+	if err = goodLksec.LoadServerHalf(m2); err != nil {
 		return nil, err
 	}
 
@@ -129,36 +138,28 @@ func corruptDevice2(dev1 libkb.TestContext, dev2 libkb.TestContext) (*libkb.Devi
 	badLskec := libkb.NewLKSecWithFullSecret(
 		goodLksec.CorruptedFullSecretForBug3964Testing(dev1ServerHalf),
 		dev2.G.Env.GetUID(),
-		dev2.G,
 	)
-
-	err = ls2.MutateKeyring(func(krf *libkb.SKBKeyringFile) *libkb.SKBKeyringFile {
-		for _, b := range krf.Blocks {
-			raw, _, erroneousMask, err := goodLksec.Decrypt(nil, b.Priv.Data)
-			if err != nil {
-				e2 = err
-				return nil
-			}
-			if !erroneousMask.IsNil() {
-				e2 = errors.New("bad erroneousMask")
-				return nil
-			}
-			b.Priv.Data, e2 = badLskec.Encrypt(raw)
-			if e2 != nil {
-				return nil
-			}
-		}
-		krf.MarkDirty()
-		if e2 = krf.Save(); e2 != nil {
-			return nil
-		}
-		return krf
-	}, "corruptDevice2")
+	var krf *libkb.SKBKeyringFile
+	krf, err = libkb.LoadSKBKeyringFromMetaContext(m2)
 	if err != nil {
 		return nil, err
 	}
-	if e2 != nil {
-		return nil, e2
+	for _, b := range krf.Blocks {
+		raw, _, erroneousMask, err := goodLksec.Decrypt(m2, b.Priv.Data)
+		if err != nil {
+			return nil, err
+		}
+		if !erroneousMask.IsNil() {
+			return nil, errors.New("bad erroneousMask")
+		}
+		b.Priv.Data, err = badLskec.Encrypt(m2, raw)
+		if err != nil {
+			return nil, err
+		}
+	}
+	krf.MarkDirty()
+	if err = krf.Save(); err != nil {
+		return nil, err
 	}
 	return &ret, nil
 }
@@ -201,7 +202,7 @@ func findLine(t *testing.T, haystack []string, needle string) []string {
 			return haystack[(i + 1):]
 		}
 	}
-	t.Fatalf("Didnt find line %q", needle)
+	t.Fatalf("Didn't find line %q", needle)
 	return nil
 }
 
@@ -217,7 +218,7 @@ func checkAuditLogForBug3964Repair(t *testing.T, log []string, deviceID keybase1
 func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 	Logout(dev)
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},
 		LogUI:       dev.G.UI.GetLogUI(),
@@ -225,7 +226,8 @@ func logoutLogin(t *testing.T, user *FakeUser, dev libkb.TestContext) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(dev.G, libkb.DeviceTypeDesktop, user.Username, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(dev).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -260,10 +262,10 @@ func checkAuditLogForRepairmanShortCircuit(t *testing.T, log []string) {
 }
 
 func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI: u.NewSecretUI(),
 	}
-	me, err := libkb.LoadMe(libkb.LoadUserArg{Contextified: libkb.NewContextified(tctx.G)})
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(NewMetaContextForTest(tctx)))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,21 +274,25 @@ func checkLKSWorked(t *testing.T, tctx libkb.TestContext, u *FakeUser) {
 		Me:      me,
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
-	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
-	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(arg)
+	m := NewMetaContextForTest(tctx).WithUIs(uis)
+	arg := m.SecretKeyPromptArg(ska, "tracking signature")
+	encKey, err := tctx.G.Keyrings.GetSecretKeyWithPrompt(NewMetaContextForTest(tctx), arg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if encKey == nil {
 		t.Fatal("got back a nil decryption key")
 	}
-	_, clientHalf, err := fetchLKS(ctx, tctx.G, encKey)
+	_, clientHalf, err := fetchLKS(m, encKey)
 	if err != nil {
 		t.Fatal(err)
 	}
-	pps, err := tctx.G.LoginState().GetPassphraseStream(ctx.SecretUI)
+	pps, err := libkb.GetPassphraseStreamStored(m)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if pps == nil {
+		t.Fatal("failed to get passphrase stream")
 	}
 	clientHalfExpected := pps.LksClientHalf()
 	if !clientHalf.Equal(clientHalfExpected) {
@@ -298,11 +304,12 @@ func TestBug3964Repairman(t *testing.T) {
 	var log *auditLog
 
 	user, dev1, dev2, cleanup := SetupTwoDevicesWithHook(t, "bug", func(tc *libkb.TestContext) {
-		log = &auditLog{l: tc.G.Log}
+		log = newAuditLog(tc.G.Log)
 		tc.G.Log = log
 	})
 	defer cleanup()
 
+	t.Logf("-------------- Checkpoint 1 -----------------------")
 	dev1Key, err := corruptDevice2(dev1, dev2)
 	if err != nil {
 		t.Fatal(err)
@@ -310,17 +317,21 @@ func TestBug3964Repairman(t *testing.T) {
 
 	dev2.G.TestOptions.NoBug3964Repair = true
 	logoutLogin(t, user, dev2)
-	checkAuditLogForBug3964Recovery(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
+	t.Logf("-------------- Checkpoint 2 -----------------------")
+	checkAuditLogForBug3964Recovery(t, log.GetLines(), dev1.G.Env.GetDeviceID(), dev1Key)
 	dev2.G.TestOptions.NoBug3964Repair = false
 
-	log.lines = nil
+	log.ClearLines()
 	logoutLogin(t, user, dev2)
-	checkAuditLogForBug3964Repair(t, log.lines, dev1.G.Env.GetDeviceID(), dev1Key)
+	t.Logf("-------------- Checkpoint 3 -----------------------")
+	checkAuditLogForBug3964Repair(t, log.GetLines(), dev1.G.Env.GetDeviceID(), dev1Key)
 
-	log.lines = nil
+	log.ClearLines()
 	logoutLogin(t, user, dev2)
-	checkAuditLogCleanLogin(t, log.lines)
-	checkAuditLogForRepairmanShortCircuit(t, log.lines)
+	t.Logf("-------------- Checkpoint 4 -----------------------")
+	checkAuditLogCleanLogin(t, log.GetLines())
+	checkAuditLogForRepairmanShortCircuit(t, log.GetLines())
 
+	t.Logf("-------------- Checkpoint 5 -----------------------")
 	checkLKSWorked(t, dev2, user)
 }

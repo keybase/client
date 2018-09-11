@@ -39,7 +39,7 @@ public class Help extends AppCompatActivity {
         webView.getSettings().setDefaultTextEncodingName("utf-8");
         // org.golang.ivy.Mobile was generated
         // using gomobile bind -javapkg=org.golang.ivy robpike.io/ivy/mobile.
-        String helpMsg = Mobile.Help();
+        String helpMsg = Mobile.help();
 
         // loadData has a rendering bug: https://code.google.com/p/android/issues/detail?id=6965
         webView.loadDataWithBaseURL("http://godoc.org/robpike.io/ivy", helpMsg, "text/html", "UTF-8", null);

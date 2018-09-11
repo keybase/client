@@ -1,0 +1,95 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/profile'",
+    "import * as More from '../constants/types/more'"
+  ],
+  "actions": {
+    "addProof": {
+      "platform": "More.PlatformsExpandedType"
+    },
+    "backToProfile": {},
+    "cancelAddProof": {},
+    "cancelPgpGen": {},
+    "checkProof": {},
+    "cleanupUsername": {},
+    "dropPgp": {
+      "kid": "RPCTypes.KID"
+    },
+    "uploadAvatar": {
+      "filename": "string",
+      "crop?": "RPCTypes.ImageCropRect"
+    },
+    "editProfile": {
+      "bio": "string",
+      "fullname": "string",
+      "location": "string"
+    },
+    "revokeFinish": {
+      "canError": {
+        "error": "string"
+      }
+    },
+    "finishRevoking": {},
+    "finishedWithKeyGen": {
+      "shouldStoreKeyOnServer": "boolean"
+    },
+    "generatePgp": {},
+    "onClickAvatar": {
+      "username": "string",
+      "openWebsite?": "?boolean"
+    },
+    "onClickFollowers": {
+      "username": "string",
+      "openWebsite?": "?boolean"
+    },
+    "onClickFollowing": {
+      "username": "string",
+      "openWebsite?": "?boolean"
+    },
+    "outputInstructionsActionLink": {},
+    "showUserProfile": {
+      "username": "string"
+    },
+    "submitZcashAddress": {},
+    "submitBTCAddress": {},
+    "submitRevokeProof": {
+      "proofId": "string"
+    },
+    "submitUsername": {},
+    "updateErrorText": {
+      "errorText?": "?string",
+      "errorCode?": "?number"
+    },
+    "updatePgpInfo": {
+      "info": "$Shape<Types.PgpInfo>",
+      "canError": {
+        "error": "Types.PgpInfoError"
+      }
+    },
+    "updatePgpPublicKey": {
+      "publicKey": "string"
+    },
+    "updatePlatform": {
+      "platform": "More.PlatformsExpandedType"
+    },
+    "updateProofStatus": {
+      "found": "boolean",
+      "status": "RPCTypes.ProofStatus"
+    },
+    "updateProofText": {
+      "proof": "string"
+    },
+    "updateSigID": {
+      "sigID": "?RPCTypes.SigID"
+    },
+    "updateUsername": {
+      "username": "string"
+    },
+    "waiting": {
+      "waiting": "boolean"
+    },
+    "revokeWaiting": {
+      "waiting": "boolean"
+    }
+  }
+}

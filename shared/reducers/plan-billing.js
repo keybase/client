@@ -1,22 +1,28 @@
-// @flow
-
-// import HiddenString from '../util/hidden-string'
+// @noflow
+import logger from '../logger'
+import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/plan-billing'
-import type {BillingState, Actions} from '../constants/plan-billing'
+import * as Types from '../constants/types/plan-billing'
 
-const initialState: BillingState = {
+const initialState: Types.State = {
   availablePlans: null,
+  errorMessage: null,
+  paymentInfo: null,
   plan: null,
   usage: null,
-  paymentInfo: null,
-  errorMessage: null,
 }
 
-export default function (state: BillingState = initialState, action: Actions): BillingState {
+export default function(
+  state: Types.State = initialState,
+  // TODO gen and type this if we actually use this thing
+  action: any
+): Types.State {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
     case Constants.updateBillingAndQuota:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {
@@ -25,7 +31,7 @@ export default function (state: BillingState = initialState, action: Actions): B
       }
     case Constants.updateAvailablePlans:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {
@@ -34,7 +40,7 @@ export default function (state: BillingState = initialState, action: Actions): B
       }
     case Constants.updatePaymentInfo:
       if (action.error) {
-        console.warn('Error in action: ', action)
+        logger.warn('Error in action: ', action)
         return state
       }
       return {
@@ -52,6 +58,11 @@ export default function (state: BillingState = initialState, action: Actions): B
         ...state,
         errorMessage: null,
       }
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
+      return state
   }
-  return state
 }

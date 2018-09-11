@@ -8,11 +8,12 @@
 
 #import "KBMountDir.h"
 #import "KBInstaller.h"
+#import "KBWorkspace.h"
 #import "KBSharedFileList.h"
+#import "KBTask.h"
 
 @interface KBMountDir ()
 @property KBHelperTool *helperTool;
-@property KBEnvConfig *config;
 @end
 
 @implementation KBMountDir
@@ -53,12 +54,12 @@
 }
 
 - (void)removeMountDir:(NSString *)mountDir completion:(KBCompletion)completion {
-  // Because the mount dir is in the root path, we need the helper tool to remove it, even if owned by the user
-  NSDictionary *params = @{@"path": mountDir};
-  DDLogDebug(@"Removing mount directory: %@", params);
-  [self.helperTool.helper sendRequest:@"remove" params:@[params] completion:^(NSError *err, id value) {
+  DDLogDebug(@"Removing mount directory: %@", mountDir);
+  NSError *err = nil;
+  if (![NSFileManager.defaultManager removeItemAtPath:mountDir error:&err]) {
     completion(err);
-  }];
+  }
+  completion(nil);
 }
 
 - (void)createMountDir:(KBCompletion)completion {
@@ -83,24 +84,24 @@
       [self checkMountDirExists];
 
       // Enabled Finder favorite
-      [self setFinderFavoriteEnabled:YES];
+      [self addFinderFavorite];
       completion(nil);
     }];
   } else {
-    [self setFinderFavoriteEnabled:YES];
+    [self addFinderFavorite];
     completion(nil);
   }
 }
 
 - (void)uninstall:(KBCompletion)completion {
   NSString *mountDir = self.config.mountDir;
-  if (![NSFileManager.defaultManager fileExistsAtPath:mountDir isDirectory:nil]) {
+  if ([NSFileManager.defaultManager fileExistsAtPath:mountDir isDirectory:nil]) {
+    [self removeMountDir:mountDir completion:completion];
+  } else {
     DDLogInfo(@"The mount directory doesn't exist: %@", mountDir);
-    completion(nil);
-    return;
   }
-  [self removeMountDir:mountDir completion:completion];
-  [self setFinderFavoriteEnabled:NO];
+  [self removeFinderFavorite];
+  completion(nil);
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
@@ -112,17 +113,72 @@
   completion(self.componentStatus);
 }
 
-- (BOOL)setFinderFavoriteEnabled:(BOOL)favoritedEnabled {
-  NSError *error = nil;
-  [KBMountDir setFileListFavoriteEnabled:favoritedEnabled config:self.config error:&error];
-  if (error) {
-    DDLogError(@"Error setting file list favorite: %@", error);
+- (void)addFinderFavorite {
+  // Don't add if disabled
+  NSString *finderDisabledPath = [self.config dataPath:@"finder_disabled.config" options:0];
+  if ([[NSFileManager defaultManager] fileExistsAtPath:finderDisabledPath]) return;
+
+  // Don't add for 10.10 or below because of Finder bugs
+  NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];
+  if (version.majorVersion == 10 && version.minorVersion < 11) {
+    return;
+  }
+
+  NSInteger position = [self finderConfigPosition];
+  DDLogDebug(@"Read finder favorite position: %@", @(position));
+  [self setFinderFavoriteEnabled:YES position:position];
+}
+
+- (void)removeFinderFavorite {
+  [self saveFinderConfig];
+  [self setFinderFavoriteEnabled:NO position:0];
+}
+
+- (NSInteger)finderConfigPosition {
+  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config" options:0];
+  NSString *positionStr = [NSString stringWithContentsOfFile:finderConfigPath encoding:NSUTF8StringEncoding error:nil];
+  if (!positionStr) return 0;
+  return [positionStr integerValue];
+}
+
+- (void)saveFinderConfig {
+  NSString *symPath = [self.config dataPath:@"Keybase" options:0];
+  NSURL *URL = [NSURL fileURLWithPath:symPath];
+  NSInteger position = [KBSharedFileList firstPositionForURL:URL type:kLSSharedFileListFavoriteItems];
+  NSString *finderConfigPath = [self.config dataPath:@"finder_position.config" options:0];
+  DDLogDebug(@"Saving finder favorite position %@ to %@", @(position), finderConfigPath);
+  if (![[NSFileManager defaultManager] createFileAtPath:finderConfigPath contents:[NSStringWithFormat(@"%@", @(position)) dataUsingEncoding:NSUTF8StringEncoding] attributes:nil]) {
+    DDLogError(@"Unable to save %@", finderConfigPath);
+  }
+}
+
+- (BOOL)setFinderFavoriteEnabled:(BOOL)favoritedEnabled position:(NSInteger)position {
+  NSError *fileListError = nil;
+  [KBMountDir setFileListFavoriteEnabled:favoritedEnabled position:position config:self.config error:&fileListError];
+  if (fileListError) {
+    DDLogError(@"Error setting file list favorite: %@", fileListError);
     return NO;
   }
   return YES;
 }
 
-+ (BOOL)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled config:(KBEnvConfig *)config error:(NSError **)error {
++ (BOOL)linkExists:(NSString *)linkPath {
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    return NO;
+  }
+  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
+}
+
++ (NSString *)resolveLinkPath:(NSString *)linkPath {
+  if (![self linkExists:linkPath]) {
+    return nil;
+  }
+  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
+}
+
+
++ (BOOL)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled position:(NSInteger)position config:(KBEnvConfig *)config error:(NSError **)error {
   if (!config.mountDir) {
     if (error) *error = KBMakeError(0, @"No mount dir");
     return NO;
@@ -132,9 +188,17 @@
   // and there is some funkiness there (like the URL property not resolving, or the display name being ignored).
   // If we create a symlink though, all these problems are avoided. So we'll create a symlink to /keybase and add this
   // as the file list favorite item.
-  NSString *symPath = [config appPath:@"Keybase" options:0];
+  NSString *symPath = [config dataPath:@"Keybase" options:0];
+  NSString *currPath = [self resolveLinkPath:symPath];
+  if (currPath && ![config.mountDir isEqualToString:currPath]) {
+    DDLogDebug(@"Removing old favorite: %@", currPath);
+    if (![[NSFileManager defaultManager] removeItemAtPath:symPath error:error]) {
+      return NO;
+    }
+  }
+
   if (![[NSFileManager defaultManager] fileExistsAtPath:symPath]) {
-    if ([[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
+    if (![[NSFileManager defaultManager] createSymbolicLinkAtPath:symPath withDestinationPath:config.mountDir error:error]) {
       return NO;
     }
   }
@@ -143,7 +207,7 @@
   NSString *name = [config appName];
   //DDLogDebug(@"File list favorite items: %@", [KBSharedFileList debugItemsForType:kLSSharedFileListFavoriteItems]);
   DDLogDebug(@"File list favorite %@ (%@)", (fileListFavoriteEnabled ? @"enabled" : @"disabled"), URL);
-  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems insertAfter:kLSSharedFileListItemBeforeFirst error:&error];
+  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems position:position error:error];
   DDLogDebug(@"File list favorites changed: %@", changed ? @"Yes" : @"No");
   if (error) {
     return NO;

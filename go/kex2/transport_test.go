@@ -211,8 +211,17 @@ func genDeviceID(t *testing.T) (ret DeviceID) {
 	return ret
 }
 
+type testLogCtx struct {
+	t *testing.T
+}
+
+func (t testLogCtx) Debug(format string, args ...interface{}) {
+	t.t.Logf(format, args...)
+}
+
 func genNewConn(t *testing.T, mr MessageRouter, s Secret, d DeviceID, rt time.Duration) net.Conn {
-	ret, err := NewConn(context.TODO(), mr, s, d, rt)
+	logCtx := testLogCtx{t}
+	ret, err := NewConn(context.TODO(), logCtx, mr, s, d, rt)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,7 +320,7 @@ func TestReadDelayedWrite(t *testing.T) {
 	c2.SetReadDeadline(time.Now().Add(wait))
 	text := "hello friend"
 	go func() {
-		time.Sleep(wait / 4)
+		time.Sleep(wait / 32)
 		c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
@@ -394,7 +403,8 @@ func TestReorder(t *testing.T) {
 		}
 	}
 	buf := make([]byte, 1000)
-	if _, err := c2.Read(buf); err != ErrBadPacketSequence {
+	_, err := c2.Read(buf)
+	if _, ok := err.(ErrBadPacketSequence); !ok {
 		t.Fatalf("expected an ErrBadPacketSequence; got %v", err)
 	}
 }
@@ -417,7 +427,8 @@ func TestDrop(t *testing.T) {
 		}
 	}
 	buf := make([]byte, 1000)
-	if _, err := c2.Read(buf); err != ErrBadPacketSequence {
+	_, err := c2.Read(buf)
+	if _, ok := err.(ErrBadPacketSequence); !ok {
 		t.Fatalf("expected an ErrBadPacketSequence; got %v", err)
 	}
 }

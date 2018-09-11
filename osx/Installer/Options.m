@@ -11,6 +11,7 @@
 @interface Options ()
 @property NSString *appPath;
 @property NSString *runMode;
+@property NSString *sourcePath;
 @property UninstallOptions uninstallOptions;
 @property KBInstallOptions installOptions;
 @property NSInteger installTimeout; // In (whole) seconds
@@ -42,9 +43,17 @@
   [parser registerSwitch:@"uninstall-fuse"];
   [parser registerSwitch:@"uninstall-mountdir"];
   [parser registerSwitch:@"uninstall-helper"];
+  [parser registerSwitch:@"uninstall-cli"];
+  [parser registerSwitch:@"uninstall-redirector"];
   [parser registerSwitch:@"uninstall"];
   [parser registerSwitch:@"install-fuse"];
   [parser registerSwitch:@"install-mountdir"];
+  [parser registerSwitch:@"install-redirector"];
+  [parser registerSwitch:@"install-helper"];
+  [parser registerSwitch:@"install-app-bundle"];
+  [parser registerSwitch:@"install-cli"];
+  [parser registerOption:@"source-path" requirement:GBValueOptional]; // If using install-app-bundle
+  [parser registerSwitch:@"debug"];
   [parser registerSettings:self.settings];
   NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
   if (![parser parseOptionsWithArguments:subargs commandLine:args[0]]) {
@@ -73,6 +82,12 @@
   if ([[self.settings objectForKey:@"uninstall-helper"] boolValue]) {
     self.uninstallOptions |= UninstallOptionHelper;
   }
+  if ([[self.settings objectForKey:@"uninstall-cli"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionCLI;
+  }
+  if ([[self.settings objectForKey:@"uninstall-redirector"] boolValue]) {
+    self.uninstallOptions |= UninstallOptionRedirector;
+  }
   if ([[self.settings objectForKey:@"uninstall"] boolValue]) {
     self.installOptions |= UninstallOptionAll;
   }
@@ -83,9 +98,20 @@
   if ([[self.settings objectForKey:@"install-mountdir"] boolValue]) {
     self.installOptions |= KBInstallOptionMountDir;
   }
-  if (self.installOptions == 0) {
-    self.installOptions = KBInstallOptionAll;
+  if ([[self.settings objectForKey:@"install-redirector"] boolValue]) {
+    self.installOptions |= KBInstallOptionRedirector;
   }
+  if ([[self.settings objectForKey:@"install-helper"] boolValue]) {
+    self.installOptions |= KBInstallOptionHelper;
+  }
+  if ([[self.settings objectForKey:@"install-app-bundle"] boolValue]) {
+    self.installOptions |= KBInstallOptionAppBundle;
+    self.sourcePath = [self.settings objectForKey:@"source-path"];
+  }
+  if ([[self.settings objectForKey:@"install-cli"] boolValue]) {
+    self.installOptions |= KBInstallOptionCLI;
+  }
+
   self.installTimeout = [[self.settings objectForKey:@"timeout"] intValue];
   if (self.installTimeout <= 0) {
     if (error) *error = KBMakeError(-1, @"Invalid timeout: %@", @(self.installTimeout));
@@ -97,7 +123,7 @@
 
 - (KBEnvironment *)environment {
   NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout];
+  KBEnvConfig *envConfig = [KBEnvConfig envConfigWithRunModeString:self.runMode installOptions:self.installOptions installTimeout:self.installTimeout appPath:self.appPath sourcePath:self.sourcePath];
   KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
   return environment;
 }

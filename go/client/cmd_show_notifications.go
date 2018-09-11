@@ -46,7 +46,7 @@ func (c *CmdShowNotifications) Run() error {
 		Tracking: true,
 	}
 
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	cli, err := GetNotifyCtlClient(c.G())
@@ -122,6 +122,11 @@ func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) e
 
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
+}
+
+func (d *notificationDisplay) FSPathUpdated(
+	_ context.Context, path string) error {
+	return d.printf("KBFS path updated notification: %s\n", path)
 }
 
 func (d *notificationDisplay) FSSyncActivity(_ context.Context, status keybase1.FSPathSyncStatus) error {

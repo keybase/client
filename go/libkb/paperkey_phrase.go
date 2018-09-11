@@ -82,7 +82,7 @@ func (p PaperKeyPhrase) NumWords() int {
 	return len(p.words())
 }
 
-// wordVersion caclulates the paper key phrase version based on a
+// wordVersion calculates the paper key phrase version based on a
 // word.
 func wordVersion(word string) uint8 {
 	h := sha256.Sum256([]byte(word))
@@ -92,14 +92,14 @@ func wordVersion(word string) uint8 {
 	return h[len(h)-1] & ((1 << PaperKeyVersionBits) - 1)
 }
 
-func NewPaperKeyPhraseCheckVersion(g *GlobalContext, passphrase string) (ret PaperKeyPhrase, err error) {
+func NewPaperKeyPhraseCheckVersion(m MetaContext, passphrase string) (ret PaperKeyPhrase, err error) {
 	paperPhrase := NewPaperKeyPhrase(passphrase)
 	version, err := paperPhrase.Version()
 	if err != nil {
 		return ret, err
 	}
 	if version != PaperKeyVersion {
-		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
+		m.CDebugf("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
 		return ret, KeyVersionError{}
 	}
 	return paperPhrase, nil

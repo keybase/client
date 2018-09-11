@@ -14,6 +14,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
+const flagCreateNewConsole = 0x00000010
+
 func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
 
 	var files []uintptr
@@ -30,7 +32,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	// Failing to open nul is non-fatal here.
 	devnull, err = os.OpenFile("nul", os.O_RDONLY, 0)
 	if err != nil {
-		G.Log.Warning("Cannot open nul: %v", err)
+		g.Log.Warning("Cannot open nul: %v", err)
 		// 0 is an invalid handle, but more importantly it will
 		// not be passed to DuplicateHandle by Go. This works
 		// with Go 1.6, but is hacky. This code path is taken
@@ -41,12 +43,15 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 		files = append(files, nullfd, nullfd, nullfd)
 	}
 
-	// On 'nix this would include Setsid: true, which means
-	// the new process inherits the session/terminal from the parent.
-	// This is default on windows and need not be specified.
+	// Create the process with its own console, so it
+	// can outlive the parent process's console.
 	attr := syscall.ProcAttr{
 		Env:   os.Environ(),
 		Files: files,
+		Sys: &syscall.SysProcAttr{
+			HideWindow:    true,
+			CreationFlags: flagCreateNewConsole,
+		},
 	}
 
 	cmd, args, err = makeServerCommandLine(g, cl, forkType)
@@ -58,7 +63,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if err != nil {
 		err = fmt.Errorf("Error in StartProcess: %s", err)
 	} else {
-		G.Log.Info("Starting background server with pid=%d", pid)
+		g.Log.Info("Starting background server with pid=%d", pid)
 	}
 	return
 }

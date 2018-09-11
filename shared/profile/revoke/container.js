@@ -1,35 +1,24 @@
 // @flow
-import Revoke from './index'
-import {TypedConnector} from '../../util/typed-connect'
-import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
+import * as ProfileGen from '../../actions/profile-gen'
+import Revoke from '.'
+import {connect, type TypedState} from '../../util/container'
 
-import type {PlatformsExpandedType} from '../../constants/types/more'
-import type {RouteProps} from '../../route-tree/render-route'
-import type {Props} from './index'
-import type {TypedState} from '../../constants/reducer'
-import type {TypedDispatch} from '../../constants/types/flux'
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
+  errorMessage: state.profile.revoke.error,
+  isWaiting: state.profile.revoke.waiting,
+  platform: routeProps.get('platform'),
+  platformHandle: routeProps.get('platformHandle'),
+})
 
-type OwnProps = RouteProps<{
-  platform: PlatformsExpandedType,
-  proofId: string,
-  platformHandle: string,
-}, {}>
+const mapDispatchToProps = (dispatch, {routeProps}) => ({
+  onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
+  onRevoke: () => {
+    if (routeProps.get('platform') === 'pgp') {
+      dispatch(ProfileGen.createDropPgp({kid: routeProps.get('proofId')}))
+    } else {
+      dispatch(ProfileGen.createSubmitRevokeProof({proofId: routeProps.get('proofId')}))
+    }
+  },
+})
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, OwnProps, Props> = new TypedConnector()
-
-export default connector.connect(
-  (state, dispatch, {routeProps}) => ({
-    isWaiting: state.profile.revoke.waiting,
-    errorMessage: state.profile.revoke.error,
-    onCancel: () => { dispatch(finishRevoking()) },
-    onRevoke: () => {
-      if (routeProps.platform === 'pgp') {
-        dispatch(dropPgp(routeProps.proofId))
-      } else {
-        dispatch(submitRevokeProof(routeProps.proofId))
-      }
-    },
-    platform: routeProps.platform,
-    platformHandle: routeProps.platformHandle,
-  })
-)(Revoke)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Revoke)

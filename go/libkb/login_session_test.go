@@ -57,8 +57,8 @@ func (a *FakeAPI) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
 }
 
-func (a *FakeAPI) GetResp(APIArg) (*http.Response, error) {
-	return nil, fmt.Errorf("GetResp is phony")
+func (a *FakeAPI) GetResp(APIArg) (*http.Response, func(), error) {
+	return nil, noopFinisher, fmt.Errorf("GetResp is phony")
 }
 
 func (a *FakeAPI) Post(APIArg) (*APIRes, error) {
@@ -69,16 +69,15 @@ func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
 	return nil, fmt.Errorf("PostJSON is phony")
 }
 
-func (a *FakeAPI) PostResp(APIArg) (*http.Response, error) {
-	return nil, fmt.Errorf("PostResp is phony")
-}
-
 func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
 	return nil, fmt.Errorf("PostRaw is phony")
 }
 
 func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
 	return fmt.Errorf("GetDecode is phony")
+}
+func (a *FakeAPI) Delete(APIArg) (*APIRes, error) {
+	return nil, fmt.Errorf("Delete is phony")
 }
 
 func TestLoginSessionTimeout(t *testing.T) {
@@ -88,8 +87,8 @@ func TestLoginSessionTimeout(t *testing.T) {
 	tc.G.SetClock(c)
 	defer tc.Cleanup()
 
-	sesh := NewLoginSession("logintest", tc.G)
-	err := sesh.Load()
+	sesh := NewLoginSession(tc.G, "logintest")
+	err := sesh.Load(NewMetaContextForTest(tc))
 	if err != nil {
 		t.Fatal(err)
 	}

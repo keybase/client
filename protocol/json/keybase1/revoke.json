@@ -32,7 +32,11 @@
           "type": "DeviceID"
         },
         {
-          "name": "force",
+          "name": "forceSelf",
+          "type": "boolean"
+        },
+        {
+          "name": "forceLast",
           "type": "boolean"
         }
       ],

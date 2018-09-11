@@ -1,0 +1,115 @@
+@namespace("keybase.1")
+
+protocol ephemeral {
+  import idl "common.avdl";
+
+  @lint("ignore")
+  @typedef("int64")
+  record EkGeneration {}
+
+  ////////////////////////////////////////////////////////////////////////
+
+  record DeviceEkMetadata {
+    @jsonkey("device_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+    Time deviceCtime;
+  }
+
+  // NOTE: The device/user/team structs are very similar here, so it might seem
+  // like a good idea to unify them. However! One thing we have to be careful
+  // with is that signatures of one type don't get confused for another type.
+  // Thus we use distinct field names like "device_ephemeral_dh_public" and
+  // "user_ephemeral_dh_public". If anyone ever tries to refactor all these
+  // structs, please be careful with this detail.
+  record DeviceEkStatement {
+    @jsonkey("current_device_ek_metadata")
+    DeviceEkMetadata currentDeviceEkMetadata;
+  }
+
+  record DeviceEk {
+    Bytes32 seed;
+    DeviceEkMetadata metadata;
+  }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  record UserEkStatement {
+    @jsonkey("current_user_ek_metadata")
+    UserEkMetadata currentUserEkMetadata;
+  }
+
+  record UserEkMetadata {
+    @jsonkey("user_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record UserEkBoxed {
+    string box;
+    @jsonkey("device_ek_generation")
+    EkGeneration deviceEkGeneration;
+    UserEkMetadata metadata;
+  }
+
+  record UserEkBoxMetadata {
+    string box;
+    @jsonkey("recipient_generation")
+    EkGeneration recipientGeneration;
+    @jsonkey("recipient_device_id")
+    DeviceID recipientDeviceID;
+  }
+
+  record UserEk {
+    Bytes32 seed;
+    UserEkMetadata metadata;
+  }
+
+  record UserEkReboxArg {
+    UserEkBoxMetadata userEkBoxMetadata;
+    DeviceID deviceID;
+    string deviceEkStatementSig;
+  }
+
+  ////////////////////////////////////////////////////////////////////////
+
+  record TeamEkMetadata {
+    @jsonkey("team_ephemeral_dh_public")
+    KID kid;
+    @jsonkey("hash_meta")
+    HashMeta hashMeta;
+    EkGeneration generation;
+    Time ctime;
+  }
+
+  record TeamEkStatement {
+    @jsonkey("current_team_ek_metadata")
+    TeamEkMetadata currentTeamEkMetadata;
+  }
+
+  record TeamEkBoxed {
+    string box;
+    @jsonkey("user_ek_generation")
+    EkGeneration userEkGeneration;
+    TeamEkMetadata metadata;
+  }
+
+  record TeamEkBoxMetadata {
+    string box;
+    @jsonkey("recipient_generation")
+    EkGeneration recipientGeneration;
+    @jsonkey("recipient_uid")
+    UID recipientUID;
+  }
+
+  record TeamEk {
+    Bytes32 seed;
+    TeamEkMetadata metadata;
+  }
+}

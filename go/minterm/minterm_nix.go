@@ -6,9 +6,10 @@
 package minterm
 
 import (
-	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"os"
+
+	"github.com/keybase/go-crypto/ssh/terminal"
 )
 
 func (m *MinTerm) open() error {

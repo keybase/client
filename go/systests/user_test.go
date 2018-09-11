@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
@@ -118,6 +119,11 @@ func (n *signupTerminalUI) Printf(f string, args ...interface{}) (int, error) {
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+func (n *signupTerminalUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	s := fmt.Sprintf(f, args...)
+	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
+	return len(s), nil
+}
 
 func (n *signupTerminalUI) Write(b []byte) (int, error) {
 	n.G().Log.Debug("Terminal write: %s", string(b))
@@ -125,6 +131,9 @@ func (n *signupTerminalUI) Write(b []byte) (int, error) {
 }
 
 func (n *signupTerminalUI) OutputWriter() io.Writer {
+	return n
+}
+func (n *signupTerminalUI) UnescapedOutputWriter() io.Writer {
 	return n
 }
 func (n *signupTerminalUI) ErrorWriter() io.Writer {
@@ -170,12 +179,20 @@ func randomUser(prefix string) *signupInfo {
 	}
 }
 
+func randomDevice() string {
+	b := make([]byte, 5)
+	rand.Read(b)
+	sffx := hex.EncodeToString(b)
+	return fmt.Sprintf("d_%s", sffx)
+}
+
 type notifyHandler struct {
 	logoutCh    chan struct{}
 	loginCh     chan string
 	outOfDateCh chan keybase1.ClientOutOfDateArg
 	userCh      chan keybase1.UID
 	errCh       chan error
+	startCh     chan bool
 }
 
 func newNotifyHandler() *notifyHandler {
@@ -185,6 +202,7 @@ func newNotifyHandler() *notifyHandler {
 		outOfDateCh: make(chan keybase1.ClientOutOfDateArg),
 		userCh:      make(chan keybase1.UID),
 		errCh:       make(chan error),
+		startCh:     make(chan bool),
 	}
 }
 
@@ -212,8 +230,6 @@ func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
 	tc2 := cloneContext(tc)
 	tc5 := cloneContext(tc)
-
-	libkb.G.LocalDb = nil
 
 	// Hack the various portions of the service that aren't
 	// properly contextified.
@@ -263,13 +279,10 @@ func TestSignupLogout(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.NotifyCtlClient{Cli: cli}
-		if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+		return ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 			Session: true,
 			Users:   true,
-		}); err != nil {
-			return err
-		}
-		return nil
+		})
 	}
 
 	// Actually launch it in the background
@@ -277,21 +290,38 @@ func TestSignupLogout(t *testing.T) {
 		err := launchServer(nh)
 		if err != nil {
 			nh.errCh <- err
+		} else {
+			nh.startCh <- true
 		}
 	}()
+
+	select {
+	case <-nh.startCh:
+		t.Logf("notify handler server started")
+	case err := <-nh.errCh:
+		t.Fatalf("Error starting notify handler server: %v", err)
+	case <-time.After(20 * time.Second):
+		t.Fatalf("timed out waiting for notify handler server to start")
+	}
 
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
-	tc2.G.Log.Debug("Login State: %v", tc2.G.LoginState())
 	select {
 	case err := <-nh.errCh:
 		t.Fatalf("Error before notify: %v", err)
 	case u := <-nh.loginCh:
 		if u != userInfo.username {
-			t.Fatalf("bad username in login notifcation: %q != %q", u, userInfo.username)
+			t.Fatalf("bad username in login notification: %q != %q", u, userInfo.username)
 		}
 		tc.G.Log.Debug("Got notification of login for %q", u)
+	}
+
+	// signup calls logout, so clear that from the notification channel
+	select {
+	case <-nh.logoutCh:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for signup's logout notification")
 	}
 
 	btc := client.NewCmdCurrencyAddRunner(tc2.G)
@@ -348,4 +378,18 @@ func TestSignupLogout(t *testing.T) {
 	default:
 	}
 
+}
+
+// Try to elicit a race between Logout and Shutdown.
+func TestLogoutMulti(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	user1 := tt.addUser("one")
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	go user1.tc.G.Logout()
+	user1.tc.G.Logout()
 }

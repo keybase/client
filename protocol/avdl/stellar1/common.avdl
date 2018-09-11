@@ -1,0 +1,140 @@
+@namespace("stellar.1")
+protocol common {
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+
+  @typedef("string") record AccountID {}
+  @typedef("string") record SecretKey {}
+  @typedef("string") record TransactionID {}
+  @typedef("string") record KeybaseTransactionID {}
+  @typedef("long")   record TimeMs {} // ms since epoch
+  @typedef("bytes")  record Hash {}
+  @typedef("string") record KeybaseRequestID {}
+
+  record PaymentID {
+    TransactionID txID;
+  }
+
+  record Asset {
+    string type; // 'native' | 'alphanum4' | 'alphanum12'
+    string code;
+    string issuer;
+  }
+
+  record Balance {
+    Asset asset;
+    string amount;
+    string limit;
+  }
+
+  record AccountReserve {
+    string amount; // "-1"
+    string description; // e.g. "HUGZ/Unknown trustline" or "account"
+  }
+
+  enum TransactionStatus {
+    NONE_0,
+    PENDING_1,
+    SUCCESS_2,
+    ERROR_TRANSIENT_3,
+    ERROR_PERMANENT_4
+  }
+
+  enum RequestStatus {
+    OK_0,
+    CANCELED_1
+  }
+
+  enum PaymentStrategy {
+    NONE_0,
+    DIRECT_1,
+    RELAY_2
+  }
+
+  enum RelayDirection {
+    CLAIM_0,
+    YANK_1
+  }
+
+  record PaymentResult {
+    KeybaseTransactionID keybaseID;
+    // Direct: tx ID of the payment tx
+    // Relay : tx ID of the funding payment tx
+    TransactionID stellarID;
+    // If (arg.quickReturn && result.pending) then the payment
+    //   was recorded but may still be pending on the stellar network
+    //   and could still fail.
+    // If arg.quickReturn == false then result.pending should be ignored.
+    boolean pending;
+  }
+
+  record RelayClaimResult {
+    // tx ID of the submitted claim tx (not the fund tx)
+    TransactionID claimStellarID;
+  }
+
+  // A note encrypted for one or two keybase users.
+  // Decrypts to a NoteContents.
+  record EncryptedNote {
+    int v;               // version
+    bytes e;             // encrypted data
+    keybase1.BoxNonce n; // nonce
+    NoteRecipient sender;
+    union { null, NoteRecipient } recipient;
+  }
+
+  record NoteRecipient {
+    keybase1.UserVersion user;
+    keybase1.PerUserKeyGeneration pukGen;
+  }
+
+  record NoteContents {
+    string note;
+    TransactionID stellarID;
+  }
+
+  // A stellar secret key encrypted for an iteam.
+  // Decrypts to a stellar1.SecretKey.
+  record EncryptedRelaySecret {
+    int v;               // version
+    bytes e;             // encrypted data
+    keybase1.BoxNonce n; // nonce
+    keybase1.PerTeamKeyGeneration gen; // key generation that was used
+  }
+
+  record RelayContents {
+    TransactionID stellarID;
+    SecretKey sk;
+    string note;
+  }
+
+  // OutsideCurrencyCode examples: "USD", "EUR"
+  @typedef("string") record OutsideCurrencyCode {}
+
+  record OutsideExchangeRate {
+    OutsideCurrencyCode currency; // Example: PLN
+    string rate; // Example: "0.9389014463" = PLN / XLM
+  }
+
+  record CurrencySymbol {
+    @jsonkey("str")
+    string symbol; // Example: "$"
+    boolean ambigious; // whether the symbol is used by multiple currencies
+    boolean postfix; // whether symbol goes after the number
+  }
+
+  record OutsideCurrencyDefinition {
+    string name; // Example: "US Dollar"
+    CurrencySymbol symbol;
+  }
+
+  record StellarServerDefinitions {
+    int revision;
+    map<OutsideCurrencyCode, OutsideCurrencyDefinition> currencies;
+  }
+
+  record PageCursor {
+    string horizonCursor;
+    string directCursor;
+    string relayCursor;
+  }
+}

@@ -78,11 +78,11 @@ func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
-func (t BaseServiceType) LastWriterWins() bool                                { return true }
-func (t BaseServiceType) PreProofCheck(ProofContext, string) (*Markup, error) { return nil, nil }
-func (t BaseServiceType) PreProofWarning(remotename string) *Markup           { return nil }
+func (t BaseServiceType) LastWriterWins() bool                               { return true }
+func (t BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { return nil, nil }
+func (t BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }
 
-func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
+func (t BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
 }
 
@@ -110,11 +110,11 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 	return
 }
 
+var urlRxx = regexp.MustCompile(`https://(\S+)`)
+
 func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {
-	urlRxx := regexp.MustCompile(`https://(\S+)`)
 	target := id.ToMediumID()
 	urls := urlRxx.FindAllString(text, -1)
-	G.Log.Debug("Found urls %v", urls)
 	found := false
 	for _, u := range urls {
 		if strings.HasSuffix(u, target) {

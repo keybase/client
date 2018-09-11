@@ -1,125 +1,75 @@
 // @flow
-import * as Constants from '../../constants/profile'
+import logger from '../../logger'
+import * as ProfileGen from '../profile-gen'
+import * as Saga from '../../util/saga'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouteTreeGen from '../route-tree-gen'
 import engine, {Engine} from '../../engine'
-import {call, put, select, race, take} from 'redux-saga/effects'
-import {cryptocurrencyRegisterAddressRpcPromise, proveStartProofRpcChannelMap, ConstantsStatusCode, ProveCommonProofStatus, proveCheckProofRpcPromise} from '../../constants/types/flow-types'
-import {navigateTo, navigateAppend} from '../route-tree'
-import {profileTab} from '../../constants/tabs'
-import {singleFixedChannelConfig, closeChannelMap, takeFromChannelMap, safeTakeEvery} from '../../util/saga'
+import {peopleTab} from '../../constants/tabs'
 
-import type {AddProof, CancelAddProof, CheckProof, CleanupUsername, SubmitBTCAddress, SubmitUsername, UpdateErrorText, UpdatePlatform, UpdateProofStatus, UpdateProofText, UpdateSigID, Waiting, SubmitZcashAddress} from '../../constants/profile'
-import type {NavigateTo} from '../../constants/route-tree'
-import type {PlatformsExpandedType, ProvablePlatformsType} from '../../constants/types/more'
-import type {SagaGenerator, ChannelMap} from '../../constants/types/saga'
-import type {SigID} from '../../constants/types/flow-types'
+import type {ProvablePlatformsType} from '../../constants/types/more'
 import type {TypedState} from '../../constants/reducer'
 
-function _updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
-  return {payload: {platform}, type: Constants.updatePlatform}
-}
+const _askTextOrDNS = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveWebsiteChoice'], parentPath: [peopleTab]})
+const _registerBTC = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]})
+const _registerZcash = () =>
+  RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]})
 
-function _askTextOrDNS (): NavigateTo {
-  return navigateTo(['proveWebsiteChoice'], [profileTab])
-}
-
-function _registerBTC (): NavigateTo {
-  return navigateTo(['proveEnterUsername'], [profileTab])
-}
-
-function _registerZcash (): NavigateTo {
-  return navigateTo(['proveEnterUsername'], [profileTab])
-}
-
-function addProof (platform: PlatformsExpandedType): AddProof {
-  return {payload: {platform}, type: Constants.addProof}
-}
-
-function _cleanupUsername (): CleanupUsername {
-  return {payload: undefined, type: Constants.cleanupUsername}
-}
-
-function submitUsername (): SubmitUsername {
-  return {payload: undefined, type: Constants.submitUsername}
-}
-
-function cancelAddProof (): CancelAddProof {
-  return {payload: undefined, type: Constants.cancelAddProof}
-}
-
-function submitBTCAddress (): SubmitBTCAddress {
-  return {payload: undefined, type: Constants.submitBTCAddress}
-}
-
-function submitZcashAddress (): SubmitZcashAddress {
-  return {payload: undefined, type: Constants.submitZcashAddress}
-}
-
-function _updateProofText (proof: string): UpdateProofText {
-  return {payload: {proof}, type: Constants.updateProofText}
-}
-
-function _updateProofStatus (found, status): UpdateProofStatus {
-  return {payload: {found, status}, type: Constants.updateProofStatus}
-}
-
-function _waitingForResponse (waiting: boolean): Waiting {
-  return {payload: {waiting}, type: Constants.waiting}
-}
-
-function _updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
-  return {payload: {errorText, errorCode}, type: Constants.updateErrorText}
-}
-
-function _updateSigID (sigID: ?SigID): UpdateSigID {
-  return {payload: {sigID}, type: Constants.updateSigID}
-}
-
-function checkProof (): CheckProof {
-  return {payload: undefined, type: Constants.checkProof}
-}
-
-function * _checkProof (action: CheckProof): SagaGenerator<any, any> {
-  const getSigID = (state: TypedState) => state.profile.sigID
-  const sigID = ((yield select(getSigID)): any)
+function* _checkProof(action: ProfileGen.CheckProofPayload): Saga.SagaGenerator<any, any> {
+  const state: TypedState = yield Saga.select()
+  const sigID = state.profile.sigID
   if (!sigID) {
     return
   }
 
-  yield put(_updateErrorText(null))
+  yield Saga.put(ProfileGen.createUpdateErrorText({}))
 
   try {
-    yield put(_waitingForResponse(true))
-    const {found, status} = yield call(proveCheckProofRpcPromise, {param: {sigID}})
-    yield put(_waitingForResponse(false))
+    yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    const {found, status} = yield Saga.call(RPCTypes.proveCheckProofRpcPromise, {sigID})
+    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
 
     // Values higher than baseHardError are hard errors, below are soft errors (could eventually be resolved by doing nothing)
-    if (!found && status >= ProveCommonProofStatus.baseHardError) {
-      yield put(_updateErrorText("We couldn't find your proof. Please retry!"))
+    if (!found && status >= RPCTypes.proveCommonProofStatus.baseHardError) {
+      yield Saga.put(
+        ProfileGen.createUpdateErrorText({
+          errorText: "We couldn't find your proof. Please retry!",
+        })
+      )
     } else {
-      yield put(_updateProofStatus(found, status))
-      yield put(navigateAppend(['confirmOrPending'], [profileTab]))
+      yield Saga.put(ProfileGen.createUpdateProofStatus({found, status}))
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['confirmOrPending'], parentPath: [peopleTab]}))
     }
   } catch (error) {
-    yield put(_waitingForResponse(false))
-    console.warn('Error getting proof update')
-    yield put(_updateErrorText("We couldn't verify your proof. Please retry!"))
+    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+    logger.warn('Error getting proof update')
+    yield Saga.put(
+      ProfileGen.createUpdateErrorText({
+        errorText: "We couldn't verify your proof. Please retry!",
+        errorCode: null,
+      })
+    )
   }
 }
 
-function * _addProof (action: AddProof): SagaGenerator<any, any> {
-  yield put(_updatePlatform(action.payload.platform))
-  yield put(_updateErrorText())
+function _addProof(action: ProfileGen.AddProofPayload) {
+  const actions = [
+    Saga.put(ProfileGen.createUpdatePlatform({platform: action.payload.platform})),
+    Saga.put(ProfileGen.createUpdateErrorText({})),
+  ]
 
   // Special cases
   switch (action.payload.platform) {
     case 'dnsOrGenericWebSite':
-      yield put(_askTextOrDNS())
+      actions.push(Saga.put(_askTextOrDNS()))
       break
     case 'zcash':
-      yield put(_registerZcash())
+      actions.push(Saga.put(_registerZcash()))
       break
     case 'btc':
-      yield put(_registerBTC())
+      actions.push(Saga.put(_registerBTC()))
       break
     // flow needs this for some reason
     case 'http':
@@ -128,181 +78,205 @@ function * _addProof (action: AddProof): SagaGenerator<any, any> {
     case 'facebook':
     case 'reddit':
     case 'github':
-    case 'coinbase':
     case 'hackernews':
     case 'dns':
-      yield call(_addServiceProof, action.payload.platform)
+      actions.push(Saga.call(_addServiceProof, action.payload.platform))
       break
     case 'pgp':
-      yield put(navigateAppend(['pgp'], [profileTab]))
+      actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: ['pgp'], parentPath: [peopleTab]})))
   }
+
+  return Saga.sequentially(actions)
 }
 
-function * _addServiceProof (service: ProvablePlatformsType): SagaGenerator<any, any> {
+function* _addServiceProof(service: ProvablePlatformsType): Saga.SagaGenerator<any, any> {
   let _promptUsernameResponse: ?Object = null
   let _outputInstructionsResponse: ?Object = null
 
-  const channelConfig = singleFixedChannelConfig([
-    'keybase.1.proveUi.promptUsername',
-    'keybase.1.proveUi.outputInstructions',
-    'keybase.1.proveUi.promptOverwrite',
-    'keybase.1.proveUi.outputPrechecks',
-    'keybase.1.proveUi.preProofWarning',
-    'keybase.1.proveUi.okToCheck',
-    'keybase.1.proveUi.displayRecheckWarning',
-    'finished',
-  ])
+  yield Saga.put(ProfileGen.createUpdateSigID({sigID: null}))
 
-  yield put(_updateSigID(null))
-
-  const proveStartProofChanMap: ChannelMap<any> = proveStartProofRpcChannelMap(channelConfig, {
-    param: {
+  const proveStartProofChanMap: any = RPCTypes.proveStartProofRpcChannelMap(
+    [
+      'keybase.1.proveUi.promptUsername',
+      'keybase.1.proveUi.outputInstructions',
+      'keybase.1.proveUi.promptOverwrite',
+      'keybase.1.proveUi.outputPrechecks',
+      'keybase.1.proveUi.preProofWarning',
+      'keybase.1.proveUi.okToCheck',
+      'keybase.1.proveUi.displayRecheckWarning',
+      'finished',
+    ],
+    {
       auto: false,
       force: true,
       promptPosted: false,
       service,
       username: '',
-    },
-  })
+    }
+  )
 
   while (true) {
-    const incoming: {[key: string]: any} = yield race({
-      cancel: take(Constants.cancelAddProof),
-      checkProof: take(Constants.checkProof),
-      displayRecheckWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.displayRecheckWarning'),
-      finished: takeFromChannelMap(proveStartProofChanMap, 'finished'),
-      okToCheck: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.okToCheck'),
-      outputInstructions: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputInstructions'),
-      outputPrechecks: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.outputPrechecks'),
-      preProofWarning: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.preProofWarning'),
-      promptOverwrite: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptOverwrite'),
-      promptUsername: takeFromChannelMap(proveStartProofChanMap, 'keybase.1.proveUi.promptUsername'),
-      submitUsername: take(Constants.submitUsername),
+    const incoming = yield proveStartProofChanMap.race({
+      racers: {
+        cancel: Saga.take(ProfileGen.cancelAddProof),
+        checkProof: Saga.take(ProfileGen.checkProof),
+        submitUsername: Saga.take(ProfileGen.submitUsername),
+      },
     })
-    yield put(_waitingForResponse(false))
+
+    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
 
     if (incoming.cancel) {
-      closeChannelMap(proveStartProofChanMap)
+      proveStartProofChanMap.close()
 
-      const engineInst: Engine = yield call(engine)
+      const engineInst: Engine = yield Saga.call(engine)
 
-      const InputCancelError = {code: ConstantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
+      const InputCancelError = {code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Cancel Add Proof'}
       if (_promptUsernameResponse) {
-        yield call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
+        yield Saga.call([engineInst, engineInst.cancelRPC], _promptUsernameResponse, InputCancelError)
         _promptUsernameResponse = null
       }
 
       if (_outputInstructionsResponse) {
-        yield call([engineInst, engineInst.cancelRPC], _outputInstructionsResponse, InputCancelError)
+        yield Saga.call([engineInst, engineInst.cancelRPC], _outputInstructionsResponse, InputCancelError)
         _outputInstructionsResponse = null
       }
-      yield put(_waitingForResponse(false))
+      yield Saga.put(ProfileGen.createWaiting({waiting: false}))
     } else if (incoming.submitUsername) {
-      yield put(_cleanupUsername())
+      yield Saga.put(ProfileGen.createCleanupUsername())
       if (_promptUsernameResponse) {
-        yield put(_updateErrorText())
-        const username = yield select(state => state.profile.username)
+        yield Saga.put(ProfileGen.createUpdateErrorText({}))
+        const state: TypedState = yield Saga.select()
+        const username = state.profile.username
         _promptUsernameResponse.result(username)
         _promptUsernameResponse = null
-        yield put(_waitingForResponse(true))
+
+        yield Saga.put(ProfileGen.createWaiting({waiting: true}))
       }
     } else if (incoming.checkProof) {
       if (!incoming.checkProof.sigID && _outputInstructionsResponse) {
         _outputInstructionsResponse.result()
         _outputInstructionsResponse = null
-        yield put(_waitingForResponse(true))
+        yield Saga.put(ProfileGen.createWaiting({waiting: true}))
       }
-    } else if (incoming.promptUsername) {
-      _promptUsernameResponse = incoming.promptUsername.response
-      if (incoming.promptUsername.params.prevError) {
-        yield put(_updateErrorText(incoming.promptUsername.params.prevError.desc, incoming.promptUsername.params.prevError.code))
+    } else if (incoming['keybase.1.proveUi.promptUsername']) {
+      _promptUsernameResponse = incoming['keybase.1.proveUi.promptUsername'].response
+      if (incoming['keybase.1.proveUi.promptUsername'].params.prevError) {
+        yield Saga.put(
+          ProfileGen.createUpdateErrorText({
+            errorText: incoming['keybase.1.proveUi.promptUsername'].params.prevError.desc,
+            errorCode: incoming['keybase.1.proveUi.promptUsername'].params.prevError.code,
+          })
+        )
       }
-      yield put(navigateTo(['proveEnterUsername'], [profileTab]))
-    } else if (incoming.outputInstructions) {
-      if (service === 'dnsOrGenericWebSite') { // We don't get this directly (yet) so we parse this out
+      yield Saga.put(RouteTreeGen.createNavigateTo({path: ['proveEnterUsername'], parentPath: [peopleTab]}))
+    } else if (incoming['keybase.1.proveUi.outputInstructions']) {
+      // $FlowIssue
+      if (service === 'dnsOrGenericWebSite') {
+        // We don't get this directly (yet) so we parse this out
         try {
-          const match = incoming.outputInstructions.params.instructions.data.match(/<url>(http[s]+):\/\//)
+          const match = incoming['keybase.1.proveUi.outputInstructions'].params.instructions.data.match(
+            /<url>(http[s]+):\/\//
+          )
           const protocol = match && match[1]
-          yield put(_updatePlatform(protocol === 'https' ? 'https' : 'http'))
+          yield Saga.put(ProfileGen.createUpdatePlatform({platform: protocol === 'https' ? 'https' : 'http'}))
         } catch (_) {
-          yield put(_updatePlatform('http'))
+          yield Saga.put(ProfileGen.createUpdatePlatform({platform: 'http'}))
         }
       }
 
-      yield put(_updateProofText(incoming.outputInstructions.params.proof))
-      _outputInstructionsResponse = incoming.outputInstructions.response
-      yield put(navigateAppend(['postProof'], [profileTab]))
+      yield Saga.put(
+        ProfileGen.createUpdateProofText({
+          proof: incoming['keybase.1.proveUi.outputInstructions'].params.proof,
+        })
+      )
+      _outputInstructionsResponse = incoming['keybase.1.proveUi.outputInstructions'].response
+      yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['postProof'], parentPath: [peopleTab]}))
     } else if (incoming.finished) {
-      yield put(_updateSigID(incoming.finished.params.sigID))
+      yield Saga.put(ProfileGen.createUpdateSigID({sigID: incoming.finished.params.sigID}))
       if (incoming.finished.error) {
-        console.warn('Error making proof')
-        yield put(_updateErrorText(incoming.finished.error.desc, incoming.finished.error.code))
+        logger.warn('Error making proof')
+        yield Saga.put(
+          ProfileGen.createUpdateErrorText({
+            errorText: incoming.finished.error.desc,
+            errorCode: incoming.finished.error.code,
+          })
+        )
       } else {
-        console.log('Start Proof done: ', incoming.finished.params.sigID)
-        yield put(checkProof())
+        logger.info('Start Proof done: ', incoming.finished.params.sigID)
+        yield Saga.put(ProfileGen.createCheckProof())
       }
-      closeChannelMap(proveStartProofChanMap)
       break
-    } else if (incoming.promptOverwrite) {
-      incoming.promptOverwrite.response.result(true)
-      yield put(_waitingForResponse(true))
-    } else if (incoming.outputPrechecks) {
-      incoming.outputPrechecks.response.result()
-      yield put(_waitingForResponse(true))
-    } else if (incoming.preProofWarning) {
-      incoming.preProofWarning.response.result(true)
-      yield put(_waitingForResponse(true))
-    } else if (incoming.okToCheck) {
-      incoming.okToCheck.response.result(true)
-      yield put(_waitingForResponse(true))
-    } else if (incoming.displayRecheckWarning) {
-      incoming.displayRecheckWarning.response.result()
-      yield put(_waitingForResponse(true))
+    } else if (incoming['keybase.1.proveUi.promptOverwrite']) {
+      incoming['keybase.1.proveUi.promptOverwrite'].response.result(true)
+      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    } else if (incoming['keybase.1.proveUi.outputPrechecks']) {
+      incoming['keybase.1.proveUi.outputPrechecks'].response.result()
+      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    } else if (incoming['keybase.1.proveUi.preProofWarning']) {
+      incoming['keybase.1.proveUi.preProofWarning'].response.result(true)
+      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    } else if (incoming['keybase.1.proveUi.okToCheck']) {
+      incoming['keybase.1.proveUi.okToCheck'].response.result(true)
+      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    } else if (incoming['keybase.1.proveUi.displayRecheckWarning']) {
+      incoming['keybase.1.proveUi.displayRecheckWarning'].response.result()
+      yield Saga.put(ProfileGen.createWaiting({waiting: true}))
     }
   }
 }
 
-function * _cancelAddProof (): SagaGenerator<any, any> {
-  yield put(_updateErrorText())
-  yield put(navigateTo([], [profileTab]))
+function _cancelAddProof(_, state: TypedState) {
+  return Saga.sequentially([
+    Saga.put(ProfileGen.createUpdateErrorText({})),
+    Saga.put(ProfileGen.createShowUserProfile({username: state.config.username || ''})),
+  ])
 }
 
-function * _submitCryptoAddress (action: SubmitBTCAddress | SubmitZcashAddress): SagaGenerator<any, any> {
-  yield put(_cleanupUsername())
-  const address = yield select(state => state.profile.username)
-  const wantedFamily = {
-    [Constants.submitBTCAddress]: 'bitcoin',
-    [Constants.submitZcashAddress]: 'zcash',
-  }[action.type]
+function* _submitCryptoAddress(
+  action: ProfileGen.SubmitBTCAddressPayload | ProfileGen.SubmitZcashAddressPayload
+): Saga.SagaGenerator<any, any> {
+  yield Saga.put(ProfileGen.createCleanupUsername())
+  const state: TypedState = yield Saga.select()
+  const address = state.profile.username
+
+  let wantedFamily
+  switch (action.type) {
+    case ProfileGen.submitBTCAddress:
+      wantedFamily = 'bitcoin'
+      break
+    case ProfileGen.submitZcashAddress:
+      wantedFamily = 'zcash'
+      break
+    default:
+      throw new Error('Unknown wantedfamily')
+  }
+
   try {
-    yield put(_waitingForResponse(true))
-    yield call(cryptocurrencyRegisterAddressRpcPromise, {param: {address, force: true, wantedFamily}})
-    yield put(_waitingForResponse(false))
-    yield put(_updateProofStatus(true, ProveCommonProofStatus.ok))
-    yield put(navigateAppend(['postProof', 'confirmOrPending'], [profileTab]))
+    yield Saga.put(ProfileGen.createWaiting({waiting: true}))
+    yield Saga.call(RPCTypes.cryptocurrencyRegisterAddressRpcPromise, {
+      address,
+      force: true,
+      wantedFamily,
+    })
+
+    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+    yield Saga.put(
+      ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok})
+    )
+    yield Saga.put(RouteTreeGen.createNavigateAppend({path: ['confirmOrPending'], parentPath: [peopleTab]}))
   } catch (error) {
-    console.warn('Error making proof')
-    yield put(_waitingForResponse(false))
-    yield put(_updateErrorText(error.desc, error.code))
+    logger.warn('Error making proof')
+    yield Saga.put(ProfileGen.createWaiting({waiting: false}))
+    yield Saga.put(ProfileGen.createUpdateErrorText({errorText: error.desc, errorCode: error.code}))
   }
 }
 
-function * proofsSaga (): SagaGenerator<any, any> {
-  yield [
-    safeTakeEvery(Constants.submitBTCAddress, _submitCryptoAddress),
-    safeTakeEvery(Constants.submitZcashAddress, _submitCryptoAddress),
-    safeTakeEvery(Constants.cancelAddProof, _cancelAddProof),
-    safeTakeEvery(Constants.addProof, _addProof),
-    safeTakeEvery(Constants.checkProof, _checkProof),
-  ]
+function* proofsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery([ProfileGen.submitBTCAddress, ProfileGen.submitZcashAddress], _submitCryptoAddress)
+  yield Saga.safeTakeEveryPure(ProfileGen.cancelAddProof, _cancelAddProof)
+  yield Saga.safeTakeEveryPure(ProfileGen.addProof, _addProof)
+  yield Saga.safeTakeEvery(ProfileGen.checkProof, _checkProof)
 }
 
-export {
-  addProof,
-  cancelAddProof,
-  checkProof,
-  submitBTCAddress,
-  submitZcashAddress,
-  submitUsername,
-  proofsSaga,
-}
+export {proofsSaga}

@@ -30,7 +30,7 @@ func TestAPIServerGet(t *testing.T) {
 	}
 
 	handler := NewAPIServerHandler(nil, tc.G)
-	res, err := handler.doGet(arg)
+	res, err := handler.doGet(arg, false)
 	if err != nil {
 		t.Fatal(err)
 	}

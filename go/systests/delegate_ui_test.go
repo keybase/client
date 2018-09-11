@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/client"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -17,6 +16,7 @@ import (
 )
 
 type delegateUI struct {
+	T         *testing.T
 	ch        chan error
 	delegated bool
 	started   bool
@@ -40,6 +40,8 @@ func (d *delegateUI) checkDelegated() error {
 }
 
 func (d *delegateUI) setError(e error) error {
+	d.T.Logf("delegateUI error: %v", e)
+	fmt.Printf("delegateUI error: %v\n", e)
 	go func() { d.ch <- e }()
 	return e
 }
@@ -70,16 +72,10 @@ func (d *delegateUI) Start(context.Context, keybase1.StartArg) error {
 }
 
 func (d *delegateUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchNetworkChecksArg) error {
 	if err := d.checkStarted(); err != nil {
@@ -96,22 +92,13 @@ func (d *delegateUI) LaunchNetworkChecks(_ context.Context, arg keybase1.LaunchN
 	return nil
 }
 func (d *delegateUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) FinishSocialProofCheck(_ context.Context, arg keybase1.FinishSocialProofCheckArg) error {
 	if err := d.checkStarted(); err != nil {
@@ -126,16 +113,10 @@ func (d *delegateUI) FinishSocialProofCheck(_ context.Context, arg keybase1.Fini
 	return nil
 }
 func (d *delegateUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1.ConfirmResult, err error) {
 	if err = d.checkStarted(); err != nil {
@@ -146,11 +127,8 @@ func (d *delegateUI) Confirm(context.Context, keybase1.ConfirmArg) (res keybase1
 	return res, nil
 }
 func (d *delegateUI) Cancel(context.Context, int) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	d.canceled = true
 	close(d.ch)
+	d.canceled = true
 	return nil
 }
 func (d *delegateUI) Finish(context.Context, int) error {
@@ -161,10 +139,7 @@ func (d *delegateUI) Finish(context.Context, int) error {
 	return nil
 }
 func (d *delegateUI) Dismiss(context.Context, keybase1.DismissArg) error {
-	if err := d.checkStarted(); err != nil {
-		return err
-	}
-	return nil
+	return d.checkStarted()
 }
 
 func (d *delegateUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
@@ -178,8 +153,9 @@ func (d *delegateUI) checkSuccess() error {
 	return nil
 }
 
-func newDelegateUI() *delegateUI {
+func newDelegateUI(t *testing.T) *delegateUI {
 	return &delegateUI{
+		T:  t,
 		ch: make(chan error),
 	}
 }
@@ -188,9 +164,6 @@ func TestDelegateUI(t *testing.T) {
 	tc := setupTest(t, "delegate_ui")
 	tc1 := cloneContext(tc)
 	tc2 := cloneContext(tc)
-
-	// Make sure we're not using G anywhere in our tests.
-	libkb.G.LocalDb = nil
 
 	defer tc.Cleanup()
 
@@ -207,7 +180,7 @@ func TestDelegateUI(t *testing.T) {
 
 	// Wait for the server to start up
 	<-startCh
-	dui := newDelegateUI()
+	dui := newDelegateUI(t)
 
 	launchDelegateUI := func(dui *delegateUI) error {
 		cli, xp, err := client.GetRPCClientWithContext(tc2.G)
@@ -219,10 +192,7 @@ func TestDelegateUI(t *testing.T) {
 			return err
 		}
 		ncli := keybase1.DelegateUiCtlClient{Cli: cli}
-		if err = ncli.RegisterIdentifyUI(context.TODO()); err != nil {
-			return err
-		}
-		return nil
+		return ncli.RegisterIdentifyUI(context.TODO())
 	}
 
 	// Launch the delegate UI

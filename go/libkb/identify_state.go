@@ -9,34 +9,28 @@ import (
 )
 
 type IdentifyState struct {
+	Contextified
 	res      *IdentifyOutcome
 	u        *User
 	track    *TrackLookup
 	tmpTrack *TrackLookup
 }
 
-func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
-	if res == nil {
-		res = NewIdentifyOutcomeWithUsername(u.GetName())
-	}
-	return IdentifyState{res: res, u: u}
-}
-
-func NewIdentifyStateWithGregorItem(item gregor.Item, u *User) IdentifyState {
-	res := NewIdentifyOutcomeWithUsername(u.GetName())
+func NewIdentifyStateWithGregorItem(g *GlobalContext, item gregor.Item, u *User) IdentifyState {
+	res := NewIdentifyOutcomeWithUsername(g, u.GetNormalizedName())
 	res.ResponsibleGregorItem = item
-	return IdentifyState{res: res, u: u}
+	return IdentifyState{Contextified: NewContextified(g), res: res, u: u}
 }
 
 func (s *IdentifyState) SetTrackLookup(t *TrackChainLink) {
-	s.track = NewTrackLookup(t)
+	s.track = NewTrackLookup(s.G(), t)
 	if s.res != nil {
 		s.res.TrackUsed = s.track
 	}
 }
 
 func (s *IdentifyState) SetTmpTrackLookup(t *TrackChainLink) {
-	s.tmpTrack = NewTrackLookup(t)
+	s.tmpTrack = NewTrackLookup(s.G(), t)
 }
 
 func (s *IdentifyState) TrackLookup() *TrackLookup {
@@ -111,7 +105,7 @@ func (s *IdentifyState) computeTrackDiffs() {
 		return
 	}
 
-	G.Log.Debug("| with tracking %v", s.track.set)
+	s.G().Log.Debug("| with tracking %v", s.track.set)
 	for _, c := range s.res.ProofChecks {
 		c.diff = c.link.ComputeTrackDiff(s.track)
 		c.trackedProofState = s.track.GetProofState(c.link.ToIDString())

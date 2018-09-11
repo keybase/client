@@ -9,6 +9,10 @@ import (
 	"testing"
 
 	"github.com/keybase/saltpack"
+	saltpackBasic "github.com/keybase/saltpack/basic"
+	"github.com/stretchr/testify/require"
+
+	"github.com/keybase/client/go/saltpackkeystest"
 )
 
 type outputBuffer struct {
@@ -22,7 +26,15 @@ func (ob outputBuffer) Close() error {
 // Encrypt a message, and make sure recipients can decode it, and
 // non-recipients can't decode it.
 func TestSaltpackEncDec(t *testing.T) {
+	tc := SetupTest(t, "TestSaltpackEncDec", 1)
+	m := NewMetaContextForTest(tc)
+
 	senderKP, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	senderSigningKP, err := GenerateNaclSigningKeyPair()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,12 +60,13 @@ func TestSaltpackEncDec(t *testing.T) {
 	var buf outputBuffer
 
 	arg := SaltpackEncryptArg{
-		Source:    strings.NewReader(message),
-		Sink:      &buf,
-		Receivers: receiverPKs,
-		Sender:    senderKP,
+		Source:        strings.NewReader(message),
+		Sink:          &buf,
+		Receivers:     receiverPKs,
+		Sender:        senderKP,
+		SenderSigning: senderSigningKP,
 	}
-	if err := SaltpackEncrypt(G, &arg); err != nil {
+	if err := SaltpackEncrypt(m, &arg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -68,9 +81,14 @@ func TestSaltpackEncDec(t *testing.T) {
 
 	for _, key := range receiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(G,
+
+		// Create a keyring with only one key
+		keyring := saltpackBasic.NewKeyring()
+		keyring.ImportBoxKey((*[NaclDHKeysize]byte)(&key.Public), (*[NaclDHKeysize]byte)(key.Private))
+
+		_, err = SaltpackDecrypt(m,
 			strings.NewReader(ciphertext),
-			&buf, key, nil)
+			&buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -85,12 +103,17 @@ func TestSaltpackEncDec(t *testing.T) {
 	// Sender is a non-recipient, too.
 	nonReceiverKPs := []NaclDHKeyPair{nonReceiverKP, senderKP}
 
-	for _, kp := range nonReceiverKPs {
+	for _, key := range nonReceiverKPs {
 		buf.Reset()
-		_, err = SaltpackDecrypt(G,
-			strings.NewReader(ciphertext), &buf, kp, nil)
-		if err != saltpack.ErrNoDecryptionKey {
-			t.Fatal(err)
-		}
+
+		// Create a keyring with only one key
+		keyring := saltpackBasic.NewKeyring()
+		keyring.ImportBoxKey((*[NaclDHKeysize]byte)(&key.Public), (*[NaclDHKeysize]byte)(key.Private))
+
+		_, err = SaltpackDecrypt(m,
+			strings.NewReader(ciphertext), &buf, keyring, nil, nil, saltpackkeystest.NewMockPseudonymResolver(t))
+		// An unauthorized receiver trying to decrypt should receive an error
+		decError := err.(DecryptionError)
+		require.Equal(t, decError.Cause, saltpack.ErrNoDecryptionKey)
 	}
 }

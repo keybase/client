@@ -11,7 +11,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -42,57 +41,12 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
+func (rc *WebChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	if pcm != libkb.ProofCheckerModeActive {
+		m.CDebugf("Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		return libkb.ProofErrorUnchecked
 	}
-
-	files := webKeybaseFiles
-	urlBase := rc.proof.ToDisplayString()
-	theirURL := h.GetAPIURL()
-
-	for _, file := range files {
-		ourURL := urlBase + "/" + file
-		if ourURL == theirURL {
-			return nil
-		}
-	}
-
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-		"Bad hint from server; didn't recognize API url: %s",
-		h.GetAPIURL())
-}
-
-func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_GENERIC_WEB_SITE,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *WebChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
-
-	if err != nil {
-		return libkb.XapiError(err, h.GetAPIURL())
-	}
-
-	var sigBody []byte
-	sigBody, _, err = libkb.OpenSig(rc.proof.GetArmoredSig())
-	var ret libkb.ProofError
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad signature: %s", err)
-	}
-
-	if !libkb.FindBase64Block(res.Body, sigBody, false) {
-		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
-	}
-
-	return ret
+	return CheckProofPvl(m, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h, pvlU)
 }
 
 //
@@ -125,19 +79,20 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
 	var res *libkb.APIRes
-	res, err = ctx.GetAPI().Get(libkb.APIArg{
+	res, err = m.G().GetAPI().Get(libkb.APIArg{
 		Endpoint:    "remotes/check",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"hostname": libkb.S{Val: host},
 		},
+		MetaContext: m,
 	})
 	if err != nil {
 		return

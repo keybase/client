@@ -1,0 +1,170 @@
+{
+  "prelude": ["import * as Types from '../constants/types/fs'"],
+  "actions": {
+    "folderListLoad": {
+      "path": "Types.Path",
+      "refreshTag?": "Types.RefreshTag"
+    },
+    "folderListLoaded": {
+      "path": "Types.Path",
+      "pathItems": "I.Map<Types.Path, Types.PathItem>"
+    },
+    "favoritesLoad": {},
+    "favoritesLoaded": {
+      "private": "I.Map<string, Types.Tlf>",
+      "public": "I.Map<string, Types.Tlf>",
+      "team": "I.Map<string, Types.Tlf>"
+    },
+    "filePreviewLoad": {
+      "path": "Types.Path"
+    },
+    "filePreviewLoaded": {
+      "path": "Types.Path",
+      "meta": "Types.PathItem"
+    },
+    "mimeTypeLoad": {
+      "path": "Types.Path",
+      "refreshTag?": "Types.RefreshTag"
+    },
+    "mimeTypeLoaded": {
+      "path": "Types.Path",
+      "mimeType": "string"
+    },
+    "sortSetting": {
+      "path": "Types.Path",
+      "sortSetting": "Types.SortSetting"
+    },
+    "download": {
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "shareNative": {
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "saveMedia": {
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "downloadStarted": {
+      "entryType?": "Types.PathType",
+      "key": "string",
+      "path": "Types.Path",
+      "localPath": "Types.LocalPath",
+      "intent": "Types.DownloadIntent",
+      "opID": "RPCTypes.OpID"
+    },
+    "downloadSuccess": {
+      "key": "string",
+      "mimeType": "string"
+    },
+    "downloadProgress": {
+      "key": "string",
+      "completePortion": "number",
+      "endEstimate?": "number"
+    },
+    "cancelDownload": {
+      "key": "string"
+    },
+    "dismissDownload": {
+      "key": "string"
+    },
+    "upload": {
+      "parentPath": "Types.Path",
+      "localPath": "string"
+    },
+    "uploadStarted": {
+      "path": "Types.Path"
+    },
+    "uploadWritingSuccess": {
+      "path": "Types.Path"
+    },
+    "journalUpdate": {
+      "syncingPaths": "Array<Types.Path>",
+      "totalSyncingBytes": "number",
+      "endEstimate?": "?number"
+    },
+    "openInFileUI": {
+      "path?": "string"
+    },
+    "fuseStatus": {},
+    "fuseStatusResult": {
+      "prevStatus": "?RPCTypes.FuseStatus",
+      "status": "RPCTypes.FuseStatus"
+    },
+    "setFlags": {
+      "kbfsOpening?": "boolean",
+      "kbfsInstalling?": "boolean",
+      "fuseInstalling?": "boolean",
+      "kextPermissionError?": "boolean",
+      "securityPrefsPropmted?": "boolean",
+      "showBanner?": "boolean",
+      "syncing?": "boolean"
+    },
+    "installFuse": {},
+    "installFuseResult": {
+      "kextPermissionError": "boolean"
+    },
+    "installKBFS": {},
+    "uninstallKBFSConfirm": {},
+    "notifyTlfUpdate": {
+      "tlfPath": "Types.Path"
+    },
+    "notifySyncActivity": {},
+    "openSecurityPreferences": {},
+    "refreshLocalHTTPServerInfo": {},
+    "localHTTPServerInfo": {
+      "address": "string",
+      "token": "string"
+    },
+    "favoriteIgnore": {
+      "path": "Types.Path"
+    },
+    "favoriteIgnoreError": {
+      "path": "Types.Path",
+      "error": "Types.FsError"
+    },
+    "newFolderRow": {
+      "parentPath": "Types.Path"
+    },
+    "newFolderName": {
+      "editID": "Types.EditID",
+      "name": "string"
+    },
+    "commitEdit": {
+      "editID": "Types.EditID"
+    },
+    "editSuccess": {
+      "editID": "Types.EditID",
+      "parentPath": "Types.Path"
+    },
+    "discardEdit": {
+      "editID": "Types.EditID"
+    },
+    "fsError": {
+      "error": "Types.FsError"
+    },
+    "dismissFsError": {
+      "key": "string"
+    },
+
+    "openPathItem": {
+      "path": "Types.Path",
+      "routePath": "I.List<string>"
+    },
+    "letResetUserBackIn": {
+      "id": "RPCTypes.TeamID",
+      "username": "string"
+    },
+    "openAndUpload": {
+      "type": "Types.OpenDialogType",
+      "parentPath": "Types.Path"
+    },
+    "pickAndUpload": {
+      "type": "Types.MobilePickType",
+      "parentPath": "Types.Path"
+    },
+
+    "placeholderAction": {}
+  }
+}

@@ -26,9 +26,19 @@ var signTests = []signTest{
 func TestPGPSign(t *testing.T) {
 	tc := SetupEngineTest(t, "pgp_sign")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
-	skb, err := fu.User.GetSyncedSecretKey()
+	if err := fu.LoadUser(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	if fu.User == nil {
+		t.Fatal("got a nil User")
+	}
+
+	m := libkb.NewMetaContextForTest(tc)
+
+	skb, err := fu.User.GetSyncedSecretKey(m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,12 +63,13 @@ func TestPGPSign(t *testing.T) {
 			},
 		}
 
-		eng := NewPGPSignEngine(&earg, tc.G)
-		ctx := Context{
+		eng := NewPGPSignEngine(tc.G, &earg)
+		uis := libkb.UIs{
 			SecretUI: fu.NewSecretUI(),
 		}
 
-		err = RunEngine(eng, &ctx)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, eng)
 		if err != nil {
 			t.Errorf("%s: run error: %s", test.name, err)
 			continue

@@ -33,5 +33,15 @@ func (f File) GetFilename() string {
 // WriteTo is for SafeWriter
 func (f File) WriteTo(w io.Writer) (int64, error) {
 	n, err := w.Write(f.data)
+	if err == nil {
+		if n != len(f.data) {
+			// this shouldn't happen
+			//
+			//    Write must return a non-nil error if it returns n < len(p)
+			//
+			// but check just in case
+			return int64(n), io.ErrShortWrite
+		}
+	}
 	return int64(n), err
 }

@@ -4,13 +4,14 @@
 package libkb
 
 import (
-	"golang.org/x/net/context"
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 type NamedLock struct {
 	sync.Mutex
-	lctx   LogContext
+	lctx   VLogContext
 	refs   int
 	name   string
 	parent *LockTable
@@ -25,16 +26,16 @@ func (l *NamedLock) decref() {
 }
 
 func (l *NamedLock) Release(ctx context.Context) {
-	l.lctx.GetLog().CDebugf(ctx, "+ LockTable.Release(%s)", l.name)
+	l.lctx.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Release(%s)", l.name)
 	l.Unlock()
 	l.parent.Lock()
 	l.decref()
 	if l.refs == 0 {
-		l.lctx.GetLog().CDebugf(ctx, "| LockTable.unref(%s)", l.name)
+		l.lctx.GetVDebugLog().CLogf(ctx, VLog1, "| LockTable.unref(%s)", l.name)
 		delete(l.parent.locks, l.name)
 	}
 	l.parent.Unlock()
-	l.lctx.GetLog().CDebugf(ctx, "- LockTable.Unlock(%s)", l.name)
+	l.lctx.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Unlock(%s)", l.name)
 }
 
 type LockTable struct {
@@ -48,8 +49,8 @@ func (t *LockTable) init() {
 	}
 }
 
-func (t *LockTable) AcquireOnName(ctx context.Context, g LogContext, s string) (ret *NamedLock) {
-	g.GetLog().CDebugf(ctx, "+ LockTable.Lock(%s)", s)
+func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) (ret *NamedLock) {
+	g.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Lock(%s)", s)
 	t.Lock()
 	t.init()
 	if ret = t.locks[s]; ret == nil {
@@ -59,6 +60,6 @@ func (t *LockTable) AcquireOnName(ctx context.Context, g LogContext, s string) (
 	ret.incref()
 	t.Unlock()
 	ret.Lock()
-	g.GetLog().CDebugf(ctx, "- LockTable.Lock(%s)", s)
+	g.GetVDebugLog().CLogf(ctx, VLog1, "- LockTable.Lock(%s)", s)
 	return ret
 }

@@ -1,0 +1,3089 @@
+{
+  "protocol": "teams",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "TeamRole",
+      "symbols": [
+        "NONE_0",
+        "READER_1",
+        "WRITER_2",
+        "ADMIN_3",
+        "OWNER_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamApplication",
+      "symbols": [
+        "KBFS_1",
+        "CHAT_2",
+        "SALTPACK_3",
+        "GIT_METADATA_4",
+        "SEITAN_INVITE_TOKEN_5",
+        "STELLAR_RELAY_6"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamStatus",
+      "symbols": [
+        "NONE_0",
+        "LIVE_1",
+        "DELETED_2",
+        "ABANDONED_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKeyGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "TeamApplicationKey",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
+        },
+        {
+          "type": "Bytes32",
+          "name": "key"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MaskB64",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "ReaderKeyMask",
+      "fields": [
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "MaskB64",
+          "name": "mask"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKey",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "gen"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "KID",
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "fixed",
+      "name": "PerTeamKeySeed",
+      "size": "32"
+    },
+    {
+      "type": "record",
+      "name": "PerTeamKeySeedItem",
+      "fields": [
+        {
+          "type": "PerTeamKeySeed",
+          "name": "seed"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMember",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembers",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamMemberStatus",
+      "symbols": [
+        "ACTIVE_0",
+        "RESET_1",
+        "DELETED_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberDetails",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMembersDetails",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamMemberDetails"
+          },
+          "name": "readers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDetails",
+      "fields": [
+        {
+          "type": "TeamMembersDetails",
+          "name": "members"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "keyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AnnotatedTeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "annotatedActiveInvites"
+        },
+        {
+          "type": "TeamSettings",
+          "name": "settings"
+        },
+        {
+          "type": "TeamShowcase",
+          "name": "showcase"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionPercentForm",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamChangeReq",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "owners"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "admins"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "readers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "none"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "UserVersionPercentForm",
+            "keys": "TeamInviteID"
+          },
+          "name": "completedInvites"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamPlusApplicationKeys",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "application"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "writers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "onlyReaders"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "applicationKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamData",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "secretless"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeedItem",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "CryptKey"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "tlfCryptKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamData",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "FastTeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "latestKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "loadedLatest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LinkTriple",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "SeqType",
+          "name": "seqType"
+        },
+        {
+          "type": "LinkID",
+          "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpPointer",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "ourSeqno"
+        },
+        {
+          "type": "TeamID",
+          "name": "parentID"
+        },
+        {
+          "type": "Seqno",
+          "name": "parentSeqno"
+        },
+        {
+          "type": "boolean",
+          "name": "deletion"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownPointer",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "nameComponent"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamSigChainState",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "TeamName",
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": [
+            null,
+            "LinkTriple"
+          ],
+          "name": "last"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsVerified"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "DownPointer",
+            "keys": "Seqno"
+          },
+          "name": "downPointers"
+        },
+        {
+          "type": [
+            null,
+            "UpPointer"
+          ],
+          "name": "lastUpPointer"
+        },
+        {
+          "type": "UnixTime",
+          "name": "perTeamKeyCTime"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Audit",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxChainSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleProbe"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Probe",
+      "fields": [
+        {
+          "type": "int",
+          "name": "index",
+          "mpackkey": "i"
+        },
+        {
+          "type": "Seqno",
+          "name": "teamSeqno",
+          "mpackkey": "s"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AuditHistory",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "Seqno",
+          "name": "priorMerkleSeqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Audit"
+          },
+          "name": "audits"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "preProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "postProbes"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamInviteCategory",
+      "symbols": [
+        "NONE_0",
+        "UNKNOWN_1",
+        "KEYBASE_2",
+        "EMAIL_3",
+        "SBS_4",
+        "SEITAN_5"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "TeamInviteType",
+      "switch": {
+        "type": "TeamInviteCategory",
+        "name": "c"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "UNKNOWN",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "SBS",
+            "def": false
+          },
+          "body": "TeamInviteSocialNetwork"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteSocialNetwork",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInviteName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeamInvite",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamInviteID",
+          "name": "id"
+        },
+        {
+          "type": "TeamInviteType",
+          "name": "type"
+        },
+        {
+          "type": "TeamInviteName",
+          "name": "name"
+        },
+        {
+          "type": "UserVersion",
+          "name": "uv"
+        },
+        {
+          "type": "UserVersion",
+          "name": "inviter"
+        },
+        {
+          "type": "string",
+          "name": "inviterUsername"
+        },
+        {
+          "type": "string",
+          "name": "teamName"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEncryptedKBFSKeyset",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "bytes",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamGetLegacyTLFUpgrade",
+      "fields": [
+        {
+          "type": "string",
+          "name": "encryptedKeyset",
+          "jsonkey": "encrypted_keyset"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration",
+          "jsonkey": "team_generation"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration",
+          "jsonkey": "legacy_generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType",
+          "jsonkey": "app_type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamEncryptedKBFSKeysetHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamLegacyTLFUpgradeChainInfo",
+      "fields": [
+        {
+          "type": "TeamEncryptedKBFSKeysetHash",
+          "name": "keysetHash"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "teamGeneration"
+        },
+        {
+          "type": "int",
+          "name": "legacyGeneration"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSigChainState",
+      "fields": [
+        {
+          "type": "UserVersion",
+          "name": "reader"
+        },
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "boolean",
+          "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "TeamName",
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamNameLogPoint"
+          },
+          "name": "nameLog"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastLinkID"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastHighSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastHighLinkID"
+        },
+        {
+          "type": [
+            null,
+            "TeamID"
+          ],
+          "name": "parentID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "UserLogPoint"
+            },
+            "keys": "UserVersion"
+          },
+          "name": "userLog"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "SubteamLogPoint"
+            },
+            "keys": "TeamID"
+          },
+          "name": "subteamLog"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": "UnixTime",
+          "name": "perTeamKeyCTime"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "boolean",
+            "keys": "Seqno"
+          },
+          "name": "stubbedLinks"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "activeInvites"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "obsoleteInvites"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "openTeamJoinAs"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "TeamLegacyTLFUpgradeChainInfo",
+            "keys": "TeamApplication"
+          },
+          "name": "tlfLegacyUpgrade"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "headMerkle"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNameLogPoint",
+      "fields": [
+        {
+          "type": "TeamNamePart",
+          "name": "lastPart"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserLogPoint",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "SignatureMetadata",
+          "name": "sigMeta"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamLogPoint",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNamePart",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamName",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamNamePart"
+          },
+          "name": "parts"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamCLKRResetUser",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "userEldestSeqno",
+          "jsonkey": "user_eldest"
+        },
+        {
+          "type": "Seqno",
+          "name": "memberEldestSeqno",
+          "jsonkey": "member_eldest"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamCLKRMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamCLKRResetUser"
+          },
+          "name": "resetUsersUntrusted",
+          "jsonkey": "reset_users"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamResetUser",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamMemberOutFromReset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "teamName",
+          "jsonkey": "team_name"
+        },
+        {
+          "type": "TeamResetUser",
+          "name": "resetUser",
+          "jsonkey": "reset_user"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamChangeRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated",
+          "jsonkey": "key_rotated"
+        },
+        {
+          "type": "boolean",
+          "name": "membershipChanged",
+          "jsonkey": "membership_changed"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqno",
+          "jsonkey": "latest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "implicitTeam",
+          "jsonkey": "implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "misc",
+          "jsonkey": "misc"
+        },
+        {
+          "type": "boolean",
+          "name": "removedResetUsers",
+          "jsonkey": "removed_reset_users"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamExitRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNewlyAddedRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamInvitee",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSBSMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "int",
+          "name": "score"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamInvitee"
+          },
+          "name": "invitees"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamAccessRequest",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamOpenReqMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamAccessRequest"
+          },
+          "name": "tars"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SeitanAKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SeitanPubKey",
+      "fields": [],
+      "typedef": "KID"
+    },
+    {
+      "type": "record",
+      "name": "SeitanIKeyV2",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "SeitanKeyAndLabelVersion",
+      "symbols": [
+        "V1_1",
+        "V2_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanKeyAndLabel",
+      "switch": {
+        "type": "SeitanKeyAndLabelVersion",
+        "name": "v"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelVersion1"
+        },
+        {
+          "label": {
+            "name": "V2",
+            "def": false
+          },
+          "body": "SeitanKeyAndLabelVersion2"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyAndLabelVersion1",
+      "fields": [
+        {
+          "type": "SeitanIKey",
+          "name": "i"
+        },
+        {
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyAndLabelVersion2",
+      "fields": [
+        {
+          "type": "SeitanPubKey",
+          "name": "k"
+        },
+        {
+          "type": "SeitanKeyLabel",
+          "name": "l"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "SeitanKeyLabelType",
+      "symbols": [
+        "SMS_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "SeitanKeyLabel",
+      "switch": {
+        "type": "SeitanKeyLabelType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "SMS",
+            "def": false
+          },
+          "body": "SeitanKeyLabelSms"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SeitanKeyLabelSms",
+      "fields": [
+        {
+          "type": "string",
+          "name": "f"
+        },
+        {
+          "type": "string",
+          "name": "n"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSeitanRequest",
+      "fields": [
+        {
+          "type": "TeamInviteID",
+          "name": "inviteID",
+          "jsonkey": "invite_id"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "SeitanAKey",
+          "name": "akey"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "int64",
+          "name": "unixCTime",
+          "jsonkey": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSeitanMsg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamSeitanRequest"
+          },
+          "name": "seitans"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "TeamKBFSKeyRefresher",
+      "fields": [
+        {
+          "type": "int",
+          "name": "generation"
+        },
+        {
+          "type": "TeamApplication",
+          "name": "appType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRefreshers",
+      "fields": [
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "needKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UserVersion"
+          },
+          "name": "wantMembers"
+        },
+        {
+          "type": "TeamRole",
+          "name": "wantMembersRole"
+        },
+        {
+          "type": "TeamKBFSKeyRefresher",
+          "name": "needKBFSKeyGeneration"
+        }
+      ],
+      "doc": "* TeamRefreshData are needed or wanted data requirements that, if unmet, will cause\n   * a refresh of the cache."
+    },
+    {
+      "type": "record",
+      "name": "LoadTeamArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "boolean",
+          "name": "needAdmin"
+        },
+        {
+          "type": "boolean",
+          "name": "refreshUIDMapper"
+        },
+        {
+          "type": "TeamRefreshers",
+          "name": "refreshers"
+        },
+        {
+          "type": "boolean",
+          "name": "forceFullReload"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRepoll"
+        },
+        {
+          "type": "boolean",
+          "name": "staleOK"
+        },
+        {
+          "type": "boolean",
+          "name": "allowNameLookupBurstCache"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": [
+            null,
+            "TeamName"
+          ],
+          "name": "assertTeamName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplication"
+          },
+          "name": "applications"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerTeamKeyGeneration"
+          },
+          "name": "keyGenerationsNeeded"
+        },
+        {
+          "type": "boolean",
+          "name": "needLatestKey"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRefresh"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadRes",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "applicationKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitRole",
+      "fields": [
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": "TeamID",
+          "name": "ancestor"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MemberInfo",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "userID",
+          "jsonkey": "uid"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "string",
+          "name": "fqName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "boolean",
+          "name": "isImplicitTeam",
+          "jsonkey": "is_implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
+        },
+        {
+          "type": "boolean",
+          "name": "allowProfilePromote",
+          "jsonkey": "allow_profile_promote"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased",
+          "jsonkey": "is_member_showcased"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamList",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MemberInfo"
+          },
+          "name": "teams"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedMemberInfo",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "userID",
+          "jsonkey": "uid"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID",
+          "jsonkey": "team_id"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullName",
+          "jsonkey": "full_name"
+        },
+        {
+          "type": "string",
+          "name": "fqName",
+          "jsonkey": "fq_name"
+        },
+        {
+          "type": "boolean",
+          "name": "isImplicitTeam",
+          "jsonkey": "is_implicit_team"
+        },
+        {
+          "type": "boolean",
+          "name": "isOpenTeam",
+          "jsonkey": "is_open_team"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitRole"
+          ],
+          "name": "implicit"
+        },
+        {
+          "type": "boolean",
+          "name": "needsPUK",
+          "lint": "ignore"
+        },
+        {
+          "type": "int",
+          "name": "memberCount",
+          "jsonkey": "member_count"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno",
+          "jsonkey": "member_eldest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "allowProfilePromote",
+          "jsonkey": "allow_profile_promote"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased",
+          "jsonkey": "is_member_showcased"
+        },
+        {
+          "type": "TeamMemberStatus",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AnnotatedTeamList",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "AnnotatedMemberInfo"
+          },
+          "name": "teams"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AnnotatedTeamInvite",
+            "keys": "TeamInviteID"
+          },
+          "name": "annotatedActiveInvites"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAddMemberResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "invited"
+        },
+        {
+          "type": [
+            null,
+            "User"
+          ],
+          "name": "user"
+        },
+        {
+          "type": "boolean",
+          "name": "emailSent"
+        },
+        {
+          "type": "boolean",
+          "name": "chatSending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamJoinRequest",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamTreeEntry"
+          },
+          "name": "entries"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamTreeEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "boolean",
+          "name": "admin"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamCreateResult",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "boolean",
+          "name": "chatSent"
+        },
+        {
+          "type": "boolean",
+          "name": "creatorAdded"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamSettings",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "TeamRole",
+          "name": "joinAs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamRequestAccessResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "open"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAcceptOrRequestResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "wasToken"
+        },
+        {
+          "type": "boolean",
+          "name": "wasSeitan"
+        },
+        {
+          "type": "boolean",
+          "name": "wasTeamName"
+        },
+        {
+          "type": "boolean",
+          "name": "wasOpenTeam"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamShowcase",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isShowcased",
+          "jsonkey": "is_showcased"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "UID"
+          ],
+          "name": "setByUID",
+          "jsonkey": "set_by_uid"
+        },
+        {
+          "type": "boolean",
+          "name": "anyMemberShowcase",
+          "jsonkey": "any_member_showcase"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamAndMemberShowcase",
+      "fields": [
+        {
+          "type": "TeamShowcase",
+          "name": "teamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "isMemberShowcased"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BulkRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "invited"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "alreadyInvited"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "malformed"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamUserSet",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "keybaseUsers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SocialAssertion"
+          },
+          "name": "unresolvedUsers"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamDisplayName",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isPublic"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "writers"
+        },
+        {
+          "type": "ImplicitTeamUserSet",
+          "name": "readers"
+        },
+        {
+          "type": [
+            null,
+            "ImplicitTeamConflictInfo"
+          ],
+          "name": "conflictInfo"
+        }
+      ],
+      "doc": "* iTeams"
+    },
+    {
+      "type": "record",
+      "name": "ConflictGeneration",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "ImplicitTeamConflictInfo",
+      "fields": [
+        {
+          "type": "ConflictGeneration",
+          "name": "generation"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LookupImplicitTeamRes",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "ImplicitTeamDisplayName",
+          "name": "displayName"
+        },
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamOperation",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "manageMembers"
+        },
+        {
+          "type": "boolean",
+          "name": "manageSubteams"
+        },
+        {
+          "type": "boolean",
+          "name": "createChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "chat"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "renameChannel"
+        },
+        {
+          "type": "boolean",
+          "name": "editChannelDescription"
+        },
+        {
+          "type": "boolean",
+          "name": "setTeamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "setMemberShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "setRetentionPolicy"
+        },
+        {
+          "type": "boolean",
+          "name": "setMinWriterRole"
+        },
+        {
+          "type": "boolean",
+          "name": "changeOpenTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "leaveTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "joinTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "setPublicityAny"
+        },
+        {
+          "type": "boolean",
+          "name": "listFirst"
+        },
+        {
+          "type": "boolean",
+          "name": "changeTarsDisabled"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteChatHistory"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProfileTeamLoadRes",
+      "fields": [
+        {
+          "type": "long",
+          "name": "loadTimeNsec"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamDebugRes",
+      "fields": [
+        {
+          "type": "TeamSigChainState",
+          "name": "chain"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "teamCreate": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "joinSubteam",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamCreateWithSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "joinSubteam",
+          "type": "boolean"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
+        }
+      ],
+      "response": "TeamCreateResult"
+    },
+    "teamGet": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamDetails"
+    },
+    "teamImplicitAdmins": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamMemberDetails"
+      }
+    },
+    "teamListUnverified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListTeammates": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListVerified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "userAssertion",
+          "type": "string"
+        },
+        {
+          "name": "includeImplicitTeams",
+          "type": "boolean"
+        }
+      ],
+      "response": "AnnotatedTeamList"
+    },
+    "teamListSubteamsRecursive": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "parentTeamName",
+          "type": "string"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamIDAndName"
+      }
+    },
+    "teamChangeMembership": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "req",
+          "type": "TeamChangeReq"
+        }
+      ],
+      "response": null
+    },
+    "teamAddMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": "TeamAddMemberResult"
+    },
+    "teamAddMembers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "assertions",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "teamRemoveMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "email",
+          "type": "string"
+        },
+        {
+          "name": "inviteID",
+          "type": "TeamInviteID"
+        }
+      ],
+      "response": null
+    },
+    "teamLeave": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "permanent",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "teamEditMember": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": null
+    },
+    "teamRename": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "prevName",
+          "type": "TeamName"
+        },
+        {
+          "name": "newName",
+          "type": "TeamName"
+        }
+      ],
+      "response": null
+    },
+    "teamAcceptInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "token",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamRequestAccessResult"
+    },
+    "teamAcceptInviteOrRequestAccess": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "tokenOrName",
+          "type": "string"
+        }
+      ],
+      "response": "TeamAcceptOrRequestResult"
+    },
+    "teamListRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamJoinRequest"
+      }
+    },
+    "teamListMyAccessRequests": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamName",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamName"
+      }
+    },
+    "teamIgnoreRequest": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamTree": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
+        }
+      ],
+      "response": "TeamTreeResult"
+    },
+    "teamDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "teamSetSettings": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "settings",
+          "type": "TeamSettings"
+        }
+      ],
+      "response": null
+    },
+    "teamCreateSeitanToken": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanKeyLabel"
+        }
+      ],
+      "response": "SeitanIKey"
+    },
+    "teamCreateSeitanTokenV2": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        },
+        {
+          "name": "label",
+          "type": "SeitanKeyLabel"
+        }
+      ],
+      "response": "SeitanIKeyV2"
+    },
+    "teamAddEmailsBulk": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "emails",
+          "type": "string"
+        },
+        {
+          "name": "role",
+          "type": "TeamRole"
+        }
+      ],
+      "response": "BulkRes"
+    },
+    "lookupImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "LookupImplicitTeamRes"
+    },
+    "lookupOrCreateImplicitTeam": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": "LookupImplicitTeamRes"
+    },
+    "teamReAddMemberAfterReset": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "loadTeamPlusApplicationKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "id",
+          "type": "TeamID"
+        },
+        {
+          "name": "application",
+          "type": "TeamApplication"
+        },
+        {
+          "name": "refreshers",
+          "type": "TeamRefreshers"
+        }
+      ],
+      "response": "TeamPlusApplicationKeys",
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
+    },
+    "getTeamRootID": {
+      "request": [
+        {
+          "name": "id",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamID"
+    },
+    "getTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamShowcase"
+    },
+    "getTeamAndMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamAndMemberShowcase"
+    },
+    "setTeamShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": [
+            null,
+            "boolean"
+          ]
+        },
+        {
+          "name": "description",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "anyMemberShowcase",
+          "type": [
+            null,
+            "boolean"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "setTeamMemberShowcase": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "isShowcased",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "canUserPerform": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "TeamOperation"
+    },
+    "teamRotateKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null
+    },
+    "teamDebug": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": "TeamDebugRes"
+    },
+    "getTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "setTarsDisabled": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "disabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "uploadTeamAvatar": {
+      "request": [
+        {
+          "name": "teamname",
+          "type": "string"
+        },
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "crop",
+          "type": [
+            null,
+            "ImageCropRect"
+          ]
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "tryDecryptWithTeamKey": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "encryptedData",
+          "type": "bytes"
+        },
+        {
+          "name": "nonce",
+          "type": "BoxNonce"
+        },
+        {
+          "name": "peersPublicKey",
+          "type": "BoxPublicKey"
+        },
+        {
+          "name": "minGeneration",
+          "type": "PerTeamKeyGeneration"
+        }
+      ],
+      "response": "bytes"
+    },
+    "findNextMerkleRootAfterTeamRemoval": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "teamSigchainSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "prev",
+          "type": "MerkleRootV2"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being\n   removed from the team at that given seqno in the team's chain. You should pass in a previous\n   Merkle root as a starting point for the binary search."
+    },
+    "findNextMerkleRootAfterTeamRemovalBySigningKey": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "signingKey",
+          "type": "KID"
+        },
+        {
+          "name": "team",
+          "type": "TeamID"
+        },
+        {
+          "name": "isPublic",
+          "type": "boolean"
+        },
+        {
+          "name": "anyRoleAllowed",
+          "type": "boolean"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user\n   with the given signing key being removed from the given team. If there are several such instances,\n   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in\n   permissions from Writer (or above) to Reader (or below)."
+    },
+    "profileTeamLoad": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "LoadTeamArg"
+        }
+      ],
+      "response": "ProfileTeamLoadRes",
+      "doc": "ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling\n   the team load machinery."
+    },
+    "getTeamID": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        }
+      ],
+      "response": "TeamID",
+      "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "ftl": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "FastTeamLoadArg"
+        }
+      ],
+      "response": "FastTeamLoadRes"
+    }
+  },
+  "namespace": "keybase.1"
+}

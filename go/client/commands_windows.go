@@ -15,6 +15,7 @@ import (
 func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdKbfsMount(cl, g),
+		NewCmdPipeOwner(cl, g),
 	}
 }
 

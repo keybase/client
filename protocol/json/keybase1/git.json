@@ -1,0 +1,453 @@
+{
+  "protocol": "git",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "favorite.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "EncryptedGitMetadata",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RepoID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "GitLocalMetadataVersion",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitLocalMetadataV1",
+      "fields": [
+        {
+          "type": "GitRepoName",
+          "name": "repoName"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "GitLocalMetadataVersioned",
+      "switch": {
+        "type": "GitLocalMetadataVersion",
+        "name": "version"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "GitLocalMetadataV1"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitCommit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "commitHash"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "authorName"
+        },
+        {
+          "type": "string",
+          "name": "authorEmail"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GitPushType",
+      "symbols": [
+        "DEFAULT_0",
+        "CREATEREPO_1",
+        "RENAMEREPO_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRefMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "refName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "GitCommit"
+          },
+          "name": "commits"
+        },
+        {
+          "type": "boolean",
+          "name": "moreCommitsAvailable"
+        },
+        {
+          "type": "boolean",
+          "name": "isDelete"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitLocalMetadata",
+      "fields": [
+        {
+          "type": "GitRepoName",
+          "name": "repoName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "GitRefMetadata"
+          },
+          "name": "refs"
+        },
+        {
+          "type": "GitPushType",
+          "name": "pushType"
+        },
+        {
+          "type": "GitRepoName",
+          "name": "previousRepoName"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitServerMetadata",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "Time",
+          "name": "mtime"
+        },
+        {
+          "type": "string",
+          "name": "lastModifyingUsername"
+        },
+        {
+          "type": "DeviceID",
+          "name": "lastModifyingDeviceID"
+        },
+        {
+          "type": "string",
+          "name": "lastModifyingDeviceName"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GitRepoResultState",
+      "symbols": [
+        "ERR_0",
+        "OK_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "GitRepoResult",
+      "switch": {
+        "type": "GitRepoResultState",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "ERR",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "OK",
+            "def": false
+          },
+          "body": "GitRepoInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitRepoInfo",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "RepoID",
+          "name": "repoID"
+        },
+        {
+          "type": "GitLocalMetadata",
+          "name": "localMetadata"
+        },
+        {
+          "type": "GitServerMetadata",
+          "name": "serverMetadata"
+        },
+        {
+          "type": "string",
+          "name": "repoUrl"
+        },
+        {
+          "type": "string",
+          "name": "globalUniqueID"
+        },
+        {
+          "type": "boolean",
+          "name": "canDelete"
+        },
+        {
+          "type": [
+            null,
+            "GitTeamRepoSettings"
+          ],
+          "name": "teamRepoSettings"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GitTeamRepoSettings",
+      "fields": [
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "channelName"
+        },
+        {
+          "type": "boolean",
+          "name": "chatDisabled"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "putGitMetadata": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "metadata",
+          "type": "GitLocalMetadata"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "deleteGitMetadata": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": null
+    },
+    "getGitMetadata": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "GitRepoResult"
+      }
+    },
+    "getAllGitMetadata": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "GitRepoResult"
+      }
+    },
+    "createPersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID"
+    },
+    "createTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
+        }
+      ],
+      "response": "RepoID"
+    },
+    "deletePersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": null
+    },
+    "deleteTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        },
+        {
+          "name": "notifyTeam",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "gcPersonalRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "gcTeamRepo": {
+      "request": [
+        {
+          "name": "repoName",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "teamName",
+          "type": "TeamName"
+        },
+        {
+          "name": "force",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "getTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        }
+      ],
+      "response": "GitTeamRepoSettings"
+    },
+    "setTeamRepoSettings": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "repoID",
+          "type": "RepoID"
+        },
+        {
+          "name": "channelName",
+          "type": [
+            null,
+            "string"
+          ]
+        },
+        {
+          "name": "chatDisabled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

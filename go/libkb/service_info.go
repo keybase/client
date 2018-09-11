@@ -58,6 +58,23 @@ type serviceLog interface {
 	Debug(s string, args ...interface{})
 }
 
+func LoadServiceInfo(path string) (*ServiceInfo, error) {
+	if _, ferr := os.Stat(path); os.IsNotExist(ferr) {
+		return nil, nil
+	}
+	dat, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var serviceInfo ServiceInfo
+	err = json.Unmarshal(dat, &serviceInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return &serviceInfo, nil
+}
+
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
 func WaitForServiceInfoFile(path string, label string, pid string, timeout time.Duration, log serviceLog) (*ServiceInfo, error) {
@@ -66,17 +83,12 @@ func WaitForServiceInfoFile(path string, label string, pid string, timeout time.
 	}
 
 	lookForServiceInfo := func() (*ServiceInfo, error) {
-		if _, ferr := os.Stat(path); os.IsNotExist(ferr) {
+		serviceInfo, err := LoadServiceInfo(path)
+		if err != nil {
+			return nil, err
+		}
+		if serviceInfo == nil {
 			return nil, nil
-		}
-		dat, err := ioutil.ReadFile(path)
-		if err != nil {
-			return nil, err
-		}
-		var serviceInfo ServiceInfo
-		err = json.Unmarshal(dat, &serviceInfo)
-		if err != nil {
-			return nil, err
 		}
 
 		// Make sure the info file is the pid we are waiting for, otherwise it is
@@ -86,7 +98,7 @@ func WaitForServiceInfoFile(path string, label string, pid string, timeout time.
 		}
 
 		// PIDs match, the service has started up
-		return &serviceInfo, nil
+		return serviceInfo, nil
 	}
 
 	log.Debug("Looking for service info file (timeout=%s)", timeout)

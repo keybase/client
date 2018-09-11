@@ -1,59 +1,20 @@
 // @flow
-import {RouteDefNode} from '../../route-tree'
-import InviteCode from './invite-code'
-import RequestInvite from './request-invite'
-import RequestInviteSuccess from './request-invite-success'
-import UsernameEmailForm from './username-email-form'
-import PassphraseSignup from './passphrase'
-import DeviceName from './device-name'
-import Success from './success'
-import SignupError from './error'
+import InviteCode from './invite-code/container'
+import RequestInvite from './request-invite/container'
+import RequestInviteSuccess from './request-invite-success/container'
+import UsernameEmail from './username-email/container'
+import PassphraseSignup from './passphrase/container'
+import DeviceName from './device-name/container'
+import SignupError from './error/container'
 
-const signupError = new RouteDefNode({
-  component: SignupError,
-  children: {},
-})
+const children = {
+  deviceName: {component: DeviceName},
+  inviteCode: {component: InviteCode},
+  passphraseSignup: {component: PassphraseSignup},
+  requestInvite: {component: RequestInvite},
+  requestInviteSuccess: {component: RequestInviteSuccess},
+  signupError: {component: SignupError},
+  usernameAndEmail: {component: UsernameEmail},
+}
 
-const routeTree = new RouteDefNode({
-  defaultSelected: 'signup',
-  children: {
-    signup: {
-      component: InviteCode,
-      children: {
-        signupError,
-        requestInvite: {
-          component: RequestInvite,
-          children: {
-            signupError,
-            requestInviteSuccess: {
-              component: RequestInviteSuccess,
-            },
-          },
-        },
-        usernameAndEmail: {
-          component: UsernameEmailForm,
-          children: {
-            signupError,
-            passphraseSignup: {
-              component: PassphraseSignup,
-              children: {
-                signupError,
-                deviceName: {
-                  component: DeviceName,
-                  children: {
-                    signupError,
-                    success: {
-                      component: Success,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-})
-
-export default routeTree
+export default children

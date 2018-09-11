@@ -1,0 +1,962 @@
+{
+  "protocol": "SimpleFS",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "kbfs_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "fixed",
+      "name": "OpID",
+      "size": "16"
+    },
+    {
+      "type": "record",
+      "name": "KBFSRevision",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "KBFSArchivedType",
+      "symbols": [
+        "REVISION_0",
+        "TIME_1",
+        "TIME_STRING_2",
+        "REL_TIME_STRING_3"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "KBFSArchivedParam",
+      "switch": {
+        "type": "KBFSArchivedType",
+        "name": "KBFSArchivedType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "REVISION",
+            "def": false
+          },
+          "body": "KBFSRevision"
+        },
+        {
+          "label": {
+            "name": "TIME",
+            "def": false
+          },
+          "body": "Time"
+        },
+        {
+          "label": {
+            "name": "TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "REL_TIME_STRING",
+            "def": false
+          },
+          "body": "string"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KBFSArchivedPath",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "KBFSArchivedParam",
+          "name": "archivedParam"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PathType",
+      "symbols": [
+        "LOCAL_0",
+        "KBFS_1",
+        "KBFS_ARCHIVED_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "Path",
+      "switch": {
+        "type": "PathType",
+        "name": "PathType"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LOCAL",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "KBFS",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "KBFS_ARCHIVED",
+            "def": false
+          },
+          "body": "KBFSArchivedPath"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "DirentType",
+      "symbols": [
+        "FILE_0",
+        "DIR_1",
+        "SYM_2",
+        "EXEC_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Dirent",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DirentType",
+          "name": "direntType"
+        },
+        {
+          "type": "User",
+          "name": "lastWriterUnverified"
+        },
+        {
+          "type": "boolean",
+          "name": "writable"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DirentWithRevision",
+      "fields": [
+        {
+          "type": "Dirent",
+          "name": "entry"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RevisionSpanType",
+      "symbols": [
+        "DEFAULT_0",
+        "LAST_FIVE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ErrorNum",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "enum",
+      "name": "OpenFlags",
+      "symbols": [
+        "READ_0",
+        "REPLACE_1",
+        "EXISTING_2",
+        "WRITE_4",
+        "APPEND_8",
+        "DIRECTORY_16"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Progress",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Dirent"
+          },
+          "name": "entries"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FileContent",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "data"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AsyncOps",
+      "symbols": [
+        "LIST_0",
+        "LIST_RECURSIVE_1",
+        "READ_2",
+        "WRITE_3",
+        "COPY_4",
+        "MOVE_5",
+        "REMOVE_6",
+        "LIST_RECURSIVE_TO_DEPTH_7",
+        "GET_REVISIONS_8"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ListFilter",
+      "symbols": [
+        "NO_FILTER_0",
+        "FILTER_ALL_HIDDEN_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "ListFilter",
+          "name": "filter"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListToDepthArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "ListFilter",
+          "name": "filter"
+        },
+        {
+          "type": "int",
+          "name": "depth"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReadArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "offset"
+        },
+        {
+          "type": "int",
+          "name": "size"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WriteArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "long",
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CopyArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MoveArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "src"
+        },
+        {
+          "type": "Path",
+          "name": "dest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRevisionsArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "RevisionSpanType",
+          "name": "spanType"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "OpDescription",
+      "switch": {
+        "type": "AsyncOps",
+        "name": "asyncOp"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LIST",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE",
+            "def": false
+          },
+          "body": "ListArgs"
+        },
+        {
+          "label": {
+            "name": "LIST_RECURSIVE_TO_DEPTH",
+            "def": false
+          },
+          "body": "ListToDepthArgs"
+        },
+        {
+          "label": {
+            "name": "READ",
+            "def": false
+          },
+          "body": "ReadArgs"
+        },
+        {
+          "label": {
+            "name": "WRITE",
+            "def": false
+          },
+          "body": "WriteArgs"
+        },
+        {
+          "label": {
+            "name": "COPY",
+            "def": false
+          },
+          "body": "CopyArgs"
+        },
+        {
+          "label": {
+            "name": "MOVE",
+            "def": false
+          },
+          "body": "MoveArgs"
+        },
+        {
+          "label": {
+            "name": "REMOVE",
+            "def": false
+          },
+          "body": "RemoveArgs"
+        },
+        {
+          "label": {
+            "name": "GET_REVISIONS",
+            "def": false
+          },
+          "body": "GetRevisionsArgs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRevisionsResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "DirentWithRevision"
+          },
+          "name": "revisions"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OpProgress",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "start"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "AsyncOps",
+          "name": "opType"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesRead"
+        },
+        {
+          "type": "int64",
+          "name": "bytesWritten"
+        },
+        {
+          "type": "int64",
+          "name": "filesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "filesRead"
+        },
+        {
+          "type": "int64",
+          "name": "filesWritten"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSGetHTTPAddressAndTokenResponse",
+      "fields": [
+        {
+          "type": "string",
+          "name": "address"
+        },
+        {
+          "type": "string",
+          "name": "token"
+        }
+      ],
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "SimpleFSQuotaUsage",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "usageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "archiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "limitBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitUsageBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitArchiveBytes"
+        },
+        {
+          "type": "int64",
+          "name": "gitLimitBytes"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "simpleFSList": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Begin list of items in directory at path.\n   Retrieve results with readList().\n   Can be a single file to get flags/status.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
+    },
+    "simpleFSListRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path.\n   If `refreshSubscription` is true and the path is a KBFS path, simpleFS\n     will begin sending `FSPathUpdated` notifications for the for the\n     corresponding TLF, until another call refreshes the subscription on a\n     different TLF."
+    },
+    "simpleFSListRecursiveToDepth": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        },
+        {
+          "name": "refreshSubscription",
+          "type": "boolean"
+        },
+        {
+          "name": "depth",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive list of items in directory at path up to a given depth"
+    },
+    "simpleFSReadList": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "SimpleFSListResult",
+      "doc": "Get list of Paths in progress. Can indicate status of pending\n   to get more entries."
+    },
+    "simpleFSCopy": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin copy of file or directory"
+    },
+    "simpleFSCopyRecursive": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin recursive copy of directory"
+    },
+    "simpleFSMove": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Begin move of file or directory, from/to KBFS only"
+    },
+    "simpleFSRename": {
+      "request": [
+        {
+          "name": "src",
+          "type": "Path"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Rename file or directory, KBFS side only"
+    },
+    "simpleFSOpen": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "dest",
+          "type": "Path"
+        },
+        {
+          "name": "flags",
+          "type": "OpenFlags"
+        }
+      ],
+      "response": null,
+      "doc": "Create/open a file and leave it open\n   or create a directory\n   Files must be closed afterwards."
+    },
+    "simpleFSSetStat": {
+      "request": [
+        {
+          "name": "dest",
+          "type": "Path"
+        },
+        {
+          "name": "flag",
+          "type": "DirentType"
+        }
+      ],
+      "response": null,
+      "doc": "Set/clear file bits - only executable for now"
+    },
+    "simpleFSRead": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "long"
+        },
+        {
+          "name": "size",
+          "type": "int"
+        }
+      ],
+      "response": "FileContent",
+      "doc": "Read (possibly partial) contents of open file,\n   up to the amount specified by size.\n   Repeat until zero bytes are returned or error.\n   If size is zero, read an arbitrary amount."
+    },
+    "simpleFSWrite": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "offset",
+          "type": "long"
+        },
+        {
+          "name": "content",
+          "type": "bytes"
+        }
+      ],
+      "response": null,
+      "doc": "Append content to opened file.\n   May be repeated until OpID is closed."
+    },
+    "simpleFSRemove": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Remove file or directory from filesystem"
+    },
+    "simpleFSStat": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "Dirent",
+      "doc": "Get info about file"
+    },
+    "simpleFSGetRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "spanType",
+          "type": "RevisionSpanType"
+        }
+      ],
+      "response": null,
+      "doc": "Get revision info for a directory entry"
+    },
+    "simpleFSReadRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "GetRevisionsResult",
+      "doc": "Get list of revisions in progress. Can indicate status of pending\n   to get more revisions."
+    },
+    "simpleFSMakeOpid": {
+      "request": [],
+      "response": "OpID",
+      "doc": "Convenience helper for generating new random value"
+    },
+    "simpleFSClose": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Close OpID, cancels any pending operation.\n   Must be called after list/copy/remove"
+    },
+    "simpleFSCancel": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Cancels a running operation, like copy."
+    },
+    "simpleFSCheck": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "OpProgress",
+      "doc": "Check progress of pending operation"
+    },
+    "simpleFSGetOps": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "OpDescription"
+      },
+      "doc": "Get all the outstanding operations"
+    },
+    "simpleFSWait": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": null,
+      "doc": "Blocking wait for the pending operation to finish"
+    },
+    "simpleFSDumpDebuggingInfo": {
+      "request": [],
+      "response": null,
+      "doc": "Instructs KBFS to dump debugging info into its logs."
+    },
+    "simpleFSSyncStatus": {
+      "request": [
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        }
+      ],
+      "response": "FSSyncStatus",
+      "doc": "Get sync status."
+    },
+    "SimpleFSGetHTTPAddressAndToken": {
+      "request": [],
+      "response": "SimpleFSGetHTTPAddressAndTokenResponse",
+      "doc": "This RPC generates a random token to be used by a client that needs to\n   access KBFS content through HTTP. It's fine to call this RPC more than once,\n   but it's probably best to call this once and keep using it. Clients should\n   be using HTTP GET methods, with requests in the form of:\n\n     http://<address>/<kbfs_path>?token=<token>\n\n   If the provided token is invalid, 403 Forbidden is returned, with a HTML\n   document that has title of \"KBFS HTTP Token Invalid\". When receiving such\n   response, client should call this RPC (again) to get a new token.",
+      "lint": "ignore"
+    },
+    "simpleFSUserEditHistory": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "FSFolderEditHistory"
+      },
+      "doc": "simpleFSUserEditHistory returns edit histories of TLFs that the logged-in\n   user can access.  Each returned history is corresponds to a unique\n   writer-TLF pair.  They are in descending order by the modification time\n   (as recorded by the server) of the most recent edit in each history."
+    },
+    "simpleFSFolderEditHistory": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "FSFolderEditHistory",
+      "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
+    },
+    "simpleFSGetUserQuotaUsage": {
+      "request": [],
+      "response": "SimpleFSQuotaUsage",
+      "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -1,92 +1,126 @@
 // @flow
-import React, {Component} from 'react'
-import _ from 'lodash'
+import * as React from 'react'
+import {get} from 'lodash-es'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrappers.native'
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
-class TabBarItem extends Component<void, ItemProps, void> {
-  render () {
+class TabBarItem extends React.Component<ItemProps> {
+  render() {
     return this.props.children
   }
 }
 
-class SimpleTabBarButton extends Component<void, ItemProps, void> {
-  render () {
+class SimpleTabBarButton extends React.Component<ItemProps> {
+  render() {
     const selectedColor = this.props.selectedColor || globalColors.blue
     return (
       <Box style={{...stylesTab, ...this.props.style}}>
-        <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
+        <Text
+          type="BodySmallSemibold"
+          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_40}}
+        >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
-        {this.props.selected && <Box style={stylesSelectedUnderline(selectedColor)} />}
+        <Box style={this.props.selected ? stylesSelectedUnderline(selectedColor) : stylesUnselected} />
       </Box>
     )
   }
 }
 
-class TabBarButton extends Component<void, TabBarButtonProps, void> {
-  render () {
-    const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
-    const badgeNumber = this.props.badgeNumber || 0
+const UnderlineHighlight = () => (
+  <Box
+    style={{
+      position: 'absolute',
+      bottom: 0,
+      left: 24,
+      right: 24,
+      height: 2,
+      borderTopLeftRadius: 3,
+      borderTopRightRadius: 3,
+      backgroundColor: globalColors.white,
+    }}
+  />
+)
 
-    const content = (
-      <Box style={{backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style, flexGrow: 1}}>
-        {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{fontSize: 32, width: 32, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40, ...this.props.styleIcon}} />
-          : this.props.source.avatar}
-        {badgeNumber > 0 &&
-          <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', position: 'absolute', top: 0, bottom: 0, left: 0, right: 0}}>
-            <Badge badgeNumber={badgeNumber} badgeStyle={{marginRight: -40, marginTop: -20}} />
-          </Box>}
-        {!!this.props.label && <Text type='BodySemibold' style={{textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
-      </Box>
-    )
+const TabBarButton = (props: TabBarButtonProps) => {
+  const badgeNumber = props.badgeNumber || 0
 
-    if (this.props.onClick) {
-      return (
-        <NativeTouchableWithoutFeedback onPress={this.props.onClick}>
-          {content}
-        </NativeTouchableWithoutFeedback>
+  let badgeComponent = null
+  if (props.badgeNumber) {
+    if (props.badgePosition === 'top-right') {
+      badgeComponent = (
+        <Badge badgeNumber={props.badgeNumber} badgeStyle={{position: 'absolute', top: 2, left: '52%'}} />
       )
+    } else {
+      badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
     }
-    return content
   }
+
+  const content = (
+    <Box style={{...stylesTabBarButtonIcon, ...props.style, flexGrow: 1}}>
+      <Icon
+        type={
+          // $FlowIssue
+          props.source.icon
+        }
+        style={{
+          width: props.isNav ? undefined : 32,
+          ...props.styleIcon,
+        }}
+      />
+      {!!props.label && (
+        <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
+          {props.label}
+        </Text>
+      )}
+      {badgeComponent}
+      {props.underlined && <UnderlineHighlight />}
+    </Box>
+  )
+  if (props.onClick) {
+    return (
+      <NativeTouchableWithoutFeedback onPress={props.onClick} style={{flex: 1}}>
+        {content}
+      </NativeTouchableWithoutFeedback>
+    )
+  }
+  return content
 }
 
-class TabBar extends Component<void, Props, void> {
-  _labels (): Array<React$Element<*>> {
+class TabBar extends React.Component<Props> {
+  _labels(): Array<React.Node> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
+    // $FlowIssue dunno
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
-      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      const key = item.props.label || get(item, 'props.tabBarButton.props.label') || i
       return (
         <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
           <Box style={{flex: 1}}>
-            <Box style={{...item.props.styleContainer}}>
+            <Box style={item.props.styleContainer}>
               {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
             </Box>
-            {this.props.underlined && <Box style={stylesUnderline} />}
           </Box>
         </NativeTouchableWithoutFeedback>
       )
     })
   }
 
-  _content (): any {
+  _content(): any {
     return (this.props.children || []).find(i => i.props.selected)
   }
 
-  render () {
+  render() {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
-        {this._labels()}
+      <Box style={globalStyles.flexBoxColumn}>
+        <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>{this._labels()}</Box>
+        {this.props.underlined && <Box style={stylesUnderline} />}
       </Box>
     )
-
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         {!this.props.tabBarOnBottom && tabBarButtons}
@@ -99,44 +133,47 @@ class TabBar extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
+  ...globalStyles.fullHeight,
 }
 
 const stylesTab = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  flexGrow: 1,
   justifyContent: 'flex-end',
 }
 
 const stylesTabBarButtonIcon = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flexGrow: 1,
   justifyContent: 'center',
-  alignItems: 'center',
   position: 'relative',
 }
 
 const stylesLabel = {
-  fontSize: 14,
-  lineHeight: 20,
   marginTop: 11,
   marginBottom: 11,
+  height: globalMargins.small,
 }
 
 const stylesSelectedUnderline = color => ({
   height: 3,
+  marginBottom: -1,
   alignSelf: 'stretch',
   backgroundColor: color,
 })
 
-const stylesUnderline = {
-  height: 1,
-  alignSelf: 'stretch',
-  backgroundColor: globalColors.black_05,
+const stylesUnselected = {
+  height: 2,
 }
 
-export {
-  TabBarItem,
-  TabBarButton,
+const stylesUnderline = {
+  height: NativeStyleSheet.hairlineWidth,
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.black_10,
 }
+
+export {TabBarItem, TabBarButton}
 
 export default TabBar

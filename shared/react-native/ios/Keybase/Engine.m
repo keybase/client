@@ -13,16 +13,21 @@
 #import "AppDelegate.h"
 #import "Utils.h"
 
+// singleton so the exported react component can get it
+static Engine * sharedEngine = nil;
+
 @interface Engine ()
 
 @property dispatch_queue_t readQueue;
 @property dispatch_queue_t writeQueue;
-@property (strong) RCTBridge *bridge;
+@property (strong) KeybaseEngine * keybaseEngine;
 
+- (void)start:(KeybaseEngine*)emitter;
 - (void)startReadLoop;
 - (void)setupQueues;
 - (void)runWithData:(NSString *)data;
 - (void)reset;
+- (void)onRNReload;
 
 @end
 
@@ -32,15 +37,22 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
-    [self setupKeybaseWithSettings:settings error:error];
+    sharedEngine = self;
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
     [self setupQueues];
-    [self startReadLoop];
+    [self setupKeybaseWithSettings:settings error:error];
   }
   return self;
 }
 
+// Reload Go if we reload the JS
+- (void)onRNReload {
+  self.keybaseEngine = nil;
+  [self reset];
+}
+
 - (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
-  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], error);
+  KeybaseInit(settings[@"homedir"], settings[@"sharedHome"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], NULL, NULL, error);
 }
 
 - (void)setupQueues {
@@ -52,22 +64,35 @@ static NSString *const eventName = @"objc-engine-event";
   dispatch_async(self.readQueue, ^{
     while (true) {
       NSError *error = nil;
-      NSString *data = nil;
-      GoKeybaseReadB64(&data, &error);
+      NSString * data = KeybaseReadB64(&error);
+
       if (error) {
         NSLog(@"Error reading data: %@", error);
       }
       if (data) {
-        [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
+        if (!self.keybaseEngine) {
+          NSLog(@"NO ENGINE");
+        }
+        if (self.keybaseEngine.bridge) {
+          [self.keybaseEngine sendEventWithName:eventName body:data];
+        } else {
+          // dead
+          break;
+        }
       }
     }
   });
 }
 
+- (void)start:(KeybaseEngine*)emitter {
+  self.keybaseEngine = emitter;
+  [self startReadLoop];
+}
+
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
     NSError *error = nil;
-    GoKeybaseWriteB64(data, &error);
+    KeybaseWriteB64(data, &error);
     if (error) {
       NSLog(@"Error writing data: %@", error);
     }
@@ -76,7 +101,7 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (void)reset {
   NSError *error = nil;
-  GoKeybaseReset(&error);
+  KeybaseReset(&error);
   if (error) {
     NSLog(@"Error in reset: %@", error);
   }
@@ -86,37 +111,54 @@ static NSString *const eventName = @"objc-engine-event";
 
 #pragma mark - Engine exposed to react
 
-@interface ObjcEngine : NSObject <RCTBridgeModule>
-@property (readonly) Engine* engine;
+@interface KeybaseEngine ()
 @end
 
-@implementation ObjcEngine
+@implementation KeybaseEngine
 
 RCT_EXPORT_MODULE();
 
-// required by reactnative
-@synthesize bridge = _bridge;
++ (BOOL)requiresMainQueueSetup
+{
+  return NO;
+}
 
-- (Engine *)engine {
-  AppDelegate * delegate = (AppDelegate*)[UIApplication sharedApplication].delegate;
-  return delegate.engine;
+- (NSArray<NSString *> *)supportedEvents
+{
+  return @[eventName];
 }
 
 RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
-  Engine * engine = self.engine;
-  engine.bridge = self.bridge;
-  [self.engine runWithData: data];
+  [sharedEngine runWithData: data];
 }
 
 RCT_EXPORT_METHOD(reset) {
-  [self.engine reset];
+  [sharedEngine reset];
+}
+
+RCT_EXPORT_METHOD(start) {
+  [sharedEngine start: self];
 }
 
 - (NSDictionary *)constantsToExport {
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
+  NSString * simulatorVal =
+#if TARGET_IPHONE_SIMULATOR
+  @"1";
+#else
+  @"";
+#endif
+
+  NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
+  NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
+
+
   return @{ @"eventName": eventName,
-            @"test": testVal, 
-            @"version": GoKeybaseVersion()};
+            @"test": testVal,
+            @"appVersionName": appVersionString,
+            @"appVersionCode": appBuildString,
+            @"usingSimulator": simulatorVal,
+            @"version": KeybaseVersion()};
 }
 
 @end

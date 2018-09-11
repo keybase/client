@@ -5,6 +5,7 @@ package service
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -26,27 +27,29 @@ func newUserHandler(g *libkb.GlobalContext) *userHandler {
 }
 
 func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
+	m := libkb.NewMetaContext(ctx, r.G())
 	switch category {
 	case "user.key_change":
-		return true, r.keyChange()
+		return true, r.keyChange(m)
 	case "user.identity_change":
-		return true, r.identityChange()
+		return true, r.identityChange(m)
 	default:
-		return false, fmt.Errorf("unknown userHandler category: %q", category)
+		if strings.HasPrefix(category, "user.") {
+			return false, fmt.Errorf("unknown userHandler category: %q", category)
+		}
+		return false, nil
 	}
 }
 
-func (r *userHandler) keyChange() error {
-	r.G().NotifyRouter.HandleKeyfamilyChanged(r.G().Env.GetUID())
-	// TODO: remove this when KBFS handles KeyfamilyChanged
-	r.G().NotifyRouter.HandleUserChanged(r.G().Env.GetUID())
+func (r *userHandler) keyChange(m libkb.MetaContext) error {
+	m.G().KeyfamilyChanged(m.G().Env.GetUID())
 
-	// check if this device was just revoked and if so, logout
-	return r.G().LogoutIfRevoked()
+	// check if this device was just revoked and if so, log out
+	return m.LogoutAndDeprovisionIfRevoked()
 }
 
-func (r *userHandler) identityChange() error {
-	r.G().UserChanged(r.G().Env.GetUID())
+func (r *userHandler) identityChange(m libkb.MetaContext) error {
+	m.G().UserChanged(m.G().Env.GetUID())
 	return nil
 }
 

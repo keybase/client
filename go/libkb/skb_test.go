@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/clockwork"
 
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
@@ -59,7 +60,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to decode packets: %s", err)
 	}
-	p3skbs, err := packets.ToListOfSKBs()
+	p3skbs, err := packets.ToListOfSKBs(nil)
 	if err != nil {
 		t.Errorf("Failed to make a list of SKBs: %s", err)
 	}
@@ -73,7 +74,7 @@ func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
 	if err != nil {
 		t.Fatal(err)
 	}
-	lks := NewLKSec(pps, "1111111111111111111111111111111111111111111111111111111111111119", gc)
+	lks := NewLKSec(pps, keybase1.UID("00000000000000000000000000000019"))
 	if err := lks.GenerateServerHalf(); err != nil {
 		t.Fatal(err)
 	}
@@ -81,14 +82,14 @@ func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
 	return lks
 }
 
-func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
+func makeTestSKB(t *testing.T, m MetaContext, lks *LKSec, g *GlobalContext) (MetaContext, *SKB) {
 	email := "test@keybase.io"
 	entity, err := openpgp.NewEntity("test name", "test comment", email, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb, err := lks.ToSKB(NewGeneratedPGPKeyBundle(entity))
+	skb, err := lks.ToSKB(NewMetaContextTODO(g), NewGeneratedPGPKeyBundle(entity))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -102,28 +103,23 @@ func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 	if err != nil {
 		t.Fatal(err)
 	}
-	g.createLoginState()
-	err = g.LoginState().Account(func(a *Account) {
-		a.CreateLoginSessionWithSalt(email, salt)
-	}, "makeTestSKB")
-	if err != nil {
-		t.Fatal(err)
-	}
+	m = m.WithNewProvisionalLoginContext()
+	m.LoginContext().CreateLoginSessionWithSalt(email, salt)
 
-	return skb
+	return m, skb
 }
 
-func testPromptAndUnlock(t *testing.T, skb *SKB) {
+func testPromptAndUnlock(t *testing.T, m MetaContext, skb *SKB) {
 	// XXX check nil, nil at end of this...
 	parg := SecretKeyPromptArg{
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	ss := NewSecretStore(skb.G(), "testusername")
+	ss := NewSecretStore(m.G(), "testusername")
 	if ss == nil {
 		t.Fatal("NewSecretStore returned nil")
 	}
-	key, err := skb.PromptAndUnlock(parg, ss, nil)
+	key, err := skb.PromptAndUnlock(m, parg, ss, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,16 +134,18 @@ func TestBasicSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
-	expectedSecret, err := lks.GetSecret(nil)
+	m := NewMetaContextForTest(tc)
+	expectedSecret, err := lks.GetSecret(m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb := makeTestSKB(t, lks, tc.G)
+	var skb *SKB
+	m, skb = makeTestSKB(t, m, lks, tc.G)
 
-	testPromptAndUnlock(t, skb)
+	testPromptAndUnlock(t, m, skb)
 
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
 	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
@@ -155,12 +153,12 @@ func TestBasicSecretStore(t *testing.T) {
 	// Doing the prompt again should retrieve the secret from our
 	// store and not call skb.newLKSecForTest.
 
-	skb = makeTestSKB(t, lks, tc.G)
+	m, skb = makeTestSKB(t, m, lks, tc.G)
 	skb.newLKSecForTest = func(_ LKSecClientHalf) *LKSec {
 		t.Errorf("newLKSecForTest unexpectedly called")
 		return lks
 	}
-	testPromptAndUnlock(t, skb)
+	testPromptAndUnlock(t, m, skb)
 }
 
 func TestCorruptSecretStore(t *testing.T) {
@@ -168,19 +166,21 @@ func TestCorruptSecretStore(t *testing.T) {
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
-	expectedSecret, err := lks.GetSecret(nil)
+	m := NewMetaContextForTest(tc)
+	expectedSecret, err := lks.GetSecret(m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb := makeTestSKB(t, lks, tc.G)
+	var skb *SKB
+	m, skb = makeTestSKB(t, m, lks, tc.G)
 	fs, _ := newLKSecFullSecretFromBytes([]byte("corruptcorruptcorruptcorruptcorr"))
-	tc.G.SecretStoreAll.StoreSecret("testusername", fs)
-	testPromptAndUnlock(t, skb)
+	tc.G.SecretStore().StoreSecret(m, "testusername", fs)
+	testPromptAndUnlock(t, m, skb)
 
 	// The corrupt secret value should be overwritten by the new
 	// correct one.
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
 	if !secret.Equal(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
@@ -192,22 +192,21 @@ func TestUnusedSecretStore(t *testing.T) {
 
 	lks := makeTestLKSec(t, tc.G)
 
-	skb := makeTestSKB(t, lks, tc.G)
+	m := NewMetaContextForTest(tc)
+
+	var skb *SKB
+	m, skb = makeTestSKB(t, m, lks, tc.G)
+
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
-	err := tc.G.LoginState().Account(func(a *Account) {
-		a.CreateStreamCache(nil, NewPassphraseStream(make([]byte, extraLen)))
-	}, "TestUnusedSecretStore")
-	if err != nil {
-		t.Fatal(err)
-	}
+	m.LoginContext().CreateStreamCache(nil, NewPassphraseStream(make([]byte, extraLen)))
 
-	testPromptAndUnlock(t, skb)
+	testPromptAndUnlock(t, m, skb)
 
 	// Since there is a non-nil passphraseStream in the login
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
-	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	secret, _ := tc.G.SecretStore().RetrieveSecret(m, "testusername")
 	if !secret.IsNil() {
 		t.Errorf("secret unexpectedly non-empty")
 	}
@@ -221,7 +220,9 @@ func TestPromptCancelCache(t *testing.T) {
 	tc.G.SetClock(fakeClock)
 
 	lks := makeTestLKSec(t, tc.G)
-	skb := makeTestSKB(t, lks, tc.G)
+	m := NewMetaContextForTest(tc)
+	var skb *SKB
+	m, skb = makeTestSKB(t, m, lks, tc.G)
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)
@@ -268,7 +269,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(parg, NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(NewMetaContextTODO(tc.G), parg, NewSecretStore(tc.G, "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +284,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(NewMetaContextTODO(skb.G()), parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}

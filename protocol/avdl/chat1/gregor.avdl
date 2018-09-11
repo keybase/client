@@ -1,9 +1,16 @@
 @namespace("chat.1")
 protocol gregor {
 
+    import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+    import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+
     record GenericPayload {
         @lint("ignore")
         string Action;
+        InboxVers inboxVers;
+        ConversationID convID;
+        TopicType topicType;
+        union { null, UnreadUpdate } unreadUpdate;
     }
 
     record NewConversationPayload {
@@ -11,6 +18,7 @@ protocol gregor {
         string Action;
         ConversationID convID;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -20,7 +28,11 @@ protocol gregor {
         ConversationID convID;
         MessageBoxed message;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
+
+        // Optionally the server can send down the new set of max messages
+        array<MessageSummary> maxMsgs;
     }
 
     record ReadMessagePayload {
@@ -29,6 +41,7 @@ protocol gregor {
         ConversationID convID;
         MessageID msgID;
         InboxVers inboxVers;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -38,6 +51,38 @@ protocol gregor {
         ConversationID convID;
         ConversationStatus status;
         InboxVers inboxVers;
+        TopicType topicType;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
+    record TeamTypePayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        TeamType teamType;
+        InboxVers inboxVers;
+        TopicType topicType;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
+    record SetAppNotificationSettingsPayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+        ConversationNotificationInfo settings;
+        TopicType topicType;
+        union { null, UnreadUpdate } unreadUpdate;
+    }
+
+    record ExpungePayload {
+        @lint("ignore")
+        string Action;
+        ConversationID convID;
+        InboxVers inboxVers;
+        Expunge expunge;
+        array<MessageSummary> maxMsgs;
+        TopicType topicType;
         union { null, UnreadUpdate } unreadUpdate;
     }
 
@@ -45,8 +90,12 @@ protocol gregor {
         ConversationID convID;
         // The count of unread messages to display
         // Counts only visible types of messages deserving of a badge, no EDITs
-        @lint("ignore")
-        int UnreadMessages;
+        int unreadMessages;
+        map<keybase1.DeviceType, int> unreadNotifyingMessages;
+        // Compatibility field for gregor->client messages. Result of past botched protocol change.
+        @mpackkey("UnreadMessages") @jsonkey("UnreadMessages")
+        int compatUnreadMessages;
+        boolean diff;
     }
 
     record TLFFinalizeUpdate {
@@ -59,4 +108,56 @@ protocol gregor {
         ConversationID convID;
         InboxVers inboxVers;
     }
+
+    record RemoteUserTypingUpdate {
+        gregor1.UID uid;
+        gregor1.DeviceID deviceID;
+        ConversationID convID;
+        boolean typing;
+    }
+
+    record UpdateConversationMembership {
+        InboxVers inboxVers;
+        array<ConversationMember> joined;
+        array<ConversationMember> removed;
+        array<ConversationMember> reset;
+        array<ConversationID> previewed; // only IDs the user receiving the message has previews are in here
+
+        union { null, UnreadUpdate } unreadUpdate;
+        array<UnreadUpdate> unreadUpdates;
+    }
+
+    record TeamChannelUpdate {
+        TLFID teamID;
+    }
+
+    record SetConvRetentionUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        RetentionPolicy policy;
+    }
+
+    record SetTeamRetentionUpdate {
+        InboxVers inboxVers;
+        keybase1.TeamID teamID;
+        RetentionPolicy policy;
+    }
+
+    record SetConvSettingsUpdate {
+        InboxVers inboxVers;
+        ConversationID convID;
+        union { null, ConversationSettings } convSettings;
+    }
+
+    record KBFSImpteamUpgradeUpdate {
+        ConversationID convID;
+        InboxVers inboxVers;
+        TopicType topicType;
+    }
+
+    record SubteamRenameUpdate {
+        array<ConversationID> convIDs;
+        InboxVers inboxVers;
+    }
+
 }

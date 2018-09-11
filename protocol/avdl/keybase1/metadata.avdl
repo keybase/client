@@ -41,10 +41,29 @@ protocol metadata {
          KeyBundle ReaderBundle;
   }
 
+  @typedef("long")
+  record LockID{}
+
+  @typedef("int")
+  record MDPriority{}
+
+  record LockContext {
+    LockID  requireLockID;
+    boolean releaseAfterSuccess;
+  }
+
+  record FindNextMDResponse {
+     MerkleRoot kbfsRoot;
+     array<bytes> merkleNodes;
+     Seqno rootSeqno;
+     HashMeta rootHash;
+  }
+
   ChallengeInfo getChallenge();
   int authenticate(string signature);
-  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags);
-  MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);
+  void putMetadata(MDBlock mdBlock, KeyBundle readerKeyBundle, KeyBundle writerKeyBundle, map<string> logTags, union{null, LockContext} lockContext, MDPriority priority);
+  MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags, union{null, LockID} lockBeforeGet);
+  MDBlock getMetadataByTimestamp(string folderID, Time serverTime);
   void registerForUpdates(string folderID, long currRevision, map<string> logTags);
   void pruneBranch(string folderID, string branchID, map<string> logTags);
   void putKeys(array<KeyHalf> keyHalves, map<string> logTags);
@@ -58,12 +77,20 @@ protocol metadata {
   PingResponse ping2();
   bytes getLatestFolderHandle(string folderID);
   KeyBundleResponse getKeyBundles(string folderID, string writerBundleID, string readerBundleID);
+  void lock(string folderID, LockID lockID);
+  void releaseLock(string folderID, LockID lockID); // unfortunate naming conflict on "unlock" with login.avdl
+  void startImplicitTeamMigration(string folderID);
 
   // Merkle tree specific commands
-  // todo: we probably also want a method which will return a minmum set of interior nodes
+  // todo: we probably also want a method which will return a minimum set of interior nodes
   // and a leaf node given a root node and a TLF ID.
   MerkleRoot getMerkleRoot(MerkleTreeID treeID, long seqNo);
   MerkleRoot getMerkleRootLatest(MerkleTreeID treeID);
   MerkleRoot getMerkleRootSince(MerkleTreeID treeID, Time when);
   bytes getMerkleNode(string hash);
+  FindNextMDResponse findNextMD(Seqno seqno, string folderID);
+
+  // For testing.
+  void setImplicitTeamModeForTest(string implicitTeamMode);
+  void forceMerkleBuildForTest();
 }

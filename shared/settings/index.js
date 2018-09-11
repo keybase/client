@@ -1,20 +1,34 @@
 // @flow
+import * as ConfigGen from '../actions/config-gen'
+import * as Types from '../constants/types/settings'
 import SettingsContainer from './render'
-import flags from '../util/feature-flags'
-import {connect} from 'react-redux'
+import {connect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
+import {type RouteProps} from '../route-tree/render-route'
 
-import type {RouteProps} from '../route-tree/render-route'
+type OwnProps = RouteProps<{}, {}>
 
-// $FlowIssue type this connector
-export default connect(
-  (state, {routeSelected, routeLeafTags}: RouteProps<{}, {}>) => ({
-    badgeNumbers: {},  // TODO add badging logic
-    showComingSoon: !flags.tabSettingsEnabled,
-    selectedTab: routeSelected,
-    isModal: routeLeafTags.modal,
-  }),
-  (dispatch, {routePath}: RouteProps<{}, {}>) => ({
-    onTabChange: tab => { dispatch(switchTo(routePath.push(tab))) },
-  })
-)(SettingsContainer)
+const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnProps) => ({
+  _badgeNumbers: state.notifications.get('navBadges'),
+  badgeNotifications: !state.push.hasPermissions,
+  isModal: routeLeafTags.modal,
+  selectedTab: ((routeSelected: any): Types.Tab),
+})
+
+const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
+  onLogout: () => dispatch(ConfigGen.createLogout()),
+  onTabChange: (tab: Types.Tab) => dispatch(switchTo(routePath.push(tab))),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeNotifications: stateProps.badgeNotifications,
+  badgeNumbers: stateProps._badgeNumbers.toObject(),
+  children: ownProps.children,
+  isModal: stateProps.isModal,
+  onLogout: dispatchProps.onLogout,
+  onTabChange: dispatchProps.onTabChange,
+  selectedTab: stateProps.selectedTab,
+})
+
+// $FlowIssue fix badgeNumbers
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)

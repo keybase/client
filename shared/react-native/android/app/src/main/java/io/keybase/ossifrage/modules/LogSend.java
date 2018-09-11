@@ -5,15 +5,14 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 
-import go.keybase.Keybase;
+import keybase.Keybase;
+import io.keybase.ossifrage.BuildConfig;
 
 public class LogSend extends ReactContextBaseJavaModule {
     private static final String NAME = "KBLogSend";
-    private final String logFilePath;
 
-    public LogSend(final ReactApplicationContext reactContext, String logFilePath) {
+    public LogSend(final ReactApplicationContext reactContext) {
         super(reactContext);
-        this.logFilePath = logFilePath;
     }
 
     @Override
@@ -22,9 +21,9 @@ public class LogSend extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void logSend(Promise promise) {
+    public void logSend(String status, String feedback, boolean sendLogs, String logFilePath, String traceDir, String cpuProfileDir, Promise promise) {
         try {
-            final String logID = Keybase.logSend(logFilePath);
+          final String logID = Keybase.logSend(status, feedback, sendLogs, logFilePath, traceDir, cpuProfileDir);
             promise.resolve(logID);
         } catch (Exception e) {
             promise.reject(e);

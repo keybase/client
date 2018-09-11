@@ -10,7 +10,6 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -35,128 +34,48 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		// checking the hint is done later in CheckStatus
-		return nil
-	}
-
-	if strings.HasPrefix(strings.ToLower(h.GetAPIURL()), RedditSub) {
-		return nil
-	}
-	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-		"Bad hint from server; URL should start with '%s'", RedditSub)
-}
-
-func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, libkb.ProofError) {
-	var k1, k2 string
-	var err error
-
-	inp.AtIndex(0).AtKey("kind").GetStringVoid(&k1, &err)
-	parent := inp.AtIndex(0).AtKey("data").AtKey("children").AtIndex(0)
-	parent.AtKey("kind").GetStringVoid(&k2, &err)
-	var ret *jsonw.Wrapper
-
-	var pe libkb.ProofError
-	cf := keybase1.ProofStatus_CONTENT_FAILURE
-	cm := keybase1.ProofStatus_CONTENT_MISSING
-
-	if err != nil {
-		pe = libkb.NewProofError(cm, "Bad proof JSON: %s", err)
-	} else if k1 != "Listing" {
-		pe = libkb.NewProofError(cf,
-			"Reddit: Wanted a post of type 'Listing', but got %s", k1)
-	} else if k2 != "t3" {
-		pe = libkb.NewProofError(cf, "Wanted a child of type 't3' but got %s", k2)
-	} else if ret = parent.AtKey("data"); ret.IsNil() {
-		pe = libkb.NewProofError(cm, "Couldn't get child data for post")
-	}
-
-	return ret, pe
-
-}
-
-func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
-	return libkb.Cicmp(s1, s2)
-}
-
-func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.ProofError {
-	sigBody, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE, "Bad signature: %s", err)
-	}
-
-	var subreddit, author, selftext, title string
-
-	dat.AtKey("subreddit").GetStringVoid(&subreddit, &err)
-	dat.AtKey("author").GetStringVoid(&author, &err)
-	dat.AtKey("selftext").GetStringVoid(&selftext, &err)
-	dat.AtKey("title").GetStringVoid(&title, &err)
-
-	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
-	}
-
-	if strings.ToLower(subreddit) != "keybaseproofs" {
-		return libkb.NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
-	}
-
-	if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
-		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME,
-			"Bad post author; wanted '%s' but got '%s'", wanted, author)
-	}
-
-	if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
-		return libkb.NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND, "Missing signature ID (%s) in post title ('%s')", psid, title)
-	}
-
-	if !libkb.FindBase64Block(selftext, sigBody, false) {
-		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
-	}
-
-	return nil
-}
-
-func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	if pvl.UsePvl {
-		return pvl.CheckProof(ctx, pvl.GetHardcodedPvlString(), keybase1.ProofType_REDDIT,
-			pvl.NewProofInfo(rc.proof, h))
-	}
-	return rc.CheckStatusOld(ctx, h)
-}
-
-func (rc *RedditChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArgWithNetContext(ctx.GetNetContext(), h.GetAPIURL()))
-	if err != nil {
-		return libkb.XapiError(err, h.GetAPIURL())
-	}
-
-	dat, perr := rc.UnpackData(res.Body)
-	if perr != nil {
-		return perr
-	}
-	return rc.CheckData(h, dat)
+func (rc *RedditChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+	return CheckProofPvl(m, keybase1.ProofType_REDDIT, rc.proof, h, pvlU)
 }
 
 //
 //=============================================================================
 
 func urlReencode(s string) string {
-	// Use '+'-encoding for a smaller URL
+	// Reddit interprets plusses in the query string differently depending
+	// on whether the user is using the old or new (2018) design, and
+	// on whether it's the title or body of the post.
+	// old,     *, '+'   -> ' '
+	// old,     *, '%2B' -> '+'
+	// new, title, '+'   -> ' '
+	// new, title, '%2B' -> ' '
+	// new,  body, '+'   -> '+'
+	// new,  body, '%2B' -> '+'
+
+	// Examples:
+	// https://www.reddit.com/r/test/submit?text=content+fmt%0Aplus+x%2By%20z&title=title+fmt%0Aplus+x%2By%20z
+	// old: https://www.reddit.com/r/test/comments/8eee0e/title_fmt_plus_xy_z/
+	// new: https://www.reddit.com/r/test/comments/8eelwf/title_fmt_plus_x_y_z/
+
 	// Replace '(', ")" and "'" so that URL-detection works in Linux
 	// Padding is not needed now, but might be in the future depending on
 	// changes we make
-	s = strings.Replace(s, `%20`, "+", -1)
-	rxx := regexp.MustCompile(`[()']`)
+	rxx := regexp.MustCompile(`[()'+]`)
 	s = rxx.ReplaceAllStringFunc(s, func(r string) string {
-		if r == "(" {
+		switch r {
+		case `(`:
 			return `%28`
-		} else if r == ")" {
+		case `)`:
 			return `%29`
-		} else if r == "'" {
+		case `'`:
 			return `%27`
+		case `+`:
+			// HTTPArgs.EncodeToString has encoded ' ' -> '+'
+			// we recode '+' -> '%20'.
+			return `%20`
+		default:
+			return r
 		}
-		return ""
 	})
 	return s
 }
@@ -174,7 +93,7 @@ func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
@@ -190,18 +109,56 @@ func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(ppr *libkb.PostProofRes) (res string, err error) {
-
+func (t RedditServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return
 	}
 
-	q := urlReencode(libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString())
+	urlPre := libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString()
+	q := urlReencode(urlPre)
+
+	chooseHost := func(untrustedHint, trustedDefault string) string {
+		allowedHosts := []string{
+			"reddit.com",
+			"www.reddit.com",
+			// 2017-04-18: The new reddit mobile site doesn't respect the post-pre-populate query parameters.
+			//             The i.reddit.com site may be better.
+			"i.reddit.com",
+			"old.reddit.com",
+		}
+		if untrustedHint == "" {
+			return trustedDefault
+		}
+		for _, h := range allowedHosts {
+			if untrustedHint == h {
+				return h
+			}
+		}
+		return trustedDefault
+	}
+	var host string
+	if m.G().GetAppType() == libkb.MobileAppType {
+		hostHint, err := ppr.Metadata.AtKey("mobile_host").GetString()
+		if err != nil {
+			hostHint = ""
+		}
+		host = chooseHost(hostHint, "old.reddit.com")
+	} else {
+		// Note that GetAppType() often returns libkb.NoAppType. Don't assume that we get
+		// libkb.DesktopAppType in the non-mobile case.
+		// Use the old reddit design until this bug is fixed:
+		// https://www.reddit.com/r/redesign/comments/8evfap/bug_post_contents_gets_dropped_when_using/
+		hostHint, err := ppr.Metadata.AtKey("other_host").GetString()
+		if err != nil {
+			hostHint = ""
+		}
+		host = chooseHost(hostHint, "old.reddit.com")
+	}
 
 	u := url.URL{
 		Scheme:   "https",
-		Host:     "www.reddit.com",
+		Host:     host,
 		Path:     "/r/KeybaseProofs/submit",
 		RawQuery: q,
 	}
@@ -220,7 +177,8 @@ func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.Pr
 func (t RedditServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
-	return t.BaseCheckProofTextFull(text, id, sig)
+	// Anything is fine. We might get rid of the body later.
+	return nil
 }
 
 func (t RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {

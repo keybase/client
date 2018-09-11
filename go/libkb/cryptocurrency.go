@@ -27,6 +27,17 @@ const (
 	CryptocurrencyFamilyZCash   CryptocurrencyFamily = "zcash"
 )
 
+// Wallet and cryptocurrency are separate systems.
+// Wallet links have reverse signatures, and the control secrets are in keybase.
+// Whereas Cryptocurrency links are generally are public only and have no reverse sigs.
+// CryptocurrencyFamily and WalletNetwork are defined next to each other so that
+// someone will notice if they start to overlap.
+type WalletNetwork string
+
+const (
+	WalletNetworkStellar WalletNetwork = "stellar"
+)
+
 type CryptocurrencyPrefix struct {
 	Type   CryptocurrencyType
 	Prefix []byte

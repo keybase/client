@@ -30,8 +30,8 @@ func TestIsReddit(t *testing.T) {
 }
 
 const (
-	uriExpected  = "https://api.keybase.io"
-	pingExpected = "https://api.keybase.io/_/api/1.0/ping.json"
+	uriExpected  = "https://api-0.core.keybaseapi.com"
+	pingExpected = "https://api-0.core.keybaseapi.com/_/api/1.0/ping.json"
 )
 
 func TestProductionCA(t *testing.T) {
@@ -81,9 +81,9 @@ func TestProductionBadCA(t *testing.T) {
 	}
 
 	// change the api CA to one that api.keybase.io doesn't know:
-	BundledCAs["api.keybase.io"] = unknownCA
+	apiCAOverrideForTest = unknownCA
 	defer func() {
-		BundledCAs["api.keybase.io"] = apiCA
+		apiCAOverrideForTest = ""
 	}()
 
 	tc.G.ConfigureAPI()
@@ -204,7 +204,7 @@ func TestInstallIDHeaders(t *testing.T) {
 	}
 	res, err := api.Get(APIArg{
 		Endpoint:    "pkg/show",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args:        HTTPArgs{},
 	})
 	if err != nil {

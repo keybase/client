@@ -4,14 +4,17 @@
 package saltpack
 
 import (
+	"regexp"
 	"strings"
 )
 
 type headerOrFooterMarker string
 
 const (
-	headerMarker headerOrFooterMarker = "BEGIN"
-	footerMarker headerOrFooterMarker = "END"
+	headerMarker   headerOrFooterMarker = "BEGIN"
+	footerMarker   headerOrFooterMarker = "END"
+	maxFrameLength int                  = 512 // applies to header and footer
+	maxBrandLength int                  = 128
 )
 
 func pop(v *([]string), n int) (ret []string) {
@@ -36,7 +39,7 @@ func makeFrame(which headerOrFooterMarker, typ MessageType, brand string) string
 		words = append(words, brand)
 		brand += " "
 	}
-	words = append(words, strings.ToUpper(SaltpackFormatName))
+	words = append(words, strings.ToUpper(FormatName))
 	words = append(words, sffx)
 	return strings.Join(words, " ")
 }
@@ -66,12 +69,22 @@ func getStringForType(typ MessageType) string {
 
 func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand string, err error) {
 
+	if len(m) > maxFrameLength {
+		err = makeErrBadFrame("Frame is too long")
+		return
+	}
+
+	// replace blocks of characters in the set [>\n\r\t ] with a single space, so that Go
+	// can easily parse each piece
+	re := regexp.MustCompile("[>\n\r\t ]+")
+	s := strings.TrimSpace(re.ReplaceAllString(m, " "))
+
 	sffx := getStringForType(typ)
 	if len(sffx) == 0 {
 		err = makeErrBadFrame("Message type %v not found", typ)
 		return
 	}
-	v := strings.Split(m, " ")
+	v := strings.Split(s, " ")
 	if len(v) != 4 && len(v) != 5 {
 		err = makeErrBadFrame("wrong number of words (%d)", len(v))
 		return
@@ -91,12 +104,16 @@ func parseFrame(m string, typ MessageType, hof headerOrFooterMarker) (brand stri
 		return
 	}
 	spfn := pop(&v, 1)
-	if spfn[0] != strings.ToUpper(SaltpackFormatName) {
+	if spfn[0] != strings.ToUpper(FormatName) {
 		err = makeErrBadFrame("bad format name (%s)", spfn[0])
 		return
 	}
 	if len(v) > 0 {
 		brand = v[0]
+		if len(brand) > maxBrandLength {
+			err = makeErrBadFrame("Brand is too long")
+			return
+		}
 	}
 	return brand, err
 }

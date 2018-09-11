@@ -1,26 +1,34 @@
 // @flow
-import React from 'react'
-import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles'
+import * as React from 'react'
+import {Box, Text, Icon, type IconType} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
 import type {Props} from './choice-list'
 
 const ChoiceList = ({options}: Props) => {
   return (
     <Box>
       <style>{rawCSS}</style>
-      {options.map((op, idx) => (
-        <Box style={styleEntry} key={idx} className='cl-entry' onClick={() => op.onClick()}>
-          <Box style={styleIconContainer} className='cl-icon-container'>
-            {typeof op.icon === 'string'
-              ? <Icon style={styleIcon} type={op.icon} className='cl-icon' />
-              : <Box style={styleIcon} className='cl-icon'>{op.icon}</Box>}
+      {options.map((op, idx) => {
+        // $FlowIssue
+        const iconType: IconType = op.icon
+        return (
+          <Box style={styleEntry} key={idx} className="cl-entry" onClick={() => op.onClick()}>
+            <Box style={styleIconContainer} className="cl-icon-container">
+              {typeof op.icon === 'string' ? (
+                <Icon style={styleIcon} type={iconType} className="cl-icon" />
+              ) : (
+                <Box style={styleIcon} className="cl-icon">
+                  {op.icon}
+                </Box>
+              )}
+            </Box>
+            <Box style={styleInfoContainer}>
+              <Text type="BodyBigLink">{op.title}</Text>
+              <Text type="Body">{op.description}</Text>
+            </Box>
           </Box>
-          <Box style={styleInfoContainer}>
-            <Text type='BodyBigLink'>{op.title}</Text>
-            <Text type='Body'>{op.description}</Text>
-          </Box>
-        </Box>
-      ))}
+        )
+      })}
     </Box>
   )
 }
@@ -53,7 +61,7 @@ const rawCSS = `
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
+  ...desktopStyles.clickable,
   padding: `${globalMargins.tiny}px ${globalMargins.small}px`,
   width: '100%',
 }
@@ -75,7 +83,7 @@ const styleInfoContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'left', // TODO (AW): invalid prop value
+  alignItems: 'flex-start',
   textAlign: 'left',
   marginLeft: globalMargins.small,
 }

@@ -15,4 +15,6 @@ protocol debugging {
 
   // Increment val
   int increment(int sessionID, int val);
+
+  string script(string script, array<string> args);
 }

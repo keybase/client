@@ -8,6 +8,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"sync"
@@ -95,16 +96,17 @@ type Conn struct {
 	writeErr error
 	closed   bool
 
-	ctx context.Context
+	ctx  context.Context
+	lctx LogContext
 }
 
 const sessionIDText = "Kex v2 Session ID"
 
 // NewConn establishes a Kex session based on the given secret. Will work for
 // both ends of the connection, regardless of which order the two started
-// their conntection. Will communicate with the other end via the given message router.
+// their connection. Will communicate with the other end via the given message router.
 // You can specify an optional timeout to cancel any reads longer than that timeout.
-func NewConn(ctx context.Context, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
+func NewConn(ctx context.Context, lctx LogContext, r MessageRouter, s Secret, d DeviceID, readTimeout time.Duration) (con net.Conn, err error) {
 	mac := hmac.New(sha256.New, []byte(s[:]))
 	mac.Write([]byte(sessionIDText))
 	tmp := mac.Sum(nil)
@@ -119,6 +121,7 @@ func NewConn(ctx context.Context, r MessageRouter, s Secret, d DeviceID, readTim
 		readTimeout: readTimeout,
 		writeSeqno:  0,
 		ctx:         ctx,
+		lctx:        lctx,
 	}
 	return ret, nil
 }
@@ -153,11 +156,7 @@ var ErrDecryption = errors.New("decryption failed")
 // randomness
 var ErrNotEnoughRandomness = errors.New("not enough random data")
 
-// ErrBadPacketSequence indicates that packets arrived out of order from the
-// server (which they shouldn't).
-var ErrBadPacketSequence = errors.New("packets arrived out-of-order")
-
-// ErrWrongSession indicatest that the given session didn't match the
+// ErrWrongSession indicates that the given session didn't match the
 // clients expectations
 var ErrWrongSession = errors.New("got message for wrong Session ID")
 
@@ -176,6 +175,20 @@ var ErrBadSecret = errors.New("bad secret")
 // protocol timed out.  Most likely due to an incorrect
 // secret phrase from the user.
 var ErrHelloTimeout = errors.New("hello timeout")
+
+// ErrBadPacketSequence indicates that packets arrived out of order from the
+// server (which they shouldn't).
+type ErrBadPacketSequence struct {
+	SessionID     SessionID
+	SenderID      DeviceID
+	ReceivedSeqno Seqno
+	PrevSeqno     Seqno
+}
+
+func (e ErrBadPacketSequence) Error() string {
+	return fmt.Sprintf("Unexpected out-of-order packet arrival {SessionID: %v, SenderID: %v, ReceivedSeqno: %d, PrevSeqno: %d})",
+		e.SessionID, e.SenderID, e.ReceivedSeqno, e.PrevSeqno)
+}
 
 func (c *Conn) setReadError(e error) error {
 	c.errMutex.Lock()
@@ -265,6 +278,7 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	var om outerMsg
 	err = dec.Decode(&om)
 	if err != nil {
+		c.lctx.Debug("Conn#decryptIncomingMessage: decoding failure: %s", err.Error())
 		return 0, err
 	}
 	var plaintext []byte
@@ -290,7 +304,7 @@ func (c *Conn) decryptIncomingMessage(msg []byte) (int, error) {
 	}
 
 	if im.Seqno != c.readSeqno+1 {
-		return 0, ErrBadPacketSequence
+		return 0, ErrBadPacketSequence{im.SessionID, im.SenderID, im.Seqno, c.readSeqno}
 	}
 	c.readSeqno = im.Seqno
 
@@ -321,6 +335,7 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 
 	// Any empty buffer signals an EOF condition
 	if len(c.bufferedMsgs[0]) == 0 {
+		c.lctx.Debug("conn#readBufferedMsgsIntoBytes: empty buffer signaling EOF condition")
 		return 0, io.EOF
 	}
 
@@ -336,6 +351,7 @@ func (c *Conn) readBufferedMsgsIntoBytes(out []byte) (int, error) {
 			if n == 0 {
 				var err error
 				if p == 0 {
+					c.lctx.Debug("conn#readBufferedMsgsIntoBytes: empty buffer signaling EOF condition (after consume loop)")
 					err = io.EOF
 				}
 				return p, err
@@ -437,6 +453,7 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	if n == 0 {
 		switch {
 		case c.getClosed():
+			c.lctx.Debug("conn#Read: EOF since connection was closed")
 			err = io.EOF
 		case poll > 0:
 			err = ErrTimedOut
@@ -497,7 +514,7 @@ func (c *Conn) Write(buf []byte) (n int, err error) {
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
-	// Our protocol specifes that writing an empty buffer means "close"
+	// Our protocol specifies that writing an empty buffer means "close"
 	// the connection.  We don't want callers of `Write` to do this by
 	// accident, we want them to call `Close()` explicitly. So short-circuit
 	// the write operation here for empty buffers.
@@ -536,6 +553,8 @@ func (c *Conn) Close() error {
 
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
+
+	c.lctx.Debug("Conn#Close: all subsequent writes are EOFs")
 
 	// set closed so that the read loop will bail out above
 	c.setClosed()

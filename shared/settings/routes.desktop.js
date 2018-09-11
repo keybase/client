@@ -1,33 +1,29 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
-import {
-  landingTab,
-  updatePaymentTab,
-  invitationsTab,
-  notificationsTab,
-  deleteMeTab,
-  devMenuTab,
-} from '../constants/settings'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import * as Constants from '../constants/settings'
 import Settings from './'
 import LandingContainer from './landing/container'
 import UpdatePayment from './payment/container'
+import AdvancedContainer from './advanced/container'
+import FilesContainer from './files/container'
+import DBNukeConfirm from './db-nuke-confirm/container'
 import InvitationsContainer from './invites/container'
 import NotificationsContainer from './notifications/container'
 import DeleteContainer from './delete/container'
 import DeleteConfirm from './delete-confirm/container'
-import RemoveDevice from '../devices/device-revoke'
-import InviteGenerated from './invite-generated'
+import RemoveDevice from '../devices/device-revoke/container'
+import InviteGenerated from './invite-generated/container'
 import DevMenu from '../dev/dev-menu'
-import DumbSheet from '../dev/dumb-sheet'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
-import PlanDetails from './plan-details/container'
+// import PlanDetails from './plan-details/container'
+import SecurityPrefs from '../fs/common/security-prefs-container.desktop'
 
-const routeTree = new RouteDefNode({
-  defaultSelected: landingTab,
+const routeTree = makeRouteDefNode({
+  defaultSelected: Constants.landingTab,
   containerComponent: Settings,
   children: {
-    [landingTab]: {
+    [Constants.landingTab]: {
       component: LandingContainer,
       children: {
         changePassphrase: {
@@ -36,15 +32,15 @@ const routeTree = new RouteDefNode({
         changeEmail: {
           component: UserEmail,
         },
-        changePlan: {
-          component: PlanDetails,
-        },
+        // changePlan: {
+        // component: PlanDetails,
+        // },
       },
     },
-    [updatePaymentTab]: {
+    [Constants.updatePaymentTab]: {
       component: UpdatePayment,
     },
-    [invitationsTab]: {
+    [Constants.invitationsTab]: {
       component: InvitationsContainer,
       children: {
         inviteSent: {
@@ -52,28 +48,43 @@ const routeTree = new RouteDefNode({
         },
       },
     },
-    [notificationsTab]: {
+    [Constants.notificationsTab]: {
       component: NotificationsContainer,
     },
-    [deleteMeTab]: {
+    [Constants.deleteMeTab]: {
       component: DeleteContainer,
       children: {
         deleteConfirm: {
           component: DeleteConfirm,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
         removeDevice: {
           component: RemoveDevice,
-          tags: {modal: true},
+          tags: makeLeafTags({modal: true}),
         },
       },
     },
-    [devMenuTab]: {
-      component: DevMenu,
+    ...(__DEV__
+      ? {
+          [Constants.devMenuTab]: {
+            component: DevMenu,
+          },
+        }
+      : {}),
+    [Constants.advancedTab]: {
+      component: AdvancedContainer,
       children: {
-        dumbSheet: {
-          component: DumbSheet,
-          tags: {modal: true},
+        dbNukeConfirm: {
+          component: DBNukeConfirm,
+          tags: makeLeafTags({modal: true}),
+        },
+      },
+    },
+    [Constants.fsTab]: {
+      component: FilesContainer,
+      children: {
+        securityPrefs: {
+          component: SecurityPrefs,
         },
       },
     },

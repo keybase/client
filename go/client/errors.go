@@ -70,3 +70,9 @@ type UnexpectedArgsError string
 func (e UnexpectedArgsError) Error() string {
 	return fmt.Sprintf("Command `%s` doesn't take any non-flag arguments", string(e))
 }
+
+type CantRunInStandaloneError struct{}
+
+func (e CantRunInStandaloneError) Error() string {
+	return "Can't run command in standalone mode"
+}

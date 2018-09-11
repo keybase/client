@@ -36,6 +36,10 @@ func (c *CmdWatchdog) checkAlreadyRunning() bool {
 		return false
 	}
 	conn, err := s.DialSocket()
+	if err != nil {
+		c.G().Log.Debug("checkAlreadyRunning DialSocket error: %s", err)
+		return false
+	}
 	if conn != nil {
 		conn.Close()
 		return true

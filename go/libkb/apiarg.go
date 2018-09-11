@@ -1,9 +1,18 @@
 package libkb
 
 import (
-	"golang.org/x/net/context"
 	"net/url"
 	"time"
+
+	"golang.org/x/net/context"
+)
+
+type APISessionType int
+
+const (
+	APISessionTypeNONE     APISessionType = 0
+	APISessionTypeOPTIONAL APISessionType = 1
+	APISessionTypeREQUIRED APISessionType = 2
 )
 
 type APIArg struct {
@@ -11,14 +20,21 @@ type APIArg struct {
 	uArgs           url.Values
 	Args            HTTPArgs
 	JSONPayload     JSONPayload
-	NeedSession     bool
-	SessionR        SessionReader
+	SessionType     APISessionType
 	HTTPStatus      []int
 	AppStatusCodes  []int
 	InitialTimeout  time.Duration // optional
 	RetryMultiplier float64       // optional
 	RetryCount      int           // optional
 	NetContext      context.Context
+	MetaContext     MetaContext
+}
+
+func (a APIArg) GetMetaContext(g *GlobalContext) MetaContext {
+	if a.MetaContext.g != nil {
+		return a.MetaContext
+	}
+	return NewMetaContext(a.NetContext, g)
 }
 
 // NewAPIArg creates a standard APIArg that will result
@@ -33,6 +49,13 @@ func NewAPIArgWithNetContext(ctx context.Context, endpoint string) APIArg {
 	return APIArg{
 		NetContext: ctx,
 		Endpoint:   endpoint,
+	}
+}
+
+func NewAPIArgWithMetaContext(m MetaContext, endpoint string) APIArg {
+	return APIArg{
+		MetaContext: m,
+		Endpoint:    endpoint,
 	}
 }
 

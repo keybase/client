@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/logger"
+	"golang.org/x/net/context"
 )
 
 // VDebugLog is a "Verbose" debug logger; enable it if you really
@@ -16,6 +17,7 @@ type VDebugLog struct {
 	log              logger.Logger
 	lev              VDebugLevel
 	dumpSiteLoadUser bool
+	dumpPayload      bool
 }
 
 type VDebugLevel int
@@ -25,17 +27,34 @@ func NewVDebugLog(l logger.Logger) *VDebugLog {
 }
 
 const (
-	VLog0 VDebugLevel = 0
-	VLog1 VDebugLevel = 1
-	VLog2 VDebugLevel = 2
-	VLog3 VDebugLevel = 3
+	VLogNone VDebugLevel = iota - 1
+	VLog0
+	VLog1
+	VLog2
+	VLog3
 )
 
 func (v *VDebugLog) Log(lev VDebugLevel, fs string, args ...interface{}) {
 	if lev <= v.lev {
 		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
 		fs = prfx + fs
-		v.log.Debug(fs, args...)
+		v.log.CloneWithAddedDepth(1).Debug(fs, args...)
+	}
+}
+
+func (v *VDebugLog) CLogf(ctx context.Context, lev VDebugLevel, fs string, args ...interface{}) {
+	if lev <= v.lev {
+		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
+		fs = prfx + fs
+		v.log.CloneWithAddedDepth(1).CDebugf(ctx, fs, args...)
+	}
+}
+
+func (v *VDebugLog) CLogfWithAddedDepth(ctx context.Context, lev VDebugLevel, d int, fs string, args ...interface{}) {
+	if lev <= v.lev {
+		prfx := fmt.Sprintf("{VDL:%d} ", int(lev))
+		fs = prfx + fs
+		v.log.CloneWithAddedDepth(1+d).CDebugf(ctx, fs, args...)
 	}
 }
 
@@ -43,15 +62,21 @@ func (v *VDebugLog) DumpSiteLoadUser() bool {
 	return v.dumpSiteLoadUser
 }
 
+func (v *VDebugLog) DumpPayload() bool {
+	return v.dumpPayload
+}
+
 func (v *VDebugLog) Configure(s string) {
+	v.lev = VLog0
 	if len(s) == 0 {
 		return
 	}
 	v.log.Debug("Setting Vdebug to %q", s)
 	parts := strings.Split(s, ",")
-	v.lev = VLog0
 	for _, s := range parts {
 		switch s {
+		case "mobile":
+			v.lev = VLogNone
 		case "vlog0":
 			v.lev = VLog0
 		case "vlog1":
@@ -62,6 +87,8 @@ func (v *VDebugLog) Configure(s string) {
 			v.lev = VLog3
 		case "dump-site-load-user":
 			v.dumpSiteLoadUser = true
+		case "dump-payload":
+			v.dumpPayload = true
 		default:
 			v.log.Warning("Ignoring Vdebug log directive: %q", s)
 		}

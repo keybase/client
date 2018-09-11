@@ -6,23 +6,30 @@ package engine
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 func TestListTracking(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testListTracking(t, sigVersion)
+	})
+}
+
+func _testListTracking(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 	fu.LoginOrBust(tc)
 
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -56,16 +63,17 @@ func TestListTracking(t *testing.T) {
 func TestListTrackingJSON(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 	fu.LoginOrBust(tc)
 
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{JSON: true, Verbose: true}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}
@@ -88,18 +96,20 @@ func TestListTrackingLocal(t *testing.T) {
 	t.Skip("Skipping test for local tracks in list tracking (milestone 2)")
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	trackAlice(tc, fu)
-	defer untrackAlice(tc, fu)
+	trackAlice(tc, fu, sigVersion)
+	defer untrackAlice(tc, fu, sigVersion)
 
-	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true}, fu.NewSecretUI())
-	defer untrackBob(tc, fu)
+	sv := keybase1.SigVersion(sigVersion)
+	trackBobWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, SigVersion: &sv}, fu.NewSecretUI())
+	defer untrackBob(tc, fu, sigVersion)
 
 	arg := ListTrackingEngineArg{}
-	eng := NewListTrackingEngine(&arg, tc.G)
-	ctx := Context{}
-	err := RunEngine(eng, &ctx)
+	eng := NewListTrackingEngine(tc.G, &arg)
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal("Error in ListTrackingEngine:", err)
 	}

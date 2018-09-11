@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -13,7 +14,8 @@ import (
 )
 
 type IdentifyOutcome struct {
-	Username              string
+	Contextified
+	Username              NormalizedUsername
 	Error                 error
 	KeyDiffs              []TrackDiff
 	Revoked               []TrackDiff
@@ -27,20 +29,27 @@ type IdentifyOutcome struct {
 	ResponsibleGregorItem gregor.Item
 }
 
-func NewIdentifyOutcome() *IdentifyOutcome {
-	return &IdentifyOutcome{}
-}
-
-func NewIdentifyOutcomeWithUsername(u string) *IdentifyOutcome {
-	return &IdentifyOutcome{Username: u}
+func NewIdentifyOutcomeWithUsername(g *GlobalContext, u NormalizedUsername) *IdentifyOutcome {
+	return &IdentifyOutcome{Contextified: NewContextified(g), Username: u}
 }
 
 func (i *IdentifyOutcome) remoteProofLinks() *RemoteProofLinks {
-	rpl := NewRemoteProofLinks()
+	rpl := NewRemoteProofLinks(i.G())
 	for _, p := range i.ProofChecks {
 		rpl.Insert(p.link, p.err)
 	}
 	return rpl
+}
+
+func (i *IdentifyOutcome) GetRemoteCheckResultFor(service string, username string) ProofError {
+	cieq := func(a, b string) bool { return strings.ToLower(a) == strings.ToLower(b) }
+	for _, pc := range i.ProofChecks {
+		k, v := pc.GetLink().ToKeyValuePair()
+		if cieq(k, service) && cieq(v, username) {
+			return pc.GetProofError()
+		}
+	}
+	return NewProofError(keybase1.ProofStatus_NO_HINT, "no proof checked for %s@%s", username, service)
 }
 
 func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
@@ -225,12 +234,12 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 
 	if ntf := i.NumTrackFailures(); ntf > 0 {
 		probs = append(probs,
-			fmt.Sprintf("%d track component%s failed",
+			fmt.Sprintf("%d followed proof%s failed",
 				ntf, GiveMeAnS(ntf)))
 	}
 
 	if len(probs) > 0 {
-		err = IdentifySummaryError{probs}
+		err = IdentifySummaryError{i.Username, probs}
 	}
 
 	return warnings, err

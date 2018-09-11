@@ -17,10 +17,8 @@ import (
 )
 
 func TestAccountDeadlock(t *testing.T) {
-	tc := setupTest(t, "resolve2")
+	tc := setupTest(t, "deadlock")
 	tc2 := cloneContext(tc)
-
-	libkb.G.LocalDb = nil
 
 	defer tc.Cleanup()
 
@@ -93,7 +91,9 @@ func currentStatusLoop(t *testing.T, g *libkb.GlobalContext, stopCh chan struct{
 		case <-time.After(50 * time.Millisecond):
 			_, err := cli.CurrentSession(context.TODO(), 0)
 			if err != nil {
-				t.Fatal(err)
+				if _, ok := err.(libkb.NoSessionError); !ok {
+					t.Fatal(err)
+				}
 			}
 		}
 	}

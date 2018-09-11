@@ -1,74 +1,768 @@
 {
   "protocol": "chatUi",
-  "imports": [],
-  "types": [],
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    },
+    {
+      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "UIPagination",
+      "fields": [
+        {
+          "type": "string",
+          "name": "next"
+        },
+        {
+          "type": "string",
+          "name": "previous"
+        },
+        {
+          "type": "int",
+          "name": "num"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItemMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "channelName"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "snippetDecoration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "writerNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "keybase1.TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgID"
+        },
+        {
+          "type": [
+            null,
+            "UnverifiedInboxUIItemMetadata"
+          ],
+          "name": "localMetadata"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnverifiedInboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UnverifiedInboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "convID"
+        },
+        {
+          "type": "TopicType",
+          "name": "topicType"
+        },
+        {
+          "type": "boolean",
+          "name": "isEmpty"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "snippet"
+        },
+        {
+          "type": "string",
+          "name": "snippetDecoration"
+        },
+        {
+          "type": "string",
+          "name": "channel"
+        },
+        {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": "keybase1.TLFVisibility",
+          "name": "visibility"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "participants"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string",
+            "keys": "string"
+          },
+          "name": "fullNames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "resetParticipants"
+        },
+        {
+          "type": "ConversationStatus",
+          "name": "status"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "ConversationMemberStatus",
+          "name": "memberStatus"
+        },
+        {
+          "type": "TeamType",
+          "name": "teamType"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "time"
+        },
+        {
+          "type": [
+            null,
+            "ConversationNotificationInfo"
+          ],
+          "name": "notifications"
+        },
+        {
+          "type": [
+            null,
+            "ConversationCreatorInfoLocal"
+          ],
+          "name": "creatorInfo"
+        },
+        {
+          "type": "ConversationVers",
+          "name": "version"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgID"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
+        },
+        {
+          "type": [
+            null,
+            "ConversationSettingsLocal"
+          ],
+          "name": "convSettings"
+        },
+        {
+          "type": [
+            null,
+            "ConversationFinalizeInfo"
+          ],
+          "name": "finalizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersedes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationMetadata"
+          },
+          "name": "supersededBy"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItemError",
+      "fields": [
+        {
+          "type": "ConversationErrorType",
+          "name": "typ"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "string",
+          "name": "unverifiedTLFName"
+        },
+        {
+          "type": [
+            null,
+            "ConversationErrorRekey"
+          ],
+          "name": "rekeyInfo"
+        },
+        {
+          "type": "UnverifiedInboxUIItem",
+          "name": "remoteConv"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InboxUIItems",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        },
+        {
+          "type": "boolean",
+          "name": "offline"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChannelNameMention",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "convID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIAssetUrlInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "string",
+          "name": "fullUrl"
+        },
+        {
+          "type": "boolean",
+          "name": "fullUrlCached"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "videoDuration"
+        },
+        {
+          "type": "boolean",
+          "name": "inlineVideoPlayable"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIPaymentInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "stellar1.BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIRequestInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageValid",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageBody",
+          "name": "messageBody"
+        },
+        {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceType"
+        },
+        {
+          "type": "boolean",
+          "name": "superseded"
+        },
+        {
+          "type": [
+            null,
+            "UIAssetUrlInfo"
+          ],
+          "name": "assetUrlInfo"
+        },
+        {
+          "type": [
+            null,
+            "gregor1.Time"
+          ],
+          "name": "senderDeviceRevokedAt"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "atMentions"
+        },
+        {
+          "type": "ChannelMention",
+          "name": "channelMention"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIChannelNameMention"
+          },
+          "name": "channelNameMentions"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeralExpired"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "explodedBy"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "etime"
+        },
+        {
+          "type": "ReactionMap",
+          "name": "reactions"
+        },
+        {
+          "type": "boolean",
+          "name": "hasPairwiseMacs"
+        },
+        {
+          "type": [
+            null,
+            "UIPaymentInfo"
+          ],
+          "name": "paymentInfo"
+        },
+        {
+          "type": [
+            null,
+            "UIRequestInfo"
+          ],
+          "name": "requestInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageOutbox",
+      "fields": [
+        {
+          "type": "OutboxState",
+          "name": "state"
+        },
+        {
+          "type": "string",
+          "name": "outboxID"
+        },
+        {
+          "type": "MessageType",
+          "name": "messageType"
+        },
+        {
+          "type": "string",
+          "name": "body"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "ctime"
+        },
+        {
+          "type": "double",
+          "name": "ordinal"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": [
+            null,
+            "MakePreviewRes"
+          ],
+          "name": "preview"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MessageUnboxedState",
+      "symbols": [
+        "VALID_1",
+        "ERROR_2",
+        "OUTBOX_3",
+        "PLACEHOLDER_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UIMessage",
+      "switch": {
+        "type": "MessageUnboxedState",
+        "name": "state"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "VALID",
+            "def": false
+          },
+          "body": "UIMessageValid"
+        },
+        {
+          "label": {
+            "name": "ERROR",
+            "def": false
+          },
+          "body": "MessageUnboxedError"
+        },
+        {
+          "label": {
+            "name": "OUTBOX",
+            "def": false
+          },
+          "body": "UIMessageOutbox"
+        },
+        {
+          "label": {
+            "name": "PLACEHOLDER",
+            "def": false
+          },
+          "body": "MessageUnboxedPlaceholder"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessages",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "UIPagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatSearchHit",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "beforeMessages"
+        },
+        {
+          "type": "UIMessage",
+          "name": "hitMessage"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessage"
+          },
+          "name": "afterMessages"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "matches"
+        }
+      ]
+    }
+  ],
   "messages": {
-    "chatAttachmentUploadStart": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "metadata",
-          "type": "AssetMetadata"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentUploadProgress": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "bytesComplete",
-          "type": "int"
-        },
-        {
-          "name": "bytesTotal",
-          "type": "int"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentUploadDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentPreviewUploadStart": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "metadata",
-          "type": "AssetMetadata"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
-    "chatAttachmentPreviewUploadDone": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
     "chatAttachmentDownloadStart": {
       "request": [
         {
@@ -76,8 +770,7 @@
           "type": "int"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatAttachmentDownloadProgress": {
       "request": [
@@ -87,11 +780,11 @@
         },
         {
           "name": "bytesComplete",
-          "type": "int"
+          "type": "long"
         },
         {
           "name": "bytesTotal",
-          "type": "int"
+          "type": "long"
         }
       ],
       "response": null,
@@ -104,8 +797,7 @@
           "type": "int"
         }
       ],
-      "response": null,
-      "oneway": true
+      "response": null
     },
     "chatInboxUnverified": {
       "request": [
@@ -115,7 +807,7 @@
         },
         {
           "name": "inbox",
-          "type": "GetInboxLocalRes"
+          "type": "string"
         }
       ],
       "response": null
@@ -128,7 +820,7 @@
         },
         {
           "name": "conv",
-          "type": "ConversationLocal"
+          "type": "string"
         }
       ],
       "response": null
@@ -145,10 +837,80 @@
         },
         {
           "name": "error",
-          "type": "string"
+          "type": "InboxUIItemError"
         }
       ],
       "response": null
+    },
+    "chatThreadCached": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "thread",
+          "type": [
+            null,
+            "string"
+          ]
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatThreadFull": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "thread",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatSearchHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatSearchHit"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "numHits",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatConfirmChannelDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "channel",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "chat.1"

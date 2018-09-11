@@ -1,8 +1,12 @@
 // @flow
 // Simple control to show multiple avatars. Just used in chat but could be expanded. Keeping this simple for now
+import shallowEqual from 'shallowequal'
+import logger from '../logger'
 import Avatar from './avatar'
 import Box from './box'
-import React from 'react'
+import * as React from 'react'
+import {globalStyles, type StylesCrossPlatform, collapseStyles} from '../styles'
+import {createSelector} from 'reselect'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
@@ -10,43 +14,76 @@ export type Props = {
   avatarProps: Array<AvatarProps>,
   singleSize: AvatarSize,
   multiSize: AvatarSize,
-  style?: ?Object,
+  style?: StylesCrossPlatform,
+  multiPadding?: number,
 }
 
-const MultiAvatar = ({avatarProps, singleSize, multiSize, style}: Props) => {
-  if (avatarProps.length < 0) {
-    return null
+class MultiAvatar extends React.Component<Props> {
+  shouldComponentUpdate(nextProps: Props) {
+    return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
+      if (key === 'avatarProps') {
+        return shallowEqual(this.props.avatarProps, nextProps.avatarProps)
+      }
+
+      return undefined
+    })
   }
-  if (avatarProps.length > 2) {
-    console.warn('MultiAvatar only handles up to 2 avatars')
-    return null
+  render() {
+    const {avatarProps, singleSize, multiSize, style, multiPadding} = this.props
+    if (avatarProps.length <= 0) {
+      return null
+    }
+    if (avatarProps.length > 2) {
+      logger.warn('MultiAvatar only handles up to 2 avatars')
+      return null
+    }
+
+    const leftProps: AvatarProps = avatarProps[1]
+    const rightProps: AvatarProps = avatarProps[0]
+
+    if (avatarProps.length === 1) {
+      return (
+        <Box style={singleStyle}>
+          <Avatar {...rightProps} size={singleSize} />
+        </Box>
+      )
+    }
+
+    return (
+      <Box style={collapseStyles([{height: '100%', position: 'relative', width: '100%'}, style])}>
+        <Avatar {...leftProps} style={leftAvatar(multiPadding, leftProps.style)} size={multiSize} />
+        <Avatar {...rightProps} style={rightAvatar(multiPadding, rightProps.style)} size={multiSize} />
+      </Box>
+    )
   }
-
-  const leftProps: AvatarProps = avatarProps[0]
-  const rightProps: AvatarProps = avatarProps[1]
-
-  if (avatarProps.length === 1) {
-    return <Avatar {...leftProps} size={singleSize} />
-  }
-
-  return (
-    <Box style={{...containerStyle, ...style}}>
-      <Avatar {...leftProps} style={leftAvatar} size={multiSize} />
-      <Avatar {...rightProps} style={rightAvatar} size={multiSize} />
-    </Box>
-  )
 }
 
-const containerStyle = {
-  position: 'relative',
+const singleStyle = {
+  ...globalStyles.flexBoxCenter,
+  height: '100%',
+  width: '100%',
 }
 
-const leftAvatar = {
-}
+const leftAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
+  collapseStyles([
+    {
+      left: 0,
+      position: 'absolute',
+      top: offset,
+    },
+    style,
+  ])
+)
 
-const rightAvatar = {
-  marginLeft: '34%',
-  marginTop: '-63%',
-}
+const rightAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
+  collapseStyles([
+    {
+      bottom: offset,
+      position: 'absolute',
+      right: 0,
+    },
+    style,
+  ])
+)
 
 export default MultiAvatar

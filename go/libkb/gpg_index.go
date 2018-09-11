@@ -173,7 +173,11 @@ func (k *GpgPrimaryKey) IsValid() bool {
 	} else {
 		expired := time.Now().After(time.Unix(int64(k.Expires), 0))
 		if expired {
-			k.G().Log.Warning("Skipping expired primary key %s", k.fingerprint.ToQuads())
+			var fp string
+			if k.fingerprint != nil {
+				fp = " (" + k.fingerprint.ToQuads() + ")"
+			}
+			k.G().Log.Warning("Skipping expired primary key%s", fp)
 		}
 		return !expired
 	}
@@ -200,10 +204,7 @@ func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) error {
 	if err := k.ParseBase(l); err != nil {
 		return err
 	}
-	if err := k.AddUID(l); err != nil {
-		return err
-	}
-	return nil
+	return k.AddUID(l)
 }
 
 func NewGpgPrimaryKey(g *GlobalContext) *GpgPrimaryKey {
@@ -222,7 +223,7 @@ func (k *GpgPrimaryKey) AddUID(l *GpgIndexLine) (err error) {
 	var id *Identity
 	if f := l.At(9); len(f) == 0 {
 	} else if id, err = ParseIdentity(f); err != nil {
-	} else {
+	} else if l.At(1) != "r" { // is not revoked
 		k.identities = append(k.identities, id)
 	}
 	if err != nil {
@@ -302,6 +303,7 @@ func (k *GpgPrimaryKey) AddLine(l *GpgIndexLine) (err error) {
 		case "uat", "grp": // ignore
 		case "sub", "ssb":
 			err = k.AddSubkey(l)
+		case "rvk": // designated revoker (ignore)
 		default:
 			err = GpgIndexError{l.lineno, fmt.Sprintf("Unknown subfield: %s", f)}
 		}

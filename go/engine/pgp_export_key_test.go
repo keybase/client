@@ -16,14 +16,15 @@ func TestPGPExportOptions(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "login")
 	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
-	ctx := &Context{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
 
 	fp, kid, key := armorKey(t, tc, u.Email)
-	eng, err := NewPGPKeyImportEngineFromBytes([]byte(key), true, tc.G)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err = RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -60,7 +61,7 @@ func TestPGPExportOptions(t *testing.T) {
 	}
 
 	for i, test := range table {
-		ec, err := pgpExport(ctx, tc.G, test.secret, test.query, test.exact)
+		ec, err := pgpExport(m, test.secret, test.query, test.exact)
 		if err != nil {
 			t.Errorf("test %d error: %s", i, err)
 		}
@@ -91,7 +92,7 @@ type exportCounts struct {
 	kid         int
 }
 
-func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, exact bool) (exportCounts, error) {
+func pgpExport(m libkb.MetaContext, secret bool, query string, exact bool) (exportCounts, error) {
 	opts := keybase1.PGPQuery{
 		Secret:     secret,
 		Query:      query,
@@ -103,8 +104,9 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	arg := keybase1.PGPExportArg{
 		Options: opts,
 	}
-	xe := NewPGPKeyExportEngine(arg, g)
-	if err := RunEngine(xe, ctx); err != nil {
+	g := m.G()
+	xe := NewPGPKeyExportEngine(g, arg)
+	if err := RunEngine2(m, xe); err != nil {
 		return xcount, err
 	}
 
@@ -113,8 +115,8 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	farg := keybase1.PGPExportByFingerprintArg{
 		Options: opts,
 	}
-	xf := NewPGPKeyExportByFingerprintEngine(farg, g)
-	if err := RunEngine(xf, ctx); err != nil {
+	xf := NewPGPKeyExportByFingerprintEngine(g, farg)
+	if err := RunEngine2(m, xf); err != nil {
 		return xcount, err
 	}
 
@@ -123,12 +125,127 @@ func pgpExport(ctx *Context, g *libkb.GlobalContext, secret bool, query string, 
 	karg := keybase1.PGPExportByKIDArg{
 		Options: opts,
 	}
-	xk := NewPGPKeyExportByKIDEngine(karg, g)
-	if err := RunEngine(xk, ctx); err != nil {
+	xk := NewPGPKeyExportByKIDEngine(g, karg)
+	if err := RunEngine2(m, xk); err != nil {
 		return xcount, err
 	}
 
 	xcount.kid = len(xk.Results())
 
 	return xcount, nil
+}
+
+type PGPTestSecretUI struct {
+	libkb.TestSecretUI
+	Prompts []string
+}
+
+func (t *PGPTestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CalledGetPassphrase = true
+	t.Prompts = append(t.Prompts, p.Prompt)
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
+}
+
+func TestPGPExportEncryption(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpsave")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	pgpPassphrase := "hello_pgp" + u.Passphrase
+	secui := &PGPTestSecretUI{}
+	secui.Passphrase = pgpPassphrase
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	fp, _, key := armorKey(t, tc, u.Email)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err = RunEngine2(m, eng); err != nil {
+		t.Fatal(err)
+	}
+
+	opts := keybase1.PGPQuery{
+		Secret:     true,
+		Query:      fp.String(),
+		ExactMatch: true,
+	}
+
+	// Run export with Encrypted: true
+
+	arg := keybase1.PGPExportArg{
+		Options:   opts,
+		Encrypted: true,
+	}
+	xe := NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(secui.Prompts) != 2 {
+		t.Error("Expected two prompts in SecretUI (PGP passphrase and confirmation)")
+	}
+	secui.Prompts = []string{}
+
+	entity, _, err := libkb.ReadOneKeyFromString(xe.Results()[0].Key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if entity.PrivateKey == nil {
+		t.Fatal("Key isn't private key")
+	}
+
+	if !entity.PrivateKey.Encrypted {
+		t.Fatal("Key is not encrypted")
+	}
+
+	for _, subkey := range entity.Subkeys {
+		if !subkey.PrivateKey.Encrypted {
+			t.Fatal("Subkey is not encrypted")
+		}
+	}
+
+	if err := entity.PrivateKey.Decrypt([]byte(pgpPassphrase)); err != nil {
+		t.Fatal("Decryption with passphrase failed")
+	}
+
+	// Run export with Encrypted: false
+
+	arg = keybase1.PGPExportArg{
+		Options:   opts,
+		Encrypted: false,
+	}
+	xe = NewPGPKeyExportEngine(tc.G, arg)
+	if err := RunEngine2(m, xe); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(secui.Prompts) != 0 {
+		t.Error("Expected no prompts in SecretUI")
+	}
+
+	entity, _, err = libkb.ReadOneKeyFromString(xe.Results()[0].Key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if entity.PrivateKey == nil {
+		t.Fatal("Key isn't private key")
+	}
+
+	if entity.PrivateKey.Encrypted {
+		t.Fatal("Key is encrypted")
+	}
+
+	for _, subkey := range entity.Subkeys {
+		if subkey.PrivateKey.Encrypted {
+			t.Fatal("Subkey is encrypted")
+		}
+	}
 }

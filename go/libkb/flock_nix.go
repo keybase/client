@@ -31,7 +31,7 @@ func (f *LockPIDFile) Lock() (err error) {
 	fmt.Fprintf(f.file, "%d", pid)
 	f.file.Sync()
 
-	G.Log.Debug("Locked pidfile %s for pid=%d", f.name, pid)
+	f.G().Log.Debug("Locked pidfile %s for pid=%d", f.name, pid)
 
 	return nil
 }

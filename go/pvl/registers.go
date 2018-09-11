@@ -76,11 +76,12 @@ func (r *namedRegsStore) Ban(key string) libkb.ProofError {
 	return nil
 }
 
+var keyRE = regexp.MustCompile(`^[a-z0-9_]+$`)
+
 // Make sure a key is a simple snake case name.
 // Does not check whether it's banned.
 func (r *namedRegsStore) validateKey(key string) libkb.ProofError {
-	re := regexp.MustCompile(`^[a-z0-9_]+$`)
-	if !re.MatchString(key) {
+	if !keyRE.MatchString(key) {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL, "invalid register name '%v'", key)
 	}
 	return nil

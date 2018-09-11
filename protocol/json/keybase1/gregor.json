@@ -12,6 +12,79 @@
     "getState": {
       "request": [],
       "response": "gregor1.State"
+    },
+    "injectItem": {
+      "request": [
+        {
+          "name": "cat",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "dtime",
+          "type": "gregor1.TimeOrOffset"
+        }
+      ],
+      "response": "gregor1.MsgID"
+    },
+    "dismissCategory": {
+      "request": [
+        {
+          "name": "category",
+          "type": "gregor1.Category"
+        }
+      ],
+      "response": null
+    },
+    "dismissItem": {
+      "request": [
+        {
+          "name": "id",
+          "type": "gregor1.MsgID"
+        }
+      ],
+      "response": null
+    },
+    "updateItem": {
+      "request": [
+        {
+          "name": "msgID",
+          "type": "gregor1.MsgID"
+        },
+        {
+          "name": "cat",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "dtime",
+          "type": "gregor1.TimeOrOffset"
+        }
+      ],
+      "response": "gregor1.MsgID"
+    },
+    "updateCategory": {
+      "request": [
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "type": "string"
+        },
+        {
+          "name": "dtime",
+          "type": "gregor1.TimeOrOffset"
+        }
+      ],
+      "response": "gregor1.MsgID"
     }
   },
   "namespace": "keybase.1"

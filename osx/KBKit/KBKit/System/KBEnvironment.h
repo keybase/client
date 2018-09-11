@@ -12,6 +12,7 @@
 #import "KBService.h"
 #import "KBFSService.h"
 #import "KBFuseComponent.h"
+#import "KBCommandLine.h"
 
 @interface KBEnvironment : NSObject
 
@@ -20,6 +21,7 @@
 @property (readonly) KBService *service;
 @property (readonly) KBFSService *kbfs;
 @property (readonly) KBFuseComponent *fuse;
+@property (readonly) KBCommandLine *cli;
 @property (readonly) NSArray */*of KBInstallable*/installables;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath;

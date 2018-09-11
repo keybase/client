@@ -1,14 +1,12 @@
-// @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
+// @noflow
+import logger from '../../logger'
+import * as actions from '../../actions/plan-billing'
 import Bootstrapable from '../../util/bootstrapable'
 import HiddenString from '../../util/hidden-string'
-
-import * as actions from '../../actions/plan-billing'
 import Payment from './index'
+import React, {Component} from 'react'
+import {connect, type TypedState} from '../../util/container'
 import {parseExpiration} from '../../constants/plan-billing'
-
-import type {TypedState} from '../../constants/reducer'
 
 type OwnProps = {}
 
@@ -26,9 +24,9 @@ type Props = {
   onSubmit: (cardNumber: ?string, name: ?string, securityCode: ?string, expiration: ?string) => void,
 }
 
-class PaymentStateHolder extends Component<void, Props, State> {
-  state: State;
-  constructor () {
+class PaymentStateHolder extends Component<Props, State> {
+  state: State
+  constructor() {
     super()
     this.state = {
       cardNumber: null,
@@ -38,25 +36,32 @@ class PaymentStateHolder extends Component<void, Props, State> {
     }
   }
 
-  _clearErrorAndSetState (nextState) {
+  _clearErrorAndSetState(nextState) {
     this.props.errorMessage && this.props.clearBillingError()
     this.setState(nextState)
   }
 
-  render () {
+  render() {
     return (
       <Payment
-        onChangeCardNumber={(cardNumber) => this._clearErrorAndSetState({cardNumber})}
-        onChangeName={(name) => this._clearErrorAndSetState({name})}
-        onChangeExpiration={(expiration) => this._clearErrorAndSetState({expiration})}
-        onChangeSecurityCode={(securityCode) => this._clearErrorAndSetState({securityCode})}
+        onChangeCardNumber={cardNumber => this._clearErrorAndSetState({cardNumber})}
+        onChangeName={name => this._clearErrorAndSetState({name})}
+        onChangeExpiration={expiration => this._clearErrorAndSetState({expiration})}
+        onChangeSecurityCode={securityCode => this._clearErrorAndSetState({securityCode})}
         cardNumber={this.state.cardNumber}
         name={this.state.name}
         expiration={this.state.expiration}
         securityCode={this.state.securityCode}
         errorMessage={this.props.errorMessage}
         onBack={this.props.onBack}
-        onSubmit={() => this.props.onSubmit(this.state.cardNumber, this.state.name, this.state.securityCode, this.state.expiration)}
+        onSubmit={() =>
+          this.props.onSubmit(
+            this.state.cardNumber,
+            this.state.name,
+            this.state.securityCode,
+            this.state.expiration
+          )
+        }
       />
     )
   }
@@ -64,7 +69,9 @@ class PaymentStateHolder extends Component<void, Props, State> {
 
 export default connect(
   (state: TypedState, ownProps: OwnProps) => {
-    const {planBilling: {plan, errorMessage}} = state
+    const {
+      planBilling: {plan, errorMessage},
+    } = state
     if (!plan) {
       return {
         bootstrapDone: false,
@@ -75,14 +82,20 @@ export default connect(
       bootstrapDone: true,
       originalProps: {
         errorMessage: errorMessage,
-        onBack: () => console.log('todo'),
+        onBack: () => logger.debug('todo'),
       },
     }
   },
   (dispatch: (a: any) => void, ownProps: OwnProps) => ({
-    onBootstrap: () => { dispatch(actions.bootstrapData()) },
-    onSubmit: (args) => { dispatch(actions.updateBilling(args)) },
-    clearBillingError: () => { dispatch(actions.clearBillingError()) },
+    onBootstrap: () => {
+      dispatch(actions.bootstrapData())
+    },
+    onSubmit: args => {
+      dispatch(actions.updateBilling(args))
+    },
+    clearBillingError: () => {
+      dispatch(actions.clearBillingError())
+    },
   }),
   (stateProps, dispatchProps, ownProps: OwnProps) => {
     if (stateProps.bootstrapDone === false) {

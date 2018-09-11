@@ -1,0 +1,1069 @@
+@namespace("keybase.1")
+
+protocol teams {
+
+  enum TeamRole {
+    // These must be ordered by privilege.
+    NONE_0,
+    READER_1,
+    WRITER_2,
+    ADMIN_3,
+    OWNER_4
+  }
+
+  // Note: If you add to this list, take heed.
+  // The client will try to assert RKM coverage or the new application.
+  // First update the server and run add_new_team_app.
+  enum TeamApplication {
+    KBFS_1,
+    CHAT_2,
+    SALTPACK_3,
+    GIT_METADATA_4,
+    SEITAN_INVITE_TOKEN_5,
+    STELLAR_RELAY_6
+  }
+
+  enum TeamStatus {
+    NONE_0,
+    LIVE_1,
+    DELETED_2,
+    ABANDONED_3
+  }
+
+  // PerTeamKeyGeneration describes the generation of the secret.
+  // The sequence starts at 1.
+  @typedef("int")
+  record PerTeamKeyGeneration {}
+
+  record TeamApplicationKey {
+    TeamApplication application;
+    PerTeamKeyGeneration keyGeneration;
+    Bytes32 key;
+  }
+
+  @typedef("bytes")
+  record MaskB64 {}
+
+  @typedef("string")
+  record TeamInviteID {}
+
+  record ReaderKeyMask {
+    TeamApplication application;
+    PerTeamKeyGeneration generation;
+    MaskB64 mask;
+  }
+
+  @lint("ignore")
+  record PerTeamKey {
+    PerTeamKeyGeneration gen;
+    Seqno seqno;
+    KID sigKID;
+    KID encKID;
+  }
+
+  fixed PerTeamKeySeed(32);
+
+  // Secret from which team keys are derived
+  record PerTeamKeySeedItem {
+    PerTeamKeySeed seed;
+    PerTeamKeyGeneration generation;
+    Seqno seqno;
+  }
+
+  record TeamMember {
+    UID uid;
+    TeamRole role;
+    Seqno eldestSeqno;     // eldest seqno of the team member record
+    TeamMemberStatus status;
+  }
+
+  record TeamMembers {
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+  }
+
+  enum TeamMemberStatus {
+    ACTIVE_0,
+    RESET_1,
+    DELETED_2
+  }
+
+  record TeamMemberDetails {
+    UserVersion uv;
+    string username;
+    FullName fullName;
+    @lint("ignore")
+    boolean needsPUK;
+    TeamMemberStatus status;
+  }
+
+  record TeamMembersDetails {
+    array<TeamMemberDetails> owners;
+    array<TeamMemberDetails> admins;
+    array<TeamMemberDetails> writers;
+    array<TeamMemberDetails> readers;
+  }
+
+  record TeamDetails {
+    TeamMembersDetails members;
+    PerTeamKeyGeneration keyGeneration;
+    map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
+    TeamSettings settings;
+    TeamShowcase showcase;
+  }
+
+  @typedef("string")
+  record UserVersionPercentForm {}
+
+  record TeamChangeReq {
+    array<UserVersion> owners;
+    array<UserVersion> admins;
+    array<UserVersion> writers;
+    array<UserVersion> readers;
+    array<UserVersion> none;
+    map<TeamInviteID,UserVersionPercentForm> completedInvites;
+  }
+
+  record TeamPlusApplicationKeys {
+    TeamID id;
+    string name;
+    boolean implicit;
+    boolean public;
+    TeamApplication application;
+
+    array<UserVersion> writers;
+    array<UserVersion> onlyReaders;
+
+    array<TeamApplicationKey> applicationKeys;
+  }
+
+  // Snapshot of a loaded team.
+  // If this is changed in incompatible way, increment teams/storage.go:diskStorageVersion
+  record TeamData {
+    // Whether this snapshot is entirely missing secrets.
+    // Not used. Might as well get rid of this field next time the cache is busted.
+    boolean secretless;
+
+    // Name of the team. This is tricky.
+    // The root ancestor, final part, and the depth are always correct.
+    // But the middle parts (b in a.b.c) do not track the sigchain.
+    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
+    TeamName name;
+    TeamSigChainState chain;
+
+    // These secrets may not match the team chain, always verify before use.
+    // These secrets may be behind or missing if this is a public team.
+    // generation -> seed
+    // generations _must_ start from 1 with no gaps
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeedsUnverified;
+    // application -> generation -> mask
+    // in each slot generations _must_ start from 1 with no gaps
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    // The latest seqno of the remote team. Given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    Time cachedAt;
+
+    // Associated TLF crypt keys
+    map<TeamApplication, array<CryptKey>> tlfCryptKeys;
+  }
+
+  // Snapshot of a fast-loaded team.
+  record FastTeamData {
+
+    // Name of the team. This is tricky.
+    // The root ancestor, final part, and the depth are always correct.
+    // But the middle parts (b in a.b.c) do not track the sigchain.
+    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
+    TeamName name;
+
+    // Data derived from our (limited) replay of the team chain.
+    FastTeamSigChainState chain;
+
+    // These secrets may not match the team chain, always verify before use.
+    // These secrets may be behind or missing if this is a public team.
+    // generation -> seed
+    // generations _must_ start from 1 with no gaps
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsUnverified;
+
+    PerTeamKeyGeneration latestKeyGeneration;
+
+    // application -> generation -> mask
+    // in each slot generations _must_ start from 1 with no gaps
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    // The latest seqno of the remote team. Given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    Time cachedAt;
+
+    // True if we've ever loaded this team for the "latest" version; sometimes
+    // we don't, depending on the access patterns
+    boolean loadedLatest;
+  }
+
+  record LinkTriple {
+    Seqno seqno;
+    SeqType seqType;
+    LinkID linkID;
+  }
+
+  record UpPointer {
+    Seqno ourSeqno;
+    TeamID parentID;
+    Seqno parentSeqno;
+    boolean deletion;
+  }
+
+  record DownPointer {
+    TeamID id;
+    string nameComponent;
+    boolean isDeleted;
+  }
+
+  // FastTeamSigChainState is the state computed by doing a fast reply of the
+  // team's sigchain, ignoring all but the key rotation links.
+  record FastTeamSigChainState {
+
+    @lint("ignore")
+    TeamID ID;
+
+    // Whether this is a public team.
+    boolean public;
+
+    // Name of the root ancestor. For A.B.C this is 'A'.
+    TeamName rootAncestor;
+    // Depth of the name.
+    int nameDepth;
+
+    union { null, LinkTriple } last;
+
+    // Keyed by per-team-key generation
+    map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+
+    // Once we derive and check these seeds, we enter them here (as a cache of work).
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsVerified;
+
+    // Down pointers will be filled in too, on the team, as they are needed to
+    // construct the name of subteams.
+    map<Seqno, DownPointer> downPointers;
+
+    // The LastUpPointer we received, either a deleted pointer, or a rename pointer.
+    // Or nil if a root team. If lastUpPointer is non-nil and deleted is true, then
+    // this team is deleted.
+    union { null, UpPointer } lastUpPointer;
+
+    // Creation time of latest PerTeamKey, based on CTime from the
+    // link key appeared in.
+    UnixTime perTeamKeyCTime;
+
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // For any link where we have it, fill in merkle sequence information.
+    map<Seqno, MerkleRootV2> merkleInfo;
+  }
+
+  record Audit {
+    Time time;
+    // The Maximum Merkle Seqno known globally at the time of the audit.
+    Seqno maxMerkleSeqno;
+    // The maximum Seqno in the chain at the time of the audit.
+    Seqno maxChainSeqno;
+    // The maximum merkle Seqno probed in this audit.
+    Seqno maxMerkleProbe;
+  }
+
+  record Probe {
+    @mpackkey("i")
+    int index;
+    @mpackkey("s")
+    Seqno teamSeqno;
+  }
+
+  record AuditHistory {
+    @lint("ignore")
+    TeamID ID;
+    // Whether this is a public team.
+    boolean public;
+    // The Merkle sequence number signed into the head link of the team chain.
+    Seqno priorMerkleSeqno;
+
+    // When the last audit(s) happened
+    array<Audit> audits;
+    // Probes of before the team was created. The value in the map is the index
+    // of the audit (each audit has a value in the audits array above).
+    map<Seqno,Probe> preProbes;
+    // Probes of after the team was created
+    map<Seqno,Probe> postProbes;
+  }
+
+  enum TeamInviteCategory {
+    NONE_0,
+    UNKNOWN_1,
+    KEYBASE_2,
+    EMAIL_3,
+    SBS_4,
+    SEITAN_5
+  }
+
+  variant TeamInviteType switch (TeamInviteCategory c) {
+    case UNKNOWN: string;
+    case SBS: TeamInviteSocialNetwork;
+    default: void;
+  }
+
+  @typedef("string")
+  record TeamInviteSocialNetwork {}
+  @typedef("string")
+  record TeamInviteName {}
+
+  record TeamInvite {
+    TeamRole role;
+    TeamInviteID id;
+    TeamInviteType type;
+    TeamInviteName name;
+    UserVersion inviter;
+  }
+
+  record AnnotatedTeamInvite {
+    TeamRole role;
+    TeamInviteID id;
+    TeamInviteType type;
+    TeamInviteName name;
+    UserVersion uv;
+    UserVersion inviter;
+    string inviterUsername;
+    string teamName;
+    TeamMemberStatus status;
+  }
+
+  record TeamEncryptedKBFSKeyset {
+    int v;
+    bytes e;
+    bytes n;
+  }
+
+  record TeamGetLegacyTLFUpgrade {
+    @jsonkey("encrypted_keyset")
+    string encryptedKeyset;
+    @jsonkey("team_generation")
+    PerTeamKeyGeneration teamGeneration;
+    @jsonkey("legacy_generation")
+    int legacyGeneration;
+    @jsonkey("app_type")
+    TeamApplication appType;
+  }
+
+  @typedef("string")
+  record TeamEncryptedKBFSKeysetHash {}
+
+  record TeamLegacyTLFUpgradeChainInfo {
+    TeamEncryptedKBFSKeysetHash keysetHash;
+    PerTeamKeyGeneration teamGeneration;
+    int legacyGeneration;
+    TeamApplication appType;
+  }
+
+  // State of a parsed team sigchain.
+  // Should be treated as immutable when outside TeamSigChainPlayer.
+  // Modified internally to TeamSigChainPlayer.
+  record TeamSigChainState {
+    // The user who loaded this sigchain
+    UserVersion reader;
+
+    TeamID id;
+
+    // Whether this is an implicit team.
+    boolean implicit;
+    // Whether this is a public team.
+    boolean public;
+
+    // Name of the root ancestor. For A.B.C this is 'A'.
+    TeamName rootAncestor;
+    // Depth of the name.
+    int nameDepth;
+
+    // Log of the last part of the team name.
+    array<TeamNameLogPoint> nameLog;
+
+    // The last link processed
+    Seqno lastSeqno;
+    LinkID lastLinkID;
+
+    // The last high link processed
+    Seqno lastHighSeqno;
+    LinkID lastHighLinkID;
+
+    // Present if a subteam
+    union { null, TeamID } parentID;
+
+    // For each user; the timeline of their role status.
+    // The role checkpoints are always ordered by seqno.
+    // The latest role of the user is the role of their last checkpoint.
+    // When a user leaves the team a NONE checkpoint appears in their list.
+    map<UserVersion,array<UserLogPoint>> userLog;
+
+    // For each subteam; the timeline of its name.
+    // The checkpoints are always ordered by seqno.
+    // The latest name of the subteam is the role of its last checkpoint.
+    map<TeamID,array<SubteamLogPoint>> subteamLog;
+
+    // Keyed by per-team-key generation
+    map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+
+    // Creation time of latest PerTeamKey, based on CTime from the
+    // link key appeared in.
+    UnixTime perTeamKeyCTime;
+
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // Set of links that are stubbed-out and whose contents are missing.
+    map<Seqno, boolean> stubbedLinks;
+
+    // All invitations that are currently active.
+    map<TeamInviteID,TeamInvite> activeInvites;
+
+    // Invitations that were removed from activeInvites because they
+    // were obsoleted by a ChangeMembership link.
+    map<TeamInviteID,TeamInvite> obsoleteInvites;
+
+    // Whether this is an open team.
+    boolean open;
+    TeamRole openTeamJoinAs;
+
+    // If there is a TLF associated, it shows up here. The last writer wins
+    // here, and we are not concerned about historical associations that have been
+    // overwritten (for now). An empty TLFID is given by an empty string.
+    TLFID tlfID;
+
+    // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
+    // link per app type is what shows up here.
+    map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
+
+    // The head merkle object is the merkle root signed into the head of the team
+    // It was rolled out in 2018-09, so isn't available for all stored copies
+    // of TeamSigChainState. Thus, if you need it, you should check if it's there,
+    // and if not, fetch the chainlink from the server and check against linksIDs[1].
+    union { null, MerkleRootV2 } headMerkle;
+  }
+
+  // The team got this name at this point in time.
+  record TeamNameLogPoint {
+    TeamNamePart lastPart;
+    // The seqno at which the team got this name.
+    Seqno seqno;
+  }
+
+  // A user became this role at a point in time
+  record UserLogPoint {
+    // The new role. Including NONE if the user left the team.
+    TeamRole role;
+    // The seqno at which the user became this role, and other important
+    // details, like the last known MerkleRoot at that time.
+    SignatureMetadata sigMeta;
+  }
+
+  // A subteam got this name at this point in time.
+  record SubteamLogPoint {
+    // The new subteam name.
+    TeamName name;
+    // The (parent) seqno at which the subteam got this name.
+    Seqno seqno;
+  }
+
+  @typedef("string")
+  record TeamNamePart {}
+
+  // matches the team name struct from api server
+  record TeamName {
+    array<TeamNamePart> parts;
+  }
+
+  // Sometimes during CLKR server will hint us that users are reset.
+  @lint("ignore")
+  record TeamCLKRResetUser {
+    UID uid;
+    @jsonkey("user_eldest")
+    Seqno userEldestSeqno;
+    @jsonkey("member_eldest")
+    Seqno memberEldestSeqno;
+  }
+
+  // team.clkr gregor message body
+  @lint("ignore")
+  record TeamCLKRMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    PerTeamKeyGeneration generation;
+    int score;
+    @jsonkey("reset_users")
+    array<TeamCLKRResetUser> resetUsersUntrusted;
+  }
+
+  record TeamResetUser {
+    string username;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+  }
+
+  // team.member_out_from_reset message body
+  record TeamMemberOutFromReset {
+    @jsonkey("team_name")
+    string teamName;
+    @jsonkey("reset_user")
+    TeamResetUser resetUser;
+  }
+
+  record TeamChangeRow {
+    TeamID id;
+    string name;
+    @jsonkey("key_rotated")
+    boolean keyRotated;
+    @jsonkey("membership_changed")
+    boolean membershipChanged;
+    @jsonkey("latest_seqno")
+    Seqno latestSeqno;
+    @jsonkey("implicit_team")
+    boolean implicitTeam;
+    @jsonkey("misc")
+    boolean misc;
+    @jsonkey("removed_reset_users")
+    boolean removedResetUsers;
+  }
+
+  record TeamExitRow {
+    TeamID id;
+  }
+
+  record TeamNewlyAddedRow {
+    TeamID id;
+    string name;
+  }
+
+  record TeamInvitee {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    TeamRole role;
+  }
+
+  // team.sbs gregor message body
+  @lint("ignore")
+  record TeamSBSMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    int score;
+    array<TeamInvitee> invitees;
+  }
+
+  record TeamAccessRequest {
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+  }
+
+  @lint("ignore")
+  record TeamOpenReqMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    array<TeamAccessRequest> tars;
+  }
+
+  @typedef("string")
+  record SeitanAKey {}
+
+  // The secret shared with the recipient.
+  // With this information one can accept an invite.
+  @typedef("string")
+  record SeitanIKey {}
+
+  @typedef("KID")
+  record SeitanPubKey {}
+
+  // The secret shared with the recipient.
+  // With this information one can accept an invite.
+  @typedef("string")
+  record SeitanIKeyV2 {}
+
+  enum SeitanKeyAndLabelVersion {
+    V1_1,
+    V2_2
+  }
+
+  variant SeitanKeyAndLabel switch (SeitanKeyAndLabelVersion v) {
+    case V1: SeitanKeyAndLabelVersion1;
+    case V2: SeitanKeyAndLabelVersion2;
+    default: void;
+  }
+
+  record SeitanKeyAndLabelVersion1 {
+    SeitanIKey i;
+    SeitanKeyLabel l;
+  }
+
+  record SeitanKeyAndLabelVersion2 {
+    SeitanPubKey k;
+    SeitanKeyLabel l;
+  }
+
+  enum SeitanKeyLabelType {
+    SMS_1
+  }
+
+  variant SeitanKeyLabel switch (SeitanKeyLabelType t) {
+    case SMS: SeitanKeyLabelSms;
+    default: void;
+  }
+
+  record SeitanKeyLabelSms {
+    string f; // FullName
+    string n; // Number
+  }
+
+  record TeamSeitanRequest {
+    @jsonkey("invite_id")
+    TeamInviteID inviteID;
+    UID uid;
+    @jsonkey("eldest_seqno")
+    Seqno eldestSeqno;
+    SeitanAKey akey;
+    TeamRole role;
+    @jsonkey("ctime")
+    int64 unixCTime;
+  }
+
+  @lint("ignore")
+  record TeamSeitanMsg {
+    @jsonkey("team_id")
+    TeamID teamID;
+    array<TeamSeitanRequest> seitans;
+  }
+
+  record TeamKBFSKeyRefresher {
+    int generation;
+    TeamApplication appType;
+  }
+
+  /**
+   * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
+   * a refresh of the cache.
+   */
+  record TeamRefreshers {
+    // Load at least up to the keygen. Returns an error if the keygen is not loaded.
+    PerTeamKeyGeneration needKeyGeneration;
+    // Load the reader key mask for the given applications and the given
+    // generations. Returns an error if any of the RKMs are not loaded.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
+    // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
+    // Does not guarantee these members will be present in the returned team. This is especially
+    // relevant in the case of deleted users, who won't be there after the refresh.
+    // Does not work on implicit admins.
+    // If the EldestSeqno of an item is zero, the latest EldestSeqno for that UID will be looked
+    // up and used. But the used EldestSeqno may come from a cache.
+    array<UserVersion> wantMembers;
+    // The minimum role each of wantMembers must have in order to avoid a refresh.
+    // The default value is WRITER. So if the role is NONE, it will act like WRITER.
+    TeamRole wantMembersRole;
+    // Express that we need KBFS crypt keys on the team at a certain generation
+    TeamKBFSKeyRefresher needKBFSKeyGeneration;
+  }
+
+  record LoadTeamArg {
+    // One of these must be specified.
+    // ID is preferred. Name will always hit the server for subteams.
+    // If both are specified ID will be used and Name will be checked.
+    @lint("ignore")
+    TeamID ID;
+    string name;
+
+    // Whether to load a public or private team.
+    boolean public;
+
+    // Whether we need to be an admin.
+    // Will fail unless we are an admin in the returned Team.
+    // If this is false, looking at invites or listing subteams in the response
+    // may not work even if the loading user is an admin.
+    boolean needAdmin;
+
+    // Whether we should refresh the UIDMapper with UID/Eldest pairs
+    // needed for display of the user's reset status. This flag is expensive,
+    // since it can incur a disk read per team member (via LevelDB cache).
+    // So only use it when you need to display all the team's members.
+    boolean refreshUIDMapper;
+
+    TeamRefreshers refreshers;
+
+    boolean forceFullReload;           // Ignore local data and fetch from the server.
+    boolean forceRepoll;               // Force a sync with merkle.
+    boolean staleOK;                   // If a very stale cache hit is OK.
+    boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
+  }
+
+  record FastTeamLoadArg {
+    @lint("ignore")
+    TeamID ID;
+    boolean public;
+
+    union { null, TeamName } assertTeamName;
+
+    // All (applications X keyGenerationsNeeded) should be loaded
+    array<TeamApplication> applications;
+    array<PerTeamKeyGeneration> keyGenerationsNeeded;
+
+    // Specify this flag if you need the latest generation, which will maybe
+    // trigger a poll of the team.
+    boolean needLatestKey;
+
+    // Specify this flag if you want to force past the time-based cache,
+    // currently set to one hour.
+    boolean forceRefresh;
+  }
+
+  record FastTeamLoadRes {
+    TeamName name;
+    array<TeamApplicationKey> applicationKeys;
+  }
+
+  record ImplicitRole {
+    TeamRole role;
+    TeamID ancestor;
+  }
+
+  record MemberInfo {
+    @jsonkey("uid")
+    UID userID;
+    @jsonkey("team_id")
+    TeamID teamID;
+    @jsonkey("fq_name")
+    string fqName;
+    @jsonkey("is_implicit_team")
+    boolean isImplicitTeam;
+    @jsonkey("is_open_team")
+    boolean isOpenTeam;
+    TeamRole role;
+    union{null, ImplicitRole} implicit;
+    @jsonkey("member_count")
+    int memberCount;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
+  }
+
+  record TeamList {
+    array<MemberInfo> teams;
+  }
+
+  record AnnotatedMemberInfo {
+    @jsonkey("uid")
+    UID userID;
+    @jsonkey("team_id")
+    TeamID teamID;
+    string username;
+    @jsonkey("full_name")
+    string fullName;
+    @jsonkey("fq_name")
+    string fqName;
+    @jsonkey("is_implicit_team")
+    boolean isImplicitTeam;
+    @jsonkey("is_open_team")
+    boolean isOpenTeam;
+    TeamRole role;
+    union{null, ImplicitRole} implicit;
+    @lint("ignore")
+    boolean needsPUK;
+    @jsonkey("member_count")
+    int memberCount;
+    @jsonkey("member_eldest_seqno")
+    Seqno eldestSeqno;
+    @jsonkey("allow_profile_promote")
+    boolean allowProfilePromote;
+    @jsonkey("is_member_showcased")
+    boolean isMemberShowcased;
+    TeamMemberStatus status;
+  }
+
+  record AnnotatedTeamList {
+      array<AnnotatedMemberInfo> teams;
+      map<TeamInviteID,AnnotatedTeamInvite> annotatedActiveInvites;
+  }
+
+  record TeamAddMemberResult {
+    boolean invited;
+    union{null, User} user;
+    boolean emailSent;
+    boolean chatSending;
+  }
+
+  record TeamJoinRequest {
+    string name;
+    string username;
+  }
+
+  record TeamTreeResult {
+    array<TeamTreeEntry> entries;
+  }
+
+  record TeamTreeEntry {
+    TeamName name;
+    boolean admin; // Whether the user is an admin, explicit or implicit.
+  }
+
+  record TeamCreateResult {
+    TeamID teamID;
+    boolean chatSent;
+    boolean creatorAdded;
+  }
+
+  record TeamSettings {
+    boolean open;
+    TeamRole joinAs;
+  }
+
+  record TeamRequestAccessResult {
+    boolean open;
+  }
+
+  record TeamAcceptOrRequestResult {
+    boolean wasToken;
+    boolean wasSeitan;
+    boolean wasTeamName;
+    // If trying to request access via TeamName, was the team open? It means
+    // that admin does not have to manually approve request.
+    boolean wasOpenTeam;
+  }
+
+  record TeamShowcase {
+    @jsonkey("is_showcased")
+    boolean isShowcased;
+    union { null, string } description;
+    @jsonkey("set_by_uid")
+    union { null, UID } setByUID;
+    @jsonkey("any_member_showcase")
+    boolean anyMemberShowcase;
+  }
+
+  record TeamAndMemberShowcase {
+    TeamShowcase teamShowcase;
+    boolean isMemberShowcased;
+  }
+
+  TeamCreateResult teamCreate(int sessionID, string name, boolean joinSubteam);
+
+  TeamCreateResult teamCreateWithSettings(int sessionID, string name, boolean joinSubteam, TeamSettings settings);
+
+  // A user can hope for success if and only if they are a member of
+  // the team or an admin of any of its ancestors.
+  TeamDetails teamGet(int sessionID, string name);
+
+  // List all the admins of ancestor teams.
+  // Includes admins of the specified team only if they are also admins of ancestor teams.
+  array<TeamMemberDetails> teamImplicitAdmins(int sessionID, string teamName);
+
+  // List known team memberships for given userAssertion or current
+  // user if userAssertion is not given. This RPC uses fast server-
+  // trust path and returned list is not checked.
+  AnnotatedTeamList teamListUnverified(int sessionID, string userAssertion, boolean includeImplicitTeams);
+
+  // List all team mates from all teams for current user. Results are
+  // checked - team members returned from the server are verified
+  // locally with team sigchains.
+  AnnotatedTeamList teamListTeammates(int sessionID, boolean includeImplicitTeams);
+
+  // List verified known team memberships for given userAssertion.
+  // This function is slower than teamListUnverified because it loads
+  // and checks every team membership.
+  AnnotatedTeamList teamListVerified(int sessionID, string userAssertion, boolean includeImplicitTeams);
+
+  // admin only
+  array<TeamIDAndName> teamListSubteamsRecursive(int sessionID, string parentTeamName, boolean forceRepoll);
+
+  void teamChangeMembership(int sessionID, string name, TeamChangeReq req);
+
+  TeamAddMemberResult teamAddMember(int sessionID, string name, string email, string username, TeamRole role, boolean sendChatNotification);
+
+  void teamAddMembers(int sessionID, string name, array<string> assertions, TeamRole role, boolean sendChatNotification);
+
+  void teamRemoveMember(int sessionID, string name, string username, string email, TeamInviteID inviteID);
+
+  void teamLeave(int sessionID, string name, boolean permanent);
+
+  void teamEditMember(int sessionID, string name, string username, TeamRole role);
+
+  void teamRename(int sessionID, TeamName prevName, TeamName newName);
+
+  void teamAcceptInvite(int sessionID, string token);
+
+  TeamRequestAccessResult teamRequestAccess(int sessionID, string name);
+
+  // Accept an invite or request to join a team, try both.
+  TeamAcceptOrRequestResult teamAcceptInviteOrRequestAccess(int sessionID, string tokenOrName);
+
+  array<TeamJoinRequest> teamListRequests(int sessionID, union { null, string } teamName);
+
+  // List TeamAccessRequests from current user. Optionally can provide
+  // a teamname, and API server will only return request for that team,
+  // if there is one.
+  array<TeamName> teamListMyAccessRequests(int sessionID, union{ null, string } teamName);
+
+  void teamIgnoreRequest(int sessionID, string name, string username);
+
+  // Get a list of all recursive subteams of this team's root team that are visible to the user.
+  // Sorted alphabetically like a tree.
+  // Example: "a" or "a.b" -> [a, a.b, a.b.c, a.b.d, a.e.f, a.e.g]
+  TeamTreeResult teamTree(int sessionID, TeamName name);
+
+  void teamDelete(int sessionID, string name);
+
+  void teamSetSettings(int sessionID, string name, TeamSettings settings);
+
+  SeitanIKey teamCreateSeitanToken(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+
+  SeitanIKeyV2 teamCreateSeitanTokenV2(int sessionID, string name, TeamRole role, SeitanKeyLabel label);
+
+  record BulkRes {
+    array<string> invited;
+    array<string> alreadyInvited;
+    array<string> malformed;
+  }
+
+  // emails is a list of email addresses separated by whitespace or commas.
+  // returns a list of emails that were not invited, most likely because of
+  // malformed email addresses.
+  BulkRes teamAddEmailsBulk(int sessionID, string name, string emails, TeamRole role);
+
+  record ImplicitTeamUserSet {
+    array<string> keybaseUsers;
+    array<SocialAssertion> unresolvedUsers;
+  }
+
+  /**
+   * iTeams
+  */
+  record ImplicitTeamDisplayName {
+    boolean isPublic;
+    ImplicitTeamUserSet writers;
+    ImplicitTeamUserSet readers;
+    union { null, ImplicitTeamConflictInfo } conflictInfo;
+  }
+
+  @typedef("int")
+  record ConflictGeneration {}
+
+  record ImplicitTeamConflictInfo {
+    ConflictGeneration generation;
+    Time time;
+  }
+
+  record LookupImplicitTeamRes {
+    TeamID teamID;
+    TeamName name;
+    ImplicitTeamDisplayName displayName;
+    TLFID tlfID;
+  }
+
+  LookupImplicitTeamRes lookupImplicitTeam(string name, boolean public);
+  LookupImplicitTeamRes lookupOrCreateImplicitTeam(string name, boolean public);
+
+  void teamReAddMemberAfterReset(int sessionID, TeamID id, string username);
+
+  /**
+   * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
+   * If refreshers are non-empty, then force a refresh of the cache if the requirements
+   * of the refreshers aren't met.
+   */
+  TeamPlusApplicationKeys loadTeamPlusApplicationKeys(int sessionID, TeamID id, TeamApplication application, TeamRefreshers refreshers);
+  TeamID getTeamRootID(TeamID id);
+
+  TeamShowcase getTeamShowcase(string name);
+  TeamAndMemberShowcase getTeamAndMemberShowcase(string name);
+  void setTeamShowcase(string name, union { null, boolean } isShowcased, union { null, string } description, union { null, boolean } anyMemberShowcase);
+  void setTeamMemberShowcase(string name, boolean isShowcased);
+
+  record TeamOperation {
+    boolean manageMembers;
+    boolean manageSubteams;
+    boolean createChannel;
+    boolean chat;
+    boolean deleteChannel;
+    boolean renameChannel;
+    boolean editChannelDescription;
+    boolean setTeamShowcase;
+    boolean setMemberShowcase;
+    boolean setRetentionPolicy;
+    boolean setMinWriterRole;
+    boolean changeOpenTeam;
+    boolean leaveTeam;
+    boolean joinTeam;
+    boolean setPublicityAny;
+    boolean listFirst;
+    boolean changeTarsDisabled;
+    boolean deleteChatHistory;
+  }
+
+  record ProfileTeamLoadRes {
+    long loadTimeNsec;
+  }
+
+  TeamOperation canUserPerform(string name);
+
+  void teamRotateKey(TeamID teamID);
+
+  TeamDebugRes teamDebug(TeamID teamID);
+  record TeamDebugRes {
+    TeamSigChainState chain;
+  }
+
+  boolean getTarsDisabled(string name);
+  void setTarsDisabled(string name, boolean disabled);
+
+  void uploadTeamAvatar(string teamname, string filename, union { null, ImageCropRect } crop, boolean sendChatNotification);
+
+  bytes tryDecryptWithTeamKey(TeamID teamID, bytes encryptedData, BoxNonce nonce,
+    BoxPublicKey peersPublicKey, PerTeamKeyGeneration minGeneration);
+
+  /**
+   FindNextMerkleRootAfterTeamRemoval finds the first Merkle root that contains the user being
+   removed from the team at that given seqno in the team's chain. You should pass in a previous
+   Merkle root as a starting point for the binary search.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemoval(UID uid, TeamID team, boolean isPublic, Seqno teamSigchainSeqno, MerkleRootV2 prev);
+
+  /**
+   FindNextMerkleRootAfterTeamRemovalBySigningKey find the first Merkle root that contains the user
+   with the given signing key being removed from the given team. If there are several such instances,
+   we will return just the last one. When anyRoleAllowed is false, the team removal is any drop in
+   permissions from Writer (or above) to Reader (or below).
+   */
+  NextMerkleRootRes findNextMerkleRootAfterTeamRemovalBySigningKey(UID uid, KID signingKey, TeamID team, boolean isPublic, boolean anyRoleAllowed);
+
+  /**
+   ProfileTeamLoad loads a team and then throws it on the ground, for the purposes of profiling
+   the team load machinery.
+   */
+  ProfileTeamLoadRes profileTeamLoad(LoadTeamArg arg);
+
+  /**
+   Gets a TeamID from a team name string. Returns an error if the
+   current user can't read the team.
+   */
+  TeamID getTeamID(string teamName);
+
+  FastTeamLoadRes ftl(FastTeamLoadArg arg);
+}

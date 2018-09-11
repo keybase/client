@@ -10,6 +10,12 @@
     },
     {
       "type": "record",
+      "name": "UnixTime",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
       "name": "DurationSec",
       "fields": [],
       "typedef": "double"
@@ -73,6 +79,12 @@
     },
     {
       "type": "record",
+      "name": "LeaseID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "KID",
       "fields": [],
       "typedef": "string"
@@ -94,6 +106,131 @@
       "name": "TLFID",
       "fields": [],
       "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "GitRepoName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "HashMeta",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "UserVersion",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TeamType",
+      "symbols": [
+        "NONE_0",
+        "LEGACY_1",
+        "MODERN_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "CompatibilityTeamID",
+      "switch": {
+        "type": "TeamType",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "LEGACY",
+            "def": false
+          },
+          "body": "TLFID"
+        },
+        {
+          "label": {
+            "name": "MODERN",
+            "def": false
+          },
+          "body": "TeamID"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TLFVisibility",
+      "symbols": [
+        "ANY_0",
+        "PUBLIC_1",
+        "PRIVATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamIDWithVisibility",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TLFVisibility",
+          "name": "visibility"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamIDAndName",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "TeamName",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Seqno",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "SeqType",
+      "symbols": [
+        "NONE_0",
+        "PUBLIC_1",
+        "PRIVATE_2",
+        "SEMIPRIVATE_3"
+      ]
     },
     {
       "type": "fixed",
@@ -185,6 +322,10 @@
         {
           "type": "Time",
           "name": "eTime"
+        },
+        {
+          "type": "boolean",
+          "name": "isRevoked"
         }
       ]
     },
@@ -197,7 +338,7 @@
           "name": "unix"
         },
         {
-          "type": "int",
+          "type": "Seqno",
           "name": "chain"
         }
       ]
@@ -314,8 +455,9 @@
       "symbols": [
         "NONE_0",
         "CLI_1",
-        "GUI_2",
-        "KBFS_3"
+        "GUI_MAIN_2",
+        "KBFS_3",
+        "GUI_HELPER_4"
       ],
       "go": "nostring"
     },
@@ -338,12 +480,42 @@
         {
           "type": "Time",
           "name": "cachedAt"
-        },
-        {
-          "type": "Time",
-          "name": "lastIdentifiedAt"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PerUserKeyGeneration",
+      "fields": [],
+      "typedef": "int",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "PerUserKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "gen"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "KID",
+          "name": "sigKID"
+        },
+        {
+          "type": "KID",
+          "name": "encKID"
+        },
+        {
+          "type": "KID",
+          "name": "signedByKID"
+        }
+      ],
+      "lint": "ignore"
     },
     {
       "type": "record",
@@ -356,6 +528,14 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
         },
         {
           "type": {
@@ -385,7 +565,44 @@
             "items": "PublicKey"
           },
           "name": "deletedDeviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerUserKey"
+          },
+          "name": "perUserKeys",
+          "lint": "ignore"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ResetSummary"
+          },
+          "name": "resets"
         }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserOrTeamLite",
+      "fields": [
+        {
+          "type": "UserOrTeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UserOrTeamResult",
+      "symbols": [
+        "USER_1",
+        "TEAM_2"
       ]
     },
     {
@@ -436,7 +653,8 @@
       "symbols": [
         "MASTER_0",
         "KBFS_PUBLIC_1",
-        "KBFS_PRIVATE_2"
+        "KBFS_PRIVATE_2",
+        "KBFS_PRIVATETEAM_3"
       ],
       "go": "nostring"
     },
@@ -476,6 +694,69 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "record",
+      "name": "FullName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "FullNamePackageVersion",
+      "symbols": [
+        "V0_0",
+        "V1_1",
+        "V2_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FullNamePackage",
+      "fields": [
+        {
+          "type": "FullNamePackageVersion",
+          "name": "version"
+        },
+        {
+          "type": "FullName",
+          "name": "fullName"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ImageCropRect",
+      "fields": [
+        {
+          "type": "int",
+          "name": "x0"
+        },
+        {
+          "type": "int",
+          "name": "y0"
+        },
+        {
+          "type": "int",
+          "name": "x1"
+        },
+        {
+          "type": "int",
+          "name": "y1"
+        }
+      ]
     }
   ],
   "messages": {},

@@ -1,0 +1,44 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/provision'",
+    "import HiddenString from '../util/hidden-string'",
+    "import {RPCError} from '../util/errors'"
+  ],
+  "actions": {
+    "startProvision": {},
+    "provisionError": { "error": "?HiddenString" },
+    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
+    "submitPassphrase": { "passphrase": "HiddenString", },
+    "submitPaperkey": { "paperkey": "HiddenString", },
+    "submitTextCode": { "phrase": "HiddenString" },
+    "submitDeviceSelect": { "name": "string" },
+    "submitDeviceName": { "name": "string" },
+    "submitGPGMethod": { "exportKey": "boolean" },
+    "switchToGPGSignOnly": { "importError": "string" },
+    "submitGPGSignOK": { "accepted": "boolean" },
+    "showDeviceListPage": {
+      "_description": "Show the list of devices the user can use to provision a device",
+      "devices": "Array<Types.Device>"
+    },
+    "showNewDeviceNamePage": {
+      "_description": "Ask the user for a new device name",
+      "existingDevices": "Array<string>",
+      "error": "?HiddenString"
+    },
+    "showCodePage": {
+      "code": "HiddenString",
+      "error": "?HiddenString"
+    },
+    "showFinalErrorPage": {
+      "finalError": "RPCError"
+    },
+    "showGPGPage": {},
+    "showPassphrasePage": {
+      "error": "?HiddenString"
+    },
+    "showPaperkeyPage": {
+      "error": "?HiddenString"
+    },
+    "addNewDevice": { "otherDeviceType": ["'desktop'", "'mobile'"] },
+  }
+}

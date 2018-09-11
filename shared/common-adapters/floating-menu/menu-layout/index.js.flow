@@ -1,0 +1,24 @@
+// @flow
+import * as React from 'react'
+
+export type MenuItem = {|
+  danger?: boolean,
+  disabled?: boolean,
+  onClick?: ?(evt?: SyntheticEvent<>) => void,
+  onPress?: void,
+  style?: Object,
+  subTitle?: string, // subTitle is not used on native
+  title: string, // Only used as ID if view is provided for Header
+  view?: React.Node, // Required for header
+|}
+
+export type MenuLayoutProps = {
+  items: Array<MenuItem | 'Divider' | null>,
+  header?: ?MenuItem,
+  onHidden: () => void,
+  closeOnClick?: boolean,
+  style?: Object,
+  hoverColor?: string,
+}
+
+export default class MenuLayout extends React.Component<MenuLayoutProps> {}

@@ -11,7 +11,8 @@ import (
 // PGPKeyGen is an engine.
 type PGPKeyGen struct {
 	libkb.Contextified
-	arg keybase1.PGPKeyGenDefaultArg
+	arg    keybase1.PGPKeyGenDefaultArg
+	genArg *libkb.PGPGenArg
 }
 
 // NewPGPKeyGen creates a PGPKeyGen engine.
@@ -50,22 +51,26 @@ func (e *PGPKeyGen) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *PGPKeyGen) Run(ctx *Context) error {
+func (e *PGPKeyGen) Run(m libkb.MetaContext) error {
 
 	// generate a new pgp key with defaults (and no push)
+	var genArg libkb.PGPGenArg
+	if e.genArg != nil {
+		genArg = *e.genArg
+	}
+	genArg.Ids = libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)
 	arg := PGPKeyImportEngineArg{
-		Ctx:        e.G(),
 		AllowMulti: true,
 		OnlySave:   true,
-		Gen:        &libkb.PGPGenArg{Ids: libkb.ImportPGPIdentities(e.arg.CreateUids.Ids)},
+		Gen:        &genArg,
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewPGPKeyImportEngine(m.G(), arg)
+	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
 
 	// tell the UI about the key
-	e.G().Log.Debug("generated pgp key: %s", eng.bundle.GetFingerprint())
+	m.CDebugf("generated pgp key: %s", eng.bundle.GetFingerprint())
 	pub, err := eng.bundle.Encode()
 	if err != nil {
 		return err
@@ -78,34 +83,34 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 			Desc:        eng.bundle.VerboseDescription(),
 		},
 	}
-	if err := ctx.PgpUI.KeyGenerated(ctx.NetContext, keyArg); err != nil {
+	if err := m.UIs().PgpUI.KeyGenerated(m.Ctx(), keyArg); err != nil {
 		return err
 	}
 
 	// ask if we should push private key to api server
-	pushPrivate, err := ctx.PgpUI.ShouldPushPrivate(ctx.NetContext, ctx.SessionID)
+	pushPrivate, err := m.UIs().PgpUI.ShouldPushPrivate(m.Ctx(), m.UIs().SessionID)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("push private generated pgp key to API server? %v", pushPrivate)
-	if err := e.push(ctx, eng.bundle, pushPrivate); err != nil {
+	m.CDebugf("push private generated pgp key to API server? %v", pushPrivate)
+	if err := e.push(m, eng.bundle, pushPrivate); err != nil {
 		return err
 	}
 
 	// tell ui everything finished
-	return ctx.PgpUI.Finished(ctx.NetContext, ctx.SessionID)
+	return m.UIs().PgpUI.Finished(m.Ctx(), m.UIs().SessionID)
 }
 
-func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
-	e.G().Trace("PGPKeyGen.push", func() error { return err })()
+func (e *PGPKeyGen) push(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
+	defer m.CTrace("PGPKeyGen.push", func() error { return err })()
 
-	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
+	tsec, gen, err := libkb.GetTriplesecMaybePrompt(m)
 	if err != nil {
 		return err
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	if err != nil {
 		return err
 	}
@@ -114,15 +119,15 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate b
 		Me:             me,
 		Expire:         libkb.KeyExpireIn,
 		DelegationType: libkb.DelegationTypeSibkey,
-		Contextified:   libkb.NewContextified(e.G()),
+		Contextified:   libkb.NewContextified(m.G()),
 	}
-	if err := del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI); err != nil {
+	if err := del.LoadSigningKey(m, m.UIs().SecretUI); err != nil {
 		return err
 	}
 	del.NewKey = bundle
 
 	if pushPrivate {
-		skb, err := bundle.ToServerSKB(e.G(), tsec, gen)
+		skb, err := bundle.ToServerSKB(m.G(), tsec, gen)
 		if err != nil {
 			return err
 		}
@@ -134,9 +139,5 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate b
 		del.EncodedPrivateKey = armored
 	}
 
-	if err := del.Run(ctx.LoginContext); err != nil {
-		return err
-	}
-
-	return nil
+	return del.Run(m)
 }

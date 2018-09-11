@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  style: Object,
-  hasMoreItems: boolean,
-}
-
-export default class MessageLoadingMore extends Component<void, Props, void> { }

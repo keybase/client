@@ -6,25 +6,10 @@ protocol identify {
 
 
   /**
-    Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
-    an error.
+    Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
    */
   @lint("ignore")
-  UID Resolve(string assertion);
-
-  /**
-    Resolve an assertion to a (UID,username). On failure, returns an error.
-   */
-  @lint("ignore")
-  User Resolve2(string assertion);
-
-  /**
-    DEPRECATED:  use identify2
-
-    Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
-    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
-    */
-  IdentifyRes identify(int sessionID, string userAssertion, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason, ClientType source);
+  UserOrTeamLite Resolve3(string assertion);
 
   record IdentifyProofBreak {
     RemoteProof remoteProof;
@@ -38,13 +23,90 @@ protocol identify {
 
   record Identify2Res {
     UserPlusKeys upk;
+    Time identifiedAt;
+    union { null, IdentifyTrackBreaks } trackBreaks;
+  }
+
+  // Identify2ResUPK2 is used internally, but we return Identify2Res for
+  // the purposes of KBFS.
+  @lint("ignore")
+  record Identify2ResUPK2 {
+    UserPlusKeysV2AllIncarnations upk;
+    Time identifiedAt;
     union { null, IdentifyTrackBreaks } trackBreaks;
   }
 
   /*
    * Note that UID can be empty, in which case a resolution is also forced.
    */
-  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, boolean canSuppressUI=false, boolean chatGUIMode=false, boolean forceDisplay=false);
+  Identify2Res identify2(
+    int sessionID,
+    UID uid,
+    string userAssertion,
+    IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false,
+    boolean actLoggedOut=false
+  );
+  record IdentifyLiteRes {
+    UserOrTeamLite ul;
+    union { null, IdentifyTrackBreaks } trackBreaks;
+  }
 
+  /*
+   * Note that UID can be empty, in which case a resolution is also forced.
+   */
+  IdentifyLiteRes identifyLite(
+    int sessionID,
+    UserOrTeamID id,
+    string assertion, IdentifyReason reason,
+    boolean useDelegateUI=false,
+    boolean alwaysBlock=false,
+    boolean noErrorOnTrackFailure=false,
+    boolean forceRemoteCheck=false,
+    boolean needProofSet=false,
+    boolean allowEmptySelfID=false,
+    boolean noSkipSelf=true,
+    boolean canSuppressUI=false,
+    TLFIdentifyBehavior identifyBehavior=0,
+    boolean forceDisplay=false
+  );
 
+  /*
+   * Resolve a set of assertions to an implicit team, optionally creating the team and identifying the members.
+   * When doIdentifies is not set, social assertion resolutions are server trust.
+   */
+  ResolveIdentifyImplicitTeamRes resolveIdentifyImplicitTeam(
+    int sessionID,
+    string assertions,
+    string suffix,
+    boolean isPublic,
+    boolean doIdentifies,  // Whether core runs identifies on all the people or assertions
+    boolean create,        // Whether to create the team if none exists
+    IdentifyReason reason, // Displayed in the header of the tracker popup
+    TLFIdentifyBehavior identifyBehavior
+  );
+  record ResolveIdentifyImplicitTeamRes {
+    // Display name possibly updated by resolutions and conflicts.
+    // With the logged-in user first (so not a canonical CORE display name).
+    string displayName; // example: "alice,bob,zed#bot (conflicted copy 2017-05-08 #3)"
+    TeamID teamID;
+    array<UserVersion> writers; // Members of the team that can write. The team OWNERs.
+    map<UserVersion,IdentifyTrackBreaks> trackBreaks;
+    TLFID folderID; // i-team TLF ID, if there is one
+  }
+
+  /**
+   resolveImplicitTeam returns a TLF display name given a teamID. The publicness
+   of the team is inferred from the TeamID.
+   */
+  Folder resolveImplicitTeam(int sessionID, TeamID id);
 }

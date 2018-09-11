@@ -104,7 +104,7 @@ func (s *CmdPGPSign) ParseArgv(ctx *cli.Context) error {
 
 	s.opts.KeyQuery = ctx.String("key")
 
-	return s.FilterInit(msg, infile, outfile)
+	return s.FilterInit(s.G(), msg, infile, outfile)
 }
 
 func (s *CmdPGPSign) Run() (err error) {

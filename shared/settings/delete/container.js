@@ -1,16 +1,11 @@
 // @flow
-import {TypedConnector} from '../../util/typed-connect'
 import {navigateAppend} from '../../actions/route-tree'
 import Delete from './index'
+import {connect} from '../../util/container'
 
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
-import type {Props} from './index'
+const mapStateToProps = () => ({})
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onDelete: () => dispatch(navigateAppend(['deleteConfirm'])),
+})
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
-
-export default connector.connect(
-  (state, dispatch, ownProps) => ({
-    onDelete: () => { dispatch(navigateAppend(['deleteConfirm'])) },
-  })
-)(Delete)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Delete)

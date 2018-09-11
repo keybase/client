@@ -57,6 +57,7 @@ protocol config {
     boolean paperEncKeyCached;
     boolean storedSecret;
     boolean secretPromptSkip;
+    boolean rememberPassphrase;
     union { null, Device } device;
     union { null, LoadDeviceErr } deviceErr; /* if err getting device, this will describe it */
     string logDir;
@@ -65,6 +66,7 @@ protocol config {
     array<string> provisionedUsernames;
     @lint("ignore")
     array<ClientDetails> Clients;
+    array<string> deviceEkNames;
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
                                                in the config file. */
@@ -72,11 +74,21 @@ protocol config {
 
   ExtendedStatus getExtendedStatus(int sessionID);
 
+
+  record AllProvisionedUsernames {
+    string defaultUsername;
+    array<string> provisionedUsernames;
+    boolean hasProvisionedUser;
+  }
+
+  AllProvisionedUsernames getAllProvisionedUsernames(int sessionID);
+
   enum ForkType {
     NONE_0,
     AUTO_1,
     WATCHDOG_2,
-    LAUNCHD_3
+    LAUNCHD_3,
+    SYSTEMD_4
   }
 
   record Config {
@@ -88,6 +100,7 @@ protocol config {
     string gpgPath;
     string version;
     string path;
+    string binaryRealpath;
     string configPath;
     string versionShort;
     string versionFull;
@@ -95,7 +108,7 @@ protocol config {
     ForkType forkType;
   }
 
-  // A poor man's union, since we only currently supprt union { null, T }
+  // A poor man's union, since we only currently support union { null, T }
   record ConfigValue {
     boolean isNull;
     union { null, boolean } b;
@@ -138,4 +151,19 @@ protocol config {
     Wait for client type to connect to service.
     */
   boolean waitForClient(ClientType clientType, DurationSec timeout);
+
+  record BootstrapStatus {
+    boolean registered;     // true if signed up at some point
+    boolean loggedIn;     // true if currently logged in
+    UID uid;        // current logged in user's UID
+    string username;      // current logged in user's username
+    DeviceID deviceID;      // current logged in user's device ID
+    string deviceName;      // current logged in user's device name
+    array<string> following;    // who current logged in user is following
+    array<string> followers;    // who follows current logged in user
+  }
+  BootstrapStatus getBootstrapStatus(int sessionID);
+
+  boolean getRememberPassphrase(int sessionID);
+  void setRememberPassphrase(int sessionID, boolean remember);
 }

@@ -36,7 +36,7 @@ Available npm run commands:
 Environment variables:
 
  - `HOME`: Home dir to use, useful for multiple installs
- - `KEYBASE_RUN_MODE`: production, staging, devel
+ - `KEYBASE_RUN_MODE`: prod, staging, devel
  - `KEYBASE_LOCAL_DEBUG` (bool): Debug
  - `KEYBASE_SHOW_DEVTOOLS` (bool): Show devtools
  - `KEYBASE_FEATURES`: Feature flags
@@ -62,3 +62,10 @@ If you have a crash of a non-sourcemapped build (like a screenshot with a crash)
 npm install -g sourcemap-finder
 smfinder --position 1200:10 path-to-your-source-map
 ```
+### HMR (hot module replacement)
+
+[HMR](https://webpack.js.org/concepts/hot-module-replacement/) will be enabled if you use the `yarn hot-server`/`yarn start-hot` combo to run the GUI. HMR works by looking at what file was updated, and traversing the module dependency tree back to the root (in `./renderer/index.js`). 
+
+Along the way, webpack looks at the current `module` it is at and that module's `parent`. If the `parent` has declared that it can accept the changes in `module`, HMR will stop traversing and call a callback defined in `parent`. If any of the dependency branches makes it down to the root, HMR will fail and trigger a full reload. It'll also throw an exception listing the dependency path that was followed.
+
+This project is set up to allow HMR for changes in the view layer, and trigger full reloads otherwise (these boundaries are fuzzy as they depend on the app's dep tree as described). The view layer's dependency tree funnels down through the routing modules in `/shared/app/routes-*.js`. These files are imported by `./renderer/index.js`, which has a `module.hot.accept` call that accepts the changes and re-renders the new version of the app. *If anything else in the app imports the route files without `accept`ing them, HMR will break.* To fix it, either find a way to avoid importing the route files (preferable), or add a `module.hot.accept` call in the offending file (see `/shared/app/actions/login.js`). 

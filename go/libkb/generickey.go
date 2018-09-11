@@ -45,7 +45,7 @@ type GenericKey interface {
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
 	// Derive a secret key from a DH secret key
-	SecretSymmetricKey(reason EncryptionReason) ([]byte, error)
+	SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error)
 
 	VerboseDescription() string
 	CheckSecretKey() error
@@ -71,21 +71,13 @@ func CanEncrypt(key GenericKey) bool {
 	}
 }
 
-func skbPushAndSave(g *GlobalContext, skb *SKB, lctx LoginContext) error {
-	if lctx != nil {
-		kr, err := lctx.Keyring()
-		if err != nil {
-			return err
-		}
-		return kr.PushAndSave(skb)
+func skbPushAndSave(m MetaContext, skb *SKB) (err error) {
+	defer m.CTrace("skbPushAndSave", func() error { return err })()
+	ring, err := m.Keyring()
+	if err != nil {
+		return err
 	}
-	var err error
-	kerr := g.LoginState().Keyring(func(ring *SKBKeyringFile) {
-		err = ring.PushAndSave(skb)
-	}, "PushAndSave")
-	if kerr != nil {
-		return kerr
-	}
+	err = ring.PushAndSave(skb)
 	if err != nil {
 		return err
 	}
@@ -108,7 +100,7 @@ func IsPGP(key GenericKey) bool {
 func ParseGenericKey(bundle string) (GenericKey, *Warnings, error) {
 	if isPGPBundle(bundle) {
 		// PGP key
-		return ReadOneKeyFromString(bundle)
+		return ReadOneKeyFromStringLiberal(bundle)
 	}
 	// NaCl key
 	key, err := ImportKeypairFromKID(keybase1.KIDFromString(bundle))

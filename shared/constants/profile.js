@@ -1,113 +1,200 @@
 // @flow
-import type {PlatformsExpandedType} from './types/more'
-import type {ProofStatus, SigID, KID} from './types/flow-types'
-import type {TypedAction, NoErrorTypedAction} from './types/flux'
+import type {State} from './types/profile'
+import * as I from 'immutable'
+import {type TypedState} from '../util/container'
+import {peopleTab} from '../constants/tabs'
+import {serviceIdToService} from './search'
+import {parseUserId} from '../util/platforms'
+import {searchResultSelector} from './selectors'
 
-export const addProof = 'profile:addProof'
-export const backToProfile = 'profile:backToProfile'
-export const cancelAddProof = 'profile:cancelAddProof'
-export const cancelPgpGen = 'profile:cancelPgpGen'
-export const checkProof = 'profile:checkProof'
-export const cleanupUsername = 'profile:cleanupUsername'
-export const dropPgp = 'profile:dropPgp'
-export const editProfile = 'profile:editProfile'
-export const finishRevokeProof = 'profile:revoke:finish'
-export const finishRevoking = 'profile:finishRevoking'
-export const finishedWithKeyGen = 'profile:FinishedWithKeyGen'
-export const generatePgp = 'profile:generatePgp'
-export const maxProfileBioChars = 256
-export const onClickAvatar = 'profile:onClickAvatar'
-export const onClickFollowers = 'profile:onClickFollowers'
-export const onClickFollowing = 'profile:onClickFollowing'
-export const onUserClick = 'profile:onUserClick'
-export const outputInstructionsActionLink = 'profile:outputInstructionsActionLink'
-export const submitBTCAddress = 'profile:submitBTCAddress'
-export const submitZcashAddress = 'profile:submitZcashAddress'
-export const submitRevokeProof = 'profile:submitRevokeProof'
-export const submitUsername = 'profile:submitUsername'
-export const updateErrorText = 'profile:updateErrorText'
-export const updatePgpInfo = 'profile:updatePgpInfo'
-export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
-export const updatePlatform = 'profile:updatePlatform'
-export const updateProofStatus = 'profile:updateProofStatus'
-export const updateProofText = 'profile:updateProofText'
-export const updateSigID = 'profile:updateSigID'
-export const updateUsername = 'profile:updateUsername'
-export const waiting = 'profile:waiting'
-export const waitingRevokeProof = 'profile:revoke:waiting'
-export type AddProof = NoErrorTypedAction<'profile:addProof', {platform: PlatformsExpandedType}>
-export type BackToProfile = NoErrorTypedAction<'profile:backToProfile', void>
-export type CancelAddProof = NoErrorTypedAction<'profile:cancelAddProof', void>
-export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
-export type CheckProof = NoErrorTypedAction<'profile:checkProof', void>
-export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
-export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>
-export type EditProfile = NoErrorTypedAction<'profile:editProfile', {bio: string, fullname: string, location: string}>
-export type FinishRevokeProof = TypedAction<'profile:revoke:finish', void, {error: string}>
-export type FinishRevoking = NoErrorTypedAction<'profile:finishRevoking', void>
-export type FinishedWithKeyGen = NoErrorTypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}>
-export type GeneratePgp = TypedAction<'profile:generatePgp', void, void>
-export type OnClickAvatar = NoErrorTypedAction<'profile:onClickAvatar', {username: ?string, uid: string, openWebsite: ?boolean}>
-export type OnClickFollowers = NoErrorTypedAction<'profile:onClickFollowers', {username: ?string, uid: string, openWebsite: ?boolean}>
-export type OnClickFollowing = NoErrorTypedAction<'profile:onClickFollowing', {username: ?string, uid: string, openWebsite: ?boolean}>
-export type OnUserClick = NoErrorTypedAction<'profile:onUserClick', {username: string, uid: string}>
-export type OutputInstructionsActionLink = NoErrorTypedAction<'profile:outputInstructionsActionLink', void>
-export type SubmitZcashAddress = NoErrorTypedAction<'profile:submitZcashAddress', void>
-export type SubmitBTCAddress = NoErrorTypedAction<'profile:submitBTCAddress', void>
-export type SubmitRevokeProof = NoErrorTypedAction<'profile:submitRevokeProof', {proofId: string}>
-export type SubmitUsername = NoErrorTypedAction<'profile:submitUsername', void>
-export type UpdateErrorText = TypedAction<'profile:updateErrorText', {errorText: ?string, errorCode: ?number}, void>
-export type UpdatePgpInfo = TypedAction<'profile:updatePgpInfo', $Shape<PgpInfo>, PgpInfoError> // $Shape is meant here instead of exact, because you can supply only the parts you want to update
-export type UpdatePgpPublicKey = TypedAction<'profile:updatePgpPublicKey', {publicKey: string}, {}>
-export type UpdatePlatform = TypedAction<'profile:updatePlatform', {platform: PlatformsExpandedType}, void>
-export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
-export type UpdateProofText = TypedAction<'profile:updateProofText', {proof: string}, void>
-export type UpdateSigID = TypedAction<'profile:updateSigID', {sigID: ?SigID}, void>
-export type UpdateUsername = TypedAction<'profile:updateUsername', {username: string}, void>
-export type Waiting = TypedAction<'profile:waiting', {waiting: boolean}, void>
-export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
-
-export type Actions = CleanupUsername
-  | FinishRevokeProof
-  | UpdateErrorText
-  | UpdatePlatform
-  | UpdateProofStatus
-  | UpdateProofText
-  | UpdateSigID
-  | UpdateUsername
-  | Waiting
-  | WaitingRevokeProof
-
-export type PgpInfo = {
-  email1: ?string,
-  email2: ?string,
-  email3: ?string,
-  errorText: ?string,
-  fullName: ?string,
-}
-
-export type PgpInfoError = {
-  errorText: ?string,
-  errorEmail1: boolean,
-  errorEmail2: boolean,
-  errorEmail3: boolean,
-}
-
-export type State = {
-  errorCode: ?number,
-  errorText: ?string,
-  pgpInfo: PgpInfo & PgpInfoError,
-  pgpPublicKey: ?string,
-  platform: ?PlatformsExpandedType,
-  proofFound: boolean,
-  proofStatus: ?ProofStatus,
-  proofText: ?string,
-  revoke: {
-    error?: string,
-    waiting?: boolean,
+const initialState: State = {
+  errorCode: null,
+  errorText: null,
+  pgpInfo: {
+    email1: null,
+    email2: null,
+    email3: null,
+    errorEmail1: false,
+    errorEmail2: false,
+    errorEmail3: false,
+    errorText: null,
+    fullName: null,
   },
-  sigID: ?SigID,
-  username: string,
-  usernameValid: boolean,
-  waiting: boolean,
+  pgpPublicKey: null,
+  platform: null,
+  proofFound: false,
+  proofStatus: null,
+  proofText: null,
+  revoke: {
+    error: null,
+    waiting: null,
+  },
+  sigID: null,
+  username: '',
+  usernameValid: true,
+  waiting: false,
+  searchResults: null,
+  searchShowingSuggestions: false,
 }
+
+export const maxProfileBioChars = 256
+export const AVATAR_SIZE = 128
+export const BACK_ZINDEX = 12
+export const SEARCH_CONTAINER_ZINDEX = BACK_ZINDEX + 1
+export const ADD_TO_TEAM_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+export const ROLE_PICKER_ZINDEX = ADD_TO_TEAM_ZINDEX + 1
+export const EDIT_AVATAR_ZINDEX = SEARCH_CONTAINER_ZINDEX + 1
+
+// A simple check, the server does a fuller check
+function checkBTC(address: string): boolean {
+  return !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}
+
+// A simple check, the server does a fuller check
+function checkZcash(address: string): boolean {
+  return true // !!address.match(/^[13][a-km-zA-HJ-NP-Z1-9]{25,34}$/)
+}
+
+function checkUsernameValid(platform: ?string, username: string): boolean {
+  if (platform === 'btc') {
+    return checkBTC(username)
+  } else if (platform === 'zcash') {
+    return checkZcash(username)
+  } else {
+    return true
+  }
+}
+
+function cleanupUsername(platform: ?string, username: string): string {
+  if (['http', 'https'].includes(platform)) {
+    // Ensure that only the hostname is getting returned, with no
+    // protocol, port, or path information
+    return (
+      username &&
+      username
+        .replace(/^.*?:\/\//, '') // Remove protocol information (if present)
+        .replace(/:.*/, '') // Remove port information (if present)
+        .replace(/\/.*/, '')
+    ) // Remove path information (if present)
+  }
+  return username
+}
+
+function urlToUsername(url: {
+  protocol: string,
+  username: string,
+  password: string,
+  hostname: string,
+  port: string,
+  pathname: string,
+}): ?string {
+  const protocol = url.protocol
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    return null
+  }
+
+  if (url.username || url.password) {
+    return null
+  }
+
+  const hostname = url.hostname
+  if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') {
+    return null
+  }
+
+  const port = url.port
+  if (port) {
+    if (protocol === 'http:' && port !== '80') {
+      return null
+    }
+
+    if (protocol === 'https:' && port !== '443') {
+      return null
+    }
+  }
+
+  const pathname = url.pathname
+  // Adapted username regexp (see libkb/checkers.go) with a leading / and an
+  // optional trailing /.
+  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
+  if (!match) {
+    return null
+  }
+
+  const usernameMatch = match[1]
+  if (usernameMatch.length < 2 || usernameMatch.length > 16) {
+    return null
+  }
+
+  // Ignore query string and hash parameters.
+
+  const username = usernameMatch.toLowerCase()
+  return username
+}
+
+const getProfilePath = (
+  peopleRouteProps: I.List<{node: ?string, props: I.Map<string, any>}>,
+  username: string,
+  me: string,
+  state: TypedState
+) => {
+  const onlyProfilesProps = peopleRouteProps.filter(segment =>
+    [peopleTab, 'profile', 'nonUserProfile'].includes(segment.node)
+  )
+  const onlyProfilesPath = onlyProfilesProps.toArray().map(segment => ({
+    selected: segment.node || null,
+    props: segment.props.toObject(),
+  }))
+  // Assume user exists
+  if (!username.includes('@')) {
+    if (onlyProfilesProps.size <= 1) {
+      // There's nothing on the peopleTab stack
+      return [peopleTab, {selected: 'profile', props: {username}}]
+    }
+    // check last entry in path
+    const topProfile = onlyProfilesProps.get(onlyProfilesProps.size - 1)
+    if (!topProfile) {
+      // Will never happen
+      throw new Error('topProps undefined in _showUserProfile!')
+    }
+    if (topProfile.node === 'profile' && topProfile.props.get('username') === username) {
+      // This user is already the top profile
+      return onlyProfilesPath
+    }
+    // Push the user onto the stack
+    return [...onlyProfilesPath, {selected: 'profile', props: {username}}]
+  }
+
+  // search for user first
+  let props = {}
+  const searchResult = searchResultSelector(state, username)
+  if (searchResult) {
+    props = {
+      fullname: searchResult.leftFullname,
+      fullUsername: username,
+      serviceName: searchResult.leftService,
+      username: searchResult.leftUsername,
+    }
+  } else {
+    const {username: parsedUsername, serviceId} = parseUserId(username)
+    props = {
+      fullUsername: username,
+      serviceName: serviceIdToService(serviceId),
+      username: parsedUsername,
+    }
+  }
+  if (onlyProfilesPath.length > 0) {
+    // Check for duplicates
+    const topProfile = onlyProfilesPath[onlyProfilesPath.length - 1]
+    if (
+      (topProfile.props && topProfile.props.fullUsername !== props.fullUsername) ||
+      (topProfile.props && topProfile.props.serviceName !== props.serviceName)
+    ) {
+      // This user is not the top profile, push on top
+      onlyProfilesPath.push({selected: 'nonUserProfile', props})
+    }
+  }
+  return onlyProfilesPath
+}
+
+export {checkUsernameValid, cleanupUsername, getProfilePath, initialState, urlToUsername}

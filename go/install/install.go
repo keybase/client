@@ -10,14 +10,11 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
-	"time"
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-updater/process"
 )
 
 // Log is the logging interface for this package
@@ -28,7 +25,7 @@ type Log interface {
 	Errorf(s string, args ...interface{})
 }
 
-// Context is the enviroment for this package
+// Context is the environment for this package
 type Context interface {
 	GetConfigDir() string
 	GetCacheDir() string
@@ -50,6 +47,8 @@ const (
 	ComponentNameService ComponentName = "service"
 	// ComponentNameKBFS is the KBFS component
 	ComponentNameKBFS ComponentName = "kbfs"
+	// ComponentNameKBNM is the Keybase NativeMessaging client component
+	ComponentNameKBNM ComponentName = "kbnm"
 	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
 	// ComponentNameApp is the UI app
@@ -60,12 +59,16 @@ const (
 	ComponentNameHelper ComponentName = "helper"
 	// ComponentNameMountDir is the mount directory
 	ComponentNameMountDir ComponentName = "mountdir"
+	// ComponentNameCLIPaths is for /etc/paths.d/Keybase
+	ComponentNameCLIPaths ComponentName = "clipaths"
+	// ComponentNameRedirector is the KBFS redirector
+	ComponentNameRedirector ComponentName = "redirector"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
 // ComponentNames are all the valid component names
-var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp}
+var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater, ComponentNameFuse, ComponentNameHelper, ComponentNameApp, ComponentNameKBNM, ComponentNameRedirector, ComponentNameCLIPaths}
 
 // String returns string for ComponentName
 func (c ComponentName) String() string {
@@ -89,6 +92,12 @@ func (c ComponentName) Description() string {
 		return "Fuse"
 	case ComponentNameHelper:
 		return "Privileged Helper Tool"
+	case ComponentNameKBNM:
+		return "Browser Native Messaging"
+	case ComponentNameCLIPaths:
+		return "Command Line (privileged)"
+	case ComponentNameRedirector:
+		return "Redirector (privileged)"
 	}
 	return "Unknown"
 }
@@ -102,6 +111,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameService
 	case string(ComponentNameKBFS):
 		return ComponentNameKBFS
+	case string(ComponentNameKBNM):
+		return ComponentNameKBNM
 	case string(ComponentNameUpdater):
 		return ComponentNameUpdater
 	case string(ComponentNameApp):
@@ -110,6 +121,10 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameFuse
 	case string(ComponentNameHelper):
 		return ComponentNameHelper
+	case string(ComponentNameCLIPaths):
+		return ComponentNameCLIPaths
+	case string(ComponentNameRedirector):
+		return ComponentNameRedirector
 	}
 	return ComponentNameUnknown
 }
@@ -127,7 +142,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			return
 		}
 		bsv, err := semver.Make(bundleVersion)
-		// Invalid bundle bersion
+		// Invalid bundle version
 		if err != nil {
 			installStatus = keybase1.InstallStatus_ERROR
 			installAction = keybase1.InstallAction_NONE
@@ -203,12 +218,7 @@ func defaultLinkPath() (string, error) {
 	return linkPath, nil
 }
 
-func uninstallCommandLine(log Log) error {
-	linkPath, err := defaultLinkPath()
-	if err != nil {
-		return nil
-	}
-
+func uninstallLink(linkPath string, log Log) error {
 	log.Debug("Link path: %s", linkPath)
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -221,6 +231,23 @@ func uninstallCommandLine(log Log) error {
 	}
 	log.Info("Removing %s", linkPath)
 	return os.Remove(linkPath)
+}
+
+func uninstallCommandLine(log Log) error {
+	linkPath, err := defaultLinkPath()
+	if err != nil {
+		return nil
+	}
+
+	err = uninstallLink(linkPath, log)
+	if err != nil {
+		return err
+	}
+
+	// Now the git binary.
+	gitBinFilename := "git-remote-keybase"
+	gitLinkPath := filepath.Join(filepath.Dir(linkPath), gitBinFilename)
+	return uninstallLink(gitLinkPath, log)
 }
 
 func chooseBinPath(bp string) (string, error) {
@@ -258,7 +285,7 @@ func UpdaterBinPath() (string, error) {
 }
 
 // kbfsBinPathDefault returns the default path to the KBFS executable.
-// If binPath (directory) is specifed, it will override the default (which is in
+// If binPath (directory) is specified, it will override the default (which is in
 // the same directory where the keybase executable is).
 func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 	path, err := chooseBinPath(binPath)
@@ -266,16 +293,4 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
-}
-
-// TerminateApp will stop the Keybase (UI) app
-func TerminateApp(context Context, log Log) error {
-	appExecName := "Keybase"
-	logf := logger.NewLoggerf(log)
-	log.Info("Stopping Keybase app")
-	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
-	if len(appPIDs) > 0 {
-		log.Info("Terminated %s %v", appExecName, appPIDs)
-	}
-	return nil
 }

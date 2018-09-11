@@ -40,6 +40,13 @@
         {
           "name": "wantedFamily",
           "type": "string"
+        },
+        {
+          "name": "sigVersion",
+          "type": [
+            null,
+            "SigVersion"
+          ]
         }
       ],
       "response": "RegisterAddressRes"

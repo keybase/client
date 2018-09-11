@@ -5,46 +5,60 @@ package libkb
 
 import "fmt"
 
-const WhichPassphraseKeybase = "your Keybase"
+type PassphraseType string
+
+const (
+	PassphraseTypeKeybase PassphraseType = "Keybase"
+	PassphraseTypePGP     PassphraseType = "PGP"
+)
+
+type UnlockerFunc func(pw string, storeSecret bool) (ret GenericKey, err error)
 
 type KeyUnlocker struct {
-	Tries          int
-	Reason         string
-	KeyDesc        string
-	Which          string
-	UseSecretStore bool
-	UI             SecretUI
-	Unlocker       func(pw string, storeSecret bool) (ret GenericKey, err error)
-	Contextified
+	tries          int
+	reason         string
+	keyDesc        string
+	which          PassphraseType
+	useSecretStore bool
+	ui             SecretUI
+	unlocker       UnlockerFunc
 }
 
-func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
+func NewKeyUnlocker(tries int, reason string, keyDesc string, which PassphraseType, useSecretStore bool, ui SecretUI, unlocker UnlockerFunc) KeyUnlocker {
+	return KeyUnlocker{
+		tries:          tries,
+		reason:         reason,
+		keyDesc:        keyDesc,
+		which:          which,
+		useSecretStore: useSecretStore,
+		ui:             ui,
+		unlocker:       unlocker,
+	}
+}
+
+func (arg KeyUnlocker) Run(m MetaContext) (ret GenericKey, err error) {
 	var emsg string
 
-	which := arg.Which
-	if len(which) == 0 {
-		which = "the"
-	}
-	prompt := "Please enter " + which + " passphrase to unlock the secret key for:\n" +
-		arg.KeyDesc + "\n"
-	if len(arg.Reason) > 0 {
-		prompt = prompt + "\nReason: " + arg.Reason
-	}
-
-	if arg.UI == nil {
+	if arg.ui == nil {
 		err = NoUIError{"secret"}
-		return
+		return nil, err
 	}
 
-	title := "Your Keybase Passphrase"
+	prompt := "Please enter your " + string(arg.which) + " passphrase to unlock the secret key for:\n" +
+		arg.keyDesc + "\n"
+	if len(arg.reason) > 0 {
+		prompt = prompt + "\nReason: " + arg.reason
+	}
 
-	for i := 0; arg.Tries <= 0 || i < arg.Tries; i++ {
-		res, err := GetSecret(arg.G(), arg.UI, title, prompt, emsg, arg.UseSecretStore)
+	title := "Your " + string(arg.which) + " passphrase"
+
+	for i := 0; arg.tries <= 0 || i < arg.tries; i++ {
+		res, err := GetSecret(m, arg.ui, title, prompt, emsg, arg.useSecretStore)
 		if err != nil {
 			// probably canceled
 			return nil, err
 		}
-		ret, err = arg.Unlocker(res.Passphrase, res.StoreSecret)
+		ret, err = arg.unlocker(res.Passphrase, res.StoreSecret)
 		if err == nil {
 			// success
 			return ret, nil

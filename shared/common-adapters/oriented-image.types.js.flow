@@ -1,0 +1,9 @@
+// @flow
+import {type StylesDesktop} from '../styles'
+
+export type Props = {
+  src: string,
+  style?: StylesDesktop,
+  onDragStart?: (e: SyntheticEvent<>) => void,
+  onLoad?: (e: SyntheticEvent<>) => void,
+}

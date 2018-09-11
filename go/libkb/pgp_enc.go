@@ -23,18 +23,14 @@ func PGPEncrypt(source io.Reader, sink io.WriteCloser, signer *PGPKeyBundle, rec
 	if err != nil {
 		return err
 	}
-	n, err := io.Copy(w, source)
+	_, err = io.Copy(w, source)
 	if err != nil {
 		return err
 	}
-	G.Log.Debug("PGPEncrypt: wrote %d bytes", n)
 	if err := w.Close(); err != nil {
 		return err
 	}
-	if err := sink.Close(); err != nil {
-		return err
-	}
-	return nil
+	return sink.Close()
 }
 
 func PGPEncryptString(input string, signer *PGPKeyBundle, recipients []*PGPKeyBundle) ([]byte, error) {

@@ -24,7 +24,7 @@ elif [ "$PLATFORM" = "ios" ]
 then
   BUILD_NAME="app-$TIMESTAMP.app"
 else
-  echo "Platform should be either android or ios"
+  echo "Platform should be either Android or iOS"
   exit 1
 fi
 

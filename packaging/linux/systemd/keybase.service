@@ -1,0 +1,12 @@
+[Unit]
+Description=Keybase core service
+
+[Service]
+# "notify" means we promise to call SdNotify() at the end of startup.
+Type=notify
+Environment=KEYBASE_SERVICE_TYPE=systemd
+ExecStart=/usr/bin/keybase --debug --log-file=%h/.cache/keybase/keybase.service.log service
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

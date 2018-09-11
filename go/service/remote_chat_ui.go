@@ -19,35 +19,6 @@ func NewRemoteChatUI(sessionID int, c *rpc.Client) *RemoteChatUI {
 	}
 }
 
-func (r *RemoteChatUI) ChatAttachmentUploadStart(ctx context.Context, metadata chat1.AssetMetadata) error {
-	arg := chat1.ChatAttachmentUploadStartArg{
-		SessionID: r.sessionID,
-		Metadata:  metadata,
-	}
-	return r.cli.ChatAttachmentUploadStart(ctx, arg)
-}
-
-func (r *RemoteChatUI) ChatAttachmentUploadProgress(ctx context.Context, arg chat1.ChatAttachmentUploadProgressArg) error {
-	arg.SessionID = r.sessionID
-	return r.cli.ChatAttachmentUploadProgress(ctx, arg)
-}
-
-func (r *RemoteChatUI) ChatAttachmentUploadDone(ctx context.Context) error {
-	return r.cli.ChatAttachmentUploadDone(ctx, r.sessionID)
-}
-
-func (r *RemoteChatUI) ChatAttachmentPreviewUploadStart(ctx context.Context, metadata chat1.AssetMetadata) error {
-	arg := chat1.ChatAttachmentPreviewUploadStartArg{
-		SessionID: r.sessionID,
-		Metadata:  metadata,
-	}
-	return r.cli.ChatAttachmentPreviewUploadStart(ctx, arg)
-}
-
-func (r *RemoteChatUI) ChatAttachmentPreviewUploadDone(ctx context.Context) error {
-	return r.cli.ChatAttachmentPreviewUploadDone(ctx, r.sessionID)
-}
-
 func (r *RemoteChatUI) ChatAttachmentDownloadStart(ctx context.Context) error {
 	return r.cli.ChatAttachmentDownloadStart(ctx, r.sessionID)
 }
@@ -71,4 +42,24 @@ func (r *RemoteChatUI) ChatInboxFailed(ctx context.Context, arg chat1.ChatInboxF
 
 func (r *RemoteChatUI) ChatInboxUnverified(ctx context.Context, arg chat1.ChatInboxUnverifiedArg) error {
 	return r.cli.ChatInboxUnverified(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatThreadCached(ctx context.Context, arg chat1.ChatThreadCachedArg) error {
+	return r.cli.ChatThreadCached(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg) error {
+	return r.cli.ChatThreadFull(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
+	return r.cli.ChatConfirmChannelDelete(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatSearchHit(ctx context.Context, arg chat1.ChatSearchHitArg) error {
+	return r.cli.ChatSearchHit(ctx, arg)
+}
+
+func (r *RemoteChatUI) ChatSearchDone(ctx context.Context, arg chat1.ChatSearchDoneArg) error {
+	return r.cli.ChatSearchDone(ctx, arg)
 }

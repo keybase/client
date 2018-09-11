@@ -18,7 +18,8 @@ protocol kbfsCommon {
     FILE_CREATED_7,
     FILE_MODIFIED_8,
     FILE_DELETED_9,
-    FILE_RENAMED_10
+    FILE_RENAMED_10,
+    INITIALIZED_11
   }
 
   enum FSErrorType {
@@ -33,11 +34,13 @@ protocol kbfsCommon {
     OLD_VERSION_8,
     OVER_QUOTA_9,
     NO_SIG_CHAIN_10,
-    TOO_MANY_FOLDERS_11
+    TOO_MANY_FOLDERS_11,
+    EXDEV_NOT_SUPPORTED_12,
+    DISK_LIMIT_REACHED_13,
+    DISK_CACHE_ERROR_LOG_SEND_14
   }
 
   record FSNotification {
-    boolean publicTopLevelFolder;
     string filename;
     string status;
     FSStatusCode statusCode;
@@ -47,6 +50,7 @@ protocol kbfsCommon {
     @lint("ignore")
     UID writerUid;
     Time localTime;
+    FolderType folderType;
   }
 
   record FSEditListRequest {
@@ -54,12 +58,29 @@ protocol kbfsCommon {
     int requestID;
   }
 
+  record FSFolderWriterEdit {
+    string filename;
+    FSNotificationType notificationType;
+    Time serverTime;
+  }
+
+  record FSFolderWriterEditHistory {
+    string writerName;
+    array<FSFolderWriterEdit> edits;
+  }
+
+  record FSFolderEditHistory {
+    Folder folder;
+    Time serverTime;
+    array<FSFolderWriterEditHistory> history;
+  }
+
   record FSSyncStatusRequest {
     int requestID;
   }
 
   record FSPathSyncStatus {
-    boolean publicTopLevelFolder;
+    FolderType folderType;
     string path;  // could be a file or directory
     // How many total encrypted, padded bytes are still syncing, as part of
     // operations on this path.
@@ -73,12 +94,8 @@ protocol kbfsCommon {
   }
 
   record FSSyncStatus {
-    // How many total encrypted, padded bytes are still syncing, across
-    // all TLFs?
     int64 totalSyncingBytes;
-    // How many outstanding operations are there across all TLFs?
-    int64 totalSyncingOps;
-    // Individual status for each path without standing operations.
-    array<FSPathSyncStatus> pathStatuses;
+    array<string> syncingPaths;
+    union { null, Time} endEstimate;
   }
 }

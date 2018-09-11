@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"crypto"
+	"crypto/rsa"
 	"fmt"
 	"strings"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/keybase/go-crypto/openpgp/s2k"
-	"github.com/keybase/go-crypto/rsa"
 )
 
 type PGPGenArg struct {
@@ -156,16 +156,16 @@ func (a *PGPGenArg) CreatePGPIDs() error {
 }
 
 // Just for testing
-func (a *PGPGenArg) AddDefaultUID() {
-	a.Ids = append(a.Ids, KeybaseIdentity(""))
+func (a *PGPGenArg) AddDefaultUID(g *GlobalContext) {
+	a.Ids = append(a.Ids, KeybaseIdentity(g, ""))
 }
 
 // Just for testing
-func (a *PGPGenArg) MakeAllIds() error {
+func (a *PGPGenArg) MakeAllIds(g *GlobalContext) error {
 	if err := a.CreatePGPIDs(); err != nil {
 		return err
 	}
-	a.AddDefaultUID()
+	a.AddDefaultUID(g)
 	return nil
 }
 

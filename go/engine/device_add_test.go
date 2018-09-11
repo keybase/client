@@ -14,32 +14,31 @@ import (
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
-func TestDeviceAddV1(t *testing.T) {
-	testDeviceAdd(t, true)
-}
-
-func TestDeviceAddV2(t *testing.T) {
+func TestDeviceAdd(t *testing.T) {
 	testDeviceAdd(t, false)
 }
 
-func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret, v1Only bool) {
+func TestDeviceAddPUK(t *testing.T) {
+	testDeviceAdd(t, true)
+}
+
+func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, secretY kex2.Secret,
+	uid keybase1.UID) {
 	defer wg.Done()
-	f := func(lctx libkb.LoginContext) error {
-		ctx := &Context{
-			ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
-			LoginContext: lctx,
-			NetContext:   context.TODO(),
+	err := (func() error {
+		uis := libkb.UIs{
+			ProvisionUI: &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 		}
+		m := NewMetaContextForTest(*tcY).WithUIs(uis).WithNewProvisionalLoginContext()
 		deviceID, err := libkb.NewDeviceID()
 		if err != nil {
-			t.Errorf("provisionee device id error: %s", err)
 			return err
 		}
 		suffix, err := libkb.RandBytes(5)
 		if err != nil {
-			t.Errorf("provisionee device suffix error: %s", err)
 			return err
 		}
 		dname := fmt.Sprintf("device_%x", suffix)
@@ -48,30 +47,22 @@ func runDeviceAddTest(t *testing.T, wg *sync.WaitGroup, tcY *libkb.TestContext, 
 			Description: &dname,
 			Type:        libkb.DeviceTypeDesktop,
 		}
-		provisionee := NewKex2Provisionee(tcY.G, device, secretY)
-		if v1Only {
-			provisionee.v1Only = true
-		}
-		if err := RunEngine(provisionee, ctx); err != nil {
-			t.Errorf("provisionee error: %s", err)
-			return err
-		}
-		return nil
-	}
-
-	if err := tcY.G.LoginState().ExternalFunc(f, "Test - DeviceAdd"); err != nil {
-		t.Errorf("kex2 provisionee error: %s", err)
-	}
+		provisionee := NewKex2Provisionee(tcY.G, device, secretY, uid, fakeSalt())
+		return RunEngine2(m, provisionee)
+	})()
+	require.NoError(t, err, "kex2 provisionee")
 }
 
-func testDeviceAdd(t *testing.T, v1Only bool) {
+func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
+	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
 	defer tcY.Cleanup()
+	tcY.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
@@ -85,16 +76,16 @@ func testDeviceAdd(t *testing.T, v1Only bool) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY, v1Only)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, userX.UID())
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testXProvisionUI{secret: secretY},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 
@@ -113,7 +104,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
 
-	secretY, err := libkb.NewKex2Secret()
+	secretY, err := libkb.NewKex2Secret(false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,16 +113,16 @@ func TestDeviceAddPhrase(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret(), false)
+	go runDeviceAddTest(t, &wg, &tcY, secretY.Secret(), userX.UID())
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testPhraseProvisionUI{phrase: secretY.Phrase()},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 
@@ -159,18 +150,18 @@ func TestDeviceAddStoredSecret(t *testing.T) {
 
 	// start provisionee
 	wg.Add(1)
-	go runDeviceAddTest(t, &wg, &tcY, secretY, false)
+	go runDeviceAddTest(t, &wg, &tcY, secretY, userX.UID())
 
 	testSecretUI := userX.NewSecretUI()
 
 	// run DeviceAdd engine on device X
-	ctx := &Context{
+	uis := libkb.UIs{
 		SecretUI:    testSecretUI,
 		ProvisionUI: &testXProvisionUI{secret: secretY},
-		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tcX).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Errorf("device add error: %s", err)
 	}
 

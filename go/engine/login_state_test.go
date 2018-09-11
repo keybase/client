@@ -7,72 +7,14 @@ import (
 	"errors"
 	"testing"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 // TODO: These tests should really be in libkb/. However, any test
 // that creates new users have to remain in engine/ for now. Fix this.
-
-// Test that LoginState and Session are in sync regarding whether a
-// user is logged in.
-func TestLoginLogout(t *testing.T) {
-	tc := SetupEngineTest(t, "login logout")
-	defer tc.Cleanup()
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	// Logging out when not logged in should still work.
-	Logout(tc)
-
-	fu := CreateAndSignupFakeUser(tc, "login")
-
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Error("Unexpectedly logged out (Session)")
-	}
-
-	Logout(tc)
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	// Logging out twice should still work.
-	Logout(tc)
-
-	if err := AssertLoggedOut(tc); err != nil {
-		t.Error("Unexpectedly logged in (Session)")
-	}
-
-	if LoggedIn(tc) {
-		t.Error("Unexpectedly logged in (LoginState)")
-	}
-
-	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := AssertLoggedIn(tc); err != nil {
-		t.Error("Unexpectedly logged out (Session)")
-	}
-
-	if !LoggedIn(tc) {
-		t.Error("Unexpectedly logged out (LoginState)")
-	}
-}
 
 // This mock (and the similar ones below) may be used from a goroutine
 // different from the main one, so don't mess with testing.T (which
@@ -109,43 +51,30 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "li")
 
 	// These should all work, since the username matches.
+	mctx := NewMetaContextForTest(tc)
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, "", false, nil); err != nil {
-		t.Error(err)
-	}
-
-	// This should fail.
-	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInWrongUserError); !ok {
-		t.Fatal("Did not get expected LoggedIn error")
-	}
+	_, err := libkb.GetPassphraseStreamStored(mctx)
+	require.NoError(t, err, "PassphraseLoginPrompt")
+	mctx = mctx.WithNewProvisionalLoginContext()
+	err = libkb.PassphraseLoginNoPrompt(mctx, fu.Username, fu.Passphrase)
+	mctx = mctx.CommitProvisionalLogin()
+	require.NoError(t, err, "PassphraseLoginNoPrompt")
+	_, err = libkb.GetPassphraseStreamStored(mctx)
+	require.NoError(t, err, "PassphraseLoginPrompt")
 }
 
 // Test that login works while already logged in and after a login
-// state reset.
-func TestLoginAfterLoginStateReset(t *testing.T) {
+// state reset (via service restart).
+func TestLoginAfterServiceRestart(t *testing.T) {
 	tc := SetupEngineTest(t, "login while already logged in")
 	defer tc.Cleanup()
 
 	// Logs the user in.
-	_ = CreateAndSignupFakeUser(tc, "li")
+	_ = SignupFakeUserStoreSecret(tc, "li")
 
-	tc.ResetLoginState()
-
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
-		t.Error(err)
-	}
+	tc.SimulateServiceRestart()
+	ok, _ := isLoggedIn(NewMetaContextForTest(tc))
+	require.True(t, ok, "we are logged in after a service restart")
 }
 
 // Test that login fails with a nonexistent user.
@@ -158,7 +87,9 @@ func TestLoginNonexistent(t *testing.T) {
 	Logout(tc)
 
 	secretUI := &libkb.TestSecretUI{Passphrase: "XXXXXXXXXXXX"}
-	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, nil)
+	m := NewMetaContextForTest(tc)
+	m = m.WithNewProvisionalLoginContext().WithUIs(libkb.UIs{SecretUI: secretUI})
+	err := libkb.PassphraseLoginPrompt(m, "nonexistent", 1)
 	if _, ok := err.(libkb.NotFoundError); !ok {
 		t.Errorf("error type: %T, expected libkb.NotFoundError", err)
 	}
@@ -210,25 +141,13 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	mockGetKeybasePassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase, nil); err != nil {
-		t.Error(err)
-	}
 
-	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
-	}
-
-	Logout(tc)
-
-	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase, nil); err != nil {
-		t.Error(err)
-	}
-
+	mctx := NewMetaContextForTest(tc).WithNewProvisionalLoginContext().WithUIs(libkb.UIs{SecretUI: mockGetKeybasePassphrase})
+	err := libkb.PassphraseLoginPrompt(mctx, fu.Username, 1)
+	require.NoError(t, err, "prompt with username")
 	mockGetKeybasePassphrase.CheckLastErr(t)
-
 	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+		t.Fatalf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
 	Logout(tc)
@@ -239,25 +158,24 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
 	}
+	mctx = mctx.WithNewProvisionalLoginContext().WithUIs(libkb.UIs{SecretUI: mockGetKeybasePassphrase, LoginUI: mockGetUsername})
 	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase, nil); err != nil {
-		t.Error(err)
-	}
+	err = libkb.PassphraseLoginPrompt(mctx, "", 1)
+	require.NoError(t, err, "prompt with username")
 
 	mockGetUsername.CheckLastErr(t)
 	mockGetKeybasePassphrase.CheckLastErr(t)
 
 	if !mockGetUsername.Called {
-		t.Errorf("loginUI.GetEmailOrUsername() unexpectedly not called")
+		t.Fatalf("loginUI.GetEmailOrUsername() unexpectedly not called")
 	}
-
 	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+		t.Fatalf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 }
 
 func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username string) bool {
-	configuredAccounts, err := tc.G.GetConfiguredAccounts()
+	configuredAccounts, err := tc.G.GetConfiguredAccounts(context.TODO())
 	if err != nil {
 		tc.T.Error(err)
 		return false
@@ -272,7 +190,7 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
+	secret, err := tc.G.SecretStore().RetrieveSecret(NewMetaContextForTest(*tc), libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
 	return (!secret.IsNil() && err == nil)
@@ -304,9 +222,9 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, nil); err != nil {
-		t.Fatal(err)
-	}
+	mctx := NewMetaContextForTest(tc).WithNewProvisionalLoginContext().WithUIs(libkb.UIs{SecretUI: mockGetPassphrase})
+	err := libkb.PassphraseLoginPromptThenSecretStore(mctx, fu.Username, 1, true)
+	require.NoError(t, err, "no error after prompt")
 
 	mockGetPassphrase.CheckLastErr(t)
 
@@ -318,15 +236,15 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
 	}
 
-	// TODO: Mock out the SecretStore and make sure that it's
-	// actually consulted.
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
-		t.Error(err)
-	}
+	mctx = mctx.CommitProvisionalLogin()
+
+	clearCaches(tc.G)
+	ili, _ := isLoggedIn(mctx)
+	require.True(t, ili, "still logged in after caches are cleared (via secret store)")
 
 	Logout(tc)
 
-	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
+	if err := libkb.ClearStoredSecret(mctx, fu.NormalizedUsername()); err != nil {
 		t.Error(err)
 	}
 
@@ -334,20 +252,14 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
 	}
 
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err == nil {
-		t.Error("Did not get expected error")
-	}
-
-	if err := tc.G.LoginState().LoginWithStoredSecret("", nil); err == nil {
-		t.Error("Did not get expected error")
-	}
+	ili, _ = isLoggedIn(mctx)
+	require.False(t, ili, "cannot finagle a login")
 
 	fu = CreateAndSignupFakeUser(tc, "lwss")
 	Logout(tc)
 
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err == nil {
-		t.Error("Did not get expected error")
-	}
+	ili, _ = isLoggedIn(mctx)
+	require.False(t, ili, "cannot finagle a login")
 }
 
 // Test that the login flow with passphrase correctly denies bad
@@ -359,12 +271,13 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "lwpe")
 	Logout(tc)
 
-	err := tc.G.LoginState().LoginWithPassphrase("", "", false, nil)
+	mctx := NewMetaContextForTest(tc).WithNewProvisionalLoginContext()
+	err := libkb.PassphraseLoginNoPrompt(mctx, "", "")
 	if _, ok := err.(libkb.AppStatusError); !ok {
 		t.Error("Did not get expected AppStatusError")
 	}
-
-	err = tc.G.LoginState().LoginWithPassphrase(fu.Username, "wrong passphrase", false, nil)
+	mctx = mctx.WithNewProvisionalLoginContext()
+	err = libkb.PassphraseLoginNoPrompt(mctx, fu.Username, fu.Passphrase+"x")
 	if _, ok := err.(libkb.PassphraseError); !ok {
 		t.Error("Did not get expected PassphraseError")
 	}
@@ -380,56 +293,15 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "lwpns")
 	Logout(tc)
 
-	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, false, nil); err != nil {
-		t.Error(err)
-	}
-
+	mctx := NewMetaContextForTest(tc).WithNewProvisionalLoginContext()
+	err := libkb.PassphraseLoginNoPrompt(mctx, fu.Username, fu.Passphrase)
+	require.NoError(t, err, "login with passphrase worked")
+	mctx = mctx.CommitProvisionalLogin()
+	require.False(t, userHasStoredSecret(&tc, fu.Username), "no stored secret")
 	Logout(tc)
-
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err == nil {
-		t.Error("Did not get expected error")
-	}
-
-	if userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
-	}
-}
-
-// Test that the login flow with passphrase and with saving the secret
-// works.
-func TestLoginWithPassphraseWithStore(t *testing.T) {
-
-	tc := SetupEngineTest(t, "login with passphrase (with store)")
-	defer tc.Cleanup()
-
-	fu := CreateAndSignupFakeUser(tc, "lwpws")
-	Logout(tc)
-
-	if userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
-	}
-
-	if err := tc.G.LoginState().LoginWithPassphrase(fu.Username, fu.Passphrase, true, nil); err != nil {
-		t.Error(err)
-	}
-
-	if !userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
-	}
-
-	// TODO: Mock out the SecretStore and make sure that it's
-	// actually consulted.
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
-		t.Error(err)
-	}
-
-	if userHasStoredSecret(&tc, fu.Username) {
-		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)
-	}
+	ili, _ := isLoggedIn(mctx)
+	require.False(t, ili, "not logged in, since no store")
+	require.False(t, userHasStoredSecret(&tc, fu.Username), "no stored secret")
 }
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.

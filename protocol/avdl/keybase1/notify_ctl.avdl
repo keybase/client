@@ -19,6 +19,13 @@ protocol notifyCtl {
     boolean kbfsrequest;
     boolean badges;
     boolean reachability;
+    boolean team;
+    boolean ephemeral;
+    boolean chatkbfsedits;
+    boolean chatdev;
+    boolean deviceclone;
+    boolean chatattachments;
+    boolean wallet;
   }
 
   void setNotifications(NotificationChannels channels);

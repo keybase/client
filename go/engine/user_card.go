@@ -21,37 +21,42 @@ type card struct {
 		Website  string `json:"website"`
 		Twitter  string `json:"twitter"`
 	} `json:"profile"`
-	YouFollowThem bool `json:"you_follow_them"`
-	TheyFollowYou bool `json:"they_follow_you"`
+	YouFollowThem bool                        `json:"you_follow_them"`
+	TheyFollowYou bool                        `json:"they_follow_you"`
+	TeamShowcase  []keybase1.UserTeamShowcase `json:"team_showcase"`
 }
 
 func (c *card) GetAppStatus() *libkb.AppStatus {
 	return &c.Status
 }
 
-func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
-	defer g.Trace("getUserCard", func() error { return err })()
+func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *keybase1.UserCard, err error) {
+	defer m.CTrace("getUserCard", func() error { return err })()
 
-	cached, err := g.CardCache.Get(uid, useSession)
+	cached, err := m.G().CardCache().Get(uid, useSession)
 	if err != nil {
-		g.Log.Debug("CardCache.Get error: %s", err)
+		m.CDebugf("CardCache.Get error: %s", err)
 	} else if cached != nil {
-		g.Log.Debug("CardCache.Get hit for %s", uid)
+		m.CDebugf("CardCache.Get hit for %s", uid)
 		return cached, nil
 	}
-	g.Log.Debug("CardCache.Get miss for %s", uid)
+	m.CDebugf("CardCache.Get miss for %s", uid)
 
+	sessionType := libkb.APISessionTypeNONE
+	if useSession {
+		sessionType = libkb.APISessionTypeREQUIRED
+	}
 	arg := libkb.APIArg{
 		Endpoint:    "user/card",
-		NeedSession: useSession,
+		SessionType: sessionType,
 		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
-		NetContext:  g.NetContext,
+		NetContext:  m.Ctx(),
 	}
 
 	var card card
 
-	if err = g.API.GetDecode(arg, &card); err != nil {
-		g.Log.Warning("error getting user/card for %s: %s\n", uid, err)
+	if err = m.G().API.GetDecode(arg, &card); err != nil {
+		m.CWarningf("error getting user/card for %s: %s\n", uid, err)
 		return nil, err
 	}
 
@@ -66,17 +71,18 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 		Twitter:       card.Profile.Twitter,
 		YouFollowThem: card.YouFollowThem,
 		TheyFollowYou: card.TheyFollowYou,
+		TeamShowcase:  card.TeamShowcase,
 	}
 
-	if err := g.CardCache.Set(ret, useSession); err != nil {
-		g.Log.Debug("CardCache.Set error: %s", err)
+	if err := m.G().CardCache().Set(ret, useSession); err != nil {
+		m.CDebugf("CardCache.Set error: %s", err)
 	}
 
 	return ret, nil
 }
 
-func displayUserCard(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) error {
-	card, err := getUserCard(g, uid, useSession)
+func displayUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) error {
+	card, err := getUserCard(m, uid, useSession)
 	if err != nil {
 		return err
 	}
@@ -84,13 +90,24 @@ func displayUserCard(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.
 		return nil
 	}
 
-	return iui.DisplayUserCard(*card)
+	return m.UIs().IdentifyUI.DisplayUserCard(*card)
 }
 
-func displayUserCardAsync(g *libkb.GlobalContext, iui libkb.IdentifyUI, uid keybase1.UID, useSession bool) <-chan error {
+func displayUserCardAsync(m libkb.MetaContext, uid keybase1.UID, useSession bool) <-chan error {
 	ch := make(chan error)
 	go func() {
-		ch <- displayUserCard(g, iui, uid, useSession)
+		ch <- displayUserCard(m, uid, useSession)
 	}()
 	return ch
+}
+
+func GetFullName(m libkb.MetaContext, uid keybase1.UID) (string, error) {
+	card, err := getUserCard(m, uid, false)
+	if err != nil {
+		return "", err
+	}
+	if card == nil {
+		return "", nil
+	}
+	return card.FullName, nil
 }

@@ -66,6 +66,34 @@
         {
           "type": "boolean",
           "name": "reachability"
+        },
+        {
+          "type": "boolean",
+          "name": "team"
+        },
+        {
+          "type": "boolean",
+          "name": "ephemeral"
+        },
+        {
+          "type": "boolean",
+          "name": "chatkbfsedits"
+        },
+        {
+          "type": "boolean",
+          "name": "chatdev"
+        },
+        {
+          "type": "boolean",
+          "name": "deviceclone"
+        },
+        {
+          "type": "boolean",
+          "name": "chatattachments"
+        },
+        {
+          "type": "boolean",
+          "name": "wallet"
         }
       ]
     }

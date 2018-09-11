@@ -78,7 +78,11 @@ func (s *CmdPGPList) Run() error {
 				if len(id.Email) > 0 {
 					email = fmt.Sprintf(" <%s>", id.Email)
 				}
-				dui.Printf("   %s%s%s\n", id.Username, comment, email)
+				var revoked string
+				if key.IsRevoked {
+					revoked = "[Revoked] "
+				}
+				dui.Printf("   %s%s%s%s\n", revoked, id.Username, comment, email)
 			}
 		}
 		dui.Printf("\n")

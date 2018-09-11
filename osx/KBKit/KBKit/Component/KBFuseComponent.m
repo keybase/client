@@ -131,16 +131,37 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)install:(KBCompletion)completion {
+  [self _installAndLoad:^(NSError *error) {
+    // Resolve kext permission error
+    if (error && [error.localizedDescription gh_endsWith:@"-603946981" options:0]) {
+      completion(KBMakeError(KBErrorCodeFuseKextPermission, @"%@", error.localizedDescription));
+      return;
+    }
+    completion(error);
+  }];
+}
+
+- (void)_installAndLoad:(KBCompletion)completion {
+  [self _install:^(NSError *error) {
+    if (error) {
+      completion(error);
+      return;
+    }
+    [self _afterInstall:completion];
+  }];
+}
+
+- (void)_install:(KBCompletion)completion {
   [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
     // Upgrades currently unsupported for Fuse if there are mounts
     if (cs.installAction == KBRInstallActionUpgrade && [self hasKBFuseMounts:fuseStatus]) {
       DDLogError(@"Fuse needs upgrade but not supported yet if mounts are present");
-      completion(nil);
+      completion(KBMakeError(KBErrorCodeFuseKextMountsPresent, @"mounts are present"));
       return;
     }
 
     if ([cs needsInstallOrUpgrade]) {
-      [self _install:completion];
+      [self _installKext:completion];
     } else {
       // Check if we need to fix the current install
       if ([self needsFix]) {
@@ -155,7 +176,23 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   }];
 }
 
-- (void)_install:(KBCompletion)completion {
+- (void)_afterInstall:(KBCompletion)completion {
+  [self refreshFuseComponent:^(KBRFuseStatus *fuseStatus, KBComponentStatus *cs) {
+    if (fuseStatus.installStatus == KBRInstallStatusInstalled && !fuseStatus.kextStarted) {
+      [self loadKext:^(NSError *error) {
+        if (error) {
+          completion(KBMakeError(KBErrorCodeFuseKext, @"%@", error.localizedDescription));
+          return;
+        }
+        completion(nil);
+      }];
+      return;
+    }
+    completion(nil);
+  }];
+}
+
+- (void)_installKext:(KBCompletion)completion {
   NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath};
   DDLogDebug(@"Helper: kextInstall(%@)", params);
   [self.helperTool.helper sendRequest:@"kextInstall" params:@[params] completion:^(NSError *error, id value) {
@@ -171,10 +208,14 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   }];
 }
 
-- (void)start:(KBCompletion)completion {
+- (void)loadKext:(KBCompletion)completion {
   [self.helperTool.helper sendRequest:@"kextLoad" params:@[@{@"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
     completion(error);
   }];
+}
+
+- (void)start:(KBCompletion)completion {
+  [self loadKext:completion];
 }
 
 - (void)stop:(KBCompletion)completion {
@@ -225,7 +266,9 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (NSString *)kextPath {
-  return @"/Library/Filesystems/kbfuse.fs/Contents/Extensions/10.10/kbfuse.kext";
+  NSProcessInfo *pInfo = [NSProcessInfo processInfo];
+  NSOperatingSystemVersion version = [pInfo operatingSystemVersion];
+  return [NSString stringWithFormat:@"/Library/Filesystems/kbfuse.fs/Contents/Extensions/%ld.%ld/kbfuse.kext", version.majorVersion, version.minorVersion];
 }
 
 @end

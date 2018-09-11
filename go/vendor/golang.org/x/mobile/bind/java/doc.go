@@ -6,5 +6,3 @@
 //
 // See the design document (http://golang.org/s/gobind).
 package java
-
-import "C"

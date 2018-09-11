@@ -1,40 +1,58 @@
 // @flow
-import {uniq} from 'lodash'
+import * as I from 'immutable'
+import * as Types from './types/config'
+import * as ChatConstants from './chat2'
+import {uniq} from 'lodash-es'
 import {runMode} from './platform'
 
-// Constants
+export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
+export const noKBFSFailReason = "Can't connect to KBFS"
+const defaultTeamPrefix = '/team/'
 
-// Actions
-export const globalError = 'config:globalError'
-export const globalErrorDismiss = 'config:globalErrorDismiss'
-export const statusLoaded = 'config:statusLoaded'
-export const configLoaded = 'config:configLoaded'
-export const extendedConfigLoaded = 'config:extendedConfigLoaded'
-export const bootstrapped = 'config:bootstrapped'
-export const bootstrapAttemptFailed = 'config:bootstrapAttemptFailed'
-export const bootstrapFailed = 'config:bootstrapFailed'
-export const bootstrapRetry = 'config:bootstrapRetry'
-export const updateFollowing = 'config:updateFollowing'
-export const updateFollowers = 'config:updateFollowers'
+export const privateFolderWithUsers = (users: Array<string>) =>
+  `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
+export const publicFolderWithUsers = (users: Array<string>) =>
+  `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
+export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
-export const readAppVersion = 'config:readAppVersion'
-
-export const changeKBFSPath = 'config:changeKBFSPath'
-
-export const MAX_BOOTSTRAP_TRIES = 3
-export const bootstrapRetryDelay = 10 * 1000
-
-export type BootStatus = 'bootStatusLoading'
-  | 'bootStatusBootstrapped'
-  | 'bootStatusFailure'
-
-export function privateFolderWithUsers (users: Array<string>): string {
-  return `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
-}
-
-export function publicFolderWithUsers (users: Array<string>): string {
-  return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
-}
+export const makeState: I.RecordFactory<Types._State> = I.Record({
+  appFocused: true,
+  appFocusedCount: 0,
+  avatars: {}, // Can't be an I.Map since it's used by remotes
+  configuredAccounts: I.List(),
+  daemonError: null,
+  daemonHandshakeFailedReason: '',
+  daemonHandshakeRetriesLeft: maxHandshakeTries,
+  daemonHandshakeState: 'starting',
+  daemonHandshakeVersion: 1,
+  daemonHandshakeWaiters: I.Map(),
+  debugDump: [],
+  defaultUsername: '',
+  deviceID: '',
+  deviceName: '',
+  followers: I.Set(),
+  following: I.Set(),
+  globalError: null,
+  justDeletedSelf: '',
+  loggedIn: false,
+  logoutHandshakeVersion: 1,
+  logoutHandshakeWaiters: I.Map(),
+  menubarWindowID: 0,
+  notifySound: false,
+  openAtLogin: true,
+  pgpPopupOpen: false,
+  pushLoaded: false,
+  registered: false,
+  startupConversation: ChatConstants.noConversationIDKey,
+  startupDetailsLoaded: false,
+  startupFollowUser: '',
+  startupLink: '',
+  startupTab: null,
+  startupWasFromPush: false,
+  uid: '',
+  userActive: true,
+  username: '',
+})

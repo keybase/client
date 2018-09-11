@@ -13,21 +13,22 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
-func decengctx(fu *FakeUser, tc libkb.TestContext) *Context {
-	return &Context{
+func decengctx(fu *FakeUser, tc libkb.TestContext) libkb.MetaContext {
+	return NewMetaContextForTest(tc).WithUIs(libkb.UIs{
 		IdentifyUI: &FakeIdentifyUI{},
 		SecretUI:   fu.NewSecretUI(),
 		LogUI:      tc.G.UI.GetLogUI(),
 		PgpUI:      &TestPgpUI{},
-	}
+	})
 }
 
 func TestPGPDecrypt(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -39,8 +40,8 @@ func TestPGPDecrypt(t *testing.T) {
 		NoSign:       true,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, tc.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tc.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -53,8 +54,8 @@ func TestPGPDecrypt(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg, tc.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tc.G, decarg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := string(decoded.Bytes())
@@ -70,7 +71,7 @@ func TestPGPDecrypt(t *testing.T) {
 func TestPGPDecryptArmored(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "10 days in Japan"
@@ -81,8 +82,8 @@ func TestPGPDecryptArmored(t *testing.T) {
 		Sink:   sink,
 		NoSign: true,
 	}
-	enc := NewPGPEncrypt(arg, tc.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tc.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -95,8 +96,8 @@ func TestPGPDecryptArmored(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg, tc.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tc.G, decarg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := string(decoded.Bytes())
@@ -106,16 +107,16 @@ func TestPGPDecryptArmored(t *testing.T) {
 
 	// A saltpack message
 	saltpack := `BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE.
-ZUHRHckf9VJ6ich bKthcf8yieGqdWj H4gqRvnQEBYi4Lw JzZL5NnUd2ssiZ3 hReptn2rUJuGcna uAkp7yQGAaxVQyc oM2o7JykpRwsGbM fmF4r2Mj1aCAKd6 U316QFRCxkC4Uik JszTub0Mt1a1IRi wQNIl3ru791WSMK JRXkD0biElgMSIf Qk9B0j1vRHeLB11 Ig9qX7TBMzg9InW tHfZp0GjYEJWCvZ i0h3SG99wTPL3Ov PSOjc2oGRqI2bya XaGdao8vmfYk8jd auqe5QBgA2RaO7I WYZGyHwsWNg3PSX eEcUtccZeD7ryBP MMDvFZUDUia1Njf ELaaKo932JWKdLg zONmMEinFizgGEg 7MrB4kIjeY3O4Od GEjKV6okfzdmYOP rZCsNzFILna2K1h D53RmTDkoddt81Y mwPFWwaeCA9YR9S EZcu8kWlaFjjDRX SG7MCuwtS3PuUXr EaCfe1ib65Nrq3s IUxGJ7H6JRidavn Ql7Bo9qbZGqkglf 0g1caODxGe4mQfZ ixH7my73DAKw5aL idukKTwb0qPVlvD 2vqskVSukRNra5i 1t1PadrLZSgaJqb WtSVmbgiWm40P1S WlR8nq2I95RIZSx LP3JEvHqBNAb9Ci rzkkSaOBk5FawpE yCVbUDk556V0e7F z8YSYPFqzwf14Yo JEztr4noRMxvME2 OBTt16BAJF4K1NA pTtFpwRbubTggxb 74abisSK1DgPd30 UgdY75zTUKd57pk CHTu2BwPHFGjwgf XxJMTNpYRQiz6uZ lIAmcTKhGoKBy97 7S82DvT1tB0cGjn M5JnyMJkzj2WaVf MFkAonXbkYNOk2n olE7RldZhcyy4Xd edu1Mke8AevVaAc lat6mso7hS2XAuW ZCcrWakNFGPPqkW 40YMZMHqL1mbIIS oooC5lSP2dd2c04 j9yjhpsYjs2izOA HRhQslExQDU6Uio WEJBnQDpMbhQG1y E9jPqsSgmUrfRgD nEuLPYpRLm6UJgW TZFga6U0khClKRX DdTWaLVGrmY8xdB GNy2Dd4HStxQ4PF vwTIyDUee5loag1 ePdbLqPMdkh19zR PcBFK4gtKCdhzIu ea2Ncg69SqseUBi wp45MaNEGlIh9Y7 sU85K0nKEMK5if3 7HOGDDVCL7pwmNj 9A6DKk8MrwpPTeB 2B3uqQpHsKIdPJx qD7S2IJahokxoiY 5UPvodqZY8JRljz In7rV6I5LUyh5SM tSL4t0Z2VfrMDZH En5QqKvVJykQU9S ELH1U2Hxh7ANzCK v2R3xrf102D1zaG 3sO6yLwzpZH2Rq0 q3h9GbWIEndPZHA IsPJC2MFfN0sOwe e6nEuqR2NlsDwBk hMWLszNY7iOICmE RvwFZXFqTwbRlxA qBoAPZYJyPFdKpV MsSRHrFUIwYTE6S ZPQ9bRmb2B1hAu9 rkECh80CmFO04Fc rn1KX392TtgIYu1 PN1LGcrAYdD6UC1 O9Vx2fuBiTIqmo9 XbPsWdRxmX57BjS EZPTZ9wGaxLZVqB cmsDn1mU1Uzbesx 2pXT0mVO7A72mkw wBdlD7QDUeN8Na7 j8W9tUIWUAbAePO 2Z9OSU0M1KIRSuE ePOZBlNonU1dUCz KQWlw.
-END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
+	kiOUtMhcc4NXXRb XMxIeCbf5rGHq6R lPA7tN3yNXtviMm fQULSIc4k93xPgP ranhF1KYLsndSXH 5hK5WHvPJYOvN3G XLzn8MQ3Q5nwFfY K81cz83VtMGh4CC QnNDeIWVZawH75I jFf8SlDWsdj139W FeS69yb9b7Mo5fA rusOzT3JaydVWgf qC7hU3CUvYR65nP xUpmT2HdHPG5MQu XsOhrf5Zv39u9BB AOkyDAgD7hVSSl9 JQ3eYiduTli4Bqh Ri3uJyBayvkWZTF PSOdMhIbjCptBQ3 oTdvh6pOaUPQeoJ ENL1iuVK04KCOy9 xFekloWTI94hkgt gZakcYbimhmzhea Dsgl2mVqgIwmHgv hp5Indezz4TNtOh VJ8c4BBt1NEzIDg ZfFUiAALL0jRfrB cz7tQc1ussnYzrI IfHSFPDe9Cvz9lp gb1BBogunZOkoNW skfxofDP2lX3Qx7 QP5ah5zm8VV0iw1 zfQaNoxicwkqrM8 tfxyKUWZAypOKoF wUIaC1CQIkTZANa bIJyCxs9g6WceUE jLhh4PazAPCMOU9 M3zOBPP1ieDvc0M OzBLKtBWwz0J1nU 0wtMiADTMKMV. 
+	END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
 
 	decoded = libkb.NewBufferCloser()
 	decarg = &PGPDecryptArg{
 		Source: strings.NewReader(saltpack),
 		Sink:   decoded,
 	}
-	dec = NewPGPDecrypt(decarg, tc.G)
-	err := RunEngine(dec, ctx)
+	dec = NewPGPDecrypt(tc.G, decarg)
+	err := RunEngine2(ctx, dec)
 	if wse, ok := err.(libkb.WrongCryptoFormatError); !ok {
 		t.Fatalf("Wanted a WrongCryptoFormat error, but got %T (%v)", err, err)
 	} else if wse.Wanted != libkb.CryptoMessageFormatPGP ||
@@ -130,7 +131,7 @@ END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
 func TestPGPDecryptSignedSelf(t *testing.T) {
 	tc := SetupEngineTest(t, "PGPDecrypt")
 	defer tc.Cleanup()
-	fu := createFakeUserWithPGPOnly(t, tc)
+	fu := createFakeUserWithPGPSibkeyPushed(tc)
 
 	// encrypt a message
 	msg := "We pride ourselves on being meticulous; no issue is too small."
@@ -141,8 +142,8 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, tc.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tc.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -156,8 +157,8 @@ func TestPGPDecryptSignedSelf(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: true,
 	}
-	dec := NewPGPDecrypt(decarg, tc.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tc.G, decarg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := string(decoded.Bytes())
@@ -188,8 +189,8 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, tcSigner.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tcSigner.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -199,13 +200,12 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 	// signer logs out, recipient logs in:
 	t.Logf("signer (%q) logging out", signer.Username)
 	Logout(tcSigner)
-	libkb.G = tcRecipient.G
 	// G = libkb.G
 	t.Logf("recipient (%q) logging in", recipient.Username)
 	recipient.LoginOrBust(tcRecipient)
 
 	rtrackUI := &FakeIdentifyUI{}
-	ctx = &Context{
+	uis := libkb.UIs{
 		IdentifyUI: rtrackUI,
 		SecretUI:   recipient.NewSecretUI(),
 		LogUI:      tcRecipient.G.UI.GetLogUI(),
@@ -219,8 +219,9 @@ func TestPGPDecryptSignedOther(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: true,
 	}
-	dec := NewPGPDecrypt(decarg, tcRecipient.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tcRecipient.G, decarg)
+	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
+	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := string(decoded.Bytes())
@@ -251,8 +252,8 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 		Sink:         sink,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, tcSigner.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tcSigner.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -262,13 +263,12 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 	// signer logs out, recipient logs in:
 	t.Logf("signer (%q) logging out", signer.Username)
 	Logout(tcSigner)
-	libkb.G = tcRecipient.G
 	t.Logf("recipient (%q) logging in", recipient.Username)
 	recipient.LoginOrBust(tcRecipient)
 
 	idUI := &FakeIdentifyUI{}
 	pgpUI := &TestPgpUI{}
-	ctx = &Context{
+	uis := libkb.UIs{
 		IdentifyUI: idUI,
 		SecretUI:   recipient.NewSecretUI(),
 		LogUI:      tcRecipient.G.UI.GetLogUI(),
@@ -282,8 +282,9 @@ func TestPGPDecryptSignedIdentify(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: false,
 	}
-	dec := NewPGPDecrypt(decarg, tcRecipient.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tcRecipient.G, decarg)
+	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
+	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
 
@@ -318,8 +319,8 @@ func TestPGPDecryptLong(t *testing.T) {
 		NoSign:       true,
 		BinaryOutput: true,
 	}
-	enc := NewPGPEncrypt(arg, tc.G)
-	if err := RunEngine(enc, ctx); err != nil {
+	enc := NewPGPEncrypt(tc.G, arg)
+	if err := RunEngine2(ctx, enc); err != nil {
 		t.Fatal(err)
 	}
 	out := sink.Bytes()
@@ -330,8 +331,8 @@ func TestPGPDecryptLong(t *testing.T) {
 		Source: bytes.NewReader(out),
 		Sink:   decoded,
 	}
-	dec := NewPGPDecrypt(decarg, tc.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tc.G, decarg)
+	if err := RunEngine2(ctx, dec); err != nil {
 		t.Fatal(err)
 	}
 	decmsg := decoded.Bytes()
@@ -376,8 +377,8 @@ func TestPGPDecryptClearsign(t *testing.T) {
 			Source: strings.NewReader(signedMsg),
 			Sink:   decoded,
 		}
-		eng := NewPGPDecrypt(arg, tc.G)
-		if err := RunEngine(eng, ctx); err != nil {
+		eng := NewPGPDecrypt(tc.G, arg)
+		if err := RunEngine2(ctx, eng); err != nil {
 			t.Errorf("%s: decrypt error: %q", test.name, err)
 			continue
 		}
@@ -434,7 +435,7 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 
 	idUI := &FakeIdentifyUI{}
 	pgpUI := &TestPgpUI{}
-	ctx := &Context{
+	uis := libkb.UIs{
 		IdentifyUI: idUI,
 		SecretUI:   recipient.NewSecretUI(),
 		LogUI:      tcRecipient.G.UI.GetLogUI(),
@@ -448,8 +449,9 @@ func TestPGPDecryptNonKeybase(t *testing.T) {
 		Sink:         decoded,
 		AssertSigned: false,
 	}
-	dec := NewPGPDecrypt(decarg, tcRecipient.G)
-	if err := RunEngine(dec, ctx); err != nil {
+	dec := NewPGPDecrypt(tcRecipient.G, decarg)
+	m := NewMetaContextForTest(tcRecipient).WithUIs(uis)
+	if err := RunEngine2(m, dec); err != nil {
 		t.Fatal(err)
 	}
 
@@ -496,4 +498,86 @@ func (t *TestPgpUI) ShouldPushPrivate(context.Context, int) (bool, error) {
 
 func (t *TestPgpUI) Finished(context.Context, int) error {
 	return nil
+}
+
+func TestPGPDecryptWithSyncedKey(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpg")
+	u := createFakeUserWithPGPOnly(t, tc)
+	t.Log("Created fake user with PGP synced only")
+	defer tc.Cleanup()
+
+	// find recipient key
+	ur, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc.G, u.Username))
+	require.NoError(t, err, "loaded the user")
+	rkeys := ur.GetActivePGPKeys(false)
+	require.True(t, len(rkeys) > 0, "recipient has no active pgp keys")
+
+	// encrypt and message with rkeys[0]
+	mid := libkb.NewBufferCloser()
+	msg := "Is it time for lunch?"
+	recipients := []*libkb.PGPKeyBundle{rkeys[0]}
+	err = libkb.PGPEncrypt(strings.NewReader(msg), mid, nil, recipients)
+	require.NoError(t, err, "pgp encryption failed")
+	t.Logf("encrypted data: %x", mid.Bytes())
+
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
+	require.NoError(t, err, "no error when checking login")
+
+	// decrypt it
+	decryptIt := func() bool {
+		decoded := libkb.NewBufferCloser()
+		decarg := &PGPDecryptArg{
+			Source:       bytes.NewReader(mid.Bytes()),
+			Sink:         decoded,
+			AssertSigned: false,
+		}
+		idUI := &FakeIdentifyUI{}
+		pgpUI := &TestPgpUI{}
+		secretUI := u.NewSecretUI()
+		uis = libkb.UIs{
+			IdentifyUI: idUI,
+			SecretUI:   secretUI,
+			LogUI:      tc.G.UI.GetLogUI(),
+			PgpUI:      pgpUI,
+		}
+		dec := NewPGPDecrypt(tc.G, decarg)
+		m = NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, dec)
+		require.NoError(t, err, "no error for PGP decrypt")
+
+		decryptedMsg := decoded.Bytes()
+		trimmed := strings.TrimSpace(string(decryptedMsg))
+		t.Logf("decrypted msg: %s", trimmed)
+		require.Equal(t, trimmed, msg, "msg equality failed")
+		return secretUI.CalledGetPassphrase
+	}
+
+	decryptCalledPassphrase := decryptIt()
+	// No need to get a passphrase, since we just logged in.
+	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
+
+	clearCaches(m.G())
+
+	decryptCalledPassphrase = decryptIt()
+	require.True(t, decryptCalledPassphrase, "passphrase get was called")
+
+	decryptCalledPassphrase = decryptIt()
+	require.False(t, decryptCalledPassphrase, "passphrase get wasn't called")
+
 }

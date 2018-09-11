@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <title>Keybase Options</title>
+  <style>
+    body {
+      color: rgba(0, 0, 0, 0.7);
+    }
+    label {
+      display: block;
+      margin-bottom: 1em;
+    }
+    input[type="checked"] {
+      float: left;
+    }
+    .tag {
+      text-transform: uppercase;
+      border-radius: 2px;
+      background: #4c8eff;
+      font-size: 0.6em;
+      font-weight: bold;
+      padding: 2px;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+
+  <form id="options">
+    <label>
+      <input type="checkbox" name="profile-chat-buttons" checked />
+      Add "Keybase chat" buttons to profile pages
+    </label>
+
+    <label>
+      <input type="checkbox" name="reddit-thread-reply" checked />
+      Add "Keybase chat reply" buttons to Reddit threads
+    </label>
+
+    <label>
+      <input type="checkbox" name="profile-passive-queries" />
+      Query profiles passively while browsing <span class="tag" title="Preview feature, not production quality">Alpha</span>
+    </label>
+  </form>
+
+  <script src="../js/options.js"></script>
+
+</body>
+
+</html>

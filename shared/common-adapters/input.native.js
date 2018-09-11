@@ -3,110 +3,184 @@
 // When input gets focus it shifts down 1 pixel when the cursor appears. This happens with a naked TextInput on RN...
 import React, {Component} from 'react'
 import Box from './box'
-import Text, {getStyle as getTextStyle} from './text.native'
-import {NativeTextInput} from './index.native'
-import {globalStyles, globalColors} from '../styles'
+import Text, {getStyle as getTextStyle} from './text'
+import {NativeTextInput} from './native-wrappers.native'
+import {collapseStyles, globalStyles, globalColors, styleSheetCreate} from '../styles'
+import {isIOS, isAndroid} from '../constants/platform'
 
-import type {Props} from './input'
+import type {KeyboardType, Props, Selection, TextInfo} from './input'
+import {checkTextInfo} from './input.shared'
 
 type State = {
-  value: string,
   focused: boolean,
+  height: ?number,
 }
 
-class Input extends Component<void, Props, State> {
-  state: State;
-  _input: any;
+class Input extends Component<Props, State> {
+  state: State
+  _input: NativeTextInput | null
+  _lastNativeText: ?string
+  _lastNativeSelection: ?{start: number, end: number}
 
-  constructor (props: Props) {
+  // TODO: Remove once we can use HOCTimers.
+  _timeoutIds: Array<TimeoutID>
+
+  // We define _setTimeout instead of using HOCTimers since we'd need
+  // to use React.forwardRef with HOCTimers, and it doesn't seem to
+  // work with React Native yet.
+  _setTimeout = (f, n) => {
+    const id = setTimeout(f, n)
+    this._timeoutIds.push(id)
+    return id
+  }
+
+  constructor(props: Props) {
     super(props)
 
     this.state = {
-      value: props.value || '',
       focused: false,
+      height: null,
+    }
+
+    if (__DEV__) {
+      if (props.type === 'password' || props.type === 'passwordVisible') {
+        if (!props.uncontrolled) {
+          console.error(
+            'Controlled password field on mobile, likely incorrect. Can crash on long passphrases'
+          )
+        }
+      }
+    }
+
+    // TODO: Remove once we can use HOCTimers.
+    this._timeoutIds = []
+  }
+
+  // TODO: Remove once we can use HOCTimers.
+  componentWillUnmount = () => {
+    this._timeoutIds.forEach(clearTimeout)
+  }
+
+  _setInputRef = (ref: NativeTextInput | null) => {
+    this._input = ref
+  }
+
+  // Does nothing on mobile
+  select = () => {}
+
+  // Needed to support wrapping with e.g. a ClickableBox. See
+  // https://facebook.github.io/react-native/docs/direct-manipulation.html .
+  setNativeProps = (nativeProps: Object) => {
+    this._input && this._input.setNativeProps(nativeProps)
+  }
+
+  _onContentSizeChange = event => {
+    if (
+      this.props.multiline &&
+      event &&
+      event.nativeEvent &&
+      event.nativeEvent.contentSize &&
+      event.nativeEvent.contentSize.height &&
+      event.nativeEvent.contentSize.width
+    ) {
+      let height = event.nativeEvent.contentSize.height
+      const minHeight = this.props.rowsMin && this._rowsToHeight(this.props.rowsMin)
+      const maxHeight = this.props.rowsMax && this._rowsToHeight(this.props.rowsMax)
+      if (minHeight && height < minHeight) {
+        height = minHeight
+      } else if (maxHeight && height > maxHeight) {
+        height = maxHeight
+      }
+
+      if (height !== this.state.height) {
+        this.setState({height})
+      }
     }
   }
 
-  componentDidMount () {
-    this._autoResize()
+  _getValue = () => {
+    return (this.props.uncontrolled ? this._lastNativeText : this.props.value) || ''
   }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps.hasOwnProperty('value')) {
-      this.setState({value: nextProps.value || ''})
-      this._autoResize()
+  getValue = (): string => {
+    if (this.props.uncontrolled) {
+      return this._getValue()
+    } else {
+      throw new Error('getValue only supported on uncontrolled inputs')
     }
   }
 
-  componentWillUpdate (nextProps: Props) {
-    if (nextProps.type !== this.props.type) {
-      this._setPasswordVisible(nextProps.type === 'passwordVisible')
-    }
+  selection = (): Selection => {
+    return this._lastNativeSelection || {start: 0, end: 0}
   }
 
-  _autoResize () {
-    // maybe support this later. Keeping this flow so it matches desktop
-  }
-
-  _setPasswordVisible (passwordVisible: boolean) {
-    // $FlowIssue
-    this._textInput && this._textInput.setNativeProps({passwordVisible})
-  }
-
-  getValue (): string {
-    return this.state.value || ''
-  }
-
-  setValue (value: string) {
-    this.setState({value: value || ''})
-  }
-
-  clearValue () {
-    this._onChangeText('')
+  _onChangeTextDone = (value: string) => {
+    this.props.onChangeText && this.props.onChangeText(value)
   }
 
   _onChangeText = (text: string) => {
-    this.setState({value: text || ''})
-    this._autoResize()
-
-    this.props.onChangeText && this.props.onChangeText(text || '')
+    this._lastNativeText = text
+    this._onChangeTextDone(text)
   }
 
-  _inputNode () {
-    return this._input
+  focus = () => {
+    this._input && this._input.focus()
   }
 
-  focus () {
-    this._input && this._inputNode().focus()
+  blur = () => {
+    this._input && this._input.blur()
   }
 
-  select () {
-    this._input && this._inputNode().select()
-  }
-
-  blur () {
-    this._input && this._inputNode().blur()
-  }
-
-  _onKeyDown = (e: SyntheticKeyboardEvent) => {
-    if (this.props.onKeyDown) {
-      this.props.onKeyDown(e)
+  transformText = (fn: TextInfo => TextInfo) => {
+    if (!this.props.uncontrolled) {
+      throw new Error('transformText can only be called on uncontrolled components')
     }
 
-    if (this.props.onEnterKeyDown && e.key === 'Enter') {
-      this.props.onEnterKeyDown(e)
+    const textInfo: TextInfo = {
+      text: this._getValue(),
+      selection: this.selection(),
     }
+    const newTextInfo = fn(textInfo)
+    checkTextInfo(newTextInfo)
+    this.setNativeProps({text: newTextInfo.text})
+    this._lastNativeText = newTextInfo.text
+    // Setting both the text and the selection at the same time
+    // doesn't seem to work, but setting a short timeout to set the
+    // selection does.
+    this._setTimeout(() => {
+      // It's possible that, by the time this runs, the selection is
+      // out of bounds with respect to the current text value. So fix
+      // it up if necessary.
+      const text = this._getValue()
+      let {start, end} = newTextInfo.selection
+      end = Math.max(0, Math.min(end, text.length))
+      start = Math.max(0, Math.min(start, end))
+      const selection = {start, end}
+      this.setNativeProps({selection})
+      this._lastNativeSelection = selection
+    }, 0)
   }
 
   _onFocus = () => {
     this.setState({focused: true})
+    this.props.onFocus && this.props.onFocus()
+    this.setNativeProps({style: {textAlignVertical: 'top'}})
   }
 
   _onBlur = () => {
     this.setState({focused: false})
+    this.props.onBlur && this.props.onBlur()
   }
 
-  _underlineColor () {
+  _lineHeight = () => {
+    if (this.props.small) {
+      return 20
+    } else if (this.props.multiline && isAndroid) {
+      return 34
+    } else return 28
+  }
+
+  _underlineColor = () => {
     if (this.props.hideUnderline) {
       return globalColors.transparent
     }
@@ -115,138 +189,216 @@ class Input extends Component<void, Props, State> {
       return globalColors.red
     }
 
-    return this.state.focused ? globalColors.blue : globalColors.black_10
+    return this.state.focused ? globalColors.blue : globalColors.black_10_on_white
   }
 
-  _rowsToHeight (rows) {
-    return rows * _lineHeight +
-      1 // border
+  _rowsToHeight = rows => {
+    const border = this.props.hideUnderline ? 0 : 1
+    return rows * this._lineHeight() + border
   }
 
-  _containerStyle (underlineColor) {
+  _containerStyle = underlineColor => {
     return this.props.small
-    ? {
-      ...globalStyles.flexBoxRow,
-      borderBottomWidth: 1,
-      borderBottomColor: underlineColor,
-      flex: 1,
-    }
-    : {
-      ...globalStyles.flexBoxColumn,
-      justifyContent: 'flex-start',
-      maxWidth: 460,
-    }
+      ? {
+          ...globalStyles.flexBoxRow,
+          backgroundColor: globalColors.fastBlank,
+          borderBottomWidth: 1,
+          borderBottomColor: underlineColor,
+          flex: 1,
+        }
+      : {
+          ...globalStyles.flexBoxColumn,
+          backgroundColor: globalColors.fastBlank,
+          justifyContent: 'flex-start',
+          maxWidth: 400,
+        }
   }
 
-  render () {
+  _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
+    let {start: _start, end: _end} = event.nativeEvent.selection
+    // Work around Android bug which sometimes puts end before start:
+    // https://github.com/facebook/react-native/issues/18579 .
+    const start = Math.min(_start, _end)
+    const end = Math.max(_start, _end)
+    this._lastNativeSelection = {start, end}
+    // Bit of a hack here: Unlike the desktop case, where the text and
+    // selection are updated simultaneously, on mobile the text gets
+    // updated first, so handlers that rely on an updated selection
+    // will get strange results. So trigger a text change notification
+    // when the selection changes.
+    this._onChangeTextDone(this._getValue())
+  }
+
+  render = () => {
     const underlineColor = this._underlineColor()
+    const lineHeight = this._lineHeight()
     const defaultRowsToShow = Math.min(2, this.props.rowsMax || 2)
     const containerStyle = this._containerStyle(underlineColor)
 
     const commonInputStyle = {
-      ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
-      lineHeight: _lineHeight,
-      backgroundColor: globalColors.transparent,
+      color: globalColors.black_75_on_white,
+      lineHeight: lineHeight,
+      backgroundColor: globalColors.fastBlank,
       flexGrow: 1,
       borderWidth: 0,
       ...(this.props.small
-      ? {textAlign: 'left'}
-      : {
-        textAlign: 'center',
-        minWidth: 333,
-      }),
+        ? {...globalStyles.fontRegular, fontSize: _bodyTextStyle.fontSize, textAlign: 'left'}
+        : {
+            ...globalStyles.fontSemibold,
+            fontSize: _headerTextStyle.fontSize,
+            textAlign: 'center',
+            minWidth: 200,
+          }),
     }
 
     const singlelineStyle = {
       ...commonInputStyle,
-      height: 28,
+      maxHeight: lineHeight, // ensure it doesn't grow or shrink
+      minHeight: lineHeight,
       padding: 0,
     }
 
     const multilineStyle = {
       ...commonInputStyle,
-      paddingTop: 0,
-      paddingBottom: 0,
+      height: undefined,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+      paddingBottom: 0,
+      paddingTop: 0,
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : null),
     }
 
-    const floatingHintText = !!this.state.value.length &&
-      (this.props.hasOwnProperty('floatingHintTextOverride')
-       ? this.props.floatingHintTextOverride
-       : this.props.hintText || ' ')
+    // Override height if we received an onContentSizeChange() earlier.
+    if (isIOS && this.state.height) {
+      multilineStyle.height = this.state.height
+    }
 
-    const commonProps = {
+    const value = this._getValue()
+
+    const floatingHintText =
+      !!value.length &&
+      (this.props.hasOwnProperty('floatingHintTextOverride')
+        ? this.props.floatingHintTextOverride
+        : this.props.hintText || ' ')
+
+    let keyboardType: ?KeyboardType = this.props.keyboardType
+    if (!keyboardType) {
+      if (isAndroid && this.props.type === 'passwordVisible') {
+        keyboardType = 'visible-password'
+      } else {
+        // Defers to secureTextEntry when props.type === 'password'.
+        keyboardType = 'default'
+      }
+    }
+
+    // We want to be able to set the selection property,
+    // too. Unfortunately, that triggers an Android crash:
+    // https://github.com/facebook/react-native/issues/18316 .
+    const commonProps: {value?: string} = {
       autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
-      keyboardType: this.props.keyboardType,
+      editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
+      keyboardType,
       autoFocus: this.props.autoFocus,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
       onFocus: this._onFocus,
-      onKeyDown: this._onKeyDown,
+      onSelectionChange: this._onSelectionChange,
+      onSubmitEditing: this.props.onEnterKeyDown,
+      onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,
-      ref: r => { this._input = r },
+      ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
-      value: this.state.value,
+      selectTextOnFocus: this.props.selectTextOnFocus,
       secureTextEntry: this.props.type === 'password',
-      underlineColorAndroid: globalColors.transparent,
+      underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
+    }
+
+    if (!this.props.uncontrolled) {
+      commonProps.value = value
     }
 
     const singlelineProps = {
       ...commonProps,
       multiline: false,
-      style: {...singlelineStyle, ...this.props.inputStyle},
-      type: {
-        password: 'password',
-        text: 'text',
-        passwordVisible: 'text',
-      }[this.props.type || 'text'] || 'text',
+      style: collapseStyles([singlelineStyle, this.props.inputStyle]),
     }
 
     const multilineProps = {
       ...commonProps,
       multiline: true,
-      style: {...multilineStyle, ...this.props.inputStyle},
-    }
-
-    const smallLabelStyle = {
-      ...globalStyles.fontSemibold,
-      fontSize: _headerTextStyle.fontSize,
-      lineHeight: _lineHeight,
-      marginRight: 8,
-      color: globalColors.blue,
-      ...this.props.smallLabelStyle,
+      blurOnSubmit: false,
+      onContentSizeChange: this._onContentSizeChange,
+      style: collapseStyles([multilineStyle, this.props.inputStyle]),
+      ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {}),
     }
 
     return (
-      <Box style={{...containerStyle, ...this.props.style}}>
-        {!this.props.small && <Text type='BodySmall' style={_floatingStyle}>{floatingHintText}</Text>}
-        {!!this.props.small && !!this.props.smallLabel && <Text type='BodySmall' style={smallLabelStyle}>{this.props.smallLabel}</Text>}
-        <Box style={this.props.small ? {flex: 1} : {borderBottomWidth: 1, borderBottomColor: underlineColor}}>
+      <Box style={[containerStyle, this.props.style]}>
+        {!this.props.small &&
+          !this.props.hideLabel && (
+            <Text type="BodySmall" style={styles.floating}>
+              {floatingHintText}
+            </Text>
+          )}
+        {!!this.props.small &&
+          !!this.props.smallLabel &&
+          !this.props.hideLabel && (
+            <Text
+              type="BodySmall"
+              style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
+            >
+              {this.props.smallLabel}
+            </Text>
+          )}
+        <Box
+          style={
+            this.props.small
+              ? styles.inputContainerSmall
+              : [styles.inputContainer, {borderBottomColor: underlineColor}]
+          }
+        >
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
-        {!!this.props.errorText && !this.props.small && <Text type='BodyError' style={{..._errorStyle, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
+        {!this.props.small && (
+          <Text type="BodySmallError" style={collapseStyles([styles.error, this.props.errorStyle])}>
+            {this.props.errorText || ''}
+          </Text>
+        )}
       </Box>
     )
   }
 }
 
-const _lineHeight = 28
 const _headerTextStyle = getTextStyle('Header')
+const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
+const _bodyErrorTextStyle = getTextStyle('BodySmallError')
 
-const _errorStyle = {
-  textAlign: 'center',
-}
-
-const _floatingStyle = {
-  textAlign: 'center',
-  minHeight: _bodySmallTextStyle.lineHeight,
-  color: globalColors.blue,
-  marginBottom: 9,
-}
+const styles = styleSheetCreate({
+  error: {
+    minHeight: _bodyErrorTextStyle.lineHeight,
+    textAlign: 'center',
+  },
+  floating: {
+    color: globalColors.blue,
+    marginBottom: 9,
+    minHeight: _bodySmallTextStyle.lineHeight,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    borderBottomWidth: 1,
+  },
+  inputContainerSmall: {
+    backgroundColor: globalColors.fastBlank,
+    flex: 1,
+  },
+  smallLabel: {
+    ...globalStyles.fontSemibold,
+    color: globalColors.blue,
+    fontSize: _headerTextStyle.fontSize,
+    marginRight: 8,
+  },
+})
 
 export default Input

@@ -7,42 +7,42 @@ import (
 	"golang.org/x/net/context"
 )
 
-type decoder interface {
-	Decode(interface{}) error
-}
-
 type encoder interface {
-	EncodeAndWrite(context.Context, interface{}) <-chan error
+	EncodeAndWrite(context.Context, interface{}, func()) <-chan error
 	EncodeAndWriteAsync(interface{}) <-chan error
 }
 
-type decoderWrapper struct {
-	*codec.Decoder
+// fieldDecoder decodes the fields of a packet.
+type fieldDecoder struct {
+	d           *codec.Decoder
 	fieldNumber int
 }
 
-func newDecoderWrapper() *decoderWrapper {
-	return &decoderWrapper{
-		Decoder:     codec.NewDecoderBytes([]byte{}, newCodecMsgpackHandle()),
+func newFieldDecoder() *fieldDecoder {
+	return &fieldDecoder{
+		d:           codec.NewDecoderBytes([]byte{}, newCodecMsgpackHandle()),
 		fieldNumber: 0,
 	}
 }
 
-func (dw *decoderWrapper) Decode(i interface{}) error {
+// Decode decodes the next field into the given interface. If an error
+// is returned, ResetBytes() must be called on a new packet before
+// this can be called again.
+func (dw *fieldDecoder) Decode(i interface{}) error {
 	defer func() {
 		dw.fieldNumber++
 	}()
 
-	err := dw.Decoder.Decode(i)
+	err := dw.d.Decode(i)
 	if err != nil {
 		return newRPCMessageFieldDecodeError(dw.fieldNumber, err)
 	}
 	return nil
 }
 
-func (dw *decoderWrapper) ResetBytes(b []byte) {
+func (dw *fieldDecoder) ResetBytes(b []byte) {
 	dw.fieldNumber = 0
-	dw.Decoder.ResetBytes(b)
+	dw.d.ResetBytes(b)
 }
 
 func newCodecMsgpackHandle() codec.Handle {
@@ -55,6 +55,7 @@ func newCodecMsgpackHandle() codec.Handle {
 type writeBundle struct {
 	bytes []byte
 	ch    chan error
+	sn    func()
 }
 
 type framedMsgpackEncoder struct {
@@ -96,7 +97,7 @@ func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {
 	return append(length, content...), nil
 }
 
-func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, i interface{}) <-chan error {
+func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, i interface{}, sendNotifier func()) <-chan error {
 	bytes, err := e.encodeFrame(i)
 	ch := make(chan error, 1)
 	if err != nil {
@@ -108,7 +109,7 @@ func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, i interface{}
 		ch <- io.EOF
 	case <-ctx.Done():
 		ch <- ctx.Err()
-	case e.writeCh <- writeBundle{bytes, ch}:
+	case e.writeCh <- writeBundle{bytes, ch, sendNotifier}:
 	}
 	return ch
 }
@@ -123,13 +124,13 @@ func (e *framedMsgpackEncoder) EncodeAndWriteAsync(i interface{}) <-chan error {
 	select {
 	case <-e.doneCh:
 		ch <- io.EOF
-	case e.writeCh <- writeBundle{bytes, ch}:
+	case e.writeCh <- writeBundle{bytes, ch, nil}:
 	default:
 		go func() {
 			select {
 			case <-e.doneCh:
 				ch <- io.EOF
-			case e.writeCh <- writeBundle{bytes, ch}:
+			case e.writeCh <- writeBundle{bytes, ch, nil}:
 			}
 		}()
 	}
@@ -143,6 +144,9 @@ func (e *framedMsgpackEncoder) writerLoop() {
 			close(e.closedCh)
 			return
 		case write := <-e.writeCh:
+			if write.sn != nil {
+				write.sn()
+			}
 			_, err := e.writer.Write(write.bytes)
 			write.ch <- err
 		}

@@ -3,35 +3,32 @@ import {globalStyles, globalColors} from '../styles'
 
 import type {MetaType, TextType, Background} from './text'
 
-function defaultColor (backgroundMode: ?Background) {
-  if (!backgroundMode) {
-    backgroundMode = 'Normal'
-  }
-
+function defaultColor(backgroundMode: ?Background) {
   return {
-    'Normal': globalColors.white,
-    'Announcements': globalColors.white,
-    'Success': globalColors.white,
-    'Information': globalColors.brown_60,
-    'HighRisk': globalColors.white,
-    'Documentation': globalColors.white,
-    'Terminal': globalColors.white,
-  }[backgroundMode]
+    Normal: globalColors.white,
+    Announcements: globalColors.white,
+    Success: globalColors.white,
+    Information: globalColors.brown_60,
+    HighRisk: globalColors.white,
+    Documentation: globalColors.white,
+    Terminal: globalColors.white,
+  }[backgroundMode || 'Normal']
 }
 
-function lineClamp (lines: ?number): Object {
+function lineClamp(lines: ?number, mode: ?string): Object {
   return {
-    ...(lines ? {numberOfLines: lines} : null),
+    ...(lines ? {ellipsizeMode: mode, numberOfLines: lines} : null),
   }
 }
 
-function fontSizeToSizeStyle (fontSize: number): ?Object {
+function fontSizeToSizeStyle(fontSize: number): ?Object {
   const lineHeight = {
-    '26': 30,
-    '18': 22,
-    '16': 20,
-    '14': 18,
-    '12': 16,
+    '28': 33,
+    '20': 25,
+    '18': 23,
+    '16': 21,
+    '14': 19,
+    '12': 17,
   }[String(fontSize)]
 
   return {
@@ -41,223 +38,296 @@ function fontSizeToSizeStyle (fontSize: number): ?Object {
 }
 
 const _blackNormalWhiteTerminal = {
-  'Normal': globalColors.black_75,
-  'Terminal': globalColors.white,
+  Normal: globalColors.black_75,
+  Terminal: globalColors.white,
 }
 
 const _blueLink = {
-  'Normal': globalColors.blue,
+  Normal: globalColors.blue,
 }
 
 const metaData: {[key: TextType]: MetaType} = {
   // Header
-  'HeaderBig': {
-    fontSize: 26,
+  HeaderBig: {
+    fontSize: 28,
     colorForBackgroundMode: _blackNormalWhiteTerminal,
     styleOverride: globalStyles.fontBold,
   },
-  'Header': {
+  HeaderBigExtrabold: {
+    fontSize: 28,
     colorForBackgroundMode: _blackNormalWhiteTerminal,
-    fontSize: 18,
-    styleOverride: globalStyles.fontSemibold,
+    styleOverride: globalStyles.fontExtrabold,
   },
-  'HeaderLink': {
-    colorForBackgroundMode: _blueLink,
-    fontSize: 18,
-    isLink: true,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  // Body big
-  'BodyBig': {
+  Header: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
-    fontSize: 16,
+    fontSize: 20,
     styleOverride: globalStyles.fontSemibold,
   },
-  'BodyBigLink': {
-    colorForBackgroundMode: _blueLink,
-    fontSize: 16,
-    isLink: true,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  // Body
-  'Body': {
+  HeaderItalic: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
-    fontSize: 14,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySemibold': {
-    colorForBackgroundMode: _blackNormalWhiteTerminal,
-    fontSize: 14,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  'BodySemiboldLink': {
-    colorForBackgroundMode: {
-      ..._blueLink,
-      'Terminal': globalColors.white,
-    },
-    isLink: true,
-    fontSize: 14,
-    styleOverride: globalStyles.fontSemibold,
-  },
-  'BodySemiboldItalic': {
-    colorForBackgroundMode: _blackNormalWhiteTerminal,
-    fontSize: 14,
+    fontSize: 20,
     styleOverride: {
       ...globalStyles.fontSemibold,
       fontStyle: 'italic',
     },
   },
-  'BodyPrimaryLink': {
-    colorForBackgroundMode: {
-      ..._blueLink,
-      'Terminal': globalColors.white,
-    },
-    fontSize: 14,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
+  HeaderExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 20,
+    styleOverride: globalStyles.fontExtrabold,
   },
-  'BodySecondaryLink': {
+  HeaderLink: {
     colorForBackgroundMode: _blueLink,
-    fontSize: 14,
+    fontSize: 20,
     isLink: true,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  // Body big
+  BodyBig: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 18,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodyBigLink: {
+    colorForBackgroundMode: _blueLink,
+    fontSize: 18,
+    isLink: true,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodyBigExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 18,
+    styleOverride: globalStyles.fontExtrabold,
+  },
+  // Body
+  Body: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
     styleOverride: globalStyles.fontRegular,
   },
-  'BodyError': {
-    colorForBackgroundMode: {'Normal': globalColors.red},
-    fontSize: 14,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySuccess': {
-    colorForBackgroundMode: {'Normal': globalColors.green2},
-    fontSize: 14,
-    styleOverride: globalStyles.fontRegular,
-  },
-  // Body Small
-  'BodySmall': {
-    colorForBackgroundMode: {
-      'Normal': globalColors.black_40,
-      'Terminal': globalColors.white_40,
-    },
-    fontSize: 12,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySmallItalic': {
-    colorForBackgroundMode: {
-      'Normal': globalColors.black_40,
-      'Terminal': globalColors.white_40,
-    },
-    fontSize: 12,
+  BodyItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
     styleOverride: {
       ...globalStyles.fontRegular,
       fontStyle: 'italic',
     },
   },
-  'BodySmallInlineLink': {
+  BodyExtrabold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: globalStyles.fontExtrabold,
+  },
+  BodySemibold: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodySemiboldLink: {
     colorForBackgroundMode: {
       ..._blueLink,
-      'Terminal': globalColors.white_40,
+      Terminal: globalColors.white,
+    },
+    isLink: true,
+    fontSize: 16,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodySemiboldItalic: {
+    colorForBackgroundMode: _blackNormalWhiteTerminal,
+    fontSize: 16,
+    styleOverride: {
+      ...globalStyles.fontSemibold,
+      fontStyle: 'italic',
+    },
+  },
+  BodyPrimaryLink: {
+    colorForBackgroundMode: {
+      ..._blueLink,
+      Terminal: globalColors.white,
+    },
+    fontSize: 16,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySecondaryLink: {
+    colorForBackgroundMode: {Normal: globalColors.black_60},
+    fontSize: 16,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
+  },
+  // Body Small
+  BodySmall: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallExtrabold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    styleOverride: globalStyles.fontExtrabold,
+  },
+  BodySmallItalic: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    styleOverride: {
+      ...globalStyles.fontRegular,
+      fontStyle: 'italic',
+    },
+  },
+  BodySmallSemibold: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodySmallSemiboldItalic: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
+  },
+  BodySmallSemiboldSecondaryLink: {
+    colorForBackgroundMode: {
+      ..._blueLink,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    isLink: true,
+    styleOverride: {...globalStyles.fontSemibold, textDecorationLine: undefined},
+  },
+  BodySmallPrimaryLink: {
+    colorForBackgroundMode: {
+      ..._blueLink,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallSemiboldPrimaryLink: {
+    colorForBackgroundMode: {
+      ..._blueLink,
+      Terminal: globalColors.white,
+    },
+    fontSize: 14,
+    isLink: true,
+    styleOverride: globalStyles.fontSemibold,
+  },
+  BodySmallSecondaryLink: {
+    colorForBackgroundMode: {Normal: globalColors.black_60},
+    fontSize: 14,
+    isLink: true,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallExtraboldSecondaryLink: {
+    colorForBackgroundMode: {Normal: globalColors.black_60},
+    fontSize: 14,
+    isLink: true,
+    styleOverride: globalStyles.fontExtrabold,
+  },
+  BodySmallError: {
+    colorForBackgroundMode: {Normal: globalColors.red},
+    fontSize: 14,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallSuccess: {
+    colorForBackgroundMode: {Normal: globalColors.green2},
+    fontSize: 14,
+    styleOverride: globalStyles.fontRegular,
+  },
+  BodySmallWallet: {
+    colorForBackgroundMode: {Normal: globalColors.purple2},
+    fontSize: 14,
+    styleOverride: globalStyles.fontRegular,
+  },
+  // Body Tiny
+  BodyTiny: {
+    colorForBackgroundMode: {
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
-    isLink: true,
-    styleOverride: {...globalStyles.fontRegular, textDecoration: undefined},
+    styleOverride: globalStyles.fontRegular,
   },
-  'BodySmallSemibold': {
+  BodyTinySemibold: {
     colorForBackgroundMode: {
-      'Normal': globalColors.black_40,
-      'Terminal': globalColors.white_40,
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
     styleOverride: globalStyles.fontSemibold,
   },
-  'BodySmallSemiboldInlineLink': {
+  BodyTinyBold: {
     colorForBackgroundMode: {
-      ..._blueLink,
-      'Terminal': globalColors.white_40,
+      Normal: globalColors.black_40,
+      Terminal: globalColors.white,
     },
     fontSize: 12,
-    isLink: true,
-    styleOverride: {...globalStyles.fontSemibold, textDecoration: undefined},
-  },
-  'BodySmallPrimaryLink': {
-    colorForBackgroundMode: {
-      ..._blueLink,
-      'Terminal': globalColors.white,
-    },
-    fontSize: 12,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySmallSecondaryLink': {
-    colorForBackgroundMode: _blueLink,
-    fontSize: 12,
-    isLink: true,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySmallError': {
-    colorForBackgroundMode: {'Normal': globalColors.red},
-    fontSize: 12,
-    styleOverride: globalStyles.fontRegular,
-  },
-  'BodySmallSuccess': {
-    colorForBackgroundMode: {'Normal': globalColors.green2},
-    fontSize: 12,
-    styleOverride: globalStyles.fontRegular,
+    styleOverride: globalStyles.fontBold,
   },
   // Terminal
-  'Terminal': {
+  Terminal: {
     colorForBackgroundMode: {
-      'Normal': globalColors.blue3,
-      'Terminal': globalColors.darkBlue,
+      Normal: globalColors.blue3,
+      Terminal: globalColors.darkBlue,
     },
-    fontSize: 14,
+    fontSize: 15,
     styleOverride: {
       ...globalStyles.fontTerminal,
       lineHeight: 20,
     },
   },
-  'TerminalComment': {
+  TerminalComment: {
     colorForBackgroundMode: {
-      'Normal': globalColors.blue3_40,
-      'Terminal': globalColors.blue3_40,
+      Normal: globalColors.blue3_40,
+      Terminal: globalColors.blue3_40,
     },
-    fontSize: 14,
+    fontSize: 15,
     styleOverride: {
       ...globalStyles.fontTerminal,
       lineHeight: 20,
     },
   },
-  'TerminalEmpty': {
+  TerminalEmpty: {
     colorForBackgroundMode: {
-      'Normal': globalColors.blue3_40,
-      'Terminal': globalColors.blue3_40,
+      Normal: globalColors.blue3_40,
+      Terminal: globalColors.blue3_40,
     },
-    fontSize: 14,
+    fontSize: 15,
     styleOverride: {
       ...globalStyles.fontTerminal,
       height: 20,
       lineHeight: 20,
     },
   },
-  'TerminalInline': {
+  TerminalInline: {
     colorForBackgroundMode: {
-      'Normal': globalColors.darkBlue,
-      'Terminal': globalColors.darkBlue,
+      Normal: globalColors.darkBlue,
+      Terminal: globalColors.darkBlue,
     },
-    fontSize: 14,
+    fontSize: 15,
     styleOverride: {
       ...globalStyles.fontTerminal,
       backgroundColor: globalColors.blue4,
       borderRadius: 2,
-      lineHeight: 18,
+      lineHeight: 20,
       height: 20,
       padding: 2,
     },
   },
 }
 
-export {
-  defaultColor,
-  fontSizeToSizeStyle,
-  lineClamp,
-  metaData,
-}
+export {defaultColor, fontSizeToSizeStyle, lineClamp, metaData}

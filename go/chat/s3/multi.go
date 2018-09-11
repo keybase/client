@@ -286,7 +286,7 @@ type ReaderAtSeeker interface {
 // new content.
 // PutAll returns all the parts of m (reused or not).
 func (m *Multi) PutAll(r ReaderAtSeeker, partSize int64) ([]Part, error) {
-	old, err := m.ListParts(nil)
+	old, err := m.ListParts(context.Background())
 	if err != nil && !hasCode(err, "NoSuchUpload") {
 		return nil, err
 	}
@@ -323,7 +323,7 @@ NextSection:
 		}
 
 		// Part wasn't found or doesn't match. Send it.
-		part, err := m.putPart(nil, current, section, partSize, md5b64)
+		part, err := m.putPart(context.Background(), current, section, partSize, md5b64)
 		if err != nil {
 			return nil, err
 		}
@@ -363,7 +363,7 @@ type completeResponse struct {
 // final object. This operation may take several minutes.
 //
 // The complete call to AMZ may still fail after returning HTTP 200,
-// so even though it's unusued, the body of the reply must be demarshalled
+// so even though it's unused, the body of the reply must be demarshalled
 // and checked to see whether or not the complete succeeded.
 //
 // See http://goo.gl/2Z7Tw for details.
@@ -413,7 +413,7 @@ func (m *Multi) Complete(ctx context.Context, parts []Part) error {
 	panic("unreachable")
 }
 
-// Abort deletes an unifinished multipart upload and any previously
+// Abort deletes an unfinished multipart upload and any previously
 // uploaded parts for it.
 //
 // After a multipart upload is aborted, no additional parts can be

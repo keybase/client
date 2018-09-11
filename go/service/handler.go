@@ -18,9 +18,9 @@ type BaseHandler struct {
 	logCli    *keybase1.LogUiClient
 }
 
-func NewBaseHandler(xp rpc.Transporter) *BaseHandler {
+func NewBaseHandler(g *libkb.GlobalContext, xp rpc.Transporter) *BaseHandler {
 	h := &BaseHandler{xp: xp}
-	h.cli = rpc.NewClient(h.xp, libkb.ErrorUnwrapper{})
+	h.cli = rpc.NewClient(h.xp, libkb.NewContextifiedErrorUnwrapper(g), nil)
 	h.loginCli = &keybase1.LoginUiClient{Cli: h.cli}
 	h.secretCli = &keybase1.SecretUiClient{Cli: h.cli}
 	h.logCli = &keybase1.LogUiClient{Cli: h.cli}
@@ -118,6 +118,10 @@ func (h *BaseHandler) getSaltpackUI(sessionID int) libkb.SaltpackUI {
 
 func (h *BaseHandler) getChatUI(sessionID int) libkb.ChatUI {
 	return NewRemoteChatUI(sessionID, h.rpcClient())
+}
+
+func (h *BaseHandler) getTeamsUI(sessionID int) keybase1.TeamsUiInterface {
+	return NewRemoteTeamsUI(sessionID, h.rpcClient())
 }
 
 func (h *BaseHandler) NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI {

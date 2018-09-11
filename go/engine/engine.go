@@ -5,111 +5,144 @@ package engine
 
 import (
 	"fmt"
-	"net/url"
+	"runtime/debug"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-type Prereqs struct {
-	Session bool
-	Device  bool
-}
-
-type Engine interface {
-	Run(ctx *Context) error
-	Prereqs() Prereqs
-	libkb.UIConsumer
-	G() *libkb.GlobalContext
-}
+type Prereqs = libkb.EnginePrereqs
+type Engine2 = libkb.Engine2
 
 type UIDelegateWanter interface {
 	WantDelegate(libkb.UIKind) bool
 }
 
-func runPrereqs(e Engine, ctx *Context) (err error) {
+func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
+	for _, ui := range c.RequiredUIs() {
+		if ui == kind {
+			return true
+		}
+	}
+	for _, sub := range c.SubConsumers() {
+		if requiresUI(sub, kind) {
+			return true
+		}
+	}
+	return false
+}
+
+// isLoggedInWithUIDAndError conveys if the user is in a logged-in state or not.
+// If this function returns `true`, it's because the user is logged in,
+// is on a provisioned device, and has an unlocked device key, If this
+// function returns `false`, it's because either no one has ever logged onto
+// this device, or someone has, and then clicked `logout`. If the return
+// value is `false`, and `err` is `nil`, then the service is in one of
+// those expected "logged out" states.  If the return value is `false`
+// and `err` is non-`nil`, then something went wrong, and the app is in some
+// sort of unexpected state. If `ret` is `true`, then `uid` will convey
+// which user is logged in.
+//
+// Under the hood, IsLoggedIn is going through the BootstrapActiveDevice
+// flow and therefore will try its best to unlocked locked keys if it can
+// without user interaction.
+func isLoggedInWithUIDAndError(m libkb.MetaContext) (ret bool, uid keybase1.UID, err error) {
+	ret, uid, err = libkb.BootstrapActiveDeviceWithMetaContext(m)
+	return ret, uid, err
+}
+func isLoggedIn(m libkb.MetaContext) (ret bool, uid keybase1.UID) {
+	ret, uid, _ = libkb.BootstrapActiveDeviceWithMetaContext(m)
+	return ret, uid
+}
+
+func assertLoggedIn(m libkb.MetaContext, which string) (err error) {
+	ret, err := isLoggedInWithError(m)
+	if err != nil {
+		return err
+	}
+	if !ret {
+		return libkb.NewLoginRequiredError(which)
+	}
+	return nil
+}
+
+func isLoggedInWithError(m libkb.MetaContext) (ret bool, err error) {
+	ret, _, err = isLoggedInWithUIDAndError(m)
+	return ret, err
+}
+
+func runPrereqs(m libkb.MetaContext, e Engine2) error {
 	prq := e.Prereqs()
 
-	if prq.Session {
-		var ok bool
-		ok, _, err = IsLoggedIn(e, ctx)
-		if !ok {
-			urlError, isURLError := err.(*url.Error)
-			context := ""
-			if isURLError {
-				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
-			}
-			err = libkb.LoginRequiredError{Context: context}
-		}
-		if err != nil {
-			return err
+	if prq.TemporarySession {
+		if !m.HasAnySession() {
+			return libkb.NewLoginRequiredError("need either a temporary session or a device")
 		}
 	}
 
 	if prq.Device {
-		var ok bool
-		ok, err = IsProvisioned(e, ctx)
+		ok, err := isLoggedInWithError(m)
 		if err != nil {
 			return err
 		}
 		if !ok {
-			err = libkb.DeviceRequiredError{}
-			return err
-		}
-	}
-
-	return
-
-}
-
-func RunEngine(e Engine, ctx *Context) (err error) {
-	e.G().Log.Debug("+ RunEngine(%s)", e.Name())
-	defer func() { e.G().Log.Debug("- RunEngine(%s) -> %s", e.Name(), libkb.ErrToOk(err)) }()
-
-	if err = delegateUIs(e, ctx); err != nil {
-		return err
-	}
-	if err = check(e, ctx); err != nil {
-		return err
-	}
-	if err = runPrereqs(e, ctx); err != nil {
-		return err
-	}
-
-	err = e.Run(ctx)
-	return err
-}
-
-func delegateUIs(e Engine, ctx *Context) error {
-	if e.G().UIRouter == nil {
-		return nil
-	}
-
-	// currently, only doing this for SecretUI, but in future,
-	// perhaps should iterate over all registered UIs in UIRouter.
-
-	if requiresUI(e, libkb.SecretUIKind) {
-		if ui, err := e.G().UIRouter.GetSecretUI(ctx.SessionID); err != nil {
-			return err
-		} else if ui != nil {
-			e.G().Log.Debug("using delegated secret UI for engine %q (session id = %d)", e.Name(), ctx.SessionID)
-			ctx.SecretUI = ui
-		}
-	}
-
-	if wantsDelegateUI(e, libkb.IdentifyUIKind) {
-		e.G().Log.Debug("IdentifyUI wanted for engine %q", e.Name())
-		if ui, err := e.G().UIRouter.GetIdentifyUI(); err != nil {
-			return err
-		} else if ui != nil {
-			e.G().Log.Debug("using delegated identify UI for engine %q", e.Name())
-			ctx.IdentifyUI = ui
+			return libkb.DeviceRequiredError{}
 		}
 	}
 
 	return nil
+
 }
 
-func wantsDelegateUI(e Engine, kind libkb.UIKind) bool {
+func RunEngine2(m libkb.MetaContext, e Engine2) (err error) {
+	m = m.WithLogTag("ENG")
+	defer m.CTrace(fmt.Sprintf("RunEngine(%s)", e.Name()), func() error { return err })()
+
+	if m, err = delegateUIs(m, e); err != nil {
+		return err
+	}
+	if err = check(m, e); err != nil {
+		return err
+	}
+	if err = runPrereqs(m, e); err != nil {
+		return err
+	}
+
+	err = e.Run(m)
+	return err
+}
+
+func delegateUIs(m libkb.MetaContext, e Engine2) (libkb.MetaContext, error) {
+	if m.G().UIRouter == nil {
+		return m, nil
+	}
+
+	// currently, only doing this for SecretUI, but in future,
+	// perhaps should iterate over all registered UIs in UIRouter.
+	if requiresUI(e, libkb.SecretUIKind) {
+		sessionID := m.UIs().SessionID
+		if ui, err := m.G().UIRouter.GetSecretUI(sessionID); err != nil {
+			return m, err
+		} else if ui != nil {
+			m.CDebugf("using delegated secret UI for engine %q (session id = %d)", e.Name(), sessionID)
+			m = m.WithSecretUI(ui)
+		}
+	}
+
+	if wantsDelegateUI(e, libkb.IdentifyUIKind) {
+		m.CDebugf("IdentifyUI wanted for engine %q", e.Name())
+		if ui, err := m.G().UIRouter.GetIdentifyUI(); err != nil {
+			return m, err
+		} else if ui != nil {
+			m.CDebugf("using delegated identify UI for engine %q", e.Name())
+			m = m.WithDelegatedIdentifyUI(ui)
+		}
+	}
+
+	return m, nil
+}
+
+func wantsDelegateUI(e Engine2, kind libkb.UIKind) bool {
 	if !requiresUI(e, kind) {
 		return false
 	}
@@ -119,13 +152,16 @@ func wantsDelegateUI(e Engine, kind libkb.UIKind) bool {
 	return false
 }
 
-func check(c libkb.UIConsumer, ctx *Context) error {
-	if err := checkUI(c, ctx); err != nil {
-		return CheckError{fmt.Sprintf("%s: %s", c.Name(), err)}
+func check(m libkb.MetaContext, c libkb.UIConsumer) error {
+	if err := checkUI(m, c); err != nil {
+		return err
 	}
 
 	for _, sub := range c.SubConsumers() {
-		if err := check(sub, ctx); err != nil {
+		if err := check(m, sub); err != nil {
+			if _, ok := err.(CheckError); ok {
+				return err
+			}
 			return CheckError{fmt.Sprintf("%s: %s", sub.Name(), err)}
 		}
 	}
@@ -133,27 +169,11 @@ func check(c libkb.UIConsumer, ctx *Context) error {
 	return nil
 }
 
-func checkUI(c libkb.UIConsumer, ctx *Context) error {
+func checkUI(m libkb.MetaContext, c libkb.UIConsumer) error {
 	for _, ui := range c.RequiredUIs() {
-		if !ctx.HasUI(ui) {
-			return CheckError{fmt.Sprintf("requires ui %q", ui)}
+		if !m.UIs().HasUI(ui) {
+			return CheckError{fmt.Sprintf("%s: requires ui %q\n\n%s", c.Name(), ui, string(debug.Stack()))}
 		}
 	}
 	return nil
-}
-
-func requiresUI(c libkb.UIConsumer, kind libkb.UIKind) bool {
-	for _, ui := range c.RequiredUIs() {
-		if ui == kind {
-			return true
-		}
-	}
-
-	for _, sub := range c.SubConsumers() {
-		if requiresUI(sub, kind) {
-			return true
-		}
-	}
-
-	return false
 }

@@ -1,0 +1,101 @@
+{
+  "protocol": "avatars",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "AvatarUrl",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "AvatarFormat",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "LoadAvatarsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "AvatarUrl",
+              "keys": "AvatarFormat"
+            },
+            "keys": "string"
+          },
+          "name": "picmap"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AvatarClearCacheMsg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name",
+          "jsonkey": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          },
+          "name": "formats",
+          "jsonkey": "formats"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "loadUserAvatars": {
+      "request": [
+        {
+          "name": "names",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          }
+        }
+      ],
+      "response": "LoadAvatarsRes"
+    },
+    "loadTeamAvatars": {
+      "request": [
+        {
+          "name": "names",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          }
+        }
+      ],
+      "response": "LoadAvatarsRes"
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -113,6 +113,57 @@
           "lint": "ignore"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LockID",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "MDPriority",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "LockContext",
+      "fields": [
+        {
+          "type": "LockID",
+          "name": "requireLockID"
+        },
+        {
+          "type": "boolean",
+          "name": "releaseAfterSuccess"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FindNextMDResponse",
+      "fields": [
+        {
+          "type": "MerkleRoot",
+          "name": "kbfsRoot"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "bytes"
+          },
+          "name": "merkleNodes"
+        },
+        {
+          "type": "Seqno",
+          "name": "rootSeqno"
+        },
+        {
+          "type": "HashMeta",
+          "name": "rootHash"
+        }
+      ]
     }
   ],
   "messages": {
@@ -149,6 +200,17 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockContext",
+          "type": [
+            null,
+            "LockContext"
+          ]
+        },
+        {
+          "name": "priority",
+          "type": "MDPriority"
         }
       ],
       "response": null
@@ -185,9 +247,29 @@
             "type": "map",
             "values": "string"
           }
+        },
+        {
+          "name": "lockBeforeGet",
+          "type": [
+            null,
+            "LockID"
+          ]
         }
       ],
       "response": "MetadataResponse"
+    },
+    "getMetadataByTimestamp": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "serverTime",
+          "type": "Time"
+        }
+      ],
+      "response": "MDBlock"
     },
     "registerForUpdates": {
       "request": [
@@ -370,6 +452,41 @@
       ],
       "response": "KeyBundleResponse"
     },
+    "lock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "LockID"
+        }
+      ],
+      "response": null
+    },
+    "releaseLock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "lockID",
+          "type": "LockID"
+        }
+      ],
+      "response": null
+    },
+    "startImplicitTeamMigration": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
     "getMerkleRoot": {
       "request": [
         {
@@ -413,6 +530,32 @@
         }
       ],
       "response": "bytes"
+    },
+    "findNextMD": {
+      "request": [
+        {
+          "name": "seqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "FindNextMDResponse"
+    },
+    "setImplicitTeamModeForTest": {
+      "request": [
+        {
+          "name": "implicitTeamMode",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "forceMerkleBuildForTest": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"

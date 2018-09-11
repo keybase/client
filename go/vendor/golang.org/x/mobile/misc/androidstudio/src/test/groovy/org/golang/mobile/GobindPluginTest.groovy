@@ -17,6 +17,6 @@ class GobindPluginTest {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'org.golang.mobile.bind'
 
-        assertTrue(project.tasks.gobind instanceof GobindTask)
+        assertTrue(project.tasks.gobind instanceof GomobileTask)
     }
 }

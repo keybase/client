@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -36,10 +37,16 @@ func NewCmdPGPExport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "q, query",
 				Usage: "Only export keys matching that query.",
 			},
+			cli.BoolFlag{
+				Name:  "unencrypted",
+				Usage: "When exporting private keys, do not protect with a passphrase.",
+			},
 		},
-		Description: `"keybase pgp export" exports public (and optionally private) PGP keys
-   from Keybase, and into a file or to standard output. It doesn't access
-   the GnuGP keychain at all.`,
+		Description: `"keybase pgp export" exports public (and optionally private)
+   PGP keys from Keybase, and into a file or to standard output.
+   It doesn't access the GnuPG keychain at all. By default, when
+   exporting private keys, you will be asked for passphrase to encrypt
+   the exported keys.`,
 	}
 }
 
@@ -56,6 +63,7 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 
 	s.arg.Options.Secret = ctx.Bool("secret")
 	s.arg.Options.Query = ctx.String("query")
+	s.arg.Encrypted = !ctx.Bool("unencrypted")
 	s.outfile = ctx.String("outfile")
 
 	if nargs > 0 {
@@ -96,11 +104,11 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 		return fmt.Errorf("No matching keys found")
 	}
 
-	snk := initSink(s.outfile)
+	snk := initSink(s.G(), s.outfile)
 	if err := snk.Open(); err != nil {
 		return err
 	}
-	snk.Write([]byte(res[0].Key))
+	snk.Write([]byte(strings.TrimSpace(res[0].Key) + "\n"))
 	return snk.Close()
 }
 

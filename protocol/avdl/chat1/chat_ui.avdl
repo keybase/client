@@ -1,18 +1,211 @@
 @namespace("chat.1")
 
 protocol chatUi {
-  void chatAttachmentUploadStart(int sessionID, AssetMetadata metadata) oneway;	
-  void chatAttachmentUploadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
-  void chatAttachmentUploadDone(int sessionID) oneway;	
 
-  void chatAttachmentPreviewUploadStart(int sessionID, AssetMetadata metadata) oneway;	
-  void chatAttachmentPreviewUploadDone(int sessionID) oneway;	
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
+  import idl "common.avdl";
 
-  void chatAttachmentDownloadStart(int sessionID) oneway;	
-  void chatAttachmentDownloadProgress(int sessionID, int bytesComplete, int bytesTotal) oneway;     
-  void chatAttachmentDownloadDone(int sessionID) oneway;	
+  record UIPagination {
+    string next;
+    string previous;
+    int num;
+    boolean last;
+  }
 
-  void chatInboxUnverified(int sessionID, GetInboxLocalRes inbox); 
-  void chatInboxConversation(int sessionID, ConversationLocal conv);
-  void chatInboxFailed(int sessionID, ConversationID convID, string error);
+  record UnverifiedInboxUIItemMetadata {
+    string channelName;
+    string headline;
+    string snippet;
+    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    array<string> writerNames;
+    array<string> resetParticipants;
+  }
+
+  record UnverifiedInboxUIItem {
+    string convID;
+    TopicType topicType;
+    string name;
+    keybase1.TLFVisibility visibility;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
+    TeamType teamType;
+    union{ null, ConversationNotificationInfo } notifications;
+    gregor1.Time time;
+    ConversationVers version;
+    MessageID maxMsgID;
+    MessageID readMsgID;
+    union { null , UnverifiedInboxUIItemMetadata } localMetadata;
+
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
+  }
+
+  record UnverifiedInboxUIItems {
+    array<UnverifiedInboxUIItem> items;
+    union { null, UIPagination } pagination;
+    boolean offline;
+  }
+
+  record InboxUIItem {
+    string convID;
+    TopicType topicType;
+    boolean isEmpty;
+    string name;
+    string snippet;
+    string snippetDecoration; // One of: "", "💣" (bomb), "💥" (exploded)
+    string channel;
+    string headline;
+    keybase1.TLFVisibility visibility;
+    array<string> participants;
+    map<string, string> fullNames;
+    array<string> resetParticipants;
+    ConversationStatus status;
+    ConversationMembersType membersType;
+    ConversationMemberStatus memberStatus;
+    TeamType teamType;
+    gregor1.Time time;
+    union { null, ConversationNotificationInfo } notifications;
+    union { null, ConversationCreatorInfoLocal } creatorInfo;
+    ConversationVers version;
+    MessageID maxMsgID;
+    MessageID readMsgID;
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
+    union { null, ConversationSettingsLocal } convSettings;
+
+    // Finalized convo stuff (KBFS only)
+    union { null, ConversationFinalizeInfo } finalizeInfo;
+    array<ConversationMetadata> supersedes;
+    array<ConversationMetadata> supersededBy;
+  }
+
+  record InboxUIItemError {
+    ConversationErrorType typ;
+    string message;
+    string unverifiedTLFName;
+    // Only set if typ is for rekeying.
+    union { null, ConversationErrorRekey} rekeyInfo;
+    UnverifiedInboxUIItem remoteConv;
+  }
+
+  record InboxUIItems {
+    array<InboxUIItem> items;
+    union { null, UIPagination } pagination;
+    boolean offline;
+  }
+
+  record UIChannelNameMention {
+    string name;
+    string convID;
+  }
+
+  record UIAssetUrlInfo {
+    string previewUrl;
+    string fullUrl;
+    boolean fullUrlCached;
+    string mimeType;
+    union { null, string } videoDuration;
+    boolean inlineVideoPlayable;
+  }
+
+  record UIPaymentInfo {
+    string amountDescription;       // "1,323.1234567 XLM"
+    string worth;                   // "$123.23"
+    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                    // secret note
+    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;       // "pending", "completed", "error"
+  }
+
+  record UIRequestInfo {
+    string amount; 
+    string amountDescription; 
+    union { null, stellar1.Asset } asset;
+    union { null, stellar1.OutsideCurrencyCode } currency;
+  }
+
+  record UIMessageValid {
+    MessageID messageID;
+    gregor1.Time ctime;
+    union { null, string } outboxID;
+    MessageBody messageBody;
+    string senderUsername;
+    string senderDeviceName;
+    string senderDeviceType;
+    boolean superseded;
+    union { null, UIAssetUrlInfo } assetUrlInfo;
+    union { null, gregor1.Time } senderDeviceRevokedAt;
+    array<string> atMentions;
+    ChannelMention channelMention;
+    array<UIChannelNameMention> channelNameMentions;
+    boolean isEphemeral;
+    boolean isEphemeralExpired;
+    union { null, string} explodedBy;
+    gregor1.Time etime;
+    // reactionText -> [Reaction(username, reactionMsgID)...]
+    ReactionMap reactions;
+    boolean hasPairwiseMacs;
+    union { null, UIPaymentInfo } paymentInfo;
+    union { null, UIRequestInfo } requestInfo;
+  }
+
+  record UIMessageOutbox {
+    OutboxState state;
+    string outboxID;
+    MessageType messageType;
+    string body;
+    gregor1.Time ctime;
+    double ordinal;
+
+    // For attachments
+    string filename;
+    string title;
+    union { null, MakePreviewRes } preview;
+  }
+
+  enum MessageUnboxedState {
+    VALID_1,
+    ERROR_2,
+    OUTBOX_3,
+    PLACEHOLDER_4
+  }
+
+  variant UIMessage switch (MessageUnboxedState state) {
+    case VALID: UIMessageValid;
+    case ERROR: MessageUnboxedError;
+    case OUTBOX: UIMessageOutbox;
+    case PLACEHOLDER: MessageUnboxedPlaceholder;
+  }
+
+  record UIMessages {
+    array<UIMessage> messages;
+    union { null, UIPagination } pagination;
+  }
+
+  void chatAttachmentDownloadStart(int sessionID);
+  void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
+  void chatAttachmentDownloadDone(int sessionID);
+
+  void chatInboxUnverified(int sessionID, string inbox);
+  void chatInboxConversation(int sessionID, string conv);
+  void chatInboxFailed(int sessionID, ConversationID convID, InboxUIItemError error);
+
+  void chatThreadCached(int sessionID, union { null, string } thread) oneway;
+  void chatThreadFull(int sessionID, string thread) oneway;
+
+  record ChatSearchHit {
+    array<UIMessage> beforeMessages;
+    UIMessage hitMessage;
+    array<UIMessage> afterMessages;
+    array<string>  matches;
+  }
+
+  void chatSearchHit(int sessionID, ChatSearchHit searchHit);
+  void chatSearchDone(int sessionID, int numHits);
+
+  boolean chatConfirmChannelDelete(int sessionID, string channel);
 }

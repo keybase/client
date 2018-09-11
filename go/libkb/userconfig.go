@@ -5,34 +5,21 @@ package libkb
 
 import (
 	"encoding/hex"
-	"strings"
 
+	"github.com/keybase/client/go/kbun"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 //==================================================================
 
-// NormalizedUsername is a username that has been normalized (toLowered)
-// and therefore will compare correctly against other normalized usernames.
-type NormalizedUsername string
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbun.
+type NormalizedUsername = kbun.NormalizedUsername
 
-// NewNormalizedUsername makes a normalized username out of a non-normalized
-// plain string username
 func NewNormalizedUsername(s string) NormalizedUsername {
-	return NormalizedUsername(strings.ToLower(s))
+	return kbun.NewNormalizedUsername(s)
 }
-
-// Eq returns true if the given normalized usernames are equal
-func (n NormalizedUsername) Eq(n2 NormalizedUsername) bool {
-	return string(n) == string(n2)
-}
-
-// String returns the normalized username as a string (in lower case)
-func (n NormalizedUsername) String() string { return string(n) }
-
-// IsNil returns true if the username is the empty string
-func (n NormalizedUsername) IsNil() bool { return len(string(n)) == 0 }
 
 //==================================================================
 
@@ -45,14 +32,16 @@ type UserConfig struct {
 	importedID       keybase1.UID
 	importedSalt     []byte
 	importedDeviceID keybase1.DeviceID
+
+	isOneshot bool
 }
 
 //==================================================================
 
 func (u UserConfig) GetUID() keybase1.UID            { return u.importedID }
 func (u UserConfig) GetUsername() NormalizedUsername { return u.Name }
-func (u UserConfig) GetSalt() []byte                 { return u.importedSalt }
 func (u UserConfig) GetDeviceID() keybase1.DeviceID  { return u.importedDeviceID }
+func (u UserConfig) IsOneshot() bool                 { return u.isOneshot }
 
 //==================================================================
 
@@ -70,6 +59,12 @@ func NewUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev ke
 		tmp := dev.String()
 		ret.Device = &tmp
 	}
+	return ret
+}
+
+func NewOneshotUserConfig(id keybase1.UID, name NormalizedUsername, salt []byte, dev keybase1.DeviceID) *UserConfig {
+	ret := NewUserConfig(id, name, salt, dev)
+	ret.isOneshot = true
 	return ret
 }
 

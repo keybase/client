@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// Process defines an process using an open file. Properties here are strings
+// Process defines a process using an open file. Properties here are strings
 // for compatibility with different platforms.
 type Process struct {
 	PID             string

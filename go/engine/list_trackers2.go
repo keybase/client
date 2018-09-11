@@ -33,7 +33,7 @@ func (e *ListTrackers2Engine) Prereqs() Prereqs {
 	if len(e.arg.Assertion) == 0 {
 		session = true
 	}
-	return Prereqs{Session: session}
+	return Prereqs{Device: session}
 }
 
 func (e *ListTrackers2Engine) RequiredUIs() []libkb.UIKind {
@@ -44,17 +44,16 @@ func (e *ListTrackers2Engine) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *ListTrackers2Engine) lookupUID() error {
+func (e *ListTrackers2Engine) lookupUID(m libkb.MetaContext) error {
 	if len(e.arg.Assertion) == 0 {
-		e.uid = e.G().GetMyUID()
+		e.uid = m.G().GetMyUID()
 		if !e.uid.Exists() {
 			return libkb.NoUIDError{}
 		}
 		return nil
 	}
 
-	larg := libkb.NewLoadUserPubOptionalArg(e.G())
-	larg.Name = e.arg.Assertion
+	larg := libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional().WithName(e.arg.Assertion)
 	u, err := libkb.LoadUser(larg)
 	if err != nil {
 		return err
@@ -63,19 +62,13 @@ func (e *ListTrackers2Engine) lookupUID() error {
 	return nil
 }
 
-func (e *ListTrackers2Engine) Run(ctx *Context) error {
-	if err := e.lookupUID(); err != nil {
+func (e *ListTrackers2Engine) Run(m libkb.MetaContext) error {
+	if err := e.lookupUID(m); err != nil {
 		return err
 	}
-	ts := libkb.NewTracker2Syncer(e.G())
-	var err error
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		err = libkb.RunSyncer(ts, e.uid, a.LoggedIn(), a.LocalSession())
-	}, "ListTrackers2Engine - Run")
-	if aerr != nil {
-		return aerr
-	}
-	if err != nil {
+	callerUID := m.G().Env.GetUID()
+	ts := libkb.NewTracker2Syncer(m.G(), callerUID, e.arg.Reverse)
+	if err := libkb.RunSyncer(m, ts, e.uid, false /* loggedIn */, false /* forceReload */); err != nil {
 		return err
 	}
 	e.res = ts.Result()

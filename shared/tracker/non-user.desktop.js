@@ -1,28 +1,54 @@
 // @flow
-import React from 'react'
-import {Box, Text, Button, Icon} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import * as React from 'react'
+import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
+import {globalColors, globalStyles, desktopStyles, platformStyles, collapseStyles} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
-  const message = inviteLink ? `You can send ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
+  const message = inviteLink
+    ? `You can send ${name} this link to skip the invitation queue:`
+    : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
   const icon = inviteLink
-    ? 'icon-invite-link-negative-48' : isPrivate
-    ? 'icon-folder-private-success-negative-48'
-    : 'icon-folder-public-success-negative-48'
+    ? 'icon-invite-link-negative-48'
+    : isPrivate
+      ? 'icon-folder-private-success-negative-48'
+      : 'icon-folder-public-success-negative-48'
 
   let textRef
   return (
     <Box style={stylesContainer}>
-      <Icon style={stylesClose} type='iconfont-close' onClick={onClose} />
-      <Text type='BodySemibold' style={stylesMessage}>{reason}</Text>
+      <Icon style={stylesClose} type="iconfont-close" onClick={onClose} />
+      <Text type="BodySemibold" style={stylesMessage}>
+        {reason}
+      </Text>
       <Icon type={icon} />
       <Box style={globalStyles.flexBoxColumn}>
-        <Text type='Body' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
-        {inviteLink && <Box style={stylesLinkBox}>
-          <Icon style={{color: globalColors.black_10, marginTop: 3}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
-          <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
-        </Box>}
+        <Text type="Body" style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>
+          {message}
+        </Text>
+        {inviteLink && (
+          <Box style={stylesLinkBox}>
+            <Icon
+              style={{marginTop: 3}}
+              color={globalColors.black_10}
+              type="iconfont-link"
+              onClick={() => {
+                textRef && textRef.highlightText()
+              }}
+            />
+            <Text
+              allowHighlightText={true}
+              ref={r => {
+                textRef = r
+              }}
+              selectable={true}
+              style={stylesLink}
+              type="BodySemibold"
+            >
+              {inviteLink}
+            </Text>
+          </Box>
+        )}
       </Box>
     </Box>
   )
@@ -30,17 +56,28 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
 
 const Bottom = ({onClose, name, serviceName}) => (
   <Box style={stylesNext}>
-    <Text style={{marginBottom: 16}} type='Header'>What's next?</Text>
+    <Text style={{marginBottom: 16}} type="Header">
+      What's next?
+    </Text>
     <Box style={stylesBullet}>
-      <Text type='Body' style={{marginRight: 8}}>•</Text>
-      <Text type='Body'>When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify them and rekey the folder.</Text>
+      <Text type="Body" style={{marginRight: 8}}>
+        •
+      </Text>
+      <Text type="Body">
+        When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify
+        them and rekey the folder.
+      </Text>
     </Box>
     <Box style={{...stylesBullet, marginTop: 5}}>
-      <Text type='Body' style={{marginRight: 8}}>•</Text>
-      <Text type='Body'>In the meantime, you can continue to work in the folder.</Text>
+      <Text type="Body" style={{marginRight: 8}}>
+        •
+      </Text>
+      <Text type="Body">In the meantime, you can continue to work in the folder.</Text>
     </Box>
     <Box style={{flex: 1, alignItems: 'center'}} />
-    <Button style={{width: 122}} type='Secondary' label='Close' onClick={onClose} />
+    <ButtonBar direction="row">
+      <Button type="Secondary" label="Close" onClick={onClose} />
+    </ButtonBar>
   </Box>
 )
 
@@ -59,7 +96,7 @@ const stylesMessage = {
 }
 
 const stylesContainer = {
-  ...globalStyles.windowDragging,
+  ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
   justifyContent: 'space-between',
   cursor: 'default',
@@ -70,12 +107,14 @@ const stylesContainer = {
   padding: 24,
 }
 
-const stylesClose = {
-  ...globalStyles.windowDraggingClickable,
-  position: 'absolute',
-  right: 8,
-  top: 8,
-}
+const stylesClose = collapseStyles([
+  desktopStyles.windowDraggingClickable,
+  {
+    position: 'absolute',
+    right: 8,
+    top: 8,
+  },
+])
 
 const stylesLinkBox = {
   ...globalStyles.flexBoxRow,
@@ -88,12 +127,13 @@ const stylesLinkBox = {
   backgroundColor: globalColors.white,
 }
 
-const stylesLink = {
-  ...globalStyles.selectable,
-  ...globalStyles.windowDraggingClickable,
-  marginLeft: 7,
-  color: globalColors.green2,
-}
+const stylesLink = platformStyles({
+  isElectron: {
+    ...desktopStyles.windowDraggingClickable,
+    marginLeft: 7,
+    color: globalColors.green2,
+  },
+})
 
 const stylesNext = {
   ...globalStyles.flexBoxColumn,

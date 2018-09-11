@@ -26,12 +26,10 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
-dependencies="Requires: at"
 if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/rpm/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/rpm"
-  dependencies="Requires: at, fuse, libXScrnSaver"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean
@@ -60,6 +58,14 @@ build_one_architecture() {
   mkdir -p "$copied_binaries"
   cp -r "$binaries_path"/* "$copied_binaries/"
   echo "copied_binaries: $copied_binaries"
+
+  # RPM-based distros (though not Debian or Arch, see
+  # https://wiki.debian.org/Multiarch/TheCaseForMultiarch) distinguish between
+  # /usr/lib and /usr/lib64, and on 64-bit systems Firefox will not search for
+  # native messaging manifests under /usr/lib. Copy the manifests into both
+  # places, for good measure.
+  mkdir -p "$copied_binaries/usr/lib64/mozilla"
+  cp -r "$copied_binaries/usr/lib/mozilla/native-messaging-hosts" "$copied_binaries/usr/lib64/mozilla/"
 
   # We need to copy in the cron file before we collect the list of all files
   # below.
@@ -102,8 +108,18 @@ build_one_architecture() {
 
 export rpm_arch=i386
 export debian_arch=i386
+# On Fedora, it would be more correct to require "libXScrnSaver",
+# which provides libXss.so. Unfortunately that doesn't work on
+# OpenSUSE. This is the most compatible set of dependencies we've
+# found.  "psmisc" provides "killall", which is used in run_keybase.
+# "initscripts" provides "service", which is used to start atd in the
+# post-install.
+dependencies="Requires: at, fuse, libXss.so.1, /sbin/service, psmisc"
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
+# Requiring "libXss.so" here installs the 32-bit version. See
+# https://github.com/keybase/client/pull/5226.
+dependencies="Requires: at, fuse, libXss.so.1()(64bit), /sbin/service, psmisc"
 build_one_architecture

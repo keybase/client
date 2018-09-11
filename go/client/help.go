@@ -46,14 +46,15 @@ On Device Provisioning - If you've previously set up a keybase account and host
   do all of the non-PGP work for this machine going forward (e.g., signing follower
   statements, provisioning new devices, etc.)
 
-On signup - When you signup, you can also "select" a PGP key for use with keybase
+On signup - When you sign up, you can also "select" a PGP key for use with keybase
   from your local GPG keyring. See "keybase pgp select" below.
 
 'keybase pgp gen' - Running "gen" will generate a new PGP key via the Go libraries.
   keybase will save the secret key locally, and will push the public half to the
   server, after it's been signed and provisioned with your local device key.
   Additionally, this command will export the secret and public keys to your local
-  GPG keyring.
+  GPG keyring. There will be no passphrase protecting this exported secret
+  key, so if this is important to you, run 'gpg edit-key' to supply one.
 
 'keybase pgp pull' - All PGP keys pulled as a result of 'keybase pgp pull' are
   exported as public keys to your local gpg keyring.
@@ -125,7 +126,7 @@ secret key stays locally stored on the file system, and is never moved into the
 OS's keychain.
 
 Keybase has a passphrase update protocol: if a passphrase is changed
-on any device, the service mask described above is changed accordingly, so that
+on any device, the server mask described above is changed accordingly, so that
 the user can immediately use her new passphrase across all devices. However,
 the server cannot decrypt an LKS-protected secret key unless it also
 has access to the user's passphrase (or can crack it). More details
@@ -206,7 +207,10 @@ COMMANDS:
 
 OPTIONS:
    {{range .Flags}}{{.}}
-   {{end}}{{ end }}
+   {{end}}{{ end }}{{ if .Examples }}
+EXAMPLES:
+{{.ExamplesFormatted}}{{ end }}
+
 `
 
 // SubcommandHelpTemplate is used for `keybase cmd` with no
@@ -219,6 +223,6 @@ USAGE:
    {{.Name}} <command> [arguments...]
 
 COMMANDS:
-   {{range .Commands}}{{join .Names ", "}}{{ "\t" }}{{.Usage}}
+   {{range .Commands}}{{ if .Usage }}{{join .Names ", "}}{{ "\t" }}{{.Usage}}{{ end }}
    {{end}}
 `

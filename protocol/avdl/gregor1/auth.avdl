@@ -3,11 +3,11 @@
 // authentication protocol.
 // clients of gregord call this, and gregord calls it on authd.
 protocol auth {
-	record AuthResult {
-		UID uid;
-		string username;
-		SessionID sid;
-		boolean isAdmin;
-	}
-	AuthResult authenticateSessionToken(SessionToken session);
+  record AuthResult {
+    UID uid;
+    string username;
+    SessionID sid;
+    boolean isAdmin;
+  }
+  AuthResult authenticateSessionToken(SessionToken session);
 }

@@ -104,6 +104,12 @@ table {
 
 @font-face {
     font-family: 'OpenSans';
+    font-weight: 800;
+    src: url('../../fonts/OpenSans-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'OpenSans';
     font-weight: 700;
     src: url('../../fonts/OpenSans_bold.ttf') format('truetype');
 }
@@ -112,7 +118,7 @@ table {
 html {
     box-sizing: border-box;
     cursor: default;
-    -webkit-user-select: none;
+    user-select: none;
 }
 
 *, *:before, *:after {
@@ -129,7 +135,11 @@ body {
     top: 0;
     bottom: 0;
     left: 0;
-    right: 0
+    right: 0;
+}
+
+#modal-root {
+  display: inline-block;
 }
 
 .hover-underline {
@@ -142,6 +152,10 @@ body {
 
 .hover-underline-container:hover .underline{
     text-decoration: underline;
+}
+
+.underline {
+	text-decoration: underline;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
@@ -158,16 +172,15 @@ body {
     transition: opacity 250ms ease-in-out;
 }
 
-.fade-anim-leave {
+.fade-anim-exit {
     opacity: 1;
 }
 
-.fade-anim-leave.fade-anim-leave-active {
+.fade-anim-exit.fade-anim-exit-active {
     opacity: 0;
     transition: opacity 250ms ease-in-out;
 }
 
 .emoji-mart-emoji {
-	display: inline;
-    font-size: medium;
+    vertical-align: middle;
 }

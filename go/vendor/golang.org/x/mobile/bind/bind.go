@@ -31,12 +31,6 @@ type (
 	fileType int
 )
 
-const (
-	ObjcM = iota
-	ObjcH
-	ObjcGoH
-)
-
 // GenGo generates a Go stub to support foreign language APIs.
 func GenGo(conf *GeneratorConfig) error {
 	buf := new(bytes.Buffer)
@@ -59,36 +53,5 @@ func GenGo(conf *GeneratorConfig) error {
 		return err
 	}
 	_, err = conf.Writer.Write(srcf)
-	return err
-}
-
-// GenObjc generates the Objective-C API from a Go package.
-func GenObjc(conf *GeneratorConfig, prefix string, ft fileType) error {
-	buf := new(bytes.Buffer)
-	g := &objcGen{
-		Generator: &Generator{
-			Printer: &Printer{Buf: buf, IndentEach: []byte("\t")},
-			Fset:    conf.Fset,
-			AllPkg:  conf.AllPkg,
-			Pkg:     conf.Pkg,
-		},
-		prefix: prefix,
-	}
-	g.init()
-	var err error
-	switch ft {
-	case ObjcH:
-		err = g.genH()
-	case ObjcM:
-		err = g.genM()
-	case ObjcGoH:
-		err = g.genGoH()
-	default:
-		panic("invalid fileType")
-	}
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(conf.Writer, buf)
 	return err
 }

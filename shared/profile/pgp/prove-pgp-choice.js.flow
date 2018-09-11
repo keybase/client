@@ -1,13 +1,11 @@
-// @flow
+// @flow strict
 import {Component} from 'react'
 
-export type Options =
-    'import'
-  | 'provideInfo'
+export type Options = 'import' | 'provideInfo'
 
 export type Props = {
   onOptionClick: (type: Options) => void,
   onCancel: () => void,
 }
 
-export default class ProvePgpChoice extends Component<void, Props, void> {}
+export default class ProvePgpChoice extends Component<Props> {}

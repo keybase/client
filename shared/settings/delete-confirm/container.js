@@ -1,50 +1,46 @@
 // @flow
+import * as SettingsGen from '../../actions/settings-gen'
+import DeleteConfirm, {type Props} from '.'
 import React, {Component} from 'react'
-import {TypedConnector} from '../../util/typed-connect'
 import {navigateUp} from '../../actions/route-tree'
-import {HOCTimers} from '../../common-adapters'
-import DeleteConfirm from './index'
-import {setAllowDeleteAccount, deleteAccountForever} from '../../actions/settings'
+import {HOCTimers, type PropsWithTimer} from '../../common-adapters'
+import {compose, connect, type TypedState} from '../../util/container'
 
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
-import type {TimerProps} from '../../common-adapters/hoc-timers'
-import type {Props} from './index'
-
-class DeleteConfirmContainer extends Component<void, Props & TimerProps, void> {
-  componentWillMount () {
+class DeleteConfirmContainer extends Component<PropsWithTimer<Props>> {
+  componentDidMount() {
     this.props.setAllowDeleteAccount(false)
-  }
-
-  componentDidMount () {
     this.props.setTimeout(() => {
       this.props.setAllowDeleteAccount(true)
     }, 2000)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.props.setAllowDeleteAccount(false)
   }
 
-  render () {
+  render() {
     return <DeleteConfirm {...this.props} />
   }
 }
 
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
-
-export default connector.connect(
-  (state, dispatch, ownProps) => {
-    if (!state.config.username) {
-      throw new Error('No current username for delete confirm container')
-    }
-
-    return {
-      username: state.config.username,
-      allowDeleteForever: state.settings.allowDeleteAccount,
-      setAllowDeleteAccount: allow => { dispatch(setAllowDeleteAccount(allow)) },
-      onCancel: () => { dispatch(navigateUp()) },
-      onDeleteForever: () => { dispatch(deleteAccountForever()) },
-    }
+const mapStateToProps = (state: TypedState) => {
+  if (!state.config.username) {
+    throw new Error('No current username for delete confirm container')
   }
-)(HOCTimers(DeleteConfirmContainer))
+
+  return {
+    allowDeleteForever: state.settings.allowDeleteAccount,
+    username: state.config.username,
+  }
+}
+
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onCancel: () => dispatch(navigateUp()),
+  onDeleteForever: () => dispatch(SettingsGen.createDeleteAccountForever()),
+  setAllowDeleteAccount: allow => dispatch(SettingsGen.createSetAllowDeleteAccount({allow})),
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  HOCTimers
+)(DeleteConfirmContainer)

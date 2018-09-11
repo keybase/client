@@ -1,153 +1,88 @@
 // @flow
-import Conversation from './index'
-import HiddenString from '../../util/hidden-string'
-import {downloadFilePath} from '../../util/file'
-import React, {Component} from 'react'
-import {Box} from '../../common-adapters'
-import {List, Map} from 'immutable'
-import {connect} from 'react-redux'
-import {deleteMessage, editMessage, loadMoreMessages, newChat, openFolder, postMessage, retryMessage, selectAttachment, loadAttachment} from '../../actions/chat'
-import {nothingSelected, getBrokenUsers} from '../../constants/chat'
-import {onUserClick} from '../../actions/profile'
-import {getProfile} from '../../actions/tracker'
-import {navigateAppend} from '../../actions/route-tree'
+import * as React from 'react'
+import * as Constants from '../../constants/chat2'
+import * as Types from '../../constants/types/chat2'
+import {isMobile} from '../../styles'
+import {connect, type TypedState} from '../../util/container'
+import Normal from './normal/container'
+import NoConversation from './no-conversation'
+import Error from './error/container'
+import YouAreReset from './you-are-reset'
+import Rekey from './rekey/container'
 
-import type {TypedState} from '../../constants/reducer'
-import type {OpenInFileUI} from '../../constants/kbfs'
-import type {ConversationIDKey, Message, AttachmentMessage, AttachmentType} from '../../constants/chat'
-import type {Props} from '.'
-
-type OwnProps = {}
-type State = {
-  listScrollDownCounter: number, // count goes up when this mutates, causing the list to scroll down
-  sidePanelOpen: boolean,
+type SwitchProps = {
+  conversationIDKey: Types.ConversationIDKey,
+  type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
-class ConversationContainer extends Component<void, Props, State> {
-  state: State
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      listScrollDownCounter: 0,
-      sidePanelOpen: false,
+class Conversation extends React.PureComponent<SwitchProps> {
+  render() {
+    switch (this.props.type) {
+      case 'error':
+        return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
+      case 'noConvo':
+        // When navigating back to the inbox on mobile, we delelect
+        // conversationIDKey by called mobileChangeSelection. This results in
+        // the conversation view rendering "NoConversation" as it is
+        // transitioning back the the inbox.
+        // On android this is very noticable because transitions fade between
+        // screens, so "NoConversation" will appear on top of the inbox for
+        // approximately 150ms.
+        // On iOS it is less noticable because screen transitions slide away to
+        // the right, though it is visible for a small amount of time.
+        // To solve this we render a blank screen on mobile conversation views with "noConvo"
+        return isMobile ? null : <NoConversation />
+      case 'normal':
+        return <Normal conversationIDKey={this.props.conversationIDKey} />
+      case 'youAreReset':
+        return <YouAreReset />
+      case 'rekey':
+        return <Rekey conversationIDKey={this.props.conversationIDKey} />
+      default:
+        /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
+      */
+        return <NoConversation />
     }
-  }
-
-  componentWillReceiveProps (nextProps: Props) {
-    if (this.props.selectedConversation !== nextProps.selectedConversation) {
-      this.setState({
-        sidePanelOpen: false,
-      })
-    }
-  }
-
-  _onToggleSidePanel = () => {
-    this.setState({sidePanelOpen: !this.state.sidePanelOpen})
-  }
-
-  _onTriggerScrollDown = () => {
-    this.setState({listScrollDownCounter: this.state.listScrollDownCounter + 1})
-  }
-
-  render () {
-    if (!this.props.selectedConversation) {
-      return <Box style={{flex: 1}} />
-    }
-
-    return <Conversation
-      {...this.props}
-      sidePanelOpen={this.state.sidePanelOpen}
-      onToggleSidePanel={this._onToggleSidePanel}
-      onPostMessage={(...args) => {
-        this._onTriggerScrollDown()
-        this.props.onPostMessage(...args)
-      }}
-      listScrollDownState={this.state.listScrollDownCounter}
-    />
   }
 }
 
-export default connect(
-  (state: TypedState, {routePath}) => {
-    const selectedConversation = routePath.last()
+const mapStateToProps = (state: TypedState) => {
+  let conversationIDKey = Constants.getSelectedConversation(state)
+  let _meta = Constants.getMeta(state, conversationIDKey)
 
-    const you = state.config.username || ''
-    const followingMap = state.config.following
+  return {
+    _meta,
+    conversationIDKey,
+  }
+}
 
-    if (selectedConversation !== nothingSelected) {
-      const conversationState = state.chat.get('conversationStates').get(selectedConversation)
-      if (conversationState) {
-        const inbox = state.chat.get('inbox')
-        const selected = inbox && inbox.find(inbox => inbox.get('conversationIDKey') === selectedConversation)
-        const participants = selected && selected.participants || List()
-        const metaDataMap = state.chat.get('metaData')
-
-        return {
-          bannerMessage: null,
-          emojiPickerOpen: false,
-          firstNewMessageID: conversationState.firstNewMessageID,
-          followingMap,
-          isLoading: conversationState.isLoading,
-          messages: conversationState.messages,
-          metaDataMap,
-          moreToLoad: conversationState.moreToLoad,
-          participants,
-          selectedConversation,
-          validated: selected && selected.validated,
-          you,
-        }
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  let type
+  switch (stateProps.conversationIDKey) {
+    case Constants.noConversationIDKey:
+      type = 'noConvo'
+      break
+    case Constants.pendingConversationIDKey:
+      type = 'normal'
+      break
+    default:
+      if (stateProps._meta.membershipType === 'youAreReset') {
+        type = 'youAreReset'
+      } else if (stateProps._meta.rekeyers.size > 0) {
+        type = 'rekey'
+      } else if (stateProps._meta.trustedState === 'error') {
+        type = 'error'
+      } else {
+        type = 'normal'
       }
-    }
+  }
 
-    return {
-      bannerMessage: null,
-      followingMap,
-      isLoading: false,
-      messages: List(),
-      metaDataMap: Map(),
-      moreToLoad: false,
-      participants: List(),
-      selectedConversation,
-      validated: false,
-      you,
-    }
-  },
-  (dispatch: Dispatch) => ({
-    onAddParticipant: (participants: Array<string>) => dispatch(newChat(participants)),
-    onAttach: (selectedConversation, filename, title, type) => dispatch(selectAttachment(selectedConversation, filename, title, type)),
-    onDeleteMessage: (message: Message) => { dispatch(deleteMessage(message)) },
-    onEditMessage: (message: Message) => { dispatch(editMessage(message)) },
-    onLoadAttachment: (selectedConversation, messageID, filename) => dispatch(loadAttachment(selectedConversation, messageID, false, downloadFilePath(filename))),
-    onLoadMoreMessages: (conversationIDKey: ConversationIDKey) => dispatch(loadMoreMessages(conversationIDKey, false)),
-    onOpenFolder: () => dispatch(openFolder()),
-    onOpenInFileUI: (path: string) => dispatch(({payload: {path}, type: 'fs:openInFileUI'}: OpenInFileUI)),
-    onOpenInPopup: (message: AttachmentMessage) => dispatch(navigateAppend([{props: {message}, selected: 'attachment'}])),
-    onPostMessage: (selectedConversation, text) => dispatch(postMessage(selectedConversation, new HiddenString(text))),
-    onRetryMessage: (outboxID: string) => dispatch(retryMessage(outboxID)),
-    onShowProfile: (username: string) => dispatch(onUserClick(username, '')),
-    onShowTracker: (username: string) => dispatch(getProfile(username, true, true)),
-  }),
-  (stateProps, dispatchProps, ownProps: OwnProps) => {
-    const brokenUsers = getBrokenUsers(stateProps.participants.toArray(), stateProps.you, stateProps.metaDataMap)
-    const bannerMessage = brokenUsers.length
-      ? {
-        onClick: (user: string) => dispatchProps.onShowTracker(user),
-        type: 'BrokenTracker',
-        users: brokenUsers,
-      }
-      : null
+  return {
+    conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    type,
+  }
+}
 
-    return {
-      ...stateProps,
-      ...dispatchProps,
-      ...ownProps,
-      bannerMessage,
-      onAddParticipant: () => dispatchProps.onAddParticipant(stateProps.participants.filter(p => !p.you).map(p => p.username).toArray()),
-      onAttach: (filename: string, title: string, type: AttachmentType) => dispatchProps.onAttach(stateProps.selectedConversation, filename, title, type),
-      onLoadAttachment: (messageID, filename) => dispatchProps.onLoadAttachment(stateProps.selectedConversation, messageID, filename),
-      onLoadMoreMessages: () => dispatchProps.onLoadMoreMessages(stateProps.selectedConversation),
-      onPostMessage: text => dispatchProps.onPostMessage(stateProps.selectedConversation, text),
-    }
-  },
-)(ConversationContainer)
+export default connect(mapStateToProps, () => ({}), mergeProps)(Conversation)

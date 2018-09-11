@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
+	"regexp"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -38,20 +38,12 @@ func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalC
 	}
 }
 
-func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
+func (h ConfigHandler) GetCurrentStatus(ctx context.Context, sessionID int) (res keybase1.GetCurrentStatusRes, err error) {
 	var cs libkb.CurrentStatus
-	if cs, err = libkb.GetCurrentStatus(h.G()); err == nil {
+	if cs, err = libkb.GetCurrentStatus(ctx, h.G()); err == nil {
 		res = cs.Export()
 	}
 	return
-}
-
-func getPlatformInfo() keybase1.PlatformInfo {
-	return keybase1.PlatformInfo{
-		Os:        runtime.GOOS,
-		Arch:      runtime.GOARCH,
-		GoVersion: runtime.Version(),
-	}
 }
 
 func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.ConfigValue, err error) {
@@ -93,13 +85,13 @@ func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (er
 	}
 	switch {
 	case arg.Value.IsNull:
-		w.SetNullAtPath(arg.Path)
+		err = w.SetNullAtPath(arg.Path)
 	case arg.Value.S != nil:
-		w.SetStringAtPath(arg.Path, *arg.Value.S)
+		err = w.SetStringAtPath(arg.Path, *arg.Value.S)
 	case arg.Value.I != nil:
-		w.SetIntAtPath(arg.Path, *arg.Value.I)
+		err = w.SetIntAtPath(arg.Path, *arg.Value.I)
 	case arg.Value.B != nil:
-		w.SetBoolAtPath(arg.Path, *arg.Value.B)
+		err = w.SetBoolAtPath(arg.Path, *arg.Value.B)
 	case arg.Value.O != nil:
 		var jw *jsonw.Wrapper
 		jw, err = jsonw.Unmarshal([]byte(*arg.Value.O))
@@ -121,81 +113,40 @@ func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
 	return nil
 }
 
-func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
-	defer h.G().Trace("ConfigHandler::GetExtendedStatus", func() error { return err })()
+func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
+	return libkb.GetExtendedStatus(libkb.NewMetaContext(ctx, h.G()))
+}
 
-	res.Standalone = h.G().Env.GetStandalone()
-	res.LogDir = h.G().Env.GetLogDir()
-
-	// Should work in standalone mode too
-	if h.G().ConnectionManager != nil {
-		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
-	}
-
-	err = h.G().GetFullSelfer().WithSelf(func(me *libkb.User) error {
-		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
-		if err != nil {
-			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
-			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}
-		} else {
-			res.Device = device.ProtExport()
-		}
-
-		if me != nil && h.G().SecretStoreAll != nil {
-			s, err := h.G().SecretStoreAll.RetrieveSecret(me.GetNormalizedName())
-			if err == nil && !s.IsNil() {
-				res.StoredSecret = true
-			}
-		}
-		return nil
-	})
+func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
+	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
 	if err != nil {
-		h.G().Log.Debug("| could not load me user: %s", err)
-		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
-	}
-
-	h.G().LoginState().Account(func(a *libkb.Account) {
-		res.PassphraseStreamCached = a.PassphraseStreamCache().ValidPassphraseStream()
-		res.TsecCached = a.PassphraseStreamCache().ValidTsec()
-
-		// cached keys status
-		sk, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
-		if err == nil && sk != nil {
-			res.DeviceSigKeyCached = true
-		}
-		ek, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
-		if err == nil && ek != nil {
-			res.DeviceEncKeyCached = true
-		}
-		if a.GetUnlockedPaperSigKey() != nil {
-			res.PaperSigKeyCached = true
-		}
-		if a.GetUnlockedPaperEncKey() != nil {
-			res.PaperEncKeyCached = true
-		}
-
-		res.SecretPromptSkip = a.SkipSecretPrompt()
-
-		if a.LoginSession() != nil {
-			res.Session = a.LoginSession().Status()
-		}
-	}, "ConfigHandler::GetExtendedStatus")
-
-	current, all, err := h.G().GetAllUserNames()
-	if err != nil {
-		h.G().Log.Debug("| died in GetAllUseranmes()")
 		return res, err
 	}
-	res.DefaultUsername = current.String()
-	p := make([]string, len(all))
-	for i, u := range all {
-		p[i] = u.String()
-	}
-	res.ProvisionedUsernames = p
-	res.PlatformInfo = getPlatformInfo()
-	res.DefaultDeviceID = h.G().Env.GetDeviceID()
 
-	return res, nil
+	// If the default is missing, fill it in from the first provisioned.
+	if defaultUsername.IsNil() && len(all) > 0 {
+		defaultUsername = all[0]
+	}
+	hasProvisionedUser := !defaultUsername.IsNil()
+
+	// Callers expect ProvisionedUsernames to contain the DefaultUsername, so
+	// we ensure it is here as a final sanity check before returning.
+	hasDefaultUsername := false
+	provisionedUsernames := []string{}
+	for _, username := range all {
+		provisionedUsernames = append(provisionedUsernames, username.String())
+		hasDefaultUsername = hasDefaultUsername || username.Eq(defaultUsername)
+	}
+
+	if !hasDefaultUsername && hasProvisionedUser {
+		provisionedUsernames = append(provisionedUsernames, defaultUsername.String())
+	}
+
+	return keybase1.AllProvisionedUsernames{
+		DefaultUsername:      defaultUsername.String(),
+		ProvisionedUsernames: provisionedUsernames,
+		HasProvisionedUser:   hasProvisionedUser,
+	}, nil
 }
 
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
@@ -228,6 +179,15 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	dir, err := filepath.Abs(filepath.Dir(os.Args[0]))
 	if err == nil {
 		c.Path = dir
+	} else {
+		h.G().Log.Warning("Failed to get service path: %s", err)
+	}
+
+	realpath, err := libkb.CurrentBinaryRealpath()
+	if err == nil {
+		c.BinaryRealpath = realpath
+	} else {
+		h.G().Log.Warning("Failed to get service realpath: %s", err)
 	}
 
 	c.ConfigPath = h.G().Env.GetConfigFilename()
@@ -242,14 +202,13 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	return c, nil
 }
 
-func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConfigArg) (err error) {
-	eng := engine.NewUserConfigEngine(&engine.UserConfigEngineArg{
+func (h ConfigHandler) SetUserConfig(ctx context.Context, arg keybase1.SetUserConfigArg) (err error) {
+	eng := engine.NewUserConfigEngine(h.G(), &engine.UserConfigEngineArg{
 		Key:   arg.Key,
 		Value: arg.Value,
-	}, h.G())
-
-	ctx := &engine.Context{}
-	err = engine.RunEngine(eng, ctx)
+	})
+	m := libkb.NewMetaContext(ctx, h.G())
+	err = engine.RunEngine2(m, eng)
 	if err != nil {
 		return err
 	}
@@ -295,6 +254,12 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 }
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
+	tmp := fmt.Sprintf("%v", arg.Argv)
+	re := regexp.MustCompile(`\b(chat|encrypt|git|accept-invite|wallet\s+send|wallet\s+import)\b`)
+	if mtch := re.FindString(tmp); len(mtch) > 0 {
+		arg.Argv = []string{arg.Argv[0], mtch, "(redacted)"}
+	}
+	h.G().Log.Debug("HelloIAm: %d - %v", h.connID, arg)
 	return h.G().ConnectionManager.Label(h.connID, arg)
 }
 
@@ -304,4 +269,47 @@ func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybas
 
 func (h ConfigHandler) WaitForClient(_ context.Context, arg keybase1.WaitForClientArg) (bool, error) {
 	return h.G().ConnectionManager.WaitForClientType(arg.ClientType, arg.Timeout.Duration()), nil
+}
+
+func (h ConfigHandler) GetBootstrapStatus(ctx context.Context, sessionID int) (keybase1.BootstrapStatus, error) {
+	eng := engine.NewBootstrap(h.G())
+	m := libkb.NewMetaContext(ctx, h.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		return keybase1.BootstrapStatus{}, err
+	}
+
+	return eng.Status(), nil
+}
+
+func (h ConfigHandler) GetRememberPassphrase(ctx context.Context, sessionID int) (bool, error) {
+	return h.G().Env.RememberPassphrase(), nil
+}
+
+func (h ConfigHandler) SetRememberPassphrase(ctx context.Context, arg keybase1.SetRememberPassphraseArg) error {
+	m := libkb.NewMetaContext(ctx, h.G())
+	remember, err := h.GetRememberPassphrase(ctx, arg.SessionID)
+	if err != nil {
+		return err
+	}
+	if remember == arg.Remember {
+		m.CDebugf("SetRememberPassphrase: no change necessary (remember = %v)", remember)
+		return nil
+	}
+
+	// set the config variable
+	w := h.G().Env.GetConfigWriter()
+	if err := w.SetRememberPassphrase(arg.Remember); err != nil {
+		return err
+	}
+	h.G().ConfigReload()
+
+	// replace the secret store
+	if err := h.G().ReplaceSecretStore(ctx); err != nil {
+		m.CDebugf("error replacing secret store for SetRememberPassphrase(%v): %s", arg.Remember, err)
+		return err
+	}
+
+	m.CDebugf("SetRememberPassphrase(%v) success", arg.Remember)
+
+	return nil
 }

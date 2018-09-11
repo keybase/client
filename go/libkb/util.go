@@ -12,21 +12,27 @@ import (
 	"encoding/base32"
 	"encoding/base64"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"math/big"
 	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
+	"syscall"
 	"time"
 	"unicode"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -62,22 +68,21 @@ func FileExists(path string) (bool, error) {
 	return false, err
 }
 
-func MakeParentDirs(filename string) error {
-
-	dir, _ := filepath.Split(filename)
+func MakeParentDirs(log SkinnyLogger, filename string) error {
+	dir := filepath.Dir(filename)
 	exists, err := FileExists(dir)
 	if err != nil {
-		G.Log.Errorf("Can't see if parent dir %s exists", dir)
+		log.Errorf("Can't see if parent dir %s exists", dir)
 		return err
 	}
 
 	if !exists {
 		err = os.MkdirAll(dir, PermDir)
 		if err != nil {
-			G.Log.Errorf("Can't make parent dir %s", dir)
+			log.Errorf("Can't make parent dir %s", dir)
 			return err
 		}
-		G.Log.Debug("Created parent directory %s", dir)
+		log.Debug("Created parent directory %s", dir)
 	}
 	return nil
 }
@@ -176,31 +181,68 @@ type SafeWriteLogger interface {
 }
 
 // SafeWriteToFile to safely write to a file. Use mode=0 for default permissions.
-func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) error {
+func safeWriteToFileOnce(g SafeWriteLogger, t SafeWriter, mode os.FileMode) (err error) {
 	fn := t.GetFilename()
-	g.Debug(fmt.Sprintf("+ Writing to %s", fn))
+	g.Debug("+ SafeWriteToFile(%q)", fn)
+	defer func() {
+		g.Debug("- SafeWriteToFile(%q) -> %s", fn, ErrToOk(err))
+	}()
+
 	tmpfn, tmp, err := OpenTempFile(fn, "", mode)
-	g.Debug(fmt.Sprintf("| Temporary file generated: %s", tmpfn))
 	if err != nil {
 		return err
 	}
+	g.Debug("| Temporary file generated: %s", tmpfn)
+	defer tmp.Close()
+	defer ShredFile(tmpfn)
 
-	_, err = t.WriteTo(tmp)
-	if err == nil {
-		err = tmp.Close()
-		if err == nil {
-			err = os.Rename(tmpfn, fn)
-		} else {
-			g.Errorf(fmt.Sprintf("Error closing temporary file %s: %s", tmpfn, err))
-			os.Remove(tmpfn)
-		}
-	} else {
-		g.Errorf(fmt.Sprintf("Error writing temporary file %s: %s", tmpfn, err))
-		tmp.Close()
-		os.Remove(tmpfn)
+	g.Debug("| WriteTo %s", tmpfn)
+	n, err := t.WriteTo(tmp)
+	if err != nil {
+		g.Errorf("| Error writing temporary file %s: %s", tmpfn, err)
+		return err
 	}
-	g.Debug(fmt.Sprintf("- Wrote to %s -> %s", fn, ErrToOk(err)))
-	return err
+	if n != 0 {
+		// unfortunately, some implementations always return 0 for the number
+		// of bytes written, so not much info there, but will log it when
+		// it isn't 0.
+		g.Debug("| bytes written to temporary file %s: %d", tmpfn, n)
+	}
+
+	if err := tmp.Sync(); err != nil {
+		g.Errorf("| Error syncing temporary file %s: %s", tmpfn, err)
+		return err
+	}
+
+	if err := tmp.Close(); err != nil {
+		g.Errorf("| Error closing temporary file %s: %s", tmpfn, err)
+		return err
+	}
+
+	g.Debug("| Renaming temporary file %s -> permanent file %s", tmpfn, fn)
+	if err := os.Rename(tmpfn, fn); err != nil {
+		g.Errorf("| Error renaming temporary file %s -> permanent file %s: %s", tmpfn, fn, err)
+		return err
+	}
+
+	if runtime.GOOS == "android" {
+		g.Debug("| Android extra checks in safeWriteToFile")
+		info, err := os.Stat(fn)
+		if err != nil {
+			g.Errorf("| Error os.Stat(%s): %s", fn, err)
+			return err
+		}
+		g.Debug("| File info: name = %s", info.Name())
+		g.Debug("| File info: size = %d", info.Size())
+		g.Debug("| File info: mode = %s", info.Mode())
+		g.Debug("| File info: mod time = %s", info.ModTime())
+
+		g.Debug("| Android extra checks done")
+	}
+
+	g.Debug("| Done writing to file %s", fn)
+
+	return nil
 }
 
 // Pluralize returns pluralized string with value.
@@ -236,15 +278,17 @@ func IsIn(needle string, haystack []string, ci bool) bool {
 	return false
 }
 
+// Found regex here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
+var hostnameRE = regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
+
 func IsValidHostname(s string) bool {
 	parts := strings.Split(s, ".")
 	// Found regex here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
-	rxx := regexp.MustCompile("^(?i:[a-z0-9]|[a-z0-9][a-z0-9-]*[a-z0-9])$")
 	if len(parts) < 2 {
 		return false
 	}
 	for _, p := range parts {
-		if !rxx.MatchString(p) {
+		if !hostnameRE.MatchString(p) {
 			return false
 		}
 	}
@@ -256,10 +300,25 @@ func IsValidHostname(s string) bool {
 }
 
 func RandBytes(length int) ([]byte, error) {
+	var n int
+	var err error
 	buf := make([]byte, length)
-	if _, err := rand.Read(buf); err != nil {
+	if n, err = rand.Read(buf); err != nil {
 		return nil, err
 	}
+	// rand.Read uses io.ReadFull internally, so this check should never fail.
+	if n != length {
+		return nil, fmt.Errorf("RandBytes got too few bytes, %d < %d", n, length)
+	}
+	return buf, nil
+}
+
+func RandBytesWithSuffix(length int, suffix byte) ([]byte, error) {
+	buf, err := RandBytes(length)
+	if err != nil {
+		return nil, err
+	}
+	buf[len(buf)-1] = suffix
 	return buf, nil
 }
 
@@ -317,8 +376,7 @@ func RandInt() (int, error) {
 func RandIntn(n int) int {
 	x, err := RandInt()
 	if err != nil {
-		G.Log.Warning("RandInt error: %s", err)
-		return 0
+		panic(fmt.Sprintf("RandInt error: %s", err))
 	}
 	return x % n
 }
@@ -398,17 +456,36 @@ func RandStringB64(numTriads int) string {
 	return base64.URLEncoding.EncodeToString(buf)
 }
 
+func RandHexString(prefix string, numbytes int) (string, error) {
+	buf, err := RandBytes(numbytes)
+	if err != nil {
+		return "", err
+	}
+	str := hex.EncodeToString(buf)
+	return prefix + str, nil
+}
+
 func Trace(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %s", msg, ErrToOk(f())) }
 }
 
+func TraceTimed(log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
+	log.Debug("+ %s", msg)
+	start := time.Now()
+	return func() { log.Debug("- %s -> %s [time=%s]", msg, ErrToOk(f()), time.Since(start)) }
+}
+
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
@@ -417,33 +494,74 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 }
 
 func TraceOK(log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.Debug("+ %s", msg)
 	return func() { log.Debug("- %s -> %v", msg, f()) }
 }
 
 func CTraceOK(ctx context.Context, log logger.Logger, msg string, f func() bool) func() {
+	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
 	return func() { log.CDebugf(ctx, "- %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) Trace(msg string, f func() error) func() {
-	return Trace(g.Log, msg, f)
+	return Trace(g.Log.CloneWithAddedDepth(1), msg, f)
+}
+
+func (g *GlobalContext) ExitTrace(msg string, f func() error) func() {
+	return func() { g.Log.CloneWithAddedDepth(1).Debug("| %s -> %s", msg, ErrToOk(f())) }
 }
 
 func (g *GlobalContext) CTrace(ctx context.Context, msg string, f func() error) func() {
-	return CTrace(ctx, g.Log, msg, f)
+	return CTrace(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.Log, msg, f, g.Clock())
+	return CTraceTimed(ctx, g.Log.CloneWithAddedDepth(1), msg, f, g.Clock())
+}
+
+func (g *GlobalContext) CVTrace(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, ErrToOk(f())) }
+}
+
+func (g *GlobalContext) CVTraceTimed(ctx context.Context, lev VDebugLevel, msg string, f func() error) func() {
+	cl := g.Clock()
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	start := cl.Now()
+	return func() {
+		g.VDL.CLogf(ctx, lev, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+	}
+}
+
+func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
+	if enabled {
+		return profiling.NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
+	}
+	return profiling.NewSilentTimeTracer()
+}
+
+func (g *GlobalContext) CTimeBuckets(ctx context.Context) (context.Context, *profiling.TimeBuckets) {
+	return profiling.WithTimeBuckets(ctx, g.Clock(), g.Log)
+}
+
+func (g *GlobalContext) ExitTraceOK(msg string, f func() bool) func() {
+	return func() { g.Log.Debug("| %s -> %v", msg, f()) }
 }
 
 func (g *GlobalContext) TraceOK(msg string, f func() bool) func() {
-	return TraceOK(g.Log, msg, f)
+	return TraceOK(g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
 func (g *GlobalContext) CTraceOK(ctx context.Context, msg string, f func() bool) func() {
-	return CTraceOK(ctx, g.Log, msg, f)
+	return CTraceOK(ctx, g.Log.CloneWithAddedDepth(1), msg, f)
+}
+
+func (g *GlobalContext) CVTraceOK(ctx context.Context, lev VDebugLevel, msg string, f func() bool) func() {
+	g.VDL.CLogf(ctx, lev, "+ %s", msg)
+	return func() { g.VDL.CLogf(ctx, lev, "- %s -> %v", msg, f()) }
+
 }
 
 // SplitByRunes splits string by runes
@@ -512,8 +630,10 @@ func CTimeLog(ctx context.Context, name string, start time.Time, out func(contex
 	out(ctx, "time> %s: %s", name, time.Since(start))
 }
 
+var wsRE = regexp.MustCompile(`\s+`)
+
 func WhitespaceNormalize(s string) string {
-	v := regexp.MustCompile(`\s+`).Split(s, -1)
+	v := wsRE.Split(s, -1)
 	if len(v) > 0 && len(v[0]) == 0 {
 		v = v[1:]
 	}
@@ -532,4 +652,253 @@ func JoinPredicate(arr []string, delimeter string, f func(s string) bool) string
 		}
 	}
 	return strings.Join(arrNew, delimeter)
+}
+
+// LogTagsFromContext is a wrapper around logger.LogTagsFromContext
+// that simply casts the result to the type expected by
+// rpc.Connection.
+func LogTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
+	tags, ok := logger.LogTagsFromContext(ctx)
+	return map[interface{}]string(tags), ok
+}
+
+func MakeByte24(a []byte) [24]byte {
+	const n = 24
+	if len(a) != n {
+		panic(fmt.Sprintf("MakeByte expected len %v but got %v slice", n, len(a)))
+	}
+	var b [n]byte
+	copy(b[:], a)
+	return b
+}
+
+func MakeByte32(a []byte) [32]byte {
+	const n = 32
+	if len(a) != n {
+		panic(fmt.Sprintf("MakeByte expected len %v but got %v slice", n, len(a)))
+	}
+	var b [n]byte
+	copy(b[:], a)
+	return b
+}
+
+func MakeByte32Soft(a []byte) ([32]byte, error) {
+	const n = 32
+	var b [n]byte
+	if len(a) != n {
+		return b, fmt.Errorf("MakeByte expected len %v but got %v slice", n, len(a))
+	}
+	copy(b[:], a)
+	return b, nil
+}
+
+// Sleep until `deadline` or until `ctx` is canceled, whichever occurs first.
+// Returns an error BUT the error is not really an error.
+// It is nil if the sleep finished, and the non-nil result of Context.Err()
+func SleepUntilWithContext(ctx context.Context, clock clockwork.Clock, deadline time.Time) error {
+	if ctx == nil {
+		// should not happen
+		clock.AfterTime(deadline)
+		return nil
+	}
+	select {
+	case <-clock.AfterTime(deadline):
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func UseCITime(g *GlobalContext) bool {
+	return g.GetEnv().RunningInCI() || g.GetEnv().GetSlowGregorConn()
+}
+
+func CITimeMultiplier(g *GlobalContext) time.Duration {
+	if UseCITime(g) {
+		return time.Duration(3)
+	}
+	return time.Duration(1)
+}
+
+func IsAppStatusCode(err error, code keybase1.StatusCode) bool {
+	switch err := err.(type) {
+	case AppStatusError:
+		return err.Code == int(code)
+	}
+	return false
+}
+
+func CanExec(p string) error {
+	return canExec(p)
+}
+
+func CurrentBinaryRealpath() (string, error) {
+	if IsMobilePlatform() {
+		return "mobile-binary-location-unknown", nil
+	}
+
+	executable, err := os.Executable()
+	if err != nil {
+		return "", err
+	}
+	return filepath.EvalSymlinks(executable)
+}
+
+var adminFeatureList = map[keybase1.UID]bool{
+	"23260c2ce19420f97b58d7d95b68ca00": true, // Chris Coyne "chris"
+	"dbb165b7879fe7b1174df73bed0b9500": true, // Max Krohn, "max"
+	"ef2e49961eddaa77094b45ed635cfc00": true, // Jeremy Stribling, "strib"
+	"41b1f75fb55046d370608425a3208100": true, // Jack O'Connor, "oconnor663"
+	"9403ede05906b942fd7361f40a679500": true, // Jinyang Li, "jinyang"
+	"1563ec26dc20fd162a4f783551141200": true, // Patrick Crosby, "patrick"
+	"ebbe1d99410ab70123262cf8dfc87900": true, // Fred Akalin, "akalin"
+	"e0b4166c9c839275cf5633ff65c3e819": true, // Chris Nojima, "chrisnojima"
+	"d95f137b3b4a3600bc9e39350adba819": true, // Cécile Boucheron, "cecileb"
+	"4c230ae8d2f922dc2ccc1d2f94890700": true, // Marco Polo, "marcopolo"
+	"237e85db5d939fbd4b84999331638200": true, // Chris Ball, "cjb"
+	"69da56f622a2ac750b8e590c3658a700": true, // John Zila, "jzila"
+	"673a740cd20fb4bd348738b16d228219": true, // Steve Sanders, "zanderz"
+	"95e88f2087e480cae28f08d81554bc00": true, // Mike Maxim, "mikem"
+	"08abe80bd2da8984534b2d8f7b12c700": true, // Song Gao, "songgao"
+	"eb08cb06e608ea41bd893946445d7919": true, // Miles Steele, "mlsteele"
+	"743338e8d5987e0e5077f0fddc763f19": true, // Taru Karttunen, "taruti"
+	"ee71dbc8e4e3e671e29a94caef5e1b19": true, // Michał Zochniak, "zapu"
+	"8c7c57995cd14780e351fc90ca7dc819": true, // Danny Ayoub, "ayoubd"
+}
+
+// IsKeybaseAdmin returns true if uid is a keybase admin.
+func IsKeybaseAdmin(uid keybase1.UID) bool {
+	return adminFeatureList[uid]
+}
+
+// MobilePermissionDeniedCheck panics if err is a permission denied error
+// and if app is a mobile app. This has caused issues opening config.json
+// and secretkeys files, where it seems to be stuck in a permission
+// denied state and force-killing the app is the only option.
+func MobilePermissionDeniedCheck(g *GlobalContext, err error, msg string) {
+	if !os.IsPermission(err) {
+		return
+	}
+	if g.GetAppType() != MobileAppType {
+		return
+	}
+	g.Log.Warning("file open permission denied on mobile (%s): %s", msg, err)
+	os.Exit(4)
+}
+
+// IsNoSpaceOnDeviceError will return true if err is an `os` error
+// for "no space left on device".
+func IsNoSpaceOnDeviceError(err error) bool {
+	if err == nil {
+		return false
+	}
+	switch err := err.(type) {
+	case NoSpaceOnDeviceError:
+		return true
+	case *os.PathError:
+		return err.Err == syscall.ENOSPC
+	case *os.LinkError:
+		return err.Err == syscall.ENOSPC
+	case *os.SyscallError:
+		return err.Err == syscall.ENOSPC
+	}
+
+	return false
+}
+
+func ShredFile(filename string) error {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	if stat.IsDir() {
+		return errors.New("cannot shred a directory")
+	}
+	size := int(stat.Size())
+
+	defer os.Remove(filename)
+
+	for i := 0; i < 3; i++ {
+		noise, err := RandBytes(size)
+		if err != nil {
+			return err
+		}
+		if err := ioutil.WriteFile(filename, noise, stat.Mode().Perm()); err != nil {
+			return err
+		}
+	}
+
+	return os.Remove(filename)
+}
+
+func MPackEncode(input interface{}) ([]byte, error) {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	var data []byte
+	enc := codec.NewEncoderBytes(&data, &mh)
+	if err := enc.Encode(input); err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func MPackDecode(data []byte, res interface{}) error {
+	mh := codec.MsgpackHandle{WriteExt: true}
+	dec := codec.NewDecoderBytes(data, &mh)
+	err := dec.Decode(res)
+	return err
+}
+
+type NoiseBytes [noiseFileLen]byte
+
+func MakeNoise() (nb NoiseBytes, err error) {
+	noise, err := RandBytes(noiseFileLen)
+	if err != nil {
+		return nb, err
+	}
+	copy(nb[:], noise)
+	return nb, nil
+}
+
+func NoiseXOR(secret [32]byte, noise NoiseBytes) ([]byte, error) {
+	sum := sha256.Sum256(noise[:])
+	if len(sum) != len(secret) {
+		return nil, errors.New("secret or sha256.Size is no longer 32")
+	}
+
+	xor := make([]byte, len(sum))
+	for i := 0; i < len(sum); i++ {
+		xor[i] = sum[i] ^ secret[i]
+	}
+
+	return xor, nil
+}
+
+// ForceWallClock takes a multi-personality Go time and converts it to
+// a regular old WallClock time.
+func ForceWallClock(t time.Time) time.Time {
+	return t.Round(0)
+}
+
+// Decode decodes src into dst.
+// Errors unless all of:
+// - src is valid hex
+// - src decodes into exactly len(dst) bytes
+func DecodeHexFixed(dst, src []byte) error {
+	// hex.Decode is wrapped because it does not error on short reads and panics on long reads.
+	if len(src)%2 == 1 {
+		return hex.ErrLength
+	}
+	if len(dst) != hex.DecodedLen(len(src)) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), hex.DecodedLen(len(src))))
+	}
+	n, err := hex.Decode(dst, src)
+	if err != nil {
+		return err
+	}
+	if n != len(dst) {
+		return NewHexWrongLengthError(fmt.Sprintf(
+			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
+	}
+	return nil
 }

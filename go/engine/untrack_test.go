@@ -10,16 +10,18 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func runUntrack(g *libkb.GlobalContext, fu *FakeUser, username string) error {
+func runUntrack(tc libkb.TestContext, fu *FakeUser, username string, sigVersion libkb.SigVersion) error {
 	arg := UntrackEngineArg{
-		Username: username,
+		Username:   libkb.NewNormalizedUsername(username),
+		SigVersion: sigVersion,
 	}
-	ctx := Context{
-		LogUI:    g.UI.GetLogUI(),
+	uis := libkb.UIs{
+		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewUntrackEngine(&arg, g)
-	return RunEngine(eng, &ctx)
+	eng := NewUntrackEngine(tc.G, &arg)
+	m := libkb.NewMetaContextForTest(tc).WithUIs(uis)
+	return RunEngine2(m, eng)
 }
 
 func assertUntracked(tc libkb.TestContext, username string) {
@@ -32,7 +34,8 @@ func assertUntracked(tc libkb.TestContext, username string) {
 		tc.T.Fatal(err)
 	}
 
-	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
+	m := NewMetaContextForTest(tc)
+	s, err := me.TrackChainLinkFor(m, them.GetNormalizedName(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -40,7 +43,7 @@ func assertUntracked(tc libkb.TestContext, username string) {
 		tc.T.Fatal("expected not to get a tracking statement; but got one")
 	}
 
-	s, err = libkb.LocalTrackChainLinkFor(me.GetUID(), them.GetUID(), tc.G)
+	s, err = libkb.LocalTrackChainLinkFor(m, me.GetUID(), them.GetUID())
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -49,16 +52,16 @@ func assertUntracked(tc libkb.TestContext, username string) {
 	}
 }
 
-func untrackAlice(tc libkb.TestContext, fu *FakeUser) {
-	err := runUntrack(tc.G, fu, "t_alice")
+func untrackAlice(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	err := runUntrack(tc, fu, "t_alice", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
 	return
 }
 
-func untrackBob(tc libkb.TestContext, fu *FakeUser) {
-	err := runUntrack(tc.G, fu, "t_bob")
+func untrackBob(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	err := runUntrack(tc, fu, "t_bob", sigVersion)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -66,36 +69,42 @@ func untrackBob(tc libkb.TestContext, fu *FakeUser) {
 }
 
 func TestUntrack(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testUntrack(t, sigVersion)
+	})
+}
+func _testUntrack(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
 	// Local-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
+	sv := keybase1.SigVersion(sigVersion)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
 	assertTracking(tc, "t_alice")
-	untrackAlice(tc, fu)
+	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
 	// Remote-tracked only.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
+	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
 	// Both local- and remote-tracked.
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true}, fu.NewSecretUI())
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: true, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
+	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 
 	// Assert that we gracefully handle cases where there is nothing to untrack.
-	err := runUntrack(tc.G, fu, "t_alice")
+	err := runUntrack(tc, fu, "t_alice", sigVersion)
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
 		t.Fatalf("expected an UntrackError; got %s", err)
 	}
 
-	err = runUntrack(tc.G, fu, "t_bob")
+	err = runUntrack(tc, fu, "t_bob", sigVersion)
 	if err == nil {
 		t.Fatal("expected untrack error; got no error")
 	} else if _, ok := err.(libkb.UntrackError); !ok {
@@ -107,9 +116,11 @@ func TestUntrack(t *testing.T) {
 func TestUntrackRemoteOnly(t *testing.T) {
 	tc := SetupEngineTest(t, "untrack")
 	defer tc.Cleanup()
+	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "untrk")
 
-	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}, fu.NewSecretUI())
-	untrackAlice(tc, fu)
+	sv := keybase1.SigVersion(sigVersion)
+	trackAliceWithOptions(tc, fu, keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true, SigVersion: &sv}, fu.NewSecretUI())
+	untrackAlice(tc, fu, sigVersion)
 	assertUntracked(tc, "t_alice")
 }

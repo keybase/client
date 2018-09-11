@@ -1,8 +1,6 @@
 package rpc
 
-import (
-	"golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 // CtxRpcKey is a type defining the context key for the RPC context
 type CtxRpcKey int
@@ -21,16 +19,23 @@ func AddRpcTagsToContext(ctx context.Context, logTagsToAdd CtxRpcTags) context.C
 	currTags, ok := RpcTagsFromContext(ctx)
 	if !ok {
 		currTags = make(CtxRpcTags)
-		ctx = context.WithValue(ctx, CtxRpcTagsKey, currTags)
 	}
 	for key, tag := range logTagsToAdd {
 		currTags[key] = tag
 	}
-	return ctx
+
+	return context.WithValue(ctx, CtxRpcTagsKey, currTags)
 }
 
 // RpcTagsFromContext returns the tags being passed along with the given context.
 func RpcTagsFromContext(ctx context.Context) (CtxRpcTags, bool) {
 	logTags, ok := ctx.Value(CtxRpcTagsKey).(CtxRpcTags)
-	return logTags, ok
+	if ok {
+		ret := make(CtxRpcTags)
+		for k, v := range logTags {
+			ret[k] = v
+		}
+		return ret, true
+	}
+	return nil, false
 }

@@ -56,19 +56,21 @@ func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.Disp
 	return nil
 }
 
-func proveRooter(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, keybase1.SigID, error) {
-	return proveRooterWithSecretUI(g, fu, fu.NewSecretUI())
+func proveRooter(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	return proveRooterWithSecretUI(g, fu, fu.NewSecretUI(), sigVersion)
 }
 
-func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI) (*ProveUIMock, keybase1.SigID, error) {
+func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libkb.SecretUI, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -77,7 +79,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
@@ -96,30 +98,32 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: secretUI,
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, eng.sigID, err
 }
 
-func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error) {
+func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: "XXXXXXX"},
 			},
@@ -138,20 +142,20 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser) (*ProveUIMock, error)
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, err
 }
 
 func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	apiArg := libkb.APIArg{
 		Endpoint:    "rooter/delete",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"post_id": libkb.S{Val: postID},
 		},
@@ -160,15 +164,17 @@ func proveRooterRemove(g *libkb.GlobalContext, postID string) error {
 	return err
 }
 
-func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string) (*ProveUIMock, keybase1.SigID, error) {
+func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername string, sigVersion libkb.SigVersion) (*ProveUIMock, keybase1.SigID, error) {
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     rooterUsername,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, g)
+	eng := NewProve(g, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -177,7 +183,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post":     libkb.S{Val: sigID.ToMediumID()},
 				"username": libkb.S{Val: rooterUsername},
@@ -197,12 +203,12 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-
-	err := RunEngine(eng, &ctx)
+	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	return proveUI, eng.sigID, err
 }

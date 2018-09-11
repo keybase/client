@@ -48,7 +48,10 @@ DESCRIPTION:
 
 OPTIONS:
    {{range .Flags}}{{.}}
-   {{end}}{{ end }}
+   {{end}}{{ end }}{{if .Examples}}
+
+EXAMPLES:
+{{.ExamplesFormatted}}{{end}}
 `
 
 // The text template for the subcommand help topic.

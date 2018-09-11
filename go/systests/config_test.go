@@ -57,6 +57,10 @@ func (c *configTestUI) GetDumbOutputUI() libkb.DumbOutputUI {
 }
 
 func (c *configTestUI) Printf(fmtString string, args ...interface{}) (int, error) {
+	return c.PrintfUnescaped(fmtString, args...)
+}
+
+func (c *configTestUI) PrintfUnescaped(fmtString string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(fmtString, args...)
 	c.stdout = append(c.stdout, s)
 	return 0, nil

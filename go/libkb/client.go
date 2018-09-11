@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -14,6 +15,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
 
 	"h12.me/socks"
 )
@@ -34,9 +38,10 @@ type Client struct {
 	config *ClientConfig
 }
 
+var hostRE = regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
+
 func SplitHost(joined string) (host string, port int, err error) {
-	re := regexp.MustCompile("^([^:]+)(:([0-9]+))?$")
-	match := re.FindStringSubmatch(joined)
+	match := hostRE.FindStringSubmatch(joined)
 	if match == nil {
 		err = fmt.Errorf("Invalid host/port found: %s", joined)
 	} else {
@@ -74,7 +79,8 @@ func ShortCA(raw string) string {
 // GenClientConfigForInternalAPI pulls the information out of the environment configuration,
 // and build a Client config that will be used in all API server
 // requests
-func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
+func genClientConfigForInternalAPI(g *GlobalContext) (*ClientConfig, error) {
+	e := g.Env
 	serverURI := e.GetServerURI()
 
 	if e.GetTorMode().Enabled() {
@@ -110,7 +116,7 @@ func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 			err = fmt.Errorf("In parsing CAs for %s: %s", host, err)
 			return nil, err
 		}
-		G.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
+		g.Log.Debug(fmt.Sprintf("Using special root CA for %s: %s",
 			host, ShortCA(rawCA)))
 	}
 
@@ -123,7 +129,7 @@ func (e *Env) GenClientConfigForInternalAPI() (*ClientConfig, error) {
 	return ret, nil
 }
 
-func (e *Env) GenClientConfigForScrapers() (*ClientConfig, error) {
+func genClientConfigForScrapers(e *Env) (*ClientConfig, error) {
 	return &ClientConfig{
 		UseCookies: true,
 		Timeout:    e.GetScraperTimeout(),
@@ -136,21 +142,58 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		jar, _ = cookiejar.New(nil)
 	}
 
-	var xprt *http.Transport
+	var xprt http.Transport
 	var timeout time.Duration
 
+	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
+		c, err = net.Dial(network, addr)
+		if err != nil {
+			// If we get a DNS error, it could be because glibc has cached an
+			// old version of /etc/resolv.conf. The res_init() libc function
+			// busts that cache and keeps us from getting stuck in a state
+			// where DNS requests keep failing even though the network is up.
+			// This is similar to what the Rust standard library does:
+			// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
+			resinit.ResInitIfDNSError(err)
+			return c, err
+		}
+		if err = rpc.DisableSigPipe(c); err != nil {
+			return c, err
+		}
+		return c, nil
+	}
+
 	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
-		xprt = &http.Transport{}
 		if config != nil && config.RootCAs != nil {
 			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 		}
 		if e.GetTorMode().Enabled() {
+			// TODO: should we call res_init on DNS errors here as well?
 			dialSocksProxy := socks.DialSocksProxy(socks.SOCKS5, e.GetTorProxy())
 			xprt.Dial = dialSocksProxy
 		} else {
 			xprt.Proxy = http.ProxyFromEnvironment
 		}
 	}
+
+	if !e.GetTorMode().Enabled() && e.GetRunMode() == DevelRunMode {
+		xprt.Proxy = func(req *http.Request) (*url.URL, error) {
+			host, port, err := net.SplitHostPort(req.URL.Host)
+			if err == nil && host == "localhost" {
+				// ProxyFromEnvironment refuses to proxy when the hostname is set to "localhost".
+				// So make a fake copy of the request with the url set to "127.0.0.1".
+				// This makes localhost requests use proxy settings.
+				// The Host could be anything and is only used to != "localhost".
+				url2 := *req.URL
+				url2.Host = "keybase.io:" + port
+				req2 := req
+				req2.URL = &url2
+				return http.ProxyFromEnvironment(req2)
+			}
+			return http.ProxyFromEnvironment(req)
+		}
+	}
+
 	if config == nil || config.Timeout == 0 {
 		timeout = HTTPDefaultTimeout
 	} else {
@@ -164,8 +207,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	if xprt != nil {
-		ret.cli.Transport = xprt
-	}
+
+	ret.cli.Transport = &xprt
 	return ret
 }

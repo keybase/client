@@ -1,28 +1,58 @@
 // @flow
-import type {LogLevel} from '../constants/types/flow-types'
-import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
+import * as I from 'immutable'
+import * as RPCTypes from './types/rpc-gen'
+import type {_State} from './types/notifications'
+import * as Tabs from './tabs'
+import {isMobile} from './platform'
+import type {TypedState} from './reducer'
 
-// Actions
-export const log = 'notifications:log'
-export type LogAction = TypedAction<'notifications:log', {level: LogLevel, text: string}, void>
+export const badgeStateToBadges = (bs: RPCTypes.BadgeState, state: TypedState) => {
+  const {
+    homeTodoItems,
+    conversations,
+    newTlfs,
+    rekeysNeeded,
+    newGitRepoGlobalUniqueIDs,
+    newTeamNames,
+    newTeamAccessRequests,
+    teamsWithResetUsers,
+    inboxVers,
+  } = bs
 
-export type NotificationKeys = 'newTLFs' | 'kbfsUploading' | 'chatInbox'
-export const badgeApp = 'notifications:badgeApp'
-export type BadgeAppAction = TypedAction<'notifications:badgeApp', {key: NotificationKeys, on: boolean, count?: number}, void>
+  if (state.notifications.badgeVersion >= inboxVers) {
+    return null
+  }
 
-export const listenForNotifications = 'notifications:listenForNotifications'
-export type ListenForNotifications = NoErrorTypedAction<'notifications:listenForNotifications', void>
+  const deviceType = isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop
+  const totalMessages = (conversations || []).reduce(
+    (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${deviceType}`] : total),
+    0
+  )
+  const newGit = (newGitRepoGlobalUniqueIDs || []).length
+  const newTeams =
+    (newTeamNames || []).length + (newTeamAccessRequests || []).length + (teamsWithResetUsers || []).length
 
-export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
-export type ListenForKBFSNotifications = NoErrorTypedAction<'notifications:listenForKBFSNotifications', void>
+  const navBadges = I.Map([
+    [Tabs.chatTab, totalMessages],
+    [Tabs.folderTab, newTlfs + rekeysNeeded],
+    [Tabs.fsTab, newTlfs + rekeysNeeded],
+    [Tabs.gitTab, newGit],
+    [Tabs.teamsTab, newTeams],
+    [Tabs.peopleTab, homeTodoItems],
+  ])
 
-export type BadgeType = 'regular' | 'update' | 'badged' | 'uploading'
-
-export type MenuNotificationState = {
-  folderBadge: number,
-  peopleBadge: number,
-  chatBadge: number,
-  deviceBadge: number,
+  return {
+    desktopAppBadgeCount: navBadges.reduce((total, val) => total + val, 0),
+    mobileAppBadgeCount: totalMessages,
+    navBadges: navBadges,
+  }
 }
 
-export type NotificationAction = LogAction | BadgeAppAction | ListenForNotifications
+export const makeState: I.RecordFactory<_State> = I.Record({
+  badgeVersion: -1,
+  desktopAppBadgeCount: 0,
+  keyState: I.Map(),
+  mobileAppBadgeCount: 0,
+  navBadges: I.Map(),
+  widgetBadge: 'regular',
+})

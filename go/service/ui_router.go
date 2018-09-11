@@ -4,6 +4,9 @@
 package service
 
 import (
+	"fmt"
+	"sync"
+
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -31,62 +34,41 @@ type setObj struct {
 }
 
 type UIRouter struct {
+	sync.Mutex
 	libkb.Contextified
-	cm         *libkb.ConnectionManager
-	uis        map[libkb.UIKind]libkb.ConnectionID
-	setCh      chan setObj
-	getCh      chan getObj
-	shutdownCh chan struct{}
+	cm  *libkb.ConnectionManager
+	uis map[libkb.UIKind]libkb.ConnectionID
 }
 
 func NewUIRouter(g *libkb.GlobalContext) *UIRouter {
-	ret := &UIRouter{
+	return &UIRouter{
 		Contextified: libkb.NewContextified(g),
 		cm:           g.ConnectionManager,
 		uis:          make(map[libkb.UIKind]libkb.ConnectionID),
-		setCh:        make(chan setObj),
-		getCh:        make(chan getObj),
-		shutdownCh:   make(chan struct{}),
-	}
-	go ret.run()
-	return ret
-}
-
-func (u *UIRouter) Shutdown() {
-	u.shutdownCh <- struct{}{}
-}
-
-func (u *UIRouter) run() {
-	for {
-		select {
-		case <-u.shutdownCh:
-			return
-		case o := <-u.setCh:
-			u.uis[o.ui] = o.cid
-		case o := <-u.getCh:
-			var ret rpc.Transporter
-			cid, ok := u.uis[o.ui]
-			if ok {
-				if ret = u.cm.LookupConnection(cid); ret == nil {
-					u.G().Log.Debug("UIRouter: connection %v inactive, deleting registered UI %s", cid, o.ui)
-					delete(u.uis, o.ui)
-				}
-			}
-			o.retCh <- transporterAndConnectionID{transporter: ret, connectionID: cid}
-		}
 	}
 }
+
+func (u *UIRouter) Shutdown() {}
 
 func (u *UIRouter) SetUI(c libkb.ConnectionID, k libkb.UIKind) {
-	u.G().Log.Debug("UIRouter: connection %v registering UI %s", c, k)
-	u.setCh <- setObj{c, k}
+	u.Lock()
+	defer u.Unlock()
+	u.G().Log.Debug("UIRouter: connection %v registering UI %s [%p]", c, k, u)
+	u.uis[k] = c
 }
 
 func (u *UIRouter) getUI(k libkb.UIKind) (rpc.Transporter, libkb.ConnectionID) {
-	retCh := make(chan transporterAndConnectionID)
-	u.getCh <- getObj{k, retCh}
-	ret := <-retCh
-	return ret.transporter, ret.connectionID
+	u.Lock()
+	defer u.Unlock()
+	var ret rpc.Transporter
+	cid, ok := u.uis[k]
+	if ok {
+		if ret = u.cm.LookupConnection(cid); ret == nil {
+			u.G().Log.Debug("UIRouter: connection %v inactive, deleting registered UI %s", cid, k)
+			delete(u.uis, k)
+		}
+	}
+	return ret, cid
 }
 
 func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
@@ -94,7 +76,7 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	if x == nil {
 		return nil, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
 	iuicli := keybase1.IdentifyUiClient{Cli: cli}
 	sessionID, err := iuicli.DelegateIdentifyUI(context.TODO())
 	if err != nil {
@@ -112,6 +94,29 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
+func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
+	x, _ := u.getUI(libkb.IdentifyUIKind)
+	if x == nil {
+		return 0, nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	iuicli := keybase1.IdentifyUiClient{Cli: cli}
+	sessionID, err := iuicli.DelegateIdentifyUI(ctx)
+	if err != nil {
+		return 0, nil, err
+	}
+	ret := &RemoteIdentifyUI{
+		sessionID: sessionID,
+		uicli:     iuicli,
+		logUI: &LogUI{
+			sessionID,
+			&keybase1.LogUiClient{Cli: cli},
+		},
+		Contextified: libkb.NewContextified(u.G()),
+	}
+	return sessionID, ret, nil
+}
+
 func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	defer u.G().Trace("UIRouter#GetSecretUI", func() error { return err })()
 	x, _ := u.getUI(libkb.SecretUIKind)
@@ -119,7 +124,7 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 		u.G().Log.Debug("| getUI(libkb.SecretUIKind) returned nil")
 		return nil, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
 	scli := keybase1.SecretUiClient{Cli: cli}
 
 	u.G().Log.Debug("| returning delegated SecretUI with sessionID = %d", sessionID)
@@ -131,6 +136,20 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	return ret, nil
 }
 
+func (u *UIRouter) GetHomeUI() (keybase1.HomeUIInterface, error) {
+	var err error
+	defer u.G().Trace(fmt.Sprintf("UIRouter#GetHomeUI [%p]", u), func() error { return err })()
+
+	x, _ := u.getUI(libkb.HomeUIKind)
+	if x == nil {
+		u.G().Log.Debug("| getUI(libkb.HomeUIKind) returned nil")
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	uicli := keybase1.HomeUIClient{Cli: cli}
+	return uicli, nil
+}
+
 func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	var err error
 	defer u.G().Trace("UIRouter#GetRekeyUI", func() error { return err })()
@@ -140,7 +159,7 @@ func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 		u.G().Log.Debug("| getUI(libkb.RekeyUIKind) returned nil")
 		return nil, 0, nil
 	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
 	uicli := keybase1.RekeyUIClient{Cli: cli}
 	sessionID, err := uicli.DelegateRekeyUI(context.TODO())
 	if err != nil {
@@ -167,7 +186,7 @@ func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI) (ret *RekeyUI, err error) {
 		return prev, nil
 	}
 
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
 	uicli := keybase1.RekeyUIClient{Cli: cli}
 	var sessionID int
 	sessionID, err = uicli.DelegateRekeyUI(context.TODO())

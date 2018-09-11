@@ -5,9 +5,11 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"time"
+
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PDPKA is a "Passphrase-Derived Public Key Authentication". In this case, it's a
@@ -143,6 +145,9 @@ func computeLoginPackageFromEmailOrUsername(eou string, ps *PassphraseStream, lo
 }
 
 func computeLoginPackage(li loginIdentifier, ps *PassphraseStream, loginSession []byte) (ret PDPKALoginPackage, err error) {
+	if ps == nil {
+		return ret, errors.New("computeLoginPackage failed due to nil PassphraseStream")
+	}
 	ret.pdpka5, err = computePDPKA(li, ps.EdDSASeed(), loginSession)
 	if err != nil {
 		return ret, err

@@ -1,0 +1,21 @@
+{
+  "prelude": ["import * as Constants from '../constants/entities'"],
+  "actions": {
+    "deleteEntity": {
+      "keyPath": "Array<string>",
+      "ids": "I.List<string>"
+    },
+    "mergeEntity": {
+      "keyPath": "Array<string>",
+      "entities": ["I.Map<any, any>", "I.List<any>"]
+    },
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": ["I.Map<any, any>", "I.List<any>"]
+    },
+    "subtractEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.List<any>"
+    }
+  }
+}

@@ -38,7 +38,11 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceAdd) Run() error {
-	var err error
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Starting `device add`...\n\n")
+	dui.Printf("(Please note that you should run `device add` on a computer that is\n")
+	dui.Printf("already registered with Keybase)\n")
+
 	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return err
@@ -47,11 +51,14 @@ func (c *CmdDeviceAdd) Run() error {
 		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisioner),
 		NewSecretUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 
-	return cli.DeviceAdd(context.TODO(), 0)
+	if err := cli.DeviceAdd(context.TODO(), 0); err != nil {
+		return err
+	}
+	return nil
 }
 
 // ParseArgv gets the secret phrase from the command args.

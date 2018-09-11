@@ -1,0 +1,8 @@
+// @flow
+import type {Tab} from '../../constants/tabs'
+export type Props = {
+  onTabClick: (tab: Tab) => void,
+  selectedTab: Tab,
+  username: string,
+  badgeNumbers: {[key: string]: number},
+}

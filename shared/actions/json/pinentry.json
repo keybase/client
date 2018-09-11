@@ -1,0 +1,36 @@
+{
+  "prelude": ["import * as Constants from '../constants/pinentry'"],
+  "actions": {
+    "deleteEntity": {
+      "keyPath": "Array<string>",
+      "ids": "Iterable<any>"
+    },
+    "mergeEntity": {
+      "keyPath": "Array<string>",
+      "entities": ["I.Map<any, any>", "I.List<any>"]
+    },
+    "replaceEntity": {
+      "keyPath": "Array<string>",
+      "entities": ["I.Map<any, any>", "I.List<any>"]
+    },
+    "subtractEntity": {
+      "keyPath": "Array<string>",
+      "entities": "I.List<any>"
+    },
+    "newPinentry": {
+      "showTyping": "RPCTypes.Feature",
+      "type": "RPCTypes.PassphraseType",
+      "sessionID": "number",
+      "prompt": "string",
+      "windowTitle": "string",
+      "submitLabel": "?string",
+      "cancelLabel": "?string",
+      "retryLabel": "?string"
+    },
+    "onSubmit": {
+      "sessionID": "number",
+      "passphrase": "string"
+    },
+    "onCancel": { "sessionID": "number" }
+  }
+}

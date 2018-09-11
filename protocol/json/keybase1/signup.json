@@ -84,6 +84,10 @@
         {
           "name": "genPGPBatch",
           "type": "boolean"
+        },
+        {
+          "name": "genPaper",
+          "type": "boolean"
         }
       ],
       "response": "SignupRes"
@@ -121,6 +125,15 @@
         }
       ],
       "response": null
+    },
+    "getInvitationCode": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

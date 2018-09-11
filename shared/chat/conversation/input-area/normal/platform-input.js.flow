@@ -1,0 +1,5 @@
+// @flow
+import {Component} from 'react'
+import {type PlatformInputProps} from './types'
+
+export default class PlatformInput extends Component<PlatformInputProps> {}

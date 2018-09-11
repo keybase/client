@@ -1,0 +1,19 @@
+// @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
+
+export type Props = {
+  src: string,
+  style?: any,
+  onDragStart?: (e: SyntheticEvent<>) => void,
+  onLoad?: (e: SyntheticEvent<>) => void,
+}
+
+export type ReqProps = {|
+  src: any,
+  style?: ?StylesCrossPlatform,
+|}
+
+export default class Image extends React.Component<Props> {}
+// Can accept require()
+export class RequireImage extends React.Component<ReqProps> {}

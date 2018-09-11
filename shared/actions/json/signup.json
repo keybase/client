@@ -1,0 +1,67 @@
+{
+  "prelude": ["import HiddenString from '../util/hidden-string'"],
+  "actions": {
+    "goBackAndClearErrors": {},
+    "requestAutoInvite": {},
+    "requestedAutoInvite": {
+      "inviteCode": "string",
+      "canError": { }
+    },
+    "checkInviteCode": { "inviteCode": "string" },
+    "checkedInviteCode": {
+      "inviteCode": "string",
+      "canError": {
+        "inviteCode": "string",
+        "error": "string"
+      }
+    },
+    "checkPassphrase": {
+      "pass1": "HiddenString",
+      "pass2": "HiddenString",
+    },
+    "checkUsernameEmail": {
+      "username": "string",
+      "email": "string"
+    },
+    "checkedUsernameEmail": {
+      "username": "string",
+      "email": "string",
+      "canError": {
+        "emailError": "string",
+        "usernameError": "string",
+        "email": "string",
+        "username": "string"
+      }
+    },
+    "requestInvite": {
+      "email": "string",
+      "name": "string",
+    },
+    "requestedInvite": {
+      "email": "string",
+      "name": "string",
+      "canError": {
+        "emailError": "string",
+        "nameError": "string",
+        "email": "string",
+        "name": "string"
+      }
+    },
+    "restartSignup": {},
+    "signedup": {
+      "canError": {
+        "error": "HiddenString"
+      }
+    },
+    "checkDevicename": {
+      "devicename": "string",
+    },
+    "checkedDevicename": {
+      "devicename": "string",
+      "canError": {
+        "devicename": "string",
+        "error": "string"
+      }
+    }
+  }
+}

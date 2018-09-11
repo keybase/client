@@ -23,7 +23,6 @@ type SigsList struct {
 
 type SigsListArgs struct {
 	Username string
-	AllKeys  bool
 	Types    map[string]bool
 	Filterx  string
 	Verbose  bool
@@ -31,7 +30,7 @@ type SigsListArgs struct {
 }
 
 // NewSigsList creates a SigsList engine.
-func NewSigsList(args SigsListArgs, g *libkb.GlobalContext) *SigsList {
+func NewSigsList(g *libkb.GlobalContext, args SigsListArgs) *SigsList {
 	return &SigsList{
 		SigsListArgs: args,
 		Contextified: libkb.NewContextified(g),
@@ -59,13 +58,12 @@ func (e *SigsList) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *SigsList) Run(ctx *Context) error {
-	arg := libkb.LoadUserArg{AllKeys: e.AllKeys, Contextified: libkb.NewContextified(e.G())}
-	arg.SetGlobalContext(e.G())
+func (e *SigsList) Run(m libkb.MetaContext) error {
+	arg := libkb.NewLoadUserArgWithMetaContext(m)
 	if len(e.Username) > 0 {
-		arg.Name = e.Username
+		arg = arg.WithName(e.Username)
 	} else {
-		arg.Self = true
+		arg = arg.WithSelf(true)
 	}
 
 	var err error
@@ -88,7 +86,7 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 			key = fp.ToDisplayString(e.Verbose)
 		}
 		res[i] = keybase1.Sig{
-			Seqno:        int(s.GetSeqno()),
+			Seqno:        s.GetSeqno(),
 			SigIDDisplay: s.GetSigID().ToDisplayString(e.Verbose),
 			Type:         s.Type(),
 			CTime:        keybase1.ToTime(s.GetCTime()),
@@ -103,14 +101,14 @@ func (e *SigsList) Sigs() []keybase1.Sig {
 
 // ugh
 type sigexp struct {
-	Seqno   int64  `json:"seqno"`
-	SigID   string `json:"sig_id"`
-	Type    string `json:"type"`
-	CTime   int64  `json:"ctime"`
-	Revoked bool   `json:"revoked"`
-	Active  bool   `json:"active"`
-	Key     string `json:"key_fingerprint,omitempty"`
-	Body    string `json:"statement"`
+	Seqno   keybase1.Seqno `json:"seqno"`
+	SigID   string         `json:"sig_id"`
+	Type    string         `json:"type"`
+	CTime   int64          `json:"ctime"`
+	Revoked bool           `json:"revoked"`
+	Active  bool           `json:"active"`
+	Key     string         `json:"key_fingerprint,omitempty"`
+	Body    string         `json:"statement"`
 }
 
 func (e *SigsList) JSON() (string, error) {
@@ -122,7 +120,7 @@ func (e *SigsList) JSON() (string, error) {
 			key = fp.ToDisplayString(true /* verbose */)
 		}
 		exp[i] = sigexp{
-			Seqno:   int64(s.GetSeqno()),
+			Seqno:   s.GetSeqno(),
 			SigID:   s.GetSigID().ToDisplayString(true /* verbose */),
 			Type:    s.Type(),
 			CTime:   s.GetCTime().Unix(),
@@ -147,10 +145,7 @@ func (e *SigsList) processSigs() error {
 	if err := e.selectSigs(); err != nil {
 		return err
 	}
-	if err := e.filterRxx(); err != nil {
-		return err
-	}
-	return nil
+	return e.filterRxx()
 }
 
 func (e *SigsList) skipSigs() error {
@@ -199,6 +194,5 @@ func (e *SigsList) isActiveKey(link libkb.TypedChainLink) bool {
 }
 
 func (e *SigsList) skipLink(link libkb.TypedChainLink) bool {
-	return ((!e.Revoked && (link.IsRevoked() || link.IsRevocationIsh())) ||
-		(!e.AllKeys && !e.isActiveKey(link)))
+	return (!e.Revoked && (link.IsRevoked() || link.IsRevocationIsh()))
 }

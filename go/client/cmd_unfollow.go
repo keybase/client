@@ -16,8 +16,8 @@ import (
 )
 
 type CmdUntrack struct {
-	user string
 	libkb.Contextified
+	user string
 }
 
 func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -30,6 +30,14 @@ func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cl.ChooseCommand(&CmdUntrack{Contextified: libkb.NewContextified(g)}, "unfollow", c)
 		},
 	}
+}
+
+func NewCmdUntrackRunner(g *libkb.GlobalContext) *CmdUntrack {
+	return &CmdUntrack{Contextified: libkb.NewContextified(g)}
+}
+
+func (v *CmdUntrack) SetUser(user string) {
+	v.user = user
 }
 
 func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
@@ -47,9 +55,9 @@ func (v *CmdUntrack) Run() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 

@@ -9,16 +9,19 @@ pkgdesc='the Keybase Go client, filesystem, and GUI'
 license=('BSD')
 url='https://keybase.io'
 pkgver=@@PKGVER@@
+src_prefix=@@SRC_PREFIX@@
+deb_pkgver="${pkgver/_/-}"
+deb_pkgver="${deb_pkgver/+/.}"
 pkgrel=1
 arch=('i686' 'x86_64')
-depends=(fuse gconf)
+depends=(fuse gconf libxss gtk2) # don't change this without changing the SRCINFO template too
 # keybase-release is a deprecated AUR package
 conflicts=(keybase keybase-release keybase-git)
 source_i686=(
-  "https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_i386.deb"
+  "${src_prefix}/keybase_${deb_pkgver}_i386.deb"
 )
 source_x86_64=(
-  "https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_amd64.deb"
+  "${src_prefix}/keybase_${deb_pkgver}_amd64.deb"
 )
 install=keybase.install
 
@@ -33,13 +36,16 @@ package() {
   fi
 
   cd "$srcdir"
-  deb_package="keybase_@@DEBVER@@_${deb_arch}.deb"
+  deb_package="keybase_${deb_pkgver}_${deb_arch}.deb"
   ar xf "$deb_package"
   tar xf data.tar.xz -C "$pkgdir"
 
   # Omit the cronjobs that the Debian package includes.
-  rm -rf "$pkgdir/etc"
+  rm -rf "$pkgdir/etc/cron.daily"
 }
 
+# You can cross reference these hashes with Keybase Debian repo metadata:
+# https://prerelease.keybase.io/deb/dists/stable/main/binary-amd64/Packages
+# https://prerelease.keybase.io/deb/dists/stable/main/binary-i386/Packages
 sha256sums_i686=(@@SUM_i686@@)
 sha256sums_x86_64=(@@SUM_x86_64@@)

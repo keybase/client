@@ -1,0 +1,31 @@
+{
+  "protocol": "implicitTeamMigration",
+  "imports": [
+    {
+      "path": "favorite.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "startMigration": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        }
+      ],
+      "response": null
+    },
+    "finalizeMigration": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

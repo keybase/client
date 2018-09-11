@@ -1,7 +1,7 @@
 // @flow
 import type {Props} from './index'
 
-function InviteGenerated (props: Props) {
+function InviteGenerated(props: Props) {
   return null
 }
 

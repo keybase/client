@@ -48,8 +48,8 @@ func (g *GpgCLI) Configure() (err error) {
 	g.mutex.Lock()
 	defer g.mutex.Unlock()
 
-	prog := G.Env.GetGpg()
-	opts := G.Env.GetGpgOptions()
+	prog := g.G().Env.GetGpg()
+	opts := g.G().Env.GetGpgOptions()
 
 	if len(prog) > 0 {
 		err = canExec(prog)
@@ -63,7 +63,7 @@ func (g *GpgCLI) Configure() (err error) {
 		return err
 	}
 
-	g.logUI.Debug("| configured GPG w/ path: %s", prog)
+	g.G().Log.Debug("| configured GPG w/ path: %s", prog)
 
 	g.path = prog
 	g.options = opts
@@ -154,11 +154,15 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyB
 	return bundle, nil
 }
 
-func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool) (err error) {
+func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool, batch bool) (err error) {
 	g.outputVersion()
 	arg := RunGpg2Arg{
 		Arguments: []string{"--import"},
 		Stdin:     true,
+	}
+
+	if batch {
+		arg.Arguments = append(arg.Arguments, "--batch")
 	}
 
 	res := g.Run2(arg)
@@ -219,10 +223,10 @@ func (g *GpgCLI) Version() (string, error) {
 func (g *GpgCLI) outputVersion() {
 	v, err := g.Version()
 	if err != nil {
-		g.logUI.Debug("error getting GPG version: %s", err)
+		g.G().Log.Debug("error getting GPG version: %s", err)
 		return
 	}
-	g.logUI.Debug("GPG version:\n%s", v)
+	g.G().Log.Debug("GPG version:\n%s", v)
 }
 
 func (g *GpgCLI) SemanticVersion() (*semver.Version, error) {
@@ -320,7 +324,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	if !arg.Stdout {
 		out++
 		go func() {
-			ch <- DrainPipe(stdout, func(s string) { g.logUI.Debug(s) })
+			ch <- DrainPipe(stdout, func(s string) { g.G().Log.Debug(s) })
 		}()
 	} else {
 		res.Stdout = stdout
@@ -329,7 +333,7 @@ func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
 	if !arg.Stderr {
 		out++
 		go func() {
-			ch <- DrainPipe(stderr, func(s string) { g.logUI.Debug(s) })
+			ch <- DrainPipe(stderr, func(s string) { g.G().Log.Debug(s) })
 		}()
 	} else {
 		res.Stderr = stderr
@@ -350,14 +354,16 @@ func (g *GpgCLI) MakeCmd(args []string, tty string) *exec.Cmd {
 	if g.G().Service {
 		nargs = append([]string{"--no-tty"}, nargs...)
 	}
-	g.logUI.Debug("| running Gpg: %s %s", g.path, strings.Join(nargs, " "))
+	g.G().Log.Debug("| running Gpg: %s %s", g.path, strings.Join(nargs, " "))
 	ret := exec.Command(g.path, nargs...)
 	if tty == "" {
 		tty = g.tty
 	}
 	if tty != "" {
 		ret.Env = append(os.Environ(), "GPG_TTY="+tty)
-		g.logUI.Debug("| setting GPG_TTY=%s", tty)
+		g.G().Log.Debug("| setting GPG_TTY=%s", tty)
+	} else {
+		g.G().Log.Debug("| no tty provided, GPG_TTY will not be changed")
 	}
 	return ret
 }

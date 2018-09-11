@@ -13,6 +13,7 @@ import (
 )
 
 type gpgtestui struct {
+	libkb.Contextified
 	index          int
 	keyChosenCount int
 }
@@ -48,12 +49,16 @@ func (g *gpgtestui) ConfirmDuplicateKeyChosen(_ context.Context, _ int) (bool, e
 	return true, nil
 }
 
+func (g *gpgtestui) ConfirmImportSecretToExistingKey(_ context.Context, _ int) (bool, error) {
+	return false, nil
+}
+
 func (g *gpgtestui) Sign(_ context.Context, arg keybase1.SignArg) (string, error) {
 	fp, err := libkb.PGPFingerprintFromSlice(arg.Fingerprint)
 	if err != nil {
 		return "", err
 	}
-	cli := libkb.G.GetGpgClient()
+	cli := g.G().GetGpgClient()
 	if err := cli.Configure(); err != nil {
 		return "", err
 	}
@@ -91,9 +96,9 @@ type gpgSelectEmailUI struct {
 	Email string
 }
 
-func newGPGSelectEmailUI(email string) *gpgSelectEmailUI {
+func newGPGSelectEmailUI(g *libkb.GlobalContext, email string) *gpgSelectEmailUI {
 	return &gpgSelectEmailUI{
-		gpgtestui: &gpgtestui{},
+		gpgtestui: &gpgtestui{Contextified: libkb.NewContextified(g)},
 		Email:     email,
 	}
 }

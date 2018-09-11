@@ -1,28 +1,33 @@
 // @flow
 
 import getenv from 'getenv'
-import type {FeatureKeys, FeatureFlags} from './feature-flags'
+import {featureFlagsOverride} from '../local-debug.desktop'
+import type {FeatureFlags} from './feature-flags'
 
 // To enable a feature, include it in the environment variable KEYBASE_FEATURES.
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
-let features = getenv.array('KEYBASE_FEATURES', 'string', '')
+let features =
+  (featureFlagsOverride && featureFlagsOverride.split(',')) || getenv.array('KEYBASE_FEATURES', 'string', '')
 
-const featureOn = (key: FeatureKeys, includeAdmin: boolean = false) => ( // eslint-disable-line space-infix-ops
-  features.includes(key) || (includeAdmin && featureOn('admin'))
-)
+const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
-  admin: featureOn('admin'),
-  chatAdminOnly: featureOn('chatAdminOnly'),
-  mobileAppsExist: featureOn('mobileAppsExist'),
-  plansEnabled: featureOn('plansEnabled'),
-  recentFilesEnabled: featureOn('recentFilesEnabled'),
-  tabChatEnabled: featureOn('tabChatEnabled', true),
-  tabPeopleEnabled: featureOn('tabPeopleEnabled'),
-  tabProfileEnabled: true,
-  tabSettingsEnabled: true,
+  admin: false,
+  avatarUploadsEnabled: true,
+  explodingMessagesEnabled: true,
+  plansEnabled: false,
+  walletsEnabled: false,
 }
+
+const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  walletsEnabled: true,
+}
+
+// load overrides
+Object.keys(ff).forEach(k => {
+  ff[k] = featureOn(k) || ff[k] || (featureOn('admin') && inAdmin[k])
+})
 
 if (__DEV__) {
   console.log('Features', ff)

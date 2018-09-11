@@ -1,78 +1,43 @@
 // @flow
-import _ from 'lodash'
+import * as I from 'immutable'
 import * as Constants from '../constants/devices'
-import * as CommonConstants from '../constants/common'
+import * as Types from '../constants/types/devices'
+import * as DevicesGen from '../actions/devices-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 
-import type {State} from '../constants/devices'
+const initialState: Types.State = Constants.makeState()
 
-const initialState: State = {
-  waitingForServer: false,
-  devices: null,
-  error: null,
-  paperKey: null,
-}
-
-export default function (state: State = initialState, action: any) {
+export default function(
+  state: Types.State = initialState,
+  action: DevicesGen.Actions | ProvisionGen.StartProvisionPayload
+) {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
-
-    case Constants.loadingDevices:
-      return {
-        ...state,
-        error: null,
-        waitingForServer: true,
-      }
-    case Constants.showDevices:
-      let devices
-      if (action.error) {
-        devices = null
-      } else {
-        devices = _.chain(action.payload)
-          .map(dev => ({
-            name: dev.device.name,
-            deviceID: dev.device.deviceID,
-            type: dev.device.type,
-            created: dev.device.cTime,
-            currentDevice: dev.currentDevice,
-            provisioner: dev.provisioner,
-            provisionedAt: dev.provisionedAt,
-            revokedAt: dev.revokedAt,
-            revokedBy: dev.revokedByDevice,
-            lastUsed: dev.device.lastUsedTime,
-          }))
-          .orderBy(['currentDevice', 'name'], ['desc', 'asc'])
-          .value()
-      }
-      return {
-        ...state,
-        error: action.error && action.payload,
-        devices,
-        waitingForServer: false,
-      }
-    case Constants.removeDevice:
-      return {
-        ...state,
-        waitingForServer: true,
-      }
-    case Constants.deviceRemoved:
-      return {
-        ...state,
-        waitingForServer: false,
-      }
-    case Constants.paperKeyLoading:
-      return {
-        ...state,
-        error: null,
-        paperKey: null,
-      }
-    case Constants.paperKeyLoaded:
-      return {
-        ...state,
-        error: action.error && action.payload,
-        paperKey: action.error ? null : action.payload,
-      }
+    case DevicesGen.resetStore:
+      return initialState
+    case DevicesGen.loaded:
+      return state.set('deviceMap', I.Map(action.payload.devices.map(d => [d.deviceID, d])))
+    case DevicesGen.endangeredTLFsLoaded:
+      return state.setIn(['endangeredTLFMap', action.payload.deviceID], I.Set(action.payload.tlfs))
+    case DevicesGen.showRevokePage:
+    case DevicesGen.showDevicePage: // fallthrough
+      return state.set('selectedDeviceID', action.payload.deviceID)
+    case DevicesGen.showPaperKeyPage:
+      return state.set('newPaperkey', initialState.newPaperkey)
+    case DevicesGen.paperKeyCreated:
+      return state.set('newPaperkey', action.payload.paperKey)
+    case DevicesGen.revoked:
+      return action.payload.wasCurrentDevice ? state.set('justRevokedSelf', action.payload.deviceName) : state
+    case ProvisionGen.startProvision:
+      return state.merge({justRevokedSelf: ''})
+    // Saga only actions
+    case DevicesGen.revoke:
+    case DevicesGen.load:
+      return state
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }

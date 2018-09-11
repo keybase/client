@@ -6,13 +6,14 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
+
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"time"
 )
 
 const TLFRekeyGregorCategory = "kbfs_tlf_rekey_needed"
@@ -159,7 +160,7 @@ func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, er
 	var tmp rekeyQueryResult
 	err := g.API.PostDecode(libkb.APIArg{
 		Endpoint:    "kbfs/problem_sets",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args:        args,
 	}, &tmp)
 
@@ -207,6 +208,7 @@ func (r *rekeyMaster) resumeSleep() time.Duration {
 
 func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) {
 	defer r.G().Trace(fmt.Sprintf("rekeyMaster#runOnce(%d) [%p]", ri, r), func() error { return err })()
+
 	var problemsAndDevices *keybase1.ProblemSetDevices
 	var event keybase1.RekeyEvent
 
@@ -223,7 +225,7 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 		return r.resumeSleep(), nil
 	}
 
-	if ri != RekeyInterruptSyncForce {
+	if ri != RekeyInterruptSyncForce && ri != RekeyInterruptShowUI {
 		if ret = r.continueSleep(ri); ret > 0 {
 			r.G().Log.Debug("| Skipping compute and act due to sleep state")
 			return ret, nil
@@ -341,7 +343,7 @@ func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
 	defer r.G().Trace("hasGregorTLFRekeyMessages", func() error { return err })()
 
 	var state gregor1.State
-	state, err = r.gregor.getState()
+	state, err = r.gregor.getState(context.Background())
 	if err != nil {
 		return false, err
 	}
@@ -357,7 +359,7 @@ func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
 func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent, err error) {
 	defer r.G().Trace("rekeyMaster#computeProblems", func() error { return err })()
 
-	if loggedIn, _, _ := libkb.IsLoggedIn(r.G(), nil); !loggedIn {
+	if !r.G().ActiveDevice.Valid() {
 		r.G().Log.Debug("| not logged in")
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NOT_LOGGED_IN}, err
@@ -373,7 +375,7 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 	}
 
 	if !hasGregor {
-		r.G().Log.Debug("| has gregor TLF rekey messages")
+		r.G().Log.Debug("| has no gregor TLF rekey messages")
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_GREGOR_MESSAGES}, err
 	}
@@ -392,6 +394,7 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 
 	if len(problems.Tlfs) == 0 {
 		r.G().Log.Debug("| no problem TLFs found")
+
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_PROBLEMS}, err
 	}
@@ -443,14 +446,20 @@ func (r *rekeyMaster) currentDeviceSolvesProblemSet(me *libkb.User, ps keybase1.
 		return ret
 	}
 
-	err = r.G().LoginState().Account(func(a *libkb.Account) {
-		paperKey = a.GetUnlockedPaperEncKey()
-	}, "currentDeviceSolvesProblemSet")
+	m := libkb.NewMetaContextBackground(r.G())
+	if d := m.ActiveDevice().ProvisioningKey(m); d != nil {
+		paperKey = d.EncryptionKey()
+	}
 
 	// We can continue though, so no need to error out
-	if err != nil {
-		r.G().Log.Info("| Error getting paper key: %s\n", err)
-		err = nil
+	if paperKey == nil {
+		m.CDebugf("| No cached paper key")
+	}
+	if deviceKey != nil {
+		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking device key: %s", deviceKey.GetKID())
+	}
+	if paperKey != nil {
+		r.G().Log.Debug("| currentDeviceSolvesProblemSet: checking paper key: %s", paperKey.GetKID())
 	}
 
 	for _, tlf := range ps.Tlfs {
@@ -498,7 +507,7 @@ type RekeyHandler2 struct {
 func NewRekeyHandler2(xp rpc.Transporter, g *libkb.GlobalContext, rm *rekeyMaster) *RekeyHandler2 {
 	return &RekeyHandler2{
 		Contextified: libkb.NewContextified(g),
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		rm:           rm,
 	}
 }
@@ -599,7 +608,7 @@ func (r *RekeyHandler2) GetRevokeWarning(_ context.Context, arg keybase1.GetRevo
 
 	err = r.G().API.GetDecode(libkb.APIArg{
 		Endpoint:    "kbfs/unkeyed_tlfs_from_pair",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"self_device_id":   libkb.S{Val: string(actingDevice)},
 			"target_device_id": libkb.S{Val: string(arg.TargetDevice)},

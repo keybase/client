@@ -2,20 +2,59 @@
 protocol remote {
 
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
   record MessageBoxed {
-    // Only set when returned from the server; on the way up to the
+    // This was not present in most V1 messages.
+    MessageBoxedVersion version;
+
+    // [V1, V2]: Only set when returned from the server; on the way up to the
     // server, they are null.
     union { null, MessageServerHeader } serverHeader;
 
-    // MessageClientHeader is needed by clients to get keys via TLF name.
+    // [V1, V2]: MessageClientHeader is needed by clients to get keys via TLF name.
     // The server needs it as well for sender uid, device id.
     MessageClientHeader clientHeader;
 
-    EncryptedData headerCiphertext;
+    // V1: Encrypted HeaderPlaintext
+    // V2: SignEncrypted HeaderPlaintext (using derived encryption key)
+    SealedData headerCiphertext;
+
+    // V1: Encrypted BodyPlaintext
+    // V2: Encrypted BodyPlaintext (using derived key)
     EncryptedData bodyCiphertext;
 
+    // V1: Missing
+    // V2: KID of the signing key used on headerSealed.
+    //     Used to open and verify headerSealed.
+    //     Must be asserted to belong to the sender when unboxing.
+    bytes verifyKey;
+
+    // [V1, V2]: Key generation of the encryption key
     int keyGeneration;
+  }
+
+  enum MessageBoxedVersion {
+    // 0 exists from before the version field. It means V1.
+    VNONE_0,
+
+    // V1: Encrypted header and body.
+    // Hash of body inside header.
+    // Sig of header inside header.
+    V1_1,
+
+    // V2: SignEncrypted header, encrypted body.
+    // Hash of body inside header.
+    V2_2,
+
+    // V3: Exactly as V2, except that the message
+    // may be exploding, meaning the body is
+    // encrypted with a separate ephemeral key.
+    V3_3,
+
+    // V4: Exactly as V3, except if pairwise MACs are included,
+    // then the sender signing key is a dummy.
+    V4_4
   }
 
   record ThreadViewBoxed {
@@ -35,6 +74,8 @@ protocol remote {
 
   record GetThreadRemoteRes {
     ThreadViewBoxed thread;
+    ConversationMembersType membersType;
+    keybase1.TLFVisibility visibility;
     union { null, RateLimit } rateLimit;
   }
 
@@ -50,6 +91,7 @@ protocol remote {
 
   record NewConversationRemoteRes {
     ConversationID convID;
+    boolean createdComplexTeam;
     union { null, RateLimit } rateLimit;
   }
 
@@ -66,16 +108,34 @@ protocol remote {
     union { null, RateLimit } rateLimit;
   }
 
-  GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
-  GetThreadRemoteRes getThreadRemote(ConversationID conversationID, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
+  record GetPublicConversationsRes {
+    array<Conversation> conversations;
+    union { null, RateLimit } rateLimit;
+  }
 
-  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
+  GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
+  GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
+  GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
+
+  enum ChannelMention {
+    NONE_0,
+    ALL_1,
+    HERE_2
+  }
+
+  PostRemoteRes postRemote(
+    ConversationID conversationID,
+    MessageBoxed messageBoxed,
+    array<gregor1.UID> atMentions,
+    ChannelMention channelMention,
+    union { null, TopicNameState } topicNameState
+  );
   NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
 
   // on duplication of idTriple, and error is returned and the conversation ID of the existing conversation is returned.
   @lint("ignore")
-  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
-  GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
+  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage, ConversationMembersType membersType, union { null, TopicNameState } topicNameState);
+  GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, union { null, GetThreadReason } threadReason, array<MessageID> messageIDs);
 
   MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
 
@@ -90,6 +150,9 @@ protocol remote {
       boolean ignore;
       // The inbox version that this full update was derived from
       InboxVers inboxVers;
+      // Inbox sync status
+      SyncInboxResType inboxSyncStatus;
+
       array<UnreadUpdate> updates;
   }
 
@@ -111,12 +174,124 @@ protocol remote {
   bytes s3Sign(int version, bytes payload);
 
   // Get the inbox version for a user
-  InboxVers getInboxVersion(gregor1.UID uid); 
+  InboxVers getInboxVersion(gregor1.UID uid);
+
+  record SyncIncrementalRes {
+    InboxVers vers;
+    array<Conversation> convs;
+  }
+
+  record ServerCacheVers {
+    int inboxVers;
+    int bodiesVers;
+  }
+
+  variant SyncInboxRes switch (SyncInboxResType typ) {
+    case CURRENT: void;
+    case INCREMENTAL: SyncIncrementalRes;
+    case CLEAR: void;
+  }
+
+  // (DEPRECATED) Sync down the inbox given a current version
+  SyncInboxRes syncInbox(InboxVers vers);
+
+  record SyncChatRes {
+    ServerCacheVers cacheVers;
+    SyncInboxRes inboxRes;
+  }
+
+  SyncChatRes syncChat(InboxVers vers);
+
+  enum SyncAllProtVers {
+    V0_0,
+    V1_1
+  }
+
+  enum SyncAllNotificationType {
+    STATE_0,
+    INCREMENTAL_1
+  }
+
+  variant SyncAllNotificationRes switch(SyncAllNotificationType typ) {
+  case STATE: gregor1.State;
+  case INCREMENTAL: gregor1.SyncResult;
+  }
+
+  record SyncAllResult {
+    gregor1.AuthResult auth;
+    SyncChatRes chat;
+    SyncAllNotificationRes notification;
+    UnreadUpdateFull badge;
+  }
+
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest
   // conversation per TLF ID on GetInboxRemote.
-  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull);
+  void tlfFinalize(TLFID tlfID, string resetUser, string resetDate, gregor1.Time resetTimestamp, string resetFull, union { null, keybase1.UID } resetUID);
 
   void tlfResolve(TLFID tlfID, array<gregor1.UID> resolvedWriters, array<gregor1.UID> resolvedReaders);
+
+  // Typing endpoints
+  void updateTypingRemote(gregor1.UID uid, gregor1.DeviceID deviceID, ConversationID convID, boolean typing);
+
+  // Channel endpoints
+  record JoinLeaveConversationRemoteRes {
+    union { null, RateLimit } rateLimit;
+  }
+  JoinLeaveConversationRemoteRes joinConversation(ConversationID convID);
+  JoinLeaveConversationRemoteRes leaveConversation(ConversationID convID);
+  JoinLeaveConversationRemoteRes previewConversation(ConversationID convID);
+  record DeleteConversationRemoteRes {
+    union { null, RateLimit } rateLimit;
+  }
+  DeleteConversationRemoteRes deleteConversation(ConversationID convID);
+
+  record GetMessageBeforeRes {
+    MessageID msgID;
+    union { null, RateLimit } rateLimit;
+  }
+  GetMessageBeforeRes getMessageBefore(ConversationID convID, gregor1.DurationSec age);
+
+  record GetTLFConversationsRes {
+    array<Conversation> conversations;
+    union { null, RateLimit } rateLimit;
+  }
+  GetTLFConversationsRes getTLFConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs, boolean useCache);
+
+  // Chat notification configuration endpoint. Does not need to be complete, just a delta on the
+  // currently configured settings.
+  record SetAppNotificationSettingsRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetAppNotificationSettingsRes setAppNotificationSettings(ConversationID convID, ConversationNotificationInfo settings);
+  void setGlobalAppNotificationSettings(GlobalAppNotificationSettings settings);
+  GlobalAppNotificationSettings getGlobalAppNotificationSettings();
+
+  // Endpoint to indicate a high priority push notification has been processed
+  void remoteNotificationSuccessful(gregor1.SessionToken authToken, array<string> companionPushIDs);
+
+  record SetRetentionRes {
+    union { null, RateLimit } rateLimit;
+  }
+
+  // sweepChannel should be 0 except for in certain tests.
+  SetRetentionRes setConvRetention(ConversationID convID, RetentionPolicy policy, uint64 sweepChannel);
+  SetRetentionRes setTeamRetention(keybase1.TeamID teamID, RetentionPolicy policy, uint64 sweepChannel);
+
+  record SetConvMinWriterRoleRes {
+    union { null, RateLimit } rateLimit;
+  }
+  SetConvMinWriterRoleRes setConvMinWriterRole(ConversationID convID, keybase1.TeamRole role);
+
+  // Used only for testing.
+  record SweepRes {
+  boolean foundTask;
+    boolean deletedMessages;
+    Expunge expunge;
+  }
+  SweepRes retentionSweepConv(ConversationID convID);
+
+  void upgradeKBFSToImpteam(TLFID tlfID);
 }

@@ -1,127 +1,348 @@
 /*eslint-disable */
-
-declare module 'Interpolation' { declare var exports: any; }
-declare module 'buffer' { declare var exports: {Buffer: any}; }
-declare module 'deep-diff' { declare var exports: any; }
-declare module 'deep-equal' { declare var exports: any; }
-declare module 'electron' { declare var exports: any; }
-declare module 'getenv' { declare var exports: any; }
-declare module 'lodash' { declare var exports: any; }
-declare module 'lodash/debounce' { declare var exports: any; }
-declare module 'lodash/merge' { declare var exports: any; }
-declare module 'marked' { declare var exports: any; }
-declare module 'material-ui' { declare var exports: any; }
-declare module 'material-ui/Popover' { declare var exports: any; }
-declare module 'material-ui/styles' { declare var exports: any; }
-declare module 'material-ui/svg-icons' { declare var exports: any; }
-declare module 'moment' { declare var exports: any; }
-declare module 'qrcode-generator' { declare var exports: any; }
-declare module 'react-native' { declare var exports: any; }
-declare module 'react-native-android-permissions' { declare var exports: any; }
-declare module 'react-native-barcodescanner' { declare var exports: any; }
-declare module 'react-native-camera' { declare var exports: any; }
-declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' { declare var exports: any; }
-declare module 'react-redux' { declare var exports: any; }
-declare module 'react-tap-event-plugin' { declare var exports: any; }
-declare module 'redux' { declare var exports: any; }
-declare module 'redux-devtools' { declare var exports: any; }
-declare module 'redux-saga' { declare var exports: any; }
-declare module 'redux-saga/effects' { declare var exports: any; }
-declare module './dll/vendor-manifest.json' { declare var exports: any; }
-
-declare module 'invariant' { declare var exports: (callback: any) => any; }
-declare module 'react-addons-perf' {
-  declare var exports: {
-    start: () => void,
-    stop: () => void,
-    getLastMeasurements: () => Object,
-    printInclusive: (measurements: Object) => void,
-    printExclusive: (measurements: Object) => void,
-    printWasted: (measurements: Object) => void,
-    printDOM: (measurements: Object) => void
-  };
-}
-
-declare module 'resolveRoot' {
-  declare var exports: {
-    default: (paths: any) => string;
-    resolveImage: (paths: any) => string;
-  }
-}
-
-declare class Notification { }
-
-declare var __VERSION__: string;
-declare var __DEV__: boolean;
-declare var __SCREENSHOT__: boolean;
+declare var __STORYBOOK__: boolean
+declare var __STORYSHOT__: boolean
+declare var __VERSION__: string
+declare var __DEV__: boolean
 declare var module: {
   hot?: {
-    accept: any;
-    dispose: any;
-  }
-};
-
-// Algebraic data types
-// This is a bit hacky, but it gives you strong guarantees.
-
-declare interface MapADT2<K1, V1, K2, V2> {
-  set(key: K1, value: V1): MapADT2<K1, V1, K2, V2>;
-  set(key: K2, value: V2): MapADT2<K1, V1, K2, V2>;
-  update(key: K1, updateFn: (v: V1) => V1): MapADT2<K1, V1, K2, V2>;
-  update(key: K2, updateFn: (v: V2) => V2): MapADT2<K1, V1, K2, V2>;
-  get(key: K1): V1;
-  get(key: K2): V2;
-  // This is probably hard, okay to bail on it for now
-  updateIn(ks: Array<any>, updateFn: (v: any) => any): MapADT2<K1, V1, K2, V2>;
+    accept: any,
+    dispose: any,
+    decline: any,
+  },
 }
-
-declare interface MapADT3<K1, V1, K2, V2, K3, V3> {
-  set(key: K1, value: V1): MapADT3<K1, V1, K2, V2, K3, V3>;
-  set(key: K2, value: V2): MapADT3<K1, V1, K2, V2, K3, V3>;
-  set(key: K3, value: V3): MapADT3<K1, V1, K2, V2, K3, V3>;
-  update(key: K1, updateFn: (v: V1) => V1): MapADT3<K1, V1, K2, V2, K3, V3>;
-  update(key: K2, updateFn: (v: V2) => V2): MapADT3<K1, V1, K2, V2, K3, V3>;
-  update(key: K3, updateFn: (v: V3) => V3): MapADT3<K1, V1, K2, V2, K3, V3>;
-  get(key: K1): V1;
-  get(key: K2): V2;
-  get(key: K3): V3;
-  // This is probably hard, okay to bail on it for now
-  updateIn(ks: Array<any>, updateFn: (v: any) => any): MapADT3<K1, V1, K2, V2, K3, V3>;
+declare module '@babel/cli' {
+  declare module.exports: any
 }
-
-declare interface MapADT4<K1, V1, K2, V2, K3, V3, K4, V4> {
-  set(key: K1, value: V1): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K2, value: V2): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K3, value: V3): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K4, value: V4): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  update(key: K1, updateFn: (v: V1) => V1): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  update(key: K2, updateFn: (v: V2) => V2): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  update(key: K3, updateFn: (v: V3) => V3): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  update(key: K4, updateFn: (v: V4) => V4): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  get(key: K1): V1;
-  get(key: K2): V2;
-  get(key: K3): V3;
-  get(key: K4): V4;
-  // This is probably hard, okay to bail on it for now
-  updateIn(ks: Array<any>, updateFn: (v: any) => any): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
+declare module '@babel/core' {
+  declare module.exports: any
 }
-
-declare interface MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5> {
-  set(key: K1, value: V1): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K2, value: V2): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K3, value: V3): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K4, value: V4): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K5, value: V5): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  update(key: K1, updateFn: (v: V1) => V1): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  update(key: K2, updateFn: (v: V2) => V2): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  update(key: K3, updateFn: (v: V3) => V3): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  update(key: K4, updateFn: (v: V4) => V4): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  update(key: K5, updateFn: (v: V5) => V5): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  get(key: K1): V1;
-  get(key: K2): V2;
-  get(key: K3): V3;
-  get(key: K4): V4;
-  get(key: K5): V5;
-  // This is probably hard, okay to bail on it for now
-  updateIn(ks: Array<any>, updateFn: (v: any) => any): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+declare module '@babel/node' {
+  declare module.exports: any
+}
+declare module '@babel/plugin-proposal-class-properties' {
+  declare module.exports: any
+}
+declare module '@babel/plugin-proposal-object-rest-spread' {
+  declare module.exports: any
+}
+declare module '@babel/plugin-transform-flow-strip-types' {
+  declare module.exports: any
+}
+declare module '@babel/preset-env' {
+  declare module.exports: any
+}
+declare module '@babel/preset-react' {
+  declare module.exports: any
+}
+declare module '@storybook/addon-actions' {
+  declare module.exports: any
+}
+declare module '@storybook/addon-storyshots' {
+  declare module.exports: any
+}
+declare module '@storybook/addons' {
+  declare module.exports: any
+}
+declare module '@storybook/channels' {
+  declare module.exports: any
+}
+declare module '@storybook/react-native' {
+  declare module.exports: any
+}
+declare module '@storybook/react' {
+  declare module.exports: any
+}
+declare module 'applescript' {
+  declare module.exports: any
+}
+declare module 'babel-cli' {
+  declare module.exports: any
+}
+declare module 'babel-core' {
+  declare module.exports: any
+}
+declare module 'babel-eslint' {
+  declare module.exports: any
+}
+declare module 'babel-jest' {
+  declare module.exports: any
+}
+declare module 'babel-loader' {
+  declare module.exports: any
+}
+declare module 'babel-plugin-react-transform' {
+  declare module.exports: any
+}
+declare module 'babel-plugin-transform-builtin-extend' {
+  declare module.exports: any
+}
+declare module 'babel-plugin-transform-runtime' {
+  declare module.exports: any
+}
+declare module 'babel-preset-env' {
+  declare module.exports: any
+}
+declare module 'babel-preset-es2015' {
+  declare module.exports: any
+}
+declare module 'babel-preset-react-native' {
+  declare module.exports: any
+}
+declare module 'babel-preset-react' {
+  declare module.exports: any
+}
+declare module 'babel-preset-stage-1' {
+  declare module.exports: any
+}
+declare module 'babel-preset-stage-2' {
+  declare module.exports: any
+}
+declare module 'babel-runtime' {
+  declare module.exports: any
+}
+declare module 'base64-js' {
+  declare module.exports: any
+}
+declare module 'buffer' {
+  declare module.exports: any
+}
+declare module 'core-js' {
+  declare module.exports: any
+}
+declare module 'core-js/es6/object' {
+  declare module.exports: any
+}
+declare module 'core-js/es6/array' {
+  declare module.exports: any
+}
+declare module 'core-js/es6/reflect' {
+  declare module.exports: any
+}
+declare module 'core-js/es6/string' {
+  declare module.exports: any
+}
+declare module 'core-js/es6/map' {
+  declare module.exports: any
+}
+declare module 'cross-env' {
+  declare module.exports: any
+}
+declare module 'css-loader' {
+  declare module.exports: any
+}
+declare module 'devtron' {
+  declare module.exports: any
+}
+declare module 'electron-download' {
+  declare module.exports: any
+}
+declare module 'electron-packager' {
+  declare module.exports: any
+}
+declare module 'emoji-datasource-apple' {
+  declare module.exports: any
+}
+declare module 'emoji-datasource' {
+  declare module.exports: any
+}
+declare module 'emoji-mart' {
+  declare module.exports: any
+}
+declare module 'eslint-config-standard-jsx' {
+  declare module.exports: any
+}
+declare module 'eslint-config-standard-react' {
+  declare module.exports: any
+}
+declare module 'eslint-config-standard' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-babel' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-filenames' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-flowtype' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-import' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-node' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-prettier' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-promise' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-react' {
+  declare module.exports: any
+}
+declare module 'eslint-plugin-standard' {
+  declare module.exports: any
+}
+declare module 'eslint' {
+  declare module.exports: any
+}
+declare module 'exif-js' {
+  declare module.exports: any
+}
+declare module 'file-loader' {
+  declare module.exports: any
+}
+declare module 'flow-coverage-report' {
+  declare module.exports: any
+}
+declare module 'flow-typed' {
+  declare module.exports: any
+}
+declare module 'framed-msgpack-rpc' {
+  declare module.exports: any
+}
+declare module 'fs-extra' {
+  declare module.exports: any
+}
+declare module 'getenv' {
+  declare module.exports: any
+}
+declare module 'glamor' {
+  declare module.exports: any
+}
+declare module 'glamorous-native' {
+  declare module.exports: any
+}
+declare module 'glamorous' {
+  declare module.exports: any
+}
+declare module 'iced-runtime' {
+  declare module.exports: any
+}
+declare module 'jest-glamor-react' {
+  declare module.exports: any
+}
+declare module 'json5' {
+  declare module.exports: any
+}
+declare module 'jsonfile' {
+  declare module.exports: any
+}
+declare module 'klaw-sync' {
+  declare module.exports: any
+}
+declare module 'menubar' {
+  declare module.exports: any
+}
+declare module 'null-loader' {
+  declare module.exports: any
+}
+declare module 'path-parse' {
+  declare module.exports: any
+}
+declare module 'pegjs' {
+  declare module.exports: any
+}
+declare module 'purepack' {
+  declare module.exports: any
+}
+declare module 'qrcode-generator' {
+  declare module.exports: any
+}
+declare module 'raf' {
+  declare module.exports: any
+}
+declare module 'react-gateway' {
+  declare module.exports: any
+}
+declare module 'react-hot-loader' {
+  declare module.exports: any
+}
+declare module 'react-list' {
+  declare module.exports: any
+}
+declare module 'react-measure' {
+  declare module.exports: any
+}
+declare module 'react-native' {
+  declare module.exports: any
+}
+declare module 'react-native-camera' {
+  declare module.exports: any
+}
+declare module 'react-native-contacts' {
+  declare module.exports: any
+}
+declare module 'react-native-fetch-blob' {
+  declare module.exports: any
+}
+declare module 'react-native-image-picker' {
+  declare module.exports: any
+}
+declare module 'react-native-mime-types' {
+  declare module.exports: any
+}
+declare module 'react-native-push-notification' {
+  declare module.exports: any
+}
+declare module 'react-native-wkwebview-reborn' {
+  declare module.exports: any
+}
+declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
+  declare module.exports: any
+}
+declare module 'react-navigation' {
+  declare module.exports: any
+}
+declare module 'react-virtualized' {
+  declare module.exports: any
+}
+declare module 'react-waypoint' {
+  declare module.exports: any
+}
+declare module 'redux-batched-subscribe' {
+  declare module.exports: any
+}
+declare module 'redux-logger' {
+  declare module.exports: any
+}
+declare module 'redux-thunk' {
+  declare module.exports: any
+}
+declare module 'shallowequal' {
+  declare module.exports: any
+}
+declare module 'source-map-support' {
+  declare module.exports: any
+}
+declare module 'style-loader' {
+  declare module.exports: any
+}
+declare module 'tlds' {
+  declare module.exports: any
+}
+declare module 'typedarray-to-buffer' {
+  declare module.exports: any
+}
+declare module 'uglifyjs-webpack-plugin' {
+  declare module.exports: any
+}
+declare module 'util' {
+  declare module.exports: any
+}
+declare module 'webpack-cli' {
+  declare module.exports: any
+}
+declare module 'webpack-dashboard' {
+  declare module.exports: any
+}
+declare module 'webpack-dev-server' {
+  declare module.exports: any
+}
+declare module 'webpack-merge' {
+  declare module.exports: any
+}
+declare module 'webpack' {
+  declare module.exports: any
 }

@@ -11,10 +11,9 @@ import (
 
 func assertStreamCache(tc libkb.TestContext, valid bool) bool {
 	var ppsValid bool
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		ppsValid = a.PassphraseStreamCache().Valid()
-	}, "clear stream cache")
-
+	if ps := tc.G.ActiveDevice.PassphraseStreamCache(); ps != nil {
+		ppsValid = ps.Valid()
+	}
 	return valid == ppsValid
 }
 
@@ -28,22 +27,21 @@ func TestUnlock(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	tc.G.ActiveDevice.ClearPassphraseStreamCache()
 
 	if !assertStreamCache(tc, false) {
 		t.Fatal("expected invalid stream cache after clear")
 	}
 
 	eng := NewUnlock(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -62,14 +60,15 @@ func TestUnlockNoop(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: fu.NewSecretUI(),
 	}
 
 	eng := NewUnlock(tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -88,22 +87,21 @@ func TestUnlockWithPassphrase(t *testing.T) {
 		t.Fatal("expected valid stream cache after sign up")
 	}
 
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:   tc.G.UI.GetLogUI(),
 		LoginUI: &libkb.TestLoginUI{},
 		// No SecretUI here!
 	}
 
-	tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearStreamCache()
-	}, "clear stream cache")
+	tc.G.ActiveDevice.ClearPassphraseStreamCache()
 
 	if !assertStreamCache(tc, false) {
 		t.Fatal("expected invalid stream cache after clear")
 	}
 
 	eng := NewUnlockWithPassphrase(tc.G, fu.Passphrase)
-	if err := RunEngine(eng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

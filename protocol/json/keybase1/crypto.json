@@ -140,7 +140,7 @@
         }
       ],
       "response": "string",
-      "doc": "Same as the above except the full marsheled and encoded NaclSigInfo."
+      "doc": "Same as the above except the full marshaled and encoded NaclSigInfo."
     },
     "unboxBytes32": {
       "request": [

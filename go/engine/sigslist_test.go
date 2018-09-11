@@ -9,10 +9,10 @@ func TestSigsList(t *testing.T) {
 	tc := SetupEngineTest(t, "sigslist")
 	defer tc.Cleanup()
 
-	ctx := &Context{}
 	args := SigsListArgs{Username: "t_alice"}
-	eng := NewSigsList(args, tc.G)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng := NewSigsList(tc.G, args)
+	m := NewMetaContextForTest(tc)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 

@@ -1,0 +1,82 @@
+{
+  "protocol": "KBFSGit",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "favorite.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "GcOptions",
+      "fields": [
+        {
+          "type": "int",
+          "name": "maxLooseRefs"
+        },
+        {
+          "type": "int",
+          "name": "pruneMinLooseObjects"
+        },
+        {
+          "type": "Time",
+          "name": "pruneExpireTime"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "createRepo": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": "RepoID",
+      "doc": "* createRepo creates a bare empty repo on KBFS under the given name in the given TLF.\n   * It returns the ID of the repo created."
+    },
+    "deleteRepo": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        }
+      ],
+      "response": null,
+      "doc": "* deleteRepo deletes repo on KBFS under the given name in the given TLF."
+    },
+    "gc": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "Folder"
+        },
+        {
+          "name": "name",
+          "type": "GitRepoName"
+        },
+        {
+          "name": "options",
+          "type": "GcOptions"
+        }
+      ],
+      "response": null,
+      "doc": "* gc runs garbage collection on the given repo, using the given options to\n   * see whether anything needs to be done."
+    }
+  },
+  "namespace": "keybase.1"
+}

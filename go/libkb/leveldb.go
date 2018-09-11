@@ -11,6 +11,7 @@ import (
 
 	"github.com/syndtr/goleveldb/leveldb"
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 )
 
@@ -27,9 +28,16 @@ type levelDBOps interface {
 	Write(b *leveldb.Batch, wo *opt.WriteOptions) error
 }
 
-func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) error {
-	batch := new(leveldb.Batch)
+func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) (err error) {
+	defer convertNoSpaceError(err)
+
 	idb := id.ToBytes(levelDbTableKv)
+	if len(aliases) == 0 {
+		// if no aliases, just do a put
+		return ops.Put(idb, value, nil)
+	}
+
+	batch := new(leveldb.Batch)
 	batch.Put(idb, value)
 	if aliases != nil {
 		for _, alias := range aliases {
@@ -63,13 +71,14 @@ func levelDbLookup(ops levelDBOps, id DbKey) (val []byte, found bool, err error)
 		} else if tab != levelDbTableKv {
 			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, *id2, levelDbTableKv)
+			val, found, err = levelDbGetWhich(ops, id2, levelDbTableKv)
 		}
 	}
 	return val, found, err
 }
 
-func levelDbDelete(ops levelDBOps, id DbKey) error {
+func levelDbDelete(ops levelDBOps, id DbKey) (err error) {
+	defer convertNoSpaceError(err)
 	return ops.Delete(id.ToBytes(levelDbTableKv), nil)
 }
 
@@ -98,6 +107,18 @@ func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
 // Explicit open does nothing we'll wait for a lazy open
 func (l *LevelDb) Open() error { return nil }
 
+// Opts returns the options for all leveldb databases.
+//
+// PC: I think it's worth trying a bloom filter.  From docs:
+// "In many cases, a filter can cut down the number of disk
+// seeks from a handful to a single disk seek per DB.Get call."
+func (l *LevelDb) Opts() *opt.Options {
+	return &opt.Options{
+		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
+		Filter:                 filter.NewBloomFilter(10),
+	}
+}
+
 func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error) {
 	err = func() error {
 		l.RLock()
@@ -109,10 +130,11 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 			l.G().Log.Debug("+ LevelDb.open")
 			fn := l.GetFilename()
 			l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
-			l.db, err = leveldb.OpenFile(fn, nil)
+			l.G().Log.Debug("| Opening LevelDB options: %+v", l.Opts())
+			l.db, err = leveldb.OpenFile(fn, l.Opts())
 			if err != nil {
 				if _, ok := err.(*errors.ErrCorrupted); ok {
-					l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)
+					l.G().Log.Debug("| LevelDb was corrupted; attempting recovery (%v)", err)
 					l.db, err = leveldb.RecoverFile(fn, nil)
 					if err != nil {
 						l.G().Log.Debug("| Recovery failed: %v", err)
@@ -147,7 +169,16 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 	// without resetting `dbOpenerOcce` (i.e. next call into LevelDb would result
 	// in a LevelDBOpenClosedError), because if DB open fails, retrying it
 	// wouldn't help. We should find the root cause and deal with it.
-
+	// MM: 10/12/2017: I am changing the above policy. I am not so sure retrying it won't help,
+	// we should at least try instead of auto returning LevelDBOpenClosederror.
+	if err != nil {
+		l.Lock()
+		if l.db == nil {
+			l.G().Log.Debug("LevelDb: doWhileOpenAndNukeIfCorrupted: resetting sync one: %s", err)
+			l.dbOpenerOnce = new(sync.Once)
+		}
+		l.Unlock()
+	}
 	return err
 }
 
@@ -204,19 +235,20 @@ func (l *LevelDb) isCorrupt(err error) bool {
 	return false
 }
 
-func (l *LevelDb) Nuke() (string, error) {
+func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
-	// We need to do defered Unlock here in Nuke rather than delegating to
+	// We need to do deferred Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
 	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()
+	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 
-	err := l.closeLocked()
+	err = l.closeLocked()
 	if err != nil {
 		return "", err
 	}
 
-	fn := l.GetFilename()
+	fn = l.GetFilename()
 	err = os.RemoveAll(fn)
 	if err != nil {
 		return fn, err
@@ -302,10 +334,20 @@ func (l LevelDbTransaction) Delete(id DbKey) error {
 	return levelDbDelete(l.tr, id)
 }
 
-func (l LevelDbTransaction) Commit() error {
+func (l LevelDbTransaction) Commit() (err error) {
+	defer convertNoSpaceError(err)
 	return l.tr.Commit()
 }
 
 func (l LevelDbTransaction) Discard() {
 	l.tr.Discard()
+}
+
+func convertNoSpaceError(err error) error {
+	if IsNoSpaceOnDeviceError(err) {
+		// embed in exportable error type
+		err = NoSpaceOnDeviceError{Desc: err.Error()}
+	}
+
+	return err
 }

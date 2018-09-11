@@ -1,0 +1,20 @@
+@namespace("stellar.1")
+protocol gregor {
+  import idl "common.avdl";
+
+  // stellar.payment_status gregor message body
+  record PaymentStatusMsg {
+    KeybaseTransactionID kbTxID;
+    TransactionID txID;
+  }
+
+  record RequestStatusMsg {
+    KeybaseRequestID reqID;
+  }
+
+  // stellar.payment_notification gregor message body
+  record PaymentNotificationMsg {
+    AccountID accountID;
+    PaymentID paymentID;
+  }
+}

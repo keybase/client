@@ -34,17 +34,21 @@
     return;
   }
 
-  // Try to create/fix link as current user first
-  if ([self createLinkForServicePath:self.servicePath name:self.config.serviceBinName]) {
-    completion(nil);
-    return;
-  }
-
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
-    completion(error);
+    if (error) {
+      completion(error);
+      return;
+    }
+
+    NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
+    DDLogDebug(@"Helper: addToPath(%@)", gitParams);
+    [self.helperTool.helper sendRequest:@"addToPath" params:@[gitParams] completion:^(NSError *error, id value) {
+      DDLogDebug(@"Result: %@", value);
+      completion(error);
+    }];
   }];
 }
 
@@ -53,31 +57,18 @@
   DDLogDebug(@"Helper: removeFromPath(%@)", params);
   [self.helperTool.helper sendRequest:@"removeFromPath" params:@[params] completion:^(NSError *error, id value) {
     DDLogDebug(@"Result: %@", value);
-    completion(error);
-  }];
-}
-
-- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  NSString *linkDir = @"/usr/local/bin";
-  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
-  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
-
-  BOOL found = NO;
-  NSArray *paths = @[linkPath, pathsdPath];
-  for (NSString *path in paths) {
-    if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
-      found = YES;
-      break;
+    if (error) {
+      completion(error);
+      return;
     }
-  }
 
-  if (found) {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
-  } else {
-    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:nil error:nil];
-  }
-
-  completion(self.componentStatus);
+    NSDictionary *gitParams = @{@"directory": self.servicePath, @"name": self.config.gitRemoteHelperName, @"appName": self.config.appName};
+    DDLogDebug(@"Helper: removeFromPath(%@)", gitParams);
+    [self.helperTool.helper sendRequest:@"removeFromPath" params:@[gitParams] completion:^(NSError *error, id value) {
+      DDLogDebug(@"Result: %@", value);
+      completion(error);
+    }];
+  }];
 }
 
 - (BOOL)linkExists:(NSString *)linkPath {
@@ -95,43 +86,37 @@
   return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
 }
 
-- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath {
-  if ([self linkExists:linkPath]) {
-    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
-  }
-  if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {
-    return YES;
+// Check if we're linked properly at /usr/local/bin
+- (BOOL)linkedToServicePath {
+  NSString *linkDir = @"/usr/local/bin";
+  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
+  NSString *shouldResolveToPath = [NSString stringWithFormat:@"%@/%@", self.servicePath, self.config.serviceBinName];
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
+    NSString *resolved = [self resolveLinkPath:linkPath];
+    DDLogInfo(@"Link resolved to path: %@ <=> %@", resolved, shouldResolveToPath);
+    if ([resolved isEqualToString:shouldResolveToPath]) {
+      return YES;
+    }
   }
   return NO;
 }
 
-- (BOOL)createLinkForServicePath:(NSString *)directory name:(NSString *)name {
-  NSString *path = [NSString stringWithFormat:@"%@/%@", directory, name];
-  NSString *linkDir = @"/usr/local/bin";
-  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, name];
+- (BOOL)etcPathsExists {
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
+  BOOL exists = [NSFileManager.defaultManager fileExistsAtPath:pathsdPath];
+  DDLogInfo(@"%@ exists? %@", pathsdPath, @(exists));
+  return exists;
+}
 
-  // Check if link dir exists at all
-  if (![NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
-    DDLogError(@"%@ doesn't exist", linkDir);
-    return NO;
-  }
-
-  // Check if we're linked properly at /usr/local/bin
-  NSString *resolved = [self resolveLinkPath:linkPath];
-  if ([resolved isEqualToString:path]) {
-    DDLogDebug(@"%@ resolved to %@", linkPath, resolved);
-    return YES;
-  }
-
-  // Create/fix the link
-  DDLogDebug(@"Fixing symlink: %@, %@", linkPath, path);
-  if (![self createLink:path linkPath:linkPath]) {
-    DDLogError(@"Failed to create link: %@, %@", path, linkPath);
-    return NO;
+- (void)refreshComponent:(KBRefreshComponentCompletion)completion {
+  BOOL installed = [self linkedToServicePath] || [self etcPathsExists];
+  if (installed) {
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
   } else {
-    DDLogDebug(@"Created link: %@, %@", path, linkPath);
-    return YES;
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:nil error:nil];
   }
+
+  completion(self.componentStatus);
 }
 
 @end

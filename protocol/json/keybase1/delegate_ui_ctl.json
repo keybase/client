@@ -24,9 +24,27 @@
       "request": [],
       "response": null
     },
+    "registerHomeUI": {
+      "request": [],
+      "response": null
+    },
     "registerGregorFirehose": {
       "request": [],
       "response": null
+    },
+    "registerGregorFirehoseFiltered": {
+      "request": [
+        {
+          "name": "systems",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "registerGregorFirehoseFilter allows a client to register for a filtered\n   firehose, limited to only the OOBMs of the systems provided.\n   Like the firehose handler, but less pressure.",
+      "lint": "ignore"
     }
   },
   "namespace": "keybase.1"

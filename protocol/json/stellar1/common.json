@@ -1,0 +1,366 @@
+{
+  "protocol": "common",
+  "imports": [
+    {
+      "path": "github.com/keybase/client/go/protocol/keybase1",
+      "type": "idl",
+      "import_as": "keybase1"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "AccountID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SecretKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TransactionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KeybaseTransactionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TimeMs",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "Hash",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "KeybaseRequestID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "PaymentID",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "issuer"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Balance",
+      "fields": [
+        {
+          "type": "Asset",
+          "name": "asset"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "limit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AccountReserve",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TransactionStatus",
+      "symbols": [
+        "NONE_0",
+        "PENDING_1",
+        "SUCCESS_2",
+        "ERROR_TRANSIENT_3",
+        "ERROR_PERMANENT_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RequestStatus",
+      "symbols": [
+        "OK_0",
+        "CANCELED_1"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "PaymentStrategy",
+      "symbols": [
+        "NONE_0",
+        "DIRECT_1",
+        "RELAY_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RelayDirection",
+      "symbols": [
+        "CLAIM_0",
+        "YANK_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PaymentResult",
+      "fields": [
+        {
+          "type": "KeybaseTransactionID",
+          "name": "keybaseID"
+        },
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "boolean",
+          "name": "pending"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RelayClaimResult",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "claimStellarID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedNote",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "NoteRecipient",
+          "name": "sender"
+        },
+        {
+          "type": [
+            null,
+            "NoteRecipient"
+          ],
+          "name": "recipient"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NoteRecipient",
+      "fields": [
+        {
+          "type": "keybase1.UserVersion",
+          "name": "user"
+        },
+        {
+          "type": "keybase1.PerUserKeyGeneration",
+          "name": "pukGen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NoteContents",
+      "fields": [
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "EncryptedRelaySecret",
+      "fields": [
+        {
+          "type": "int",
+          "name": "v"
+        },
+        {
+          "type": "bytes",
+          "name": "e"
+        },
+        {
+          "type": "keybase1.BoxNonce",
+          "name": "n"
+        },
+        {
+          "type": "keybase1.PerTeamKeyGeneration",
+          "name": "gen"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RelayContents",
+      "fields": [
+        {
+          "type": "TransactionID",
+          "name": "stellarID"
+        },
+        {
+          "type": "SecretKey",
+          "name": "sk"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutsideCurrencyCode",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "OutsideExchangeRate",
+      "fields": [
+        {
+          "type": "OutsideCurrencyCode",
+          "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "rate"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CurrencySymbol",
+      "fields": [
+        {
+          "type": "string",
+          "name": "symbol",
+          "jsonkey": "str"
+        },
+        {
+          "type": "boolean",
+          "name": "ambigious"
+        },
+        {
+          "type": "boolean",
+          "name": "postfix"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutsideCurrencyDefinition",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "CurrencySymbol",
+          "name": "symbol"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StellarServerDefinitions",
+      "fields": [
+        {
+          "type": "int",
+          "name": "revision"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "OutsideCurrencyDefinition",
+            "keys": "OutsideCurrencyCode"
+          },
+          "name": "currencies"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PageCursor",
+      "fields": [
+        {
+          "type": "string",
+          "name": "horizonCursor"
+        },
+        {
+          "type": "string",
+          "name": "directCursor"
+        },
+        {
+          "type": "string",
+          "name": "relayCursor"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "stellar.1"
+}

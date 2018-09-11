@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -11,18 +12,18 @@ import (
 )
 
 type msgIDTracker struct {
-	libkb.Contextified
+	globals.Contextified
 	utils.DebugLabeler
 }
 
-func newMsgIDTracker(g *libkb.GlobalContext) *msgIDTracker {
+func newMsgIDTracker(g *globals.Context) *msgIDTracker {
 	return &msgIDTracker{
-		Contextified: libkb.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g, "MsgIDTracker", true),
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "MsgIDTracker", false),
 	}
 }
 
-func (t *msgIDTracker) makeMaxMsgIDKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
+func (t *msgIDTracker) makeDbKey(convID chat1.ConversationID, uid gregor1.UID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatBlocks,
 		Key: fmt.Sprintf("maxMsgID:%s:%s", uid, convID),
@@ -34,16 +35,16 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	// No need to use transaction here since the Storage class takes lock.
 
-	maxMsgIDKey := t.makeMaxMsgIDKey(convID, uid)
+	maxMsgIDKey := t.makeDbKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if found {
 		var maxMsgID chat1.MessageID
 		if err = decode(raw, &maxMsgID); err != nil {
-			return NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+			return NewInternalError(ctx, t.DebugLabeler, "decode error: %s", err.Error())
 		}
 		if maxMsgID >= msgID {
 			return nil
@@ -52,10 +53,10 @@ func (t *msgIDTracker) bumpMaxMessageID(
 
 	dat, err := encode(msgID)
 	if err != nil {
-		return NewInternalError(t.DebugLabeler, "encode error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "encode error: %s", err.Error())
 	}
 	if err = t.G().LocalChatDb.PutRaw(maxMsgIDKey, dat); err != nil {
-		return NewInternalError(t.DebugLabeler, "PutRaw error: %s", err.Error())
+		return NewInternalError(ctx, t.DebugLabeler, "PutRaw error: %s", err.Error())
 	}
 
 	return nil
@@ -64,11 +65,11 @@ func (t *msgIDTracker) bumpMaxMessageID(
 func (t *msgIDTracker) getMaxMessageID(
 	ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, Error) {
 
-	maxMsgIDKey := t.makeMaxMsgIDKey(convID, uid)
+	maxMsgIDKey := t.makeDbKey(convID, uid)
 
 	raw, found, err := t.G().LocalChatDb.GetRaw(maxMsgIDKey)
 	if err != nil {
-		return 0, NewInternalError(t.DebugLabeler, "GetRaw error: %s", err.Error())
+		return 0, NewInternalError(ctx, t.DebugLabeler, "GetRaw error: %s", err.Error())
 	}
 	if !found {
 		return 0, MissError{}
@@ -76,8 +77,12 @@ func (t *msgIDTracker) getMaxMessageID(
 
 	var maxMsgID chat1.MessageID
 	if err = decode(raw, &maxMsgID); err != nil {
-		return 0, NewInternalError(t.DebugLabeler, "decode error: %s", err.Error())
+		return 0, NewInternalError(ctx, t.DebugLabeler, "decode error: %s", err.Error())
 	}
 
 	return maxMsgID, nil
+}
+
+func (t *msgIDTracker) clear(convID chat1.ConversationID, uid gregor1.UID) error {
+	return t.G().LocalChatDb.Delete(t.makeDbKey(convID, uid))
 }

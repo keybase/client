@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"golang.org/x/net/context"
+	"golang.org/x/net/context/ctxhttp"
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
@@ -39,20 +40,27 @@ type ExternalAPIEngine struct {
 	BaseAPIEngine
 }
 
+type AppStatusEmbed struct {
+	Status AppStatus `json:"status"`
+}
+
+func (s *AppStatusEmbed) GetAppStatus() *AppStatus {
+	return &s.Status
+}
+
 // Internal and External APIs both implement these methods,
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
-	Contextifier
-	fixHeaders(arg APIArg, req *http.Request)
+	fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error
 	getCli(needSession bool) *Client
-	consumeHeaders(resp *http.Response) error
+	consumeHeaders(m MetaContext, resp *http.Response, nist *NIST) error
 	isExternal() bool
 }
 
 // NewInternalAPIEngine makes an API engine for internally querying the keybase
 // API server
 func NewInternalAPIEngine(g *GlobalContext) (*InternalAPIEngine, error) {
-	cliConfig, err := g.Env.GenClientConfigForInternalAPI()
+	cliConfig, err := genClientConfigForInternalAPI(g)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +82,10 @@ func NewAPIEngines(g *GlobalContext) (*InternalAPIEngine, *ExternalAPIEngine, er
 	if err != nil {
 		return nil, nil, err
 	}
-	scraperConfig, err := g.Env.GenClientConfigForScrapers()
+	scraperConfig, err := genClientConfigForScrapers(g.Env)
+	if err != nil {
+		return nil, nil, err
+	}
 	x := &ExternalAPIEngine{
 		BaseAPIEngine{
 			config:       scraperConfig,
@@ -137,69 +148,125 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url1 url.URL, arg APIArg) (*http.Request, error) {
 	url1.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, "+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
-func (api *BaseAPIEngine) PreparePost(url1 url.URL, arg APIArg, sendJSON bool) (*http.Request, error) {
+func (api *BaseAPIEngine) PrepareMethodWithBody(method string, url1 url.URL, arg APIArg) (*http.Request, error) {
 	ruri := url1.String()
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("+ API Post request to %s", ruri))
-
 	var body io.Reader
 
-	if sendJSON {
-		if len(arg.getHTTPArgs()) > 0 {
-			panic("PreparePost: sending JSON, but http args exist and they will be ignored. Fix your APIArg.")
-		}
+	useHTTPArgs := len(arg.getHTTPArgs()) > 0
+	useJSON := len(arg.JSONPayload) > 0
+
+	if useHTTPArgs && useJSON {
+		panic("PrepareMethodWithBody: Malformed APIArg: Both HTTP args and JSONPayload set on request.")
+	}
+
+	if useJSON {
 		jsonString, err := json.Marshal(arg.JSONPayload)
 		if err != nil {
 			return nil, err
 		}
-		body = ioutil.NopCloser(strings.NewReader(string(jsonString)))
+		body = bytes.NewReader(jsonString)
 	} else {
-		body = ioutil.NopCloser(strings.NewReader(arg.getHTTPArgs().Encode()))
+		body = strings.NewReader(arg.getHTTPArgs().Encode())
 	}
 
-	req, err := http.NewRequest("POST", ruri, body)
+	req, err := http.NewRequest(method, ruri, body)
 	if err != nil {
 		return nil, err
 	}
 
 	var typ string
-	if sendJSON {
+	if useJSON {
 		typ = "application/json"
 	} else {
 		typ = "application/x-www-form-urlencoded; charset=utf-8"
 	}
 
-	req.Header.Add("Content-Type", typ)
+	req.Header.Set("Content-Type", typ)
 	return req, nil
 }
 
 //
 //============================================================================
 
+type countingReader struct {
+	r io.Reader
+	n int
+}
+
+func newCountingReader(r io.Reader) *countingReader {
+	return &countingReader{r: r}
+}
+
+func (c *countingReader) Read(p []byte) (n int, err error) {
+	n, err = c.r.Read(p)
+	c.n += n
+	return n, err
+}
+
+func (c *countingReader) numRead() int {
+	return c.n
+}
+
 //============================================================================
 // Shared code
 //
 
-// The returned response, if non-nil, should have
-// DiscardAndCloseBody() called on it.
-func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
-	_ *http.Response, jw *jsonw.Wrapper, err error) {
-	if !api.G().Env.GetTorMode().UseSession() && arg.NeedSession {
+func noopFinisher() {}
+
+func getNIST(m MetaContext, sessType APISessionType) *NIST {
+	if sessType == APISessionTypeNONE {
+		return nil
+	}
+
+	if !m.G().Env.GetTorMode().UseSession() {
+		return nil
+	}
+
+	nist, err := m.ActiveDevice().NIST(m.Ctx())
+	if nist == nil {
+		m.CDebugf("active device couldn't generate a NIST")
+		return nil
+	}
+
+	if err != nil {
+		m.CDebugf("Error generating NIST: %s", err)
+		return nil
+	}
+	return nist
+}
+
+// doRequestShared returns an http.Response, which is a live streaming object that
+// escapes the function in which it was created.  It therefore also returns
+// a `finisher func()` that *must always be called* after the response is no longer
+// needed. This finisher is always non-nil (and just a noop in some cases),
+// so therefore it's fine to call it without checking for nil-ness.
+func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
+	m = m.EnsureCtx().WithLogTag("API")
+	defer m.CTraceTimed("api.doRequestShared", func() error { return err })()
+	m, tbs := m.WithTimeBuckets()
+	defer tbs.Record("API.request")() // note this doesn't include time reading body from GetResp
+
+	if !m.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
 
-	dbg := func(s string) {
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
-	}
+	finisher = noopFinisher
 
-	dbg("fixHeaders")
-	api.fixHeaders(arg, req)
-	dbg("getCli")
-	cli := api.getCli(arg.NeedSession)
+	nist := getNIST(m, arg.SessionType)
+
+	if err = api.fixHeaders(m, arg, req, nist); err != nil {
+		m.CDebugf("- API %s %s: fixHeaders error: %s", req.Method, req.URL, err)
+		return
+	}
+	needSession := false
+	if arg.SessionType != APISessionTypeNONE {
+		needSession = true
+	}
+	cli := api.getCli(needSession)
 
 	// Actually send the request via Go's libraries
 	timerType := TimerAPI
@@ -207,72 +274,102 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		timerType = TimerXAPI
 	}
 
-	if api.G().Env.GetAPIDump() {
+	var jsonBytes int
+	var status string
+	defer func() {
+		m.CDebugf("- API %s %s: err=%s, status=%q, jsonwBytes=%d", req.Method, req.URL, ErrToOk(err), status, jsonBytes)
+	}()
+
+	if m.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		m.CDebugf("| full request: json:%s querystring:%s", jpStr, argStr)
 	}
 
-	timer := api.G().Timers.Start(timerType)
-	dbg("Do")
+	timer := m.G().Timers.Start(timerType)
+	internalResp, canc, err := doRetry(m, arg, cli, req)
 
-	internalResp, err := doRetry(api, arg, cli, req)
-
-	dbg("Done")
-	defer func() {
-		if internalResp != nil && err != nil {
+	finisher = func() {
+		if internalResp != nil {
 			DiscardAndCloseBody(internalResp)
+			internalResp = nil
+		}
+		if canc != nil {
+			canc()
+			canc = nil
+		}
+	}
+
+	defer func() {
+		if err != nil {
+			finisher()
+			finisher = noopFinisher
 		}
 	}()
 
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
-		return nil, nil, APINetError{err: err}
+		return nil, finisher, nil, APINetError{err: err}
 	}
-	api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| Result is: %s", internalResp.Status))
+	status = internalResp.Status
 
 	// The server sends "client version out of date" messages through the API
 	// headers. If the client is *really* out of date, the request status will
 	// be a 400 error, but these headers will still be present. So we need to
 	// handle headers *before* we abort based on status below.
-	err = api.consumeHeaders(internalResp)
+	err = api.consumeHeaders(m, internalResp, nist)
 	if err != nil {
-		return nil, nil, err
+		return nil, finisher, nil, err
 	}
 
 	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
 	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
-		return nil, nil, err
+		return nil, finisher, nil, err
 	}
 
 	if wantJSONRes {
-		decoder := json.NewDecoder(internalResp.Body)
+		reader := newCountingReader(internalResp.Body)
+		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
+		jsonBytes = reader.numRead()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
-			return nil, nil, err
+			return nil, finisher, nil, err
 		}
 
 		jw = jsonw.NewWrapper(obj)
-		if api.G().Env.GetAPIDump() {
+		if m.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			api.G().Log.CDebugf(arg.NetContext, fmt.Sprintf("| full reply: %s", b))
+			m.CDebugf("| full reply: %s", b)
 		}
 	}
 
-	return internalResp, jw, nil
+	return internalResp, finisher, jw, nil
 }
 
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
-// retry them arg.RetryCount times.
-func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+// retry them arg.RetryCount times. It returns 3 values: the HTTP response, if all goes
+// well; a canceler function func() that the caller should call after all work is completed
+// on this request; and an error. The canceler function is to clean up the timeout.
+func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.Response, func(), error) {
+
+	// This serves as a proxy for checking the status of the Gregor connection. If we are not
+	// connected to Gregor, then it is likely the case we are totally offline, or on a very bad
+	// connection. If that is the case, let's make these timeouts very aggressive, so we don't
+	// block up everything trying to succeed when we probably will not.
+	if ConnectivityMonitorNo == m.G().ConnectivityMonitor.IsConnected(m.Ctx()) {
+		arg.InitialTimeout = HTTPFastTimeout
+		arg.RetryCount = 0
+	}
+
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
-		return cli.cli.Do(req)
+		resp, err := ctxhttp.Do(m.Ctx(), cli.cli, req)
+		return resp, nil, err
 	}
 
 	timeout := cli.cli.Timeout
@@ -293,54 +390,41 @@ func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			g.G().Log.CDebugf(arg.NetContext, "retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			m.CDebugf("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
-		resp, err := doTimeout(cli, req, timeout)
+		resp, canc, err := doTimeout(m, cli, req, timeout)
 		if err == nil {
-			return resp, nil
+			return resp, canc, nil
 		}
 		lastErr = err
 		timeout = time.Duration(float64(timeout) * multiplier)
+
+		// If chat goes offline during this retry loop, then let's bail out early
+		if ConnectivityMonitorNo == m.G().ConnectivityMonitor.IsConnected(m.Ctx()) {
+			m.CDebugf("retry loop aborting since chat went offline")
+			break
+		}
+
+		if req.GetBody != nil {
+			// post request body consumed, need to get it back
+			req.Body, err = req.GetBody()
+			if err != nil {
+				return nil, nil, err
+			}
+		}
 	}
 
-	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+	return nil, nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
 
 }
 
-// adapted from https://blog.golang.org/context httpDo func
-func doTimeout(cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
-	// TODO: could pass in a context from further up the chain
-	// and use that instead of context.Background()
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
-
-	// new way to cancel requests
-	reqCancel := make(chan struct{})
-	req.Cancel = reqCancel
-
-	type response struct {
-		resp *http.Response
-		err  error
-	}
-	c := make(chan response, 1)
-	go func() {
-		var r response
-		r.resp, r.err = cli.cli.Do(req)
-		c <- r
-	}()
-
-	select {
-	case <-ctx.Done():
-		// request ctx timed out.  Cancel the request by closing req.Cancel channel:
-		close(reqCancel)
-		// wait for request to finish
-		<-c
-		return nil, ctx.Err()
-	case r := <-c:
-		// request successful
-		return r.resp, r.err
-	}
-
+// doTimeout does the http request with a timeout. It returns the response from making the HTTP request,
+// a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
+// with this request.
+func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
+	resp, err := ctxhttp.Do(ctx, cli.cli, req)
+	return resp, cancel, err
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
@@ -394,14 +478,18 @@ func (a *InternalAPIEngine) getURL(arg APIArg) url.URL {
 	return u
 }
 
-func (a *InternalAPIEngine) sessionArgs(arg APIArg) (tok, csrf string) {
-	if arg.SessionR != nil {
-		return arg.SessionR.APIArgs()
+func (a *InternalAPIEngine) sessionArgs(m MetaContext, arg APIArg) (tok, csrf string, err error) {
+	if m.apiTokener != nil {
+		m.CDebugf("Using apiTokener session and CSRF token")
+		tok, csrf = m.apiTokener.Tokens()
+		return tok, csrf, nil
 	}
-	a.G().LoginState().LocalSession(func(s *Session) {
-		tok, csrf = s.APIArgs()
-	}, "sessionArgs")
-	return
+
+	if tok, csrf := m.ProvisionalSessionArgs(); len(tok) > 0 && len(csrf) > 0 {
+		m.CDebugf("using provisional session args")
+		return tok, csrf, nil
+	}
+	return "", "", LoginRequiredError{"no sessionArgs available since no login path worked"}
 }
 
 func (a *InternalAPIEngine) isExternal() bool { return false }
@@ -425,7 +513,7 @@ func computeCriticalClockSkew(g *GlobalContext, s string) time.Duration {
 	return ret
 }
 
-// If the local clock is within a reasonable offst of the server's
+// If the local clock is within a reasonable offset of the server's
 // clock, we'll get 0.  Otherwise, we set the skew accordingly. Safe
 // to set this every time.
 func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) {
@@ -443,7 +531,7 @@ func (a *InternalAPIEngine) updateCriticalClockSkewWarning(resp *http.Response) 
 	}
 }
 
-func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
+func (a *InternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response, nist *NIST) (err error) {
 	upgradeTo := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	upgradeURI := resp.Header.Get("X-Keybase-Upgrade-URI")
 	customMessage := resp.Header.Get("X-Keybase-Upgrade-Message")
@@ -453,7 +541,21 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 			customMessage = string(decoded)
 		} else {
 			// If base64-decode fails, just log the error and skip decoding.
-			a.G().Log.Errorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+			m.CErrorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+		}
+	}
+
+	if nist != nil {
+		nistReply := resp.Header.Get("X-Keybase-Auth-NIST")
+		switch nistReply {
+		case "":
+		case "verified":
+			nist.MarkSuccess()
+		case "failed":
+			nist.MarkFailure()
+			m.CWarningf("NIST token failed to verify")
+		default:
+			m.CInfof("Unexpected 'X-Keybase-Auth-NIST' state: %s", nistReply)
 		}
 	}
 
@@ -461,46 +563,82 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 
 	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()
-		g := a.G()
+		g := m.G()
 		g.oodiMu.Lock()
 		g.outOfDateInfo.UpgradeTo = upgradeTo
 		g.outOfDateInfo.UpgradeURI = upgradeURI
 		g.outOfDateInfo.CustomMessage = customMessage
 		if g.lastUpgradeWarning.IsZero() || now.Sub(*g.lastUpgradeWarning) > 3*time.Minute {
 			// Send the notification after we unlock
-			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
+			defer g.NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
 			*g.lastUpgradeWarning = now
 		}
+		g.oodiMu.Unlock()
+	} else {
+		// We might be in a state where the server *used to* think we were out
+		// of date, but now it doesn't. (Maybe a bad config got pushed and then
+		// later fixed.) If so, we need to clear the global outOfDateInfo, so
+		// that the client stops printing warnings.
+		g := m.G()
+		g.oodiMu.Lock()
+		g.outOfDateInfo.UpgradeTo = ""
+		g.outOfDateInfo.UpgradeURI = ""
+		g.outOfDateInfo.CustomMessage = ""
 		g.oodiMu.Unlock()
 	}
 	return
 }
 
-func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
-	if arg.NeedSession {
-		tok, csrf := a.sessionArgs(arg)
-		if len(tok) > 0 && a.G().Env.GetTorMode().UseSession() {
-			req.Header.Add("X-Keybase-Session", tok)
-		} else {
-			a.G().Log.Warning("fixHeaders: need session, but session token empty")
+func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error {
+
+	if nist != nil {
+		req.Header.Set("X-Keybase-Session", nist.Token().String())
+
+	} else if arg.SessionType != APISessionTypeNONE {
+		m.CDebugf("fixHeaders: falling back to legacy session management")
+		tok, csrf, err := a.sessionArgs(m, arg)
+		if err != nil {
+			if arg.SessionType == APISessionTypeREQUIRED {
+				m.CWarningf("fixHeaders: session required, but error getting sessionArgs: %s", err)
+				return err
+			}
+			m.CDebugf("fixHeaders: session optional, error getting sessionArgs: %s", err)
 		}
-		if len(csrf) > 0 && a.G().Env.GetTorMode().UseCSRF() {
-			req.Header.Add("X-CSRF-Token", csrf)
-		} else {
-			a.G().Log.Warning("fixHeaders: need session, but session csrf empty")
+
+		if m.G().Env.GetTorMode().UseSession() {
+			if len(tok) > 0 {
+				req.Header.Set("X-Keybase-Session", tok)
+			} else if arg.SessionType == APISessionTypeREQUIRED {
+				m.CWarningf("fixHeaders: need session, but session token empty")
+				return InternalError{Msg: "API request requires session, but session token empty"}
+			}
+		}
+		if m.G().Env.GetTorMode().UseCSRF() {
+			if len(csrf) > 0 {
+				req.Header.Set("X-CSRF-Token", csrf)
+			} else if arg.SessionType == APISessionTypeREQUIRED {
+				m.CWarningf("fixHeaders: need session, but session csrf empty")
+				return InternalError{Msg: "API request requires session, but session csrf empty"}
+			}
 		}
 	}
-	if a.G().Env.GetTorMode().UseHeaders() {
+
+	if m.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		identifyAs := GoClientID + " v" + VersionString() + " " + GetPlatformString()
 		req.Header.Set("X-Keybase-Client", identifyAs)
-		if a.G().Env.GetDeviceID().Exists() {
+		if m.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
 		}
-		if i := a.G().Env.GetInstallID(); i.Exists() {
+		if i := m.G().Env.GetInstallID(); i.Exists() {
 			req.Header.Set("X-Keybase-Install-ID", i.String())
 		}
+		if tags := LogTagsToString(m.Ctx()); tags != "" {
+			req.Header.Set("X-Keybase-Log-Tags", tags)
+		}
 	}
+
+	return nil
 }
 
 func (a *InternalAPIEngine) checkAppStatusFromJSONWrapper(arg APIArg, jw *jsonw.Wrapper) (*AppStatus, error) {
@@ -524,34 +662,24 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	// check if there was a bad session error:
-	if err := a.checkSessionExpired(arg, ast); err != nil {
-		return err
-	}
-
-	return NewAppStatusError(ast)
+	return appStatusToTypedError(ast)
 }
 
-func (a *InternalAPIEngine) checkSessionExpired(arg APIArg, ast *AppStatus) error {
-	if ast.Code != SCBadSession {
-		return nil
+func appStatusToTypedError(ast *AppStatus) error {
+	switch ast.Code {
+	case SCBadSession:
+		return BadSessionError{"server rejected session; is your device revoked?"}
+	case SCFeatureFlag:
+		var feature Feature
+		if ast.Fields != nil {
+			if tmp, ok := ast.Fields["feature"]; ok {
+				feature = Feature(tmp)
+			}
+		}
+		return NewFeatureFlagError(ast.Desc, feature)
+	default:
+		return NewAppStatusError(ast)
 	}
-	var loggedIn bool
-	if arg.SessionR != nil {
-		loggedIn = arg.SessionR.IsLoggedIn()
-	} else {
-		loggedIn = a.G().LoginState().LoggedIn()
-	}
-	if !loggedIn {
-		return nil
-	}
-	a.G().Log.CDebugf(arg.NetContext, "local session -> is logged in, remote -> not logged in.  invalidating local session:")
-	if arg.SessionR != nil {
-		arg.SessionR.Invalidate()
-	} else {
-		a.G().LoginState().LocalSession(func(s *Session) { s.Invalidate() }, "api - checkSessionExpired")
-	}
-	return LoginRequiredError{Context: "your session has expired."}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -563,81 +691,112 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 	return a.DoRequest(arg, req)
 }
 
-// GetResp performs a GET request and returns the http response.  The
-// returned response, if non-nil, should have DiscardAndCloseBody()
-// called on it.
-func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
+// GetResp performs a GET request and returns the http response. The finisher
+// second arg should be called whenever we're done with the response (if it's non-nil).
+func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) {
+	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
+
 	url1 := a.getURL(arg)
 	req, err := a.PrepareGet(url1, arg)
 	if err != nil {
-		return nil, err
+		return nil, noopFinisher, err
 	}
 
-	resp, _, err := doRequestShared(a, arg, req, false)
+	resp, finisher, _, err := doRequestShared(m, a, arg, req, false)
 	if err != nil {
-		return nil, err
+		return nil, finisher, err
 	}
 
-	return resp, nil
+	return resp, finisher, nil
 }
 
 // GetDecode performs a GET request and decodes the response via
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.GetResp(arg)
+	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
+	return a.getDecode(m, arg, v)
+}
+
+func (a *InternalAPIEngine) getDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
+	arg.MetaContext = m
+	resp, finisher, err := a.GetResp(arg)
 	if err != nil {
+		m.CDebugf("| API GetDecode, GetResp error: %s", err)
 		return err
 	}
-	defer DiscardAndCloseBody(resp)
-	dec := json.NewDecoder(resp.Body)
+	defer finisher()
+
+	var reader io.Reader
+	reader = resp.Body
+	if a.G().Env.GetAPIDump() {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+		m.CDebugf("| response body: %s", string(body))
+		reader = bytes.NewReader(body)
+	}
+
+	dec := json.NewDecoder(reader)
 	if err = dec.Decode(&v); err != nil {
+		m.CDebugf("| API GetDecode, Decode error: %s", err)
 		return err
 	}
-	return a.checkAppStatus(arg, v.GetAppStatus())
+	if err = a.checkAppStatus(arg, v.GetAppStatus()); err != nil {
+		m.CDebugf("| API GetDecode, checkAppStatus error: %s", err)
+		return err
+	}
+
+	return nil
 }
 
 func (a *InternalAPIEngine) Post(arg APIArg) (*APIRes, error) {
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, false)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
 		return nil, err
 	}
 	return a.DoRequest(arg, req)
 }
 
+// PostJSON does _not_ actually enforce the use of JSON.
+// That is now determined by APIArg's fields.
 func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
-	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, true)
-	if err != nil {
-		return nil, err
-	}
-	return a.DoRequest(arg, req)
+	return a.Post(arg)
 }
 
-// PostResp performs a POST request and returns the http response.
-// The returned response, if non-nil, should have
-// DiscardAndCloseBody() called on it.
-func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
+// postResp performs a POST request and returns the http response.
+// The finisher() should be called after the response is no longer needed.
+func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response, func(), error) {
+	m = m.EnsureCtx().WithLogTag("API")
 	url1 := a.getURL(arg)
-	req, err := a.PreparePost(url1, arg, false)
+	req, err := a.PrepareMethodWithBody("POST", url1, arg)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	resp, _, err := doRequestShared(a, arg, req, false)
+	resp, finisher, _, err := doRequestShared(m, a, arg, req, false)
 	if err != nil {
-		return nil, err
+		return nil, finisher, err
 	}
 
-	return resp, nil
+	return resp, finisher, nil
 }
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
-	resp, err := a.PostResp(arg)
+	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
+	return a.postDecode(m, arg, v)
+}
+
+func (a *InternalAPIEngine) postDecode(m MetaContext, arg APIArg, v APIResponseWrapper) error {
+	resp, finisher, err := a.postResp(m, arg)
 	if err != nil {
 		return err
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
 	dec := json.NewDecoder(resp.Body)
 	if err = dec.Decode(&v); err != nil {
 		return err
@@ -657,12 +816,29 @@ func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*API
 	return a.DoRequest(arg, req)
 }
 
-func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
-	resp, jw, err := doRequestShared(a, arg, req, true)
+func (a *InternalAPIEngine) Delete(arg APIArg) (*APIRes, error) {
+	url1 := a.getURL(arg)
+	req, err := a.PrepareMethodWithBody("DELETE", url1, arg)
 	if err != nil {
 		return nil, err
 	}
-	defer DiscardAndCloseBody(resp)
+	return a.DoRequest(arg, req)
+}
+
+func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
+	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
+	res, err := a.doRequest(m, arg, req)
+	return res, err
+}
+
+func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
+	m = m.EnsureCtx().WithLogTag("API")
+	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
+	if err != nil {
+		return nil, err
+	}
+	defer finisher()
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
@@ -674,12 +850,12 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	// http.AppStatus
 	appStatus, err := a.checkAppStatusFromJSONWrapper(arg, status)
 	if err != nil {
-		a.G().Log.CDebugf(arg.NetContext, "- API call %s error: %s", arg.Endpoint, err)
+		m.CDebugf("- API call %s error: %s", arg.Endpoint, err)
 		return nil, err
 	}
 
 	body := jw
-	a.G().Log.CDebugf(arg.NetContext, "- API call %s success", arg.Endpoint)
+	m.CDebugf("- API call %s success", arg.Endpoint)
 	return &APIRes{status, body, resp.StatusCode, appStatus}, err
 }
 
@@ -697,7 +873,7 @@ const (
 	XAPIResText
 )
 
-func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
+func (api *ExternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Request, nist *NIST) error {
 	// TODO (here and in the internal API engine implementation): If we don't
 	// set the User-Agent, it will default to http.defaultUserAgent
 	// ("Go-http-client/1.1"). We should think about whether that's what we
@@ -708,10 +884,17 @@ func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	// Awful hack to make reddit as happy as possible.
 	if isReddit(req) {
 		userAgent += " (by /u/oconnor663)"
+	} else {
+		// For non-reddit sites we don't want to be served mobile HTML.
+		if runtime.GOOS == "android" {
+			userAgent = strings.Replace(userAgent, "android", "linux", 1)
+		}
 	}
-	if api.G().Env.GetTorMode().UseHeaders() {
+	if m.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", userAgent)
 	}
+
+	return nil
 }
 
 func isReddit(req *http.Request) bool {
@@ -719,7 +902,7 @@ func isReddit(req *http.Request) bool {
 	return host == "reddit.com" || strings.HasSuffix(host, ".reddit.com")
 }
 
-func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
+func (api *ExternalAPIEngine) consumeHeaders(m MetaContext, resp *http.Response, nist *NIST) error {
 	return nil
 }
 
@@ -729,14 +912,18 @@ func (api *ExternalAPIEngine) DoRequest(
 	arg APIArg, req *http.Request, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
+	m := arg.GetMetaContext(api.G())
+	m = m.EnsureCtx().WithLogTag("API")
+
 	var resp *http.Response
 	var jw *jsonw.Wrapper
+	var finisher func()
 
-	resp, jw, err = doRequestShared(api, arg, req, (restype == XAPIResJSON))
+	resp, finisher, jw, err = doRequestShared(m, api, arg, req, (restype == XAPIResJSON))
 	if err != nil {
 		return
 	}
-	defer DiscardAndCloseBody(resp)
+	defer finisher()
 
 	switch restype {
 	case XAPIResJSON:
@@ -803,7 +990,7 @@ func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	if err != nil {
 		return
 	}
-	req, err = api.PreparePost(*url1, arg, false)
+	req, err = api.PrepareMethodWithBody("POST", *url1, arg)
 	if err != nil {
 		return
 	}

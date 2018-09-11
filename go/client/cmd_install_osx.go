@@ -14,6 +14,7 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/install/libnativeinstaller"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -30,7 +31,7 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 			cli.StringFlag{
 				Name:  "o, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 			cli.StringFlag{
 				Name:  "b, bin-path",
@@ -48,9 +49,12 @@ func NewCmdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "t, timeout",
 				Usage: "Timeout as duration, such as '10s' or '1m'.",
 			},
+			cli.StringFlag{
+				Name:  "source-path",
+				Usage: "Source path to app bundle.",
+			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Installs Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -65,6 +69,7 @@ type CmdInstall struct {
 	format     string
 	binPath    string
 	installer  string
+	sourcePath string
 	timeout    time.Duration
 	components []string
 }
@@ -82,8 +87,13 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 var defaultInstallComponents = []string{
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameService.String(),
+	install.ComponentNameCLI.String(),
+	install.ComponentNameHelper.String(),
+	install.ComponentNameFuse.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameKBFS.String(),
+	install.ComponentNameKBNM.String(),
+	install.ComponentNameRedirector.String(),
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
@@ -92,6 +102,7 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
 	v.timeout = ctx.Duration("timeout")
+	v.sourcePath = ctx.String("source-path")
 	if v.timeout == 0 {
 		v.timeout = 11 * time.Second
 	}
@@ -119,7 +130,7 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	if v.installer == "auto" {
 		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.timeout, v.G().Log)
 	} else if v.installer == "" {
-		return install.Install(v.G(), v.binPath, v.components, v.force, v.timeout, v.G().Log)
+		return install.Install(v.G(), v.binPath, v.sourcePath, v.components, v.force, v.timeout, v.G().Log)
 	}
 
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}
@@ -134,12 +145,29 @@ func (v *CmdInstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	}
+	exitOnError(result)
 	return nil
+}
+
+func exitOnError(result keybase1.InstallResult) {
+	if result.Fatal {
+		os.Exit(1)
+	}
+	for _, r := range result.ComponentResults {
+		if r.ExitCode != 0 {
+			os.Exit(r.ExitCode)
+		}
+		if r.Status.Code != 0 {
+			os.Exit(2)
+		}
+	}
 }
 
 var defaultUninstallComponents = []string{
 	install.ComponentNameService.String(),
 	install.ComponentNameKBFS.String(),
+	install.ComponentNameKBNM.String(),
+	install.ComponentNameRedirector.String(),
 	install.ComponentNameMountDir.String(),
 	install.ComponentNameUpdater.String(),
 	install.ComponentNameFuse.String(),
@@ -153,7 +181,7 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "o, format",
-				Usage: "Format for output. Specify 'j' for JSON or blank for default.",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
 			},
 			cli.StringFlag{
 				Name:  "c, components",
@@ -161,7 +189,6 @@ func NewCmdUninstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Uninstalls Keybase components",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -203,7 +230,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
-	bundlePath, err := install.AppBundleForPath()
+	bundlePath, err := libnativeinstaller.AppBundleForPath()
 	if err != nil {
 		return err
 	}
@@ -223,7 +250,7 @@ func (v *CmdUninstall) Run() error {
 	return nil
 }
 
-func DiagnoseSocketError(ui libkb.UI, err error) {
+func DiagnoseSocketError(ui libkb.UI, inErr error) {
 	t := ui.GetTerminalUI()
 	services, err := launchd.ListServices([]string{"keybase.service.", "homebrew.mxcl.keybase"})
 	if err != nil {
@@ -235,7 +262,7 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 		if libkb.IsBrewBuild {
 			t.Printf("\nThere are no Keybase services installed, you might try running:\n\n\tkeybase install\n\n")
 		} else {
-			bundlePath, err := install.AppBundleForPath()
+			bundlePath, err := libnativeinstaller.AppBundleForPath()
 			if err != nil {
 				t.Printf("No app bundle: %s\n\n", err)
 				return
@@ -265,4 +292,78 @@ func DiagnoseSocketError(ui libkb.UI, err error) {
 			}
 		}
 	}
+}
+
+func newCmdInstallAuto(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name: "install-auto",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "b, bin-path",
+				Usage: "Full path to the executable, if it would be ambiguous otherwise.",
+			},
+			cli.DurationFlag{
+				Name:  "t, timeout",
+				Usage: "Timeout as duration, such as '10s' or '1m'.",
+			},
+			cli.StringFlag{
+				Name:  "source-path",
+				Usage: "Source path to app bundle.",
+			},
+			cli.StringFlag{
+				Name:  "o, format",
+				Usage: "Format for output. Specify 'json' for JSON or blank for default.",
+			},
+		},
+		ArgumentHelp: "",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(newCmdInstallAutoRunner(g), "install-auto", c)
+		},
+	}
+}
+
+type cmdInstallAuto struct {
+	libkb.Contextified
+	binPath    string
+	sourcePath string
+	format     string
+	timeout    time.Duration
+}
+
+func newCmdInstallAutoRunner(g *libkb.GlobalContext) *cmdInstallAuto {
+	return &cmdInstallAuto{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *cmdInstallAuto) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		// For getting the mount directory.
+		Config: true,
+	}
+}
+
+func (v *cmdInstallAuto) ParseArgv(ctx *cli.Context) error {
+	v.binPath = ctx.String("bin-path")
+	v.timeout = ctx.Duration("timeout")
+	v.sourcePath = ctx.String("source-path")
+	v.format = ctx.String("format")
+	if v.timeout == 0 {
+		v.timeout = 11 * time.Second
+	}
+	return nil
+}
+
+func (v *cmdInstallAuto) Run() error {
+	result := install.InstallAuto(v.G(), v.binPath, v.sourcePath, v.timeout, v.G().Log)
+	if v.format == "json" {
+		out, err := json.MarshalIndent(result, "", "  ")
+		if err != nil {
+			return err
+		}
+		fmt.Fprintf(os.Stdout, "%s\n", out)
+	}
+	return nil
 }

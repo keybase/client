@@ -8,111 +8,94 @@ import (
 )
 
 type verifyStream struct {
-	stream     *msgpackStream
-	state      readState
-	buffer     []byte
+	mps        *msgpackStream
 	header     *SignatureHeader
-	headerHash []byte
+	headerHash headerHash
 	publicKey  SigningPublicKey
-	seqno      packetSeqno
 }
 
-func newVerifyStream(r io.Reader, msgType MessageType) (*verifyStream, error) {
+func newVerifyStream(versionValidator VersionValidator, r io.Reader, msgType MessageType) (*verifyStream, error) {
 	s := &verifyStream{
-		stream: newMsgpackStream(r),
-		seqno:  0,
+		mps: newMsgpackStream(r),
 	}
-	err := s.readHeader(msgType)
+	err := s.readHeader(versionValidator, msgType)
 	if err != nil {
 		return nil, err
 	}
 	return s, nil
 }
 
-func (v *verifyStream) Read(p []byte) (n int, err error) {
-	if v.state == stateEndOfStream {
-		return 0, io.EOF
-	}
-
-	for n == 0 && err == nil {
-		n, err = v.read(p)
-	}
-	if err == io.EOF && v.state != stateEndOfStream {
-		err = io.ErrUnexpectedEOF
-	}
-	return n, err
-}
-
-func (v *verifyStream) read(p []byte) (int, error) {
-	// if data in the buffer, then start by copying it into output slice
-	if len(v.buffer) > 0 {
-		n := copy(p, v.buffer)
-		v.buffer = v.buffer[n:]
-		return n, nil
-	}
-
-	n, last, err := v.readBlock(p)
+func (v *verifyStream) getNextChunk() ([]byte, error) {
+	signature, chunk, isFinal, seqno, err := readSignatureBlock(v.header.Version, v.mps)
 	if err != nil {
-		return n, err
-	}
-	if last {
-		v.state = stateEndOfStream
-		if err := assertEndOfStream(v.stream); err != nil {
-			return n, err
+		if err == io.EOF {
+			err = io.ErrUnexpectedEOF
 		}
+		return nil, err
 	}
 
-	return n, nil
+	err = v.processBlock(signature, chunk, isFinal, seqno)
+	if err != nil {
+		return nil, err
+	}
+
+	err = checkDecodedChunkState(v.header.Version, chunk, seqno, isFinal)
+	if err != nil {
+		return nil, err
+	}
+
+	if isFinal {
+		return chunk, assertEndOfStream(v.mps)
+	}
+
+	return chunk, nil
 }
 
-func (v *verifyStream) readHeader(msgType MessageType) error {
+func (v *verifyStream) readHeader(versionValidator VersionValidator, msgType MessageType) error {
 	var headerBytes []byte
-	_, err := v.stream.Read(&headerBytes)
+	_, err := v.mps.Read(&headerBytes)
 	if err != nil {
-		return err
+		return ErrFailedToReadHeaderBytes
 	}
 
-	v.headerHash = sha512OfSlice(headerBytes)
+	v.headerHash = hashHeader(headerBytes)
 
 	var header SignatureHeader
 	err = decodeFromBytes(&header, headerBytes)
 	if err != nil {
 		return err
 	}
-	v.header = &header
-	if err := header.validate(msgType); err != nil {
+	if err := header.validate(versionValidator, msgType); err != nil {
 		return err
 	}
-	v.state = stateBody
+
+	v.header = &header
 	return nil
 }
 
-func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
-	var block signatureBlock
-	_, err := v.stream.Read(&block)
-	if err != nil {
-		return 0, false, err
-	}
-	block.seqno = v.seqno
-	v.seqno++
+func readSignatureBlock(version Version, mps *msgpackStream) (signature, payloadChunk []byte, isFinal bool, seqno packetSeqno, err error) {
+	switch version.Major {
+	case 1:
+		var sbV1 signatureBlockV1
+		seqno, err = mps.Read(&sbV1)
+		if err != nil {
+			return nil, nil, false, 0, err
+		}
 
-	data, err := v.processBlock(&block)
-	if err != nil {
-		return 0, false, err
-	}
-	if data == nil || len(data) == 0 {
-		return 0, true, err
-	}
+		return sbV1.Signature, sbV1.PayloadChunk, len(sbV1.PayloadChunk) == 0, seqno, nil
+	case 2:
+		var sbV2 signatureBlockV2
+		seqno, err = mps.Read(&sbV2)
+		if err != nil {
+			return nil, nil, false, 0, err
+		}
 
-	n := copy(p, data)
-	v.buffer = data[n:]
-
-	return n, false, err
+		return sbV2.Signature, sbV2.PayloadChunk, sbV2.IsFinal, seqno, nil
+	default:
+		panic(ErrBadVersion{version})
+	}
 }
 
-func (v *verifyStream) processBlock(block *signatureBlock) ([]byte, error) {
-	if err := v.publicKey.Verify(attachedSignatureInput(v.headerHash, block), block.Signature); err != nil {
-		return nil, err
-	}
-	return block.PayloadChunk, nil
+func (v *verifyStream) processBlock(signature, payloadChunk []byte, isFinal bool, seqno packetSeqno) error {
+	return v.publicKey.Verify(attachedSignatureInput(v.header.Version, v.headerHash, payloadChunk, seqno-1, isFinal), signature)
 }

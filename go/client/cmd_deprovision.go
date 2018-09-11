@@ -32,10 +32,10 @@ func NewCmdDeprovision(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 
 func (c *CmdDeprovision) Run() (err error) {
 	protocols := []rpc.Protocol{
-		NewLogUIProtocol(),
+		NewLogUIProtocol(c.G()),
 		NewSecretUIProtocol(c.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 

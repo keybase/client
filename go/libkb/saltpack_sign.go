@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/agl/ed25519"
+	"github.com/keybase/go-crypto/ed25519"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
@@ -15,26 +15,30 @@ import (
 
 type streamfn func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)
 
-func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+func SaltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool, saltpackVersion saltpack.Version) error {
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignStream(w, k)
+			return saltpack.NewSignStream(saltpackVersion, w, k)
 		}
 	} else {
-		s = saltpack.NewSignArmor62Stream
+		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
+			return saltpack.NewSignArmor62Stream(saltpackVersion, w, k, brand)
+		}
 	}
 	return saltpackSign(g, source, sink, key, s)
 }
 
-func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool) error {
+func SaltpackSignDetached(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, key NaclSigningKeyPair, binary bool, saltpackVersion saltpack.Version) error {
 	var s streamfn
 	if binary {
 		s = func(w io.Writer, k saltpack.SigningSecretKey, _ string) (io.WriteCloser, error) {
-			return saltpack.NewSignDetachedStream(w, k)
+			return saltpack.NewSignDetachedStream(saltpackVersion, w, k)
 		}
 	} else {
-		s = saltpack.NewSignDetachedArmor62Stream
+		s = func(w io.Writer, k saltpack.SigningSecretKey, brand string) (io.WriteCloser, error) {
+			return saltpack.NewSignDetachedArmor62Stream(saltpackVersion, w, k, brand)
+		}
 	}
 	return saltpackSign(g, source, sink, key, s)
 }
@@ -58,11 +62,7 @@ func saltpackSign(g *GlobalContext, source io.ReadCloser, sink io.WriteCloser, k
 		return err
 	}
 
-	if err = stream.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return stream.Close()
 }
 
 type saltSigner struct {
@@ -105,5 +105,5 @@ func SigningPublicKeyToKeybaseKID(k saltpack.SigningPublicKey) (ret keybase1.KID
 		return ret
 	}
 	p := k.ToKID()
-	return keybase1.KIDFromRawKey(p, KIDNaclEddsa)
+	return keybase1.KIDFromRawKey(p, byte(KIDNaclEddsa))
 }

@@ -1,31 +1,48 @@
 // @flow
-import logger from './logger'
-import {forwardLogs} from '../local-debug'
+import {noop} from 'lodash-es'
+import RNFetchBlob from 'rn-fetch-blob'
+import type {LogLineWithLevelISOTimestamp} from '../logger/types'
+import {writeStream, exists} from './file'
+import {serialPromises} from './promise'
+import {logFileName, logFileDir} from '../constants/platform.native'
 
-let forwarded = false
-
-const localLog = window.console.log.bind(window.console)
+const localLog = __DEV__ ? window.console.log.bind(window.console) : noop
 const localWarn = window.console.warn.bind(window.console)
 const localError = window.console.error.bind(window.console)
 
-function setupSource () {
-  if (!forwardLogs) {
-    return
-  }
+const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promise<void> = (
+  lines: Array<LogLineWithLevelISOTimestamp>
+) =>
+  new Promise((resolve, reject) => {
+    if (lines.length === 0) {
+      resolve()
+      return
+    }
+    const dir = logFileDir()
+    const logPath = logFileName()
 
-  if (forwarded) {
-    return
-  }
-  forwarded = true
+    RNFetchBlob.fs
+      .isDir(dir)
+      .then(isDir => (isDir ? Promise.resolve() : RNFetchBlob.fs.mkdir(dir)))
+      .then(() => exists(logPath))
+      .then(exists => (exists ? Promise.resolve() : RNFetchBlob.fs.createFile(logPath, '', 'utf8')))
+      .then(() => writeStream(logPath, 'utf8', true))
+      .then(stream => {
+        const writeLogsPromises = lines.map((log, idx) => {
+          return () => {
+            return stream.write(JSON.stringify(log) + '\n')
+          }
+        })
+        return serialPromises(writeLogsPromises).then(() => stream.close())
+      })
+      .then(success => {
+        console.log('Log write done')
+        resolve()
+      })
+      .catch(err => {
+        console.warn(`Couldn't log send! ${err}`)
+        reject(err)
+      })
+  })
 
-  window.console.log = (...args) => { localLog(...args); logger.info(args.join(', ')) }
-  window.console.warn = (...args) => { localWarn(...args); logger.warn(args.join(', ')) }
-  window.console.error = (...args) => { localError(...args); logger.error(args.join(', ')) }
-}
-
-export {
-  setupSource,
-  localLog,
-  localWarn,
-  localError,
-}
+export {localLog, localWarn, localError, writeLogLinesToFile}

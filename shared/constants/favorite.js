@@ -1,103 +1,86 @@
 // @flow
+import * as RPCTypes from './types/rpc-gen'
+import * as Types from './types/favorite'
 import {defaultKBFSPath} from './config'
-
 import {parseFolderNameToUsers, sortUserList} from '../util/kbfs'
-import type {Exact} from '../constants/types/more'
-import type {Folder as FolderRPC} from '../constants/types/flow-types'
-import type {Folder, MetaType, FolderRPCWithMeta} from './folders'
-import type {TypedAction, NoErrorTypedAction} from './types/flux'
+import type {Folder, MetaType, FolderRPCWithMeta} from './types/folders'
 import type {UserList} from '../common-adapters/usernames'
 
-type ListState = Exact<{
-  tlfs?: Array<Folder>,
-  ignored?: Array<Folder>,
-  isPublic: boolean,
-  style?: any,
-  smallMode?: boolean,
-  onClick?: (path: string) => void,
-  onRekey?: (path: string) => void,
-  onOpen?: (path: string) => void,
-  extraRows?: Array<React$Element<*>>,
-}>
+// See Installer.m: KBExitFuseKextError
+export const ExitCodeFuseKextError = 4
+// See Installer.m: KBExitFuseKextPermissionError
+export const ExitCodeFuseKextPermissionError = 5
+// See Installer.m: KBExitAuthCanceledError
+export const ExitCodeAuthCanceledError = 6
 
-export type FolderState = Exact<{
-  privateBadge: number,
-  private: ListState,
-  publicBadge: number,
-  public: ListState,
-}>
-
-export type ViewState = Exact<{
-  showingPrivate: boolean,
-  publicIgnoredOpen: boolean,
-  privateIgnoredOpen: boolean,
-}>
-
-export type KBFSStatus = {
-  isAsyncWriteHappening: boolean,
+const initialState: Types.State = {
+  folderState: {
+    private: {
+      isPublic: false,
+      tlfs: [],
+    },
+    privateBadge: 0,
+    public: {
+      isPublic: true,
+      tlfs: [],
+    },
+    publicBadge: 0,
+  },
+  fuseInstalling: false,
+  fuseStatus: null,
+  fuseStatusLoading: false,
+  kbfsInstalling: false,
+  kbfsOpening: false,
+  kextPermissionError: false,
+  viewState: {
+    privateIgnoredOpen: false,
+    publicIgnoredOpen: false,
+    showingPrivate: true,
+  },
 }
 
-export type FavoriteState = Exact<{
-  folderState: FolderState,
-  viewState: ViewState,
-  kbfsStatus: KBFSStatus,
-}>
-
-export const favoriteAdd = 'favorite:favoriteAdd'
-export type FavoriteAdd = NoErrorTypedAction<'favorite:favoriteAdd', {path: string}>
-export const favoriteAdded = 'favorite:favoriteAdded'
-export type FavoriteAdded = TypedAction<'favorite:favoriteAdded', void, {errorText: string}>
-
-export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = NoErrorTypedAction<'favorite:favoriteList', void>
-export const favoriteListed = 'favorite:favoriteListed'
-export type FavoriteListed = TypedAction<'favorite:favoriteListed', {folders: FolderState}, void>
-
-export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = NoErrorTypedAction<'favorite:favoriteIgnore', {path: string}>
-export const favoriteIgnored = 'favorite:favoriteIgnored'
-export type FavoriteIgnored = TypedAction<'favorite:favoriteIgnored', void, {errorText: string}>
-
-export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
-export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
-
-export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
-export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
-
-export const kbfsStatusUpdated = 'favorite:kbfsStatusUpdated'
-export type KbfsStatusUpdated = TypedAction<'favorite:kbfsStatusUpdated', KBFSStatus, void>
-
-export const markTLFCreated = 'favorite:markTLFCreated'
-export type MarkTLFCreated = TypedAction<'favorite:markTLFCreated', {folder: Folder}, void>
-
-export const setupKBFSChangedHandler = 'favorite:setupKBFSChangedHandler'
-export type SetupKBFSChangedHandler = NoErrorTypedAction<'favorite:setupKBFSChangedHandler', void>
-
-export type FavoriteAction = FavoriteAdd | FavoriteAdded | FavoriteList | FavoriteListed | FavoriteIgnore | FavoriteIgnored | FavoriteSwitchTab | FavoriteToggleIgnored | KbfsStatusUpdated
-
 // Sometimes we have paths that are just private/foo instead of /keybase/private/foo
-function canonicalizeTLF (tlf: string): string {
+function canonicalizeTLF(tlf: string): string {
   if (tlf.indexOf(defaultKBFSPath) !== 0) {
     return `${defaultKBFSPath}/${tlf}`
   }
   return tlf
 }
 
-function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}): {sortName: string, path: string} {
+function pathFromFolder({
+  isPublic,
+  isTeam,
+  users,
+}: {
+  isPublic: boolean,
+  isTeam: boolean,
+  users: UserList,
+}): {sortName: string, path: string} {
   const rwers = users.filter(u => !u.readOnly).map(u => u.username)
   const readers = users.filter(u => !!u.readOnly).map(u => u.username)
   const sortName = rwers.join(',') + (readers.length ? `#${readers.join(',')}` : '')
-  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
+
+  let subdir = 'unknown'
+  if (isTeam) {
+    subdir = 'team'
+  } else if (isPublic) {
+    subdir = 'public'
+  } else {
+    subdir = 'private'
+  }
+
+  const path = `${defaultKBFSPath}/${subdir}/${sortName}`
   return {sortName, path}
 }
 
-function folderRPCFromPath (path: string): ?FolderRPC {
+function folderRPCFromPath(path: string): ?RPCTypes.Folder {
   if (path.startsWith(`${defaultKBFSPath}/private/`)) {
     return {
       name: path.replace(`${defaultKBFSPath}/private/`, ''),
       private: true,
       notificationsOn: false,
       created: false,
+      folderType: RPCTypes.favoriteFolderType.private,
     }
   } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
     return {
@@ -105,18 +88,29 @@ function folderRPCFromPath (path: string): ?FolderRPC {
       private: false,
       notificationsOn: false,
       created: false,
+      folderType: RPCTypes.favoriteFolderType.public,
+    }
+  } else if (path.startsWith(`${defaultKBFSPath}/team/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/team/`, ''),
+      private: true,
+      notificationsOn: false,
+      created: false,
+      folderType: RPCTypes.favoriteFolderType.team,
     }
   } else {
     return null
   }
 }
 
-function folderFromFolderRPCWithMeta (username: string, f: FolderRPCWithMeta): Folder {
-  const users = sortUserList(parseFolderNameToUsers(username, f.name))
+function folderFromFolderRPCWithMeta(username: string, f: FolderRPCWithMeta): Folder {
+  const users = sortUserList(parseFolderNameToUsers(username, f.name || ''))
 
-  const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
-  const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
-  const userAvatar = groupAvatar ? null : users[users.length - 1].username
+  const {sortName, path} = pathFromFolder({
+    users,
+    isPublic: !f.private,
+    isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
+  })
   const meta: MetaType = f.meta
   const ignored = f.meta === 'ignored'
 
@@ -124,23 +118,25 @@ function folderFromFolderRPCWithMeta (username: string, f: FolderRPCWithMeta): F
     path,
     users,
     sortName,
-    hasData: false, // TODO don't have this info
     isPublic: !f.private,
-    groupAvatar,
-    userAvatar,
+    isTeam: f.folderType === RPCTypes.favoriteFolderType.team,
     ignored,
     meta,
-    recentFiles: [],
     waitingForParticipantUnlock: f.waitingForParticipantUnlock,
     youCanUnlock: f.youCanUnlock,
   }
 }
 
-function folderFromFolderRPC (username: string, f: FolderRPC): Folder {
-  return folderFromFolderRPCWithMeta(username, {...f, waitingForParticipantUnlock: [], youCanUnlock: [], meta: null})
+function folderFromFolderRPC(username: string, f: RPCTypes.Folder): Folder {
+  return folderFromFolderRPCWithMeta(username, {
+    ...f,
+    waitingForParticipantUnlock: [],
+    youCanUnlock: [],
+    meta: null,
+  })
 }
 
-function folderFromPath (username: string, path: string): ?Folder {
+function folderFromPath(username: string, path: string): ?Folder {
   const folderRPC = folderRPCFromPath(canonicalizeTLF(path))
   if (folderRPC == null) {
     return null
@@ -149,13 +145,4 @@ function folderFromPath (username: string, path: string): ?Folder {
   }
 }
 
-export type {Folder as FolderRPC} from '../constants/types/flow-types'
-
-export {
-  canonicalizeTLF,
-  folderFromFolderRPCWithMeta,
-  folderFromFolderRPC,
-  folderFromPath,
-  folderRPCFromPath,
-  pathFromFolder,
-}
+export {initialState, folderFromFolderRPCWithMeta, folderFromPath, folderRPCFromPath, pathFromFolder}

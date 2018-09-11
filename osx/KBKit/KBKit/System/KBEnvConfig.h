@@ -24,9 +24,10 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionKBFS = 1 << 4,
   KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
+  KBInstallOptionRedirector = 1 << 7,
   KBInstallOptionCLI = 1 << 10,
-
-  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
+  KBInstallOptionAppBundle = 1 << 11,
+  KBInstallOptionKBNM = 1 << 12,
 };
 
 @interface KBEnvConfig : NSObject
@@ -41,12 +42,14 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 @property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 @property (readonly) KBInstallOptions installOptions;
 @property (readonly) NSTimeInterval installTimeout;
+@property (readonly) NSString *appPath;
+@property (readonly) NSString *sourcePath;
 
 - (instancetype)initWithRunMode:(KBRunMode)runMode;
 
 + (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
-+ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout;
++ (instancetype)envConfigWithRunModeString:(NSString *)runModeString installOptions:(KBInstallOptions)installOptions installTimeout:(NSTimeInterval)installTimeout appPath:(NSString *)appPath sourcePath:(NSString *)sourcePath;
 + (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;
 
 - (void)saveToUserDefaults:(NSUserDefaults *)userDefaults;
@@ -57,7 +60,8 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 
 - (NSString *)logFile:(NSString *)label;
 
-- (NSString *)appPath:(NSString *)filename options:(KBPathOptions)options;
+- (NSString *)homePath:(NSString *)filename options:(KBPathOptions)options;
+- (NSString *)dataPath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
 
@@ -65,6 +69,11 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSString *)serviceBinName;
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
+- (NSString *)redirectorBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
+- (NSString *)gitRemoteHelperName;
+- (NSString *)redirectorBinName;
+- (NSString *)redirectorMount;
+- (BOOL)redirectorDisabled;
 
 - (BOOL)validate:(NSError **)error;
 

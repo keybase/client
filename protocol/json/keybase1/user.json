@@ -249,6 +249,33 @@
           "name": "version"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "InterestingPerson",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NextMerkleRootRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "res"
+        }
+      ]
     }
   ],
   "messages": {
@@ -352,10 +379,31 @@
         {
           "name": "uid",
           "type": "UID"
+        },
+        {
+          "name": "pollForKID",
+          "type": "KID"
         }
       ],
       "response": "UserPlusKeys",
       "doc": "Load a user + device keys from the server."
+    },
+    "loadUserPlusKeysV2": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "pollForKID",
+          "type": "KID"
+        }
+      ],
+      "response": "UserPlusKeysV2AllIncarnations"
     },
     "loadPublicKeys": {
       "request": [
@@ -489,6 +537,119 @@
         }
       ],
       "response": "UserSummary2Set"
+    },
+    "profileEdit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "fullName",
+          "type": "string"
+        },
+        {
+          "name": "location",
+          "type": "string"
+        },
+        {
+          "name": "bio",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "interestingPeople": {
+      "request": [
+        {
+          "name": "maxUsers",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "InterestingPerson"
+      }
+    },
+    "meUserVersion": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "forcePoll",
+          "type": "boolean"
+        }
+      ],
+      "response": "UserVersion"
+    },
+    "getUPAK": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": "UPAKVersioned",
+      "doc": "getUPAK returns a UPAK. Used mainly for debugging.",
+      "lint": "ignore"
+    },
+    "uploadUserAvatar": {
+      "request": [
+        {
+          "name": "filename",
+          "type": "string"
+        },
+        {
+          "name": "crop",
+          "type": [
+            null,
+            "ImageCropRect"
+          ]
+        }
+      ],
+      "response": null
+    },
+    "findNextMerkleRootAfterRevoke": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "kid",
+          "type": "KID"
+        },
+        {
+          "name": "loc",
+          "type": "SigChainLocation"
+        },
+        {
+          "name": "prev",
+          "type": "MerkleRootV2"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID\n   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where\n   we'll start our search. Usually it's the next one, but not always"
+    },
+    "findNextMerkleRootAfterReset": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "resetSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "prev",
+          "type": "ResetMerkleRoot"
+        }
+      ],
+      "response": "NextMerkleRootRes",
+      "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
     }
   },
   "namespace": "keybase.1"

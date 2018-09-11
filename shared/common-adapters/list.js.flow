@@ -1,0 +1,18 @@
+// @flow
+import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles'
+
+export type Props<Item> = {
+  indexAsKey?: boolean,
+  items: Array<Item>,
+  style?: StylesCrossPlatform,
+  fixedHeight?: ?number,
+  renderItem: (index: number, item: Item) => React.Node,
+  keyProperty?: string, // if passed uses item[keyProperty] for the item keys (does nothing on desktop)
+  selectedIndex?: number, // TODO work on mobile
+  itemSizeEstimator?: (index: number, cache: {[index: number]: number}) => number, // Desktop only
+  keyboardShouldPersistTaps?: 'never' | 'always' | 'handled', // mobile only
+  windowSize?: number, // Mobile only, has a non-RN default
+}
+
+export default class List<Item> extends React.Component<Props<Item>, void> {}

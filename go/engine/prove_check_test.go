@@ -12,18 +12,26 @@ import (
 )
 
 func TestProveCheck(t *testing.T) {
+	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
+		_testProveCheck(t, sigVersion)
+	})
+}
+
+func _testProveCheck(t *testing.T, sigVersion libkb.SigVersion) {
 	tc := SetupEngineTest(t, "prove check")
 	defer tc.Cleanup()
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
+	sv := keybase1.SigVersion(sigVersion)
 	arg := keybase1.StartProofArg{
 		Service:      "rooter",
 		Username:     fu.Username,
 		Force:        false,
 		PromptPosted: true,
+		SigVersion:   &sv,
 	}
 
-	eng := NewProve(&arg, tc.G)
+	eng := NewProve(tc.G, &arg)
 
 	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
@@ -32,7 +40,7 @@ func TestProveCheck(t *testing.T) {
 		}
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
-			NeedSession: true,
+			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"post": libkb.S{Val: sigID.ToMediumID()},
 			},
@@ -43,19 +51,20 @@ func TestProveCheck(t *testing.T) {
 
 	proveUI := &ProveUIMock{hook: hook}
 
-	ctx := Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
 
-	err := RunEngine(eng, &ctx)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	checkEng := NewProveCheck(tc.G, eng.sigID)
-	err = RunEngine(checkEng, &ctx)
+	err = RunEngine2(m, checkEng)
 	if err != nil {
 		t.Fatal(err)
 	}

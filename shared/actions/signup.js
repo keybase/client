@@ -1,317 +1,209 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/signup'
+import * as SignupGen from './signup-gen'
+import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/rpc-gen'
 import HiddenString from '../util/hidden-string'
-import _ from 'lodash'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName,
-  Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite,
-  StartRequestInvite, SignupWaiting} from '../constants/signup'
-import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
-import {loginTab} from '../constants/tabs'
 import {isMobile} from '../constants/platform'
-import {navigateAppend} from '../actions/route-tree'
-import type {NavigateAppend, NavigateTo} from '../constants/route-tree'
-import {CommonDeviceType, signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
-  signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../constants/types/flow-types'
-import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
-import {navBasedOnLoginState} from './login'
+import {loginTab} from '../constants/tabs'
+import {navigateAppend, navigateTo, navigateUp} from '../actions/route-tree'
+import {RPCError} from '../util/errors'
+import type {TypedState} from '../constants/reducer'
 
-function nextPhase (): TypedAsyncAction<NavigateAppend> {
-  return (dispatch, getState) => {
-    // TODO careful here since this will not be sync on a remote component!
-    const phase: string = getState().signup.phase
-    dispatch(navigateAppend([phase], [loginTab, 'signup']))
-  }
-}
+// Helpers ///////////////////////////////////////////////////////////
+// returns true if there are no errors, we check all errors at every transition just to be extra careful
+const noErrors = (state: TypedState) =>
+  !state.signup.devicenameError &&
+  !state.signup.emailError &&
+  !state.signup.inviteCodeError &&
+  !state.signup.nameError &&
+  !state.signup.usernameError &&
+  !state.signup.passphraseError.stringValue() &&
+  !state.signup.signupError.stringValue()
 
-export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | NavigateAppend> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.startRequestInvite, payload: {}})
-    dispatch(nextPhase())
-  })
-}
+// Navigation side effects ///////////////////////////////////////////////////////////
+// When going back we clear all errors so we can fix things and move forward
+const goBackAndClearErrors = () => Saga.put(navigateUp())
 
-export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | NavigateAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
+const showUserEmailOnNoErrors = (state: TypedState) =>
+  noErrors(state) && Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
 
-    signupCheckInvitationCodeRpc({
-      param: {invitationCode: inviteCode},
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: err => {
-        if (err) {
-          console.warn('error in inviteCode:', err)
-          dispatch(({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}}: CheckInviteCode))
-          reject(err)
-        } else {
-          dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
-          dispatch(nextPhase())
-          resolve()
-        }
-      },
-    })
-  })
-}
+const showInviteScreen = () => navigateAppend(['inviteCode'], [loginTab])
 
-export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | NavigateAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    // Returns an error string if not valid
-    const emailError = isValidEmail(email)
-    const nameError = isValidName(name)
-    if (emailError || nameError || !email || !name) {
-      dispatch(({
-        type: Constants.requestInvite,
-        error: true,
-        payload: {emailError, nameError, email, name},
-      }: RequestInvite))
-      resolve()
-      return
-    }
+const showInviteSuccessOnNoErrors = (state: TypedState) =>
+  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab])
 
-    signupInviteRequestRpc({
-      param: {
-        email: email,
-        fullname: name,
-        notes: 'Requested through GUI app',
-      },
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: err => {
-        if (err) {
-          dispatch(({
-            type: Constants.requestInvite,
-            error: true,
-            payload: {emailError: err, nameError: null, email, name},
-          }: RequestInvite))
-          reject(err)
-        } else {
-          if (email && name) {
-            dispatch({
-              type: Constants.requestInvite,
-              payload: {error: null, email, name},
-            })
-            dispatch(nextPhase())
-            resolve()
-          } else {
-            reject(err)
-          }
-        }
-      },
-    })
-  })
-}
+const goToLoginRoot = () => Saga.put(navigateTo([], [loginTab]))
 
-export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | NavigateAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    const emailError = isValidEmail(email)
-    const usernameError = isValidUsername(username)
+const showPassphraseOnNoErrors = (state: TypedState) =>
+  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
 
-    if (emailError || usernameError || !username || !email) {
-      dispatch(({
-        type: Constants.checkUsernameEmail,
-        error: true,
-        payload: {emailError, usernameError, email, username},
-      }: CheckUsernameEmail))
-      resolve()
-      return
-    }
+const showDeviceScreenOnNoErrors = (state: TypedState) =>
+  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab]))
 
-    signupCheckUsernameAvailableRpc({
-      param: {username},
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: (err) => {
-        if (err) {
-          console.warn("username isn't available:", err)
-          dispatch(({
-            type: Constants.checkUsernameEmail,
-            error: true,
-            payload: {emailError, usernameError: err, email, username},
-          }: CheckUsernameEmail))
-          resolve()
-        } else {
-          // We need this check to make flow happy. This should never be null
-          if (username && email) {
-            dispatch({
-              type: Constants.checkUsernameEmail,
-              payload: {username, email},
-            })
-            dispatch(nextPhase())
-            resolve()
-          } else {
-            reject()
-          }
-        }
-      },
-    })
-  })
-}
+const showErrorOrCleanupAfterSignup = (state: TypedState) =>
+  noErrors(state)
+    ? Saga.put(SignupGen.createRestartSignup())
+    : Saga.put(navigateAppend(['signupError'], [loginTab]))
 
-export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | NavigateAppend> {
-  return dispatch => new Promise((resolve, reject) => {
-    let passphraseError = null
-    if (!passphrase1 || !passphrase2) {
-      passphraseError = new HiddenString('Fields cannot be blank')
-    } else if (passphrase1 !== passphrase2) {
-      passphraseError = new HiddenString('Passphrases must match')
-    } else if (passphrase1.length < 12) {
-      passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
-    }
+// Validation side effects ///////////////////////////////////////////////////////////
+const checkInviteCode = (state: TypedState) =>
+  RPCTypes.signupCheckInvitationCodeRpcPromise(
+    {invitationCode: state.signup.inviteCode},
+    Constants.waitingKey
+  )
+    .then(() => SignupGen.createCheckedInviteCode({inviteCode: state.signup.inviteCode}))
+    .catch((err: RPCError) =>
+      SignupGen.createCheckedInviteCodeError({error: err.desc, inviteCode: state.signup.inviteCode})
+    )
 
-    if (passphraseError) {
-      dispatch(({
-        type: Constants.checkPassphrase,
-        error: true,
-        payload: {passphraseError},
-      }: CheckPassphrase))
-    } else {
-      dispatch({
-        type: Constants.checkPassphrase,
-        payload: {passphrase: new HiddenString(passphrase1)},
+const requestAutoInvite = () =>
+  RPCTypes.signupGetInvitationCodeRpcPromise(undefined, Constants.waitingKey)
+    .then((inviteCode: string) => SignupGen.createRequestedAutoInvite({inviteCode}))
+    .catch(() => SignupGen.createRequestedAutoInviteError())
+
+const requestInvite = (state: TypedState) =>
+  noErrors(state) &&
+  RPCTypes.signupInviteRequestRpcPromise(
+    {email: state.signup.email, fullname: state.signup.name, notes: 'Requested through GUI app'},
+    Constants.waitingKey
+  )
+    .then(() =>
+      SignupGen.createRequestedInvite({
+        email: state.signup.email,
+        name: state.signup.name,
       })
-      dispatch(nextPhase())
-    }
+    )
+    .catch(err =>
+      SignupGen.createRequestedInviteError({
+        email: state.signup.email,
+        emailError: `Sorry can't get an invite: ${err.desc}`,
+        name: state.signup.name,
+        nameError: '',
+      })
+    )
 
-    resolve()
-  })
-}
+const checkUsernameEmail = (state: TypedState) =>
+  noErrors(state) &&
+  RPCTypes.signupCheckUsernameAvailableRpcPromise({username: state.signup.username}, Constants.waitingKey)
+    .then(r =>
+      SignupGen.createCheckedUsernameEmail({
+        email: state.signup.email,
+        username: state.signup.username,
+      })
+    )
+    .catch(err =>
+      SignupGen.createCheckedUsernameEmailError({
+        email: state.signup.email,
+        emailError: '',
+        username: state.signup.username,
+        usernameError: `Sorry, there was a problem: ${err.desc}`,
+      })
+    )
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | NavigateAppend | Signup | ShowPaperKey | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    // TODO do some checking on the device name - ideally this is done on the service side
-    let deviceNameError = null
-    if (_.trim(deviceName).length === 0) {
-      deviceNameError = 'Device name must not be empty.'
-    }
+const checkDevicename = (state: TypedState) =>
+  noErrors(state) &&
+  RPCTypes.deviceCheckDeviceNameFormatRpcPromise({name: state.signup.devicename}, Constants.waitingKey)
+    .then(() => SignupGen.createCheckedDevicename({devicename: state.signup.devicename}))
+    .catch(error =>
+      SignupGen.createCheckedDevicenameError({
+        devicename: state.signup.devicename,
+        error: `Device name is invalid: ${error.desc}.`,
+      })
+    )
 
-    if (deviceNameError) {
-      dispatch(({
-        type: Constants.submitDeviceName,
-        error: true,
-        payload: {deviceNameError: deviceNameError || '', deviceName},
-      }: SubmitDeviceName))
-    } else {
-      deviceCheckDeviceNameFormatRpc({
-        param: {name: deviceName},
-        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-        callback: err => {
-          if (err) {
-            console.warn('device name is invalid: ', err)
-            dispatch(({
-              type: Constants.submitDeviceName,
-              error: true,
-              payload: {deviceNameError: `Device name is invalid: ${err.desc}.`, deviceName},
-            }: SubmitDeviceName))
-            reject(err)
-          } else {
-            if (deviceName) {
-              dispatch(({
-                type: Constants.submitDeviceName,
-                payload: {deviceName},
-              }: SubmitDeviceName))
+// Actually sign up ///////////////////////////////////////////////////////////
+const reallySignupOnNoErrors = (state: TypedState) => {
+  if (!noErrors(state)) {
+    logger.warn('Still has errors, bailing on really signing up')
+    return
+  }
 
-              const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
-              if (signupPromise) {
-                signupPromise.then(resolve, reject)
-              } else {
-                throw new Error('did not get promise from signup')
-              }
-            }
-          }
+  const {email, username, inviteCode, passphrase, devicename} = state.signup
+
+  if (!email || !username || !inviteCode || !passphrase || !passphrase.stringValue() || !devicename) {
+    logger.warn(
+      'Missing data during signup phase',
+      email,
+      username,
+      inviteCode,
+      devicename,
+      !!passphrase,
+      passphrase && !!passphrase.stringValue()
+    )
+    throw new Error('Missing data for signup')
+  }
+
+  return Saga.call(function*() {
+    try {
+      yield RPCTypes.signupSignupRpcSaga({
+        incomingCallMap: {
+          // Do not add a gpg key for now
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
+            response.result(false)
+          },
+          // We dont show the paperkey anymore
+          'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
         },
-      })
-    }
-  })
-}
-
-let paperKeyResponse = null
-export function sawPaperKey (): AsyncAction {
-  return () => {
-    if (paperKeyResponse) {
-      paperKeyResponse.result()
-      paperKeyResponse = null
-    }
-  }
-}
-
-function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | NavigateAppend | SignupWaiting> {
-  return (dispatch, getState) => new Promise((resolve, reject) => {
-    const {email, username, inviteCode, passphrase, deviceName} = getState().signup
-    paperKeyResponse = null
-    const deviceType = isMobile ? CommonDeviceType.mobile : CommonDeviceType.desktop
-
-    if (email && username && inviteCode && passphrase && deviceName) {
-      signupSignupRpc({
-        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-        param: {
-          deviceName,
-          deviceType,
+        params: {
+          deviceName: devicename,
+          deviceType: isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.commonDeviceType.desktop,
           email,
           genPGPBatch: false,
+          genPaper: false,
           inviteCode,
           passphrase: passphrase.stringValue(),
-          skipMail,
+          skipMail: false,
           storeSecret: true,
           username,
         },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-            paperKeyResponse = response
-            dispatch(({
-              type: Constants.showPaperKey,
-              payload: {paperkey: new HiddenString(phrase)},
-            }: ShowPaperKey))
-            onDisplayPaperKey && onDisplayPaperKey()
-            dispatch(nextPhase())
-          },
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
-            // Do not add a gpg key for now
-            response.result(false)
-          },
-        },
-        callback: (err, {passphraseOk, postOk, writeOk}) => {
-          if (err) {
-            console.warn('error in signup:', err)
-            dispatch(({
-              type: Constants.signup,
-              error: true,
-              payload: {signupError: new HiddenString(err.desc)},
-            }: Signup))
-            dispatch(nextPhase())
-            reject()
-          } else {
-            console.log('Successful signup', passphraseOk, postOk, writeOk)
-            dispatch(waiting(true))
-            resolve()
-          }
-        },
+        waitingKey: Constants.waitingKey,
       })
-    } else {
-      console.warn('Entered signup action with a null required field')
-      reject()
+      yield Saga.put(SignupGen.createSignedup())
+    } catch (error) {
+      yield Saga.put(SignupGen.createSignedupError({error: new HiddenString(error.desc)}))
     }
   })
 }
 
-function waiting (isWaiting: boolean): SignupWaiting {
-  return {
-    type: Constants.signupWaiting,
-    payload: isWaiting,
-  }
+const signupSaga = function*(): Saga.SagaGenerator<any, any> {
+  // validation actions
+  yield Saga.actionToPromise(SignupGen.requestInvite, requestInvite)
+  yield Saga.actionToPromise(SignupGen.checkUsernameEmail, checkUsernameEmail)
+  yield Saga.actionToPromise(SignupGen.requestAutoInvite, requestAutoInvite)
+  yield Saga.actionToPromise([SignupGen.requestedAutoInvite, SignupGen.checkInviteCode], checkInviteCode)
+  yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
+
+  // move to next screen actions
+  yield Saga.actionToAction(SignupGen.restartSignup, goToLoginRoot)
+  yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
+  yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
+  yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)
+  yield Saga.actionToAction(SignupGen.checkedInviteCode, showUserEmailOnNoErrors)
+  yield Saga.actionToAction(SignupGen.checkPassphrase, showDeviceScreenOnNoErrors)
+  yield Saga.actionToAction(SignupGen.signedup, showErrorOrCleanupAfterSignup)
+
+  // actually make the signup call
+  yield Saga.actionToAction(SignupGen.checkedDevicename, reallySignupOnNoErrors)
+
+  yield Saga.actionToAction(SignupGen.goBackAndClearErrors, goBackAndClearErrors)
 }
 
-export function resetSignup (): ResetSignup {
-  return {
-    type: Constants.resetSignup,
-    payload: undefined,
-  }
-}
+export default signupSaga
 
-export function restartSignup (): TypedAsyncAction<RestartSignup | NavigateTo> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.restartSignup, payload: {}})
-    dispatch(navBasedOnLoginState())
-    resolve()
-  })
-}
-
-export function showSuccess (): ShowSuccess {
-  return {type: Constants.showSuccess, payload: {}}
+export const _testing = {
+  checkDevicename,
+  checkInviteCode,
+  checkUsernameEmail,
+  goBackAndClearErrors,
+  reallySignupOnNoErrors,
+  requestAutoInvite,
+  requestInvite,
+  showDeviceScreenOnNoErrors,
+  showErrorOrCleanupAfterSignup,
+  showInviteScreen,
+  showInviteSuccessOnNoErrors,
+  showPassphraseOnNoErrors,
+  showUserEmailOnNoErrors,
 }

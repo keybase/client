@@ -1,0 +1,209 @@
+@namespace("stellar.1")
+protocol remote {
+
+  import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "common.avdl";
+
+  record PaymentDirectPost {
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to; // Nil for payments to stellar addresses
+    string displayAmount;
+    string displayCurrency;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+    string signedTransaction;
+    // If quickReturn == true then the RPC can return success
+    //   while the payment is still pending on the stellar network.
+    boolean quickReturn;
+  }
+
+  record PaymentRelayPost {
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to; // Nil for SBS
+    string toAssertion; // Ex: 'mlsteele' or 'maxtaco@reddit'
+    AccountID relayAccount; // Address where the funds will be held
+    keybase1.TeamID teamID; // Impteam ID
+    string displayAmount;
+    string displayCurrency;
+    string boxB64; // b64-encoded EncryptedRelaySecret
+    string signedTransaction; // Funding tx
+    boolean quickReturn; // Same as PaymentDirectPost.quickReturn but success refers to the funding of the relay.
+  }
+
+  record RelayClaimPost {
+    KeybaseTransactionID keybaseID;
+    RelayDirection dir;
+    string signedTransaction; // Claim or yank tx
+    union { null, string } autoClaimToken; // Optional. Filled if this is an autoclaim.
+  }
+
+  enum PaymentSummaryType {
+    NONE_0,
+    STELLAR_1,
+    DIRECT_2,
+    RELAY_3
+  }
+
+  variant PaymentSummary switch (PaymentSummaryType typ) {
+    case STELLAR: PaymentSummaryStellar; // The only record of this tx is from horizon
+    case DIRECT: PaymentSummaryDirect;
+    case RELAY: PaymentSummaryRelay;
+  }
+
+  // Info from horizon
+  record PaymentSummaryStellar {
+    TransactionID txID;
+    AccountID from;
+    AccountID to;
+    string amount; // amount of asset
+    Asset asset;
+    uint64 operationID;
+    TimeMs ctime; // time on the network
+    string cursorToken;
+  }
+
+  record PaymentSummaryDirect {
+    KeybaseTransactionID kbTxID;
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+    AccountID fromStellar;
+    keybase1.UserVersion from;
+    keybase1.DeviceID fromDeviceID;
+    AccountID toStellar;
+    union { null, keybase1.UserVersion } to;
+    string amount; // amount of asset
+    Asset asset;
+    union { null, string } displayAmount;
+    union { null, string } displayCurrency;
+    string noteB64; // b64-encoded EncryptedNote or empty string.
+    TimeMs ctime; // ctime in keybase db
+    TimeMs rtime; // time of last status update
+    string cursorToken;
+  }
+
+  record PaymentSummaryRelay {
+    KeybaseTransactionID kbTxID;
+
+    // Funding tx info.
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+
+    AccountID fromStellar;
+    keybase1.UserVersion from;
+    keybase1.DeviceID fromDeviceID;
+    union { null, keybase1.UserVersion } to;
+    string toAssertion; // Ex: 'mlsteele' or 'maxtaco@reddit'
+    AccountID relayAccount;
+    string amount; // amount of XLM
+    union { null, string } displayAmount;
+    union { null, string } displayCurrency;
+    TimeMs ctime; // ctime in keybase db
+    TimeMs rtime; // time of last status update of fund tx
+    string boxB64; // b64-encoded EncryptedRelaySecret
+    keybase1.TeamID teamID; // Impteam ID
+    // Summary of the most relevant claim. Either the successful one or latest pending.
+    union { null, ClaimSummary } claim;
+    string cursorToken;
+  }
+
+  record ClaimSummary {
+    TransactionID txID;
+    TransactionStatus txStatus;
+    string txErrMsg;
+    RelayDirection dir;
+    AccountID toStellar;
+    keybase1.UserVersion to; // who claimed it
+  }
+
+  record PaymentDetails {
+    PaymentSummary summary;
+    string memo;
+    string memoType;
+  }
+
+  array<Balance> balances(keybase1.UserVersion caller, AccountID accountID);
+
+  record AccountDetails {
+    AccountID accountID;
+    string seqno;
+    array<Balance> balances;
+    int subentryCount;  // number of entries in the ledger (which raise minimum balance)
+    string available;   // for native XLM the amount that is available to send (amount - min balance)
+    array<AccountReserve> reserves;
+  }
+  AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
+
+  record PaymentsPage {
+    array<PaymentSummary> payments;
+    union { null, PageCursor } cursor;
+  }
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
+
+  array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
+
+  // txID can be either a keybase or stellar transaction ID.
+  PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
+
+  // js can't handle uint64, so returning a string
+  string accountSeqno(keybase1.UserVersion caller, AccountID accountID);
+
+  PaymentResult submitPayment(keybase1.UserVersion caller, PaymentDirectPost payment);
+
+  PaymentResult submitRelayPayment(keybase1.UserVersion caller, PaymentRelayPost payment);
+
+  RelayClaimResult submitRelayClaim(keybase1.UserVersion caller, RelayClaimPost claim);
+
+  // Acquire the UV-specific lock for autoclaims.
+  // Returns a token, or an empty string if the lock is unavailable.
+  string acquireAutoClaimLock(keybase1.UserVersion caller);
+
+  void releaseAutoClaimLock(keybase1.UserVersion caller, string token);
+
+  record AutoClaim {
+    KeybaseTransactionID kbTxID;
+  }
+  union { null, AutoClaim } nextAutoClaim(keybase1.UserVersion caller);
+
+  // ask the stellar network whether the master key for the account has power
+  boolean isMasterKeyActive(keybase1.UserVersion caller, AccountID accountID);
+
+  record RequestPost {
+    // User being asked for payment - Keybase user or an assertion. If
+    // `toUser` is not null, `toAssertion` shall be the username. For
+    // SBS, `toUser` is null, and `toAssertion` is social assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    // Amount of XLM or other Stellar asset, or outside currency.
+    string amount;
+    // User can either ask for specific amount of given Stellar asset,
+    // or an amount of outside currency (user making the payment does
+    // the conversion in this case).
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+  }
+  KeybaseRequestID submitRequest(keybase1.UserVersion caller, RequestPost request);
+
+  record RequestDetails {
+    KeybaseRequestID id;
+
+    // User asking for payment - creator of the request.
+    keybase1.UserVersion fromUser;
+    // User being asked for payment - Keybase user or SBS assertion.
+    union { null, keybase1.UserVersion } toUser;
+    string toAssertion;
+
+    string amount;
+    union { null, Asset } asset;
+    union { null, OutsideCurrencyCode } currency;
+
+    // Payment ID if funded, empty if not funded.
+    KeybaseTransactionID fundingKbTxID;
+    RequestStatus status;
+  }
+  RequestDetails requestDetails(keybase1.UserVersion caller, KeybaseRequestID reqID);
+  void cancelRequest(keybase1.UserVersion caller, KeybaseRequestID reqID);
+
+  string ping();
+}

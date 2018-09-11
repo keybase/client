@@ -6,6 +6,7 @@ package install
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,17 +17,36 @@ import (
 	"strings"
 	"time"
 
+	"golang.org/x/sys/windows/registry"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 
+	"io/ioutil"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"io/ioutil"
 )
 
+// Install only handles the driver part on Windows
+func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
+	return keybase1.InstallResult{}
+}
+
+func componentResult(name string, err error) keybase1.ComponentResult {
+	if err != nil {
+		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
+	}
+	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
+}
+
 // AutoInstall is not supported on Windows
-func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (newProc bool, err error) {
-	return false, fmt.Errorf("Auto install not supported for this build or platform")
+func AutoInstall(context Context, binPath string, force bool, timeout time.Duration, log Log) (bool, error) {
+	return false, nil
+}
+
+// Uninstall empty implementation for unsupported platforms
+func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
+	return keybase1.UninstallResult{}
 }
 
 // CheckIfValidLocation is not supported on Windows
@@ -93,13 +113,20 @@ func InstallLogPath() (string, error) {
 	// Get the 3 newest keybase logs - sorting by name works because timestamp
 	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
-
 	if len(keybaseLogFiles) > 6 {
 		keybaseLogFiles = keybaseLogFiles[:6]
 	}
+
+	// Get the latest msi log - this is the clean install .msi log
+	msiLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "MSI*.LOG")))
+	sort.Sort(sort.Reverse(sort.StringSlice(msiLogFiles)))
+	if len(msiLogFiles) >= 1 {
+		keybaseLogFiles = append(keybaseLogFiles, msiLogFiles[0])
+	}
+
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
 	dokanLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
-	sort.Strings(dokanLogFiles)
+	sort.Sort(sort.Reverse(sort.StringSlice(dokanLogFiles)))
 	if len(dokanLogFiles) > 2 {
 		dokanLogFiles = dokanLogFiles[:2]
 	}
@@ -139,6 +166,46 @@ func InstallLogPath() (string, error) {
 	return logName, err
 }
 
+// WatchdogLogPath combines a handful of watchdog logs in to one for
+// server upload.
+func WatchdogLogPath(logGlobPath string) (string, error) {
+	// Get the 5 newest watchdog logs - sorting by name works because timestamp
+	watchdogLogFiles, err := filepath.Glob(logGlobPath)
+	sort.Sort(sort.Reverse(sort.StringSlice(watchdogLogFiles)))
+	if len(watchdogLogFiles) > 5 {
+		watchdogLogFiles = watchdogLogFiles[:5]
+	}
+
+	logName, logFile, err := libkb.OpenTempFile("KeybaseWatchdogUpload", ".log", 0)
+	defer logFile.Close()
+	if err != nil {
+		return "", err
+	}
+
+	if len(watchdogLogFiles) == 0 {
+		fmt.Fprintf(logFile, "   --- NO WATCHDOG LOGS FOUND!?! ---\n")
+	}
+	for _, path := range watchdogLogFiles {
+		fmt.Fprintf(logFile, "   --- %s ---\n", path)
+
+		// append the files
+		func() {
+			fd, err := os.Open(path)
+			defer fd.Close()
+			if err != nil {
+				fmt.Fprintf(logFile, "open error: %s\n", err.Error())
+				return
+			}
+			_, err = io.Copy(logFile, fd)
+			if err != nil {
+				fmt.Fprintf(logFile, "copy error: %s\n", err.Error())
+			}
+		}()
+	}
+
+	return logName, err
+}
+
 func getVersionAndDrivers(logFile *os.File) {
 	// Capture Windows Version
 	cmd := exec.Command("cmd", "ver")
@@ -159,6 +226,25 @@ func getVersionAndDrivers(logFile *os.File) {
 		logFile.WriteString("Error getting CPU type\n")
 	}
 	logFile.WriteString("\n")
+
+	// Check whether the service shortcut is still present and not disabled
+	if appDataDir, err := libkb.AppDataDir(); err != nil {
+		logFile.WriteString("Error getting AppDataDir\n")
+	} else {
+		if exists, err := libkb.FileExists(filepath.Join(appDataDir, "Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk")); err == nil && exists == false {
+			logFile.WriteString("  -- Service startup shortcut missing! --\n\n")
+		} else if err != nil {
+			k, err := registry.OpenKey(registry.CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder", registry.QUERY_VALUE|registry.READ)
+			if err != nil {
+				logFile.WriteString("Error opening Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\StartupApproved\\StartupFolder\n")
+			} else {
+				val, _, err := k.GetBinaryValue("KeybaseStartup.lnk")
+				if err == nil && len(val) > 0 && val[0] != 2 {
+					logFile.WriteString("  -- Service startup shortcut disabled in registry! --\n\n")
+				}
+			}
+		}
+	}
 
 	// List filesystem drivers
 	outputBytes, err := exec.Command("driverquery").Output()
@@ -206,4 +292,39 @@ func IsInUse(mountDir string, log Log) bool {
 	}
 
 	return false
+}
+
+func getCachedPackageModifyString(log Log) (string, error) {
+
+	k, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Keybase\Keybase\`, registry.READ|registry.WOW64_64KEY)
+	defer k.Close()
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't open SOFTWARE\\Keybase\\Keybase\\")
+		return "", err
+	}
+	bundleKey, _, err := k.GetStringValue("BUNDLEKEY")
+	if err != nil || bundleKey == "" {
+		log.Debug("getCachedPackageModifyString: can't read SOFTWARE\\Keybase\\Keybase\\BUNDLEKEY")
+		return "", err
+	}
+
+	k2, err := registry.OpenKey(registry.CURRENT_USER, `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`+bundleKey, registry.QUERY_VALUE|registry.WOW64_64KEY)
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't read " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
+		return "", err
+	}
+	displayName, _, err := k2.GetStringValue("DisplayName")
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't read DisplayName of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
+	}
+	publisher, _, err := k2.GetStringValue("Publisher")
+	if err != nil {
+		log.Debug("getCachedPackageModifyString: can't read publisher of " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey)
+	}
+	if displayName == "Keybase" && publisher == "Keybase, Inc." {
+		modify, _, err := k2.GetStringValue("ModifyPath")
+		return modify, err
+	}
+	log.Debug("getCachedPackageModifyString: " + `SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall` + bundleKey + "displayName " + displayName + ", publisher " + publisher)
+	return "", errors.New("no cached package path found")
 }

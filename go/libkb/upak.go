@@ -10,48 +10,58 @@ import (
 
 // BaseProofSet creates a basic proof set for a user with their
 // keybase and uid proofs and any pgp fingerprint proofs.
-func BaseProofSet(u *keybase1.UserPlusAllKeys) *ProofSet {
+func BaseProofSet(u *keybase1.UserPlusKeysV2AllIncarnations) *ProofSet {
 	proofs := []Proof{
 		{Key: "keybase", Value: u.GetName()},
 		{Key: "uid", Value: u.GetUID().String()},
 	}
-	for _, key := range u.PGPKeys {
-		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: key.PGPFingerprint})
+	for _, key := range u.Current.PGPKeys {
+		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: key.Fingerprint.String()})
 	}
 	return NewProofSet(proofs)
 }
 
 // checkKIDPGP checks that the user has the given PGP KID valid *now*. Note that it doesn't
 // check for revoked PGP keys, and it also does not check key expiration.
-func checkKIDPGP(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool) {
-	for _, key := range u.PGPKeys {
-		if key.KID.Equal(kid) {
+func checkKIDPGP(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool) {
+	for _, key := range u.Current.PGPKeys {
+		if key.Base.Kid.Equal(kid) {
 			return true
 		}
 	}
 	return false
 }
 
-func checkKIDKeybase(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
-	for _, key := range u.Base.DeviceKeys {
-		if key.KID.Equal(kid) {
-			return true, nil, false
+func checkKIDKeybase(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
+	exportRevokedAt := func(key keybase1.PublicKeyV2NaCl) *keybase1.KeybaseTime {
+		if key.Base.Revocation != nil {
+			// This is the inverse of the marshalling we do in rpc_exim.go.
+			return &keybase1.KeybaseTime{
+				Unix:  key.Base.Revocation.Time,
+				Chain: key.Base.Revocation.PrevMerkleRootSigned.Seqno,
+			}
+		}
+		return nil
+	}
+	for _, key := range u.Current.DeviceKeys {
+		if key.Base.Kid.Equal(kid) {
+			found = true
+			revokedAt = exportRevokedAt(key)
 		}
 	}
-	for _, key := range u.Base.RevokedDeviceKeys {
-		if key.Key.KID.Equal(kid) {
-			return true, &key.Time, false
+	for _, pastIncarnation := range u.PastIncarnations {
+		for _, key := range pastIncarnation.DeviceKeys {
+			if key.Base.Kid.Equal(kid) {
+				found = true
+				deleted = true
+				revokedAt = exportRevokedAt(key)
+			}
 		}
 	}
-	for _, key := range u.Base.DeletedDeviceKeys {
-		if key.KID.Equal(kid) {
-			return true, nil, true
-		}
-	}
-	return false, nil, false
+	return
 }
 
-func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
+func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
 	if IsPGPAlgo(AlgoType(kid.GetKeyType())) {
 		found = checkKIDPGP(u, kid)
 		return found, nil, false
@@ -59,47 +69,54 @@ func CheckKID(u *keybase1.UserPlusAllKeys, kid keybase1.KID) (found bool, revoke
 	return checkKIDKeybase(u, kid)
 }
 
-func GetRemoteChainLinkFor(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
-	defer g.Trace(fmt.Sprintf("UPAK.GetRemoteChainLinkFor(%s,%s,%s)", u.Base.Uid, username, uid), func() error { return err })()
-	g.VDL.Log(VLog1, "| Full user: %+v\n", *u)
-	rtl := u.GetRemoteTrack(username.String())
+func GetRemoteChainLinkFor(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (ret *TrackChainLink, err error) {
+	defer m.CTrace(fmt.Sprintf("UPAK#GetRemoteChainLinkFor(%s,%s,%s)", follower.Current.GetUID(), followeeUsername, followeeUID), func() error { return err })()
+	m.VLogf(VLog1, "| Full user: %+v\n", *follower)
+	rtl := follower.GetRemoteTrack(followeeUID)
 	if rtl == nil {
-		g.Log.Debug("| no remote track found")
+		m.VLogf(VLog0, "| no remote track found")
 		return nil, nil
 	}
-	if !rtl.Uid.Equal(uid) {
-		return nil, UIDMismatchError{Msg: fmt.Sprintf("didn't match username %q", username.String())}
+	if !NewNormalizedUsername(rtl.Username).Eq(followeeUsername) {
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("Usernames didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
+	}
+	if !rtl.Uid.Equal(followeeUID) {
+		return nil, UIDMismatchError{Msg: fmt.Sprintf("UIDs didn't match for (%s,%q); got %s", followeeUID, followeeUsername.String(), rtl.Uid)}
 	}
 	var lid LinkID
-	g.Log.Debug("| remote track found with linkID=%s", rtl.LinkID)
+	m.VLogf(VLog0, "| remote track found with linkID=%s", rtl.LinkID)
 	lid, err = ImportLinkID(rtl.LinkID)
 	if err != nil {
-		g.Log.Debug("| Failed to import link ID")
+		m.CDebugf("| Failed to import link ID")
 		return nil, err
 	}
 	var link *ChainLink
-	link, err = ImportLinkFromStorage(lid, u.Base.Uid, g)
+	link, err = ImportLinkFromStorage(m, lid, follower.GetUID())
 	if err != nil {
-		g.Log.Debug("| failed to import link from storage")
+		m.CDebugf("| failed to import link from storage")
 		return nil, err
 	}
 	if link == nil {
-		g.Log.Debug("| no cached chainlink found")
+		m.CDebugf("| no cached chainlink found")
 		// Such a bug is only possible if the DB cache was reset after
 		// this user was originally loaded in; otherwise, all of this
 		// UPAK's chain links should be available on disk.
 		return nil, InconsistentCacheStateError{}
 	}
 	ret, err = ParseTrackChainLink(GenericChainLink{link})
-	g.Log.Debug("| ParseTrackChainLink -> found=%v", (ret != nil))
+	m.VLogf(VLog0, "| ParseTrackChainLink -> found=%v", (ret != nil))
 	return ret, err
 }
 
-func TrackChainLinkFromUserPlusAllKeys(u *keybase1.UserPlusAllKeys, username NormalizedUsername, uid keybase1.UID, g *GlobalContext) (*TrackChainLink, error) {
-	tcl, err := GetRemoteChainLinkFor(u, username, uid, g)
+func TrackChainLinkFromUPK2AI(m MetaContext, follower *keybase1.UserPlusKeysV2AllIncarnations, followeeUsername NormalizedUsername, followeeUID keybase1.UID) (*TrackChainLink, error) {
+	tcl, err := GetRemoteChainLinkFor(m, follower, followeeUsername, followeeUID)
 	if _, ok := err.(InconsistentCacheStateError); ok {
 		return nil, err
 	}
-	tcl, err = TrackChainLinkFor(u.Base.Uid, uid, tcl, err, g)
+	tcl, err = TrackChainLinkFor(m, follower.Current.Uid, followeeUID, tcl, err)
 	return tcl, err
+}
+
+func NormalizedUsernameFromUPK2(u keybase1.UserPlusKeysV2) NormalizedUsername {
+	return NewNormalizedUsername(u.Username)
 }

@@ -1,0 +1,11 @@
+{
+  "prelude": ["import * as Types from '../constants/types/dev'"],
+  "actions": {
+    "updateDebugConfig": {
+      "dumbFilter": "string",
+      "dumbFullscreen": "boolean",
+      "dumbIndex": "number"
+    },
+    "debugCount": {}
+  }
+}

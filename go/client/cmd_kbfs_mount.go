@@ -6,8 +6,11 @@
 package client
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+
+	"github.com/keybase/client/go/install"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -18,7 +21,7 @@ import (
 func NewCmdKbfsMount(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "kbfsmount",
-		Usage: "kbfsmount [get|set|getall]",
+		Usage: "kbfsmount [get|set|getall|status|install]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdKbfsMount{libkb.NewContextified(g), "", ""}, "kbfsmount", c)
 		},
@@ -33,7 +36,7 @@ type CmdKbfsMount struct {
 
 func (s *CmdKbfsMount) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) < 1 {
-		return fmt.Errorf("kbfsmount needs one of [get|set|getall]")
+		return fmt.Errorf("kbfsmount needs one of [get|set|getall|status|install]")
 	}
 	s.cmd = ctx.Args()[0]
 	if s.cmd == "set" {
@@ -62,6 +65,16 @@ func (s *CmdKbfsMount) Run() error {
 		results, err2 := cli.GetAllAvailableMountDirs(context.TODO())
 		dui.Printf("%v", results)
 		err = err2
+	case "status":
+		status := install.KeybaseFuseStatus("", s.G().Log)
+		out, err := json.MarshalIndent(status, "", "  ")
+		if err != nil {
+			return err
+		}
+		dui.Printf("%s\n", out)
+	case "install":
+		result := install.Install(s.G(), "", "", []string{install.ComponentNameFuse.String()}, false, 0, s.G().Log)
+		dui.Printf("%v\n", result.Status)
 	}
 	return err
 }

@@ -1,31 +1,54 @@
 // @flow
 import net from 'net'
+import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-
-import type {createClientType, incomingRPCCallbackType, connectCallbackType} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {printRPCBytes} from '../local-debug'
 
 class NativeTransport extends TransportShared {
-  constructor (incomingRPCCallback, connectCallback) {
+  constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
     console.log('Transport using', socketPath)
-    super({path: socketPath}, connectCallback, incomingRPCCallback)
+    super({path: socketPath}, connectCallback, disconnectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
-  _connect_critical_section (cb: any) { // eslint-disable-line camelcase
+  _connect_critical_section(cb: any) {
+    // eslint-disable-line camelcase
+    // $FlowIssue
     super._connect_critical_section(cb)
     windowsHack()
   }
+
+  // Override Transport._raw_write -- see transport.iced in
+  // framed-msgpack-rpc.
+  _raw_write(msg, encoding) {
+    if (printRPCBytes) {
+      const b = Buffer.from(msg, encoding)
+      logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
+    }
+    // $FlowIssue Deliberately overriding private method.
+    super._raw_write(msg, encoding)
+  }
+
+  // Override Packetizer.packetize_data -- see packetizer.iced in
+  // framed-msgpack-rpc.
+  packetize_data(m: Buffer) {
+    if (printRPCBytes) {
+      logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
+    }
+    super.packetize_data(m)
+  }
 }
 
-function windowsHack () {
+function windowsHack() {
   // This net.connect() is a heinous hack.
   //
   // On Windows, but *only* in the renderer thread, our RPC connection
   // hangs until other random net module operations, at which point it
   // unblocks.  Could be Electron, could be a node-framed-msgpack-rpc
   // bug, who knows.
-  // $FlowIssue
+  // $FlowIssue doens't know about process.type
   if (!isWindows || process.type !== 'renderer') {
     return
   }
@@ -33,19 +56,19 @@ function windowsHack () {
   var fake = net.connect({})
   // net.connect({}) throws; we don't need to see the error, but we
   // do need it not to raise up to the main thread.
-  fake.on('error', function () {})
+  fake.on('error', function() {})
 }
 
-function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectCallbackType) {
-  return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback))
+function createClient(
+  incomingRPCCallback: incomingRPCCallbackType,
+  connectCallback: connectDisconnectCB,
+  disconnectCallback: connectDisconnectCB
+) {
+  return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback, disconnectCallback))
 }
 
-function resetClient (client: createClientType) {
+function resetClient(client: createClientType) {
   client.transport.reset()
 }
 
-export {
-  resetClient,
-  createClient,
-  rpcLog,
-}
+export {resetClient, createClient, rpcLog}

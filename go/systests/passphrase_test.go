@@ -21,8 +21,6 @@ func TestPassphraseChange(t *testing.T) {
 	tc := setupTest(t, "pp")
 	tc2 := cloneContext(tc)
 
-	libkb.G.LocalDb = nil
-
 	defer tc.Cleanup()
 
 	stopCh := make(chan error)
@@ -51,9 +49,9 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(userInfo.passphrase); err != nil {
-		t.Fatal(err)
-	}
+	m := libkb.NewMetaContextForTest(*tc)
+	_, err := libkb.VerifyPassphraseForLoggedInUser(m, userInfo.passphrase)
+	require.NoError(t, err, "verified passphrase")
 
 	oldPassphrase := userInfo.passphrase
 	newPassphrase := userInfo.passphrase + userInfo.passphrase
@@ -64,13 +62,10 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(newPassphrase); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := tc.G.LoginState().VerifyPlaintextPassphrase(oldPassphrase); err == nil {
-		t.Fatal("old passphrase passed verification after passphrase change")
-	}
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, newPassphrase)
+	require.NoError(t, err, "verified passphrase")
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m, oldPassphrase)
+	require.Error(t, err, "old passphrase failed to verify")
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -111,8 +106,15 @@ func startNewService(tc *libkb.TestContext) (*serviceHandle, error) {
 
 // Tests recovering a passphrase on a second machine by logging in with paperkey.
 func TestPassphraseRecover(t *testing.T) {
+	testPassphraseRecover(t, false /* createDeviceClone */)
+}
+
+func TestPassphraseRecoverWithDeviceClone(t *testing.T) {
+	testPassphraseRecover(t, true /* createDeviceClone */)
+}
+
+func testPassphraseRecover(t *testing.T, createDeviceClone bool) {
 	t.Logf("Start")
-	libkb.G.LocalDb = nil
 
 	// Service contexts.
 	// Make a new context with cloneContext for each client session.
@@ -147,6 +149,12 @@ func TestPassphraseRecover(t *testing.T) {
 	// the paper key displayed during signup is in userInfo now
 	tc2.G.Log.Debug("signup paper key: %s", userInfo.displayedPaperKey)
 
+	// clone the device on tc1
+	m1 := libkb.NewMetaContextForTest(*tc1)
+	if createDeviceClone {
+		libkb.CreateClonedDevice(*tc1, m1)
+	}
+
 	t.Logf("Login on tc2")
 	tcClient = cloneContext(tc2)
 	aProvisionUI := &testRecoverUIProvision{
@@ -167,7 +175,7 @@ func TestPassphraseRecover(t *testing.T) {
 	tcClient = nil
 
 	t.Logf("Verify on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(userInfo.passphrase)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, userInfo.passphrase)
 	require.NoError(t, err)
 
 	oldPassphrase := userInfo.passphrase
@@ -192,15 +200,16 @@ func TestPassphraseRecover(t *testing.T) {
 	tcClient = nil
 
 	t.Logf("Verify new passphrase on tc2")
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	m2 := libkb.NewMetaContextForTest(*tc2)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m2, newPassphrase)
 	require.NoError(t, err)
 
 	t.Logf("Verify new passphrase on tc1")
-	_, err = tc2.G.LoginState().VerifyPlaintextPassphrase(newPassphrase)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, newPassphrase)
 	require.NoError(t, err)
 
 	t.Logf("Verify old passphrase on tc1")
-	_, err = tc1.G.LoginState().VerifyPlaintextPassphrase(oldPassphrase)
+	_, err = libkb.VerifyPassphraseForLoggedInUser(m1, oldPassphrase)
 	require.Error(t, err, "old passphrase passed verification after passphrase change")
 
 	t.Logf("Stop tc1")
@@ -301,11 +310,19 @@ func (n *testRecoverUIRecover) Printf(f string, args ...interface{}) (int, error
 	n.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
 }
+func (n *testRecoverUIRecover) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	s := fmt.Sprintf(f, args...)
+	n.G().Log.Debug("Terminal PrintfUnescaped: %s", s)
+	return len(s), nil
+}
 func (n *testRecoverUIRecover) Write(b []byte) (int, error) {
 	n.G().Log.Debug("Terminal write: %s", string(b))
 	return len(b), nil
 }
 func (n *testRecoverUIRecover) OutputWriter() io.Writer {
+	return n
+}
+func (n *testRecoverUIRecover) UnescapedOutputWriter() io.Writer {
 	return n
 }
 func (n *testRecoverUIRecover) ErrorWriter() io.Writer {

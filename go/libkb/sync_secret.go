@@ -14,13 +14,13 @@ import (
 )
 
 type ServerPrivateKey struct {
-	Kid     string `json:"kid"`
-	KeyType int    `json:"key_type"`
-	Bundle  string `json:"bundle"`
-	Mtime   int    `json:"mtime"`
-	Ctime   int    `json:"ctime"`
-	KeyBits int    `json:"key_bits"`
-	KeyAlgo int    `json:"key_algo"`
+	Kid     string  `json:"kid"`
+	KeyType KeyType `json:"key_type"`
+	Bundle  string  `json:"bundle"`
+	Mtime   int     `json:"mtime"`
+	Ctime   int     `json:"ctime"`
+	KeyBits int     `json:"key_bits"`
+	KeyAlgo int     `json:"key_algo"`
 }
 
 type ServerPrivateKeyMap map[string]ServerPrivateKey
@@ -90,20 +90,20 @@ func (ss *SecretSyncer) Clear() error {
 	return nil
 }
 
-func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
+func (ss *SecretSyncer) loadFromStorage(m MetaContext, uid keybase1.UID) (err error) {
 	var tmp ServerPrivateKeys
 	var found bool
 	found, err = ss.G().LocalDb.GetInto(&tmp, ss.dbKey(uid))
-	ss.G().Log.Debug("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
+	m.CDebugf("| loadFromStorage -> found=%v, err=%s", found, ErrToOk(err))
 	if err != nil {
 		return err
 	}
 	if !found {
-		ss.G().Log.Debug("| Loaded empty record set")
+		m.CDebugf("| Loaded empty record set")
 		return nil
 	}
 	if ss.cachedSyncedSecretsOutOfDate(&tmp) {
-		ss.G().Log.Debug("| Synced secrets out of date")
+		m.CDebugf("| Synced secrets out of date")
 		return nil
 	}
 
@@ -113,27 +113,28 @@ func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	// private key fell back to gpg instead of using a synced key.
 	//
 
-	ss.G().Log.Debug("| Loaded version %d", tmp.Version)
+	m.CDebugf("| Loaded version %d", tmp.Version)
 	ss.keys = &tmp
 
 	return nil
 }
 
-func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err error) {
+func (ss *SecretSyncer) syncFromServer(m MetaContext, uid keybase1.UID, forceReload bool) (err error) {
 	hargs := HTTPArgs{}
 
-	if ss.keys != nil {
-		ss.G().Log.Debug("| adding version %d to fetch_private call", ss.keys.Version)
+	if ss.keys != nil && !forceReload {
+		m.CDebugf("| adding version %d to fetch_private call", ss.keys.Version)
 		hargs.Add("version", I{ss.keys.Version})
 	}
 	var res *APIRes
 	res, err = ss.G().API.Get(APIArg{
 		Endpoint:    "key/fetch_private",
 		Args:        hargs,
-		NeedSession: true,
-		SessionR:    sr,
+		SessionType: APISessionTypeREQUIRED,
+		RetryCount:  5, // It's pretty bad to fail this, so retry.
+		MetaContext: m,
 	})
-	ss.G().Log.Debug("| syncFromServer -> %s", ErrToOk(err))
+	m.CDebugf("| syncFromServer -> %s", ErrToOk(err))
 	if err != nil {
 		return
 	}
@@ -143,13 +144,13 @@ func (ss *SecretSyncer) syncFromServer(uid keybase1.UID, sr SessionReader) (err 
 		return
 	}
 
-	ss.G().Log.Debug("| Returned object: %+v\n", obj)
-	if ss.keys == nil || obj.Version > ss.keys.Version {
-		ss.G().Log.Debug("| upgrade to version -> %d", obj.Version)
+	m.CDebugf("| Returned object: {Status: %v, Version: %d, #pgpkeys: %d, #devices: %d}", obj.Status, obj.Version, len(obj.PrivateKeys), len(obj.Devices))
+	if forceReload || ss.keys == nil || obj.Version > ss.keys.Version {
+		m.CDebugf("| upgrade to version -> %d", obj.Version)
 		ss.keys = &obj
 		ss.dirty = true
 	} else {
-		ss.G().Log.Debug("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
+		m.CDebugf("| not changing synced keys: synced version %d not newer than existing version %d", obj.Version, ss.keys.Version)
 	}
 
 	return
@@ -159,11 +160,11 @@ func (ss *SecretSyncer) dbKey(uid keybase1.UID) DbKey {
 	return DbKeyUID(DBUserSecretKeys, uid)
 }
 
-func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
+func (ss *SecretSyncer) store(m MetaContext, uid keybase1.UID) (err error) {
 	if !ss.dirty {
 		return
 	}
-	if err = ss.G().LocalDb.PutObj(ss.dbKey(uid), nil, ss.keys); err != nil {
+	if err = m.G().LocalDb.PutObj(ss.dbKey(uid), nil, ss.keys); err != nil {
 		return
 	}
 	ss.dirty = false
@@ -173,11 +174,14 @@ func (ss *SecretSyncer) store(uid keybase1.UID) (err error) {
 // FindActiveKey examines the synced keys, looking for one that's currently active.
 // Returns ret=nil if none was found.
 func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+	ss.Lock()
+	defer ss.Unlock()
+
 	if ss.keys == nil {
 		return nil, nil
 	}
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ = key.FindActiveKey(ckf); ret != nil {
+		if ret, _ = key.FindActiveKey(ss.G(), ckf); ret != nil {
 			return
 		}
 	}
@@ -186,9 +190,11 @@ func (ss *SecretSyncer) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err err
 
 // AllActiveKeys returns all the active synced PGP keys.
 func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
+	ss.Lock()
+	defer ss.Unlock()
 	var res []*SKB
 	for _, key := range ss.keys.PrivateKeys {
-		if ret, _ := key.FindActiveKey(ckf); ret != nil {
+		if ret, _ := key.FindActiveKey(ss.G(), ckf); ret != nil {
 			res = append(res, ret)
 		}
 	}
@@ -196,11 +202,13 @@ func (ss *SecretSyncer) AllActiveKeys(ckf *ComputedKeyFamily) []*SKB {
 }
 
 func (ss *SecretSyncer) FindPrivateKey(kid string) (ServerPrivateKey, bool) {
+	ss.Lock()
+	defer ss.Unlock()
 	k, ok := ss.keys.PrivateKeys[kid]
 	return k, ok
 }
 
-func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err error) {
+func (k *ServerPrivateKey) FindActiveKey(g *GlobalContext, ckf *ComputedKeyFamily) (ret *SKB, err error) {
 	kid := keybase1.KIDFromString(k.Kid)
 	if ckf.GetKeyRole(kid) != DLGSibkey {
 		return
@@ -209,21 +217,30 @@ func (k *ServerPrivateKey) FindActiveKey(ckf *ComputedKeyFamily) (ret *SKB, err 
 	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
 		return
 	}
-	return packet.ToSKB()
+	ret, err = packet.ToSKB()
+	if err != nil {
+		return nil, err
+	}
+	ret.SetGlobalContext(g)
+	return ret, nil
 }
 
 func (ss *SecretSyncer) FindDevice(id keybase1.DeviceID) (DeviceKey, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
-		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
+		return DeviceKey{}, DeviceNotFoundError{"SecretSyncer", id, false}
 	}
 	dev, ok := ss.keys.Devices[id]
 	if !ok {
-		return DeviceKey{}, fmt.Errorf("SecretSyncer: no device found for ID = %s", id)
+		return DeviceKey{}, DeviceNotFoundError{"SecretSyncer", id, true}
 	}
 	return dev, nil
 }
 
 func (ss *SecretSyncer) AllDevices() DeviceKeyMap {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil
 	}
@@ -238,6 +255,8 @@ func (ss *SecretSyncer) HasDevices() bool {
 }
 
 func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -245,6 +264,8 @@ func (ss *SecretSyncer) Devices() (DeviceKeyMap, error) {
 }
 
 func (ss *SecretSyncer) dumpDevices() {
+	ss.Lock()
+	defer ss.Unlock()
 	ss.G().Log.Warning("dumpDevices:")
 	if ss.keys == nil {
 		ss.G().Log.Warning("dumpDevices -- ss.keys == nil")
@@ -282,6 +303,8 @@ func (ss *SecretSyncer) HasActiveDevice(includeTypesSet DeviceTypeSet) (bool, er
 
 // ActiveDevices returns all the active desktop and mobile devices.
 func (ss *SecretSyncer) ActiveDevices(includeTypesSet DeviceTypeSet) (DeviceKeyMap, error) {
+	ss.Lock()
+	defer ss.Unlock()
 	if ss.keys == nil {
 		return nil, fmt.Errorf("no keys")
 	}
@@ -304,6 +327,8 @@ func (ss *SecretSyncer) ActiveDevices(includeTypesSet DeviceTypeSet) (DeviceKeyM
 }
 
 func (ss *SecretSyncer) DumpPrivateKeys() {
+	ss.Lock()
+	defer ss.Unlock()
 	for s, key := range ss.keys.PrivateKeys {
 		ss.G().Log.Info("Private key: %s", s)
 		ss.G().Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)
@@ -338,7 +363,7 @@ func (k ServerPrivateKey) ToSKB(gc *GlobalContext) (*SKB, error) {
 	return skb, nil
 }
 
-func (ss *SecretSyncer) needsLogin() bool { return true }
+func (ss *SecretSyncer) needsLogin(m MetaContext) bool { return true }
 
 func (d DeviceKey) ToLKSec() (LKSecServerHalf, error) {
 	return NewLKSecServerHalfFromHex(d.LksServerHalf)

@@ -199,8 +199,8 @@ func TestLevelDb(t *testing.T) {
 					t.Fatalf("use after close did not error")
 				}
 
-				if err = db.ForceOpen(); err == nil {
-					t.Fatalf("use after close did not error")
+				if err = db.ForceOpen(); err != nil {
+					t.Fatalf("ForceOpen after close did not work")
 				}
 			},
 		},

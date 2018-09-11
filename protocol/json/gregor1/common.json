@@ -120,6 +120,13 @@
         {
           "type": "Category",
           "name": "category"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MsgID"
+          },
+          "name": "skipMsgIDs"
         }
       ]
     },
@@ -282,6 +289,13 @@
     {
       "type": "record",
       "name": "DurationMsec",
+      "fields": [],
+      "typedef": "int64",
+      "lint": "ignore"
+    },
+    {
+      "type": "record",
+      "name": "DurationSec",
       "fields": [],
       "typedef": "int64",
       "lint": "ignore"

@@ -27,7 +27,7 @@ func (s *server) Run(ready chan struct{}, externalListener chan error) (err erro
 		var c net.Conn
 		if c, err = listener.Accept(); err != nil {
 			externalListener <- io.EOF
-			return
+			return err
 		}
 		xp := NewTransport(c, lf, nil)
 		srv := NewServer(xp, nil)
@@ -38,7 +38,6 @@ func (s *server) Run(ready chan struct{}, externalListener chan error) (err erro
 			listener.Close()
 		}()
 	}
-	return nil
 }
 
 type testProtocol struct {

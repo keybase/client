@@ -1,41 +1,22 @@
 // @flow
 import * as Constants from '../constants/favorite'
-import * as CommonConstants from '../constants/common'
-import type {FavoriteAction, FavoriteState} from '../constants/favorite'
+import * as Types from '../constants/types/favorite'
+import * as FavoriteGen from '../actions/favorite-gen'
+import * as KBFSGen from '../actions/kbfs-gen'
 
-const initialState: FavoriteState = {
-  folderState: {
-    privateBadge: 0,
-    private: {
-      isPublic: false,
-      tlfs: [],
-    },
-    publicBadge: 0,
-    public: {
-      isPublic: true,
-      tlfs: [],
-    },
-  },
-  viewState: {
-    showingPrivate: true,
-    publicIgnoredOpen: false,
-    privateIgnoredOpen: false,
-  },
-  kbfsStatus: {
-    isAsyncWriteHappening: false,
-  },
-}
-
-export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
+// TODO use immutable for this when we rewrite it for the in-app-finder
+export default function(
+  state: Types.State = Constants.initialState,
+  action: FavoriteGen.Actions | KBFSGen.Actions
+): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
+    case FavoriteGen.resetStore:
+      return {...Constants.initialState}
 
-    case Constants.markTLFCreated: {
-      if (action.error) { break }
+    case FavoriteGen.markTLFCreated: {
       const folderCreated = action.payload.folder
-      const stripMetaForCreatedFolder = f => f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
-      // TODO(mm) this is ugly. Would be cleaner with immutable
+      const stripMetaForCreatedFolder = f =>
+        f.sortName === folderCreated.sortName && f.meta === 'new' ? {...f, meta: null} : f
       if (folderCreated.isPublic) {
         return {
           ...state,
@@ -61,19 +42,13 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
       }
     }
 
-    case Constants.favoriteListed:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteListed:
       return {
         ...state,
         folderState: action.payload.folders,
       }
 
-    case Constants.favoriteSwitchTab:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteSwitchTab:
       return {
         ...state,
         viewState: {
@@ -82,28 +57,90 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
         },
       }
 
-    case Constants.favoriteToggleIgnored:
-      if (action.error) {
-        break
-      }
+    case FavoriteGen.favoriteToggleIgnored:
       return {
         ...state,
         viewState: {
           ...state.viewState,
-          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
-          privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
+          privateIgnoredOpen: action.payload.isPrivate
+            ? !state.viewState.privateIgnoredOpen
+            : state.viewState.privateIgnoredOpen,
+          publicIgnoredOpen: action.payload.isPrivate
+            ? state.viewState.publicIgnoredOpen
+            : !state.viewState.publicIgnoredOpen,
         },
       }
 
-    case Constants.kbfsStatusUpdated:
+    case KBFSGen.fuseStatus:
       return {
         ...state,
-        kbfsStatus: action.payload,
+        fuseStatusLoading: true,
+      }
+    case KBFSGen.fuseStatusUpdate:
+      return {
+        ...state,
+        fuseStatus: action.payload.status,
+        fuseStatusLoading: false,
+      }
+    case KBFSGen.installFuse:
+      return {
+        ...state,
+        fuseInstalling: true,
+        kextPermissionError: false,
+      }
+    case KBFSGen.installFuseResult:
+      const {kextPermissionError} = action.payload
+      return {
+        ...state,
+        kextPermissionError,
+      }
+    case KBFSGen.installFuseFinished:
+      return {
+        ...state,
+        fuseInstalling: false,
+      }
+    case KBFSGen.clearFuseInstall:
+      return {
+        ...state,
+        fuseInstalling: false,
+        kextPermissionError: false,
+      }
+    case KBFSGen.installKBFS:
+      return {
+        ...state,
+        kbfsInstalling: true,
       }
 
+    case KBFSGen.installKBFSFinished:
+      return {
+        ...state,
+        kbfsInstalling: false,
+      }
+    case KBFSGen.openDefaultPath:
+      const {opening} = action.payload
+      return {
+        ...state,
+        kbfsOpening: opening,
+      }
+    // Saga only actions
+    case FavoriteGen.favoriteAdd:
+    case FavoriteGen.favoriteAdded:
+    case FavoriteGen.favoriteIgnore:
+    case FavoriteGen.favoriteIgnored:
+    case FavoriteGen.favoriteList:
+    case KBFSGen.installKBFSResult:
+    case KBFSGen.list:
+    case KBFSGen.listed:
+    case KBFSGen.open:
+    case KBFSGen.openInFileUI:
+    case KBFSGen.uninstallKBFS:
+    case KBFSGen.uninstallKBFSResult:
+      return state
     default:
-      break
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
+      return state
   }
-
-  return state
 }

@@ -9,9 +9,9 @@ type StubAPIEngine struct {
 	*ExternalAPIEngine
 }
 
-func NewStubAPIEngine() *StubAPIEngine {
+func NewStubAPIEngine(g *GlobalContext) *StubAPIEngine {
 	return &StubAPIEngine{
-		ExternalAPIEngine: &ExternalAPIEngine{BaseAPIEngine{clients: make(map[int]*Client)}},
+		ExternalAPIEngine: &ExternalAPIEngine{BaseAPIEngine{Contextified: NewContextified(g), clients: make(map[int]*Client)}},
 	}
 }
 

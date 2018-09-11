@@ -1,59 +1,58 @@
 // @flow
 import Box from './box'
 import ClickableBox from './clickable-box'
-import Icon from './icon'
+import Icon, {type IconType} from './icon'
 import Text from './text'
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
-
 import type {Props} from './choice-list'
 
 type State = {
   activeIndex: ?number,
 }
 
-class ChoiceList extends Component<void, Props, State> {
-  state: State;
+class ChoiceList extends Component<Props, State> {
+  state: State = {activeIndex: null}
 
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      activeIndex: null,
+  componentDidUpdate(prevProps: Props) {
+    if (prevProps !== this.props) {
+      this.setState({activeIndex: null})
     }
   }
 
-  componentWillReceiveProps (nextProps: Props) {
-    if (nextProps !== this.props) {
-      this.setState({
-        activeIndex: null,
-      })
-    }
-  }
-
-  render () {
+  render() {
     const {options} = this.props
     return (
       <Box>
-        {options.map((op, idx) => (
-          <ClickableBox
-            key={idx}
-            underlayColor={globalColors.blue4}
-            onClick={op.onClick}
-            onPressIn={() => this.setState({activeIndex: idx})}
-            onPressOut={() => this.setState({activeIndex: null})}>
-            <Box style={styleEntry}>
-              <Box style={styleIconContainer(this.state.activeIndex === idx)}>
-                {typeof op.icon === 'string'
-                  ? <Icon style={styleIcon} type={op.icon} />
-                  : <Box style={styleIcon}>{op.icon}</Box>}
+        {options.map((op, idx) => {
+          // $FlowIssue
+          const iconType: IconType = op.icon
+          return (
+            <ClickableBox
+              key={idx}
+              underlayColor={globalColors.blue4}
+              onClick={op.onClick}
+              onPressIn={() => this.setState({activeIndex: idx})}
+              onPressOut={() => this.setState({activeIndex: null})}
+            >
+              <Box style={styleEntry}>
+                <Box style={styleIconContainer(this.state.activeIndex === idx)}>
+                  {typeof op.icon === 'string' ? (
+                    <Icon style={styleIcon} type={iconType} />
+                  ) : (
+                    <Box style={styleIcon}>{op.icon}</Box>
+                  )}
+                </Box>
+                <Box style={styleInfoContainer}>
+                  <Text style={styleInfoTitle} type="Header">
+                    {op.title}
+                  </Text>
+                  <Text type="Body">{op.description}</Text>
+                </Box>
               </Box>
-              <Box style={styleInfoContainer}>
-                <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
-                <Text type='Body'>{op.description}</Text>
-              </Box>
-            </Box>
-          </ClickableBox>
-        ))}
+            </ClickableBox>
+          )
+        })}
       </Box>
     )
   }
@@ -61,14 +60,13 @@ class ChoiceList extends Component<void, Props, State> {
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
-  ...globalStyles.clickable,
   paddingTop: globalMargins.tiny,
   paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
 }
 
-const styleIconContainer = (active) => ({
+const styleIconContainer = active => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',

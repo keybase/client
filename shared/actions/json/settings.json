@@ -1,0 +1,93 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/settings'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "dbNuke": {},
+    "deleteAccountForever": {},
+    "invitesClearError": {},
+    "invitesReclaim": {
+      "inviteId": "string"
+    },
+    "invitesReclaimed": {
+      "canError": {
+        "errorText": "string"
+      }
+    },
+    "invitesRefresh": {},
+    "invitesRefreshed": {
+      "invites": "Types.InvitesState"
+    },
+    "invitesSend": {
+      "email": "string",
+      "message": "?string"
+    },
+    "invitesSent": {
+      "canError": {
+        "error": "Error"
+      }
+    },
+    "loadRememberPassphrase": {},
+    "loadedRememberPassphrase": {
+      "remember": "boolean"
+    },
+    "loadSettings": {},
+    "loadedSettings": {
+      "emailState": "Types.EmailState"
+    },
+    "loadLockdownMode": {},
+    "loadedLockdownMode": {
+      "status": "?boolean"
+    },
+    "onChangeLockdownMode": {
+      "enabled": "boolean"
+    },
+    "notificationsRefresh": {},
+    "notificationsRefreshed": {
+      "notifications": "Types.NotificationsState"
+    },
+    "notificationsSaved": {},
+    "notificationsToggle": {
+      "group": "Types.NotificationGroups",
+      "name?": "?string"
+    },
+    "onChangeNewEmail": {
+      "email": "string"
+    },
+    "onChangeNewPassphrase": {
+      "passphrase": "HiddenString"
+    },
+    "onChangeNewPassphraseConfirm": {
+      "passphrase": "HiddenString"
+    },
+    "onChangeRememberPassphrase": {
+      "remember": "boolean"
+    },
+    "onChangeShowPassphrase": {},
+    "onSubmitNewEmail": {},
+    "onSubmitNewPassphrase": {},
+    "onUpdateEmailError": {
+      "error": "Error"
+    },
+    "onUpdatePGPSettings": {},
+    "onUpdatePassphraseError": {
+      "error": "Error"
+    },
+    "onUpdatedPGPSettings": {
+      "hasKeys": "boolean"
+    },
+    "setAllowDeleteAccount": {
+      "allow": "boolean"
+    },
+    "trace": {
+      "durationSeconds": "number"
+    },
+    "processorProfile": {
+      "durationSeconds": "number"
+    },
+    "waitingForResponse": {
+      "waiting": "boolean"
+    }
+  }
+}

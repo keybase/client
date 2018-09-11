@@ -1,14 +1,16 @@
 // @flow
-import {Component} from 'react'
-
-import type {Tab} from '../constants/settings'
+import * as React from 'react'
+import * as TabConstants from '../constants/tabs'
+import type {Tab} from '../constants/types/settings'
 
 export type Props = {
-  children: React$Element<*>,
-  badgeNumbers: {[key: Tab]: number},
+  children: React.Node,
+  badgeNumbers: {[key: TabConstants.Tab]: number},
+  isModal: boolean,
   selectedTab: Tab,
-  showComingSoon: boolean,
   onTabChange: (tab: Tab) => void,
+  onLogout: () => void,
+  badgeNotifications?: boolean,
 }
 
-export default class Render extends Component<void, Props, void> { }
+export default class Render extends React.Component<Props> {}

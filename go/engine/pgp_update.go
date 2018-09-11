@@ -17,7 +17,7 @@ type PGPUpdateEngine struct {
 	libkb.Contextified
 }
 
-func NewPGPUpdateEngine(fingerprints []string, all bool, g *libkb.GlobalContext) *PGPUpdateEngine {
+func NewPGPUpdateEngine(g *libkb.GlobalContext, fingerprints []string, all bool) *PGPUpdateEngine {
 	selectedFingerprints := make(map[string]bool)
 	for _, fpString := range fingerprints {
 		selectedFingerprints[strings.ToLower(fpString)] = true
@@ -35,7 +35,7 @@ func (e *PGPUpdateEngine) Name() string {
 
 func (e *PGPUpdateEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
@@ -50,12 +50,12 @@ func (e *PGPUpdateEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{}
 }
 
-func (e *PGPUpdateEngine) Run(ctx *Context) error {
+func (e *PGPUpdateEngine) Run(m libkb.MetaContext) error {
 	if e.all && len(e.selectedFingerprints) > 0 {
 		return fmt.Errorf("Cannot use explicit fingerprints with --all.")
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		return fmt.Errorf("You have more than one PGP key. To update all of them, use --all.")
 	}
 
-	gpgCLI := libkb.NewGpgCLI(e.G(), ctx.LogUI)
+	gpgCLI := libkb.NewGpgCLI(m.G(), m.UIs().LogUI)
 	err = gpgCLI.Configure()
 	if err != nil {
 		return err
@@ -77,21 +77,21 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		Contextified:   libkb.NewContextified(e.G()),
 	}
 
-	err = del.LoadSigningKey(ctx.LoginContext, ctx.SecretUI)
+	err = del.LoadSigningKey(m, m.UIs().SecretUI)
 	if err != nil {
 		return err
 	}
 
 	for _, fingerprint := range fingerprints {
 		if len(e.selectedFingerprints) > 0 && !e.selectedFingerprints[fingerprint.String()] {
-			ctx.LogUI.Warning("Skipping update for key %s", fingerprint.String())
+			m.UIs().LogUI.Warning("Skipping update for key %s", fingerprint.String())
 			continue
 		}
 		bundle, err := gpgCLI.ImportKey(false /* secret */, fingerprint, "")
 		if err != nil {
 			_, isNoKey := err.(libkb.NoKeyError)
 			if isNoKey {
-				ctx.LogUI.Warning(
+				m.UIs().LogUI.Warning(
 					"No key matching fingerprint %s found in the GPG keyring.",
 					fingerprint.String())
 				continue
@@ -103,16 +103,16 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 		bundle.InitGPGKey()
 		del.NewKey = bundle
 
-		ctx.LogUI.Info("Posting update for key %s.", fingerprint.String())
-		if err := del.Run(ctx.LoginContext); err != nil {
+		m.UIs().LogUI.Info("Posting update for key %s.", fingerprint.String())
+		if err := del.Run(m); err != nil {
 			if appStatusErr, ok := err.(libkb.AppStatusError); ok && appStatusErr.Code == libkb.SCKeyDuplicateUpdate {
-				ctx.LogUI.Info("Key was already up to date.")
+				m.UIs().LogUI.Info("Key was already up to date.")
 				e.duplicatedFingerprints = append(e.duplicatedFingerprints, fingerprint)
 				continue
 			}
 			return err
 		}
-		ctx.LogUI.Info("Update succeeded for key %s.", fingerprint)
+		m.UIs().LogUI.Info("Update succeeded for key %s.", fingerprint)
 	}
 	return nil
 }

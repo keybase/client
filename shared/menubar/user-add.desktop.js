@@ -1,45 +1,55 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './user-add'
-import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Input, Icon} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles'
+import {globalColors, globalStyles, desktopStyles, platformStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
-type State = {
+export type Props = {|
+  isPublic: boolean,
+  onAdded: (path: string) => void,
+  username: ?string,
+|}
+type State = {|
   showingInput: boolean,
   text: string,
-}
+|}
 
 const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
-  <Box style={{...stylesButtonContainer,
-    backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue}}>
+  <Box
+    style={{
+      ...stylesButtonContainer,
+      backgroundColor: globalColors.white,
+    }}
+  >
     <Button
-      type='Primary'
+      type="Primary"
       small={true}
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
       style={{
-        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}}
-      label={isPublic ? 'Open public folder' : 'New private folder'} />
+        backgroundColor: isPublic ? globalColors.yellowGreen : globalColors.darkBlue2,
+      }}
+      label={isPublic ? 'Open public folder' : 'New private folder'}
+    />
   </Box>
 )
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
-  const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'
-
   return (
-    <Box style={{...stylesInputContainer,
-      backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3}}>
+    <Box
+      style={{
+        ...stylesInputContainer,
+        backgroundColor: globalColors.white,
+      }}
+    >
       <Input
         small={true}
-        smallLabel={isPublic ? '' : `${username},`}
-        smallLabelStyle={{marginRight: 0, color: isPublic ? globalColors.black_75 : globalColors.white}}
+        smallLabel={isPublic || !username ? '' : `${username},`}
+        smallLabelStyle={{marginRight: 0, color: globalColors.darkBlue, fontStyle: 'italic'}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
         style={{flex: 1}}
-        inputStyle={{color: isPublic ? globalColors.black_75 : globalColors.white}}
         onChangeText={onUpdateText}
         value={text}
         onKeyDown={event => {
@@ -48,16 +58,24 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
           } else if (event.key === 'Escape') {
             onCancel()
           }
-        }} />
-      <Icon type={icon} onClick={onSubmit} style={{...globalStyles.clickable}} />
+        }}
+      />
+      <Icon
+        type={'iconfont-folder-open'}
+        onClick={onSubmit}
+        style={platformStyles({
+          isElectron: desktopStyles.clickable,
+        })}
+        color={isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}
+      />
     </Box>
   )
 }
 
-class UserAdd extends Component<void, Props, State> {
-  state: State;
+class UserAdd extends Component<Props, State> {
+  state: State
 
-  constructor (props: Props) {
+  constructor(props: Props) {
     super(props)
 
     this.state = {
@@ -66,31 +84,33 @@ class UserAdd extends Component<void, Props, State> {
     }
   }
 
-  _submit () {
+  _submit() {
     if (this.state.text) {
-      this.props.onAdded(this.props.isPublic
-        ? `${defaultKBFSPath}/public/${this.state.text}`
-        : `${defaultKBFSPath}/private/${this.props.username || ''},${this.state.text}`)
+      this.props.onAdded(
+        this.props.isPublic
+          ? `${defaultKBFSPath}/public/${this.state.text}`
+          : `${defaultKBFSPath}/private/${this.props.username || ''},${this.state.text}`
+      )
     }
     this._showInput(false)
   }
 
-  _showInput (showingInput: boolean) {
+  _showInput(showingInput: boolean) {
     this.setState({showingInput, text: ''})
   }
 
-  render () {
-    return this.state.showingInput
-      ? <UserInput
+  render() {
+    return this.state.showingInput ? (
+      <UserInput
         onSubmit={() => this._submit()}
         text={this.state.text}
         onCancel={() => this._showInput(false)}
         onUpdateText={text => this.setState({text})}
-        {...this.props} />
-      : <UserButton
-        isPublic={this.props.isPublic}
-        onClick={() => this._showInput(true)}
-        {...this.props} />
+        {...this.props}
+      />
+    ) : (
+      <UserButton isPublic={this.props.isPublic} onClick={() => this._showInput(true)} {...this.props} />
+    )
   }
 }
 

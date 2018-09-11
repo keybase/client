@@ -8,21 +8,24 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+
+	"github.com/keybase/client/go/kbun"
 )
+
+var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
+
+var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
+var badDeviceRE = regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
 
 var CheckEmail = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^\S+@\S+\.\S+$`)
-		return len(s) > 3 && re.MatchString(s)
+		return len(s) > 3 && emailRE.MatchString(s)
 	},
 	Hint: "must be a valid email address",
 }
 
 var CheckUsername = Checker{
-	F: func(s string) bool {
-		re := regexp.MustCompile(`^([a-zA-Z0-9][a-zA-Z0-9_]?)+$`)
-		return len(s) >= 2 && len(s) <= 16 && re.MatchString(s)
-	},
+	F:    kbun.CheckUsername,
 	Hint: "between 2 and 16 characters long",
 }
 
@@ -30,7 +33,7 @@ var CheckEmailOrUsername = Checker{
 	F: func(s string) bool {
 		return CheckEmail.F(s) || CheckUsername.F(s)
 	},
-	Hint: "valid usernames are 2-12 letters long",
+	Hint: "valid usernames are 2-16 letters long",
 }
 
 var CheckPassphraseSimple = Checker{
@@ -61,22 +64,22 @@ var CheckInviteCode = Checker{
 
 var CheckDeviceName = Checker{
 	F: func(s string) bool {
-		re := regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
-		bad := regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
-		return len(s) >= 3 && len(s) <= 64 && re.MatchString(s) && !bad.MatchString(s)
+		return len(s) >= 3 && len(s) <= 64 && deviceRE.MatchString(s) && !badDeviceRE.MatchString(s)
 	},
 	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
 }
 
-var CheckKex2SecretPhrase = Checker{
-	F: func(s string) bool {
-		if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
-			G.Log.Debug("invalid kex2 phrase: %s", err)
-			return false
-		}
-		return true
-	},
-	Hint: "It looks like there was a typo in the secret phrase. Please try again.",
+func MakeCheckKex2SecretPhrase(g *GlobalContext) Checker {
+	return Checker{
+		F: func(s string) bool {
+			if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
+				g.Log.Debug("invalid kex2 phrase: %s", err)
+				return false
+			}
+			return true
+		},
+		Hint: "Wrong secret phrase. Please try again.",
+	}
 }
 
 func IsYes(s string) bool {

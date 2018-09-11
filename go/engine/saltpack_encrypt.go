@@ -4,10 +4,12 @@
 package engine
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/saltpack"
 )
 
 type SaltpackEncryptArg struct {
@@ -20,15 +22,21 @@ type SaltpackEncryptArg struct {
 // for a set of users.  It will track them if necessary.
 type SaltpackEncrypt struct {
 	arg *SaltpackEncryptArg
-	libkb.Contextified
-	me *libkb.User
+	me  *libkb.User
+
+	newKeyfinderHook (func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface)
+
+	// Legacy encryption-only messages include a lot more information about
+	// receivers, and it's nice to keep the helpful errors working while those
+	// messages are still around.
+	visibleRecipientsForTesting bool
 }
 
 // NewSaltpackEncrypt creates a SaltpackEncrypt engine.
-func NewSaltpackEncrypt(arg *SaltpackEncryptArg, g *libkb.GlobalContext) *SaltpackEncrypt {
+func NewSaltpackEncrypt(arg *SaltpackEncryptArg, newKeyfinderHook func(arg libkb.SaltpackRecipientKeyfinderArg) libkb.SaltpackRecipientKeyfinderEngineInterface) *SaltpackEncrypt {
 	return &SaltpackEncrypt{
-		arg:          arg,
-		Contextified: libkb.NewContextified(g),
+		arg:              arg,
+		newKeyfinderHook: newKeyfinderHook,
 	}
 }
 
@@ -37,7 +45,7 @@ func (e *SaltpackEncrypt) Name() string {
 	return "SaltpackEncrypt"
 }
 
-// GetPrereqs returns the engine prereqs.
+// Prereqs returns the engine prereqs.
 func (e *SaltpackEncrypt) Prereqs() Prereqs {
 	return Prereqs{}
 }
@@ -51,110 +59,135 @@ func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *SaltpackEncrypt) SubConsumers() []libkb.UIConsumer {
+	// Note that potentially KeyfinderHook might return a different UIConsumer depending on its arguments,
+	// which might make this call problematic, but all the hooks currently in use are not doing that.
 	return []libkb.UIConsumer{
-		&DeviceKeyfinder{},
+		e.newKeyfinderHook(libkb.SaltpackRecipientKeyfinderArg{}),
 	}
 }
 
-func (e *SaltpackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
-
-	var ret []libkb.NaclDHKeyPublic
-
-	ckf := e.me.GetComputedKeyFamily()
-	if ckf == nil {
-		return ret, libkb.NoKeyError{Msg: "no suitable encryption keys found for you"}
-	}
-	keys := ckf.GetAllActiveSubkeys()
-	for _, key := range keys {
-		if kp, ok := key.(libkb.NaclDHKeyPair); ok {
-			ret = append(ret, kp.Public)
-		}
-	}
-
-	if len(ret) == 0 {
-		return ret, libkb.NoKeyError{Msg: "no suitable encryption keys found for you"}
-	}
-	return ret, nil
-}
-
-func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
-	loggedIn, uid, err := IsLoggedIn(e, ctx)
-	if err != nil || !loggedIn {
+func (e *SaltpackEncrypt) loadMe(m libkb.MetaContext) error {
+	loggedIn, uid, err := isLoggedInWithUIDAndError(m)
+	if err != nil && !e.arg.Opts.NoSelfEncrypt {
 		return err
 	}
-	e.me, err = libkb.LoadMeByUID(ctx.GetNetContext(), e.G(), uid)
+	if !loggedIn {
+		return nil
+	}
+	e.me, err = libkb.LoadMeByMetaContextAndUID(m, uid)
 	return err
 }
 
 // Run starts the engine.
-func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ SaltpackEncrypt::Run")
-	defer func() {
-		e.G().Log.Debug("- SaltpackEncrypt::Run -> %v", err)
-	}()
+func (e *SaltpackEncrypt) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("SaltpackEncrypt::Run", func() error { return err })()
 
-	var receivers []libkb.NaclDHKeyPublic
-	var sender libkb.NaclDHKeyPair
-
-	if err = e.loadMe(ctx); err != nil {
+	if err = e.loadMe(m); err != nil {
 		return err
 	}
 
-	if !e.arg.Opts.NoSelfEncrypt && e.me != nil {
-		receivers, err = e.loadMyPublicKeys()
+	if !(e.arg.Opts.UseEntityKeys || e.arg.Opts.UseDeviceKeys || e.arg.Opts.UsePaperKeys || e.arg.Opts.UseKBFSKeysOnlyForTesting) {
+		return fmt.Errorf("no key type for encryption was specified")
+	}
+
+	kfarg := libkb.SaltpackRecipientKeyfinderArg{
+		Recipients:        e.arg.Opts.Recipients,
+		TeamRecipients:    e.arg.Opts.TeamRecipients,
+		NoSelfEncrypt:     e.arg.Opts.NoSelfEncrypt,
+		UseEntityKeys:     e.arg.Opts.UseEntityKeys,
+		UsePaperKeys:      e.arg.Opts.UsePaperKeys,
+		UseDeviceKeys:     e.arg.Opts.UseDeviceKeys,
+		UseRepudiableAuth: e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE,
+	}
+
+	kf := e.newKeyfinderHook(kfarg)
+	if err := RunEngine2(m, kf); err != nil {
+		return err
+	}
+
+	var receivers []libkb.NaclDHKeyPublic
+	for _, KID := range kf.GetPublicKIDs() {
+		gk, err := libkb.ImportKeypairFromKID(KID)
 		if err != nil {
 			return err
 		}
-	}
-
-	kfarg := DeviceKeyfinderArg{
-		Users:           e.arg.Opts.Recipients,
-		NeedEncryptKeys: true,
-		Self:            e.me,
-	}
-
-	kf := NewDeviceKeyfinder(e.G(), kfarg)
-	if err := RunEngine(kf, ctx); err != nil {
-		return err
-	}
-	uplus := kf.UsersPlusKeys()
-	for _, up := range uplus {
-		for _, k := range up.DeviceKeys {
-			gk, err := libkb.ImportKeypairFromKID(k.KID)
-			if err != nil {
-				return err
-			}
-			kp, ok := gk.(libkb.NaclDHKeyPair)
-			if !ok {
-				return libkb.KeyCannotEncryptError{}
-			}
-			receivers = append(receivers, kp.Public)
+		kp, ok := gk.(libkb.NaclDHKeyPair)
+		if !ok {
+			return libkb.KeyCannotEncryptError{}
 		}
+		receivers = append(receivers, kp.Public)
 	}
 
-	if !e.arg.Opts.HideSelf && e.me != nil {
-		ska := libkb.SecretKeyArg{
+	var symmetricReceivers []saltpack.ReceiverSymmetricKey
+	for _, key := range kf.GetSymmetricKeys() {
+		symmetricReceivers = append(symmetricReceivers, saltpack.ReceiverSymmetricKey{
+			Key:        saltpack.SymmetricKey(key.Key),
+			Identifier: key.Identifier,
+		})
+	}
+
+	// This flag determines whether saltpack is used in signcryption (false)
+	// vs encryption (true) format.
+	encryptionOnlyMode := false
+
+	var senderDH libkb.NaclDHKeyPair
+	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_REPUDIABLE && e.me != nil {
+		encryptionOnlyMode = true
+
+		secretKeyArgDH := libkb.SecretKeyArg{
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "encrypting a message/file"))
+		dhKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgDH, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}
-		kp, ok := key.(libkb.NaclDHKeyPair)
-		if !ok || kp.Private == nil {
-			return libkb.KeyCannotDecryptError{}
+		dhKeypair, ok := dhKey.(libkb.NaclDHKeyPair)
+		if !ok || dhKeypair.Private == nil {
+			return libkb.KeyCannotEncryptError{}
 		}
-		sender = kp
+		senderDH = dhKeypair
+	}
+
+	var senderSigning libkb.NaclSigningKeyPair
+	if e.arg.Opts.AuthenticityType == keybase1.AuthenticityType_SIGNED && e.me != nil {
+		secretKeyArgSigning := libkb.SecretKeyArg{
+			Me:      e.me,
+			KeyType: libkb.DeviceSigningKeyType,
+		}
+		signingKey, err := m.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(secretKeyArgSigning, "signing a message/file"))
+		if err != nil {
+			return err
+		}
+		signingKeypair, ok := signingKey.(libkb.NaclSigningKeyPair)
+		if !ok || signingKeypair.Private == nil {
+			//Perhaps a KeyCannotEncrypt error, although less accurate, would be more intuitive for the user.
+			return libkb.KeyCannotSignError{}
+		}
+		senderSigning = signingKeypair
+	}
+
+	if e.arg.Opts.AuthenticityType != keybase1.AuthenticityType_ANONYMOUS && e.me == nil {
+		return libkb.NewLoginRequiredError("authenticating a message requires login. Either login or use --auth-type=anonymous")
+	}
+
+	saltpackVersion, err := libkb.SaltpackVersionFromArg(e.arg.Opts.SaltpackVersion)
+	if err != nil {
+		return err
 	}
 
 	encarg := libkb.SaltpackEncryptArg{
-		Source:         e.arg.Source,
-		Sink:           e.arg.Sink,
-		Receivers:      receivers,
-		Sender:         sender,
-		Binary:         e.arg.Opts.Binary,
-		HideRecipients: e.arg.Opts.HideRecipients,
+		Source:             e.arg.Source,
+		Sink:               e.arg.Sink,
+		Receivers:          receivers,
+		Sender:             senderDH,
+		SenderSigning:      senderSigning,
+		Binary:             e.arg.Opts.Binary,
+		EncryptionOnlyMode: encryptionOnlyMode,
+		SymmetricReceivers: symmetricReceivers,
+		SaltpackVersion:    saltpackVersion,
+
+		VisibleRecipientsForTesting: e.visibleRecipientsForTesting,
 	}
-	return libkb.SaltpackEncrypt(e.G(), &encarg)
+	return libkb.SaltpackEncrypt(m, &encarg)
 }

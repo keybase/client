@@ -1,0 +1,408 @@
+@namespace("keybase.1")
+
+protocol SimpleFS {
+
+  import idl "common.avdl";
+  import idl "kbfs_common.avdl";
+
+/*
+  File manipulation interface
+  
+  Caller provides OpID to one of these methods to begin an operation:
+    simpleFSList
+    simpleFSListRecursive
+    simpleFSListRecursiveToDepth
+    simpleFSCopy
+    simpleFSOpen
+    simpleFSMove
+    simpleFSRemove
+    simpleFSGetRevisions
+  then calls one of the following until status is no longer pending
+  or operation is cancelled:
+    simpleFSReadList (after list, listRecursive, or listRecursiveToDepth)
+    simpleFSGetRevisions (after getRevisions)
+    simpleFSRead (after open)
+    simpleFSWrite (after open)
+    simpleFSCheck (after copy, move or remove)
+  Caller can optionally block by calling wait()
+  Operation must be closed by calling close
+*/
+
+  // Random GUID provided by caller 
+  fixed OpID(16);
+
+  @typedef("int64") @lint("ignore") record KBFSRevision {}
+
+  enum KBFSArchivedType {
+    REVISION_0,
+    TIME_1,
+    TIME_STRING_2,
+    REL_TIME_STRING_3
+  }
+
+  variant KBFSArchivedParam switch (KBFSArchivedType KBFSArchivedType) {
+    case REVISION: KBFSRevision;
+    case TIME: Time;
+    case TIME_STRING: string;
+    case REL_TIME_STRING: string;
+  }
+
+  record KBFSArchivedPath {
+    string path;
+    KBFSArchivedParam archivedParam;
+  }
+
+  enum PathType {
+    LOCAL_0,
+    KBFS_1,
+    KBFS_ARCHIVED_2
+  }
+
+  variant Path switch (PathType PathType) {
+    case LOCAL: string;
+    case KBFS: string;
+    case KBFS_ARCHIVED: KBFSArchivedPath;
+  }
+
+  enum DirentType {
+    FILE_0,
+    DIR_1,
+    SYM_2,
+    EXEC_3
+  }
+  
+  record Dirent {
+    Time time;
+    int size;   // size of file or count of dir entries (TBD - may be expensive/unnecessary)
+    string name;
+    DirentType direntType;
+    // The last writer of this directory entry.  NOTE: this is NOT
+    // cryptographically verified; users with write access to the TLF could
+    // in theory spoof the last writer if they modify their client.
+    User lastWriterUnverified;
+    boolean writable;
+  }
+
+  record DirentWithRevision {
+    Dirent entry;
+    KBFSRevision revision;
+  }
+
+  enum RevisionSpanType {
+    DEFAULT_0, // scattered revisions across different time intervals
+    LAST_FIVE_1 // the five most recent revisions
+  }
+
+  @typedef("int")
+  record ErrorNum {}
+
+  enum OpenFlags {
+    READ_0,         // exclusive of other flags
+    REPLACE_1,      // overwrite
+    EXISTING_2,     // fail if not present already
+    WRITE_4,        // read is implied if not write, executable, or directory
+    APPEND_8,
+    DIRECTORY_16
+  }
+
+  @typedef("int")
+  record Progress {}
+
+  record SimpleFSListResult {
+    array<Dirent> entries;
+    Progress progress;
+  }
+
+  record FileContent {
+    bytes data;         // Zero bytes when read is complete
+    Progress progress;  // Amount of data copied so far during this and previous reads
+  }                     // (TBD: should this be percentage?)
+
+  enum AsyncOps {
+    LIST_0,
+    LIST_RECURSIVE_1,
+    READ_2,
+    WRITE_3,
+    COPY_4,
+    MOVE_5,
+    REMOVE_6,
+    LIST_RECURSIVE_TO_DEPTH_7,
+    GET_REVISIONS_8
+  }
+
+  enum ListFilter {
+    NO_FILTER_0,
+    FILTER_ALL_HIDDEN_1
+  }
+
+  record ListArgs {
+    OpID opID;
+    Path path;
+    ListFilter filter;
+  }
+
+  record ListToDepthArgs {
+    OpID opID;
+    Path path;
+    ListFilter filter;
+    int depth;
+  }
+
+  record RemoveArgs {
+    OpID opID;
+    Path path;
+  }
+
+  record ReadArgs {
+    OpID opID;
+    Path path;
+    long offset;
+    int size;
+  }
+
+  record WriteArgs {
+    OpID opID;
+    Path path;
+    long offset;
+  }
+
+  record CopyArgs {
+    OpID opID;
+    Path src;
+    Path dest;
+  }
+
+  record MoveArgs {
+    OpID opID;
+    Path src;
+    Path dest;
+  }
+
+  record GetRevisionsArgs {
+    OpID opID;
+    Path path;
+    RevisionSpanType spanType;
+  }
+
+  variant OpDescription switch (AsyncOps asyncOp) {
+    case LIST: ListArgs;
+    case LIST_RECURSIVE: ListArgs;
+    case LIST_RECURSIVE_TO_DEPTH: ListToDepthArgs;
+    case READ: ReadArgs;
+    case WRITE: WriteArgs;
+    case COPY: CopyArgs;
+    case MOVE: MoveArgs;
+    case REMOVE: RemoveArgs;
+    case GET_REVISIONS: GetRevisionsArgs;
+  }
+
+  record GetRevisionsResult {
+    array<DirentWithRevision> revisions;
+    Progress progress;
+  }
+
+  record OpProgress {
+    Time start;
+    Time endEstimate;
+    AsyncOps opType;
+    int64 bytesTotal;
+    int64 bytesRead;
+    int64 bytesWritten;
+    int64 filesTotal;
+    int64 filesRead;
+    int64 filesWritten;
+  }
+
+  /**
+   Begin list of items in directory at path.
+   Retrieve results with readList().
+   Can be a single file to get flags/status.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
+   */
+  void simpleFSList(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
+
+  /**
+   Begin recursive list of items in directory at path.
+   If `refreshSubscription` is true and the path is a KBFS path, simpleFS
+     will begin sending `FSPathUpdated` notifications for the for the
+     corresponding TLF, until another call refreshes the subscription on a
+     different TLF.
+*/
+  void simpleFSListRecursive(OpID opID, Path path, ListFilter filter, boolean refreshSubscription);
+
+  /**
+   Begin recursive list of items in directory at path up to a given depth
+   */
+  void simpleFSListRecursiveToDepth(OpID opID, Path path, ListFilter filter, boolean refreshSubscription, int depth);
+
+  /**
+   Get list of Paths in progress. Can indicate status of pending
+   to get more entries.
+   */
+  SimpleFSListResult simpleFSReadList(OpID opID);
+
+  /**
+   Begin copy of file or directory 
+   */
+  void simpleFSCopy(OpID opID, Path src, Path dest);
+
+  /**
+   Begin recursive copy of directory 
+   */
+  void simpleFSCopyRecursive(OpID opID, Path src, Path dest);
+
+  /**
+   Begin move of file or directory, from/to KBFS only
+   */
+  void simpleFSMove(OpID opID, Path src, Path dest);
+
+  /**
+   Rename file or directory, KBFS side only
+   */
+  void simpleFSRename(Path src, Path dest);
+
+  /**
+   Create/open a file and leave it open
+   or create a directory
+   Files must be closed afterwards.
+   */
+  void simpleFSOpen(OpID opID, Path dest, OpenFlags flags);
+
+  /**
+   Set/clear file bits - only executable for now
+  */
+  void simpleFSSetStat(Path dest, DirentType flag);
+
+  /**
+   Read (possibly partial) contents of open file,
+   up to the amount specified by size.
+   Repeat until zero bytes are returned or error.
+   If size is zero, read an arbitrary amount.
+   */
+  FileContent simpleFSRead(OpID opID, long offset, int size);
+
+  /**
+   Append content to opened file.
+   May be repeated until OpID is closed.
+   */
+  void simpleFSWrite(OpID opID, long offset, bytes content);
+
+  /**
+   Remove file or directory from filesystem
+   */
+  void simpleFSRemove(OpID opID, Path path);
+
+  /**
+   Get info about file
+   */
+  Dirent simpleFSStat(Path path);
+
+  /**
+   Get revision info for a directory entry
+   */
+  void simpleFSGetRevisions(OpID opID, Path path, RevisionSpanType spanType);
+
+  /**
+   Get list of revisions in progress. Can indicate status of pending
+   to get more revisions.
+   */
+  GetRevisionsResult simpleFSReadRevisions(OpID opID);
+
+  /**
+   Convenience helper for generating new random value
+   */
+  OpID simpleFSMakeOpid();
+
+  /**
+   Close OpID, cancels any pending operation.
+   Must be called after list/copy/remove
+   */
+  void simpleFSClose(OpID opID);
+
+  /**
+   Cancels a running operation, like copy.
+   */
+  void simpleFSCancel(OpID opID);
+
+  /**
+   Check progress of pending operation
+   */
+  OpProgress simpleFSCheck(OpID opID);
+
+  /**
+   Get all the outstanding operations
+   */
+  array<OpDescription> simpleFSGetOps();
+
+  /**
+   Blocking wait for the pending operation to finish
+   */
+  void simpleFSWait(OpID opID);
+
+  /**
+   Instructs KBFS to dump debugging info into its logs.
+   */
+  void simpleFSDumpDebuggingInfo();
+
+  /**
+   Get sync status.
+   */
+  FSSyncStatus simpleFSSyncStatus(ListFilter filter);
+
+  @lint("ignore")
+  record SimpleFSGetHTTPAddressAndTokenResponse {
+    string address;
+    string token;
+  }
+
+  /**
+   This RPC generates a random token to be used by a client that needs to
+   access KBFS content through HTTP. It's fine to call this RPC more than once,
+   but it's probably best to call this once and keep using it. Clients should
+   be using HTTP GET methods, with requests in the form of:
+
+     http://<address>/<kbfs_path>?token=<token>
+
+   If the provided token is invalid, 403 Forbidden is returned, with a HTML
+   document that has title of "KBFS HTTP Token Invalid". When receiving such
+   response, client should call this RPC (again) to get a new token.
+
+   */
+  @lint("ignore")
+  SimpleFSGetHTTPAddressAndTokenResponse SimpleFSGetHTTPAddressAndToken();
+
+  /**
+   simpleFSUserEditHistory returns edit histories of TLFs that the logged-in
+   user can access.  Each returned history is corresponds to a unique
+   writer-TLF pair.  They are in descending order by the modification time
+   (as recorded by the server) of the most recent edit in each history.
+   */
+  array<FSFolderEditHistory> simpleFSUserEditHistory();
+
+  /**
+   simpleFSFolderEditHistory returns the edit history for the TLF
+   described by `path`, for the most recent writers of that TLF.
+   The writers are in descending order by the modification time (as
+   recorded by the server) of their most recent edit.
+   */
+  FSFolderEditHistory simpleFSFolderEditHistory(Path path);
+
+  record SimpleFSQuotaUsage {
+    int64 usageBytes;
+    int64 archiveBytes;
+    int64 limitBytes;
+    int64 gitUsageBytes;
+    int64 gitArchiveBytes;
+    int64 gitLimitBytes;
+  }
+
+  /**
+   simpleFSGetUserQuotaUsage returns the quota usage for the logged-in
+   user.  It results in an RPC to the server, and any usage includes
+   local journal usage as well.
+   */
+  SimpleFSQuotaUsage simpleFSGetUserQuotaUsage();
+}

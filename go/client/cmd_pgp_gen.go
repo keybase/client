@@ -65,6 +65,12 @@ func (v *CmdPGPGen) Run() (err error) {
 	if err != nil {
 		return err
 	}
+	if v.arg.DoExport {
+		v.arg.ExportEncrypted, err = v.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorPGPGenEncryptSecret, "When exporting to the GnuPG keychain, encrypt private keys with a passphrase?", libkb.PromptDefaultYes)
+		if err != nil {
+			return err
+		}
+	}
 
 	err = cli.PGPKeyGen(context.TODO(), v.arg.Export())
 	err = AddPGPMultiInstructions(err)
@@ -171,20 +177,23 @@ func NewCmdPGPGen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			},
 		},
 		Description: `"keybase pgp gen" generates a new PGP key for this account.
-   In all cases, it signs the public key with an exising device key,
+   In all cases, it signs the public key with an existing device key,
    and pushes the signature to the server. Thus, the user will have a
    publicly-visible "PGP device" after running this operation.
 
    The secret half of the PGP key is written by default to the user's
    local Keybase keychain and encrypted with the "local key security"
    (LKS) protocol. (For more information, try 'keybase help keyring').
-   Also, by default, the public half of the new PGP key
-   is exported to the local GnuPG keyring, if one is found.  (For now,
-   you must export the secret half to gpg manually with a command like
-   'keybase pgp export -s | gpg --import'.)
+
+   Also, by default, the public **and secret** halves of the new PGP key
+   are exported to the local GnuPG keyring, if one is found. Unless the
+   "--unencrypted" flag is provided, you will be asked to provide a
+   passphrase to encrypt the key in the GnuPG keyring. You can specify
+   "--no-export" to stop the export of the newly generated key to the
+   GnuPG keyring.
 
    On subsequent secret key accesses --- say for PGP decryption or
-   for signing --- access to the local GnuGP keyring is not required.
+   for signing --- access to the local GnuPG keyring is not required.
    Rather, keybase will access the secret PGP key in its own local keychain.
 
    By default, the secret half of the PGP key is never exported off

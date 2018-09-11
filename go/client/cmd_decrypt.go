@@ -26,49 +26,47 @@ type CmdDecrypt struct {
 }
 
 func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := []cli.Flag{
+		cli.StringFlag{
+			Name:  "i, infile",
+			Usage: "Specify an input file.",
+		},
+		cli.StringFlag{
+			Name:  "m, message",
+			Usage: "Provide the message on the command line.",
+		},
+		cli.StringFlag{
+			Name:  "o, outfile",
+			Usage: "Specify an outfile (stdout by default).",
+		},
+		cli.BoolFlag{
+			Name:  "interactive",
+			Usage: "Interactive prompt for decryption after sender verification",
+		},
+		cli.BoolFlag{
+			Name:  "f, force",
+			Usage: "Force unprompted decryption, even on an identify failure",
+		},
+		cli.BoolFlag{
+			Name:  "paperkey",
+			Usage: "Use a paper key for decryption",
+		},
+		cli.StringFlag{
+			Name:  "encryptor-outfile",
+			Usage: "Write the Keybase name of the encryptor to this file",
+		},
+	}
+
 	return cli.Command{
 		Name:  "decrypt",
 		Usage: "Decrypt messages or files for keybase users",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdDecryptRunner(g), "decrypt", c)
+			cl.ChooseCommand(&CmdDecrypt{
+				Contextified: libkb.NewContextified(g),
+				opts:         keybase1.SaltpackDecryptOptions{ForceRemoteCheck: true},
+			}, "decrypt", c)
 		},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "i, infile",
-				Usage: "Specify an input file.",
-			},
-			cli.StringFlag{
-				Name:  "m, message",
-				Usage: "Provide the message on the command line.",
-			},
-			cli.StringFlag{
-				Name:  "o, outfile",
-				Usage: "Specify an outfile (stdout by default).",
-			},
-			cli.BoolFlag{
-				Name:  "interactive",
-				Usage: "Interactive prompt for decryption after sender verification",
-			},
-			cli.BoolFlag{
-				Name:  "f, force",
-				Usage: "Force unprompted decryption, even on an identify failure",
-			},
-			cli.BoolFlag{
-				Name:  "paperkey",
-				Usage: "Use a paper key for decryption",
-			},
-			cli.StringFlag{
-				Name:  "encryptor-outfile",
-				Usage: "Write the Keybase name of the encryptor to this file",
-			},
-		},
-	}
-}
-
-func NewCmdDecryptRunner(g *libkb.GlobalContext) *CmdDecrypt {
-	return &CmdDecrypt{
-		Contextified: libkb.NewContextified(g),
-		opts:         keybase1.SaltpackDecryptOptions{ForceRemoteCheck: true},
+		Flags: flags,
 	}
 }
 
@@ -84,7 +82,7 @@ func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltpackEncryptedMe
 		prnt("Decryption failed; try one of these devices instead:\n")
 		for _, d := range info.Devices {
 			t := keybase1.FromTime(d.CTime)
-			prnt("  * %s (%s); provisioned %s (%s)\n", ColorString("bold", d.Name), d.Type,
+			prnt("  * %s (%s); provisioned %s (%s)\n", ColorString(c.G(), "bold", d.Name), d.Type,
 				humanize.Time(t), t.Format("2006-01-02 15:04:05 MST"))
 		}
 		if info.NumAnonReceivers > 0 {
@@ -164,15 +162,16 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 	}
 	c.opts.Interactive = interactive
 	c.opts.UsePaperKey = ctx.Bool("paperkey")
+
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
 	senderfile := ctx.String("encryptor-outfile")
-	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
+	if err := c.filter.FilterInit(c.G(), msg, infile, outfile); err != nil {
 		return err
 	}
 	if senderfile != "" {
-		c.senderfile = NewFileSink(senderfile)
+		c.senderfile = NewFileSink(c.G(), senderfile)
 	}
 
 	return nil

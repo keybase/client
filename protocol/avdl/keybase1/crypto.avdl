@@ -28,7 +28,7 @@ protocol crypto {
   ED25519SignatureInfo signED25519ForKBFS(int sessionID, bytes msg, string reason);
 
   /**
-    Same as the above except the full marsheled and encoded NaclSigInfo.
+    Same as the above except the full marshaled and encoded NaclSigInfo.
     */
   string signToString(int sessionID, bytes msg, string reason);
 

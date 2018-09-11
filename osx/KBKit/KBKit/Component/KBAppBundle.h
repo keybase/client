@@ -9,9 +9,10 @@
 #import <Foundation/Foundation.h>
 
 #import "KBInstallable.h"
+#import "KBHelperTool.h"
 
 @interface KBAppBundle : KBInstallable
 
-- (instancetype)initWithPath:(NSString *)path;
+- (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool;
 
 @end

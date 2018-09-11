@@ -4,28 +4,32 @@
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 var chatFlags = map[string]cli.Flag{
 	"topic-type": cli.StringFlag{
 		Name:  "topic-type",
 		Value: "chat",
-		Usage: `Specify topic name of the conversation. Has to be chat or dev`,
+		Usage: `Specify topic type of the conversation. Has to be chat or dev`,
 	},
-	"topic-name": cli.StringFlag{
-		Name:  "topic-name",
-		Usage: `Specify topic name of the conversation.`,
+	"channel": cli.StringFlag{
+		Name:  "channel",
+		Usage: `Specify the conversation channel.`,
 	},
-	"set-topic-name": cli.StringFlag{
-		Name:  "set-topic-name",
-		Usage: `Set topic name for the conversation`,
+	"set-channel": cli.StringFlag{
+		Name:  "set-channel",
+		Usage: `Rename a channel in a conversation`,
 	},
 	"set-headline": cli.StringFlag{
 		Name:  "set-headline",
@@ -48,7 +52,7 @@ var chatFlags = map[string]cli.Flag{
 	"number": cli.IntFlag{
 		Name:  "number,n",
 		Usage: `Limit number of items`,
-		Value: 5,
+		Value: 15,
 	},
 	"unread-first": cli.IntFlag{
 		Name:  "unread-first",
@@ -56,7 +60,7 @@ var chatFlags = map[string]cli.Flag{
 	},
 	"since": cli.StringFlag{
 		Name:  "time,since",
-		Usage: `Only show updates after certain time.`,
+		Usage: `Only show updates after certain time. Supports durations like "2d" or RFC3339 time like 2017-01-02T15:04:05Z07:00`,
 	},
 	"public": cli.BoolFlag{
 		Name:  "public",
@@ -86,9 +90,15 @@ var chatFlags = map[string]cli.Flag{
 		Name:  "u, unhide",
 		Usage: "Unhide/unblock the conversation",
 	},
-	"async": cli.BoolFlag{
-		Name:  "async",
-		Usage: "Fetch inbox and unbox asynchronously",
+	"unmute": cli.BoolFlag{
+		Name:  "u, unmute",
+		Usage: "Unmute the conversation",
+	},
+	"exploding-lifetime": cli.DurationFlag{
+		Name: "exploding-lifetime",
+		Usage: fmt.Sprintf(`Make this message an exploding message and set the lifetime for the given duration.
+	The maximum lifetime is %v (one week) and the minimum lifetime is %v. Cannot be used in conjunction with --public.`,
+			libkb.MaxEphemeralContentLifetime, libkb.MinEphemeralContentLifetime),
 	},
 }
 
@@ -104,7 +114,7 @@ func mustGetChatFlags(keys ...string) (flags []cli.Flag) {
 }
 
 func getConversationResolverFlags() []cli.Flag {
-	return mustGetChatFlags("topic-type", "topic-name", "public", "private")
+	return mustGetChatFlags("topic-type", "channel", "public", "private")
 }
 
 func getMessageFetcherFlags() []cli.Flag {
@@ -116,7 +126,7 @@ func getInboxFetcherUnreadFirstFlags() []cli.Flag {
 }
 
 func getInboxFetcherActivitySortedFlags() []cli.Flag {
-	return append(mustGetChatFlags("number", "since", "include-hidden", "async"), getConversationResolverFlags()...)
+	return append(mustGetChatFlags("number", "since", "include-hidden"), getConversationResolverFlags()...)
 }
 
 func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, err error) {
@@ -132,30 +142,64 @@ func parseConversationTopicType(ctx *cli.Context) (topicType chat1.TopicType, er
 }
 
 func parseConversationResolvingRequest(ctx *cli.Context, tlfName string) (req chatConversationResolvingRequest, err error) {
-	req.TopicName = ctx.String("topic-name")
+	req.TopicName = utils.SanitizeTopicName(ctx.String("channel"))
 	req.TlfName = tlfName
 	if req.TopicType, err = parseConversationTopicType(ctx); err != nil {
 		return chatConversationResolvingRequest{}, err
 	}
-	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 {
-		return chatConversationResolvingRequest{}, errors.New("multiple topics are not yet supported")
-	}
 
 	if ctx.Bool("private") {
-		req.Visibility = chat1.TLFVisibility_PRIVATE
+		req.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		req.Visibility = chat1.TLFVisibility_PUBLIC
+		req.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		req.Visibility = chat1.TLFVisibility_ANY
+		req.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	return req, nil
+}
+
+// The purpose of this function is to provide more
+// information in resolvingRequest, with the ability
+// to use the socket, since this is not available
+// at parse time.
+func annotateResolvingRequest(g *libkb.GlobalContext, req *chatConversationResolvingRequest) (err error) {
+	userOrTeamResult, err := CheckUserOrTeamName(context.TODO(), g, req.TlfName)
+	if err != nil {
+		return err
+	}
+	switch userOrTeamResult {
+	case keybase1.UserOrTeamResult_USER:
+		if g.Env.GetChatMemberType() == "impteam" {
+			req.MembersType = chat1.ConversationMembersType_IMPTEAMNATIVE
+		} else {
+			req.MembersType = chat1.ConversationMembersType_KBFS
+		}
+	case keybase1.UserOrTeamResult_TEAM:
+		req.MembersType = chat1.ConversationMembersType_TEAM
+	}
+	if req.TopicType == chat1.TopicType_CHAT && len(req.TopicName) != 0 &&
+		req.MembersType != chat1.ConversationMembersType_TEAM {
+		return errors.New("multiple topics only supported for teams and dev channels")
+	}
+
+	// Set the default topic name to #general if none is specified
+	if req.MembersType == chat1.ConversationMembersType_TEAM && len(req.TopicName) == 0 {
+		req.TopicName = globals.DefaultTeamTopic
+	}
+
+	return nil
 }
 
 func makeChatCLIConversationFetcher(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher chatCLIConversationFetcher, err error) {
 	fetcher.query.MessageTypes = []chat1.MessageType{
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
+		chat1.MessageType_JOIN,
+		chat1.MessageType_LEAVE,
+		chat1.MessageType_SYSTEM,
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_REQUESTPAYMENT,
 	}
 	fetcher.query.Limit = chat1.UnreadFirstNumLimit{
 		NumRead: 2,
@@ -186,18 +230,16 @@ func makeChatCLIInboxFetcherActivitySorted(ctx *cli.Context) (fetcher chatCLIInb
 	fetcher.query.After = ctx.String("since")
 
 	if ctx.Bool("private") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
+		fetcher.query.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
+		fetcher.query.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+		fetcher.query.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	if !ctx.Bool("include-hidden") {
 		fetcher.query.Status = utils.VisibleChatConversationStatuses()
 	}
-
-	fetcher.async = ctx.Bool("async")
 
 	return fetcher, err
 }
@@ -216,11 +258,11 @@ func makeChatCLIInboxFetcherUnreadFirst(ctx *cli.Context) (fetcher chatCLIInboxF
 	fetcher.query.After = ctx.String("since")
 
 	if ctx.Bool("private") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PRIVATE
+		fetcher.query.Visibility = keybase1.TLFVisibility_PRIVATE
 	} else if ctx.Bool("public") {
-		fetcher.query.Visibility = chat1.TLFVisibility_PUBLIC
+		fetcher.query.Visibility = keybase1.TLFVisibility_PUBLIC
 	} else {
-		fetcher.query.Visibility = chat1.TLFVisibility_ANY
+		fetcher.query.Visibility = keybase1.TLFVisibility_ANY
 	}
 
 	if !ctx.Bool("include-hidden") {

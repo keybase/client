@@ -33,9 +33,9 @@
   }];
 }
 
-+ (void)status:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatus)completion {
++ (void)status:(NSString *)binPath name:(NSString *)name timeout:(NSTimeInterval)timeout completion:(KBOnServiceStatus)completion {
   DDLogDebug(@"Checking launchd status for %@", name);
-  [KBTask executeForJSONWithCommand:binPath args:@[@"--log-format=file", @"launchd", @"status", @"--format=json", name] timeout:KBDefaultTaskTimeout completion:^(NSError *error, id value) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=file", @"launchd", @"status", @"--format=json", NSStringWithFormat(@"--timeout=%@s", @(timeout)), name] timeout:KBDefaultTaskTimeout completion:^(NSError *error, id value) {
     if (error) {
       completion(error, nil);
       return;

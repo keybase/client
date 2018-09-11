@@ -16,16 +16,18 @@ type TrackEngineArg struct {
 	Options           keybase1.TrackOptions
 	ForceRemoteCheck  bool
 	AllowSelfIdentify bool
+	SigVersion        libkb.SigVersion
 }
 
 type TrackEngine struct {
 	arg  *TrackEngineArg
 	them *libkb.User
 	libkb.Contextified
+	confirmResult keybase1.ConfirmResult
 }
 
 // NewTrackEngine creates a default TrackEngine for tracking theirName.
-func NewTrackEngine(arg *TrackEngineArg, g *libkb.GlobalContext) *TrackEngine {
+func NewTrackEngine(g *libkb.GlobalContext, arg *TrackEngineArg) *TrackEngine {
 	return &TrackEngine{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -55,7 +57,10 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-func (e *TrackEngine) Run(ctx *Context) error {
+func (e *TrackEngine) Run(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "TrackEngine")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "TrackEngine")
+
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:         e.arg.UserAssertion,
 		ForceRemoteCheck:      e.arg.ForceRemoteCheck,
@@ -64,32 +69,42 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		AlwaysBlock:           true,
 	}
 
-	ieng := NewResolveThenIdentify2WithTrack(e.G(), arg, e.arg.Options)
-	if err := RunEngine(ieng, ctx); err != nil {
+	if m.UIs().SessionID != 0 {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_GUI
+	} else {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CLI
+	}
+
+	ieng := NewResolveThenIdentify2WithTrack(m.G(), arg, e.arg.Options)
+	if err := RunEngine2(m, ieng); err != nil {
 		return err
 	}
 
-	upk := ieng.Result().Upk
-	var err error
-	e.them, err = libkb.LoadUser(libkb.NewLoadUserByUIDArg(ctx.GetNetContext(), e.G(), upk.Uid))
+	res, err := ieng.Result()
+	if err != nil {
+		return err
+	}
+	upk := res.Upk
+	loadarg := libkb.NewLoadUserArgWithMetaContext(m).WithUID(upk.GetUID()).WithPublicKeyOptional()
+	e.them, err = libkb.LoadUser(loadarg)
 	if err != nil {
 		return err
 	}
 
-	confirmResult := ieng.ConfirmResult()
-	if !confirmResult.IdentityConfirmed {
-		e.G().Log.Debug("confirmResult: %+v", confirmResult)
+	e.confirmResult = ieng.ConfirmResult()
+	if !e.confirmResult.IdentityConfirmed {
+		m.CDebugf("confirmResult: %+v", e.confirmResult)
 		return errors.New("Follow not confirmed")
 	}
 
 	// if they didn't specify local only on the command line, then if they answer no to posting
 	// the tracking statement publicly to keybase, change LocalOnly to true here:
-	if !e.arg.Options.LocalOnly && !confirmResult.RemoteConfirmed {
+	if !e.arg.Options.LocalOnly && !e.confirmResult.RemoteConfirmed {
 		e.arg.Options.LocalOnly = true
 	}
 
-	if !e.arg.Options.ExpiringLocal && confirmResult.ExpiringLocal {
-		e.G().Log.Debug("-ExpiringLocal-")
+	if !e.arg.Options.ExpiringLocal && e.confirmResult.ExpiringLocal {
+		m.CDebugf("-ExpiringLocal-")
 		e.arg.Options.ExpiringLocal = true
 	}
 
@@ -98,10 +113,14 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		Me:      e.arg.Me,
 		Options: e.arg.Options,
 	}
-	teng := NewTrackToken(targ, e.G())
-	return RunEngine(teng, ctx)
+	teng := NewTrackToken(m.G(), targ)
+	return RunEngine2(m, teng)
 }
 
 func (e *TrackEngine) User() *libkb.User {
 	return e.them
+}
+
+func (e *TrackEngine) ConfirmResult() keybase1.ConfirmResult {
+	return e.confirmResult
 }

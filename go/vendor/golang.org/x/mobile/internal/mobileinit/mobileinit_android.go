@@ -19,6 +19,7 @@ adb logcat GoLog:I *:S
 #cgo LDFLAGS: -landroid -llog
 
 #include <android/log.h>
+#include <stdlib.h>
 #include <string.h>
 */
 import "C"
@@ -27,11 +28,15 @@ import (
 	"bufio"
 	"log"
 	"os"
+	"syscall"
 	"unsafe"
 )
 
 var (
 	ctag = C.CString("GoLog")
+	// Store the writer end of the redirected stderr and stdout
+	// so that they are not garbage collected and closed.
+	stderr, stdout *os.File
 )
 
 type infoWriter struct{}
@@ -70,13 +75,19 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	os.Stderr = w
+	stderr = w
+	if err := syscall.Dup3(int(w.Fd()), int(os.Stderr.Fd()), 0); err != nil {
+		panic(err)
+	}
 	go lineLog(r, C.ANDROID_LOG_ERROR)
 
 	r, w, err = os.Pipe()
 	if err != nil {
 		panic(err)
 	}
-	os.Stdout = w
+	stdout = w
+	if err := syscall.Dup3(int(w.Fd()), int(os.Stdout.Fd()), 0); err != nil {
+		panic(err)
+	}
 	go lineLog(r, C.ANDROID_LOG_INFO)
 }

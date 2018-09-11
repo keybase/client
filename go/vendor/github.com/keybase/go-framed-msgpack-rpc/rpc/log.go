@@ -16,17 +16,19 @@ type Profiler interface {
 type LogInterface interface {
 	TransportStart()
 	TransportError(error)
-	ClientCall(seqNumber, string, interface{})
-	ServerCall(seqNumber, string, error, interface{})
-	ServerReply(seqNumber, string, error, interface{})
+	// The passed-in slice should not be mutated.
+	FrameRead([]byte)
+	ClientCall(SeqNumber, string, interface{})
+	ServerCall(SeqNumber, string, error, interface{})
+	ServerReply(SeqNumber, string, error, interface{})
 	ClientNotify(string, interface{})
 	ServerNotifyCall(string, error, interface{})
 	ServerNotifyComplete(string, error)
-	ClientCancel(seqNumber, string, error)
-	ServerCancelCall(seqNumber, string)
-	ClientReply(seqNumber, string, error, interface{})
+	ClientCancel(SeqNumber, string, error)
+	ServerCancelCall(SeqNumber, string)
+	ClientReply(SeqNumber, string, error, interface{})
 	StartProfiler(format string, args ...interface{}) Profiler
-	UnexpectedReply(seqNumber)
+	UnexpectedReply(SeqNumber)
 	Warning(format string, args ...interface{})
 	Info(format string, args ...interface{})
 }
@@ -43,11 +45,17 @@ type LogOutput interface {
 	Profile(s string, args ...interface{})
 }
 
+type LogOutputWithDepthAdder interface {
+	LogOutput
+	CloneWithAddedDepth(depth int) LogOutputWithDepthAdder
+}
+
 type LogOptions interface {
 	ShowAddress() bool
 	ShowArg() bool
 	ShowResult() bool
 	Profile() bool
+	FrameTrace() bool
 	ClientTrace() bool
 	ServerTrace() bool
 	TransportStart() bool
@@ -84,11 +92,13 @@ func (so SimpleLogOptions) ShowAddress() bool    { return true }
 func (so SimpleLogOptions) ShowArg() bool        { return true }
 func (so SimpleLogOptions) ShowResult() bool     { return true }
 func (so SimpleLogOptions) Profile() bool        { return true }
+func (so SimpleLogOptions) FrameTrace() bool     { return true }
 func (so SimpleLogOptions) ClientTrace() bool    { return true }
 func (so SimpleLogOptions) ServerTrace() bool    { return true }
 func (so SimpleLogOptions) TransportStart() bool { return true }
 
 type StandardLogOptions struct {
+	frameTrace     bool
 	clientTrace    bool
 	serverTrace    bool
 	profile        bool
@@ -101,22 +111,19 @@ func (s *StandardLogOptions) ShowAddress() bool    { return !s.noAddress }
 func (s *StandardLogOptions) ShowArg() bool        { return s.verboseTrace }
 func (s *StandardLogOptions) ShowResult() bool     { return s.verboseTrace }
 func (s *StandardLogOptions) Profile() bool        { return s.profile }
+func (s *StandardLogOptions) FrameTrace() bool     { return s.frameTrace }
 func (s *StandardLogOptions) ClientTrace() bool    { return s.clientTrace }
 func (s *StandardLogOptions) ServerTrace() bool    { return s.serverTrace }
 func (s *StandardLogOptions) TransportStart() bool { return s.connectionInfo }
 
 func NewStandardLogOptions(opts string, log LogOutput) LogOptions {
 	var s StandardLogOptions
-	s.clientTrace = false
-	s.serverTrace = false
-	s.profile = false
-	s.verboseTrace = false
-	s.connectionInfo = false
-	s.noAddress = false
 	for _, c := range opts {
 		switch c {
 		case 'A':
 			s.noAddress = true
+		case 'f':
+			s.frameTrace = true
 		case 'c':
 			s.clientTrace = true
 		case 's':
@@ -179,18 +186,24 @@ func (l SimpleLog) TransportError(e error) {
 	return
 }
 
+func (s SimpleLog) FrameRead(bytes []byte) {
+	if s.Opts.FrameTrace() {
+		s.Out.Debug(s.msg(false, "Frame read: %x", bytes))
+	}
+}
+
 // Call
-func (s SimpleLog) ClientCall(q seqNumber, meth string, arg interface{}) {
+func (s SimpleLog) ClientCall(q SeqNumber, meth string, arg interface{}) {
 	if s.Opts.ClientTrace() {
 		s.trace("call", "arg", s.Opts.ShowArg(), q, meth, nil, arg)
 	}
 }
-func (s SimpleLog) ServerCall(q seqNumber, meth string, err error, arg interface{}) {
+func (s SimpleLog) ServerCall(q SeqNumber, meth string, err error, arg interface{}) {
 	if s.Opts.ServerTrace() {
 		s.trace("serve", "arg", s.Opts.ShowArg(), q, meth, err, arg)
 	}
 }
-func (s SimpleLog) ServerReply(q seqNumber, meth string, err error, res interface{}) {
+func (s SimpleLog) ServerReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ServerTrace() {
 		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
 	}
@@ -214,24 +227,24 @@ func (s SimpleLog) ServerNotifyComplete(meth string, err error) {
 }
 
 // Cancel
-func (s SimpleLog) ClientCancel(q seqNumber, meth string, err error) {
+func (s SimpleLog) ClientCancel(q SeqNumber, meth string, err error) {
 	if s.Opts.ClientTrace() {
 		s.trace("cancel", "", false, q, meth, err, nil)
 	}
 }
-func (s SimpleLog) ServerCancelCall(q seqNumber, meth string) {
+func (s SimpleLog) ServerCancelCall(q SeqNumber, meth string) {
 	if s.Opts.ServerTrace() {
 		s.trace("serve-cancel", "", false, q, meth, nil, nil)
 	}
 }
 
-func (s SimpleLog) ClientReply(q seqNumber, meth string, err error, res interface{}) {
+func (s SimpleLog) ClientReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ClientTrace() {
 		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
 	}
 }
 
-func (s SimpleLog) trace(which string, objname string, verbose bool, q seqNumber, meth string, err error, obj interface{}) {
+func (s SimpleLog) trace(which string, objname string, verbose bool, q SeqNumber, meth string, err error, obj interface{}) {
 	args := []interface{}{which, q}
 	fmts := "%s(%d):"
 	if len(meth) > 0 {
@@ -273,7 +286,7 @@ func (s SimpleLog) StartProfiler(format string, args ...interface{}) Profiler {
 	}
 }
 
-func (s SimpleLog) UnexpectedReply(seqno seqNumber) {
+func (s SimpleLog) UnexpectedReply(seqno SeqNumber) {
 	s.Out.Warning(s.msg(false, "Unexpected seqno %d in incoming reply", seqno))
 }
 

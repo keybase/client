@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"runtime"
 	"sync"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -47,23 +48,27 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
-	f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
+	f.G().Log.Debug("+ loading %q file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
+			msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
 			if warnOnNotFound {
 				f.G().Log.Warning(msg)
 			} else {
 				f.G().Log.Debug(msg)
 			}
 			return nil
-		} else if os.IsPermission(err) {
+		}
+
+		MobilePermissionDeniedCheck(f.G(), err, fmt.Sprintf("%s: %s", f.which, f.filename))
+
+		if os.IsPermission(err) {
 			f.G().Log.Warning("Permission denied opening %s file %s", f.which, f.filename)
 			return nil
-		} else {
-			return err
 		}
+
+		return err
 	}
 	f.exists = true
 	defer file.Close()
@@ -75,6 +80,7 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 		return err
 	}
 	f.jw = jsonw.NewWrapper(obj)
+
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }
@@ -91,8 +97,7 @@ func (f *JSONFile) BeginTransaction() (ConfigWriterTransacter, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = f.setTx(tx)
-	if err != nil {
+	if err = f.setTx(tx); err != nil {
 		return nil, err
 	}
 	return tx, nil
@@ -179,7 +184,7 @@ func (f *JSONFile) save() (err error) {
 	filename := f.tx.tmpname
 	f.G().Log.Debug("+ saving %s file %s", f.which, filename)
 
-	err = MakeParentDirs(filename)
+	err = MakeParentDirs(f.G().Log, filename)
 	if err != nil {
 		f.G().Log.Errorf("Failed to make parent dirs for %s", filename)
 		return err
@@ -210,42 +215,228 @@ func (f *JSONFile) save() (err error) {
 	defer writer.Close()
 
 	encoded, err := json.MarshalIndent(dat, "", "    ")
-	if err == nil {
-		_, err = writer.Write(encoded)
+	if err != nil {
+		f.G().Log.Errorf("Error marshaling data to %s file %s: %s", f.which, filename, err)
+		return err
 	}
 
+	n, err := writer.Write(encoded)
 	if err != nil {
-		f.G().Log.Errorf("Error encoding data to %s file %s: %s",
-			f.which, filename, err)
+		f.G().Log.Errorf("Error writing encoded data to %s file %s: %s", f.which, filename, err)
+		return err
+	}
+	if n != len(encoded) {
+		f.G().Log.Errorf("Error writing encoded data to %s file %s: wrote %d bytes, expected %d", f.which, filename, n, len(encoded))
+		return io.ErrShortWrite
+	}
+
+	err = writer.Sync()
+	if err != nil {
+		f.G().Log.Errorf("Error syncing %s file %s: %s", f.which, filename, err)
 		return err
 	}
 
 	err = writer.Close()
 	if err != nil {
-		f.G().Log.Errorf("Error flushing %s file %s: %s", f.which, filename, err)
+		f.G().Log.Errorf("Error closing %s file %s: %s", f.which, filename, err)
 		return err
 	}
+
 	f.G().Log.Debug("- saved %s file %s", f.which, filename)
-	return
+
+	if runtime.GOOS == "android" {
+		f.G().Log.Debug("| Android extra checks in JSONFile.save")
+		info, err := os.Stat(filename)
+		if err != nil {
+			f.G().Log.Errorf("| Error os.Stat(%s): %s", filename, err)
+			return err
+		}
+		f.G().Log.Debug("| File info: name = %s", info.Name())
+		f.G().Log.Debug("| File info: size = %d", info.Size())
+		f.G().Log.Debug("| File info: mode = %s", info.Mode())
+		f.G().Log.Debug("| File info: mod time = %s", info.ModTime())
+
+		if info.Size() != int64(len(encoded)) {
+			f.G().Log.Errorf("| File info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+			return fmt.Errorf("file info size (%d) does not match encoded len (%d)", info.Size(), len(encoded))
+		}
+
+		// write out the `dat` that was marshaled into filename
+		encodedForLog, err := json.Marshal(dat)
+		if err != nil {
+			f.G().Log.Debug("error marshaling for log dump: %s", err)
+		} else {
+			f.G().Log.Debug("data written to %s:", filename)
+			f.G().Log.Debug(string(encodedForLog))
+		}
+
+		// load the file and dump its contents to the log
+		fc, err := os.Open(filename)
+		if err != nil {
+			f.G().Log.Debug("error opening %s to check its contents: %s", filename, err)
+		} else {
+			defer fc.Close()
+
+			decoder := json.NewDecoder(fc)
+			obj := make(map[string]interface{})
+			if err := decoder.Decode(&obj); err != nil {
+				f.G().Log.Debug("error decoding %s: %s", filename, err)
+			} else {
+				// marshal it into json without indents to make it one line
+				out, err := json.Marshal(obj)
+				if err != nil {
+					f.G().Log.Debug("error marshaling decoded obj: %s", err)
+				} else {
+					f.G().Log.Debug("%s contents (marshaled): %s", filename, string(out))
+				}
+			}
+		}
+
+		f.G().Log.Debug("| Android extra checks done")
+	}
+
+	return nil
 }
 
 func (f *jsonFileTransaction) Abort() error {
-	f.f.G().Log.Debug("+ Aborting config rewrite %s", f.tmpname)
+	f.f.G().Log.Debug("+ Aborting %s rewrite %s", f.f.which, f.tmpname)
 	err := os.Remove(f.tmpname)
 	f.f.setTx(nil)
-	f.f.G().Log.Debug("- Abort -> %v\n", err)
+	f.f.G().Log.Debug("- Abort -> %s\n", ErrToOk(err))
+	return err
+}
+
+// Rollback reloads config from unchanged config file, bringing its
+// state back to from before the transaction changes. Note that it
+// only works for changes that do not affect UserConfig, which caches
+// values, and has to be reloaded manually.
+func (f *jsonFileTransaction) Rollback() error {
+	f.f.G().Log.Debug("+ Rolling back %s to state from %s", f.f.which, f.f.filename)
+	err := f.f.Load(false)
+	if !f.f.exists {
+		// Before transaction there was no file, so set in-memory
+		// wrapper to clean state as well.
+		f.f.jw = jsonw.NewDictionary()
+		f.f.G().Log.Debug("+ Rolling back to clean state because f.exists is false")
+	}
+	f.f.G().Log.Debug("- Rollback -> %s", ErrToOk(err))
 	return err
 }
 
 func (f *jsonFileTransaction) Commit() (err error) {
-	f.f.G().Log.Debug("+ Commit config rewrite %s", f.tmpname)
-	defer func() { f.f.G().Log.Debug("- Commit config rewrite %s", ErrToOk(err)) }()
+	f.f.G().Log.Debug("+ Commit %s rewrite %s", f.f.which, f.tmpname)
+	defer func() { f.f.G().Log.Debug("- Commit %s rewrite %s", f.f.which, ErrToOk(err)) }()
+
 	f.f.G().Log.Debug("| Commit: making parent directories for %q", f.f.filename)
-	if err = MakeParentDirs(f.f.filename); err != nil {
+	if err = MakeParentDirs(f.f.G().Log, f.f.filename); err != nil {
 		return err
 	}
 	f.f.G().Log.Debug("| Commit : renaming %q => %q", f.tmpname, f.f.filename)
-	err = os.Rename(f.tmpname, f.f.filename)
+	err = renameFile(f.f.G(), f.tmpname, f.f.filename)
+	if err != nil {
+		f.f.G().Log.Debug("| Commit: rename %q => %q error: %s", f.tmpname, f.f.filename, err)
+	}
 	f.f.setTx(nil)
+
+	return err
+}
+
+type valueGetter func(*jsonw.Wrapper) (interface{}, error)
+
+func (f *JSONFile) getValueAtPath(p string, getter valueGetter) (ret interface{}, isSet bool) {
+	var err error
+	ret, err = getter(f.jw.AtPath(p))
+	if err == nil {
+		isSet = true
+	}
+	return ret, isSet
+}
+
+func getString(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetString()
+}
+
+func getBool(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetBool()
+}
+
+func getInt(w *jsonw.Wrapper) (interface{}, error) {
+	return w.GetInt()
+}
+
+func (f *JSONFile) GetFilename() string {
+	return f.filename
+}
+
+func (f *JSONFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	return f.jw.AtPath(p).GetInterface()
+}
+
+func (f *JSONFile) GetStringAtPath(p string) (ret string, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getString)
+	if isSet {
+		ret = i.(string)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetBoolAtPath(p string) (ret bool, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getBool)
+	if isSet {
+		ret = i.(bool)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetIntAtPath(p string) (ret int, isSet bool) {
+	i, isSet := f.getValueAtPath(p, getInt)
+	if isSet {
+		ret = i.(int)
+	}
+	return ret, isSet
+}
+
+func (f *JSONFile) GetNullAtPath(p string) (isSet bool) {
+	w := f.jw.AtPath(p)
+	isSet = w.IsNil() && w.Error() == nil
+	return isSet
+}
+
+func (f *JSONFile) setValueAtPath(p string, getter valueGetter, v interface{}) error {
+	existing, err := getter(f.jw.AtPath(p))
+
+	if err != nil || existing != v {
+		err = f.jw.SetValueAtPath(p, jsonw.NewWrapper(v))
+		if err == nil {
+			return f.Save()
+		}
+	}
+	return err
+}
+
+func (f *JSONFile) SetStringAtPath(p string, v string) error {
+	return f.setValueAtPath(p, getString, v)
+}
+
+func (f *JSONFile) SetBoolAtPath(p string, v bool) error {
+	return f.setValueAtPath(p, getBool, v)
+}
+
+func (f *JSONFile) SetIntAtPath(p string, v int) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JSONFile) SetInt64AtPath(p string, v int64) error {
+	return f.setValueAtPath(p, getInt, v)
+}
+
+func (f *JSONFile) SetNullAtPath(p string) (err error) {
+	existing := f.jw.AtPath(p)
+	if !existing.IsNil() || existing.Error() != nil {
+		err = f.jw.SetValueAtPath(p, jsonw.NewNil())
+		if err == nil {
+			return f.Save()
+		}
+	}
 	return err
 }

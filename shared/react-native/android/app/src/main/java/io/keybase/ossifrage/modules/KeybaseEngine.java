@@ -1,5 +1,7 @@
 package io.keybase.ossifrage.modules;
 
+import android.app.KeyguardManager;
+import android.content.Context;
 import android.util.Log;
 
 import com.facebook.react.bridge.LifecycleEventListener;
@@ -14,17 +16,20 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import go.keybase.Keybase;
+import keybase.Keybase;
+import io.keybase.ossifrage.BuildConfig;
 
-import static go.keybase.Keybase.readB64;
-import static go.keybase.Keybase.writeB64;
-import static go.keybase.Keybase.version;
+import static keybase.Keybase.readB64;
+import static keybase.Keybase.writeB64;
+import static keybase.Keybase.version;
 
 public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
-    private final ExecutorService executor;
+    private ExecutorService executor;
+    private Boolean started = false;
+    private ReactApplicationContext reactContext;
 
     private class ReadFromKBLib implements Runnable {
         private final ReactApplicationContext reactContext;
@@ -55,13 +60,16 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
+        this.reactContext = reactContext;
 
-        executor = Executors.newSingleThreadExecutor();
-        executor.execute(new ReadFromKBLib(reactContext));
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
             public void onHostResume() {
+                if (started && executor == null) {
+                    executor = Executors.newSingleThreadExecutor();
+                    executor.execute(new ReadFromKBLib(reactContext));
+                }
             }
 
             @Override
@@ -78,8 +86,12 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     public void destroy(){
         try {
             executor.shutdownNow();
-            reset();
-            executor.awaitTermination(30, TimeUnit.SECONDS);
+            // We often hit this timeout during app resume, e.g. hit the back
+            // button to go to home screen and then tap Keybase app icon again.
+            if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
+                Log.w(NAME, "Executor pool didn't shut down cleanly");
+            }
+            executor = null;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -91,9 +103,23 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @Override
     public Map<String, Object> getConstants() {
+        String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
+        String versionName = BuildConfig.VERSION_NAME;
+        boolean isDeviceSecure = false;
+
+        try {
+            final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
+            isDeviceSecure = keyguardManager.isKeyguardSecure();
+        } catch (Exception e) {
+            Log.w(NAME, "Error reading keyguard secure state", e);
+        }
+
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
+        constants.put("appVersionName", versionName);
+        constants.put("appVersionCode", versionCode);
         constants.put("version", version());
+        constants.put("isDeviceSecure", isDeviceSecure);
         return constants;
     }
 
@@ -113,5 +139,18 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       } catch (Exception e) {
           e.printStackTrace();
       }
+    }
+
+    @ReactMethod
+    public void start() {
+        try {
+            started = true;
+            if (executor == null) {
+                executor = Executors.newSingleThreadExecutor();
+                executor.execute(new ReadFromKBLib(this.reactContext));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

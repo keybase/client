@@ -1,18 +1,41 @@
 // @flow
-import moment from 'moment'
+import {debounce} from 'lodash-es'
 
-const rateLimit: {[key: string]: Object} = {}
+const rateLimit: {[key: string]: () => void} = {}
+const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}
 
-export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds: number = -1): void {
+export function NotifyPopup(
+  title: string,
+  opts: ?Object,
+  rateLimitSeconds: number = -1,
+  rateLimitKey?: string,
+  onClick: ?() => void,
+  onClose: ?() => void
+): void {
+  const sound = opts && opts.sound
   if (rateLimitSeconds > 0) {
-    const now = moment()
-    if (rateLimit[title] && now.isBefore(rateLimit[title])) {
-      console.log(`Skipping notify for ${title} due to rate limit`)
-      return
-    }
+    const key = rateLimitKey || title
 
-    rateLimit[title] = now.add(rateLimitSeconds, 's')
+    // Exists? just call it to push the time back
+    if (rateLimit[key]) {
+      rateLimitPayloads[key] = {onClick, opts, title}
+      rateLimit[key]()
+      return
+    } else {
+      // else set it up and call it below
+      rateLimit[key] = debounce(() => {
+        if (rateLimitPayloads[key]) {
+          const {title, opts, onClick} = rateLimitPayloads[key]
+          delete rateLimitPayloads[key]
+          const notification: any = new window.Notification(title, {...opts, silent: !sound})
+          notification.onclick = onClick
+          notification.onclose = onClose
+        }
+      }, rateLimitSeconds * 1000)
+    }
   }
 
-  new Notification(title, {...opts, silent: true}) //eslint-disable-line
+  const notification: any = new window.Notification(title, {...opts, silent: !sound})
+  notification.onclick = onClick
+  notification.onclose = onClose
 }

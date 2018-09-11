@@ -1,3 +1,5 @@
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+
 def getCommit(path) {
     dir(path) {
         return bat(returnStdout: true, script: '@echo off && git rev-parse HEAD').trim()
@@ -39,6 +41,19 @@ def publish(bucket, excluded, source) {
 }
 
 def doBuild() {
+    stage('Check Driver Signing') {
+        if (UpdateChannel != "None"){
+            // Check both the built .sys files and the msi package.
+            bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\x64\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
+            bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v ${DOKAN_PATH}\\Win32\\Win10Release\\dokan1.sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
+            bat "\"%ProgramFiles%\\7-Zip\\7z\" e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x64\\release\\Dokan_x64.msi Win10_Sys"
+            bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v Win10_Sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
+            bat "\"%ProgramFiles%\\7-Zip\\7z\" e -y ${DOKAN_PATH}\\dokan_wix\\bin\\x86\\release\\Dokan_x86.msi Win10_Sys"
+            bat "call \"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat\" && signtool verify /all /kp /v Win10_Sys | find \"Issued to: Microsoft Windows Hardware Compatibility Publisher\""
+        } else {
+            echo "Skipping signed driver checking"
+        }
+    }
     stage('Checkout Client') {
         // Reset symlink due to node/git/windows problems
         retry(3) {
@@ -57,10 +72,49 @@ def doBuild() {
     bat '''
         if EXIST src\\github.com\\keybase\\client\\shared\\desktop\\release rmdir /q /s src\\github.com\\keybase\\client\\shared\\desktop\\release
         path
-    '''                
+    '''
+    stage('Wait for CI') {
+        if (UpdateChannel == "SmokeCI"){
+            def clientCommit = getCommit('src\\github.com\\keybase\\client')
+            def kbfsCommit =  getCommit('src\\github.com\\keybase\\kbfs')
+            withCredentials([[
+                $class: 'StringBinding',
+                credentialsId: 'GITHUB_TOKEN',
+                variable: 'GITHUB_TOKEN'
+                ]]) {
+                dir('src\\github.com\\keybase\\release') {
+                    bat 'go build'
+                    bat "release wait-ci --repo=\"client\" --commit=\"${clientCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                    bat "release wait-ci --repo=\"kbfs\" --commit=\"${kbfsCommit}\" --context=\"continuous-integration/jenkins/branch\" --context=\"ci/circleci\""
+                }
+            }
+        } else {
+            echo "Non CI build"
+        }
+    }                
     stage('Build Client') {
         bat '"%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0\\vc\\bin\\vcvars32.bat" && src\\github.com\\keybase\\client\\packaging\\windows\\build_prerelease.cmd'
-    } 
+    }
+
+    stage('RunQuiet Utility') {
+        dir('src\\github.com\\keybase\\client\\go\\tools\\runquiet') {
+            def oldHash = new URL('https://s3.amazonaws.com/prerelease.keybase.io/windows-support/runquiet/runquiet.hash').getText()
+            def currentHash = bat(returnStdout: true, script: '@echo off && git log -1 -- runquiet.go')
+            if (oldHash == currentHash){
+                echo "downloading keybaserq"
+                withAWS(region:'us-east-1', credentials:'amazon_s3_user_pw') {
+                    s3Download(file:'keybaserq.exe', bucket:'prerelease.keybase.io', path:'windows-support/runquiet/keybaserq.exe', force:true)
+                }
+            } else {
+                echo "--- runquiet hashes differ, building keybaserq. Server hash: ---"
+                echo oldHash
+                echo "--- Current hash: ---"
+                echo currentHash
+                bat '..\\..\\..\\packaging\\windows\\buildrq.bat'
+            }
+        }
+    }
+
     stage('Build UI') {
         withEnv(["PATH=${env.PATH};C:\\Program Files (x86)\\yarn\\bin"]) {
             bat 'path'
@@ -88,7 +142,7 @@ def doBuild() {
 
     
     stage('Invoke SmokeB build') {
-        if (UpdateChannel == "Smoke"){
+        if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI"){
             // Smoke A json
             publish("prerelease.keybase.io/windows-support", 
                 "src\\github.com\\keybase\\client\\packaging\\windows\\${BUILD_TAG}\\update-windows-prod-test-v2.json",
@@ -112,8 +166,9 @@ def doBuild() {
                     string(name: 'ReleaseRevision', value: "${releaseCommit}"),
                     string(name: 'DOKAN_PATH', value: "${DOKAN_PATH}"),
                     string(name: 'UpdateChannel', value: 'Smoke2'),
-                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"
-                )],
+                    string(name: 'SmokeASemVer', value: "${smokeASemVer}"),
+                    string(name: 'SlackBot', value: "${SlackBot}")
+                ],
                 wait: false
             ])
         } else {
@@ -147,12 +202,54 @@ def doBuild() {
     }
 }
 
+def notifySlack(String buildStatus = 'STARTED') {
+    if(SlackBot.toBoolean()) {
+        // Build status of null means success.
+        buildStatus = buildStatus ?: 'SUCCESS'
+        def color
+        def label
+        if (UpdateChannel == "Smoke" || UpdateChannel == "SmokeCI") {
+            label = " SmokeA"
+        } else if (UpdateChannel == "Smoke2") {
+            label = " (SmokeA = ${params.SmokeASemVer}) SmokeB"
+        }
+
+        if (buildStatus == 'STARTED') {
+            color = '#D4DADF'
+        } else if (buildStatus == 'SUCCESS') {
+            def version
+            dir('src\\github.com\\keybase\\client\\go\\keybase') {
+                // Capture keybase's semantic version
+                version = bat(returnStdout: true, script: '@echo off && for /f "tokens=3" %%i in (\'keybase -version\') do echo %%i').trim()
+            }
+            label = "${label} ${version}: "
+            color = '#BDFFC3'
+        } else if (buildStatus == 'UNSTABLE') {
+            color = '#FFFE89'
+        } else {
+            color = '#FF9FA1'
+        }
+
+        def msg = "${buildStatus}: ${label}\n${env.BUILD_URL}"
+
+        helpers.slackMessage("bot", color, msg)
+    }
+}
+
 // Invoke the build with a separate workspace for each executor,
 // and with GOPATH set to that workspace
 node ('windows-release') {
     ws("${WORKSPACE}_${EXECUTOR_NUMBER}") {
         withEnv(["GOPATH=${pwd()}"]) {
-            doBuild()
+            try {
+                notifySlack()
+                doBuild()
+            } catch (e) {
+                currentBuild.result = 'FAILURE'
+                throw e
+            } finally {
+                notifySlack(currentBuild.result)
+            }
         }
     }
 }

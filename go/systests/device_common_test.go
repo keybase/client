@@ -4,6 +4,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -12,9 +16,6 @@ import (
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
-	"io"
-	"testing"
-	"time"
 )
 
 //
@@ -70,7 +71,15 @@ func (t *testUI) OutputWriter() io.Writer {
 	return t
 }
 
+func (t *testUI) UnescapedOutputWriter() io.Writer {
+	return t
+}
+
 func (t *testUI) Printf(f string, args ...interface{}) (int, error) {
+	return t.PrintfUnescaped(f, args...)
+}
+
+func (t *testUI) PrintfUnescaped(f string, args ...interface{}) (int, error) {
 	s := fmt.Sprintf(f, args...)
 	t.G().Log.Debug("Terminal Printf: %s", s)
 	return len(s), nil
@@ -220,6 +229,8 @@ func (s *testDeviceSet) newDevice(nm string) *testDevice {
 	if s.log == nil {
 		s.log = tctx.G.Log
 	}
+
+	installInsecureTriplesec(tctx.G)
 
 	ret := &testDevice{t: s.t, tctx: tctx, deviceName: nm}
 	s.devices = append(s.devices, ret)
@@ -420,6 +431,7 @@ func (s *testDeviceSet) provision(d *testDevice) {
 			}
 		}
 		loginClient = keybase1.LoginClient{Cli: cli}
+		_ = loginClient
 		return nil
 	}
 
@@ -518,7 +530,7 @@ func (d *testDevice) keyTLF(tlf *fakeTLF, uid keybase1.UID, writers []tlfUser, r
 		Args: libkb.HTTPArgs{
 			"tlf_info": libkb.S{Val: string(b)},
 		},
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 	}
 	_, err = g.API.Post(apiArg)
 	if err != nil {

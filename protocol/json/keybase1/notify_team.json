@@ -1,0 +1,137 @@
+{
+  "protocol": "NotifyTeam",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "TeamChangeSet",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "membershipChanged"
+        },
+        {
+          "type": "boolean",
+          "name": "keyRotated"
+        },
+        {
+          "type": "boolean",
+          "name": "renamed"
+        },
+        {
+          "type": "boolean",
+          "name": "misc"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "teamChangedByID": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        },
+        {
+          "name": "latestSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
+        },
+        {
+          "name": "changes",
+          "type": "TeamChangeSet"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamChangedByName": {
+      "request": [
+        {
+          "name": "teamName",
+          "type": "string"
+        },
+        {
+          "name": "latestSeqno",
+          "type": "Seqno"
+        },
+        {
+          "name": "implicitTeam",
+          "type": "boolean"
+        },
+        {
+          "name": "changes",
+          "type": "TeamChangeSet"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamDeleted": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamAbandoned": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "teamExit": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "newlyAddedToTeam": {
+      "request": [
+        {
+          "name": "teamID",
+          "type": "TeamID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "avatarUpdated": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "formats",
+          "type": {
+            "type": "array",
+            "items": "AvatarFormat"
+          }
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

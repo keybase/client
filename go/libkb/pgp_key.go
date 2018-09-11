@@ -59,16 +59,15 @@ type PGPFingerprint [PGPFingerprintLen]byte
 
 func PGPFingerprintFromHex(s string) (*PGPFingerprint, error) {
 	var fp PGPFingerprint
-	n, err := hex.Decode([]byte(fp[:]), []byte(s))
-	var ret *PGPFingerprint
-	if err != nil {
-		// Noop
-	} else if n != PGPFingerprintLen {
-		err = fmt.Errorf("Bad fingerprint; wrong length: %d", n)
-	} else {
-		ret = &fp
+	err := DecodeHexFixed(fp[:], []byte(s))
+	switch err.(type) {
+	case nil:
+		return &fp, nil
+	case HexWrongLengthError:
+		return nil, fmt.Errorf("Bad fingerprint; wrong length: %d", len(s))
+	default:
+		return nil, err
 	}
-	return ret, err
 }
 
 func PGPFingerprintFromSlice(b []byte) (*PGPFingerprint, error) {
@@ -150,8 +149,21 @@ func (k *PGPKeyBundle) FullHash() (string, error) {
 
 // StripRevocations returns a copy of the key with revocations removed
 func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
-	entityCopy := *k.Entity
-	strippedKey = &PGPKeyBundle{Entity: &entityCopy}
+	strippedKey = nil
+	if k.ArmoredPublicKey != "" {
+		// Re-read the key because we want to return a copy, that does
+		// not reference PGPKeyBundle `k` anywhere.
+		strippedKey, _, _ = ReadOneKeyFromString(k.ArmoredPublicKey)
+	}
+
+	if strippedKey == nil {
+		// Either Armored key was not saved or ReadOneKeyFromString
+		// failed. Do old behavior here - we won't have a proper copy
+		// of the key (there is a lot of pointers in the key structs),
+		// but at least we won't have to bail out completely.
+		entityCopy := *k.Entity
+		strippedKey = &PGPKeyBundle{Entity: &entityCopy}
+	}
 
 	strippedKey.Revocations = nil
 
@@ -159,7 +171,7 @@ func (k *PGPKeyBundle) StripRevocations() (strippedKey *PGPKeyBundle) {
 	strippedKey.Subkeys = nil
 	for _, subkey := range oldSubkeys {
 		// Skip revoked subkeys
-		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding {
+		if subkey.Sig.SigType == packet.SigTypeSubkeyBinding && subkey.Revocation == nil {
 			strippedKey.Subkeys = append(strippedKey.Subkeys, subkey)
 		}
 	}
@@ -322,6 +334,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 }
 
 var cleanPGPInputRxx = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
+var bug8612PrepassRxx = regexp.MustCompile(`^(?P<header>-{5}BEGIN PGP (.*?)-{5})(\s*(?P<junk>.+?))$`)
 
 func cleanPGPInput(s string) string {
 	s = strings.TrimSpace(s)
@@ -333,7 +346,44 @@ func cleanPGPInput(s string) string {
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
 func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
+	return readOneKeyFromString(originalArmor, false /* liberal */)
+}
+
+// bug8612Prepass cleans off any garbage trailing the "-----" in the first line of a PGP
+// key. For years, the server allowed this junk through, so some keys on the server side
+// (and hashed into chains) have junk here. It's pretty safe to strip it out when replaying
+// sigchains, so do it.
+func bug8612Prepass(a string) string {
+	idx := strings.Index(a, "\n")
+	if idx < 0 {
+		return a
+	}
+	line0 := a[0:idx]
+	rest := a[idx:]
+	match := bug8612PrepassRxx.FindStringSubmatch(line0)
+	if len(match) == 0 {
+		return a
+	}
+	result := make(map[string]string)
+	for i, name := range bug8612PrepassRxx.SubexpNames() {
+		if i != 0 {
+			result[name] = match[i]
+		}
+	}
+	return result["header"] + rest
+}
+
+// note:  openpgp.ReadArmoredKeyRing only returns the first block.
+// It will never return multiple entities.
+func ReadOneKeyFromStringLiberal(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
+	return readOneKeyFromString(originalArmor, true /* liberal */)
+}
+
+func readOneKeyFromString(originalArmor string, liberal bool) (*PGPKeyBundle, *Warnings, error) {
 	cleanArmor := cleanPGPInput(originalArmor)
+	if liberal {
+		cleanArmor = bug8612Prepass(cleanArmor)
+	}
 	reader := strings.NewReader(cleanArmor)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
 	return finishReadOne(el, originalArmor, err)
@@ -507,8 +557,28 @@ func (k PGPKeyBundle) GetPrimaryUID() string {
 	return s
 }
 
+// HasSecretKey checks if the PGPKeyBundle contains secret key. This
+// function returning true does not indicate that the key is
+// functional - it may also be a key stub.
 func (k *PGPKeyBundle) HasSecretKey() bool {
 	return k.PrivateKey != nil
+}
+
+// FindPGPPrivateKey checks if supposed secret key PGPKeyBundle
+// contains any valid PrivateKey entities. Sometimes primary private
+// key is stoopped out but there are subkeys with secret keys.
+func FindPGPPrivateKey(k *PGPKeyBundle) bool {
+	if k.PrivateKey.PrivateKey != nil {
+		return true
+	}
+
+	for _, subKey := range k.Subkeys {
+		if subKey.PrivateKey != nil && subKey.PrivateKey.PrivateKey != nil {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (k *PGPKeyBundle) CheckSecretKey() (err error) {
@@ -516,7 +586,7 @@ func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
-	} else if k.PrivateKey.PrivateKey == nil && k.GPGFallbackKey == nil {
+	} else if !FindPGPPrivateKey(k) && k.GPGFallbackKey == nil {
 		err = BadKeyError{"no private key material or GPGKey"}
 	}
 	return
@@ -579,8 +649,10 @@ func (k PGPKeyBundle) KeyInfo() (algorithm, kid, creation string) {
 		typ = "DSA"
 	case packet.PubKeyAlgoECDSA:
 		typ = "ECDSA"
+	case packet.PubKeyAlgoEdDSA:
+		typ = "EdDSA"
 	default:
-		typ = "<UNKONWN TYPE>"
+		typ = "<UNKNOWN TYPE>"
 	}
 
 	bl, err := pubkey.BitLength()
@@ -608,6 +680,20 @@ func unlockPrivateKey(k *packet.PrivateKey, pw string) error {
 	return err
 }
 
+func (k *PGPKeyBundle) isAnyKeyEncrypted() bool {
+	if k.PrivateKey.Encrypted {
+		return true
+	}
+
+	for _, subkey := range k.Subkeys {
+		if subkey.PrivateKey.Encrypted {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 	if err := unlockPrivateKey(k.PrivateKey, pw); err != nil {
 		return err
@@ -620,7 +706,11 @@ func (k *PGPKeyBundle) unlockAllPrivateKeys(pw string) error {
 	return nil
 }
 
-func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI) error {
+func (k *PGPKeyBundle) Unlock(m MetaContext, reason string, secretUI SecretUI) error {
+	if !k.isAnyKeyEncrypted() {
+		m.CDebugf("Key is not encrypted, skipping Unlock.")
+		return nil
+	}
 
 	unlocker := func(pw string, _ bool) (ret GenericKey, err error) {
 		if err = k.unlockAllPrivateKeys(pw); err != nil {
@@ -629,15 +719,7 @@ func (k *PGPKeyBundle) Unlock(g *GlobalContext, reason string, secretUI SecretUI
 		return k, nil
 	}
 
-	_, err := KeyUnlocker{
-		Tries:        5,
-		Reason:       reason,
-		KeyDesc:      k.VerboseDescription(),
-		Unlocker:     unlocker,
-		UI:           secretUI,
-		Which:        "the PGP key",
-		Contextified: NewContextified(g),
-	}.Run()
+	_, err := NewKeyUnlocker(5, reason, k.VerboseDescription(), PassphraseTypePGP, false, secretUI, unlocker).Run(m)
 	return err
 }
 
@@ -691,7 +773,7 @@ func (k PGPKeyBundle) VerifyString(ctx VerifyContext, sig string, msg []byte) (i
 
 func IsPGPAlgo(algo AlgoType) bool {
 	switch algo {
-	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase:
+	case KIDPGPRsa, KIDPGPElgamal, KIDPGPDsa, KIDPGPEcdh, KIDPGPEcdsa, KIDPGPBase, KIDPGPEddsa:
 		return true
 	}
 	return false
@@ -722,6 +804,10 @@ func (k *PGPKeyBundle) GetPGPIdentities() []keybase1.PGPIdentity {
 	return ret
 }
 
+// CheckIdentity finds the foo_user@keybase.io PGP identity and figures out when it
+// was created and when it's slated to expire. We plan to start phasing out use of
+// PGP-specified Expiration times as far as sigchain walking is concerned. But for now,
+// there are a few places where it's still used (see ComputedKeyInfos#InsertServerEldestKey).
 func (k *PGPKeyBundle) CheckIdentity(kbid Identity) (match bool, ctime int64, etime int64) {
 	ctime, etime = -1, -1
 	for _, pgpIdentity := range k.Identities {
@@ -797,8 +883,8 @@ func (k *PGPKeyBundle) ExportPublicAndPrivate() (public RawPublicKey, private Ra
 	return RawPublicKey(publicKey.Bytes()), RawPrivateKey(privateKey.Bytes()), nil
 }
 
-func (k *PGPKeyBundle) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-	return nil, KeyCannotEncryptError{}
+func (k *PGPKeyBundle) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
+	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
 //===================================================
@@ -826,3 +912,23 @@ func (p PGPFingerprint) GetProofType() keybase1.ProofType {
 }
 
 //===================================================
+
+func EncryptPGPKey(bundle *openpgp.Entity, passphrase string) error {
+	passBytes := []byte(passphrase)
+
+	if err := bundle.PrivateKey.Encrypt(passBytes, nil); err != nil {
+		return err
+	}
+
+	for _, subkey := range bundle.Subkeys {
+		if subkey.PrivateKey == nil {
+			continue
+		}
+
+		if err := subkey.PrivateKey.Encrypt(passBytes, nil); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

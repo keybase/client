@@ -4,42 +4,98 @@ protocol NotifyChat {
 
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
 
+  enum ChatActivitySource {
+    LOCAL_0,
+    REMOTE_1
+  }
+
   enum ChatActivityType {
     RESERVED_0,
     INCOMING_MESSAGE_1,
     READ_MESSAGE_2,
     NEW_CONVERSATION_3,
     SET_STATUS_4,
-    FAILED_MESSAGE_5
-  } 
-
-  record IncomingMessage {
-    MessageUnboxed message;
-    ConversationID convID;
+    FAILED_MESSAGE_5,
+    MEMBERS_UPDATE_6,
+    SET_APP_NOTIFICATION_SETTINGS_7,
+    TEAMTYPE_8,
+    EXPUNGE_9,
+    EPHEMERAL_PURGE_10,
+    REACTION_UPDATE_11
   }
 
-  record MessageSentInfo {
+  record IncomingMessage {
+    UIMessage message;
     ConversationID convID;
-    RateLimit rateLimit;
-    OutboxID outboxID;
+    boolean displayDesktopNotification;
+    string desktopNotificationSnippet;
+    union { null, InboxUIItem } conv;
+    union { null, UIPagination } pagination;
   }
 
   record ReadMessageInfo {
     ConversationID convID;
     MessageID msgID;
+    union { null, InboxUIItem } conv;
   }
 
   record NewConversationInfo {
-    ConversationLocal conv;
+    ConversationID convID;
+    union { null, InboxUIItem } conv;
   }
 
   record SetStatusInfo {
     ConversationID convID;
     ConversationStatus status;
+    union { null, InboxUIItem } conv;
+  }
+
+  record SetAppNotificationSettingsInfo {
+    ConversationID convID;
+    ConversationNotificationInfo settings;
   }
 
   record FailedMessageInfo {
     array<OutboxRecord> outboxRecords;
+    boolean isEphemeralPurge;
+  }
+
+  record MemberInfo {
+    string member;
+    ConversationMemberStatus status;
+  }
+
+  record MembersUpdateInfo {
+    ConversationID convID;
+    array<MemberInfo> members;
+  }
+
+  record TeamTypeInfo {
+    ConversationID convID;
+    TeamType teamType;
+    union { null, InboxUIItem } conv;
+  }
+
+  record ExpungeInfo {
+    ConversationID convID;
+    Expunge expunge;
+    union { null, InboxUIItem } conv;
+  }
+
+  record EphemeralPurgeNotifInfo {
+    ConversationID convID;
+    array<UIMessage> msgs;
+    union { null, InboxUIItem } conv;
+  }
+
+  record ReactionUpdate {
+    ReactionMap reactions;
+    MessageID targetMsgID;
+  }
+
+  record ReactionUpdateNotif {
+    ConversationID convID;
+    array<ReactionUpdate> reactionUpdates;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -48,11 +104,50 @@ protocol NotifyChat {
     case NEW_CONVERSATION: NewConversationInfo;
     case SET_STATUS: SetStatusInfo;
     case FAILED_MESSAGE: FailedMessageInfo;
+    case MEMBERS_UPDATE: MembersUpdateInfo;
+    case SET_APP_NOTIFICATION_SETTINGS: SetAppNotificationSettingsInfo;
+    case TEAMTYPE: TeamTypeInfo;
+    case EXPUNGE: ExpungeInfo;
+    case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
+    case REACTION_UPDATE: ReactionUpdateNotif;
+  }
+
+  record TyperInfo {
+    keybase1.UID uid;
+    string username;
+    keybase1.DeviceID deviceID;
+    string deviceName;
+    string deviceType;
+  }
+
+  record ConvTypingUpdate {
+    ConversationID convID;
+    array<TyperInfo> typers;
+  }
+
+  enum StaleUpdateType {
+    CLEAR_0,
+    NEWACTIVITY_1
+  }
+
+  record ConversationStaleUpdate {
+    ConversationID convID;
+    StaleUpdateType updateType;
+  }
+
+  record ChatSyncIncrementalInfo {
+    array<UnverifiedInboxUIItem> items;
+  }
+
+  variant ChatSyncResult switch (SyncInboxResType syncType) {
+    case CURRENT: void;
+    case CLEAR: void;
+    case INCREMENTAL: ChatSyncIncrementalInfo;
   }
 
   @notify("")
   @lint("ignore")
-  void NewChatActivity(keybase1.UID uid, ChatActivity activity);
+  void NewChatActivity(keybase1.UID uid, ChatActivity activity, ChatActivitySource source);
 
   @notify("")
   @lint("ignore")
@@ -60,13 +155,78 @@ protocol NotifyChat {
 
   @notify("")
   @lint("ignore")
-  void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo);
+  void ChatTLFFinalize(keybase1.UID uid, ConversationID convID, ConversationFinalizeInfo finalizeInfo,
+    union { null, InboxUIItem } conv);
 
   @notify("")
-  @lint("ignore") 
+  @lint("ignore")
+  void ChatTLFResolve(keybase1.UID uid, ConversationID convID, ConversationResolveInfo resolveInfo);
+
+  @notify("")
+  @lint("ignore")
   void ChatInboxStale(keybase1.UID uid);
 
   @notify("")
   @lint("ignore")
-  void ChatThreadsStale(keybase1.UID uid, array<ConversationID> convIDs);
+  void ChatThreadsStale(keybase1.UID uid, array<ConversationStaleUpdate> updates);
+
+  @notify("")
+  @lint("ignore")
+  void ChatTypingUpdate(array<ConvTypingUpdate> typingUpdates);
+
+  @notify("")
+  @lint("ignore")
+  void ChatJoinedConversation(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatLeftConversation(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatResetConversation(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatInboxSyncStarted(keybase1.UID uid);
+
+  @notify("")
+  @lint("ignore")
+  void ChatInboxSynced(keybase1.UID uid, ChatSyncResult syncRes);
+
+  @notify("")
+  @lint("ignore")
+  void ChatSetConvRetention(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatSetTeamRetention(keybase1.UID uid, keybase1.TeamID teamID, array<InboxUIItem> convs);
+
+  @notify("")
+  @lint("ignore")
+  void ChatSetConvSettings(keybase1.UID uid, ConversationID convID, union { null, InboxUIItem } conv);
+
+  @notify("")
+  @lint("ignore")
+  void ChatSubteamRename(keybase1.UID uid, array<InboxUIItem> convs);
+
+  @notify("")
+  @lint("ignore")
+  void ChatKBFSToImpteamUpgrade(keybase1.UID uid, ConversationID convID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadStart(keybase1.UID uid, ConversationID convID, OutboxID outboxID);
+
+  @notify("")
+  @lint("ignore")
+  void ChatAttachmentUploadProgress(keybase1.UID uid, ConversationID convID, OutboxID outboxID, long bytesComplete, long bytesTotal);
+
+  @notify("")
+  @lint("ignore")
+  void ChatPaymentInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIPaymentInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
 }

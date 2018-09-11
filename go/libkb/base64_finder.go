@@ -11,14 +11,14 @@ import (
 
 type Base64Finder struct {
 	input        string
-	rxx          *regexp.Regexp
 	lines        []string
 	base64blocks []string
 }
 
+var b64FindRE = regexp.MustCompile(`^\s*(([a-zA-Z0-9/+_-]+)(={0,3}))\s*$`)
+
 func NewBase64Finder(i string) *Base64Finder {
-	rxx := regexp.MustCompile(`^\s*(([a-zA-Z0-9/+_-]+)(={0,3}))\s*$`)
-	return &Base64Finder{input: i, rxx: rxx}
+	return &Base64Finder{input: i}
 }
 
 func (s *Base64Finder) split() {
@@ -68,7 +68,7 @@ func (s *Base64Finder) findOne(i int) (string, int) {
 
 	for ; i < l; i++ {
 		line := s.lines[i]
-		match := s.rxx.FindStringSubmatch(line)
+		match := b64FindRE.FindStringSubmatch(line)
 		if match != nil {
 			state = 1
 			parts = append(parts, match[1])
@@ -79,9 +79,9 @@ func (s *Base64Finder) findOne(i int) (string, int) {
 			}
 		} else if state == 1 {
 			break
-		} else {
-			// wait until next time
 		}
+
+		// wait until next time
 	}
 	if i == l {
 		i = -1
@@ -109,8 +109,10 @@ func FindFirstBase64Block(s string) string {
 	return ""
 }
 
+var snipRE = regexp.MustCompile(`(([a-zA-Z0-9/+_-]+)(={0,3}))`)
+
 func FindBase64Snippets(s string) []string {
-	return regexp.MustCompile(`(([a-zA-Z0-9/+_-]+)(={0,3}))`).FindAllString(s, -1)
+	return snipRE.FindAllString(s, -1)
 }
 
 func FindBase64Block(s string, pattern []byte, url bool) bool {

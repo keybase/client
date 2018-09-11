@@ -12,6 +12,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -192,7 +193,9 @@ func PingGregor(g *libkb.GlobalContext) error {
 	opts := rpc.ConnectionOpts{
 		WrapErrorFunc: keybase1.WrapError,
 	}
-	connection := rpc.NewConnectionWithTransport(rpcHandler, transport, keybase1.ErrorUnwrapper{}, g.Log, opts)
+	connection := rpc.NewConnectionWithTransport(rpcHandler, transport,
+		keybase1.ErrorUnwrapper{},
+		logger.LogOutputWithDepthAdder{Logger: g.Log}, opts)
 	select {
 	case err := <-rpcHandler.pingErrors:
 		pingError = fmt.Errorf("Gregor ping FAILED: %s", err.Error())

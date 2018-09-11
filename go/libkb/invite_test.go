@@ -68,8 +68,8 @@ func checkArg(t *testing.T, arg APIArg) {
 	if arg.Endpoint != "send_invitation" {
 		t.Errorf("endpoint: %s, expected send_invitation", arg.Endpoint)
 	}
-	if !arg.NeedSession {
-		t.Errorf("NeedSession false, should be true")
+	if arg.SessionType != APISessionTypeREQUIRED {
+		t.Errorf("SessionType should be APISessionTypeREQUIRED")
 	}
 }
 

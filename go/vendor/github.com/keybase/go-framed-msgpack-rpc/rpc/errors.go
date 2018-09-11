@@ -93,10 +93,10 @@ func NewTypeError(expected, actual interface{}) TypeError {
 }
 
 type CallNotFoundError struct {
-	seqno seqNumber
+	seqno SeqNumber
 }
 
-func newCallNotFoundError(s seqNumber) CallNotFoundError {
+func newCallNotFoundError(s SeqNumber) CallNotFoundError {
 	return CallNotFoundError{seqno: s}
 }
 
@@ -105,7 +105,7 @@ func (c CallNotFoundError) Error() string {
 }
 
 type NilResultError struct {
-	seqno seqNumber
+	seqno SeqNumber
 }
 
 func (c NilResultError) Error() string {
@@ -120,7 +120,7 @@ type RPCDecodeError struct {
 }
 
 func (r RPCDecodeError) Error() string {
-	return fmt.Sprintf("RPC error. type: %d, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
+	return fmt.Sprintf("RPC error. type: %s, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
 }
 
 func newRPCDecodeError(t MethodType, n string, l int, e error) RPCDecodeError {

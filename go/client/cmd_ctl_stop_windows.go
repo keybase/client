@@ -6,12 +6,13 @@
 package client
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
-	"os"
-	"path/filepath"
 )
 
 func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -73,5 +74,6 @@ func (s *CmdCtlStop) doKillKBFS() {
 		// open special "file". Errors not relevant.
 		s.G().Log.Debug("KillKBFS: opening .kbfs_unmount")
 		os.Open(filepath.Join(mountDir, "\\.kbfs_unmount"))
+		libkb.ChangeMountIcon(mountDir, "")
 	}
 }

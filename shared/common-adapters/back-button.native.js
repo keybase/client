@@ -2,15 +2,14 @@
 
 import React, {Component} from 'react'
 import {NativeTouchableWithoutFeedback} from './native-wrappers.native'
+import Badge from './badge'
 import Box from './box'
-import Icon from './icon'
-import {globalStyles} from '../styles'
+import Icon, {castPlatformStyles as iconCastPlatformStyles} from './icon'
+import * as Styles from '../styles'
 import type {Props} from './back-button'
 
-export default class BackButton extends Component {
-  props: Props;
-
-  onClick (event: SyntheticEvent) {
+export default class BackButton extends Component<Props> {
+  onClick(event: SyntheticEvent<>) {
     event && event.preventDefault && event.preventDefault()
     event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {
@@ -18,29 +17,33 @@ export default class BackButton extends Component {
     }
   }
 
-  render () {
+  render() {
     return (
       <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
-        <Box style={{...styles.container, ...this.props.style}} >
-          <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
+        <Box style={Styles.collapseStyles([styles.container, this.props.style])}>
+          <Icon
+            type="iconfont-arrow-left"
+            fontSize={iconFontSize}
+            color={this.props.iconColor}
+            style={iconCastPlatformStyles(styles.arrow)}
+          />
+          {!!this.props.badgeNumber && <Badge badgeNumber={this.props.badgeNumber} />}
         </Box>
       </NativeTouchableWithoutFeedback>
     )
   }
 }
 
-BackButton.propTypes = {
-  onClick: React.PropTypes.func.isRequired,
-  style: React.PropTypes.object,
-}
-
-export const styles = {
+const styles = Styles.styleSheetCreate({
+  arrow: {marginTop: 3, marginRight: -3},
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-  },
-  icon: {
-    fontSize: 24,
     marginRight: 8,
+    padding: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small - 4,
+    paddingRight: Styles.globalMargins.small,
   },
-}
+})
+
+const iconFontSize = 24

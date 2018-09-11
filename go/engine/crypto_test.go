@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"golang.org/x/crypto/nacl/box"
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -31,7 +32,7 @@ func TestCryptoSignED25519(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	ret, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
+	ret, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -56,7 +57,7 @@ func TestCryptoSignToString(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	signature, err := SignToString(tc.G, f, keybase1.SignToStringArg{
+	signature, err := SignToString(context.TODO(), tc.G, f, keybase1.SignToStringArg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -82,12 +83,12 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{}
 	}
-	_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
+	_, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
 		Msg: []byte("test message"),
 	})
 
-	if _, ok := err.(libkb.SelfNotFoundError); !ok {
-		t.Errorf("expected SelfNotFoundError, got %v", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("expected LoginRequiredError, got %v", err)
 	}
 }
 
@@ -103,7 +104,7 @@ func BenchmarkCryptoSignED25519(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		msg := []byte("test message")
-		_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
+		_, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
 			Msg: msg,
 		})
 		if err != nil {
@@ -124,6 +125,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	}
 
 	key, err := GetMySecretKey(
+		context.TODO(),
 		tc.G, f, libkb.DeviceEncryptionKeyType, "test")
 	if err != nil {
 		t.Fatal(err)
@@ -151,7 +153,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 
 	copy(encryptedBytes32[:], encryptedData)
 
-	bytes32, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{
+	bytes32, err := UnboxBytes32(context.TODO(), tc.G, f, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedBytes32,
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
@@ -171,7 +173,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce, PublicKey: peersPublicKey},
 		},
 	}
-	res, err := UnboxBytes32Any(tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +199,7 @@ func TestCryptoUnboxBytes32DecryptionError(t *testing.T) {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
 
-	_, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{})
+	_, err := UnboxBytes32(context.TODO(), tc.G, f, keybase1.UnboxBytes32Arg{})
 	if _, ok := err.(libkb.DecryptionError); !ok {
 		t.Errorf("expected libkb.DecryptionError, got %T", err)
 	}
@@ -212,22 +214,15 @@ func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 	f := func() libkb.SecretUI {
 		return &libkb.TestSecretUI{}
 	}
-	_, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{})
+	_, err := UnboxBytes32(context.TODO(), tc.G, f, keybase1.UnboxBytes32Arg{})
 
-	if _, ok := err.(libkb.SelfNotFoundError); !ok {
-		t.Errorf("expected SelfNotFoundError, got %v", err)
+	if _, ok := err.(libkb.LoginRequiredError); !ok {
+		t.Errorf("expected LoginRequiredError, got %v", err)
 	}
 }
 
 func cachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) (key libkb.GenericKey, err error) {
-	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
-		key, err = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: ktype})
-	}, "cachedSecretKey")
-
-	if aerr != nil {
-		return nil, aerr
-	}
-	return key, err
+	return tc.G.ActiveDevice.KeyByType(ktype)
 }
 
 func assertCachedSecretKey(tc libkb.TestContext, ktype libkb.SecretKeyType) {
@@ -280,7 +275,7 @@ func TestCachedSecretKey(t *testing.T) {
 	}
 
 	msg := []byte("test message")
-	_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
+	_, err := SignED25519(context.TODO(), tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -308,18 +303,18 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	u := CreateAndSignupFakeUser(tc, "fu")
 
 	// create a paper key and cache it
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		LoginUI:  &libkb.TestLoginUI{},
 		SecretUI: u.NewSecretUI(),
 	}
 	peng := NewPaperKey(tc.G)
-	if err := RunEngine(peng, ctx); err != nil {
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, peng); err != nil {
 		t.Fatal(err)
 	}
-	err := tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.SetUnlockedPaperKey(peng.SigKey(), peng.EncKey())
-	}, "TestCryptoUnboxBytes32AnyPaper")
+
+	m.ActiveDevice().CacheProvisioningKey(m, libkb.NewDeviceWithKeysOnly(peng.SigKey(), peng.EncKey()))
 
 	key := peng.EncKey()
 	kp, ok := key.(libkb.NaclDHKeyPair)
@@ -352,7 +347,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		return u.NewSecretUI()
 	}
 
-	_, err = UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{
+	_, err = UnboxBytes32(context.TODO(), tc.G, f, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedBytes32,
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
@@ -373,7 +368,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		},
 		PromptPaper: true,
 	}
-	res, err := UnboxBytes32Any(tc.G, f, arg)
+	res, err := UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -385,9 +380,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 	}
 
 	// clear the paper key cache to test getting a paper key via UI
-	err = tc.G.LoginState().Account(func(a *libkb.Account) {
-		a.ClearCachedSecretKeys()
-	}, "TestCryptoUnboxBytes32AnyPaper")
+	clearCaches(tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -399,7 +392,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		return secretUI
 	}
 
-	res, err = UnboxBytes32Any(tc.G, f, arg)
+	res, err = UnboxBytes32Any(NewMetaContextForTest(tc), f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}

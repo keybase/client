@@ -25,7 +25,8 @@
         "FILE_CREATED_7",
         "FILE_MODIFIED_8",
         "FILE_DELETED_9",
-        "FILE_RENAMED_10"
+        "FILE_RENAMED_10",
+        "INITIALIZED_11"
       ]
     },
     {
@@ -43,17 +44,16 @@
         "OLD_VERSION_8",
         "OVER_QUOTA_9",
         "NO_SIG_CHAIN_10",
-        "TOO_MANY_FOLDERS_11"
+        "TOO_MANY_FOLDERS_11",
+        "EXDEV_NOT_SUPPORTED_12",
+        "DISK_LIMIT_REACHED_13",
+        "DISK_CACHE_ERROR_LOG_SEND_14"
       ]
     },
     {
       "type": "record",
       "name": "FSNotification",
       "fields": [
-        {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
-        },
         {
           "type": "string",
           "name": "filename"
@@ -89,6 +89,10 @@
         {
           "type": "Time",
           "name": "localTime"
+        },
+        {
+          "type": "FolderType",
+          "name": "folderType"
         }
       ]
     },
@@ -108,6 +112,62 @@
     },
     {
       "type": "record",
+      "name": "FSFolderWriterEdit",
+      "fields": [
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "FSNotificationType",
+          "name": "notificationType"
+        },
+        {
+          "type": "Time",
+          "name": "serverTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSFolderWriterEditHistory",
+      "fields": [
+        {
+          "type": "string",
+          "name": "writerName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSFolderWriterEdit"
+          },
+          "name": "edits"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSFolderEditHistory",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "Time",
+          "name": "serverTime"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FSFolderWriterEditHistory"
+          },
+          "name": "history"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "FSSyncStatusRequest",
       "fields": [
         {
@@ -121,8 +181,8 @@
       "name": "FSPathSyncStatus",
       "fields": [
         {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
+          "type": "FolderType",
+          "name": "folderType"
         },
         {
           "type": "string",
@@ -151,15 +211,18 @@
           "name": "totalSyncingBytes"
         },
         {
-          "type": "int64",
-          "name": "totalSyncingOps"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "FSPathSyncStatus"
+            "items": "string"
           },
-          "name": "pathStatuses"
+          "name": "syncingPaths"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "endEstimate"
         }
       ]
     }

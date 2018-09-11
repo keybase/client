@@ -45,65 +45,100 @@ func (e *DeviceAdd) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
+func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner, secret *libkb.Kex2Secret, provisioneeType keybase1.DeviceType) (err error) {
+	sb := secret.Secret()
+	arg := keybase1.DisplayAndPromptSecretArg{
+		Secret:          sb[:],
+		Phrase:          secret.Phrase(),
+		OtherDeviceType: provisioneeType,
+	}
+	for i := 0; i < 10; i++ {
+		receivedSecret, err := m.UIs().ProvisionUI.DisplayAndPromptSecret(m.Ctx(), arg)
+		if err != nil {
+			m.CWarningf("DisplayAndPromptSecret error: %s", err)
+			return err
+		}
+
+		if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
+			m.CDebugf("received secret, adding to provisioner")
+			var ks kex2.Secret
+			copy(ks[:], receivedSecret.Secret)
+			provisioner.AddSecret(ks)
+			return nil
+		}
+
+		if len(receivedSecret.Phrase) > 0 {
+			m.CDebugf("received secret phrase, checking validity")
+			checker := libkb.MakeCheckKex2SecretPhrase(e.G())
+			if !checker.F(receivedSecret.Phrase) {
+				m.CDebugf("secret phrase failed validity check (attempt %d)", i+1)
+				arg.PreviousErr = checker.Hint
+				continue
+			}
+			m.CDebugf("received secret phrase, adding to provisioner")
+			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+			if err != nil {
+				m.CWarningf("NewKex2SecretFromPhrase error: %s", err)
+				return err
+			}
+			provisioner.AddSecret(ks.Secret())
+			return nil
+		}
+
+		if provisioneeType == keybase1.DeviceType_MOBILE {
+			// for mobile provisionee, only displaying the secret so it's
+			// ok/expected that nothing came back
+			m.CDebugf("device add DisplayAndPromptSecret returned empty secret, stopping retry loop")
+			return nil
+		}
+	}
+
+	return libkb.RetryExhaustedError{}
+}
+
 // Run starts the engine.
-func (e *DeviceAdd) Run(ctx *Context) (err error) {
-	e.G().Log.Debug("+ DeviceAdd.Run()")
-	defer func() { e.G().Log.Debug("- DeviceAdd.Run() -> %s", libkb.ErrToOk(err)) }()
+func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DeviceAdd#Run", func() error { return err })()
+
+	e.G().LocalSigchainGuard().Set(m.Ctx(), "DeviceAdd")
+	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "DeviceAdd")
 
 	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_NEW_DEVICE}
-	provisioneeType, err := ctx.ProvisionUI.ChooseDeviceType(context.TODO(), arg)
+	provisioneeType, err := m.UIs().ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("provisionee device type: %v", provisioneeType)
+	m.CDebugf("provisionee device type: %v", provisioneeType)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret()
+	useMobileSecret := provisioneeType == keybase1.DeviceType_MOBILE ||
+		e.G().GetAppType() == libkb.DeviceTypeMobile
+	secret, err := libkb.NewKex2Secret(useMobileSecret)
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("secret phrase received")
+	m.CDebugf("secret phrase received")
 
 	// provisioner needs ppstream, and UI is confusing when it asks for
 	// it at the same time as asking for the secret, so get it first
 	// before prompting for the kex2 secret:
-	pps, err := e.G().LoginState().GetPassphraseStreamStored(ctx.SecretUI)
+	pps, err := libkb.GetPassphraseStreamStored(m)
 	if err != nil {
 		return err
 	}
 
 	// create provisioner engine
-	provisioner := NewKex2Provisioner(e.G(), secret.Secret(), pps)
+	provisioner := NewKex2Provisioner(m.G(), secret.Secret(), pps)
 
 	var canceler func()
-	ctx.NetContext, canceler = context.WithCancel(ctx.NetContext)
+	m, canceler = m.WithContextCancel()
 
 	// display secret and prompt for secret from X in a goroutine:
 	go func() {
-		sb := secret.Secret()
-		arg := keybase1.DisplayAndPromptSecretArg{
-			Secret:          sb[:],
-			Phrase:          secret.Phrase(),
-			OtherDeviceType: provisioneeType,
-		}
-		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(ctx.NetContext, arg)
+		err := e.promptLoop(m, provisioner, secret, provisioneeType)
 		if err != nil {
-			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+			m.CDebugf("DeviceAdd prompt loop error: %s", err)
 			canceler()
-		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
-			e.G().Log.Debug("received secret, adding to provisioner")
-			var ks kex2.Secret
-			copy(ks[:], receivedSecret.Secret)
-			provisioner.AddSecret(ks)
-		} else if len(receivedSecret.Phrase) > 0 {
-			e.G().Log.Debug("received secret phrase, adding to provisioner")
-			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
-			if err != nil {
-				e.G().Log.Warning("NewKex2SecretFromPhrase error: %s", err)
-				canceler()
-			} else {
-				provisioner.AddSecret(ks.Secret())
-			}
 		}
 	}()
 
@@ -111,17 +146,14 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 		canceler()
 	}()
 
-	if err := RunEngine(provisioner, ctx); err != nil {
+	if err := RunEngine2(m, provisioner); err != nil {
 		if err == kex2.ErrHelloTimeout {
 			err = libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
 		}
 		return err
 	}
 
-	// provisioning was successful, so the user has changed:
-	e.G().NotifyRouter.HandleKeyfamilyChanged(e.G().Env.GetUID())
-	// TODO: Remove this after kbfs notification change complete
-	e.G().NotifyRouter.HandleUserChanged(e.G().Env.GetUID())
+	m.G().KeyfamilyChanged(m.G().Env.GetUID())
 
 	return nil
 }

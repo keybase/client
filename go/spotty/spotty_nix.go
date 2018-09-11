@@ -21,7 +21,7 @@ func sameFile(ss1 *syscall.Stat_t, fi os.FileInfo) bool {
 }
 
 // Discover which named TTY we have open as FD=0. Will return empty string if nothing
-// was found, and an non-nil error if there was a problem. Will noop on Windows.
+// was found, and a non-nil error if there was a problem. Will noop on Windows.
 func Discover() (string, error) {
 	var sstat syscall.Stat_t
 	if err := syscall.Fstat(0, &sstat); err != nil {

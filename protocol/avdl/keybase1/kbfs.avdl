@@ -22,11 +22,18 @@ protocol kbfs {
   void FSEvent(FSNotification event);
 
   /**
+    kbfs calls this whenever the currently subscribed-to folder (via the
+    SimpleFSList[Recursive call) has been updated.
+        */
+  @lint("ignore")
+  void FSPathUpdate(string path) oneway;
+
+  /**
     kbfs calls this as a response to receiving an FSEditListRequest with a
     given requestID.
         */
   @lint("ignore")
-  void FSEditList(array<FSNotification> edits, int requestID);
+  void FSEditList(FSFolderEditHistory edits, int requestID);
 
   /**
     FSSyncStatus is called by KBFS as a response to receiving an
@@ -41,4 +48,21 @@ protocol kbfs {
         */
   @lint("ignore")
   void FSSyncEvent(FSPathSyncStatus event);
+
+
+  /**
+    createTLF is called by KBFS to associate the tlfID with the given teamID,
+    using the v2 Team-based system.
+   */
+  void createTLF(TeamID teamID, TLFID tlfID);
+
+  record KBFSTeamSettings {
+    TLFID tlfID;
+  }
+
+  /**
+    getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
+  */
+  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
+
 }

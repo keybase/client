@@ -1,35 +1,28 @@
 // @flow
-import {updateDebugConfig, updateReloading} from '../constants/dev'
-import type {State} from '../constants/reducer'
-import type {DebugConfig, DevAction} from '../constants/dev'
+import * as DevGen from '../actions/dev-gen'
+import * as Constants from '../constants/dev'
+import * as Types from '../constants/types/dev'
 
-type DevState = {
-  debugConfig: DebugConfig,
-  hmrReloading: boolean,
-}
+const initialState = Constants.makeState()
 
-const initialState: DevState = {
-  debugConfig: {
-    dumbFilter: '',
-    dumbIndex: 0,
-    dumbFullscreen: false,
-  },
-  hmrReloading: false,
-}
-
-export default function (state: DevState = initialState, action: DevAction): State {
-  if (action.type === updateDebugConfig) {
-    return {
-      ...state,
-      debugConfig: {...state.debugConfig, ...action.payload},
+export default function(state: Types.State = initialState, action: DevGen.Actions) {
+  switch (action.type) {
+    case DevGen.resetStore:
+      return initialState
+    case DevGen.updateDebugConfig: {
+      const {dumbFilter, dumbFullscreen, dumbIndex} = action.payload
+      return state
+        .set('dumbFilter', dumbFilter)
+        .set('dumbFullscreen', dumbFullscreen)
+        .set('dumbIndex', dumbIndex)
     }
+    case DevGen.debugCount:
+      return state.set('debugCount', state.debugCount + 1)
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
+      return state
   }
-
-  if (action.type === updateReloading && !action.error) {
-    return {
-      ...state,
-      reloading: action.payload.reloading,
-    }
-  }
-  return state
 }

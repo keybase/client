@@ -17,6 +17,10 @@
         {
           "name": "username",
           "type": "string"
+        },
+        {
+          "name": "isTracking",
+          "type": "boolean"
         }
       ],
       "response": null,

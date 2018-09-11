@@ -164,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         mScroller.addView(mWebView);
 
         mEditText.setText("");
-        Mobile.Reset();
+        Mobile.reset();
         unloadDemo();
     }
 
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             try {
                 // org.golang.ivy.Mobile was generated using
                 // gomobile bind -javapkg=org.golang.ivy robpike.io/ivy/mobile
-                return Mobile.Eval(expr);  // Gobind-generated method.
+                return Mobile.eval(expr);  // Gobind-generated method.
             } catch (Exception e) {
                 return "error: "+e.getMessage();
             }

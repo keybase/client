@@ -17,7 +17,7 @@ import (
 )
 
 func HasWindows() bool {
-	// We're assuming you aren't using windows remotely.
+	// We're assuming you aren't using Windows remotely.
 	return true
 }
 

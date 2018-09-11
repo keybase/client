@@ -49,12 +49,12 @@ func (e *PGPPurge) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *PGPPurge) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&SaltpackEncrypt{},
+		&SaltpackEncrypt{newKeyfinderHook: NewSaltpackUserKeyfinderAsInterface},
 	}
 }
 
 // Run starts the engine.
-func (e *PGPPurge) Run(ctx *Context) error {
+func (e *PGPPurge) Run(m libkb.MetaContext) error {
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
 	if err != nil {
 		return err
@@ -62,33 +62,27 @@ func (e *PGPPurge) Run(ctx *Context) error {
 	e.me = me
 
 	// get all PGP blocks in keyring
-	var blocks []*libkb.SKB
-	kerr := e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
-		blocks, err = ring.AllPGPBlocks()
-	}, "AllPGPBlocks")
-	if kerr != nil {
-		return kerr
+	ring, err := m.ActiveDevice().Keyring(m)
+	if err != nil {
+		return err
 	}
+	blocks, err := ring.AllPGPBlocks()
 	if err != nil {
 		return err
 	}
 
 	// export each one to a file
-	if err := e.exportBlocks(ctx, blocks); err != nil {
+	if err := e.exportBlocks(m, blocks); err != nil {
 		return err
 	}
 
 	if e.arg.DoPurge {
 		// if purge flag set, remove all PGP blocks from keyring and save it
-		kerr = e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
-			err = ring.RemoveAllPGPBlocks()
-			if err == nil {
-				err = ring.Save()
-			}
-		}, "RemoveAllPGPBlocks")
-		if kerr != nil {
-			return kerr
+		err = ring.RemoveAllPGPBlocks()
+		if err != nil {
+			return err
 		}
+		err = ring.Save()
 		if err != nil {
 			return err
 		}
@@ -102,16 +96,16 @@ func (e *PGPPurge) KeyFiles() []string {
 	return e.filenames
 }
 
-func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
+func (e *PGPPurge) exportBlocks(m libkb.MetaContext, blocks []*libkb.SKB) error {
 	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
-		SecretUI: ctx.SecretUI,
+		SecretUI: m.UIs().SecretUI,
 		Reason:   "export private PGP key",
 	}
 
 	for i, block := range blocks {
 		block.SetUID(e.me.GetUID())
-		key, err := block.PromptAndUnlock(promptArg, sstore, e.me)
+		key, err := block.PromptAndUnlock(m, promptArg, sstore, e.me)
 		if err != nil {
 			return err
 		}
@@ -123,7 +117,7 @@ func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
 
 		name := fmt.Sprintf("kb-%04d-%s.saltpack", i, pgpKey.GetFingerprint())
 		path := filepath.Join(e.G().Env.GetConfigDir(), name)
-		if err := e.encryptToFile(ctx, pgpKey, path); err != nil {
+		if err := e.encryptToFile(m, pgpKey, path); err != nil {
 			return err
 		}
 
@@ -133,7 +127,11 @@ func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
 	return nil
 }
 
-func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filename string) error {
+func (e *PGPPurge) isPaperEncryptionKey(key *keybase1.PublicKeyV2NaCl, deviceKeys *(map[keybase1.KID]keybase1.PublicKeyV2NaCl)) bool {
+	return libkb.KIDIsDeviceEncrypt(key.Base.Kid) && key.Parent != nil && (*deviceKeys)[*key.Parent].DeviceType == libkb.DeviceTypePaper
+}
+
+func (e *PGPPurge) encryptToFile(m libkb.MetaContext, bundle *libkb.PGPKeyBundle, filename string) error {
 	out, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -145,14 +143,18 @@ func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filen
 		return err
 	}
 
+	// encrypt
 	arg := &SaltpackEncryptArg{
 		Source: &buf,
 		Sink:   out,
+		Opts: keybase1.SaltpackEncryptOptions{
+			Recipients:       []string{m.CurrentUsername().String()},
+			AuthenticityType: keybase1.AuthenticityType_SIGNED,
+			UsePaperKeys:     true,
+			UseDeviceKeys:    true,
+			UseEntityKeys:    true,
+		},
 	}
-	eng := NewSaltpackEncrypt(arg, e.G())
-	if err := RunEngine(eng, ctx); err != nil {
-		return err
-	}
-
-	return nil
+	eng := NewSaltpackEncrypt(arg, NewSaltpackUserKeyfinderAsInterface)
+	return RunEngine2(m, eng)
 }

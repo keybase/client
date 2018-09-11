@@ -1,112 +1,59 @@
 // @flow
-import * as CommonConstants from '../constants/common'
+import * as I from 'immutable'
+import * as UnlockFoldersGen from '../actions/unlock-folders-gen'
 import * as Constants from '../constants/unlock-folders'
-import {toDeviceType} from '../constants/types/more'
+import * as Types from '../constants/types/unlock-folders'
+import * as DeviceTypes from '../constants/types/devices'
 
-import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
+const initialState = Constants.makeState()
 
-export type State = {
-  started: boolean,
-  closed: boolean,
-  phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
-  devices: ?Array<Device>,
-  waiting: boolean,
-  paperkeyError: ?string,
-  sessionID: ?number,
-}
-
-const initialState: State = {
-  started: false,
-  closed: true,
-  phase: 'dead',
-  waiting: false,
-  devices: null,
-  paperkeyError: null,
-  sessionID: null,
-}
-
-export default function (state: State = initialState, action: UnlockFolderActions): State {
+export default function(state: Types.State = initialState, action: UnlockFoldersGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {
-        ...initialState,
-        started: state.started,
-      }
-
-    case Constants.close:
-      return {
-        ...state,
-        closed: true,
-      }
-    case Constants.waiting:
+    case UnlockFoldersGen.resetStore:
+      return initialState
+    case UnlockFoldersGen.closeDone:
+      return state.set('popupOpen', false)
+    case UnlockFoldersGen.waiting: {
+      const {waiting} = action.payload
+      return state.set('waiting', waiting)
+    }
+    case UnlockFoldersGen.onBackFromPaperKey:
+      return state.set('paperkeyError', '').set('phase', 'promptOtherDevice')
+    case UnlockFoldersGen.toPaperKeyInput:
+      return state.set('phase', 'paperKeyInput')
+    case UnlockFoldersGen.checkPaperKeyDone:
       if (action.error) {
-        return state
+        return state.set('paperkeyError', action.payload.error)
       }
-
-      return {
-        ...state,
-        waiting: action.payload,
-      }
-
-    case Constants.onBackFromPaperKey:
-      return {
-        ...state,
-        phase: 'promptOtherDevice',
-        paperkeyError: '',
-      }
-
-    case Constants.toPaperKeyInput:
-      return {
-        ...state,
-        phase: 'paperKeyInput',
-      }
-    case Constants.checkPaperKey:
-      if (action.error) {
-        return {
-          ...state,
-          paperkeyError: action.payload.error,
-        }
-      } else {
-        return {
-          ...state,
-          phase: 'success',
-        }
-      }
-    case Constants.finish:
-      return {
-        ...state,
-        phase: 'dead',
-        closed: true,
-      }
-
-    case Constants.registerRekeyListener:
-      if (action.payload && action.payload.started) {
-        return {
-          ...state,
-          started: true,
-        }
-      } else {
-        return state
-      }
-    case Constants.newRekeyPopup:
-      if (state.started && action.payload) {
-        const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          type: toDeviceType(type),
-          name,
-          deviceID,
-        }))
-
-        return {
-          ...state,
-          devices,
-          closed: !devices.length,
-          sessionID: action.payload.sessionID,
-        }
-      }
+      return state.set('phase', 'success')
+    case UnlockFoldersGen.finish:
+      return state.set('popupOpen', false).set('phase', 'dead')
+    case UnlockFoldersGen.newRekeyPopup: {
+      const devices = I.List(
+        action.payload.devices.map(({name, type, deviceID}) =>
+          Constants.makeDevice({
+            deviceID,
+            name,
+            type: DeviceTypes.stringToDeviceType(type),
+          })
+        )
+      )
+      return state.merge({
+        devices: devices,
+        popupOpen: !!devices.count(),
+        sessionID: action.payload.sessionID,
+      })
+    }
+    // Saga only actions
+    case UnlockFoldersGen.checkPaperKey:
+    case UnlockFoldersGen.closePopup:
+    case UnlockFoldersGen.openPopup:
       return state
-
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
 }
-

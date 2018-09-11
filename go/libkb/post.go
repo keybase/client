@@ -19,6 +19,7 @@ type PostProofRes struct {
 
 type PostProofArg struct {
 	Sig            string
+	SigInner       []byte
 	ID             keybase1.SigID
 	RemoteUsername string
 	ProofType      string
@@ -27,7 +28,7 @@ type PostProofArg struct {
 	SigningKey     GenericKey
 }
 
-func PostProof(arg PostProofArg) (*PostProofRes, error) {
+func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	hargs := HTTPArgs{
 		"sig_id_base":     S{arg.ID.ToString(false)},
 		"sig_id_short":    S{arg.ID.ToShortID()},
@@ -37,12 +38,16 @@ func PostProof(arg PostProofArg) (*PostProofRes, error) {
 		"signing_kid":     S{arg.SigningKey.GetKID().String()},
 		"type":            S{arg.ProofType},
 	}
+	if len(arg.SigInner) > 0 {
+		hargs["sig_inner"] = S{string(arg.SigInner)}
+	}
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
-	res, err := G.API.Post(APIArg{
+	res, err := m.G().API.Post(APIArg{
 		Endpoint:    "sig/post",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args:        hargs,
+		MetaContext: m,
 	})
 
 	if err != nil {
@@ -75,16 +80,17 @@ type PostAuthProofRes struct {
 	PPGen     int    `json:"passphrase_generation"`
 }
 
-func PostAuthProof(arg PostAuthProofArg) (*PostAuthProofRes, error) {
+func PostAuthProof(m MetaContext, arg PostAuthProofArg) (*PostAuthProofRes, error) {
 	hargs := HTTPArgs{
 		"uid":         UIDArg(arg.uid),
 		"sig":         S{arg.sig},
 		"signing_kid": S{arg.key.GetKID().String()},
 	}
-	res, err := G.API.Post(APIArg{
+	res, err := m.G().API.Post(APIArg{
 		Endpoint:    "sig/post_auth",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args:        hargs,
+		MetaContext: m,
 	})
 	if err != nil {
 		return nil, err
@@ -103,37 +109,40 @@ type InviteRequestArg struct {
 	Notes    string
 }
 
-func PostInviteRequest(arg InviteRequestArg) (err error) {
-	_, err = G.API.Post(APIArg{
+func PostInviteRequest(m MetaContext, arg InviteRequestArg) (err error) {
+	_, err = m.G().API.Post(APIArg{
 		Endpoint: "invitation_request",
 		Args: HTTPArgs{
 			"email":     S{arg.Email},
 			"full_name": S{arg.Fullname},
 			"notes":     S{arg.Notes},
 		},
+		MetaContext: m,
 	})
 	return err
 }
 
-func DeletePrimary() (err error) {
-	_, err = G.API.Post(APIArg{
+func DeletePrimary(m MetaContext) (err error) {
+	_, err = m.G().API.Post(APIArg{
 		Endpoint:    "key/revoke",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"revoke_primary":  I{1},
 			"revocation_type": I{RevSimpleDelete},
 		},
+		MetaContext: m,
 	})
 	return
 }
 
-func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := G.API.Post(APIArg{
+func CheckPosted(m MetaContext, proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := m.G().API.Post(APIArg{
 		Endpoint:    "sig/posted",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"proof_id": S{proofID},
 		},
+		MetaContext: m,
 	})
 	if e2 != nil {
 		err = e2
@@ -151,13 +160,14 @@ func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
-	res, e2 := G.API.Post(APIArg{
+func CheckPostedViaSigID(m MetaContext, sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
+	res, e2 := m.G().API.Post(APIArg{
 		Endpoint:    "sig/posted",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"sig_id": S{sigID.ToString(true)},
 		},
+		MetaContext: m,
 	})
 	if e2 != nil {
 		err = e2
@@ -176,19 +186,20 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
+func PostDeviceLKS(m MetaContext, deviceID keybase1.DeviceID, deviceType string, serverHalf LKSecServerHalf,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
+	m.CDebugf("| PostDeviceLKS: %s", deviceID)
 	if serverHalf.IsNil() {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
-		g.Log.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		m.CWarningf("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
 	arg := APIArg{
 		Endpoint:    "device/update",
-		NeedSession: true,
+		SessionType: APISessionTypeREQUIRED,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},
@@ -196,21 +207,41 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 			"ppgen":           I{Val: int(ppGen)},
 			"lks_client_half": S{Val: clientHalfRecovery},
 			"kid":             S{Val: clientHalfRecoveryKID.String()},
+			"platform":        S{Val: GetPlatformString()},
 		},
-		SessionR: sr,
+		RetryCount:  10,
+		MetaContext: m,
 	}
-	_, err := g.API.Post(arg)
+	_, err := m.G().API.Post(arg)
+	if err != nil {
+		m.CInfof("device/update(%+v) failed: %s", arg.Args, err)
+	}
 	return err
 }
 
-func CheckInvitationCode(code string) error {
+func CheckInvitationCode(m MetaContext, code string) error {
 	arg := APIArg{
 		Endpoint:    "invitation/check",
-		NeedSession: false,
+		SessionType: APISessionTypeNONE,
 		Args: HTTPArgs{
 			"invitation_id": S{Val: code},
 		},
+		MetaContext: m,
 	}
-	_, err := G.API.Get(arg)
+	_, err := m.G().API.Get(arg)
 	return err
+}
+
+func GetInvitationCode(m MetaContext) (string, error) {
+	arg := APIArg{
+		Endpoint:    "invitation_bypass_request",
+		SessionType: APISessionTypeNONE,
+		MetaContext: m,
+	}
+	res, err := m.G().API.Get(arg)
+	var invitationID string
+	if err == nil {
+		invitationID, err = res.Body.AtKey("invitation_id").GetString()
+	}
+	return invitationID, err
 }

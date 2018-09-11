@@ -30,8 +30,8 @@ func (e InternalError) Message() string {
 	return e.Msg
 }
 
-func NewInternalError(d utils.DebugLabeler, msg string, args ...interface{}) InternalError {
-	d.Debug(context.Background(), "internal chat storage error: "+msg, args...)
+func NewInternalError(ctx context.Context, d utils.DebugLabeler, msg string, args ...interface{}) InternalError {
+	d.Debug(ctx, "internal chat storage error: "+msg, args...)
 	return InternalError{Msg: fmt.Sprintf(msg, args...)}
 }
 
@@ -102,9 +102,37 @@ func (e VersionMismatchError) Error() string {
 }
 
 func (e VersionMismatchError) ShouldClear() bool {
-	return true
+	return false
 }
 
 func (e VersionMismatchError) Message() string {
 	return e.Error()
+}
+
+type AbortedError struct{}
+
+func NewAbortedError() AbortedError {
+	return AbortedError{}
+}
+
+func (e AbortedError) Error() string {
+	return "request aborted"
+}
+
+func (e AbortedError) ShouldClear() bool {
+	return false
+}
+
+func (e AbortedError) Message() string {
+	return e.Error()
+}
+
+func isAbortedRequest(ctx context.Context) Error {
+	// Check context for aborted request
+	select {
+	case <-ctx.Done():
+		return NewAbortedError()
+	default:
+	}
+	return nil
 }

@@ -16,7 +16,7 @@ type RevokeSigsEngine struct {
 	sigIDQueries []string
 }
 
-func NewRevokeSigsEngine(sigIDQueries []string, g *libkb.GlobalContext) *RevokeSigsEngine {
+func NewRevokeSigsEngine(g *libkb.GlobalContext, sigIDQueries []string) *RevokeSigsEngine {
 	return &RevokeSigsEngine{
 		sigIDQueries: sigIDQueries,
 		Contextified: libkb.NewContextified(g),
@@ -59,8 +59,11 @@ func (e *RevokeSigsEngine) getSigIDsToRevoke(me *libkb.User) ([]keybase1.SigID, 
 	return ret, nil
 }
 
-func (e *RevokeSigsEngine) Run(ctx *Context) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+func (e *RevokeSigsEngine) Run(m libkb.MetaContext) error {
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "RevokeSigsEngine")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "RevokeSigsEngine")
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m))
 	if err != nil {
 		return err
 	}
@@ -70,18 +73,26 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		return err
 	}
 
+	lease, merkleRoot, err := libkb.RequestDowngradeLeaseBySigIDs(m.Ctx(), m.G(), sigIDsToRevoke)
+	if err != nil {
+		return err
+	}
+
 	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke a signature"))
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(m, m.SecretKeyPromptArg(ska, "to revoke a signature"))
+	if err != nil {
+		return err
+	}
 	if sigKey == nil {
 		return fmt.Errorf("Revocation signing key is nil.")
 	}
 	if err = sigKey.CheckSecretKey(); err != nil {
 		return err
 	}
-	proof, err := me.RevokeSigsProof(sigKey, sigIDsToRevoke)
+	proof, err := me.RevokeSigsProof(m, sigKey, sigIDsToRevoke, merkleRoot)
 	if err != nil {
 		return err
 	}
@@ -90,13 +101,15 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		return err
 	}
 	kid := sigKey.GetKID()
-	_, err = e.G().API.Post(libkb.APIArg{
+	_, err = m.G().API.Post(libkb.APIArg{
 		Endpoint:    "sig/revoke",
-		NeedSession: true,
+		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"signing_kid": libkb.S{Val: kid.String()},
-			"sig":         libkb.S{Val: sig},
+			"signing_kid":        libkb.S{Val: kid.String()},
+			"sig":                libkb.S{Val: sig},
+			"downgrade_lease_id": libkb.S{Val: string(lease.LeaseID)},
 		},
+		NetContext: m.Ctx(),
 	})
 	if err != nil {
 		return err

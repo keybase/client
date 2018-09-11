@@ -84,6 +84,23 @@ protocol identifyUi {
     boolean breaksTracking;
   }
 
+  record UserTeamShowcase {
+    @jsonkey("fq_name")
+    string fqName;
+    @jsonkey("open")
+    boolean open;
+    @jsonkey("team_is_showcased")
+    boolean teamIsShowcased;
+    @jsonkey("description")
+    string description;
+    @jsonkey("role")
+    TeamRole role;
+    @jsonkey("public_admins")
+    array<string> publicAdmins;
+    @jsonkey("num_members")
+    int numMembers;
+  }
+
   record UserCard {
     int following;
     int followers;
@@ -95,12 +112,14 @@ protocol identifyUi {
     string twitter;
     boolean youFollowThem;
     boolean theyFollowYou;
+    array<UserTeamShowcase> teamShowcase;
   }
 
   record ConfirmResult {
     boolean identityConfirmed; // true if the user answers yes to "Is this the user you wanted?"
     boolean remoteConfirmed;   // true if the user answers yes to "Publicly write tracking statement to server?"
-    boolean expiringLocal;   // true if the user answers yes to "Expire local tracking statement after X?"
+    boolean expiringLocal;    // true if the user answers yes to "Expire local tracking statement after X?"
+    boolean autoConfirmed;    // true if autoconfirmed
   }
 
   enum DismissReasonType {

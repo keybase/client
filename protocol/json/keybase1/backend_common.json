@@ -8,6 +8,15 @@
   ],
   "types": [
     {
+      "type": "enum",
+      "name": "BlockType",
+      "symbols": [
+        "DATA_0",
+        "MD_1",
+        "GIT_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "BlockIdCombo",
       "fields": [
@@ -16,8 +25,12 @@
           "name": "blockHash"
         },
         {
-          "type": "UID",
+          "type": "UserOrTeamID",
           "name": "chargedTo"
+        },
+        {
+          "type": "BlockType",
+          "name": "blockType"
         }
       ],
       "lint": "ignore"

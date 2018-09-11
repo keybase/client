@@ -4,12 +4,10 @@
 package service
 
 import (
-	"golang.org/x/net/context"
-
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"golang.org/x/net/context"
 )
 
 type CtlHandler struct {
@@ -20,7 +18,7 @@ type CtlHandler struct {
 
 func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlHandler {
 	return &CtlHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 		service:      v,
 	}
@@ -42,28 +40,31 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	return c.G().ConfigReload()
 }
 
-func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
-	ctx := engine.Context{
-		LogUI:     c.getLogUI(sessionID),
-		SessionID: sessionID,
-	}
+func (c *CtlHandler) DbNuke(ctx context.Context, sessionID int) error {
+	logui := c.getLogUI(sessionID)
 
 	fn, err := c.G().LocalDb.Nuke()
 	if err != nil {
-		ctx.LogUI.Warning("Failed to nuke DB: %s", err)
+		logui.Warning("Failed to nuke DB: %s", err)
 		return err
 	}
-	ctx.LogUI.Warning("Nuking database %s", fn)
+	logui.Warning("Nuking database %s", fn)
 
 	fn, err = c.G().LocalChatDb.Nuke()
 	if err != nil {
-		ctx.LogUI.Warning("Failed to nuke chat DB: %s", err)
+		logui.Warning("Failed to nuke chat DB: %s", err)
 		return err
 	}
-	ctx.LogUI.Warning("Nuking chat database %s", fn)
+	logui.Warning("Nuking chat database %s", fn)
 
+	teamLoader := c.G().GetTeamLoader()
+	if teamLoader != nil {
+		teamLoader.ClearMem()
+	}
 	// Now drop caches, since we had the DB's state in-memory too.
-	return c.G().ConfigureCaches()
+	c.G().FlushCaches()
+	c.service.onDbNuke(ctx)
+	return nil
 }
 
 func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
@@ -89,7 +90,7 @@ func (c *CtlHandler) DbDelete(_ context.Context, arg keybase1.DbDeleteArg) (err 
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbDelete")
-	c.G().ConfigureMemCaches()
+	c.G().FlushCaches()
 
 	return nil
 }
@@ -134,7 +135,7 @@ func (c *CtlHandler) DbPut(_ context.Context, arg keybase1.DbPutArg) (err error)
 	}
 
 	c.G().Log.Debug("Clearing memory caches after DbPut")
-	c.G().ConfigureMemCaches()
+	c.G().FlushCaches()
 
 	return nil
 }

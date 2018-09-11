@@ -1,33 +1,31 @@
 // @flow
-import MenuList from '../settings/menu-list'
-import React from 'react'
-import engine from '../engine'
-import {BackButton, Box} from '../common-adapters'
-import {connect} from 'react-redux'
-import {globalStyles} from '../styles'
-import {logout} from '../actions/login'
-import {navigateAppend, navigateUp} from '../actions/route-tree'
+import * as React from 'react'
+import {BackButton, Box, Text} from '../common-adapters'
+import {connect} from '../util/container'
+import {globalStyles, globalColors} from '../styles'
+import {navigateUp} from '../actions/route-tree'
 
-function DevMenu (props) {
-  const menuItems = [
-    {name: 'Dumb components', hasChildren: true, onClick: props.onDumbSheet},
-    {name: 'Reset engine', onClick: props.onReset},
-    {name: 'Sign Out', onClick: props.onSignOut},
-  ]
+function DevMenu(props) {
+  const menuItems = []
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <BackButton onClick={() => props.onBack()} />
-      <MenuList items={menuItems} />
+      <Box>
+        {menuItems.map(m => (
+          <Box
+            key={m.name}
+            onClick={m.onClick}
+            style={{padding: 10, borderBottom: `1px solid ${globalColors.lightGrey}`}}
+          >
+            <Text type="Header">{m.name}</Text>
+          </Box>
+        ))}
+      </Box>
     </Box>
   )
 }
 
-// $FlowIssue
-export default connect(
-  state => ({}),
-  dispatch => ({
-    onReset: () => engine().reset(),
-    onSignOut: () => dispatch(logout()),
-    onBack: () => dispatch(navigateUp()),
-    onDumbSheet: () => dispatch(navigateAppend(['dumbSheet'])),
-  }))(DevMenu)
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(navigateUp()),
+})
+export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(DevMenu)

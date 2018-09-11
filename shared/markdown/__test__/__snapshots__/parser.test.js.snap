@@ -1,0 +1,2071 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Markdown parser Messed up 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`if (var == \\"foo\\")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  echo \\"foo\\";",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "else echo \\"bar\\";\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser Messed up 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think I *missed something**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser does not parses mentions without isValidMention 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @marco",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser eats multiple empty lines at end 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "end",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser eats multiple empty lines at start 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "start",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores mentions in code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "@validmarco",
+          ],
+          "type": "inline-code",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "some inline code @validmarco",
+          ],
+          "type": "inline-code",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores mentions in code 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "@validmarco",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        " ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "this is a code block @validmarco",
+      ],
+      "type": "code-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser ignores short/long mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @a@keybase @0123456789abcdefg@keybase",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser inline code 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think we should try to use ",
+        Object {
+          "children": Array [
+            "if else",
+          ],
+          "type": "inline-code",
+        },
+        " statements",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser inline code not multiline 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`foo",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "bar\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses a line with just whitespace correctly 1`] = `
+Object {
+  "children": Array [],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses a single delimiter correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        ".",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses an empty line correctly 1`] = `
+Object {
+  "children": Array [],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #some_channel ",
+        Object {
+          "children": Array [
+            "valid_channel",
+          ],
+          "convID": "fakeConvID-valid_channel",
+          "type": "channel",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses channels correctly 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there #valid6789012345678901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses chars in the middle of words correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "isnot*bolded* *also*isnotbolded",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "**hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with punctuation as text 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(*hmm**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses double bold with splitting punctuation as single bold 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*(",
+        Object {
+          "children": Array [
+            "hmm",
+          ],
+          "type": "bold",
+        },
+        ")*",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses escaped chars correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I *should* see asterisks",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "valid_channel",
+              ],
+              "convID": "fakeConvID-valid_channel",
+              "type": "channel",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "valid_channel",
+              ],
+              "convID": "fakeConvID-valid_channel",
+              "type": "channel",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _",
+        Object {
+          "children": Array [
+            "valid_channel_",
+          ],
+          "convID": "fakeConvID-valid_channel_",
+          "type": "channel",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted channels 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there _#valid_channel_",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "validmarco",
+              ],
+              "type": "mention",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "validmarco",
+              ],
+              "type": "mention",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "_",
+        Object {
+          "children": Array [
+            "validmarco_",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatted mentions 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "@validmarco",
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses formatting adjacent to punctuation 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "thisis(",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+        ") and(",
+        Object {
+          "children": Array [
+            "italic",
+          ],
+          "type": "italic",
+        },
+        ") and,",
+        Object {
+          "children": Array [
+            "striked",
+          ],
+          "type": "strike",
+        },
+        "! (",
+        Object {
+          "children": Array [
+            "woot",
+          ],
+          "type": "bold",
+        },
+        ") another.",
+        Object {
+          "children": Array [
+            "test",
+          ],
+          "type": "bold",
+        },
+        ".case",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 5`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 6`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`\`\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses incomplete code blocks correctly 7`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "\`\`\`\`\`\`\`",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses inline bold correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "*bold**",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses invalid emoji fragments correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "one::",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "::two",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        ":three?::",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        ":",
+        Object {
+          "children": Array [
+            ":four:",
+          ],
+          "type": "emoji",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "::",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses kitchen sink demo correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "I think we should try to use ",
+        Object {
+          "children": Array [
+            "if else",
+          ],
+          "type": "inline-code",
+        },
+        " statements ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "if (var == \\"foo\\")
+  echo \\"foo\\";
+else echo \\"bar\\";",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        " How about ",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+        " and ",
+        Object {
+          "children": Array [
+            "italic?",
+          ],
+          "type": "italic",
+        },
+        " nice.",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        " Now you are thinking with ",
+        Object {
+          "children": Array [
+            "portals",
+          ],
+          "type": "strike",
+        },
+        " crypto.",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        " how about ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                Object {
+                  "children": Array [
+                    "bold and italic and strike through?",
+                  ],
+                  "type": "bold",
+                },
+              ],
+              "type": "italic",
+            },
+          ],
+          "type": "strike",
+        },
+        " - now - ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "some bold",
+              ],
+              "type": "bold",
+            },
+            " and just italic",
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there @marco ",
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions with underscores correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "ryan_singer",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "m_",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "dan_t",
+          ],
+          "type": "mention",
+        },
+        " ",
+        Object {
+          "children": Array [
+            "a_b_c",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses mentions with underscores correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            "invalid_",
+          ],
+          "type": "mention",
+        },
+        "_name_",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses more code blocks correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "this is a code block",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        "this is a code block that starts with a newline and ends with a newline
+",
+      ],
+      "type": "code-block",
+    },
+    Object {
+      "children": Array [
+        "
+this is a code block with two newline above",
+      ],
+      "type": "code-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses multiple adjacent emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            ":ok_hand::skin-tone-2:",
+          ],
+          "type": "emoji",
+        },
+        Object {
+          "children": Array [
+            ":smile:",
+          ],
+          "type": "emoji",
+        },
+        Object {
+          "children": Array [
+            ":wink:",
+          ],
+          "type": "emoji",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses native emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello there ",
+        Object {
+          "children": Array [
+            ":cherry_blossom:",
+          ],
+          "type": "native-emoji",
+        },
+        Object {
+          "children": Array [
+            ":sunglasses:",
+          ],
+          "type": "native-emoji",
+        },
+        Object {
+          "children": Array [
+            ":+1::skin-tone-5:",
+          ],
+          "type": "native-emoji",
+        },
+        "!",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses native zwj emoji correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            ":woman-kiss-woman:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":woman-woman-girl-girl:",
+          ],
+          "type": "native-emoji",
+        },
+        "!",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses native zwj emoji correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            ":woman-kiss-man:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-girl:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-woman-girl-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":man-man-girl-girl:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":woman-woman-girl-boy:",
+          ],
+          "type": "native-emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":woman-heart-woman:",
+          ],
+          "type": "native-emoji",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses numbers and some symbols emoji 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            ":+1:",
+          ],
+          "type": "emoji",
+        },
+        " ",
+        Object {
+          "children": Array [
+            ":100:",
+          ],
+          "type": "emoji",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "(123) 456-7890",
+          ],
+          "href": "tel:(123) 456-7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "(123) 456 7890",
+          ],
+          "href": "tel:(123) 456 7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "(123)456-7890",
+          ],
+          "href": "tel:(123)456-7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 4`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "(123)456 7890",
+          ],
+          "href": "tel:(123)456 7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 5`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "123-456-7890",
+          ],
+          "href": "tel:123-456-7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 6`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "123-456 7890",
+          ],
+          "href": "tel:123-456 7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 7`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "123 456-7890",
+          ],
+          "href": "tel:123 456-7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 8`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "123 456 7890",
+          ],
+          "href": "tel:123 456 7890",
+          "type": "phone",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 9`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "123 456 78901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 10`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(123) 456 78901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 11`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(123) 456 7890a",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses phone numbers correctly 12`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "12345678901",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses plaintext correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "hello, there! how are you? this shouldn't be markdown.",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "bold",
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 2`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "italic",
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses punctuation then formatting 3`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "(",
+        Object {
+          "children": Array [
+            "validmarco",
+          ],
+          "type": "mention",
+        },
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses quote blocks correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "this is quoted",
+          ],
+          "type": "text-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "this is ",
+            Object {
+              "children": Array [
+                "italics",
+              ],
+              "type": "italic",
+            },
+            " inside of a quote. This is ",
+            Object {
+              "children": Array [
+                "bold",
+              ],
+              "type": "bold",
+            },
+            " inside of a quote.",
+          ],
+          "type": "text-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "outside code: ",
+            Object {
+              "children": Array [
+                "This is an inline block of code in a quote",
+              ],
+              "type": "inline-code",
+            },
+            " outside again",
+          ],
+          "type": "text-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+    Object {
+      "children": Array [
+        Object {
+          "children": Array [
+            "multi
+line
+code in quote
+",
+          ],
+          "type": "code-block",
+        },
+      ],
+      "type": "quote-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser parses urls correctly 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "Ignore:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    a...b,",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ftp://blah.com,",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    gopher://blah.com,",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    mailto:blah@blah.com",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    nytimes.json",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    keybase.diamond",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  Include:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://keybase.io/",
+          ],
+          "href": "http://keybase.io/",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/~test",
+              ],
+              "href": "http://keybase.io/~test",
+              "type": "link",
+            },
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
+          ],
+          "type": "italic",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io",
+              ],
+              "href": "http://keybase.io",
+              "type": "link",
+            },
+          ],
+          "type": "strike",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://keybase.io",
+          ],
+          "type": "inline-code",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "https://keybase.io",
+          ],
+          "href": "https://keybase.io",
+          "type": "link",
+        },
+        ")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "https://keybase.io",
+          ],
+          "href": "https://keybase.io",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "HTTP://cnn.com",
+          ],
+          "href": "HTTP://cnn.com",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://twitter.com",
+          ],
+          "href": "http://twitter.com",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://t.co",
+          ],
+          "href": "http://t.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "t.co",
+          ],
+          "href": "http://t.co",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.diamonds",
+          ],
+          "href": "http://keybase.diamonds",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "10.0.0.24",
+          ],
+          "href": "http://10.0.0.24",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "google.com",
+          ],
+          "href": "http://google.com",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/a/user/lookup?one=1&two=2",
+          ],
+          "href": "http://keybase.io/a/user/lookup?one=1&two=2",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/a/user/path_with_underscore",
+          ],
+          "href": "http://keybase.io/a/user/path_with_underscore",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io?blah=true",
+          ],
+          "href": "http://keybase.io?blah=true",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/~user/cool",
+          ],
+          "href": "http://keybase.io/~user/cool",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "http://keybase.io/blah/../up-one/index.html",
+          ],
+          "href": "http://keybase.io/blah/../up-one/index.html",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/)(,)?=56,78,910@123",
+          ],
+          "href": "http://keybase.io/)(,)?=56,78,910@123",
+          "type": "link",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io/().@:hello",
+          ],
+          "href": "http://keybase.io/().@:hello",
+          "type": "link",
+        },
+        "*",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  These should have the trailing punctuation outside the link:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "amazon.co.uk",
+          ],
+          "href": "http://amazon.co.uk",
+          "type": "link",
+        },
+        ".",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        ",",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        ".",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        "?",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        ")",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/",
+              ],
+              "href": "http://keybase.io/",
+              "type": "link",
+            },
+          ],
+          "type": "bold",
+        },
+        ".",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ",
+        Object {
+          "children": Array [
+            Object {
+              "children": Array [
+                "http://keybase.io/",
+              ],
+              "href": "http://keybase.io/",
+              "type": "link",
+            },
+            "~_",
+          ],
+          "type": "bold",
+        },
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "  These should have only the matching brackets removed from them:",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    (",
+        Object {
+          "children": Array [
+            "https://en.wikipedia.org/wiki/Redshirt_(character",
+          ],
+          "href": "https://en.wikipedia.org/wiki/Redshirt_(character",
+          "type": "link",
+        },
+        "))",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ([(",
+        Object {
+          "children": Array [
+            "https://en.wikipedia.org/wiki/Redshirt_(character",
+          ],
+          "href": "https://en.wikipedia.org/wiki/Redshirt_(character",
+          "type": "link",
+        },
+        "))])",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "    ([",
+        Object {
+          "children": Array [
+            "keybase.io",
+          ],
+          "href": "http://keybase.io",
+          "type": "link",
+        },
+        "])",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;
+
+exports[`Markdown parser preserves multiple empty lines 1`] = `
+Object {
+  "children": Array [
+    Object {
+      "children": Array [
+        "be",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "   ",
+      ],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [],
+      "type": "text-block",
+    },
+    Object {
+      "children": Array [
+        "tween",
+      ],
+      "type": "text-block",
+    },
+  ],
+  "type": "markup",
+}
+`;

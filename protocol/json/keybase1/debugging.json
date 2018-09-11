@@ -52,6 +52,22 @@
         }
       ],
       "response": "int"
+    },
+    "script": {
+      "request": [
+        {
+          "name": "script",
+          "type": "string"
+        },
+        {
+          "name": "args",
+          "type": {
+            "type": "array",
+            "items": "string"
+          }
+        }
+      ],
+      "response": "string"
     }
   },
   "namespace": "keybase.1"

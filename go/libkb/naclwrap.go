@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/agl/ed25519"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -23,7 +23,7 @@ type NaclSigInfo struct {
 	Kid      keybase1.BinaryKID `codec:"key"`
 	Payload  []byte             `codec:"payload,omitempty"`
 	Sig      NaclSignature      `codec:"sig"`
-	SigType  int                `codec:"sig_type"`
+	SigType  AlgoType           `codec:"sig_type"`
 	HashType int                `codec:"hash_type"`
 	Detached bool               `codec:"detached"`
 	Version  int                `codec:"version,omitempty"`
@@ -31,11 +31,11 @@ type NaclSigInfo struct {
 }
 
 type NaclEncryptionInfo struct {
-	Ciphertext     []byte `codec:"ciphertext"`
-	EncryptionType int    `codec:"enc_type"`
-	Nonce          []byte `codec:"nonce"`
-	Receiver       []byte `codec:"receiver_key"`
-	Sender         []byte `codec:"sender_key"`
+	Ciphertext     []byte   `codec:"ciphertext"`
+	EncryptionType AlgoType `codec:"enc_type"`
+	Nonce          []byte   `codec:"nonce"`
+	Receiver       []byte   `codec:"receiver_key"`
+	Sender         []byte   `codec:"sender_key"`
 }
 
 const NaclDHKeysize = 32
@@ -49,15 +49,19 @@ const NaclDHKeySecretSize = 32
 // Todo: Ideally, box would specify nonce size
 const NaclDHNonceSize = 24
 
+const NaclSecretBoxKeySize = 32
+
 type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
 type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
 
 func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
-	return (*NaclSignature)(ed25519.Sign((*[ed25519.PrivateKeySize]byte)(&k), msg))
+	var sig NaclSignature
+	copy(sig[:], ed25519.Sign(k[:], msg))
+	return &sig
 }
 
 func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
-	return ed25519.Verify((*[ed25519.PublicKeySize]byte)(&k), msg, (*[ed25519.SignatureSize]byte)(sig))
+	return ed25519.Verify(k[:], msg, sig[:])
 }
 
 type NaclSigningKeyPair struct {
@@ -75,7 +79,23 @@ type NaclDHKeyPair struct {
 	Private *NaclDHKeyPrivate
 }
 
+func (k NaclDHKeyPair) Clone() (ret NaclDHKeyPair) {
+	ret.Public = k.Public
+	if k.Private != nil {
+		tmp := *k.Private
+		ret.Private = &tmp
+	}
+	return ret
+}
+
 var _ GenericKey = NaclDHKeyPair{}
+
+type NaclSecretBoxKey [NaclSecretBoxKeySize]byte
+
+func (k NaclSecretBoxKey) IsZero() bool {
+	var z NaclSecretBoxKey
+	return hmac.Equal(k[:], z[:])
+}
 
 func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 	kid := keybase1.KIDFromString(s)
@@ -146,6 +166,18 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 		err = BadKeyError{fmt.Sprintf("Bad key prefix: %d", kid[1])}
 	}
 	return
+}
+
+func ImportDHKeypairFromKID(k keybase1.KID) (*NaclDHKeyPair, error) {
+	genericKey, err := ImportKeypairFromKID(k)
+	if err != nil {
+		return nil, err
+	}
+	naclKey, ok := genericKey.(NaclDHKeyPair)
+	if !ok {
+		return nil, fmt.Errorf("expected NaclDHKeyPair, got %T", genericKey)
+	}
+	return &naclKey, nil
 }
 
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
@@ -311,11 +343,14 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 	return
 }
 
-func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-	return nil, KeyCannotEncryptError{}
+func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
+	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
 type SignaturePrefix string
+
+const encryptionReasonMinLength = 8
+
 type EncryptionReason string
 
 func (p SignaturePrefix) hasNullByte() bool {
@@ -481,6 +516,16 @@ func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
 	return &ret
 }
 
+func EncryptionKIDToPublicKeyBytes(bk []byte) ([]byte, error) {
+	if len(bk) != 3+NaclDHKeysize {
+		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong length)")
+	}
+	if bk[0] != byte(KeybaseKIDV1) || bk[1] != byte(KIDNaclDH) || bk[len(bk)-1] != byte(IDSuffixKID) {
+		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong type)")
+	}
+	return bk[2 : len(bk)-1], nil
+}
+
 func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 	key := KIDToNaclSigningKeyPublic(s.Kid)
 	if key == nil {
@@ -516,13 +561,20 @@ func (k NaclDHKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, er
 }
 
 func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
-	pub, priv, err := ed25519.GenerateKey(reader)
+	publicKey, privateKey, err := ed25519.GenerateKey(reader)
 	if err != nil {
 		return NaclSigningKeyPair{}, err
 	}
+
+	var publicArray NaclSigningKeyPublic
+	var privateArray NaclSigningKeyPrivate
+
+	copy(publicArray[:], publicKey)
+	copy(privateArray[:], privateKey)
+
 	return NaclSigningKeyPair{
-		Public:  *pub,
-		Private: (*NaclSigningKeyPrivate)(priv),
+		Public:  publicArray,
+		Private: &privateArray,
 	}, nil
 }
 
@@ -544,6 +596,15 @@ func MakeNaclSigningKeyPairFromSecret(secret [NaclSigningKeySecretSize]byte) (Na
 	return kp, err
 }
 
+func MakeNaclSigningKeyPairFromSecretBytes(secret []byte) (NaclSigningKeyPair, error) {
+	if len(secret) != NaclSigningKeySecretSize {
+		return NaclSigningKeyPair{}, fmt.Errorf("Bad NaCl signing key size: %d", len(secret))
+	}
+	var fixed [NaclSigningKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclSigningKeyPairFromSecret(fixed)
+}
+
 func GenerateNaclSigningKeyPair() (NaclSigningKeyPair, error) {
 	return makeNaclSigningKeyPair(rand.Reader)
 }
@@ -557,6 +618,15 @@ func makeNaclDHKeyPair(reader io.Reader) (NaclDHKeyPair, error) {
 		Public:  *pub,
 		Private: (*NaclDHKeyPrivate)(priv),
 	}, nil
+}
+
+func MakeNaclDHKeyPairFromSecretBytes(secret []byte) (NaclDHKeyPair, error) {
+	if len(secret) != NaclDHKeySecretSize {
+		return NaclDHKeyPair{}, fmt.Errorf("Bad NaCl DH key size: %d", len(secret))
+	}
+	var fixed [NaclDHKeySecretSize]byte
+	copy(fixed[:], secret)
+	return MakeNaclDHKeyPairFromSecret(fixed)
 }
 
 // MakeNaclDHKeyPairFromSecret makes a DH key pair given a secret. Of
@@ -585,28 +655,40 @@ func KbOpenSig(armored string) ([]byte, error) {
 	return base64.StdEncoding.DecodeString(armored)
 }
 
-func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
+func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
 	var byt []byte
 	var packet *KeybasePacket
 	var sig *NaclSigInfo
 	var ok bool
 
 	if byt, err = KbOpenSig(armored); err != nil {
-		return
+		return nil, kid, sigID, err
 	}
 
 	if packet, err = DecodePacket(byt); err != nil {
-		return
+		return nil, kid, sigID, err
 	}
 	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
 		err = UnmarshalError{"NaCl Signature"}
-		return
-	}
-	if !FastByteArrayEq(expected, sig.Payload) {
-		err = BadSigError{"wrong payload"}
+		return nil, kid, sigID, err
 	}
 	sigID = ComputeSigIDFromSigBody(byt)
-	return
+	kid = sig.Kid.ToKID()
+	payload = sig.Payload
+	return payload, kid, sigID, nil
+}
+
+func SigAssertKbPayload(armored string, expected []byte) (sigID keybase1.SigID, err error) {
+	var payload []byte
+	nilSigID := keybase1.SigID("")
+	payload, _, sigID, err = SigExtractKbPayloadAndKID(armored)
+	if err != nil {
+		return nilSigID, err
+	}
+	if !FastByteArrayEq(expected, payload) {
+		return nilSigID, BadSigError{"wrong payload"}
+	}
+	return sigID, nil
 }
 
 // EncryptToString fails for this type of key.
@@ -638,7 +720,12 @@ func (k NaclDHKeyPair) IsNil() bool {
 	return bytes.Equal(k.Public[:], empty[:])
 }
 
-// Encrypt a message for the given sender.  If sender is nil, an ephemeral
+func (k NaclSigningKeyPair) IsNil() bool {
+	var empty NaclSigningKeyPublic
+	return bytes.Equal(k.Public[:], empty[:])
+}
+
+// Encrypt a message to the key `k` from the given `sender`. If sender is nil, an ephemeral
 // keypair will be invented
 func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncryptionInfo, error) {
 	if sender == nil {
@@ -691,20 +778,83 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 	return PacketArmoredEncode(info)
 }
 
-func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) ([]byte, error) {
-
+func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
 	if !k.CanDecrypt() {
-		return nil, NoSecretKeyError{}
+		return NaclSecretBoxKey{}, NoSecretKeyError{}
 	}
+
+	return deriveSymmetricKeyFromAsymmetric(*k.Private, reason)
+}
+
+// Derive a symmetric key using HMAC(k, reason).
+// Suitable for deriving from an asymmetric encryption key.
+// For deriving from a shared encryption key, this output is too close
+// to something that might be used as a public authenticator.
+func deriveSymmetricKeyFromAsymmetric(inKey NaclDHKeyPrivate, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	var outKey = [32]byte{}
+	if len(reason) < encryptionReasonMinLength {
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, inKey[:])
+	_, err := mac.Write(reason.Bytes())
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
+}
+
+// Derive a symmetric key.
+// Uses HMAC(key=reason, data=key)
+// Note the message and data are swapped as inputs to HMAC because that is less
+// likely to be accidentally used for another purpose such as authentication.
+func DeriveSymmetricKey(inKey NaclSecretBoxKey, reason EncryptionReason) (NaclSecretBoxKey, error) {
+	var outKey = [32]byte{}
+	if len(reason) < encryptionReasonMinLength {
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
+	}
+
+	mac := hmac.New(sha256.New, []byte(reason))
+	_, err := mac.Write(inKey[:])
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
+
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
+}
+
+// Derive a key from another.
+// Uses HMAC(key=key, data=reason)
+// Not to be confused with DeriveSymmetricKey which has hmac inputs swapped.
+// This one makes sense for derivation from secrets used only to derive from.
+func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err error) {
 	if len(reason) < 8 {
-		return nil, KeyGenError{Msg: "reason must be at least 8 bytes"}
+		return outKey, KeyGenError{Msg: "reason must be at least 8 bytes"}
 	}
 
-	mac := hmac.New(sha256.New, k.Private[:])
-	mac.Write(reason.Bytes())
-	symmetricKey := mac.Sum(nil)
+	mac := hmac.New(sha256.New, inKey[:])
+	_, err = mac.Write([]byte(reason))
+	if err != nil {
+		return outKey, err
+	}
+	out := mac.Sum(nil)
 
-	return symmetricKey, nil
+	if copy(outKey[:], out) != len(outKey) {
+		return outKey, KeyGenError{Msg: "derived key of wrong size"}
+	}
+
+	return outKey, nil
 }
 
 // ToPacket implements the Packetable interface.
@@ -773,4 +923,24 @@ func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sende
 	}
 	sender = senderDH.GetKID()
 	return
+}
+
+func GeneratePerUserKeySeed() (res PerUserKeySeed, err error) {
+	bs, err := RandBytes(32)
+	if err != nil {
+		return res, err
+	}
+	seed := PerUserKeySeed(MakeByte32(bs))
+	return seed, nil
+}
+
+func RandomNaclDHNonce() (nonce [NaclDHNonceSize]byte, err error) {
+	nRead, err := rand.Read(nonce[:])
+	if err != nil {
+		return nonce, err
+	}
+	if nRead != NaclDHNonceSize {
+		return nonce, fmt.Errorf("Short random read: %d", nRead)
+	}
+	return nonce, nil
 }

@@ -102,6 +102,9 @@ func FromRefNum(num int32) *Ref {
 func (r *Ref) Bind_IncNum() int32 {
 	refnum := r.Bind_Num
 	IncForeignRef(refnum)
+	// Make sure this reference is not finalized before
+	// the foreign reference count is incremented.
+	runtime.KeepAlive(r)
 	return refnum
 }
 

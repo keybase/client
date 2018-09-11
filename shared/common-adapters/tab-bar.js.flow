@@ -1,21 +1,9 @@
 // @flow
-import Avatar from './avatar'
-import {Component} from 'react'
-import type {Exact} from '../constants/types/more'
+import * as React from 'react'
 import type {IconType} from './icon'
 
-export type Props = Exact<{
-  style?: ?Object,
-  styleTabBar?: Object,
-  children?: Array<React$Element<ItemProps>>,
-  tabBarOnBottom?: boolean,
-  underlined?: boolean,
-}>
-
-export default class TabBar extends Component<void, Props, void> { }
-
-export type ItemProps = Exact<{
-  tabBarButton?: React$Element<*>,
+export type ItemProps = {|
+  tabBarButton?: React.Node,
   label?: string,
   selected: boolean,
   selectedColor?: string,
@@ -23,27 +11,47 @@ export type ItemProps = Exact<{
   onPress?: void,
   style?: Object,
   styleContainer?: Object,
-  children?: React$Element<*>,
+  children?: React.Node,
   onBottom?: boolean,
   underlined?: boolean,
-}>
+|}
 
-export class TabBarItem extends Component<void, ItemProps, void> { }
+export type Props = {|
+  style?: ?Object,
+  styleTabBar?: Object,
+  children?: Array<React.Element<React.ComponentType<ItemProps>>>,
+  tabBarOnBottom?: boolean,
+  underlined?: boolean,
+|}
 
-export type TabBarButtonSource = {type: 'icon', icon: IconType} | {type: 'avatar', avatar: React$Element<*>} | {type: 'nav', icon: IconType}
+export default class TabBar extends React.Component<Props> {}
 
-export type TabBarButtonProps = Exact<{
+export class TabBarItem extends React.Component<ItemProps> {}
+
+export type TabBarButtonSource =
+  | {type: 'icon', icon: IconType}
+  | {type: 'avatar', username: ?string}
+  | {type: 'nav', icon: IconType}
+
+export type TabBadgePosition = 'top-right'
+
+export type TabBarButtonProps = {|
+  className?: string,
+  underlined?: ?boolean,
+  isNav?: boolean,
   selected: boolean,
   onClick?: () => void,
   source: TabBarButtonSource,
   label?: string,
   badgeNumber?: ?number,
+  badgePosition?: TabBadgePosition,
   style?: Object,
-  styleContainer?: Object,
-  styleBadge?: Object,
-  styleIcon?: Object,
-  styleBadgeNumber?: Object,
-  styleLabel?: Object,
-}>
+  styleContainer?: any,
+  styleBadge?: any,
+  styleBadgeContainer?: any,
+  styleIcon?: any,
+  styleBadgeNumber?: any,
+  styleLabel?: any,
+|}
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+export class TabBarButton extends React.Component<TabBarButtonProps> {}

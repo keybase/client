@@ -1,98 +1,69 @@
 // @flow
-import React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
-import {Box, Badge, ClickableBox, Text} from '../../common-adapters'
-import {
-  landingTab,
-  invitationsTab,
-  notificationsTab,
-  deleteMeTab,
-  devMenuTab,
-} from '../../constants/settings'
+import * as React from 'react'
+import * as Constants from '../../constants/settings'
+import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import {Box} from '../../common-adapters'
+import SettingsItem from './settings-item'
 
-import type {Props, SettingsItem as SettingsItemType} from './index'
+import type {Props} from './index'
 
-export function SettingsItem ({text, selected, onClick, badgeNumber}: SettingsItemType) {
+function SettingsNav(props: Props) {
   return (
-    <ClickableBox onClick={onClick} style={selected ? selectedStyle : itemStyle}>
-      <Text type={'BodySmallSemibold'} style={selected ? selectedTextStyle : itemTextStyle}>{text}</Text>
-      {!!badgeNumber && badgeNumber > 0 && <Badge badgeStyle={badgeStyle} badgeNumber={badgeNumber} />}
-    </ClickableBox>
-  )
-}
-
-function SettingsNav ({badgeNumbers, selectedTab, onTabChange}: Props) {
-  return (
-    <Box style={styleNavBox}>
+    <Box style={styles.container}>
       <SettingsItem
-        text='Your Account'
-        selected={selectedTab === landingTab}
-        badgeNumber={badgeNumbers[landingTab]}
-        onClick={() => onTabChange(landingTab)}
+        text="Your account"
+        selected={props.selectedTab === Constants.landingTab}
+        onClick={() => props.onTabChange(Constants.landingTab)}
       />
       <SettingsItem
-        text='Invitations'
-        selected={selectedTab === invitationsTab}
-        badgeNumber={badgeNumbers[invitationsTab]}
-        onClick={() => onTabChange(invitationsTab)}
+        text="Invitations"
+        selected={props.selectedTab === Constants.invitationsTab}
+        onClick={() => props.onTabChange(Constants.invitationsTab)}
       />
       <SettingsItem
-        text='Notifications'
-        selected={selectedTab === notificationsTab}
-        badgeNumber={badgeNumbers[notificationsTab]}
-        onClick={() => onTabChange(notificationsTab)}
+        text="Notifications"
+        selected={props.selectedTab === Constants.notificationsTab}
+        onClick={() => props.onTabChange(Constants.notificationsTab)}
       />
       <SettingsItem
-        text='Delete Me'
-        selected={selectedTab === deleteMeTab}
-        badgeNumber={badgeNumbers[deleteMeTab]}
-        onClick={() => onTabChange(deleteMeTab)}
+        text="Advanced"
+        selected={props.selectedTab === Constants.advancedTab}
+        onClick={() => props.onTabChange(Constants.advancedTab)}
       />
-      {__DEV__ &&
+      <SettingsItem
+        text="Files"
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
+      />
+      <SettingsItem
+        text="Delete me"
+        selected={props.selectedTab === Constants.deleteMeTab}
+        onClick={() => props.onTabChange(Constants.deleteMeTab)}
+      />
+      <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
+      {__DEV__ && (
         <SettingsItem
-          text='😎 &nbsp; Dev Menu'
-          selected={selectedTab === devMenuTab}
-          onClick={() => onTabChange(devMenuTab)}
+          text="😎 &nbsp; Dev Menu"
+          selected={props.selectedTab === Constants.devMenuTab}
+          onClick={() => props.onTabChange(Constants.devMenuTab)}
         />
-      }
+      )}
     </Box>
   )
 }
 
-const styleNavBox = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  borderRight: '1px solid ' + globalColors.black_05,
-  width: 144,
-}
-
-const itemStyle = {
-  ...globalStyles.flexBoxRow,
-  height: 32,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  alignItems: 'center',
-  position: 'relative',
-  textTransform: 'uppercase',
-}
-
-const selectedStyle = {
-  ...itemStyle,
-  borderLeft: '3px solid ' + globalColors.blue,
-}
-
-const itemTextStyle = {
-  color: globalColors.black_60,
-}
-
-const selectedTextStyle = {
-  color: globalColors.black_75,
-}
-
-const badgeStyle = {
-  marginRight: 0,
-  marginLeft: 4,
-  marginTop: 2,
-}
+const styles = styleSheetCreate({
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      backgroundColor: globalColors.white,
+      paddingTop: globalMargins.small,
+      width: 160,
+    },
+    isElectron: {
+      borderRight: `1px solid ${globalColors.black_10}`,
+    },
+  }),
+})
 
 export default SettingsNav

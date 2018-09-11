@@ -11,6 +11,7 @@ protocol gpgUi {
 
   boolean wantToAddGPGKey(int sessionID);
   boolean confirmDuplicateKeyChosen(int sessionID);
+  boolean confirmImportSecretToExistingKey(int sessionID);
   SelectKeyRes selectKeyAndPushOption(int sessionID, array<GPGKey> keys);
   string selectKey(int sessionID, array<GPGKey> keys);
   string sign(bytes msg, bytes fingerprint);

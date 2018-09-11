@@ -1,102 +1,117 @@
 // @flow
-/*
- * File to stash local debug changes to. Never check this in with changes
- */
+import {jsonDebugFileName} from './constants/platform.desktop'
+import {noop} from 'lodash-es'
 
-import * as Tabs from './constants/tabs'
-import {updateConfig} from './command-line.desktop.js'
+// Set this to true if you want to turn off most console logging so you can profile easier
+const PERF = false
 
-let config: {[key: string]: any} = {
-  actionStatFrequency: 0,
-  closureStoreCheck: false,
-  devStoreChangingFunctions: false,
-  enableActionLogging: true,
-  enableStoreLogging: false,
-  forceMainWindowPosition: null,
-  forwardLogs: true,
-  ignoreDisconnectOverlay: false,
-  initialTabState: {},
-  isTesting: false,
-  logStatFrequency: 0,
-  overrideLoggedInTab: null,
-  printOutstandingRPCs: false,
-  printRPC: false,
-  printRoutes: false,
-  reactPerf: false,
-  redirectOnLogout: true,
-  reduxDevToolsEnable: false,
-  reduxDevToolsSelect: state => state, // only watch a subset of the store
-  resetEngineOnHMR: false,
-  showAllTrackers: false,
-  showDevTools: false,
-  skipSecondaryDevtools: true,
+let config = {
+  allowMultipleInstances: false, // Multiple instances of the app
+  enableActionLogging: true, // Log actions to the log
+  enableStoreLogging: false, // Log full store changes
+  featureFlagsOverride: null, // Override feature flags
+  filterActionLogs: null, // Filter actions in log
+  forceImmediateLogging: false, // Don't wait for idle to log
+  ignoreDisconnectOverlay: false, // Let you use the app even in a disconnected state
+  immediateStateLogging: false, // Don't wait for idle to log state
+  isDevApplePushToken: false,
+  isTesting: __STORYBOOK__, // Is running a unit test
+  printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
+  printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
+  printRPC: false, // Print rpc traffic
+  printRPCBytes: false, // Print raw bytes going over the wire
+  printRPCStats: false, // Print more detailed stats about rpcs
+  printRPCWaitingSession: false, // session / waiting info
+  reduxSagaLogger: false, // Print saga debug info
+  reduxSagaLoggerMasked: true, // Print saga debug info masked out
+  showDevTools: false, // Show devtools on start
+  skipAppFocusActions: false, // dont emit actions when going foreground/background, helpful while working on other actions stuff
+  skipSecondaryDevtools: true, // Don't show devtools for menubar/trackers etc
+  userTimings: false, // Add user timings api to timeline in chrome
 }
 
-if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.actionStatFrequency = 0.8
-  config.devStoreChangingFunctions = true
+// Developer settings
+if (__DEV__) {
+  config.allowMultipleInstances = true
   config.enableActionLogging = false
   config.enableStoreLogging = true
-  config.forwardLogs = false
-  config.logStatFrequency = 0.8
-  config.overrideLoggedInTab = Tabs.settingsTab
+  config.filterActionLogs = null // '^chat|entity'
   config.printOutstandingRPCs = true
+  config.printOutstandingTimerListeners = true
   config.printRPC = true
-  config.printRoutes = true
-  config.redirectOnLogout = false
-
-  const envJson = envVarDebugJson()
-  config = {...config, ...envJson}
+  config.printRPCWaitingSession = false
+  config.printRPCStats = true
+  config.reduxSagaLogger = false
+  config.reduxSagaLoggerMasked = false
+  config.userTimings = true
 }
 
-config = updateConfig(config)
+// Load overrides from a local json file
+if (!__STORYBOOK__) {
+  const fs = require('fs')
+  if (fs.existsSync(jsonDebugFileName)) {
+    try {
+      const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
+      console.log('Loaded', jsonDebugFileName, pathJson)
+      config = {...config, ...pathJson}
+    } catch (e) {
+      console.warn('Invalid local debug file')
+    }
+  }
+}
 
-if (__DEV__ && process.env.KEYBASE_PERF) {
-  config.actionStatFrequency = 0
-  config.devStoreChangingFunctions = false
+// If performance testing
+if (PERF) {
+  console.warn('\n\n\nlocal debug PERF is ONNNNNn!!!!!1!!!11!!!!\nAll console.logs disabled!\n\n\n')
+
+  // Flow (correctly) doesn't like assigning to console
+  const c: any = console
+
+  c._log = console.log
+  c._warn = console.warn
+  c._error = console.error
+  c._info = console.info
+
+  c.log = noop
+  c.warn = noop
+  c.error = noop
+  c.info = noop
+
   config.enableActionLogging = false
   config.enableStoreLogging = false
-  config.forwardLogs = false
-  config.logStatFrequency = 0
-  config.overrideLoggedInTab = Tabs.settingsTab
+  config.filterActionLogs = null
+  config.forceImmediateLogging = false
+  config.ignoreDisconnectOverlay = false
+  config.immediateStateLogging = false
   config.printOutstandingRPCs = false
+  config.printOutstandingTimerListeners = false
   config.printRPC = false
-  config.printRoutes = false
-  config.redirectOnLogout = false
+  config.reduxSagaLogger = false
+  config.reduxSagaLoggerMasked = false
+  config.userTimings = true
 }
 
 export const {
-  actionStatFrequency,
-  closureStoreCheck,
-  devStoreChangingFunctions,
+  allowMultipleInstances,
   enableActionLogging,
   enableStoreLogging,
-  forceMainWindowPosition,
-  forwardLogs,
+  featureFlagsOverride,
+  filterActionLogs,
+  forceImmediateLogging,
   ignoreDisconnectOverlay,
+  isDevApplePushToken,
+  immediateStateLogging,
   isTesting,
-  logStatFrequency,
-  overrideLoggedInTab,
   printOutstandingRPCs,
+  printOutstandingTimerListeners,
   printRPC,
-  printRoutes,
-  reactPerf,
-  reduxDevToolsEnable,
-  reduxDevToolsSelect,
-  resetEngineOnHMR,
-  showAllTrackers,
+  printRPCBytes,
+  printRPCWaitingSession,
+  printRPCStats,
+  reduxSagaLogger,
+  reduxSagaLoggerMasked,
   showDevTools,
+  skipAppFocusActions,
   skipSecondaryDevtools,
+  userTimings,
 } = config
-
-export function envVarDebugJson () {
-  if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
-    try {
-      return JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
-    } catch (e) {
-      console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
-    }
-  }
-
-  return null
-}

@@ -4,13 +4,10 @@
 package engine
 
 import (
-	"io"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
+	"io"
 )
 
 // SaltpackVerify is an engine.
@@ -28,7 +25,7 @@ type SaltpackVerifyArg struct {
 }
 
 // NewSaltpackVerify creates a SaltpackVerify engine.
-func NewSaltpackVerify(arg *SaltpackVerifyArg, g *libkb.GlobalContext) *SaltpackVerify {
+func NewSaltpackVerify(g *libkb.GlobalContext, arg *SaltpackVerifyArg) *SaltpackVerify {
 	return &SaltpackVerify{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
@@ -58,29 +55,29 @@ func (e *SaltpackVerify) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *SaltpackVerify) Run(ctx *Context) error {
+func (e *SaltpackVerify) Run(m libkb.MetaContext) error {
 	if len(e.arg.Opts.Signature) > 0 {
-		return e.detached(ctx)
+		return e.detached(m)
 	}
-	return e.attached(ctx)
+	return e.attached(m)
 }
 
-func (e *SaltpackVerify) attached(ctx *Context) error {
+func (e *SaltpackVerify) attached(m libkb.MetaContext) error {
 	hook := func(key saltpack.SigningPublicKey) error {
-		return e.identifySender(ctx, key)
+		return e.identifySender(m, key)
 	}
-	return libkb.SaltpackVerify(e.G(), e.arg.Source, e.arg.Sink, hook)
+	return libkb.SaltpackVerify(m.G(), e.arg.Source, e.arg.Sink, hook)
 }
 
-func (e *SaltpackVerify) detached(ctx *Context) error {
+func (e *SaltpackVerify) detached(m libkb.MetaContext) error {
 	hook := func(key saltpack.SigningPublicKey) error {
-		return e.identifySender(ctx, key)
+		return e.identifySender(m, key)
 	}
-	return libkb.SaltpackVerifyDetached(e.G(), e.arg.Source, e.arg.Opts.Signature, hook)
+	return libkb.SaltpackVerifyDetached(m.G(), e.arg.Source, e.arg.Opts.Signature, hook)
 }
 
-func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublicKey) (err error) {
-	defer e.G().Trace("SaltpackVerify::identifySender", func() error { return err })()
+func (e *SaltpackVerify) identifySender(m libkb.MetaContext, key saltpack.SigningPublicKey) (err error) {
+	defer m.CTrace("SaltpackVerify#identifySender", func() error { return err })()
 
 	kid := libkb.SigningPublicKeyToKeybaseKID(key)
 	spsiArg := SaltpackSenderIdentifyArg{
@@ -92,8 +89,8 @@ func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 		userAssertion: e.arg.Opts.SignedBy,
 	}
 
-	spsiEng := NewSaltpackSenderIdentify(e.G(), &spsiArg)
-	if err = RunEngine(spsiEng, ctx); err != nil {
+	spsiEng := NewSaltpackSenderIdentify(m.G(), &spsiArg)
+	if err = RunEngine2(m, spsiEng); err != nil {
 		return err
 	}
 
@@ -102,7 +99,7 @@ func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 			Sender:     spsiEng.Result(),
 			SigningKID: kid,
 		}
-		return ctx.SaltpackUI.SaltpackVerifySuccess(context.TODO(), arg)
+		return m.UIs().SaltpackUI.SaltpackVerifySuccess(m.Ctx(), arg)
 	}
 
 	arg := keybase1.SaltpackVerifyBadSenderArg{
@@ -110,7 +107,7 @@ func (e *SaltpackVerify) identifySender(ctx *Context, key saltpack.SigningPublic
 		SigningKID: kid,
 	}
 	// This will return an error if --force is not given.
-	return ctx.SaltpackUI.SaltpackVerifyBadSender(context.TODO(), arg)
+	return m.UIs().SaltpackUI.SaltpackVerifyBadSender(m.Ctx(), arg)
 }
 
 func senderTypeIsSuccessful(senderType keybase1.SaltpackSenderType) bool {

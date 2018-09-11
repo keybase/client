@@ -4,8 +4,8 @@
 package libkb
 
 import (
-	// "fmt"
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"sort"
 	"testing"
@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	testvectors "github.com/keybase/keybase-test-vectors/go"
+	"github.com/stretchr/testify/require"
 )
 
 // Returns a map from error name strings to sets of Go error types. If a test
@@ -67,17 +68,46 @@ func getErrorTypesMap() map[string]map[reflect.Type]bool {
 		"WRONG_PREV": {
 			reflect.TypeOf(ChainLinkPrevHashMismatchError{}): true,
 		},
+		"BAD_CHAIN_LINK": {
+			reflect.TypeOf(ChainLinkError{}): true,
+		},
+		"CHAIN_LINK_STUBBED_UNSUPPORTED": {
+			reflect.TypeOf(ChainLinkStubbedUnsupportedError{}): true,
+		},
+		"SIGCHAIN_V2_STUBBED_SIGNATURE_NEEDED": {
+			reflect.TypeOf(SigchainV2StubbedSignatureNeededError{}): true,
+		},
+		"SIGCHAIN_V2_STUBBED_FIRST_LINK": {
+			reflect.TypeOf(SigchainV2StubbedFirstLinkError{}): true,
+		},
+		"SIGCHAIN_V2_MISMATCHED_FIELD": {
+			reflect.TypeOf(SigchainV2MismatchedFieldError{}): true,
+		},
+		"SIGCHAIN_V2_MISMATCHED_HASH": {
+			reflect.TypeOf(SigchainV2MismatchedHashError{}): true,
+		},
+		"WRONG_PER_USER_KEY_REVERSE_SIG": {
+			reflect.TypeOf(ReverseSigError{}): true,
+		},
 	}
+}
+
+type subchainSummary struct {
+	EldestSeqno keybase1.Seqno `json:"eldest_seqno"`
+	Sibkeys     int            `json:"sibkeys"`
+	Subkeys     int            `json:"subkeys"`
 }
 
 // One of the test cases from the JSON list of all tests.
 type TestCase struct {
-	Input   string `json:"input"`
-	Len     int    `json:"len"`
-	Sibkeys int    `json:"sibkeys"`
-	Subkeys int    `json:"subkeys"`
-	ErrType string `json:"err_type"`
-	Eldest  string `json:"eldest"`
+	Input         string            `json:"input"`
+	Len           int               `json:"len"`
+	Sibkeys       int               `json:"sibkeys"`
+	Subkeys       int               `json:"subkeys"`
+	ErrType       string            `json:"err_type"`
+	Eldest        string            `json:"eldest"`
+	EldestSeqno   *keybase1.Seqno   `json:"eldest_seqno,omitempty"`
+	PrevSubchains []subchainSummary `json:"previous_subchains,omitempty"`
 }
 
 // The JSON list of all test cases.
@@ -86,7 +116,7 @@ type TestList struct {
 	ErrorTypes []string            `json:"error_types"`
 }
 
-// The input data for a single test. Each tests has its own input JSON file.
+// The input data for a single test. Each test has its own input JSON file.
 type TestInput struct {
 	// We omit the "chain" member here, because we need it in blob form.
 	Username  string            `json:"username"`
@@ -101,7 +131,8 @@ func TestAllChains(t *testing.T) {
 	defer tc.Cleanup()
 
 	var testList TestList
-	json.Unmarshal([]byte(testvectors.ChainTests), &testList)
+	err := json.Unmarshal([]byte(testvectors.ChainTests), &testList)
+	require.NoError(t, err, "failed to unmarshal the chain tests")
 	// Always do the tests in alphabetical order.
 	testNames := []string{}
 	for name := range testList.Tests {
@@ -110,12 +141,12 @@ func TestAllChains(t *testing.T) {
 	sort.Strings(testNames)
 	for _, name := range testNames {
 		testCase := testList.Tests[name]
-		G.Log.Info("starting sigchain test case %s (%s)", name, testCase.Input)
-		doChainTest(t, testCase)
+		tc.G.Log.Info("starting sigchain test case %s (%s)", name, testCase.Input)
+		doChainTest(t, tc, testCase)
 	}
 }
 
-func doChainTest(t *testing.T, testCase TestCase) {
+func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	inputJSON, exists := testvectors.ChainTestInputs[testCase.Input]
 	if !exists {
 		t.Fatal("missing test input: " + testCase.Input)
@@ -159,7 +190,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	}
 
 	// Parse all the key bundles.
-	keyFamily, err := createKeyFamily(input.Keys)
+	keyFamily, err := createKeyFamily(tc.G, input.Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -167,19 +198,33 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Run the actual sigchain parsing and verification. This is most of the
 	// code that's actually being tested.
 	var sigchainErr error
-	ckf := ComputedKeyFamily{kf: keyFamily}
-	sigchain := SigChain{username: NewNormalizedUsername(input.Username), uid: uid, loadedFromLinkOne: true}
+	ckf := ComputedKeyFamily{Contextified: NewContextified(tc.G), kf: keyFamily}
+	sigchain := SigChain{
+		username:          NewNormalizedUsername(input.Username),
+		uid:               uid,
+		loadedFromLinkOne: true,
+		Contextified:      NewContextified(tc.G),
+	}
 	for i := 0; i < chainLen; i++ {
 		linkBlob := inputBlob.AtKey("chain").AtIndex(i)
-		link, err := ImportLinkFromServer(nil, &sigchain, linkBlob, uid)
+		rawLinkBlob, err := linkBlob.Marshal()
 		if err != nil {
 			sigchainErr = err
 			break
 		}
+		link, err := ImportLinkFromServer(tc.G, &sigchain, rawLinkBlob, uid)
+		if err != nil {
+			sigchainErr = err
+			break
+		}
+		require.Equal(t, keybase1.SeqType_PUBLIC, link.unpacked.seqType, "all user chains are public")
+		if link.unpacked.outerLinkV2 != nil {
+			require.Equal(t, link.unpacked.outerLinkV2.SeqType, link.unpacked.seqType, "inner-outer seq_type match")
+		}
 		sigchain.chainLinks = append(sigchain.chainLinks, link)
 	}
 	if sigchainErr == nil {
-		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(nil, eldestKID, &ckf)
+		_, sigchainErr = sigchain.VerifySigsAndComputeKeys(NewMetaContextForTest(tc), eldestKID, &ckf)
 	}
 
 	// Some tests expect an error. If we get one, make sure it's the right
@@ -198,7 +243,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		}
 		if expectedTypes[foundType] {
 			// Success! We found the error we expected. This test is done.
-			G.Log.Debug("EXPECTED error encountered: %s", sigchainErr)
+			tc.G.Log.Debug("EXPECTED error encountered: %s", sigchainErr)
 			return
 		}
 
@@ -213,41 +258,133 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// Tests that expected an error terminated above. Tests that get here
 	// should succeed without errors.
 	if sigchainErr != nil {
-		t.Fatal(err)
+		t.Fatal(sigchainErr)
 	}
 
 	// Check the expected results: total unrevoked links, sibkeys, and subkeys.
 	unrevokedCount := 0
 
-	// XXX we should really contextify this
-	idtable, err := NewIdentityTable(nil, eldestKID, &sigchain, nil)
+	idtable, err := NewIdentityTable(tc.G, eldestKID, &sigchain, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, link := range idtable.links {
-		if !link.IsRevoked() {
+		if !link.IsDirectlyRevoked() {
 			unrevokedCount++
 		}
 	}
+
+	fatalStr := ""
 	if unrevokedCount != testCase.Len {
-		t.Fatalf("Expected %d unrevoked links, but found %d.", testCase.Len, unrevokedCount)
+		fatalStr += fmt.Sprintf("Expected %d unrevoked links, but found %d.\n", testCase.Len, unrevokedCount)
+	}
+	if testCase.Len > 0 && sigchain.currentSubchainStart == 0 {
+		fatalStr += fmt.Sprintf("Expected nonzero currentSubchainStart, but found %d.\n", sigchain.currentSubchainStart)
 	}
 	// Don't use the current time to get keys, because that will cause test
 	// failures 5 years from now :-D
 	testTime := getCurrentTimeForTest(sigchain, keyFamily)
 	numSibkeys := len(ckf.GetAllActiveSibkeysAtTime(testTime))
 	if numSibkeys != testCase.Sibkeys {
-		t.Fatalf("Expected %d sibkeys, got %d", testCase.Sibkeys, numSibkeys)
+		fatalStr += fmt.Sprintf("Expected %d sibkeys, got %d\n", testCase.Sibkeys, numSibkeys)
 	}
 	numSubkeys := len(ckf.GetAllActiveSubkeysAtTime(testTime))
 	if numSubkeys != testCase.Subkeys {
-		t.Fatalf("Expected %d subkeys, got %d", testCase.Subkeys, numSubkeys)
+		fatalStr += fmt.Sprintf("Expected %d subkeys, got %d\n", testCase.Subkeys, numSubkeys)
 	}
 
+	if fatalStr != "" {
+		t.Fatal(fatalStr)
+	}
+
+	if testCase.EldestSeqno != nil && sigchain.EldestSeqno() != *testCase.EldestSeqno {
+		t.Fatalf("wrong eldest seqno: wanted %d but got %d", *testCase.EldestSeqno, sigchain.EldestSeqno())
+	}
+	if testCase.PrevSubchains != nil {
+		if len(testCase.PrevSubchains) != len(sigchain.prevSubchains) {
+			t.Fatalf("wrong number of historical subchains; wanted %d but got %d", len(testCase.PrevSubchains), len(sigchain.prevSubchains))
+		}
+		for i, expected := range testCase.PrevSubchains {
+			received := sigchain.prevSubchains[i]
+			if received.EldestSeqno() != expected.EldestSeqno {
+				t.Fatalf("For historical subchain %d, wrong eldest seqno; wanted %d but got %d", i, expected.EldestSeqno, received.EldestSeqno())
+			}
+			ckf := ComputedKeyFamily{kf: keyFamily, cki: received.GetComputedKeyInfos()}
+			n := len(ckf.GetAllSibkeysUnchecked())
+			if n != expected.Sibkeys {
+				t.Fatalf("For historical subchain %d, wrong number of sibkeys; wanted %d but got %d", i, expected.Sibkeys, n)
+			}
+			m := len(ckf.GetAllSubkeysUnchecked())
+			if m != expected.Subkeys {
+				t.Fatalf("For historical subchain %d, wrong number of subkeys; wanted %d but got %d", i, expected.Sibkeys, m)
+			}
+		}
+	}
+
+	storeAndLoad(t, tc, &sigchain)
 	// Success!
 }
 
-func createKeyFamily(bundles []string) (*KeyFamily, error) {
+func storeAndLoad(t *testing.T, tc TestContext, chain *SigChain) {
+	err := chain.Store(NewMetaContextForTest(tc))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sgl := SigChainLoader{
+		user: &User{
+			name: chain.username.String(),
+			id:   chain.uid,
+		},
+		self: false,
+		leaf: &MerkleUserLeaf{
+			public: chain.GetCurrentTailTriple(),
+			uid:    chain.uid,
+		},
+		chainType:        PublicChain,
+		MetaContextified: NewMetaContextified(NewMetaContextForTest(tc)),
+	}
+	sgl.chain = chain
+	sgl.dirtyTail = chain.GetCurrentTailTriple()
+	err = sgl.Store()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sgl.chain = nil
+	sgl.dirtyTail = nil
+	var sc2 *SigChain
+	// Reset the link cache so that we're sure our loads hits storage.
+	tc.G.cacheMu.Lock()
+	tc.G.linkCache = NewLinkCache(1000, time.Hour)
+	tc.G.cacheMu.Unlock()
+	sc2, err = sgl.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Loading sigchains from cache doesn't benefit from knowing the current
+	// eldest KID from the Merkle tree. That means if the account just reset,
+	// for example, loading from cache will still produce the old subchain
+	// start. Avoid failing on this case by skipping the comparison when
+	// `currentSubchainStart` is 0 (invalid) in the original chain.
+	if chain.currentSubchainStart == 0 {
+		// As described above, short circuit when we know loading from cache
+		// would give us a different answer.
+		return
+	}
+	if chain.currentSubchainStart != sc2.currentSubchainStart {
+		t.Fatalf("disagreement about currentSubchainStart: %d != %d", chain.currentSubchainStart, sc2.currentSubchainStart)
+	}
+	if len(chain.chainLinks) != len(sc2.chainLinks) {
+		t.Fatalf("subchains don't have the same length: %d != %d", len(chain.chainLinks), len(sc2.chainLinks))
+	}
+	for i := 0; i < len(chain.chainLinks); i++ {
+		if chain.chainLinks[i].GetSeqno() != sc2.chainLinks[i].GetSeqno() {
+			t.Fatalf("stored and loaded chains mismatched links: %d != %d", chain.chainLinks[i].GetSeqno(), sc2.chainLinks[i].GetSeqno())
+		}
+	}
+}
+
+func createKeyFamily(g *GlobalContext, bundles []string) (*KeyFamily, error) {
 	allKeys := jsonw.NewArray(len(bundles))
 	for i, bundle := range bundles {
 		err := allKeys.SetIndex(i, jsonw.NewString(bundle))
@@ -257,7 +394,7 @@ func createKeyFamily(bundles []string) (*KeyFamily, error) {
 	}
 	publicKeys := jsonw.NewDictionary()
 	publicKeys.SetKey("all_bundles", allKeys)
-	return ParseKeyFamily(G, publicKeys)
+	return ParseKeyFamily(g, publicKeys)
 }
 
 func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
@@ -276,4 +413,14 @@ func getCurrentTimeForTest(sigChain SigChain, keyFamily *KeyFamily) time.Time {
 		}
 	}
 	return t
+}
+
+func enumerateCurrentSubchain(chain *SigChain) (seqnoList []keybase1.Seqno) {
+	for _, link := range chain.chainLinks {
+		if link.GetSeqno() < chain.currentSubchainStart {
+			continue
+		}
+		seqnoList = append(seqnoList, link.GetSeqno())
+	}
+	return
 }

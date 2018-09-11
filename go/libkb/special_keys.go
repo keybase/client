@@ -86,7 +86,7 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 		var res *APIRes
 		res, err = sk.G().API.Get(APIArg{
 			Endpoint:    "key/special",
-			NeedSession: false,
+			SessionType: APISessionTypeNONE,
 			Args: HTTPArgs{
 				"kid": S{kid.String()},
 			},

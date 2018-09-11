@@ -1,11 +1,12 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './back-button'
-import {Text, Icon} from './index'
-import {globalStyles} from '../styles'
+import Text from './text'
+import Icon from './icon'
+import {globalStyles, desktopStyles, collapseStyles} from '../styles'
 
-class BackButton extends Component<void, Props, void> {
-  onClick (event: SyntheticEvent) {
+class BackButton extends Component<Props> {
+  onClick(event: SyntheticEvent<>) {
     event.preventDefault()
     event.stopPropagation()
     if (this.props.onClick) {
@@ -13,11 +14,16 @@ class BackButton extends Component<void, Props, void> {
     }
   }
 
-  render () {
+  render() {
     return (
-      <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
-        <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
-        {this.props.title !== null && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>{this.props.title || 'Back'}</Text>}
+      <div style={collapseStyles([styles.container, this.props.style])} onClick={e => this.onClick(e)}>
+        <Icon type="iconfont-arrow-left" style={styles.icon} color={this.props.iconColor} />
+        {this.props.title !== null &&
+          !this.props.hideBackLabel && (
+            <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
+              {this.props.title || 'Back'}
+            </Text>
+          )}
       </div>
     )
   }
@@ -26,8 +32,9 @@ class BackButton extends Component<void, Props, void> {
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.clickable,
+    ...desktopStyles.clickable,
     alignItems: 'center',
+    zIndex: 1,
   },
   icon: {
     marginRight: 6,

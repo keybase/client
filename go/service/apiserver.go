@@ -20,13 +20,17 @@ type APIServerHandler struct {
 
 func NewAPIServerHandler(xp rpc.Transporter, g *libkb.GlobalContext) *APIServerHandler {
 	return &APIServerHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 func (a *APIServerHandler) Get(_ context.Context, arg keybase1.GetArg) (keybase1.APIRes, error) {
-	return a.doGet(arg)
+	return a.doGet(arg, false)
+}
+
+func (a *APIServerHandler) GetWithSession(_ context.Context, arg keybase1.GetWithSessionArg) (keybase1.APIRes, error) {
+	return a.doGet(arg, true)
 }
 
 func (a *APIServerHandler) Post(_ context.Context, arg keybase1.PostArg) (keybase1.APIRes, error) {
@@ -35,6 +39,10 @@ func (a *APIServerHandler) Post(_ context.Context, arg keybase1.PostArg) (keybas
 
 func (a *APIServerHandler) PostJSON(_ context.Context, arg keybase1.PostJSONArg) (keybase1.APIRes, error) {
 	return a.doPostJSON(arg)
+}
+
+func (a *APIServerHandler) Delete(_ context.Context, arg keybase1.DeleteArg) (keybase1.APIRes, error) {
+	return a.doDelete(arg)
 }
 
 type GenericArg interface {
@@ -66,7 +74,7 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	// Do the API call
 	kbarg := libkb.APIArg{
 		Endpoint:       arg.GetEndpoint(),
-		NeedSession:    true,
+		SessionType:    libkb.APISessionTypeREQUIRED,
 		Args:           kbargs,
 		HTTPStatus:     httpStatuses,
 		AppStatusCodes: appStatusCodes,
@@ -75,24 +83,34 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 	return kbarg
 }
 
-func (a *APIServerHandler) doGet(arg keybase1.GetArg) (keybase1.APIRes, error) {
-	res, err := a.G().API.Get(a.setupArg(arg))
-	if err != nil {
-		return keybase1.APIRes{}, err
+func (a *APIServerHandler) doGet(arg GenericArg, sessionRequired bool) (res keybase1.APIRes, err error) {
+	defer a.G().Trace("APIServerHandler::Get", func() error { return err })()
+	// turn off session requirement if not needed
+	kbarg := a.setupArg(arg)
+	if !sessionRequired {
+		kbarg.SessionType = libkb.APISessionTypeNONE
 	}
-	return a.convertRes(res), nil
+	var ires *libkb.APIRes
+	ires, err = a.G().API.Get(kbarg)
+	if err != nil {
+		return res, err
+	}
+	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doPost(arg keybase1.PostArg) (keybase1.APIRes, error) {
-	res, err := a.G().API.Post(a.setupArg(arg))
+func (a *APIServerHandler) doPost(arg keybase1.PostArg) (res keybase1.APIRes, err error) {
+	defer a.G().Trace("APIServerHandler::Post", func() error { return err })()
+	var ires *libkb.APIRes
+	ires, err = a.G().API.Post(a.setupArg(arg))
 	if err != nil {
-		return keybase1.APIRes{}, err
+		return res, err
 	}
-	return a.convertRes(res), nil
+	return a.convertRes(ires), nil
 }
 
-func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (keybase1.APIRes, error) {
-
+func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1.APIRes, err error) {
+	defer a.G().Trace("APIServerHandler::PostJSON", func() error { return err })()
+	var ires *libkb.APIRes
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
 	for _, kvpair := range rawarg.JSONPayload {
@@ -105,12 +123,22 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (keybase1.API
 	}
 	arg.JSONPayload = jsonPayload
 
-	res, err := a.G().API.PostJSON(arg)
+	ires, err = a.G().API.PostJSON(arg)
 	if err != nil {
 		return keybase1.APIRes{}, err
 	}
 
-	return a.convertRes(res), nil
+	return a.convertRes(ires), nil
+}
+
+func (a *APIServerHandler) doDelete(arg keybase1.DeleteArg) (res keybase1.APIRes, err error) {
+	a.G().Trace("APIServerHandler::Delete", func() error { return err })()
+	var ires *libkb.APIRes
+	ires, err = a.G().API.Delete(a.setupArg(arg))
+	if err != nil {
+		return res, err
+	}
+	return a.convertRes(ires), nil
 }
 
 func (a *APIServerHandler) convertRes(res *libkb.APIRes) keybase1.APIRes {

@@ -18,7 +18,7 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
-// CmdProve is the wrapper structure for the the `keybase prove` operation.
+// CmdProve is the wrapper structure for the `keybase prove` operation.
 type CmdProve struct {
 	libkb.Contextified
 	arg    keybase1.StartProofArg
@@ -68,22 +68,21 @@ func (p *CmdProve) Run() error {
 		}
 		proveUIProtocol = keybase1.ProveUiProtocol(ui)
 	} else {
-		proveUI := ProveUI{parent: GlobUI}
+		proveUI := ProveUI{Contextified: libkb.NewContextified(p.G()), parent: GlobUI}
 		p.installOutputHook(&proveUI)
 		proveUIProtocol = keybase1.ProveUiProtocol(proveUI)
 	}
 
 	protocols := []rpc.Protocol{
 		proveUIProtocol,
-		NewLoginUIProtocol(p.G()),
 		NewSecretUIProtocol(p.G()),
 	}
 
-	cli, err := GetProveClient()
+	cli, err := GetProveClient(p.G())
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, p.G()); err != nil {
 		return err
 	}
 
@@ -127,6 +126,18 @@ func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 	}
 	cmd.Flags = append(cmd.Flags, restrictedProveFlags...)
 	return cmd
+}
+
+// NewCmdProveRooterRunner creates a CmdProve for proving rooter in tests.
+func NewCmdProveRooterRunner(g *libkb.GlobalContext, username string) *CmdProve {
+	return &CmdProve{
+		Contextified: libkb.NewContextified(g),
+		arg: keybase1.StartProofArg{
+			Service:  "rooter",
+			Username: username,
+			Auto:     true,
+		},
+	}
 }
 
 // GetUsage specifics the library features that the prove command needs.

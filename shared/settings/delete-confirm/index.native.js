@@ -1,7 +1,7 @@
 // @flow
 import type {Props} from './index'
 
-function DeleteConfirm (props: Props) {
+function DeleteConfirm(props: Props) {
   return null
 }
 

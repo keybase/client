@@ -9,6 +9,8 @@ package engine
 //
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -26,15 +28,16 @@ const (
 
 type PGPKeyExportEngine struct {
 	libkb.Contextified
-	arg   keybase1.PGPQuery
-	qtype queryType
-	res   []keybase1.KeyInfo
-	me    *libkb.User
+	arg       keybase1.PGPQuery
+	encrypted bool
+	qtype     queryType
+	res       []keybase1.KeyInfo
+	me        *libkb.User
 }
 
 func (e *PGPKeyExportEngine) Prereqs() Prereqs {
 	return Prereqs{
-		Session: true,
+		Device: true,
 	}
 }
 
@@ -56,26 +59,29 @@ func (e *PGPKeyExportEngine) Results() []keybase1.KeyInfo {
 	return e.res
 }
 
-func NewPGPKeyExportEngine(arg keybase1.PGPExportArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportEngine(g *libkb.GlobalContext, arg keybase1.PGPExportArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        either,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func NewPGPKeyExportByKIDEngine(arg keybase1.PGPExportByKIDArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByKIDEngine(g *libkb.GlobalContext, arg keybase1.PGPExportByKIDArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        kid,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
-func NewPGPKeyExportByFingerprintEngine(arg keybase1.PGPExportByFingerprintArg, g *libkb.GlobalContext) *PGPKeyExportEngine {
+func NewPGPKeyExportByFingerprintEngine(g *libkb.GlobalContext, arg keybase1.PGPExportByFingerprintArg) *PGPKeyExportEngine {
 	return &PGPKeyExportEngine{
 		arg:          arg.Options,
 		qtype:        fingerprint,
+		encrypted:    arg.Encrypted,
 		Contextified: libkb.NewContextified(g),
 	}
 }
@@ -122,14 +128,14 @@ func (e *PGPKeyExportEngine) exportPublic() (err error) {
 	return
 }
 
-func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
+func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext) error {
 	ska := libkb.SecretKeyArg{
 		Me:         e.me,
 		KeyType:    libkb.PGPKeyType,
 		KeyQuery:   e.arg.Query,
 		ExactMatch: e.arg.ExactMatch,
 	}
-	key, skb, err := e.G().Keyrings.GetSecretKeyAndSKBWithPrompt(ctx.SecretKeyPromptArg(ska, "key export"))
+	key, skb, err := m.G().Keyrings.GetSecretKeyAndSKBWithPrompt(m, m.SecretKeyPromptArg(ska, "key export"))
 	if err != nil {
 		if _, ok := err.(libkb.NoSecretKeyError); ok {
 			// if no secret key found, don't return an error, just let
@@ -156,6 +162,15 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
 	}
 
+	if e.encrypted {
+		// Make encrypted PGP key bundle using provided passphrase.
+		// Key will be reimported from bytes so we don't mutate SKB.
+		raw, err = e.encryptKey(m, raw)
+		if err != nil {
+			return err
+		}
+	}
+
 	ret, err := libkb.PGPKeyRawToArmored(raw, true)
 	if err != nil {
 		return err
@@ -166,28 +181,67 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 	return nil
 }
 
-func (e *PGPKeyExportEngine) loadMe() (err error) {
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
+func GetPGPExportPassphrase(m libkb.MetaContext, ui libkb.SecretUI, desc string) (keybase1.GetPassphraseRes, error) {
+	pRes, err := libkb.GetSecret(m, ui, "PGP key passphrase", desc, "", false)
+	if err != nil {
+		return keybase1.GetPassphraseRes{}, err
+	}
+
+	desc = "Please reenter your passphrase for confirmation"
+	pRes2, err := libkb.GetSecret(m, ui, "PGP key passphrase", desc, "", false)
+	if pRes.Passphrase != pRes2.Passphrase {
+		return keybase1.GetPassphraseRes{}, errors.New("Passphrase mismatch")
+	}
+
+	return pRes, nil
+}
+
+func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, raw []byte) ([]byte, error) {
+	entity, _, err := libkb.ReadOneKeyFromBytes(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	if entity.PrivateKey == nil {
+		return nil, libkb.BadKeyError{Msg: "No secret part in PGP key."}
+	}
+
+	desc := "Enter passphrase to protect your PGP key. Secure passphrases have at least 8 characters."
+	pRes, err := GetPGPExportPassphrase(m, m.UIs().SecretUI, desc)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = libkb.EncryptPGPKey(entity.Entity, pRes.Passphrase); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	if err = entity.SerializePrivate(&buf); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (e *PGPKeyExportEngine) loadMe(m libkb.MetaContext) (err error) {
+	e.me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithPublicKeyOptional())
 	return
 }
 
-func (e *PGPKeyExportEngine) Run(ctx *Context) (err error) {
-
-	e.G().Log.Debug("+ PGPKeyExportEngine::Run")
-	defer func() {
-		e.G().Log.Debug("- PGPKeyExportEngine::Run -> %s", libkb.ErrToOk(err))
-	}()
+func (e *PGPKeyExportEngine) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("PGPKeyExportEngine::Run", func() error { return err })()
 
 	if e.qtype == unset {
 		return fmt.Errorf("PGPKeyExportEngine: query type not set")
 	}
 
-	if err = e.loadMe(); err != nil {
+	if err = e.loadMe(m); err != nil {
 		return
 	}
 
 	if e.arg.Secret {
-		err = e.exportSecret(ctx)
+		err = e.exportSecret(m)
 	} else {
 		err = e.exportPublic()
 	}

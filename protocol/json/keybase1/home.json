@@ -1,0 +1,277 @@
+{
+  "protocol": "home",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "HomeScreenItemID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenItemType",
+      "symbols": [
+        "TODO_1",
+        "PEOPLE_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenItemData",
+      "switch": {
+        "type": "HomeScreenItemType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "TODO",
+            "def": false
+          },
+          "body": "HomeScreenTodo"
+        },
+        {
+          "label": {
+            "name": "PEOPLE",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotification"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenTodoType",
+      "symbols": [
+        "NONE_0",
+        "BIO_1",
+        "PROOF_2",
+        "DEVICE_3",
+        "FOLLOW_4",
+        "CHAT_5",
+        "PAPERKEY_6",
+        "TEAM_7",
+        "FOLDER_8",
+        "GIT_REPO_9",
+        "TEAM_SHOWCASE_10",
+        "AVATAR_USER_11",
+        "AVATAR_TEAM_12"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenTodo",
+      "switch": {
+        "type": "HomeScreenTodoType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "HomeScreenPeopleNotificationType",
+      "symbols": [
+        "FOLLOWED_1",
+        "FOLLOWED_MULTI_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationFollowed",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "followTime"
+        },
+        {
+          "type": "boolean",
+          "name": "followedBack"
+        },
+        {
+          "type": "UserSummary",
+          "name": "user"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenPeopleNotificationFollowedMulti",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenPeopleNotificationFollowed"
+          },
+          "name": "followers"
+        },
+        {
+          "type": "int",
+          "name": "numOthers"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "HomeScreenPeopleNotification",
+      "switch": {
+        "type": "HomeScreenPeopleNotificationType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "FOLLOWED",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationFollowed"
+        },
+        {
+          "label": {
+            "name": "FOLLOWED_MULTI",
+            "def": false
+          },
+          "body": "HomeScreenPeopleNotificationFollowedMulti"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreenItem",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "badged"
+        },
+        {
+          "type": "HomeScreenItemData",
+          "name": "data"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Pics",
+      "fields": [
+        {
+          "type": "string",
+          "name": "square40",
+          "jsonkey": "square_40"
+        },
+        {
+          "type": "string",
+          "name": "square200",
+          "jsonkey": "square_200"
+        },
+        {
+          "type": "string",
+          "name": "square360",
+          "jsonkey": "square_360"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeUserSummary",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "bio"
+        },
+        {
+          "type": "string",
+          "name": "fullName",
+          "jsonkey": "full_name"
+        },
+        {
+          "type": [
+            null,
+            "Pics"
+          ],
+          "name": "pics"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "HomeScreen",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "lastViewed"
+        },
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "int",
+          "name": "visits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeScreenItem"
+          },
+          "name": "items"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "HomeUserSummary"
+          },
+          "name": "followSuggestions"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "homeGetScreen": {
+      "request": [
+        {
+          "name": "markViewed",
+          "type": "boolean"
+        },
+        {
+          "name": "numFollowSuggestionsWanted",
+          "type": "int"
+        }
+      ],
+      "response": "HomeScreen",
+      "doc": "HomeGetScreen returns the home screen for the current user.\n    If `markViewed` is specified, the server will mark this version of the\n    home screen \"viewed\", potentially updating some badges.\n    `numFollowSuggestionsWanted` controls the number of people to return.\n    If not specified, it will default to `0`, so no people.  If `-1` is specified,\n    the default number will be returned (10).  Otherwise, the caller should\n    specify."
+    },
+    "homeSkipTodoType": {
+      "request": [
+        {
+          "name": "t",
+          "type": "HomeScreenTodoType"
+        }
+      ],
+      "response": null
+    },
+    "homeActionTaken": {
+      "request": [],
+      "response": null
+    },
+    "homeMarkViewed": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

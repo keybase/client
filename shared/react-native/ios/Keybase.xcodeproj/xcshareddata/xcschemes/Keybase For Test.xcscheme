@@ -29,8 +29,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "KeybaseTests.xctest"
-               BlueprintName = "KeybaseTests"
+               BuildableName = "keybaseTests.xctest"
+               BlueprintName = "keybaseTests"
                ReferencedContainer = "container:Keybase.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -47,8 +47,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "KeybaseTests.xctest"
-               BlueprintName = "KeybaseTests"
+               BuildableName = "keybaseTests.xctest"
+               BlueprintName = "keybaseTests"
                ReferencedContainer = "container:Keybase.xcodeproj">
             </BuildableReference>
          </TestableReference>

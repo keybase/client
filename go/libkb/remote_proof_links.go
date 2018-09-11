@@ -11,6 +11,7 @@ import (
 // RemoteProofLinks holds a set of RemoteProofChainLinks,
 // organized by service.
 type RemoteProofLinks struct {
+	Contextified
 	links map[string][]ProofLinkWithState
 }
 
@@ -23,15 +24,15 @@ type ProofLinkWithState struct {
 
 // NewRemoteProofLinks creates a new empty collection of proof
 // links.
-func NewRemoteProofLinks() *RemoteProofLinks {
-	return &RemoteProofLinks{}
+func NewRemoteProofLinks(g *GlobalContext) *RemoteProofLinks {
+	return &RemoteProofLinks{
+		Contextified: NewContextified(g),
+		links:        make(map[string][]ProofLinkWithState),
+	}
 }
 
 // Insert adds a link to the collection of proof links.
 func (r *RemoteProofLinks) Insert(link RemoteProofChainLink, err ProofError) {
-	if r.links == nil {
-		r.links = make(map[string][]ProofLinkWithState)
-	}
 	key := link.TableKey()
 	if len(key) == 0 {
 		return
@@ -82,7 +83,7 @@ func (r *RemoteProofLinks) TrackingStatement() *jsonw.Wrapper {
 	for _, x := range r.active() {
 		d, err := x.link.ToTrackingStatement(x.state)
 		if err != nil {
-			G.Log.Warning("Problem with a proof: %s", err)
+			r.G().Log.Warning("Problem with a proof: %s", err)
 			continue
 		}
 		if d != nil {

@@ -1,9 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  timestamp: string,
-  style: Object,
-}
-
-export default class Timestamp extends Component<void, Props, void> { }

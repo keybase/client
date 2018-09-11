@@ -21,10 +21,12 @@ func TestInitLogging(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		l1 = New("l1")
+		_ = l1
 	}()
 	go func() {
 		defer wg.Done()
 		l2 = New("l2")
+		_ = l2
 	}()
 
 	wg.Wait()

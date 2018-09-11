@@ -11,18 +11,18 @@ import (
 )
 
 func doUpdate(fingerprints []string, all bool, fu *FakeUser, tc libkb.TestContext) (err error) {
-	eng := NewPGPUpdateEngine(fingerprints, all, tc.G)
-	ctx := Context{
+	eng := NewPGPUpdateEngine(tc.G, fingerprints, all)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	err = RunEngine(eng, &ctx)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err = RunEngine2(m, eng)
 	return
 }
 
 func getFakeUsersKeyBundleFromServer(tc libkb.TestContext, fu *FakeUser) *libkb.PGPKeyBundle {
-	arg := libkb.NewLoadUserForceArg(tc.G)
-	arg.Name = fu.Username
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal("Failed loading user", err)
@@ -36,8 +36,7 @@ func getFakeUsersKeyBundleFromServer(tc libkb.TestContext, fu *FakeUser) *libkb.
 }
 
 func getFakeUsersBundlesList(tc libkb.TestContext, fu *FakeUser) []string {
-	arg := libkb.NewLoadUserForceArg(tc.G)
-	arg.Name = fu.Username
+	arg := libkb.NewLoadUserForceArg(tc.G).WithName(fu.Username)
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		tc.T.Fatal("Failed loading user", err)
@@ -68,7 +67,7 @@ func TestPGPUpdate(t *testing.T) {
 	}
 
 	// Add the modified key to the gpg keyring
-	if err := gpgCLI.ExportKey(*bundle, false /* export public key only */); err != nil {
+	if err := gpgCLI.ExportKey(*bundle, false /* export public key only */, false /* no batch mode */); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,13 +113,14 @@ func TestPGPUpdateMultiKey(t *testing.T) {
 			SubkeyBits:  768,
 		},
 	}
-	arg.Gen.MakeAllIds()
-	ctx := Context{
+	arg.Gen.MakeAllIds(tc.G)
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewPGPKeyImportEngine(arg)
-	err := RunEngine(eng, &ctx)
+	eng := NewPGPKeyImportEngine(tc.G, arg)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, eng)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

@@ -1,165 +1,34 @@
 // @flow
-import * as CommonConstants from '../constants/common'
-import * as ConfigConstants from '../constants/config'
 import * as Constants from '../constants/login'
-import HiddenString from '../util/hidden-string'
-import type {DeviceRole, Mode} from '../constants/login'
-import {fromJS} from 'immutable'
+import * as Types from '../constants/types/login'
+import * as LoginGen from '../actions/login-gen'
+import * as SignupGen from '../actions/signup-gen'
+import * as ProvisionGen from '../actions/provision-gen'
 
-// It's the b64 encoded value used to render the image
-type QRCode = HiddenString
-type Error = string
+const initialState = Constants.makeState()
 
-export type LoginState = {
-  codePage: {
-    otherDeviceRole: ?DeviceRole,
-    myDeviceRole: ?DeviceRole,
-    mode: ?Mode,
-    cameraBrokenMode: boolean,
-    codeCountDown: number,
-    textCode: ?HiddenString,
-    qrScanned: ?QRCode,
-    qrCode: ?QRCode,
-  },
-  registerUserPassError: ?Error,
-  registerUserPassLoading: boolean,
-  forgotPasswordEmailAddress: string | '',
-  forgotPasswordSubmitting: boolean,
-  forgotPasswordSuccess: boolean,
-  forgotPasswordError: ?Error,
-  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  waitingForResponse: boolean,
-  loginError: ?string,
-  justRevokedSelf: ?string,
-  justDeletedSelf: ?string,
-  justLoginFromRevokedDevice: ?boolean,
-}
-
-const initialState: LoginState = {
-  codePage: {
-    otherDeviceRole: null,
-    myDeviceRole: null,
-    mode: null,
-    cameraBrokenMode: false,
-    codeCountDown: 0,
-    textCode: null,
-    qrScanned: null,
-    qrCode: null,
-  },
-  registerUserPassError: null,
-  registerUserPassLoading: false,
-  forgotPasswordEmailAddress: '',
-  forgotPasswordSubmitting: false,
-  forgotPasswordSuccess: false,
-  forgotPasswordError: null,
-  deviceName: {
-    onSubmit: () => {},
-    existingDevices: [],
-    deviceName: '',
-  },
-  configuredAccounts: null,
-  waitingForResponse: false,
-  loginError: null,
-  justRevokedSelf: null,
-  justDeletedSelf: null,
-  justLoginFromRevokedDevice: null,
-}
-
-export default function (state: LoginState = initialState, action: any): LoginState {
-  let toMerge = null
-
+export default function(
+  state: Types.State = initialState,
+  action: LoginGen.Actions | SignupGen.RequestAutoInvitePayload | ProvisionGen.StartProvisionPayload
+): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore:
-      return {...initialState}
-
-    case ConfigConstants.statusLoaded:
-      if (action.error || action.payload == null) {
-        return state
-      }
-      break
-    case Constants.setMyDeviceCodeState:
-      toMerge = {codePage: {myDeviceRole: action.payload}}
-      break
-    case Constants.setOtherDeviceCodeState:
-      toMerge = {codePage: {otherDeviceRole: action.payload}}
-      break
-    case Constants.setCodeMode:
-      toMerge = {codePage: {mode: action.payload}}
-      break
-    case Constants.setTextCode:
-      toMerge = {codePage: {textCode: action.payload.textCode}}
-      break
-    case Constants.setQRCode:
-      toMerge = {codePage: {qrCode: action.payload.qrCode}}
-      break
-    case Constants.qrScanned:
-      toMerge = {codePage: {qrScanned: action.payload}}
-      break
-    case Constants.actionUpdateForgotPasswordEmailAddress:
-      toMerge = {
-        forgotPasswordEmailAddress: action.error ? null : action.payload,
-        forgotPasswordSuccess: false,
-        forgotPasswordError: action.error ? action.payload : null,
-      }
-      break
-    case Constants.actionSetForgotPasswordSubmitting:
-      toMerge = {
-        forgotPasswordSubmitting: true,
-        forgotPasswordSuccess: false,
-        forgotPasswordError: null,
-      }
-      break
-    case Constants.actionForgotPasswordDone:
-      toMerge = {
-        forgotPasswordSubmitting: false,
-        forgotPasswordSuccess: !action.error,
-        forgotPasswordError: action.error,
-      }
-      break
-    case Constants.cameraBrokenMode:
-      toMerge = {codePage: {cameraBrokenMode: action.payload}}
-      break
-    case Constants.doneRegistering: {
-      toMerge = {
-        codePage: {
-          codeCountDown: 0,
-          textCode: null,
-          qrScanned: null,
-          qrCode: null,
-        },
-      }
-      break
-    }
-    case Constants.configuredAccounts:
-      if (action.payload.error) {
-        toMerge = {configuredAccounts: []}
-      } else {
-        toMerge = {configuredAccounts: action.payload.accounts}
-      }
-      break
-    case Constants.waitingForResponse:
-      toMerge = {waitingForResponse: action.payload}
-      break
-    case Constants.loginDone:
-      if (action.error) {
-        toMerge = {loginError: action.payload && action.payload.message}
-      } else {
-        return state
-      }
-      break
-    case Constants.setRevokedSelf:
-      toMerge = {justRevokedSelf: action.payload}
-      break
-    case Constants.setDeletedSelf:
-      toMerge = {justDeletedSelf: action.payload}
-      break
-    case Constants.setLoginFromRevokedDevice:
-      toMerge = {justLoginFromRevokedDevice: action.payload}
-      break
+    case LoginGen.resetStore:
+      return initialState
+    case SignupGen.requestAutoInvite: // fallthrough
+    case LoginGen.login: // fallthrough
+    case ProvisionGen.startProvision:
+      return state.merge({error: initialState.error})
+    case LoginGen.loginError:
+      return state.set('error', action.payload.error || initialState.error)
+    // Saga only actions
+    case LoginGen.launchAccountResetWebPage:
+    case LoginGen.launchForgotPasswordWebPage:
+      return state
     default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
+      */
       return state
   }
-
-  const s = fromJS(state)
-  return s.mergeDeep(toMerge).toJS()
 }

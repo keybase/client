@@ -79,7 +79,7 @@ func (c *CmdVerify) ParseArgv(ctx *cli.Context) error {
 		}
 		outfile = "/dev/null"
 	}
-	if err := c.FilterInit(msg, infile, outfile); err != nil {
+	if err := c.FilterInit(c.G(), msg, infile, outfile); err != nil {
 		return err
 	}
 	c.signedBy = ctx.String("signed-by")

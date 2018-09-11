@@ -202,7 +202,7 @@ func (b *Bucket) PutBucket(ctx context.Context, perm ACL) error {
 		headers: headers,
 		payload: b.locationConstraint(),
 	}
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(ctx, req, nil)
 }
 
 // DelBucket removes an existing S3 bucket. All objects in the bucket must
@@ -216,7 +216,7 @@ func (b *Bucket) DelBucket() (err error) {
 		path:   "/",
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, nil)
+		err = b.S3.query(context.Background(), req, nil)
 		if !shouldRetry(err) {
 			break
 		}
@@ -247,6 +247,20 @@ func (b *Bucket) Get(ctx context.Context, path string) (data []byte, err error) 
 // finished reading.
 func (b *Bucket) GetReader(ctx context.Context, path string) (rc io.ReadCloser, err error) {
 	resp, err := b.GetResponse(ctx, path)
+	if resp != nil {
+		return resp.Body, err
+	}
+	return nil, err
+}
+
+// GetReaderWithRange retrieves an object from an S3 bucket using the specified range,
+// returning the body of the HTTP response.
+// It is the caller's responsibility to call Close on rc when
+// finished reading.
+func (b *Bucket) GetReaderWithRange(ctx context.Context, path string, begin, end int64) (rc io.ReadCloser, err error) {
+	header := make(http.Header)
+	header.Add("Range", fmt.Sprintf("bytes=%d-%d", begin, end-1))
+	resp, err := b.GetResponseWithHeaders(ctx, path, header)
 	if resp != nil {
 		return resp.Body, err
 	}
@@ -301,14 +315,14 @@ func (b *Bucket) Exists(path string) (exists bool, err error) {
 		return
 	}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(nil, req, nil)
+		resp, err := b.S3.run(context.Background(), req, nil)
 
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
 
 		if err != nil {
-			// We can treat a 403 or 404 as non existance
+			// We can treat a 403 or 404 as non existence
 			if e, ok := err.(*Error); ok && (e.StatusCode == 403 || e.StatusCode == 404) {
 				return false, nil
 			}
@@ -338,7 +352,7 @@ func (b *Bucket) Head(path string, headers map[string][]string) (*http.Response,
 	}
 
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		resp, err := b.S3.run(nil, req, nil)
+		resp, err := b.S3.run(context.Background(), req, nil)
 		if shouldRetry(err) && attempt.HasNext() {
 			continue
 		}
@@ -373,7 +387,7 @@ func (b *Bucket) PutCopy(path string, perm ACL, options CopyOptions, source stri
 	}
 	result = &CopyObjectResult{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -517,7 +531,7 @@ func (b *Bucket) PutBucketSubresource(subresource string, r io.Reader, length in
 		params:  url.Values{subresource: {""}},
 	}
 
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(context.Background(), req, nil)
 }
 
 // Del removes an object from the S3 bucket.
@@ -572,7 +586,7 @@ func (b *Bucket) DelMulti(objects Delete) error {
 		payload: buf,
 	}
 
-	return b.S3.query(nil, req, nil)
+	return b.S3.query(context.Background(), req, nil)
 }
 
 // The ListResp type holds the results of a List bucket operation.
@@ -676,7 +690,7 @@ func (b *Bucket) List(prefix, delim, marker string, max int) (result *ListResp, 
 	}
 	result = &ListResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -737,7 +751,7 @@ func (b *Bucket) Versions(prefix, delim, keyMarker string, versionIDMarker strin
 	}
 	result = &VersionsResp{}
 	for attempt := b.S3.AttemptStrategy.Start(); attempt.Next(); {
-		err = b.S3.query(nil, req, result)
+		err = b.S3.query(context.Background(), req, result)
 		if !shouldRetry(err) {
 			break
 		}
@@ -772,7 +786,7 @@ func (b *Bucket) GetBucketContents() (*map[string]Key, error) {
 	return &bucketContents, nil
 }
 
-// URL returns a non-signed URL that allows retriving the
+// URL returns a non-signed URL that allows retrieving the
 // object at path. It only works if the object is publicly
 // readable (see SignedURL).
 func (b *Bucket) URL(path string) string {
@@ -898,10 +912,7 @@ func (s3 *S3) prepare(req *request) error {
 	reqSignpathSpaceFix := (&url.URL{Path: signpath}).String()
 	req.headers["Host"] = []string{u.Host}
 	req.headers["Date"] = []string{time.Now().In(time.UTC).Format(time.RFC1123)}
-	if err := s3.sign(req.method, reqSignpathSpaceFix, req.params, req.headers); err != nil {
-		return err
-	}
-	return nil
+	return s3.sign(req.method, reqSignpathSpaceFix, req.params, req.headers)
 }
 
 // run sends req and returns the http response from the server.

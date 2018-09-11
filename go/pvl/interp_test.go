@@ -176,6 +176,42 @@ var interpUnitTests = []interpUnitTest{
 		restype:    libkb.XAPIResHTML,
 		reshtml:    html1,
 		shouldwork: false,
+	}, {
+		name:      "AssertRegexMatch-negate-ok",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_COINBASE: `[[
+{"assert_regex_match": {
+  "pattern": "^.*notacommonstringatall.*$",
+  "from": "hint_url",
+  "negate": true } },
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_COINBASE,
+		restype:    libkb.XAPIResText,
+		restext:    "1234",
+		shouldwork: true,
+	}, {
+		name:      "AssertRegexMatch-negate-fail",
+		proofinfo: info1,
+		prepvl: map[keybase1.ProofType]string{
+			keybase1.ProofType_COINBASE: `[[
+{"assert_regex_match": {
+  "pattern": "^.*rooter.*$",
+  "negate": true,
+  "from": "hint_url" } },
+{"fetch": {
+  "kind": "string",
+  "from": "hint_url",
+  "into": "tmp1" } }
+]]`},
+		service:    keybase1.ProofType_COINBASE,
+		restype:    libkb.XAPIResText,
+		restext:    "1234",
+		shouldwork: false,
 	},
 
 	// ## AssertFindBase64
@@ -2051,7 +2087,8 @@ func runPvlTest(t *testing.T, unit *interpUnitTest) {
 		}
 	}
 
-	perr := CheckProof(g, pvl, unit.service, unit.proofinfo)
+	m := libkb.NewMetaContextForTest(tc)
+	perr := CheckProof(m, pvl, unit.service, unit.proofinfo)
 	if perr == nil {
 		if !unit.shouldwork {
 			fail("proof should have failed")

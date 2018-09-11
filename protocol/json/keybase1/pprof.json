@@ -1,0 +1,81 @@
+{
+  "protocol": "pprof",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "processorProfile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "profileFile",
+          "type": "string"
+        },
+        {
+          "name": "profileDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "logProcessorProfile": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "logDirForMobile",
+          "type": "string"
+        },
+        {
+          "name": "profileDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "trace": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "traceFile",
+          "type": "string"
+        },
+        {
+          "name": "traceDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    },
+    "logTrace": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "logDirForMobile",
+          "type": "string"
+        },
+        {
+          "name": "traceDurationSeconds",
+          "type": "DurationSec"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

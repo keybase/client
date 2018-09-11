@@ -1,0 +1,125 @@
+{
+  "protocol": "Reset",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "SHA512",
+      "fields": [],
+      "typedef": "bytes",
+      "lint": "ignore"
+    },
+    {
+      "type": "enum",
+      "name": "ResetType",
+      "symbols": [
+        "NONE_0",
+        "RESET_1",
+        "DELETE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetMerkleRoot",
+      "fields": [
+        {
+          "type": "HashMeta",
+          "name": "hashMeta",
+          "jsonkey": "hash_meta"
+        },
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetPrev",
+      "fields": [
+        {
+          "type": [
+            null,
+            "KID"
+          ],
+          "name": "eldestKID",
+          "jsonkey": "eldest_kid"
+        },
+        {
+          "type": "Seqno",
+          "name": "lastSeqno",
+          "jsonkey": "public_seqno"
+        },
+        {
+          "type": "SHA512",
+          "name": "reset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetLink",
+      "fields": [
+        {
+          "type": "UnixTime",
+          "name": "ctime"
+        },
+        {
+          "type": "ResetMerkleRoot",
+          "name": "merkleRoot",
+          "jsonkey": "merkle_root"
+        },
+        {
+          "type": "ResetPrev",
+          "name": "prev"
+        },
+        {
+          "type": "Seqno",
+          "name": "resetSeqno",
+          "jsonkey": "reset_seqno"
+        },
+        {
+          "type": "ResetType",
+          "name": "type"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ResetSummary",
+      "fields": [
+        {
+          "type": "UnixTime",
+          "name": "ctime"
+        },
+        {
+          "type": "ResetMerkleRoot",
+          "name": "merkleRoot"
+        },
+        {
+          "type": "Seqno",
+          "name": "resetSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "ResetType",
+          "name": "type"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

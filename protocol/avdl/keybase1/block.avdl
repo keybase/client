@@ -3,9 +3,17 @@
 protocol block {
   import idl "backend_common.avdl";
 
+  enum BlockStatus {
+    UNKNOWN_0,
+    LIVE_1,
+    ARCHIVED_2
+  }
+
   record GetBlockRes {
     string blockKey;
     bytes buf;
+    int size;
+    BlockStatus status;
   }
 
   // Fixed-size nonce to identify a reference to a block
@@ -14,7 +22,7 @@ protocol block {
   record BlockReference {
     BlockIdCombo bid;
     BlockRefNonce nonce;
-    UID chargedTo;
+    UserOrTeamID chargedTo;
   }
 
   record BlockReferenceCount{
@@ -27,11 +35,18 @@ protocol block {
     BlockReference failed;
   }
 
+  record BlockPingResponse {
+    // In the future, we might want to respond with timestamps or
+    // ping intervals.
+  }
+
+
   ChallengeInfo getSessionChallenge();
   void authenticateSession(string signature);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
-  GetBlockRes getBlock(BlockIdCombo bid, string folder);
+  void putBlockAgain(string folder, BlockReference ref, string blockKey, bytes buf);
+  GetBlockRes getBlock(BlockIdCombo bid, string folder, boolean sizeOnly);
 
   void addReference(string folder, BlockReference ref);
   void delReference(string folder, BlockReference ref);
@@ -41,5 +56,7 @@ protocol block {
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
   bytes getUserQuotaInfo();
- 
+  bytes getTeamQuotaInfo(TeamID tid);
+
+  BlockPingResponse blockPing();
 }

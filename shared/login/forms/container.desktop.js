@@ -1,16 +1,15 @@
 // @flow
-import React from 'react'
-import type {Props} from './container'
+import * as React from 'react'
 import {BackButton} from '../../common-adapters'
 import {globalStyles} from '../../styles'
+
+import type {Props} from './container'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
       {onBack && <BackButton style={stylesButton} onClick={onBack} />}
-      <div style={{...stylesInnerContainer, ...style}}>
-        {children}
-      </div>
+      <div style={{...stylesInnerContainer, ...style}}>{children}</div>
     </div>
   )
 }

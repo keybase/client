@@ -60,7 +60,7 @@
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"updater" completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
+  [KBKeybaseLaunchd status:[self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath] name:@"updater" timeout:self.config.installTimeout completion:^(NSError *error, KBRServiceStatus *serviceStatus) {
     self.serviceStatus = serviceStatus;
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithError:error];

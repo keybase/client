@@ -4,9 +4,9 @@
 package engine
 
 import (
-	"testing"
-
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"testing"
 )
 
 func TestPGPKeyGenPush(t *testing.T) {
@@ -15,7 +15,7 @@ func TestPGPKeyGenPush(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "pgp")
 	pgpUI := &TestPgpUI{ShouldPush: true}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 		PgpUI:    pgpUI,
@@ -29,7 +29,12 @@ func TestPGPKeyGenPush(t *testing.T) {
 		},
 	}
 	eng := NewPGPKeyGen(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng.genArg = &libkb.PGPGenArg{
+		PrimaryBits: 768,
+		SubkeyBits:  768,
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,8 +44,8 @@ func TestPGPKeyGenPush(t *testing.T) {
 			Query:  pgpUI.Generated.Key.Fingerprint,
 		},
 	}
-	xe := NewPGPKeyExportEngine(xarg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, xarg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 1 {
@@ -54,7 +59,7 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 
 	u := CreateAndSignupFakeUser(tc, "pgp")
 	pgpUI := &TestPgpUI{ShouldPush: false}
-	ctx := &Context{
+	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: u.NewSecretUI(),
 		PgpUI:    pgpUI,
@@ -68,7 +73,12 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 		},
 	}
 	eng := NewPGPKeyGen(tc.G, arg)
-	if err := RunEngine(eng, ctx); err != nil {
+	eng.genArg = &libkb.PGPGenArg{
+		PrimaryBits: 768,
+		SubkeyBits:  768,
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	if err := RunEngine2(m, eng); err != nil {
 		t.Fatal(err)
 	}
 
@@ -78,8 +88,8 @@ func TestPGPKeyGenNoPush(t *testing.T) {
 			Query:  pgpUI.Generated.Key.Fingerprint,
 		},
 	}
-	xe := NewPGPKeyExportEngine(xarg, tc.G)
-	if err := RunEngine(xe, ctx); err != nil {
+	xe := NewPGPKeyExportEngine(tc.G, xarg)
+	if err := RunEngine2(m, xe); err != nil {
 		t.Fatal(err)
 	}
 	if len(xe.Results()) != 1 {

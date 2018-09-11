@@ -39,6 +39,7 @@ echo "-tags '$go_tags'"
 # Determine the LD flags.
 ldflags_client=""
 ldflags_kbfs=""
+ldflags_kbnm=""
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"
@@ -46,9 +47,13 @@ if [ "$mode" != "production" ] ; then
   commit_short_kbfs="$(git -C "$kbfs_repo" rev-parse --short HEAD)"
   build_number_kbfs="$(echo -n "$build_number" | sed 's/+..*/+/')$commit_short_kbfs"
   ldflags_kbfs="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$build_number_kbfs"
+  # kbnm version currently defaults to the keybase client version.
+  build_number_kbnm="$build_number"
+  ldflags_kbnm="-X main.Version=$build_number_kbnm"
 fi
 echo "-ldflags_client '$ldflags_client'"
 echo "-ldflags_kbfs '$ldflags_kbfs'"
+echo "-ldflags_kbnm '$ldflags_kbnm'"
 
 should_build_kbfs() {
   [ "$mode" != "production" ]
@@ -85,9 +90,12 @@ build_one_architecture() {
 
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
-    echo "SKIPPING kbfs and electron."
+    echo "SKIPPING kbfs, kbnm, and electron."
     return
   fi
+
+  # Add the kbfs repo to our custom GOPATH.
+  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
 
   cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
@@ -98,9 +106,29 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+
+  # Build the git-remote-keybase binary, also from the kbfs repo.
+  echo "Building git-remote-keybase for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
+    "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/kbfs/kbfsgit/git-remote-keybase
+
+  # Build the root redirector binary.
+  echo "Building keybase-redirector for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
+    "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/kbfs/redirector
+
+  # Build the kbnm binary
+  echo "Building kbnm for $GOARCH..."
+  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
+    "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
+
+  # Write whitelists into the overlay. Note that we have to explicitly set USER
+  # here, because docker doesn't do it by default, and so otherwise the
+  # CGO-disabled i386 cross platform build will fail because it's unable to
+  # find the current user.
+  USER="$(whoami)" KBNM_INSTALL_ROOT=1 KBNM_INSTALL_OVERLAY="$layout_dir" "$layout_dir/usr/bin/kbnm" install
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
@@ -124,6 +152,11 @@ build_one_architecture() {
   mkdir -p "$apps_dir"
   cp "$here/keybase.desktop" "$apps_dir"
 
+  # Copy in the systemd unit files.
+  units_dir="$layout_dir/usr/lib/systemd/user"
+  mkdir -p "$units_dir"
+  cp "$here/systemd"/* "$kbfs_repo/packaging/linux/systemd"/* "$units_dir"
+
   # Check for whitespace in all the filenames we've copied. We don't support
   # whitespace in our later build scripts (for example RPM packaging), and even
   # if we did, it would be bad practice to use it.
@@ -133,12 +166,24 @@ build_one_architecture() {
   fi
 }
 
-export GOARCH=amd64
-export debian_arch=amd64
-export electron_arch=x64
-build_one_architecture
+# required for cross-compiling, or else the Go compiler will skip over
+# resinit_nix.go and fail the i386 build
+export CGO_ENABLED=1
 
-export GOARCH=386
-export debian_arch=i386
-export electron_arch=ia32
-build_one_architecture
+if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  export GOARCH=amd64
+  export debian_arch=amd64
+  export electron_arch=x64
+  build_one_architecture
+else
+  echo SKIPPING 64-bit build
+fi
+
+if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  export GOARCH=386
+  export debian_arch=i386
+  export electron_arch=ia32
+  build_one_architecture
+else
+  echo SKIPPING 32-bit build
+fi

@@ -44,41 +44,19 @@ func (e *AccountDelete) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *AccountDelete) Run(ctx *Context) error {
-	var postErr error
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		if err := a.LoginSession().Load(); err != nil {
-			postErr = err
-			return
-		}
-		lp, err := libkb.ComputeLoginPackage(a, "")
-		if err != nil {
-			postErr = err
-			return
-		}
-
-		arg := libkb.APIArg{
-			Endpoint:    "delete",
-			NeedSession: true,
-			SessionR:    a.LocalSession(),
-			Args:        libkb.NewHTTPArgs(),
-		}
-		lp.PopulateArgs(&arg.Args)
-		_, postErr = e.G().API.Post(arg)
-		if postErr != nil {
-			e.G().Log.Warning("API.Post error: %s", postErr)
-
-		}
-	}, "AccountDelete - Run")
-	if aerr != nil {
-		return aerr
+func (e *AccountDelete) Run(m libkb.MetaContext) error {
+	username := m.G().GetEnv().GetUsername()
+	arg := libkb.DefaultPassphrasePromptArg(m, username.String())
+	res, err := m.UIs().SecretUI.GetPassphrase(arg, nil)
+	if err != nil {
+		return err
 	}
-	if postErr != nil {
-		return postErr
+	err = libkb.DeleteAccount(m, username, res.Passphrase)
+	if err != nil {
+		return err
 	}
-
-	e.G().Log.Debug("account deleted, logging out")
-	e.G().Logout()
+	m.CDebugf("account deleted, logging out")
+	m.G().Logout()
 
 	return nil
 }

@@ -183,6 +183,7 @@ type assertRegexMatchT struct {
 	CaseInsensitive bool    `json:"case_insensitive"`
 	MultiLine       bool    `json:"multiline"`
 	From            string  `json:"from"`
+	Negate          bool    `json:"negate"`
 	Error           *errorT `json:"error"`
 }
 

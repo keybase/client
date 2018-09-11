@@ -1,53 +1,35 @@
 // @flow
-import React, {Component} from 'react'
-import {ipcRenderer} from 'electron'
-import Invites from './index'
-import {invitesReclaim, invitesRefresh, invitesSend, notificationsSave, notificationsToggle} from '../../actions/settings'
-
+import * as SettingsGen from '../../actions/settings-gen'
+import * as Types from '../../constants/types/settings'
+import Invites from '.'
+import {createShowUserProfile} from '../../actions/profile-gen'
 import {navigateAppend} from '../../actions/route-tree'
+import {connect, type TypedState, lifecycle, compose} from '../../util/container'
 
-import type {Props, PendingInvite} from './index'
-import {TypedConnector} from '../../util/typed-connect'
-import type {TypedDispatch} from '../../constants/types/flux'
-import type {TypedState} from '../../constants/reducer'
+const mapStateToProps = (state: TypedState) => ({
+  ...state.settings.invites,
+  inviteEmail: '',
+  inviteMessage: '',
+  showMessageField: false,
+  waitingForResponse: state.settings.waitingForResponse,
+})
 
-class InvitationsContainer extends Component<void, Props, void> {
-  componentWillMount () {
-    this.props.onRefresh()
-  }
+const mapDispatchToProps = (dispatch: Dispatch) => ({
+  onClearError: () => dispatch(SettingsGen.createInvitesClearError()),
+  onGenerateInvitation: (email: string, message: string) =>
+    dispatch(SettingsGen.createInvitesSend({email, message})),
+  onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
+  onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
+  onSelectPendingInvite: (invite: Types.PendingInvite) =>
+    dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
+  onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
+})
 
-  render () {
-    return <Invites {...this.props} />
-  }
-}
-
-const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new TypedConnector()
-
-export default connector.connect(
-  (state, dispatch, ownProps) => {
-    return {
-      ...state.settings.invites,
-      inviteEmail: '',
-      inviteMessage: '',
-      showMessageField: false,
-      waitingForResponse: state.settings.waitingForResponse,
-      onGenerateInvitation: (email: string, message: string) => { dispatch(invitesSend(email, message)) },
-      onClearError: () => { dispatch({type: 'invites:clearError'}) },
-      onRefresh: () => { dispatch(invitesRefresh()) },
-      onReclaimInvitation: (inviteId: string) => { dispatch(invitesReclaim(inviteId)) },
-      onSave: () => { dispatch(notificationsSave()) },
-      onToggle: (name: string) => dispatch(notificationsToggle(name)),
-      onToggleUnsubscribeAll: () => dispatch(notificationsToggle()),
-      onSelectUser: (username: string) => { ipcRenderer.send('openURL', 'user', {username}) },
-      onSelectPendingInvite: (invite: PendingInvite) => {
-        dispatch(navigateAppend([{
-          selected: 'inviteSent',
-          props: {
-            email: invite.email,
-            link: invite.url,
-          },
-        }]))
-      },
-    }
-  }
-)(InvitationsContainer)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  lifecycle({
+    componentDidMount() {
+      this.props.onRefresh()
+    },
+  })
+)(Invites)

@@ -29,7 +29,7 @@ func (d *DevList) Name() string {
 }
 
 func (d *DevList) Prereqs() Prereqs {
-	return Prereqs{Session: true}
+	return Prereqs{Device: true}
 }
 
 func (d *DevList) RequiredUIs() []libkb.UIKind {
@@ -41,19 +41,17 @@ func (d *DevList) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (d *DevList) Run(ctx *Context) error {
-	uid := d.G().GetMyUID()
-	var err error
+func (d *DevList) Run(m libkb.MetaContext) (err error) {
+	defer m.CTrace("DevList#Run", func() error { return err })()
+
 	var devs libkb.DeviceKeyMap
-	aerr := d.G().LoginState().Account(func(a *libkb.Account) {
-		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
-			return
-		}
-		devs, err = a.SecretSyncer().ActiveDevices(libkb.AllDeviceTypes)
-	}, "DevList - ActiveDevices")
-	if aerr != nil {
-		return aerr
+	var ss *libkb.SecretSyncer
+
+	ss, err = m.ActiveDevice().SyncSecretsForce(m)
+	if err != nil {
+		return err
 	}
+	devs, err = ss.ActiveDevices(libkb.AllDeviceTypes)
 	if err != nil {
 		return err
 	}

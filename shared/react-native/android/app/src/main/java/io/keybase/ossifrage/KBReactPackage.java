@@ -6,15 +6,17 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
-import io.keybase.ossifrage.modules.FileLogger;
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.KillableModule;
 import io.keybase.ossifrage.modules.LogSend;
+import io.keybase.ossifrage.modules.NativeLogger;
+import io.keybase.ossifrage.modules.NativeSettings;
+import io.keybase.ossifrage.modules.ScreenProtector;
+import io.keybase.ossifrage.modules.ShareFiles;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private final String logFilePath;
@@ -34,28 +36,27 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         }
 
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
-        final FileLogger kbLogger = new FileLogger(reactApplicationContext, logFilePath);
-        final LogSend logSend = new LogSend(reactApplicationContext, logFilePath);
+        final LogSend logSend = new LogSend(reactApplicationContext);
+        final ScreenProtector screenProtector = new ScreenProtector(reactApplicationContext);
+        final NativeSettings nativeSettings = new NativeSettings(reactApplicationContext);
+        final NativeLogger nativeLogger = new NativeLogger(reactApplicationContext);
+        final ShareFiles shareFiles = new ShareFiles(reactApplicationContext);
 
         killableModules.add(kbEngine);
 
         List<NativeModule> modules = new ArrayList<>();
         modules.add(kbEngine);
-        modules.add(kbLogger);
         modules.add(logSend);
+        modules.add(screenProtector);
+        modules.add(nativeSettings);
+        modules.add(nativeLogger);
+        modules.add(shareFiles);
 
-        return modules;
-    }
-
-    @Override
-    public List<Class<? extends JavaScriptModule>> createJSModules() {
-        List<Class<? extends JavaScriptModule>> modules = new ArrayList<>();
         return modules;
     }
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        List<ViewManager> modules = Arrays.<ViewManager>asList(new VisiblePassReactEditTextManager());
-        return modules;
+        return Collections.emptyList();
     }
 }

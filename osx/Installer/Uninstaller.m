@@ -28,11 +28,18 @@
     }
     [installables addObject:environment.fuse];
   }
+  if (options.uninstallOptions & UninstallOptionCLI) {
+    [installables addObject:environment.cli];
+  }
   if (options.uninstallOptions & UninstallOptionHelper) {
     [installables addObject:environment.helperTool];
   }
+  if (options.uninstallOptions & UninstallOptionRedirector) {
+    KBRedirector *redirector = [[KBRedirector alloc] initWithConfig:environment.config helperTool:environment.helperTool servicePath:@""];
+    [installables addObject:redirector];
+  }
   if (options.uninstallOptions & UninstallOptionApp) {
-    [installables addObject:[[KBAppBundle alloc] initWithPath:options.appPath]];
+    [installables addObject:[[KBAppBundle alloc] initWithConfig:environment.config helperTool:environment.helperTool]];
   }
   [KBUninstaller uninstall:installables completion:completion];
 }

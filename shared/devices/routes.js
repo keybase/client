@@ -1,32 +1,28 @@
 // @flow
-import {RouteDefNode} from '../route-tree'
-import Devices from './'
-import CodePage from '../login/register/code-page'
-import GenPaperKey from './gen-paper-key'
-import DevicePage from './device-page'
-import RemoveDevice from './device-revoke'
+import CodePage from '../provision/code-page/container'
+import DevicePage from './device-page/container'
+import Devices from './container'
+import PaperKey from './paper-key/container'
+import RevokeDevice from './device-revoke/container'
+import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 
-const routeTree = new RouteDefNode({
-  component: Devices,
-  initialState: {showingRevoked: false},
-  tags: {title: 'Devices'},
+const routeTree = makeRouteDefNode({
   children: {
-    codePage: {
-      component: CodePage,
-    },
-    genPaperKey: {
-      component: GenPaperKey,
-    },
+    codePage: {component: CodePage},
     devicePage: {
-      component: DevicePage,
       children: {
-        removeDevice: {
+        revokeDevice: {
+          component: RevokeDevice,
           title: 'Device Revoke',
-          component: RemoveDevice,
         },
       },
+      component: DevicePage,
     },
+    paperKey: {component: PaperKey},
   },
+  component: Devices,
+  initialState: {showingRevoked: false},
+  tags: makeLeafTags({title: 'Devices'}),
 })
 
 export default routeTree

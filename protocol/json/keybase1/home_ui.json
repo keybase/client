@@ -1,0 +1,13 @@
+{
+  "protocol": "homeUI",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "homeUIRefresh": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

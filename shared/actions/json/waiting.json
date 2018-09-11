@@ -1,0 +1,18 @@
+{
+  "prelude": [],
+  "actions": {
+    "incrementWaiting": {
+      "key": ["string", "Array<string>"]
+    },
+    "decrementWaiting": {
+      "key": ["string", "Array<string>"]
+    },
+    "changeWaiting": {
+      "key": ["string", "Array<string>"],
+      "increment": "boolean"
+    },
+    "clearWaiting": {
+      "key": ["string", "Array<string>"]
+    }
+  }
+}

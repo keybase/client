@@ -1,0 +1,451 @@
+{
+  "prelude": [
+    "import * as RPCChatTypes from '../constants/types/rpc-chat-gen'",
+    "import * as Types from '../constants/types/chat2'",
+    "import * as TeamsTypes from '../constants/types/teams'",
+    "import HiddenString from '../util/hidden-string'",
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
+  ],
+  "actions": {
+    // Select a conversation (or leave nothing selected)
+    "selectConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      // why this happened, sometimes there's different side effects
+      "reason": [
+        "'clearSelected'", // deselect
+        "'desktopNotification'", // clicked notification
+        "'setPendingMode'", // set to pending
+        "'sendingToPending'", // select the pending we sent into
+        "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'findNewestConversation'", // find a new chat to select
+        "'inboxBig'", // inbox row
+        "'inboxFilterArrow'", // arrow keys in inbox filter
+        "'inboxFilterChanged'", // inbox filter made first one selected
+        "'inboxSmall'", // inbox row
+        "'inboxNewConversation'", // new conversation row
+        "'jumpFromReset'", // from older reset convo
+        "'jumpToReset'", // going to an older reset convo
+        "'justCreated'", // just made it and select it
+        "'manageView'", // clicked from manage screen
+        "'previewResolved'", // did a preview and are now selecting it
+        "'pendingModeChange'", // pending mode changed so we select the pending conversation id key
+        "'push'", // from a push
+        "'savedLastState'", // last seen chat tab
+        "'startFoundExisting'", // starting a conversation and found one already
+        "'teamChat'" // from team
+      ]
+    },
+    // Select an existing conversation or setup an empty one. Can either be adhoc or a tlf (adhoc or team)
+    // fromAReset means you were in a reset kbfs convo and you want to make a new one
+    // Chatting from external places in the app should usually call this
+    // if you want to preview a team chat (and add it to the inbox use selectConversation instead)
+    "previewConversation": {
+      "participants?": "Array<string>",
+      "teamname?": "string",
+      "channelname?": "string",
+      "conversationIDKey?": "Types.ConversationIDKey", // we only use this when we click on channel mentions. we could maybe change that plumbing but keeping it for now
+      "reason": [
+        "'manageView'",
+        "'messageLink'",
+        "'resetChatWithoutThem'",
+        "'tracker'",
+        "'teamHeader'",
+        "'files'",
+        "'teamInvite'",
+        "'fromAReset'",
+        "'profile'",
+        "'teamMember'",
+        "'teamHeader'",
+        "'convertAdHoc'",
+        "'memberView'",
+        "'newChannel'"
+      ]
+    },
+    "createConversation": {
+      "_description": "Actually start a conversation",
+      "participants": "Array<string>"
+    },
+    // Update our badges in the nav
+    "badgesUpdated": {
+      "conversations": "Array<RPCTypes.BadgeConversationInfo>"
+    },
+    // Refresh the inbox
+    "inboxRefresh": {
+      "reason": [
+        "'bootstrap'",
+        "'componentNeverLoaded'",
+        "'inboxStale'",
+        "'inboxSyncedClear'",
+        "'inboxSyncedUnknown'",
+        "'joinedAConversation'",
+        "'leftAConversation'",
+        "'teamTypeChanged'"
+      ]
+    },
+    // Update the 'jump to conversation' filter
+    "setInboxFilter": {
+      "filter": "string"
+    },
+    // We want to unbox an inbox row
+    "metaNeedsUpdating": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "reason": "string"
+    },
+    // Internal action: pull more metas from the queue to request
+    "metaHandleQueue": {},
+    // About to try and unbox some inbox rows
+    "metaRequestingTrusted": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    // Actually unboxing
+    "metaRequestTrusted": {
+      "force?": "boolean",
+      "conversationIDKeys": "Array<Types.ConversationIDKey>"
+    },
+    // Got some new inbox rows
+    "metasReceived": {
+      "metas": "Array<Types.ConversationMeta>",
+      "neverCreate?": "boolean", // If true never create a brand new meta, only update
+      "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
+      "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
+      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
+      "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
+      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
+    },
+    // Got some inbox errors
+    "metaReceivedError": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "error": "?RPCChatTypes.InboxUIItemError",
+      "username": "?string"
+    },
+    // We got a status update saying it was blocked or ignored
+    "metaDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "selectSomethingElse": "boolean"
+    },
+    // We updated our view of a thread
+    "updateMoreToLoad": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "moreToLoad": "boolean"
+    },
+    // Add a new message
+    "messagesAdd": {
+      // sent = we sent it
+      // incoming = a streaming message
+      // threadLoad = we're loading more messages on select / scroll
+      "context": [
+        "{type: 'sent'}",
+        "{type: 'incoming'}",
+        "{type: 'threadLoad', conversationIDKey: Types.ConversationIDKey}"
+      ],
+      "messages": "Array<Types.Message>",
+      // true if these should be the only messages we know about
+      "shouldClearOthers?": "boolean"
+    },
+    // Got an error sending a message
+    "messageErrored": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reason": "string",
+      "outboxID": "Types.OutboxID"
+    },
+    "setPendingConversationExistingConversationIDKey": {
+      "_description":
+        "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Start editing a message / or edit the last message / or clear editing
+    "messageSetEditing": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "?Types.Ordinal",
+      "editLastUser?": "string"
+    },
+    // Start quoting a message / or clear quoting
+    "messageSetQuoting": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "targetConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Reply privately to a message with quoting
+    "messageReplyPrivately": {
+      "sourceConversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Submit an edit to the daemon
+    "messageEdit": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
+    },
+    // Update a message which changed
+    "messageWasEdited": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "text": "HiddenString",
+      "mentionsAt": "I.Set<string>",
+      "mentionsChannel": "'none' | 'all' | 'here'",
+      "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+    },
+    // Mark a message as deleted
+    "messagesWereDeleted": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs?": "Array<RPCChatTypes.MessageID>",
+      "upToMessageID?": "RPCChatTypes.MessageID", // expunge calls give us a message we should delete up to (don't delete it)
+      "deletableMessageTypes?": "I.Set<Types.MessageType>", // expunge calls don't delete _all_ messages, only these types
+      "ordinals?": "Array<Types.Ordinal>"
+    },
+    "messagesExploded": {
+      "_description": "Exploding messages expired or were manually detonated.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageIDs": "Array<RPCChatTypes.MessageID>",
+      "explodedBy?": "string"
+    },
+    // Delete a message
+    "messageDelete": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Deletes all messages
+    "messageDeleteHistory": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Update why we have a pending conversation, either we're searching or we have a fixed set of users (you clicked a folder for example)
+    // Use `noneDestination` to specify where the user should end up after setting it to 'none'
+    "setPendingMode": {
+      "pendingMode": "Types.PendingMode",
+      "noneDestination?": ["'inbox'", "'thread'"]
+    },
+    "setPendingStatus": {
+      "pendingStatus": "Types.PendingStatus"
+    },
+    // Load some more messages for a conversation
+    "loadOlderMessagesDueToScroll": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Show a desktop notification
+    "desktopNotification": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "author": "string",
+      "body": "string"
+    },
+    // Send a text message
+    "messageSend": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    "toggleLocalReaction": {
+      "_description": "Toggle a reaction in the store.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "targetOrdinal": "Types.Ordinal",
+      "username": "string"
+    },
+    "toggleMessageReaction": {
+      "_description": "Tell the service to toggle a reaction on a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "emoji": "string",
+      "ordinal": "Types.Ordinal"
+    },
+    "updateReactions": {
+      "_description": "The service sent us an update for the reaction map of a message.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "updates": "Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>"
+    },
+    // Resend a message
+    "messageRetry": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID"
+    },
+    "joinConversation": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    "leaveConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "dontNavigateToInbox?": "boolean"
+    },
+    "muteConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "muted": "boolean"
+    },
+    "openFolder": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // If an implied team chat member resets you can start a new chat w/o any reset people
+    "resetChatWithoutThem": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // If an implied team chat member resets you can add them back in
+    "resetLetThemIn": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "username": "string"
+    },
+    // Update the pending conversation users
+    "setPendingConversationUsers": {
+      "users": "Array<string>",
+      "fromSearch": "boolean"
+    },
+    // The user has selected an attachment with a preview
+    "attachmentPreviewSelect": {
+      "message": "Types.MessageAttachment"
+    },
+    // We want to save an attachment to the local disk
+    "attachmentDownload": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "forShare?": "boolean"
+    },
+    // Update the loading bars
+    "attachmentLoading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "ratio": "number", // 0-1
+      "isPreview": "boolean"
+    },
+    // We saved an attachment to the local disk
+    "attachmentDownloaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "path?": "string",
+      "forShare?": "boolean"
+    },
+    // We want to upload some attachments
+    "attachmentsUpload": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "paths": "Array<string>",
+      "titles": "Array<string>"
+    },
+    // Update progress on an upload
+    "attachmentUploading": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "outboxID": "Types.OutboxID",
+      "ratio": "number" // 0-1
+    },
+    // We're done uploading
+    "attachmentUploaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // We got an uploaded attachment, while online this is like an edit of the placeholder
+    "messageAttachmentUploaded": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "placeholderID": "RPCChatTypes.MessageID",
+      "message": "Types.MessageAttachment"
+    },
+    // Update who's typing in a conversation
+    "updateTypers": {
+      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
+    },
+    // Tell server we're typing
+    "sendTyping": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "typing": "boolean"
+    },
+    // On startup we're automatically loading a thread sometimes. When we first view it we should
+    // go through our marking as read logic
+    "markInitiallyLoadedThreadAsRead": {
+      "conversationIDKey": "Types.ConversationIDKey"
+    },
+    // Server told us a conversation is out of date
+    "markConversationsStale": {
+      "conversationIDKeys": "Array<Types.ConversationIDKey>",
+      "updateType": "RPCChatTypes.StaleUpdateType"
+    },
+    // Navigation helpers. Nav is slightly different on mobile / desktop
+    "navigateToInbox": {
+      "findNewConversation": "boolean"
+    },
+    "navigateToThread": {},
+    // Share to external app on mobile
+    "messageAttachmentNativeShare": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // Save on mobile (camera roll)
+    "messageAttachmentNativeSave": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    // We're changing the notification settings
+    "updateNotificationSettings": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "notificationsDesktop": "Types.NotificationsType",
+      "notificationsMobile": "Types.NotificationsType",
+      "notificationsGlobalIgnoreMentions": "boolean"
+    },
+    // We get new notification settings
+    "notificationSettingsUpdated": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "settings": "RPCChatTypes.ConversationNotificationInfo"
+    },
+    // Block a conversation
+    "blockConversation": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "reportUser": "boolean"
+    },
+    // Conversation was loaded and is offline
+    "setConversationOffline": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "offline": "boolean"
+    },
+    "setConvRetentionPolicy": {
+      "_description": "Sets the retention policy for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "policy": "RetentionPolicy"
+    },
+    "updateConvRetentionPolicy": {
+      "_description":
+        "Consume a service notification that a conversation's retention policy has been updated",
+      "conv": "RPCChatTypes.InboxUIItem"
+    },
+    "updateTeamRetentionPolicy": {
+      "_description": "Consume a service notification that a team retention policy was updated",
+      "convs": "Array<RPCChatTypes.InboxUIItem>"
+    },
+    "setConvExplodingMode": {
+      "_description": "Set the remote exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "seconds": "number"
+    },
+    "setExplodingModeLock": {
+      "_description": "Set a lock on the exploding mode for a conversation.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "unset?": "boolean"
+    },
+    "updateConvExplodingModes": {
+      "_description": "Handle an update to our conversation exploding modes.",
+      "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
+    },
+    "setExplodingMessagesNew": {
+      "_description": "Set whether exploding messages are a new feature or not.",
+      "new": "boolean"
+    },
+    "handleSeeingExplodingMessages": {
+      "_description":
+        "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
+    },
+    "staticConfigLoaded": {
+      "_description": "Static configuration info was loaded from the service.",
+      "staticConfig": "Types.StaticConfig"
+    },
+    "filePickerError": {
+      "_description": "Sent whenever the mobile file picker encounters an error.",
+      "error": "Error"
+    },
+    "setMinWriterRole": {
+      "_description":
+        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "saveMinWriterRole": {
+      "_description": "Update the minWriterRole stored with the conversation metadata.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "role": "TeamsTypes.TeamRoleType"
+    },
+    "paymentInfoReceived": {
+      "_description": "We received payment info for a sendPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "paymentInfo": "Types.ChatPaymentInfo"
+    }
+  }
+}

@@ -9,6 +9,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"go/build"
@@ -19,9 +20,14 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"golang.org/x/mobile/internal/binres"
 )
 
 func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool, error) {
+	if !hasNDK() {
+		return nil, errors.New("no Android NDK path is set. Please run gomobile init with the ndk-bundle installed through the Android SDK manager or with the -ndk flag set.")
+	}
 	appName := path.Base(pkg.ImportPath)
 	libName := androidPkgName(appName)
 	manifestPath := filepath.Join(pkg.Dir, "AndroidManifest.xml")
@@ -140,21 +146,13 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 		return nil
 	}
 
-	w, err := apkwCreate("AndroidManifest.xml")
-	if err != nil {
-		return nil, err
-	}
-	if _, err := w.Write(manifestData); err != nil {
-		return nil, err
-	}
-
-	w, err = apkwCreate("classes.dex")
+	w, err := apkwCreate("classes.dex")
 	if err != nil {
 		return nil, err
 	}
 	dexData, err := base64.StdEncoding.DecodeString(dexStr)
 	if err != nil {
-		log.Fatal("internal error bad dexStr: %v", err)
+		log.Fatalf("internal error bad dexStr: %v", err)
 	}
 	if _, err := w.Write(dexData); err != nil {
 		return nil, err
@@ -170,19 +168,20 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 		toolchain := ndk.Toolchain(arch)
 		if nmpkgs[arch]["golang.org/x/mobile/exp/audio/al"] {
 			dst := "lib/" + toolchain.abi + "/libopenal.so"
-			src := dst
-			if arch == "arm" {
-				src = "lib/armeabi/libopenal.so"
-			} else if arch == "arm64" {
-				src = "lib/arm64/libopenal.so"
+			src := filepath.Join(gomobilepath, dst)
+			if _, err := os.Stat(src); err != nil {
+				return nil, errors.New("the Android requires the golang.org/x/mobile/exp/audio/al, but the OpenAL libraries was not found. Please run gomobile init with the -openal flag pointing to an OpenAL source directory.")
 			}
-			if err := apkwWriteFile(dst, filepath.Join(ndk.Root(), "openal/"+src)); err != nil {
+			if err := apkwWriteFile(dst, src); err != nil {
 				return nil, err
 			}
 		}
 	}
 
 	// Add any assets.
+	var arsc struct {
+		iconPath string
+	}
 	assetsDir := filepath.Join(pkg.Dir, "assets")
 	assetsDirExists := true
 	fi, err := os.Stat(assetsDir)
@@ -212,12 +211,61 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 			if info.IsDir() {
 				return nil
 			}
+
+			if rel, err := filepath.Rel(assetsDir, path); rel == "icon.png" && err == nil {
+				arsc.iconPath = path
+				// TODO returning here does not write the assets/icon.png to the final assets output,
+				// making it unavailable via the assets API. Should the file be duplicated into assets
+				// or should assets API be able to retrieve files from the generated resource table?
+				return nil
+			}
+
 			name := "assets/" + path[len(assetsDir)+1:]
 			return apkwWriteFile(name, path)
 		})
 		if err != nil {
 			return nil, fmt.Errorf("asset %v", err)
 		}
+	}
+
+	bxml, err := binres.UnmarshalXML(bytes.NewReader(manifestData), arsc.iconPath != "")
+	if err != nil {
+		return nil, err
+	}
+
+	// generate resources.arsc identifying single xxxhdpi icon resource.
+	if arsc.iconPath != "" {
+		pkgname, err := bxml.RawValueByName("manifest", xml.Name{Local: "package"})
+		if err != nil {
+			return nil, err
+		}
+		tbl, name := binres.NewMipmapTable(pkgname)
+		if err := apkwWriteFile(name, arsc.iconPath); err != nil {
+			return nil, err
+		}
+		w, err := apkwCreate("resources.arsc")
+		if err != nil {
+			return nil, err
+		}
+		bin, err := tbl.MarshalBinary()
+		if err != nil {
+			return nil, err
+		}
+		if _, err := w.Write(bin); err != nil {
+			return nil, err
+		}
+	}
+
+	w, err = apkwCreate("AndroidManifest.xml")
+	if err != nil {
+		return nil, err
+	}
+	bin, err := bxml.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := w.Write(bin); err != nil {
+		return nil, err
 	}
 
 	// TODO: add gdbserver to apk?
@@ -239,20 +287,15 @@ func goAndroidBuild(pkg *build.Package, androidArchs []string) (map[string]bool,
 // but not exactly same.
 func androidPkgName(name string) string {
 	var res []rune
-	for i, r := range name {
+	for _, r := range name {
 		switch {
-		case 'a' <= r && r <= 'z', 'A' <= r && r <= 'Z':
-			res = append(res, r)
-		case '0' <= r && r <= '9':
-			if i == 0 {
-				panic(fmt.Sprintf("package name %q is not a valid go package name", name))
-			}
+		case 'a' <= r && r <= 'z', 'A' <= r && r <= 'Z', '0' <= r && r <= '9':
 			res = append(res, r)
 		default:
 			res = append(res, '_')
 		}
 	}
-	if len(res) == 0 || res[0] == '_' {
+	if len(res) == 0 || res[0] == '_' || ('0' <= res[0] && res[0] <= '9') {
 		// Android does not seem to allow the package part starting with _.
 		res = append([]rune{'g', 'o'}, res...)
 	}

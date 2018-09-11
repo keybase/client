@@ -14,14 +14,17 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
-	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 // TestConfig tracks libkb config during a test
@@ -31,27 +34,35 @@ type TestConfig struct {
 
 func (c *TestConfig) GetConfigFileName() string { return c.configFileName }
 
-func (c *TestConfig) InitTest(t *testing.T, initConfig string) {
-	G.Log = logger.NewTestLogger(t)
-	G.Init()
+// TestingTB is a copy of the exported parts of testing.TB. We define
+// this in order to avoid pulling in the "testing" package in exported
+// code.
+type TestingTB interface {
+	Error(args ...interface{})
+	Errorf(format string, args ...interface{})
+	Fail()
+	FailNow()
+	Failed() bool
+	Fatal(args ...interface{})
+	Fatalf(format string, args ...interface{})
+	Log(args ...interface{})
+	Logf(format string, args ...interface{})
+	Name() string
+	Skip(args ...interface{})
+	SkipNow()
+	Skipf(format string, args ...interface{})
+	Skipped() bool
+	Helper()
+}
 
-	var f *os.File
-	var err error
-	if f, err = ioutil.TempFile(os.TempDir(), "testconfig"); err != nil {
-		t.Fatalf("couldn't create temp file: %s", err)
-	}
-	c.configFileName = f.Name()
-	if _, err = f.WriteString(initConfig); err != nil {
-		t.Fatalf("couldn't write config file: %s", err)
-	}
-	f.Close()
+func MakeThinGlobalContextForTesting(t TestingTB) *GlobalContext {
+	g := NewGlobalContext().Init()
+	g.Log = logger.NewTestLogger(t)
+	return g
+}
 
-	// XXX: The global G prevents us from running tests in parallel
-	G.Env.Test.ConfigFilename = c.configFileName
-
-	if err = G.ConfigureConfig(); err != nil {
-		t.Fatalf("couldn't configure the config: %s", err)
-	}
+func makeLogGetter(t TestingTB) func() logger.Logger {
+	return func() logger.Logger { return logger.NewTestLogger(t) }
 }
 
 func (c *TestConfig) CleanTest() {
@@ -63,11 +74,11 @@ func (c *TestConfig) CleanTest() {
 // TestOutput is a mock interface for capturing and testing output
 type TestOutput struct {
 	expected string
-	t        *testing.T
+	t        TestingTB
 	called   *bool
 }
 
-func NewTestOutput(e string, t *testing.T, c *bool) TestOutput {
+func NewTestOutput(e string, t TestingTB, c *bool) TestOutput {
 	return TestOutput{e, t, c}
 }
 
@@ -83,9 +94,9 @@ func (to TestOutput) Write(p []byte) (n int, err error) {
 type TestContext struct {
 	G          *GlobalContext
 	PrevGlobal *GlobalContext
-	Tp         TestParameters
+	Tp         *TestParameters
 	// TODO: Rename this to TB.
-	T testing.TB
+	T TestingTB
 }
 
 func (tc *TestContext) Cleanup() {
@@ -109,10 +120,7 @@ func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 	if err := mv("secring.gpg"); err != nil {
 		return err
 	}
-	if err := mv("pubring.gpg"); err != nil {
-		return err
-	}
-	return nil
+	return mv("pubring.gpg")
 }
 
 func (tc *TestContext) GenerateGPGKeyring(ids ...string) error {
@@ -159,21 +167,22 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	return GeneratePGPKeyBundle(tc.G, arg, tc.G.UI.GetLogUI())
 }
 
-// ResetLoginStateForTest simulates a shutdown and restart (for client
+// SimulatServiceRestart simulates a shutdown and restart (for client
 // state). Used by tests that need to clear out cached login state
 // without logging out.
-func (tc *TestContext) ResetLoginState() {
-	tc.G.createLoginState()
+func (tc *TestContext) SimulateServiceRestart() {
+	tc.G.simulateServiceRestart()
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {
-	usernames, err := tc.G.GetUsersWithStoredSecrets()
+	m := NewMetaContextForTest(tc)
+	usernames, err := tc.G.GetUsersWithStoredSecrets(m.Ctx())
 	if err != nil {
 		return err
 	}
 	for _, username := range usernames {
 		nu := NewNormalizedUsername(username)
-		err = ClearStoredSecret(tc.G, nu)
+		err = ClearStoredSecret(m, nu)
 		if err != nil {
 			return err
 		}
@@ -183,9 +192,10 @@ func (tc TestContext) ClearAllStoredSecrets() error {
 
 var setupTestMu sync.Mutex
 
-func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestContext, err error) {
+func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestContext, err error) {
 	setupTestMu.Lock()
 	defer setupTestMu.Unlock()
+	tc.Tp = &TestParameters{}
 
 	g := NewGlobalContext()
 
@@ -225,7 +235,10 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	g.Env.Test = tc.Tp
 
 	// SecretStoreFile needs test home directory
-	g.SecretStoreAll = NewSecretStoreLocked(g)
+	g.secretStoreMu.Lock()
+	m := NewMetaContextTODO(g)
+	g.secretStore = NewSecretStoreLocked(m)
+	g.secretStoreMu.Unlock()
 
 	g.ConfigureLogging()
 
@@ -234,7 +247,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	// use stub engine for external api
-	g.XAPI = NewStubAPIEngine()
+	g.XAPI = NewStubAPIEngine(g)
 
 	if err = g.ConfigureConfig(); err != nil {
 		return
@@ -257,30 +270,40 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	}
 
 	g.GregorDismisser = &FakeGregorDismisser{}
-
-	tc.PrevGlobal = G
-	G = g
+	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
-
-	if G.SecretStoreAll == nil {
-		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
-	}
 
 	return
 }
 
-func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
+// The depth argument is now ignored.
+func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
 	}
 	if os.Getenv("KEYBASE_LOG_SETUPTEST_FUNCS") != "" {
-		pc, file, line, ok := runtime.Caller(depth)
-		if ok {
-			fn := runtime.FuncForPC(pc)
-			fmt.Fprintf(os.Stderr, "- SetupTest %s %s:%d\n", filepath.Base(fn.Name()), filepath.Base(file), line)
+		depth := 0
+		// Walk up the stackframe looking for the function that starts with "Test".
+		for {
+			pc, file, line, ok := runtime.Caller(depth)
+			if ok {
+				fn := runtime.FuncForPC(pc)
+				fnName := filepath.Base(fn.Name())
+				if !strings.Contains(fnName, ".Test") {
+					// Not the right frame. Bump depth and loop again.
+					depth++
+					continue
+				}
+				// This is the right frame.
+				fmt.Fprintf(os.Stderr, "- SetupTest %s %s:%d\n", filepath.Base(fn.Name()), filepath.Base(file), line)
+			} else {
+				// We've walked off the end of the stack without finding what we were looking for.
+				fmt.Fprintf(os.Stderr, "- SetupTest FAILED TO GET STACKFRAME")
+			}
+			break
 		}
 	}
 	return tc
@@ -310,6 +333,10 @@ func (n *nullui) Printf(f string, args ...interface{}) (int, error) {
 
 func (n *nullui) PrintfStderr(f string, args ...interface{}) (int, error) {
 	return fmt.Fprintf(os.Stderr, f, args...)
+}
+
+func (n *nullui) PrintfUnescaped(f string, args ...interface{}) (int, error) {
+	return fmt.Printf(f, args...)
 }
 
 func (n *nullui) GetDumbOutputUI() DumbOutputUI {
@@ -382,6 +409,20 @@ func (t *TestCancelSecretUI) GetPassphrase(_ keybase1.GUIEntryArg, _ *keybase1.S
 	return keybase1.GetPassphraseRes{}, InputCanceledError{}
 }
 
+type TestCountSecretUI struct {
+	Passphrase  string
+	StoreSecret bool
+	CallCount   int
+}
+
+func (t *TestCountSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	t.CallCount++
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrase,
+		StoreSecret: t.StoreSecret,
+	}, nil
+}
+
 type TestLoginUI struct {
 	Username                 string
 	RevokeBackup             bool
@@ -419,7 +460,78 @@ type FakeGregorDismisser struct {
 
 var _ GregorDismisser = (*FakeGregorDismisser)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
+}
+
+func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+	return nil
+}
+
+type TestUIDMapper struct {
+	ul UPAKLoader
+}
+
+func NewTestUIDMapper(ul UPAKLoader) TestUIDMapper {
+	return TestUIDMapper{
+		ul: ul,
+	}
+}
+
+func (t TestUIDMapper) ClearUIDAtEldestSeqno(_ context.Context, _ UIDMapperContext, _ keybase1.UID, _ keybase1.Seqno) error {
+	return nil
+}
+
+func (t TestUIDMapper) CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool {
+	return true
+}
+
+func (t TestUIDMapper) InformOfEldestSeqno(ctx context.Context, g UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
+	return true, nil
+}
+
+func (t TestUIDMapper) MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error) {
+	var res []UsernamePackage
+	for _, uid := range uids {
+		name, err := t.ul.LookupUsernameUPAK(ctx, uid)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, UsernamePackage{NormalizedUsername: name})
+	}
+	return res, nil
+}
+
+func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
+
+}
+
+func NewMetaContextForTest(tc TestContext) MetaContext {
+	return NewMetaContext(context.TODO(), tc.G).WithLogTag("TST")
+}
+
+func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {
+	return NewMetaContextForTest(tc).WithUIs(UIs{
+		LogUI: tc.G.UI.GetLogUI(),
+	})
+}
+
+func CreateClonedDevice(tc TestContext, m MetaContext) {
+	runAndGetDeviceCloneState := func() DeviceCloneState {
+		_, _, err := UpdateDeviceCloneState(m)
+		require.NoError(tc.T, err)
+		d, err := GetDeviceCloneState(m)
+		require.NoError(tc.T, err)
+		return d
+	}
+	// setup: perform two runs, and then manually persist the earlier
+	// prior token to simulate a subsequent run by a cloned device
+	d0 := runAndGetDeviceCloneState()
+	runAndGetDeviceCloneState()
+	err := SetDeviceCloneState(m, d0)
+	require.NoError(tc.T, err)
+
+	d := runAndGetDeviceCloneState()
+	require.True(tc.T, d.IsClone())
 }

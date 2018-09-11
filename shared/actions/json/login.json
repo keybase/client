@@ -1,0 +1,15 @@
+{
+  "prelude": [
+    "import * as Types from '../constants/types/login'",
+    "import HiddenString from '../util/hidden-string'"
+  ],
+  "actions": {
+    "login": {
+      "usernameOrEmail": "string",
+      "passphrase": "HiddenString"
+    },
+    "launchAccountResetWebPage": {},
+    "launchForgotPasswordWebPage": {},
+    "loginError": { "error": "?HiddenString" },
+  }
+}

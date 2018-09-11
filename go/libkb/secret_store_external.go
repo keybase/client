@@ -1,15 +1,14 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 // +build android
 
 package libkb
 
-import "sync"
-
-// TODO: Make this implementation use GetStoredSecretServiceName(), as
-// otherwise tests will clobber each other's passwords. See
-// https://keybase.atlassian.net/browse/CORE-1934 .
+import (
+	"errors"
+	"sync"
+)
 
 // UnsafeExternalKeyStore is a simple interface that external clients can implement.
 // It is unsafe because it returns raw bytes instead of the typed LKSecFullSecret
@@ -64,77 +63,111 @@ func (w TypeSafeExternalKeyStoreProxy) SetupKeyStore(serviceName string, key str
 
 // externalKeyStore is the reference to some external key store
 var externalKeyStore ExternalKeyStore
-
+var externalKeyStoreInitialized bool
 var externalKeyStoreMu sync.Mutex
-
-func (s secretStoreAccountName) serviceName() string {
-	return s.context.GetStoredSecretServiceName()
-}
 
 // SetGlobalExternalKeyStore is called by Android to register Android's KeyStore with Go
 func SetGlobalExternalKeyStore(s UnsafeExternalKeyStore) {
 	externalKeyStoreMu.Lock()
 	defer externalKeyStoreMu.Unlock()
 	externalKeyStore = TypeSafeExternalKeyStoreProxy{s}
+	externalKeyStoreInitialized = false
 }
 
-func getGlobalExternalKeyStore() ExternalKeyStore {
+var noExternalKeyStore = errors.New("no external key store available")
+
+func getGlobalExternalKeyStore(m MetaContext) (ExternalKeyStore, error) {
 	externalKeyStoreMu.Lock()
 	defer externalKeyStoreMu.Unlock()
-	return externalKeyStore
-}
 
-type secretStoreAccountName struct {
-	externalKeyStore ExternalKeyStore
-	context          SecretStoreContext
-}
-
-var _ SecretStoreAll = secretStoreAccountName{}
-
-func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret LKSecFullSecret) (err error) {
-	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
-	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
-}
-
-func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) (LKSecFullSecret, error) {
-	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
-	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
-}
-
-func (s secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
-	return s.externalKeyStore.ClearSecret(s.serviceName(), string(username))
-}
-
-func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
-	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
-		return nil
+		// perhaps SetGlobalExternalKeyStore has not been called by Android internals yet:
+		m.CDebugf("secret_store_external:getGlobalExternalKeyStore called, but externalKeyStore is nil")
+		return nil, noExternalKeyStore
 	}
-	return secretStoreAccountName{externalKeyStore, g}
+
+	// always check this since perhaps SetGlobalExternalKeyStore called more than once
+	if !externalKeyStoreInitialized {
+		m.CDebugf("+ secret_store_external:setup (in getGlobalExternalKeyStore)")
+		defer m.CDebugf("- secret_store_external:setup (in getGlobalExternalKeyStore)")
+
+		serviceName := m.G().GetStoredSecretServiceName()
+
+		// username not required
+		err := externalKeyStore.SetupKeyStore(serviceName, "")
+		if err != nil {
+			m.CDebugf("externalKeyStore.SetupKeyStore(%s) error: %s (%T)", serviceName, err, err)
+			return nil, err
+		}
+
+		m.CDebugf("externalKeyStore.SetupKeyStore(%s) success", serviceName)
+		externalKeyStoreInitialized = true
+	}
+
+	return externalKeyStore, nil
 }
 
-func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
-	return nil
+type secretStoreAndroid struct{}
+
+var _ SecretStoreAll = &secretStoreAndroid{}
+
+func NewSecretStoreAll(m MetaContext) SecretStoreAll {
+	return &secretStoreAndroid{}
 }
 
-func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
-	if s.externalKeyStore == nil {
-		return nil, nil
+func (s *secretStoreAndroid) serviceName(m MetaContext) string {
+	return m.G().GetStoredSecretServiceName()
+}
+
+func (s *secretStoreAndroid) StoreSecret(m MetaContext, username NormalizedUsername, secret LKSecFullSecret) (err error) {
+	defer m.CTraceTimed("secret_store_external StoreSecret", func() error { return err })()
+	ks, err := getGlobalExternalKeyStore(m)
+	if err != nil {
+		return err
 	}
-	usersMsgPack, err := s.externalKeyStore.GetUsersWithStoredSecretsMsgPack(s.serviceName())
+
+	return ks.StoreSecret(s.serviceName(m), string(username), secret)
+}
+
+func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUsername) (sec LKSecFullSecret, err error) {
+	defer m.CTraceTimed("secret_store_external RetrieveSecret", func() error { return err })()
+
+	ks, err := getGlobalExternalKeyStore(m)
+	if err != nil {
+		return sec, err
+	}
+
+	return ks.RetrieveSecret(s.serviceName(m), string(username))
+}
+
+func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsername) (err error) {
+	defer m.CTraceTimed("secret_store_external ClearSecret", func() error { return err })()
+
+	ks, err := getGlobalExternalKeyStore(m)
+	if err != nil {
+		return err
+	}
+
+	return ks.ClearSecret(s.serviceName(m), string(username))
+}
+
+func (s *secretStoreAndroid) GetUsersWithStoredSecrets(m MetaContext) (users []string, err error) {
+	defer m.CTraceTimed("secret_store_external GetUsersWithStoredSecrets", func() error { return err })()
+
+	ks, err := getGlobalExternalKeyStore(m)
+	if err != nil {
+		if err == noExternalKeyStore {
+			// this is to match previous behavior of this function,
+			// but perhaps it should return the error instead
+			return nil, nil
+		}
+		return nil, err
+	}
+	usersMsgPack, err := ks.GetUsersWithStoredSecretsMsgPack(s.serviceName(m))
 	if err != nil {
 		return nil, err
 	}
-	var users []string
 	ch := codecHandle()
 	err = MsgpackDecodeAll(usersMsgPack, ch, &users)
 	return users, err
-}
-
-func (s secretStoreAccountName) GetTerminalPrompt() string {
-	return "Store secret in Android's KeyStore?"
-}
-
-func (s secretStoreAccountName) GetApprovalPrompt() string {
-	return "Store secret in Android's KeyStore?"
 }

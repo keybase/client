@@ -1,33 +1,33 @@
 // @flow
-import HOCTimers from './hoc-timers'
 import React, {Component} from 'react'
 import type {Props as PropsCommon} from './copyable-text'
-import type {TimerProps} from './hoc-timers'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Text from './text'
 import Box from './box'
 import {Clipboard, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
-export type Props = PropsCommon & {
+export type Props = PropsWithTimer<{
+  ...PropsCommon,
   textStyle: Object,
-}
+}>
 
 type State = {
   hasCopied: boolean,
 }
 
-class CopyableText extends Component<void, Props & TimerProps, State> {
-  state: State;
-  lastCopyTimeoutId: ?number
+class CopyableText<P: Props> extends Component<P, State> {
+  state: State
+  lastCopyTimeoutId: TimeoutID
 
-  constructor (props: Props) {
+  constructor(props: P) {
     super(props)
     this.state = {
       hasCopied: false,
     }
   }
 
-  _handleCopy () {
+  _handleCopy() {
     Clipboard.setString(this.props.value)
     this.setState({hasCopied: true})
     this.props.clearTimeout(this.lastCopyTimeoutId)
@@ -36,15 +36,24 @@ class CopyableText extends Component<void, Props & TimerProps, State> {
     }, 5000)
   }
 
-  render () {
+  render() {
     const {value, style, textStyle} = this.props
     return (
-      <TouchableHighlight activeOpacity={0.6} underlayColor={globalColors.white} onPress={() => this._handleCopy()}style={style}>
+      <TouchableHighlight
+        activeOpacity={0.6}
+        underlayColor={globalColors.white}
+        onPress={() => this._handleCopy()}
+        style={style}
+      >
         <Box style={styleBase}>
-          <Text style={{...styleText, ...textStyle}} type='BodySmall'>{value}</Text>
+          <Text style={{...styleText, ...textStyle}} type="BodySmall">
+            {value}
+          </Text>
           <Box style={styleCopyToastContainer}>
             <Box style={styleCopyToast}>
-              <Text style={styleCopyToastText} type='Body'>{this.state.hasCopied ? 'Copied!' : 'Tap to copy'}</Text>
+              <Text style={styleCopyToastText} type="Body">
+                {this.state.hasCopied ? 'Copied!' : 'Tap to copy'}
+              </Text>
             </Box>
           </Box>
         </Box>

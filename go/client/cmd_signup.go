@@ -48,7 +48,12 @@ type PromptFields struct {
 }
 
 func (pf PromptFields) ToList() []*Field {
-	return []*Field{pf.email, pf.code, pf.username, pf.passphraseRetry, pf.deviceName}
+	fields := []*Field{pf.email}
+	if pf.code.Defval == "" {
+		fields = append(fields, pf.code)
+	}
+	fields = append(fields, pf.username, pf.passphraseRetry, pf.deviceName)
+	return fields
 }
 
 type CmdSignup struct {
@@ -71,6 +76,7 @@ type CmdSignup struct {
 	doPrompt          bool
 	skipMail          bool
 	genPGP            bool
+	genPaper          bool
 }
 
 func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
@@ -82,6 +88,12 @@ func NewCmdSignupRunner(g *libkb.GlobalContext) *CmdSignup {
 
 func (s *CmdSignup) SetTest() {
 	s.skipMail = true
+	s.genPaper = true
+}
+
+func (s *CmdSignup) SetTestWithPaper(b bool) {
+	s.skipMail = true
+	s.genPaper = b
 }
 
 func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
@@ -113,7 +125,9 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 
 		s.passphrase = s.defaultPassphrase
 		s.genPGP = ctx.Bool("pgp")
+		s.genPaper = true
 		s.doPrompt = false
+		s.storeSecret = true
 	} else {
 		s.doPrompt = true
 	}
@@ -150,6 +164,11 @@ func (s *CmdSignup) Run() (err error) {
 
 	if err = s.checkRegistered(); err != nil {
 		return err
+	}
+
+	if s.code == "" {
+		// Eat the error here - we prompt the user in that case
+		s.requestInvitationCode()
 	}
 
 	if err = s.trySignup(); err != nil {
@@ -240,11 +259,12 @@ func (s *CmdSignup) runEngine() (retry bool, err error) {
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
-		StoreSecret: s.storeSecret,
+		StoreSecret: true,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
 		SkipMail:    s.skipMail,
 		GenPGPBatch: s.genPGP,
+		GenPaper:    s.genPaper,
 	}
 	res, err := s.scli.Signup(context.TODO(), rarg)
 	if err == nil {
@@ -323,6 +343,9 @@ func (s *CmdSignup) MakePrompter() {
 			}
 			return nil
 		}
+	} else {
+		// we omit this prompt if populated
+		code.Value = &s.code
 	}
 
 	passphraseRetry := &Field{
@@ -403,10 +426,7 @@ func (s *CmdSignup) initClient() error {
 		loginUI.noPrompt = true
 		protocols = append(protocols, keybase1.LoginUiProtocol(loginUI))
 	}
-	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
-		return err
-	}
-	return nil
+	return RegisterProtocolsWithContext(protocols, s.G())
 }
 
 func (s *CmdSignup) postInviteRequest() (err error) {
@@ -422,6 +442,18 @@ func (s *CmdSignup) postInviteRequest() (err error) {
 	return
 }
 
+func (s *CmdSignup) requestInvitationCode() error {
+
+	code, err := s.scli.GetInvitationCode(context.TODO(), 0)
+	if err != nil {
+		s.G().Log.Debug("Error getting new code: %v", err)
+	} else {
+		s.G().Log.Debug("Success! You got new code %s", code)
+	}
+	s.code = code
+	return err
+}
+
 func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 	retry = false
 	err = inerr
@@ -432,7 +464,17 @@ func (s *CmdSignup) handlePostError(inerr error) (retry bool, err error) {
 			s.G().Log.Errorf("Email address '%s' already taken", v)
 			retry = true
 			err = nil
-		case "BAD_SIGNUP_USERNAME_TAKEN":
+		case "BAD_SIGNUP_USERNAME_RESERVED":
+			v := s.fields.username.Clear()
+			s.G().Log.Errorf("Username '%s' is reserved! Please email admin@keybase.io for more info.", v)
+			retry = true
+			err = nil
+		case "BAD_SIGNUP_USERNAME_DELETED":
+			v := s.fields.username.Clear()
+			s.G().Log.Errorf("Username '%s' has been deleted.", v)
+			retry = true
+			err = nil
+		case "BAD_SIGNUP_USERNAME_TAKEN", "BAD_SIGNUP_TEAM_NAME":
 			v := s.fields.username.Clear()
 			s.G().Log.Errorf("Username '%s' already taken", v)
 			retry = true

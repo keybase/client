@@ -1,7 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-}
-
-export default class Render extends Component<void, Props, void> { }

@@ -66,7 +66,8 @@ protocol user {
   /**
     Load a user + device keys from the server.
     */
-  UserPlusKeys loadUserPlusKeys(int sessionID, UID uid);
+  UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, KID pollForKID);
+  UserPlusKeysV2AllIncarnations loadUserPlusKeysV2(int sessionID, UID uid, KID pollForKID);
 
   /**
     Load public keys for a user.
@@ -132,4 +133,40 @@ protocol user {
   }
 
   UserSummary2Set listTrackers2(int sessionID, string assertion, boolean reverse);
+
+  void profileEdit(int sessionID, string fullName, string location, string bio);
+
+  record InterestingPerson {
+    UID uid;
+    string username;
+  }
+  array<InterestingPerson> interestingPeople(int maxUsers);
+
+  UserVersion meUserVersion(int sessionID, boolean forcePoll);
+
+  /**
+   getUPAK returns a UPAK. Used mainly for debugging.
+  */
+  @lint("ignore")
+  UPAKVersioned getUPAK(UID uid);
+
+  void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
+
+  record NextMerkleRootRes {
+    union { null, MerkleRootV2 } res;
+  }
+
+  /**
+   FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
+   revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
+   we'll start our search. Usually it's the next one, but not always
+  */
+  NextMerkleRootRes findNextMerkleRootAfterRevoke(UID uid, KID kid, SigChainLocation loc, MerkleRootV2 prev);
+
+  /**
+   FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset
+   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of
+   the reset. Usually, we'll just turn up the next Merkle root, but not always.
+  */
+  NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 }

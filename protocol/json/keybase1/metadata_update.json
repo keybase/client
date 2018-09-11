@@ -6,7 +6,22 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "RekeyRequest",
+      "fields": [
+        {
+          "type": "string",
+          "name": "folderID"
+        },
+        {
+          "type": "long",
+          "name": "revision"
+        }
+      ]
+    }
+  ],
   "messages": {
     "metadataUpdate": {
       "request": [
@@ -30,6 +45,18 @@
         {
           "name": "revision",
           "type": "long"
+        }
+      ],
+      "response": null
+    },
+    "foldersNeedRekey": {
+      "request": [
+        {
+          "name": "requests",
+          "type": {
+            "type": "array",
+            "items": "RekeyRequest"
+          }
         }
       ],
       "response": null

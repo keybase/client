@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -15,6 +16,7 @@ type ResolveThenIdentify2 struct {
 	i2eng                 *Identify2WithUID
 	testArgs              *Identify2WithUIDTestArgs
 	responsibleGregorItem gregor.Item
+	queriedName           libkb.NormalizedUsername
 
 	// When tracking is being performed, the identify engine is used with a tracking ui.
 	// These options are sent to the ui based on command line options.
@@ -22,7 +24,7 @@ type ResolveThenIdentify2 struct {
 	trackOptions keybase1.TrackOptions
 }
 
-var _ (Engine) = (*ResolveThenIdentify2)(nil)
+var _ (Engine2) = (*ResolveThenIdentify2)(nil)
 
 func NewResolveThenIdentify2(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *ResolveThenIdentify2 {
 	return &ResolveThenIdentify2{
@@ -57,37 +59,39 @@ func (e *ResolveThenIdentify2) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *ResolveThenIdentify2) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&Identify2WithUID{},
+		&Identify2WithUID{
+			arg: e.arg,
+		},
 	}
 }
 
-func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
+func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 	if !e.arg.Uid.IsNil() {
 		return nil
 	}
 
 	// if no uid and no assertion, then if logged in use self uid:
 	if len(e.arg.UserAssertion) == 0 && e.arg.AllowEmptySelfID {
-		ok, uid, err := IsLoggedIn(e, ctx)
+		ok, uid := isLoggedIn(m)
 		if ok {
 			e.arg.Uid = uid
 			return nil
 		}
-		if err != nil {
-			return err
-		}
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := e.G().Resolver.ResolveFullExpressionWithBody(ctx.GetNetContext(), e.arg.UserAssertion)
+	rres := m.G().Resolver.ResolveFullExpressionWithBody(m, e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}
 	e.arg.Uid = rres.GetUID()
 	if rres.WasKBAssertion() && !e.arg.NeedProofSet {
+		m.CDebugf("Assertion was 'KB' and we don't need proofset: %s", e.arg.UserAssertion)
 		// the resolve assertion was a keybase username or UID, so remove it
 		// from identify2 arg to allow cache hits on UID.
 		e.arg.UserAssertion = ""
+		// But still check on that way out that the username matches the UID
+		e.queriedName = rres.GetNormalizedQueriedUsername()
 	}
 
 	// An optimization --- plumb through the resolve body for when we load the
@@ -97,30 +101,55 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 	return nil
 }
 
-func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
-	e.SetGlobalContext(ctx.CloneGlobalContextWithLogTags(e.G(), "ID2"))
+func (e *ResolveThenIdentify2) nameResolutionPostAssertion(m libkb.MetaContext) (err error) {
+	// Check the server for cheating on a Name->UID resolution. After we do a userload (by UID),
+	// we should have a merkle-verified idea of what the corresponding name is, so we check it
+	// as a post-assertion here.
+	if e.queriedName.IsNil() {
+		return nil
+	}
+	res, err := e.Result()
+	if err != nil {
+		return err
+	}
+	if !libkb.NewNormalizedUsername(res.Upk.GetName()).Eq(e.queriedName) {
+		return libkb.NewUIDMismatchError("bad user returned for " + e.queriedName.String())
+	}
+	return nil
+}
 
-	defer e.G().CTraceTimed(ctx.GetNetContext(), "ResolveThenIdentify2#Run", func() error { return err })()
+func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
+	m = m.WithLogTag("ID2")
 
-	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
+	defer m.CTraceTimed("ResolveThenIdentify2#Run", func() error { return err })()
+
+	e.i2eng = NewIdentify2WithUID(m.G(), e.arg)
 	if e.responsibleGregorItem != nil {
 		e.i2eng.SetResponsibleGregorItem(e.responsibleGregorItem)
 	}
 	e.i2eng.trackOptions = e.trackOptions
 
-	if err = e.resolveUID(ctx); err != nil {
+	if err = e.resolveUID(m); err != nil {
 		return
 	}
 
 	// For testing
 	e.i2eng.testArgs = e.testArgs
+	err = RunEngine2(m, e.i2eng)
+	if err != nil {
+		return err
+	}
 
-	return RunEngine(e.i2eng, ctx)
+	err = e.nameResolutionPostAssertion(m)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
-func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
+func (e *ResolveThenIdentify2) Result() (*keybase1.Identify2ResUPK2, error) {
 	if e.i2eng == nil {
-		return nil
+		return nil, errors.New("ResolveThenIdentify2#Result: no result available if the engine did not run")
 	}
 	return e.i2eng.Result()
 }
@@ -135,4 +164,50 @@ func (e *ResolveThenIdentify2) TrackToken() keybase1.TrackToken {
 
 func (e *ResolveThenIdentify2) ConfirmResult() keybase1.ConfirmResult {
 	return e.i2eng.ConfirmResult()
+}
+
+func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
+	if e.i2eng == nil {
+		return nil
+	}
+	return e.i2eng.GetProofSet()
+}
+
+func (e *ResolveThenIdentify2) GetIdentifyOutcome() *libkb.IdentifyOutcome {
+	if e.i2eng == nil {
+		return nil
+	}
+	return e.i2eng.GetIdentifyOutcome()
+}
+
+// ResolveAndCheck takes as input a name (joe), social assertion (joe@twitter)
+// or compound assertion (joe+joe@twitter+3883883773222@pgp) and resolves
+// it to a user, verifying the result. Pass into it a MetaContext without any UIs set,
+// since it is meant to run without any UI interaction. Tracking statements
+// are optionally taken into account (see flag). No ID2-specific caching will be used,
+// but the UPAK cache will be used, and busted with ForceRepoll semantics. The output, on success,
+// is a populated UserPlusKeysV2.
+func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keybase1.UserPlusKeysV2, err error) {
+
+	m = m.WithLogTag("RAC")
+	defer m.CTraceTimed("ResolveAndCheck", func() error { return err })()
+
+	arg := keybase1.Identify2Arg{
+		UserAssertion:         s,
+		CanSuppressUI:         true,
+		ActLoggedOut:          !useTracking,
+		NoErrorOnTrackFailure: !useTracking,
+		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+	}
+	eng := NewResolveThenIdentify2(m.G(), &arg)
+	err = RunEngine2(m, eng)
+	if err != nil {
+		return ret, err
+	}
+	res, err := eng.Result()
+	if err != nil {
+		return ret, err
+	}
+	// Success path.
+	return res.Upk.Current, nil
 }

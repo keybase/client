@@ -1,0 +1,105 @@
+@namespace("keybase.1")
+
+protocol home {
+
+  @typedef("string")
+  record HomeScreenItemID {}
+
+  enum HomeScreenItemType {
+    TODO_1,
+    PEOPLE_2
+  }
+
+  variant HomeScreenItemData switch (HomeScreenItemType t) {
+    case TODO: HomeScreenTodo;
+    case PEOPLE: HomeScreenPeopleNotification;
+  }
+
+  enum HomeScreenTodoType {
+    NONE_0,
+    BIO_1,
+    PROOF_2,
+    DEVICE_3,
+    FOLLOW_4,
+    CHAT_5,
+    PAPERKEY_6,
+    TEAM_7,
+    FOLDER_8,
+    GIT_REPO_9,
+    TEAM_SHOWCASE_10,
+    AVATAR_USER_11,
+    AVATAR_TEAM_12
+  }
+
+  variant HomeScreenTodo switch (HomeScreenTodoType t) {
+    default: void;
+  }
+
+  enum HomeScreenPeopleNotificationType {
+    FOLLOWED_1,
+    FOLLOWED_MULTI_2
+  }
+
+  record HomeScreenPeopleNotificationFollowed {
+    Time followTime;
+    boolean followedBack;
+    UserSummary user;
+  }
+
+  record HomeScreenPeopleNotificationFollowedMulti {
+    array<HomeScreenPeopleNotificationFollowed> followers;
+    int numOthers;
+  }
+
+  variant HomeScreenPeopleNotification switch (HomeScreenPeopleNotificationType t) {
+    case FOLLOWED: HomeScreenPeopleNotificationFollowed;
+    case FOLLOWED_MULTI: HomeScreenPeopleNotificationFollowedMulti;
+  }
+
+  record HomeScreenItem {
+    boolean badged;
+    HomeScreenItemData data;
+  }
+
+  record Pics {
+    @jsonkey("square_40")
+    string square40;
+    @jsonkey("square_200")
+    string square200;
+    @jsonkey("square_360")
+    string square360;
+  }
+
+  record HomeUserSummary {
+    UID uid;
+    string username;
+    string bio;
+    @jsonkey("full_name")
+    string fullName;
+    union { null, Pics } pics;
+  }
+
+  record HomeScreen {
+    Time lastViewed;
+    int version;
+    int visits;
+    array<HomeScreenItem> items;
+    array<HomeUserSummary> followSuggestions;
+  }
+
+  /**
+    HomeGetScreen returns the home screen for the current user.
+    If `markViewed` is specified, the server will mark this version of the
+    home screen "viewed", potentially updating some badges.
+    `numFollowSuggestionsWanted` controls the number of people to return.
+    If not specified, it will default to `0`, so no people.  If `-1` is specified,
+    the default number will be returned (10).  Otherwise, the caller should
+    specify.
+   */
+  HomeScreen homeGetScreen(boolean markViewed, int numFollowSuggestionsWanted);
+
+  void homeSkipTodoType(HomeScreenTodoType t);
+  void homeActionTaken();
+  void homeMarkViewed();
+
+}

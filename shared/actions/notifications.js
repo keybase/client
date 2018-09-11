@@ -1,107 +1,61 @@
 // @flow
 import * as Constants from '../constants/notifications'
-import ListenerCreator from '../native/notification-listeners'
-import engine, {Engine} from '../engine'
-import {NotifyPopup} from '../native/notifications'
-import {call, put, take} from 'redux-saga/effects'
-import {log} from '../native/log/logui'
-import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
-import {registerIdentifyUi, setupUserChangedHandler} from './tracker'
-import {setupKBFSChangedHandler} from './favorite'
-import {setupChatHandlers} from './chat'
+import * as ConfigGen from './config-gen'
+import * as NotificationsGen from './notifications-gen'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import * as Saga from '../util/saga'
+import {getEngine} from '../engine'
+import logger from '../logger'
+import {isMobile} from '../constants/platform'
+import type {TypedState} from '../constants/reducer'
 
-import type {LogAction, NotificationKeys, ListenForNotifications, ListenForKBFSNotifications, BadgeAppAction} from '../constants/notifications'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
-
-function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
-  log({text, level}, response)
-  return {type: Constants.log, payload: {text: text.data, level}}
-}
-
-function listenForNotifications (): ListenForNotifications {
-  return {type: Constants.listenForNotifications, payload: undefined}
-}
-
-function listenForKBFSNotifications (): ListenForKBFSNotifications {
-  return {type: Constants.listenForKBFSNotifications, payload: undefined}
-}
-
-function * _listenSaga (): SagaGenerator<any, any> {
+const setupEngineListeners = () => {
   const channels = {
     app: true,
     badges: true,
     chat: true,
+    chatattachments: true,
+    chatdev: false,
+    chatkbfsedits: false,
+    deviceclone: false,
+    ephemeral: false,
     favorites: false,
     kbfs: true,
-    kbfsrequest: true,
+    kbfsrequest: !isMobile,
     keyfamily: false,
     paperkeys: false,
     pgp: true,
     reachability: true,
     service: true,
     session: true,
+    team: true,
     tracking: true,
     users: true,
+    wallet: true,
   }
 
-  const engineInst: Engine = yield call(engine)
-  yield call([engineInst, engineInst.listenOnConnect], 'setNotifications', () => {
-    notifyCtlSetNotificationsRpc({
-      param: {channels},
-      callback: (error, response) => {
-        if (error != null) {
-          console.warn('error in toggling notifications: ', error)
-        }
-      },
+  getEngine().actionOnConnect('setNotifications', () => {
+    RPCTypes.notifyCtlSetNotificationsRpcPromise({channels}).catch(error => {
+      if (error != null) {
+        logger.warn('error in toggling notifications: ', error)
+      }
     })
   })
 
-  yield put((dispatch, getState) => {
-    const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
-    Object.keys(listeners).forEach(key => {
-      engine().setIncomingHandler(key, listeners[key])
-    })
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
+      Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
   })
-
-  yield put(registerIdentifyUi())
-  yield put(setupUserChangedHandler())
 }
 
-function * _listenKBFSSaga (): SagaGenerator<any, any> {
-  yield put(setupKBFSChangedHandler())
-  yield put(setupChatHandlers())
+const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
+  const payload = Constants.badgeStateToBadges(action.payload.badgeState, state)
+  return payload ? Saga.put(NotificationsGen.createSetAppBadgeState(payload)) : null
 }
 
-function badgeApp (key: NotificationKeys, on: boolean, count: number = 0): BadgeAppAction {
-  return {
-    type: Constants.badgeApp,
-    payload: {key, on, count},
-  }
-}
-
-function * _listenNotifications (): SagaGenerator<any, any> {
-  yield take(Constants.listenForNotifications)
-  yield call(_listenSaga)
-}
-
-function * _listenForKBFSNotifications (): SagaGenerator<any, any> {
-  yield take(Constants.listenForKBFSNotifications)
-  yield call(_listenKBFSSaga)
-}
-
-function * notificationsSaga (): SagaGenerator<any, any> {
-  yield [
-    call(_listenNotifications),
-    call(_listenForKBFSNotifications),
-  ]
-}
-
-export {
-  badgeApp,
-  listenForNotifications,
-  listenForKBFSNotifications,
-  logUiLog,
+function* notificationsSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default notificationsSaga

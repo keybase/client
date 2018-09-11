@@ -1,5 +1,5 @@
 // @flow
-import type {SimpleProofState} from '../constants/tracker'
+import type {SimpleProofState} from '../constants/types/tracker'
 import {globalColors} from '../styles'
 import {warning, error} from '../constants/tracker'
 
@@ -11,7 +11,11 @@ type StateColors = {
   username: string,
 }
 
-export function stateColors (currentlyFollowing: boolean, trackerState: SimpleProofState, defaultColor?: string): StateColors {
+export function stateColors(
+  currentlyFollowing: boolean,
+  trackerState: SimpleProofState,
+  defaultColor?: string
+): StateColors {
   if (currentlyFollowing) {
     if ([warning, error].indexOf(trackerState) !== -1) {
       return {

@@ -1,13 +1,13 @@
 // @flow
-import {ipcRenderer, ipcMain, app} from 'electron'
-import {quit} from '../desktop/app/ctl'
-import {hideDockIcon} from '../desktop/app/dock-icon'
+import * as SafeElectron from '../util/safe-electron.desktop'
+import {quit} from '../desktop/app/ctl.desktop'
+import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 
 // Logic to figure out what to do given your context
-function quitOnContext (context: Context): Array<Action> {
+function quitOnContext(context: Context): Array<Action> {
   switch (context) {
     case 'uiWindow':
       return ['closePopups', 'quitMainWindow']
@@ -20,20 +20,20 @@ function quitOnContext (context: Context): Array<Action> {
   return []
 }
 
-function isMainThread () {
+function isMainThread() {
   // the main thread's process.type is browser: https://github.com/electron/electron/blob/master/docs/api/process.md
   // $FlowIssue
   return process.type === 'browser'
 }
 
-function _executeActions (actions: Array<Action>) {
+function _executeActions(actions: Array<Action>) {
   actions.forEach(a => {
     switch (a) {
       case 'quitMainWindow':
         hideDockIcon()
         break
       case 'closePopups':
-        app.emit('close-windows')
+        SafeElectron.getApp().emit('close-windows')
         break
       case 'quitApp':
         quit()
@@ -43,11 +43,11 @@ function _executeActions (actions: Array<Action>) {
 }
 
 // Takes an array of actions, but makes an ipc call to have the main thread execute the actions
-function _executeActionsFromRenderer (actions: Array<Action>) {
-  ipcRenderer.send('executeActions', actions)
+function _executeActionsFromRenderer(actions: Array<Action>) {
+  SafeElectron.getIpcRenderer().send('executeActions', actions)
 }
 
-export function executeActionsForContext (context: Context) {
+export function executeActionsForContext(context: Context) {
   const actions = quitOnContext(context)
   if (isMainThread()) {
     _executeActions(actions)
@@ -56,9 +56,16 @@ export function executeActionsForContext (context: Context) {
   }
 }
 
-export function setupExecuteActionsListener () {
-  ipcMain.on('executeActions', (event, actions) => {
+export function setupExecuteActionsListener() {
+  SafeElectron.getIpcMain().on('executeActions', (event, actions) => {
     console.log('executeActionsRecieved', actions)
     _executeActions(actions)
   })
 }
+
+const crossplatformQuit = (reason: string) => {
+  // $FlowIssue don't want to really expose this correctly
+  executeActionsForContext(reason)
+}
+
+export {crossplatformQuit as quit}

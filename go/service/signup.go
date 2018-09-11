@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -18,17 +20,48 @@ type SignupHandler struct {
 
 func NewSignupHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SignupHandler {
 	return &SignupHandler{
-		BaseHandler:  NewBaseHandler(xp),
+		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.CheckUsernameAvailableArg) error {
-	return engine.CheckUsernameAvailable(h.G(), arg.Username)
+	_, err := h.G().API.Get(libkb.APIArg{
+		Endpoint:    "user/lookup",
+		SessionType: libkb.APISessionTypeNONE,
+		Args: libkb.HTTPArgs{
+			"username": libkb.S{Val: arg.Username},
+			"fields":   libkb.S{Val: "basics"},
+		},
+	})
+	switch err := err.(type) {
+	case nil:
+		// User found, so the name is taken.
+		return libkb.AppStatusError{
+			Code: libkb.SCBadSignupUsernameTaken,
+			Name: "BAD_SIGNUP_USERNAME_TAKEN",
+			Desc: fmt.Sprintf("Username '%s' is taken", arg.Username),
+		}
+	case libkb.AppStatusError:
+		switch err.Name {
+		case "NOT_FOUND":
+			// User not found, name is available.
+			return nil
+		case "DELETED":
+			return libkb.AppStatusError{
+				Code: libkb.SCBadSignupUsernameDeleted,
+				Name: "BAD_SIGNUP_USERNAME_DELETED",
+				Desc: fmt.Sprintf("Username '%s' has been deleted", arg.Username),
+			}
+		}
+		return err
+	default:
+		return err
+	}
 }
 
-func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
-	ctx := &engine.Context{
+func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
+	uis := libkb.UIs{
 		LogUI:     h.getLogUI(arg.SessionID),
 		GPGUI:     h.getGPGUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
@@ -45,9 +78,11 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 		DeviceType:  arg.DeviceType,
 		SkipMail:    arg.SkipMail,
 		GenPGPBatch: arg.GenPGPBatch,
+		SkipPaper:   !arg.GenPaper,
 	}
-	eng := engine.NewSignupEngine(&runarg, h.G())
-	err = engine.RunEngine(eng, ctx)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	eng := engine.NewSignupEngine(h.G(), &runarg)
+	err = engine.RunEngine2(m, eng)
 
 	if err == nil {
 		// everything succeeded
@@ -73,14 +108,19 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 	return res, err
 }
 
-func (h *SignupHandler) InviteRequest(_ context.Context, arg keybase1.InviteRequestArg) (err error) {
-	return libkb.PostInviteRequest(libkb.InviteRequestArg{
+func (h *SignupHandler) InviteRequest(ctx context.Context, arg keybase1.InviteRequestArg) (err error) {
+	m := libkb.NewMetaContext(ctx, h.G())
+	return libkb.PostInviteRequest(m, libkb.InviteRequestArg{
 		Email:    arg.Email,
 		Fullname: arg.Fullname,
 		Notes:    arg.Notes,
 	})
 }
 
-func (h *SignupHandler) CheckInvitationCode(_ context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
-	return libkb.CheckInvitationCode(arg.InvitationCode)
+func (h *SignupHandler) CheckInvitationCode(ctx context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
+	return libkb.CheckInvitationCode(libkb.NewMetaContext(ctx, h.G()), arg.InvitationCode)
+}
+
+func (h *SignupHandler) GetInvitationCode(c context.Context, sessionID int) (code string, err error) {
+	return libkb.GetInvitationCode(libkb.NewMetaContext(c, h.G()))
 }

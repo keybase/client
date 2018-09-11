@@ -1,8 +1,17 @@
 // @flow
-import type {Props} from './index'
+import * as React from 'react'
+import {HeaderHoc, NativeScrollView} from '../../common-adapters/mobile.native'
+import {globalStyles} from '../../styles'
+import Notifications from './render'
+import TurnOnNotifications from './turn-on-notifications.native'
 
-function Notifications (props: Props) {
-  return null
-}
+import type {Props} from '.'
 
-export default Notifications
+const MobileNotifications = (props: Props) => (
+  <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+    {!props.mobileHasPermissions && <TurnOnNotifications />}
+    <Notifications {...props} />
+  </NativeScrollView>
+)
+
+export default HeaderHoc(MobileNotifications)

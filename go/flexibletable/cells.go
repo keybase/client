@@ -114,7 +114,7 @@ func (c SingleCell) minWidth() int {
 // MultiCell defines cell content with multiple strings. If being truncated, it
 // looks like this: "item1,item2,+4..."
 type MultiCell struct {
-	// Sep is the separater between different items
+	// Sep is the separator between different items
 	Sep string
 	// Items are the content
 	Items []string

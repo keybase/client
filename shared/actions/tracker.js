@@ -1,643 +1,481 @@
 // @flow
+import logger from '../logger'
 import * as Constants from '../constants/tracker'
-import Session from '../engine/session'
-import _ from 'lodash'
+import * as TrackerGen from '../actions/tracker-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as Saga from '../util/saga'
+import * as RPCTypes from '../constants/types/rpc-gen'
+import {get} from 'lodash-es'
 import engine from '../engine'
 import openUrl from '../util/open-url'
-import {apiserverGetRpc, delegateUiCtlRegisterIdentifyUIRpc, identifyIdentify2Rpc, trackCheckTrackingRpc, trackDismissWithTokenRpc, trackTrackWithTokenRpc, trackUntrackRpc, IdentifyCommonIdentifyReasonType} from '../constants/types/flow-types'
 import {requestIdleCallback} from '../util/idle-callback'
-import {showAllTrackers} from '../local-debug'
+import {isMobile} from '../constants/platform'
+import {type TypedState} from '../constants/reducer'
+import type {FriendshipUserInfo} from '../constants/types/profile'
+import type {Dispatch} from '../util/container'
 
-import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
-import type {CancelHandlerType} from '../engine/session'
-import type {ConfigState} from '../reducers/config'
-import type {FriendshipUserInfo} from '../profile/friendships'
-import type {PendingIdentify, Proof} from '../constants/tracker'
-import type {RemoteProof, LinkCheckResult, UserCard, incomingCallMapType} from '../constants/types/flow-types'
-import type {State as RootTrackerState} from '../reducers/tracker'
-import type {TypedState} from '../constants/reducer'
-
-const {bufferToNiceHexString, cachedIdentifyGoodUntil} = Constants
-type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
-
-function startTimer (): TrackerActionCreator {
-  return (dispatch, getState) => {
-    // Increments timerActive as a count of open tracker popups.
-    dispatch({type: Constants.startTimer, payload: undefined})
-    const timerActive = getState().tracker.timerActive
-    if (timerActive === 1) {
-      // We're transitioning from 0->1, no tracker popups to one, start timer.
-      const intervalId = setInterval(() => {
-        const timerActive = getState().tracker.timerActive
-        if (timerActive <= 0) {
-          // All popups are closed now.
-          clearInterval(intervalId)
-        }
-
-        trackCheckTrackingRpc({})
-      }, Constants.rpcUpdateTimerSeconds)
+// Send a heartbeat while trackers are still open
+function* _trackerTimer(): Generator<any, void, any> {
+  while (true) {
+    yield Saga.call(Saga.delay, Constants.rpcUpdateTimerSeconds)
+    const state: TypedState = yield Saga.select()
+    const trackers = state.tracker.userTrackers
+    if (Object.keys(trackers).some(username => !trackers[username].closed)) {
+      yield Saga.call(RPCTypes.trackCheckTrackingRpcPromise)
     }
   }
 }
 
-function stopTimer (): Action {
-  return {
-    type: Constants.stopTimer,
-    payload: {},
+function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
+  const {username, ignoreCache, forceDisplay} = action.payload
+  const tracker = state.tracker
+
+  // If we have a pending identify no point in firing off another one
+  if (!ignoreCache && tracker.pendingIdentifies[username]) {
+    logger.info('Bailing on simultaneous getProfile', username)
+    return
+  }
+
+  const trackerState = tracker.userTrackers[username]
+  const uid =
+    trackerState && trackerState.type === 'tracker'
+      ? trackerState.userInfo && trackerState.userInfo.uid
+      : null
+  const goodTill = uid && tracker.cachedIdentifies[uid + '']
+  if (!ignoreCache && goodTill && goodTill >= Date.now()) {
+    logger.info('Bailing on cached getProfile', username, uid)
+    return
+  }
+
+  return Saga.all([
+    Saga.put(TrackerGen.createUpdateUsername({username})),
+    Saga.call(triggerIdentify('', username, forceDisplay)),
+    Saga.call(_fillFolders(username)),
+  ])
+}
+
+function _getMyProfile(action: TrackerGen.GetMyProfilePayload, state: TypedState) {
+  const {ignoreCache} = action.payload
+  const username = state.config.username
+  if (username) {
+    return Saga.put(TrackerGen.createGetProfile({ignoreCache: ignoreCache || false, username}))
   }
 }
 
-function _clearIdentifyCache (uid: string): Action {
-  return {
-    type: Constants.cacheIdentify,
-    payload: {uid, goodTill: 0},
-  }
-}
-
-function setupUserChangedHandler (): TrackerActionCreator {
-  return (dispatch, getState) => {
-    engine().setIncomingHandler('keybase.1.NotifyUsers.userChanged', ({uid}) => {
-      dispatch(_clearIdentifyCache(uid))
-      const username = _getUsername(uid, getState())
-      if (username) {
-        dispatch(getProfile(username))
-      }
-    })
-  }
-}
-
-function getProfile (username: string, ignoreCache: boolean = false, forceDisplay: boolean = false): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const tracker = getState().tracker
-
-    // If we have a pending identify no point in firing off another one
-    if (!ignoreCache && tracker.pendingIdentifies[username]) {
-      console.log('Bailing on simultaneous getProfile', username)
-      return
-    }
-
-    const trackerState = tracker && tracker.trackers ? tracker.trackers[username] : null
-    const uid = trackerState && trackerState.type === 'tracker' ? trackerState.userInfo && trackerState.userInfo.uid : null
-    const goodTill = uid && tracker.cachedIdentifies[uid + '']
-    if (!ignoreCache && goodTill && goodTill >= Date.now()) {
-      console.log('Bailing on cached getProfile', username, uid)
-      return
-    }
-
-    dispatch({type: Constants.updateUsername, payload: {username}})
-    dispatch(triggerIdentify('', username, _serverCallMap(dispatch, getState, true), forceDisplay))
-    dispatch(_fillFolders(username))
-  }
-}
-
-function getMyProfile (ignoreCache?: boolean): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const status = getState().config.status
-    const username = status && status.user && status.user.username
-    if (username) {
-      dispatch(getProfile(username, ignoreCache || false))
-    }
-  }
-}
-
-function triggerIdentify (uid: string = '', userAssertion: string = '', incomingCallMap: Object = {}, forceDisplay: boolean = false): TrackerActionCreator {
-  return (dispatch, getState) => new Promise((resolve, reject) => {
-    dispatch({type: Constants.identifyStarted, payload: null})
-    identifyIdentify2Rpc({
-      param: {
-        uid,
-        userAssertion,
-        alwaysBlock: false,
-        noErrorOnTrackFailure: true,
-        forceRemoteCheck: false,
-        forceDisplay,
-        useDelegateUI: false,
-        needProofSet: true,
-        reason: {
-          type: IdentifyCommonIdentifyReasonType.id,
-          reason: 'Profile',
-          resource: '',
-        },
-        allowEmptySelfID: true,
-        noSkipSelf: true,
-      },
-      incomingCallMap,
-      callback: (error, response) => {
-        if (error) {
-          dispatch({type: Constants.identifyFinished, error: true, payload: {username: uid || userAssertion, error: error.desc}})
-        }
-        dispatch({type: Constants.identifyFinished, payload: {username: uid || userAssertion}})
-        resolve()
-      },
-    })
-  })
-}
-
-function registerIdentifyUi (): TrackerActionCreator {
-  return (dispatch, getState) => {
-    engine().listenOnConnect('registerIdentifyUi', () => {
-      delegateUiCtlRegisterIdentifyUIRpc({
-        callback: (error, response) => {
-          if (error != null) {
-            console.warn('error in registering identify ui: ', error)
-          } else {
-            console.log('Registered identify ui')
-          }
-        },
-      })
-    })
-
-    const cancelHandler: CancelHandlerType = (session) => {
-      const username = sessionIDToUsername[session.id]
-
-      if (username) {
-        dispatch({
-          type: Constants.identifyFinished,
-          error: true,
-          payload: {
-            username,
-            error: 'Identify timed out',
-          }})
-      }
-    }
-
-    engine().setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
-      // If we don't finish the session by our timeout, we'll display an error
-      const trackerTimeout = 1e3 * 60 * 5
-      let trackerTimeoutError = 0
-
-      const onStart = (username) => {
-        trackerTimeoutError = setTimeout(() => {
-          dispatch({type: Constants.identifyFinished, error: true, payload: {username, error: 'Identify timed out'}})
-        }, trackerTimeout)
-      }
-
-      const onFinish = () => {
-        session.end()
-        clearTimeout(trackerTimeoutError)
-      }
-
-      const session: Session = engine().createSession(
-        _serverCallMap(dispatch, getState, false, onStart, onFinish),
-        null,
-        cancelHandler
-      )
-
-      response && response.result(session.id)
-    })
-
-    dispatch({
-      type: Constants.registerIdentifyUi,
-      payload: {started: true},
-    })
-  }
-}
-
-function onRefollow (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState(), username)
-
-    const dispatchRefollowAction = () => {
-      dispatch(_onWaiting(username, false))
-      dispatch({
-        type: Constants.onRefollow,
-        payload: {username},
-      })
-    }
-    const dispatchErrorAction = (errText) => {
-      dispatch(_onWaiting(username, false))
-      dispatch({type: Constants.onError, payload: {username, extraText: errText}})
-    }
-
-    dispatch(_onWaiting(username, true))
-    _trackUser(trackToken, false)
-      .then(dispatchRefollowAction)
-      .catch(err => {
-        console.warn("Couldn't track user:", err)
-        dispatchErrorAction(err.desc)
-      })
-  }
-}
-
-function onUnfollow (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    dispatch(_onWaiting(username, true))
-
-    trackUntrackRpc({
-      param: {username},
-      callback: (err, response) => {
-        dispatch(_onWaiting(username, false))
-        if (err) {
-          console.log('err untracking', err)
-        } else {
-          dispatch({
-            type: Constants.reportLastTrack,
-            payload: {username},
+const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisplay: boolean = false) =>
+  function*() {
+    yield Saga.put(TrackerGen.createIdentifyStarted({username: uid || userAssertion}))
+    const action = yield Saga.call(
+      () =>
+        new Promise((resolve, reject) => {
+          RPCTypes.identifyIdentify2RpcPromise({
+            allowEmptySelfID: true,
+            alwaysBlock: false,
+            forceDisplay,
+            forceRemoteCheck: false,
+            needProofSet: true,
+            noErrorOnTrackFailure: true,
+            noSkipSelf: true,
+            reason: {
+              reason: Constants.profileFromUI,
+              resource: '',
+              type: RPCTypes.identifyCommonIdentifyReasonType.id,
+            },
+            uid,
+            useDelegateUI: true,
+            userAssertion,
           })
-          console.log('success in untracking')
-        }
-      },
-    })
+            .then(response => {
+              resolve(TrackerGen.createIdentifyFinished({username: uid || userAssertion}))
+            })
+            .catch(error => {
+              resolve(
+                TrackerGen.createIdentifyFinishedError({error: error.desc, username: uid || userAssertion})
+              )
+            })
+        })
+    )
+    yield Saga.put(action)
+  }
 
-    dispatch({
-      type: Constants.onUnfollow,
-      payload: {username},
-    })
+function* _refollow(action: TrackerGen.RefollowPayload) {
+  const {username} = action.payload
+  const state: TypedState = yield Saga.select()
+  const trackToken = _getTrackToken(state, username)
+
+  yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
+  try {
+    yield Saga.call(_trackUser, trackToken, false)
+    yield Saga.put(TrackerGen.createSetOnRefollow({username}))
+  } catch (e) {
+    logger.warn("Couldn't track user:", e)
+    yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
+  } finally {
+    yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
   }
 }
 
-function _trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
-  const options = {
-    localOnly: localIgnore,
-    expiringLocal: localIgnore,
-    bypassConfirm: false,
-    forceRetrack: false,
-    forPGPPull: false,
+function* _unfollow(action: TrackerGen.UnfollowPayload) {
+  const {username} = action.payload
+  yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
+  try {
+    yield Saga.call(RPCTypes.trackUntrackRpcPromise, {
+      username,
+    })
+    yield Saga.put(TrackerGen.createReportLastTrack({username}))
+    logger.info('success in untracking')
+  } catch (e) {
+    logger.info('err untracking', e)
+  } finally {
+    yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
   }
 
-  return new Promise((resolve, reject) => {
-    if (trackToken != null) {
-      trackTrackWithTokenRpc({
-        param: {trackToken, options},
-        callback: (err, response) => {
-          if (err) {
-            console.log('error: Track with token: ', err)
-            reject(err)
-          }
+  yield Saga.put(TrackerGen.createSetOnUnfollow({username}))
+}
 
-          console.log('Finished tracking', response)
-          resolve(true)
+const _trackUser = (trackToken: ?string, localIgnore: boolean): Promise<boolean> =>
+  new Promise((resolve, reject) => {
+    if (trackToken != null) {
+      RPCTypes.trackTrackWithTokenRpcPromise({
+        options: {
+          bypassConfirm: false,
+          expiringLocal: localIgnore,
+          forPGPPull: false,
+          forceRetrack: false,
+          localOnly: localIgnore,
         },
+        trackToken,
       })
+        .then(response => {
+          logger.info('Finished tracking', response)
+          resolve(true)
+        })
+        .catch(err => {
+          logger.info('error: Track with token: ', err)
+          reject(err)
+        })
     } else {
       resolve(false)
     }
   })
+
+function _ignore(action: TrackerGen.IgnorePayload) {
+  const {username} = action.payload
+  return Saga.all([
+    Saga.put(TrackerGen.createFollow({localIgnore: true, username})),
+    Saga.put(TrackerGen.createOnClose({username})),
+  ])
 }
 
-function _onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => void {
-  return dispatch => {
-    dispatch({type: Constants.onWaiting, payload: {username, waiting}})
+function _getTrackToken(state, username) {
+  const trackerState = state.tracker.userTrackers[username]
+  return trackerState ? trackerState.trackToken : null
+}
+
+function _getUsername(uid: string, state: TypedState): ?string {
+  const trackers = state.tracker.userTrackers
+  return Object.keys(trackers).find(name => trackers[name].userInfo.uid === uid)
+}
+
+function* _follow(action: TrackerGen.FollowPayload) {
+  const {username, localIgnore} = action.payload
+  const state: TypedState = yield Saga.select()
+  const trackToken = _getTrackToken(state, username)
+
+  yield Saga.put(TrackerGen.createWaiting({username, waiting: true}))
+  try {
+    yield Saga.call(_trackUser, trackToken, localIgnore || false)
+    yield Saga.put(TrackerGen.createSetOnFollow({username}))
+  } catch (e) {
+    logger.warn("Couldn't track user: ", e)
+    yield Saga.put(TrackerGen.createOnError({extraText: e.desc, username}))
+  } finally {
+    yield Saga.put(TrackerGen.createWaiting({username, waiting: false}))
   }
 }
 
-function onIgnore (username: string): (dispatch: Dispatch) => void {
-  return dispatch => {
-    dispatch(onFollow(username, true))
-    dispatch(onClose(username))
-  }
-}
-
-function _getTrackToken (state, username) {
-  const trackerState = state.tracker.trackers[username]
-  return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
-}
-
-function _getUsername (uid: string, state: {tracker: RootTrackerState}): ?string {
-  const trackers = state.tracker && state.tracker.trackers
-  return Object.keys(trackers).find(
-    (name: string) => trackers[name].type === 'tracker' &&
-      trackers[name].userInfo &&
-      trackers[name].userInfo.uid === uid)
-}
-
-function onFollow (username: string, localIgnore?: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
-  return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState(), username)
-
-    const dispatchFollowedAction = () => {
-      dispatch({type: Constants.onFollow, payload: {username}})
-      dispatch(_onWaiting(username, false))
-    }
-    const dispatchErrorAction = (errText) => {
-      dispatch({type: Constants.onError, payload: {username, extraText: errText}})
-      dispatch(_onWaiting(username, false))
-    }
-
-    dispatch(_onWaiting(username, true))
-    _trackUser(trackToken, localIgnore || false)
-      .then(dispatchFollowedAction)
-      .catch(err => {
-        console.warn("Couldn't track user: ", err)
-        dispatchErrorAction(err.desc)
-      })
-  }
-}
-
-function _dismissWithToken (trackToken) {
-  trackDismissWithTokenRpc({
-    param: {trackToken},
-    callback: err => {
-      if (err) {
-        console.log('err dismissWithToken', err)
-      }
-    },
+function _dismissWithToken(trackToken) {
+  RPCTypes.trackDismissWithTokenRpcPromise({trackToken}).catch(err => {
+    logger.info('err dismissWithToken', err)
   })
 }
 
-function onClose (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState(), username)
+function _onClose(action: TrackerGen.OnClosePayload, state: TypedState) {
+  const {username} = action.payload
+  const trackToken = _getTrackToken(state, username)
 
-    if (trackToken) {
-      _dismissWithToken(trackToken)
-    } else {
-      console.log(`Missing trackToken for ${username}, waiting...`)
-    }
-
-    dispatch({
-      type: Constants.onClose,
-      payload: {username},
-    })
+  if (trackToken) {
+    _dismissWithToken(trackToken)
+  } else {
+    logger.info(`Missing trackToken for ${username}, waiting...`)
   }
 }
 
-function _updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
-  return {
-    type: Constants.updateUserInfo,
-    payload: {
-      userInfo: {
-        fullname: userCard.fullName,
-        followersCount: userCard.followers,
-        followingCount: userCard.following,
-        followsYou: userCard.theyFollowYou,
-        uid: userCard.uid,
-        bio: userCard.bio,
-        avatar: `https://keybase.io/${username}/picture`,
-        location: userCard.location,
-      },
-      username,
-    },
-  }
-}
-
-function _updateBTC (username: string, address: string, sigID: string): Action {
-  return {
-    type: Constants.updateBTC,
-    payload: {
-      username,
-      address,
-      sigID,
-    },
-  }
-}
-
-function _updateZcash (username: string, address: string, sigID: string): Action {
-  return {
-    type: Constants.updateZcash,
-    payload: {
-      username,
-      address,
-      sigID,
-    },
-  }
-}
-
-function _updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): Action {
-  return {
-    type: Constants.updatePGPKey,
-    payload: {
-      username,
-      kid,
-      fingerPrint: bufferToNiceHexString(pgpFingerprint),
-    },
-  }
-}
-
-const sessionIDToUsername: { [key: number]: string } = {}
+const sessionIDToUsername: {[key: number]: string} = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: boolean = false, onStart: ?(username: string) => void, onFinish: ?() => void): incomingCallMapType {
-  // if true we already have a pending call so lets skip a ton of work
+function _serverCallMap(
+  dispatch: Dispatch,
+  getState: () => TypedState,
+  onStart: ?(username: string) => void,
+  onFinish: ?() => void
+): Object {
+  // if true we already have a pending call so let's skip a ton of work
   let username
   let clearPendingTimeout
   let alreadyPending = false
+  let isGetProfile = false
 
   const requestIdle = f => {
     if (!alreadyPending) {
-      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichover comes first.
+      // The timeout with the requestIdleCallback says f must be run when idle or if 1 second passes whichever comes first.
       // The timeout is necessary because the callback fn f won't be called if the window is hidden.
       requestIdleCallback(f, {timeout: 1e3})
     } else {
-      console.log('skipped idle call due to already pending')
+      logger.info('skipped idle call due to already pending')
+    }
+  }
+
+  // We queue up responses and handle them one at a time
+  let _idleResponseQueue = []
+
+  const addToIdleResponseQueue = (f: () => void) => {
+    _idleResponseQueue.push(f)
+    requestIdle(onRequestIdleQueueHandler)
+  }
+
+  const onRequestIdleQueueHandler = deadline => {
+    if (!_idleResponseQueue.length) {
+      return
+    }
+
+    do {
+      const toHandle = _idleResponseQueue.pop()
+      toHandle()
+    } while (deadline.timeRemaining() > 10 && _idleResponseQueue.length)
+
+    if (_idleResponseQueue.length) {
+      requestIdle(onRequestIdleQueueHandler)
     }
   }
 
   return {
-    'keybase.1.identifyUi.start': ({username: currentUsername, sessionID, reason, forceDisplay}, response) => {
-      response.result()
+    'keybase.1.identifyUi.start': (
+      {username: currentUsername, sessionID, reason, forceDisplay},
+      response
+    ) => {
       username = currentUsername
+      isGetProfile = reason.reason === Constants.profileFromUI
+      response.result()
       sessionIDToUsername[sessionID] = username
       onStart && onStart(username)
 
       if (getState().tracker.pendingIdentifies[username]) {
-        console.log('Bailing on idenitifies in time window', username)
+        logger.info('Bailing on idenitifies in time window', username)
         alreadyPending = true
+
+        // Display anyways
+        if (forceDisplay) {
+          dispatch(TrackerGen.createShowTracker({username}))
+        }
         return
       }
 
-      dispatch(pendingIdentify(username, true))
+      dispatch(TrackerGen.createPendingIdentify({pending: true, username}))
 
       // We clear the pending timeout after a minute. Gives us some breathing room
       clearPendingTimeout = setTimeout(() => {
-        dispatch(pendingIdentify(username, false))
+        dispatch(TrackerGen.createPendingIdentify({pending: false, username}))
       }, 60e3)
 
-      dispatch({
-        type: Constants.updateUsername,
-        payload: {username},
-      })
-
-      dispatch({
-        type: Constants.markActiveIdentifyUi,
-        payload: {username, active: true},
-      })
+      dispatch(TrackerGen.createUpdateUsername({username}))
+      dispatch(TrackerGen.createMarkActiveIdentifyUi({active: true, username}))
 
       requestIdle(() => {
-        dispatch({
-          type: Constants.resetProofs,
-          payload: {username},
-        })
+        dispatch(TrackerGen.createResetProofs({username}))
 
-        dispatch({
-          type: Constants.updateReason,
-          payload: {username, reason: reason && reason.reason},
-        })
+        dispatch(
+          TrackerGen.createUpdateReason({
+            reason: reason && reason.reason !== Constants.profileFromUI ? reason.reason : null,
+            username,
+          })
+        )
 
-        dispatch({
-          type: Constants.reportLastTrack,
-          payload: {username},
-        })
+        dispatch(TrackerGen.createReportLastTrack({username}))
 
         if (forceDisplay) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(TrackerGen.createShowTracker({username}))
         }
       })
     },
-
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch({
-          type: Constants.showNonUser,
-          payload: {
-            folderName: args.folderName,
-            isPrivate: args.isPrivate,
-            assertion: args.assertion,
-            socialAssertion: args.socialAssertion,
-            inviteLink: args.inviteLink,
-            throttled: args.throttled,
-          }})
+      addToIdleResponseQueue(() => {
+        dispatch(
+          TrackerGen.createShowNonUser({
+            nonUser: {
+              assertion: args.assertion,
+              folderName: args.folderName,
+              inviteLink: args.inviteLink,
+              isPrivate: args.isPrivate,
+              service: args.socialAssertion.service,
+              throttled: args.throttled,
+            },
+            username: args.assertion,
+          })
+        )
       })
     },
     'keybase.1.identifyUi.displayKey': ({key}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         if (key.breaksTracking) {
-          dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
-          dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
-          dispatch({type: Constants.updateProofState, payload: {username}})
+          dispatch(TrackerGen.createUpdateEldestKidChanged({username}))
+          if (key.trackDiff && key.trackDiff.type === RPCTypes.identifyCommonTrackDiffType.newEldest) {
+            dispatch(
+              TrackerGen.createUpdateReason({reason: `${username} has reset their account!`, username})
+            )
+          } else {
+            dispatch(TrackerGen.createUpdateReason({reason: `${username} has deleted a PGP key.`, username}))
+          }
+          dispatch(TrackerGen.createUpdateProofState({username}))
           if (!isGetProfile) {
-            dispatch({type: Constants.showTracker, payload: {username}})
+            dispatch(TrackerGen.createShowTracker({username}))
           }
         } else if (key.pgpFingerprint) {
-          dispatch(_updatePGPKey(username, key.pgpFingerprint, key.KID))
-          dispatch({type: Constants.updateProofState, payload: {username}})
+          dispatch(
+            TrackerGen.createUpdatePGPKey({
+              kid: key.KID,
+              pgpFingerprint: key.pgpFingerprint,
+              username,
+            })
+          )
+          dispatch(TrackerGen.createUpdateProofState({username}))
         }
       })
     },
     'keybase.1.identifyUi.reportLastTrack': ({track}, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch({
-          type: Constants.reportLastTrack,
-          payload: {username, track},
-        })
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createReportLastTrack({tracking: !!track, username}))
 
         if (!track && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(TrackerGen.createShowTracker({username}))
         }
       })
     },
     'keybase.1.identifyUi.launchNetworkChecks': ({identity}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         // This is the first spot that we have access to the user, so let's use that to get
         // The user information
 
-        dispatch({
-          type: Constants.setProofs,
-          payload: {username, identity},
-        })
-        dispatch({type: Constants.updateProofState, payload: {username}})
+        dispatch(TrackerGen.createSetProofs({identity, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
         if (identity.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(TrackerGen.createShowTracker({username}))
         }
       })
     },
-    'keybase.1.identifyUi.displayTrackStatement': (params, response) => {
+    'keybase.1.identifyUi.displayTrackStatement': (_, response) => {
       response.result()
     },
 
-    'keybase.1.identifyUi.dismiss': ({username, reason}, response) => {
+    'keybase.1.identifyUi.dismiss': ({username}, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch({
-          type: Constants.remoteDismiss,
-          payload: {username, reason},
-        })
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createRemoteDismiss({username}))
       })
     },
 
     'keybase.1.identifyUi.finishWebProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch(_updateProof(rp, lcr, username))
-        dispatch({type: Constants.updateProofState, payload: {username}})
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
 
         if (lcr.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(TrackerGen.createShowTracker({username}))
         }
       })
     },
     'keybase.1.identifyUi.finishSocialProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch(_updateProof(rp, lcr, username))
-        dispatch({type: Constants.updateProofState, payload: {username}})
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateProof({linkCheckResult: lcr, remoteProof: rp, username}))
+        dispatch(TrackerGen.createUpdateProofState({username}))
 
         if (lcr.breaksTracking && !isGetProfile) {
-          dispatch({type: Constants.showTracker, payload: {username}})
+          dispatch(TrackerGen.createShowTracker({username}))
         }
       })
     },
     'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID, type, family}}, response) => {
       response.result()
-      requestIdle(() => {
+      addToIdleResponseQueue(() => {
         if (family === 'zcash') {
-          dispatch(_updateZcash(username, address, sigID))
+          dispatch(TrackerGen.createUpdateZcash({address, sigID, username}))
         } else {
-          dispatch(_updateBTC(username, address, sigID))
+          dispatch(TrackerGen.createUpdateBTC({address, sigID, username}))
         }
-        dispatch({type: Constants.updateProofState, payload: {username}})
+        dispatch(TrackerGen.createUpdateProofState({username}))
       })
     },
     'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
       response.result()
-      requestIdle(() => {
-        if (isGetProfile) { // cache profile calls
-          dispatch({type: Constants.cacheIdentify, payload: {uid: card.uid, goodTill: Date.now() + cachedIdentifyGoodUntil}})
-        }
-        dispatch(_updateUserInfo(card, username, getState))
-      })
+      // run this immediately
+      if (isGetProfile) {
+        // cache profile calls
+        dispatch(
+          TrackerGen.createCacheIdentify({
+            uid: card.uid,
+            goodTill: Date.now() + Constants.cachedIdentifyGoodUntil,
+          })
+        )
+      }
+      dispatch(TrackerGen.createUpdateUserInfo({userCard: card, username}))
     },
     'keybase.1.identifyUi.reportTrackToken': ({trackToken}, response) => {
       response.result()
-      requestIdle(() => {
-        dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+      addToIdleResponseQueue(() => {
+        dispatch(TrackerGen.createUpdateTrackToken({username, trackToken}))
 
-        const userState = getState().tracker.trackers[username]
+        const userState = getState().tracker.userTrackers[username]
         if (userState && userState.needTrackTokenDismiss) {
           _dismissWithToken(trackToken)
 
-          dispatch({
-            type: Constants.setNeedTrackTokenDismiss,
-            payload: {
-              username,
+          dispatch(
+            TrackerGen.createSetNeedTrackTokenDismiss({
               needTrackTokenDismiss: false,
-            },
-          })
+              username,
+            })
+          )
         }
       })
     },
     'keybase.1.identifyUi.confirm': (param, response) => {
       response.result({
+        autoConfirmed: false,
+        expiringLocal: false,
         identityConfirmed: false,
         remoteConfirmed: false,
-        expiringLocal: false,
       })
     },
     'keybase.1.identifyUi.cancel': ({sessionID}, response) => {
       response.result()
 
-      requestIdleCallback(() => {
-        // Check if there were any errors in the proofs
-        dispatch({type: Constants.updateProofState, payload: {username}})
-
-        dispatch({type: Constants.identifyFinished, payload: {username}})
-
-        if (showAllTrackers && !isGetProfile) {
-          console.log('showAllTrackers is on, so showing tracker')
-          dispatch({type: Constants.showTracker, payload: {username}})
+      addToIdleResponseQueue(() => {
+        // How username is handled here is very racy and we could do a ton better
+        if (!username) {
+          return
         }
-
-        dispatch({
-          type: Constants.markActiveIdentifyUi,
-          payload: {username, active: false},
-        })
+        // Check if there were any errors in the proofs
+        dispatch(TrackerGen.createUpdateProofState({username}))
+        dispatch(TrackerGen.createIdentifyFinished({username}))
+        dispatch(TrackerGen.createMarkActiveIdentifyUi({active: false, username}))
 
         // Doing a non-tracker so explicitly cleanup instead of using the timeout
         if (isGetProfile) {
-          dispatch(pendingIdentify(username, false))
+          dispatch(TrackerGen.createPendingIdentify({pending: false, username}))
           clearTimeout(clearPendingTimeout)
         }
 
@@ -646,135 +484,170 @@ function _serverCallMap (dispatch: Dispatch, getState: Function, isGetProfile: b
         // cleanup bookkeeping
         delete sessionIDToUsername[sessionID]
         engine().cancelSession(sessionID)
-      }, {timeout: 1e3})
+      })
 
       // if we're pending we still want to call onFinish
       if (alreadyPending) {
         onFinish && onFinish()
       }
     },
-    'keybase.1.identifyUi.finish': ({sessionID}, response) => { // Cancel is actually the 'last' call that happens
+    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
+      // Cancel is actually the 'last' call that happens
       response.result()
     },
   }
 }
 
-function _updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {
-  return {
-    type: Constants.updateProof,
-    payload: {remoteProof, linkCheckResult, username},
-  }
-}
-
-type APIFriendshipUserInfo = {
-  uid: string,
+const _listTrackersOrTracking = (
   username: string,
-  full_name: string,
-  location: string,
-  bio: string,
-  thumbnail: string,
-  is_followee: boolean,
-  is_follower: boolean,
-}
+  listTrackers: boolean
+): Promise<Array<FriendshipUserInfo>> =>
+  new Promise((resolve, reject) => {
+    RPCTypes.userListTrackers2RpcPromise({
+      assertion: username,
+      reverse: !listTrackers,
+    })
+      .then(response => {
+        resolve(
+          (response.users || []).map(f => ({
+            following: f.isFollowee,
+            followsYou: f.isFollower,
+            fullname: f.fullName,
+            uid: f.uid,
+            username: f.username,
+          }))
+        )
+      })
+      .catch(error => {
+        logger.info('err getting trackers', error)
+        reject(error)
+      })
+  })
 
-function _parseFriendship ({is_followee, is_follower, username, uid, full_name, thumbnail}: APIFriendshipUserInfo): FriendshipUserInfo {
-  return {
-    username,
-    thumbnailUrl: thumbnail,
-    uid,
-    fullname: full_name,
-    followsYou: is_follower,
-    following: is_followee,
+const _fillFolders = (username: string) =>
+  function*() {
+    const state = yield Saga.select()
+    const root = state.favorite
+    const pubIg = get(root, 'public.ignored', [])
+    const pubTlf = get(root, 'public.tlfs', [])
+    const privIg = get(root, 'private.ignored', [])
+    const privTlf = get(root, 'private.tlfs', [])
+
+    const tlfs = []
+      .concat(pubIg, pubTlf, privIg, privTlf)
+      .filter(f => f.users.filter(u => u.username === username).length)
+    yield Saga.put(TrackerGen.createUpdateFolders({tlfs, username}))
+  }
+
+function* _updateTrackers(action: TrackerGen.UpdateTrackersPayload) {
+  const {username} = action.payload
+  try {
+    const [trackers, tracking] = yield Saga.all([
+      Saga.call(_listTrackersOrTracking, username, true),
+      Saga.call(_listTrackersOrTracking, username, false),
+    ])
+
+    yield Saga.put(TrackerGen.createSetUpdateTrackers({trackers, tracking, username}))
+  } catch (e) {
+    logger.warn('Failed to get followers/followings', e)
   }
 }
 
-function _listTrackersOrTracking (uid: string, listTrackers: boolean): Promise<Array<FriendshipUserInfo>> {
-  return new Promise((resolve, reject) => {
-    apiserverGetRpc({
-      param: {
-        endpoint: 'user/list_followers_for_display',
-        args: [
-          {key: 'uid', value: uid},
-          {key: 'reverse', value: String(!listTrackers)},
-        ],
-      },
-      callback: (error, results) => {
-        if (error) {
-          console.log('err getting trackers', error)
-          reject(error)
-        } else {
-          const json = JSON.parse(results.body)
-          resolve(json.users.map(_parseFriendship))
+function _openProofUrl(action: TrackerGen.OpenProofUrlPayload) {
+  const {proof} = action.payload
+  openUrl(proof.humanUrl)
+}
+
+function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
+  const {uid} = action.payload
+  const actions = [Saga.put(TrackerGen.createCacheIdentify({goodTill: 0, uid}))]
+  const username = _getUsername(uid, state)
+  if (username) {
+    actions.push(Saga.put(TrackerGen.createGetProfile({username})))
+  }
+  return Saga.all(actions)
+}
+
+const setupEngineListeners = () => {
+  // TODO remove this
+  const dispatch = engine().deprecatedGetDispatch()
+  const getState = engine().deprecatedGetGetState()
+
+  engine().actionOnConnect('registerIdentifyUi', () => {
+    RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
+      .then(response => {
+        logger.info('Registered identify ui')
+      })
+      .catch(error => {
+        logger.warn('error in registering identify ui: ', error)
+      })
+  })
+
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyUsers.userChanged': ({uid}) => {
+      return Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'})
+    },
+    'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
+      // If we don't finish the session by our timeout, we'll display an error
+      const trackerTimeout = 1e3 * 60 * 5
+      let trackerTimeoutError = null
+
+      const onStart = username => {
+        // Don't do this on mobile
+        if (isMobile) {
+          return
         }
-      },
-    })
+        trackerTimeoutError = setTimeout(() => {
+          dispatch(TrackerGen.createIdentifyFinishedError({error: 'Identify timed out', username}))
+        }, trackerTimeout)
+      }
+
+      const onFinish = () => {
+        session.end()
+        trackerTimeoutError && clearTimeout(trackerTimeoutError)
+      }
+
+      const cancelHandler = session => {
+        const username = sessionIDToUsername[session.getId()]
+
+        if (username) {
+          dispatch(
+            TrackerGen.createIdentifyFinishedError({
+              error: 'Identify timed out',
+              username,
+            })
+          )
+        }
+      }
+
+      const session = engine().createSession({
+        cancelHandler,
+        incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
+      })
+
+      response && response.result(session.getId())
+    },
   })
 }
 
-const listTrackers = uid => _listTrackersOrTracking(uid, true)
-const listTracking = uid => _listTrackersOrTracking(uid, false)
+function* trackerSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.safeTakeEvery(TrackerGen.unfollow, _unfollow)
+  yield Saga.safeTakeEvery(TrackerGen.follow, _follow)
+  yield Saga.safeTakeEveryPure(TrackerGen.ignore, _ignore)
+  yield Saga.safeTakeEvery(TrackerGen.refollow, _refollow)
+  yield Saga.safeTakeEveryPure(TrackerGen.onClose, _onClose)
+  yield Saga.safeTakeEvery(TrackerGen.updateTrackers, _updateTrackers)
+  yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
+  yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
+  yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
+  yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
 
-function _fillFolders (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const state: TypedState = getState()
-    const root = state.favorite
-    const pubIg = _.get(root, 'public.ignored', [])
-    const pubTlf = _.get(root, 'public.tlfs', [])
-    const privIg = _.get(root, 'private.ignored', [])
-    const privTlf = _.get(root, 'private.tlfs', [])
-
-    const tlfs = [].concat(pubIg, pubTlf, privIg, privTlf).filter(f => f.users.filter(u => u.username === username).length)
-    dispatch({
-      type: Constants.updateFolders,
-      error: false,
-      payload: {
-        username,
-        tlfs,
-      },
-    })
+  // We don't have open trackers in mobile
+  if (!isMobile) {
+    yield Saga.fork(_trackerTimer)
   }
+
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
-function updateTrackers (username: string, uid: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    Promise.all([listTrackers(uid), listTracking(uid)]).then(([trackers, tracking]) => {
-      dispatch({
-        type: Constants.updateTrackers,
-        payload: {username, trackers, tracking},
-      })
-    }).catch(e => {
-      console.warn('Failed to get followers/followings', e)
-    })
-  }
-}
-
-function pendingIdentify (username: string, pending: boolean): PendingIdentify {
-  return {
-    type: Constants.pendingIdentify,
-    payload: {username, pending},
-  }
-}
-
-function openProofUrl (proof: Proof): AsyncAction {
-  return (dispatch) => {
-    openUrl(proof.humanUrl)
-  }
-}
-
-export {
-  getMyProfile,
-  getProfile,
-  onClose,
-  onFollow,
-  onIgnore,
-  onRefollow,
-  onUnfollow,
-  openProofUrl,
-  pendingIdentify,
-  registerIdentifyUi,
-  setupUserChangedHandler,
-  startTimer,
-  stopTimer,
-  triggerIdentify,
-  updateTrackers,
-}
+export default trackerSaga
