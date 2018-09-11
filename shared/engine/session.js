@@ -1,6 +1,7 @@
 // @flow
 import type {SessionID, EndHandlerType, MethodKey} from './types'
 import type {IncomingCallMapType} from '../constants/types/rpc-gen'
+import type {TypedState} from '../constants/reducer'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
@@ -14,7 +15,7 @@ class Session {
   // Our id
   _id: SessionID
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType | {}
+  _incomingCallMap: IncomingCallMapType<TypedState> | {}
   // Let the outside know we're waiting
   _waitingKey: string
   // Tell engine we're done
@@ -40,7 +41,7 @@ class Session {
 
   constructor(p: {
     sessionID: SessionID,
-    incomingCallMap: ?IncomingCallMapType,
+    incomingCallMap: ?IncomingCallMapType<TypedState>,
     waitingKey?: string,
     invoke: invokeType,
     endHandler: EndHandlerType,
