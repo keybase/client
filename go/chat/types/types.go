@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -209,4 +210,14 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
+}
+
+type DummyStellarLoader struct{}
+
+func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+	return nil
+}
+
+func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+	return nil
 }

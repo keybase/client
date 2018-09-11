@@ -206,7 +206,7 @@ const AshTower = (props: {explodedBy: ?string, numImages: number, showExploded: 
         EXPLODED BY{' '}
         <ConnectedUsernames
           type="BodySmallSemibold"
-          clickable={true}
+          onUsernameClicked="profile"
           usernames={[props.explodedBy]}
           inline={true}
           colorFollowing={true}
