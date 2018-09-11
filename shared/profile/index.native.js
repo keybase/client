@@ -559,7 +559,7 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
       <Kb.ClickableBox onClick={this._onClick} style={styles.userEntryContainer}>
         <Kb.Box style={styles.userEntryInnerContainer}>
           <Kb.Avatar
-            style={styles.userEntryAvatar}
+            style={Kb.avatarCastPlatformStyles(styles.userEntryAvatar)}
             size={64}
             username={this.props.username}
             showFollowingStatus={true}
