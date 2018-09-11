@@ -93,7 +93,7 @@ export type BalanceDelta =
   | 1 // INCREASE_1
   | 2 // DECREASE_2
 
-export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
+export type BuildPaymentResLocal = $ReadOnly<{readyToSend: Boolean, from: AccountID, toErrMsg: String, toUsername: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, banners?: ?Array<SendBannerLocal>}>
 export type Bundle = $ReadOnly<{revision: BundleRevision, prev: Hash, ownHash: Hash, accounts?: ?Array<BundleEntry>}>
 export type BundleEntry = $ReadOnly<{accountID: AccountID, mode: AccountMode, isPrimary: Boolean, signers?: ?Array<SecretKey>, name: String}>
 export type BundleRevision = Uint64
@@ -243,7 +243,7 @@ export type TransactionStatus =
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
 export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 export type LocalBalancesLocalRpcParam = $ReadOnly<{accountID: AccountID}>
-export type LocalBuildPaymentLocalRpcParam = $ReadOnly<{from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String}>
+export type LocalBuildPaymentLocalRpcParam = $ReadOnly<{from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String}>
 export type LocalCancelRequestLocalRpcParam = $ReadOnly<{reqID: KeybaseRequestID}>
 export type LocalChangeDisplayCurrencyLocalRpcParam = $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode}>
 export type LocalChangeWalletAccountNameLocalRpcParam = $ReadOnly<{accountID: AccountID, newName: String}>
