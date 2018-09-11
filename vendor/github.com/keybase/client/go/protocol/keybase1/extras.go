@@ -2029,6 +2029,17 @@ func TeamNameFromString(s string) (TeamName, error) {
 	return TeamName{Parts: tmp}, nil
 }
 
+func (t TeamName) AssertEqString(s string) error {
+	tmp, err := TeamNameFromString(s)
+	if err != nil {
+		return err
+	}
+	if !t.Eq(tmp) {
+		return fmt.Errorf("Team equality check failed: %s != %s", t.String(), s)
+	}
+	return nil
+}
+
 func (t TeamName) String() string {
 	tmp := make([]string, len(t.Parts))
 	for i, p := range t.Parts {
