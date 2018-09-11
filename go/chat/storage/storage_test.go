@@ -281,30 +281,35 @@ func doRandomBench(b *testing.B, storage *Storage, uid gregor1.UID, num, len int
 
 func BenchmarkStorageSimpleBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
+	defer tc.Cleanup()
 	storage.setEngine(newBlockEngine(tc.Context()))
 	doSimpleBench(b, storage, uid)
 }
 
 func BenchmarkStorageCommonBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
+	defer tc.Cleanup()
 	storage.setEngine(newBlockEngine(tc.Context()))
 	doCommonBench(b, storage, uid)
 }
 
 func BenchmarkStorageRandomBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
+	defer tc.Cleanup()
 	storage.setEngine(newBlockEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func BenchmarkStorageRandomLongBlockEngine(b *testing.B) {
 	tc, storage, uid := setupStorageTest(b, "basic")
+	defer tc.Cleanup()
 	storage.setEngine(newBlockEngine(tc.Context()))
 	doRandomBench(b, storage, uid, 127, 1)
 }
 
 func TestStorageBasic(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "basic")
+	tc, storage, uid := setupStorageTest(t, "basic")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
 	conv := makeConversation(msgs[0].GetMessageID())
@@ -320,7 +325,8 @@ func TestStorageBasic(t *testing.T) {
 }
 
 func TestStorageLargeList(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "large list")
+	tc, storage, uid := setupStorageTest(t, "large list")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(1000)
 	conv := makeConversation(msgs[0].GetMessageID())
@@ -335,7 +341,8 @@ func TestStorageLargeList(t *testing.T) {
 }
 
 func TestStorageBlockBoundary(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "block boundary")
+	tc, storage, uid := setupStorageTest(t, "block boundary")
+	defer tc.Cleanup()
 	msgs := makeMsgRange(blockSize - 1)
 	conv := makeConversation(msgs[0].GetMessageID())
 	mustMerge(t, storage, conv.Metadata.ConversationID, uid, msgs)
@@ -358,7 +365,8 @@ func TestStorageBlockBoundary(t *testing.T) {
 func TestStorageSupersedes(t *testing.T) {
 	var err error
 
-	_, storage, uid := setupStorageTest(t, "supersedes")
+	tc, storage, uid := setupStorageTest(t, "supersedes")
+	defer tc.Cleanup()
 
 	// First test an Edit message.
 	supersedingEdit := makeEdit(chat1.MessageID(111), 6)
@@ -419,7 +427,8 @@ func TestStorageDeleteHistory(t *testing.T) {
 	// J delete-history upto itself
 	// K text
 
-	_, storage, uid := setupStorageTest(t, "delh")
+	tc, storage, uid := setupStorageTest(t, "delh")
+	defer tc.Cleanup()
 
 	convID := makeConvID()
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
@@ -586,7 +595,8 @@ func TestStorageExpunge(t *testing.T) {
 	// H text           |
 	// I delete-history ^ upto H
 
-	_, storage, uid := setupStorageTest(t, "delh")
+	tc, storage, uid := setupStorageTest(t, "delh")
+	defer tc.Cleanup()
 
 	convID := makeConvID()
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
@@ -715,7 +725,8 @@ func TestStorageExpunge(t *testing.T) {
 }
 
 func TestStorageMiss(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "miss")
+	tc, storage, uid := setupStorageTest(t, "miss")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
 	conv := makeConversation(15)
@@ -728,7 +739,8 @@ func TestStorageMiss(t *testing.T) {
 
 func TestStoragePagination(t *testing.T) {
 
-	_, storage, uid := setupStorageTest(t, "basic")
+	tc, storage, uid := setupStorageTest(t, "basic")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(300)
 	conv := makeConversation(msgs[0].GetMessageID())
@@ -798,7 +810,8 @@ func mkarray(m chat1.MessageUnboxed) []chat1.MessageUnboxed {
 }
 
 func TestStorageTypeFilter(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "basic")
+	tc, storage, uid := setupStorageTest(t, "basic")
+	defer tc.Cleanup()
 
 	textmsgs := makeMsgRange(300)
 	msgs := append(mkarray(makeMsgWithType(chat1.MessageID(301), chat1.MessageType_EDIT)), textmsgs...)
@@ -826,7 +839,8 @@ func TestStorageTypeFilter(t *testing.T) {
 }
 
 func TestStorageLocalMax(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "local-max")
+	tc, storage, uid := setupStorageTest(t, "local-max")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(10)
 	conv := makeConversation(15)
@@ -844,7 +858,8 @@ func TestStorageLocalMax(t *testing.T) {
 }
 
 func TestStorageFetchMessages(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "fetchMessages")
+	tc, storage, uid := setupStorageTest(t, "fetchMessages")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(20)
 	conv := makeConversation(25)
@@ -873,7 +888,8 @@ func TestStorageFetchMessages(t *testing.T) {
 }
 
 func TestStorageClearMessages(t *testing.T) {
-	_, storage, uid := setupStorageTest(t, "clearMessages")
+	tc, storage, uid := setupStorageTest(t, "clearMessages")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(20)
 	conv := makeConversation(20)
@@ -893,6 +909,7 @@ func TestStorageClearMessages(t *testing.T) {
 
 func TestStorageServerVersion(t *testing.T) {
 	tc, storage, uid := setupStorageTest(t, "serverVersion")
+	defer tc.Cleanup()
 
 	msgs := makeMsgRange(300)
 	conv := makeConversation(msgs[0].GetMessageID())
@@ -918,6 +935,7 @@ func TestStorageServerVersion(t *testing.T) {
 
 func TestStorageDetectBodyHashReplay(t *testing.T) {
 	tc, _, _ := setupStorageTest(t, "fetchMessages")
+	defer tc.Cleanup()
 
 	// The first time we encounter a body hash it's stored.
 	err := CheckAndRecordBodyHash(context.Background(), tc.Context(), chat1.Hash("foo"), 1, chat1.ConversationID("bar"))
@@ -938,6 +956,7 @@ func TestStorageDetectBodyHashReplay(t *testing.T) {
 
 func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
 	tc, _, _ := setupStorageTest(t, "fetchMessages")
+	defer tc.Cleanup()
 
 	// The first time we encounter a message ID (either in unboxing or in
 	// another message's prev pointer) its header hash is stored.
@@ -956,7 +975,8 @@ func TestStorageDetectPrevPtrInconsistency(t *testing.T) {
 }
 
 func TestStorageMultipleEdits(t *testing.T) {
-	_, s, uid := setupStorageTest(t, "multiEdits")
+	tc, s, uid := setupStorageTest(t, "multiEdits")
+	defer tc.Cleanup()
 
 	msgText := makeText(1, "initial")
 	edit1 := makeEdit(2, msgText.GetMessageID())

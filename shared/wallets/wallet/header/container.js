@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
-    walletName: selectedAccount.name || Types.accountIDToString(selectedAccount.accountID),
+    walletName: Constants.getAccountName(selectedAccount),
   }
 }
 
@@ -50,7 +50,15 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       ])
     ),
   onDeposit: nyi,
-  onSettings: nyi,
+  _onSettings: (accountID: Types.AccountID) =>
+    dispatch(
+      ownProps.navigateAppend([
+        {
+          props: {accountID},
+          selected: 'settings',
+        },
+      ])
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -61,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSendToKeybaseUser: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser'),
   onSendToStellarAddress: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey'),
   onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID),
+  onSettings: () => dispatchProps._onSettings(stateProps.accountID),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Header)

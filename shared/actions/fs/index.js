@@ -413,7 +413,7 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
         ? actions.push(Saga.put(FsGen.createMimeTypeLoad({path})))
         : folderListRefreshTags.delete(refreshTag)
   )
-  return actions
+  return Saga.all(actions)
 }
 
 const setupEngineListeners = () => {

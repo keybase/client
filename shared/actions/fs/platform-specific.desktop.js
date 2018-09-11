@@ -162,11 +162,10 @@ function waitForMount(attempt: number) {
   })
 }
 
-const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
-  Saga.sequentially([
-    Saga.call(waitForMount, 0),
-    Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
-  ])
+const installKBFS = () =>
+  RPCTypes.installInstallKBFSRpcPromise()
+    .then(() => waitForMount(0))
+    .then(() => FsGen.createSetFlags({kbfsInstalling: false, showBanner: true}))
 
 function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
@@ -304,19 +303,27 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
           ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
       },
-      filePaths => {
-        return resolve(filePaths)
-      }
+      filePaths => resolve(filePaths || [])
     )
-  ).then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+  )
+
+const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
+  Saga.call(function*() {
+    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
+    yield Saga.all(
+      localPaths.map(localPath =>
+        Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+      )
+    )
+  })
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
+  yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
-  yield Saga.actionToPromise(FsGen.openAndUpload, openAndUploadToPromise)
+  yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
   } else {

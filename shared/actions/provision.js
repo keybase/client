@@ -6,6 +6,7 @@ import * as ProvisionGen from './provision-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as Tabs from '../constants/tabs'
+import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
@@ -377,6 +378,7 @@ const addNewDevice = (state: TypedState) =>
     } catch (e) {
       // If we're canceling then ignore the error
       if (e.desc !== Constants.cancelDesc) {
+        logger.error(`Provision -> Add device error: ${e.message}`)
         yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
       }
     }

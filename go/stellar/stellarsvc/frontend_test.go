@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
@@ -633,6 +635,12 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, "recipient: Stellar account ID must be 56 chars long: was 15", err.Error())
 	}
 
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		From:          accountIDSender,
 		To:            tcs[1].Fu.Username,
@@ -687,6 +695,52 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Len(t, recipPayments, 1)
 	require.NotNil(t, recipPayments[0].Payment)
 	checkPayment(*recipPayments[0].Payment, false)
+
+	// pretend that the chat message was unboxed and call the payment loader to load the info:
+	loader := stellar.DefaultLoader(tcs[0].G)
+	convID := chat1.ConversationID("abcd")
+	msgID := chat1.MessageID(987)
+	loader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+
+	// for the recipient too
+	recipLoader := stellar.NewLoader(tcs[1].G)
+	recipLoader.LoadPayment(context.Background(), convID, msgID, tcs[0].Fu.Username, senderPayments[0].Payment.Id)
+
+	// check the sender chat notification
+	select {
+	case info := <-listenerSender.paymentInfos:
+		t.Logf("info from listener: %+v", info)
+		require.NotNil(t, info)
+		require.Equal(t, info.Uid, tcs[0].Fu.User.GetUID())
+		require.Equal(t, info.MsgID, msgID)
+		require.True(t, info.ConvID.Eq(convID))
+		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
+		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_DECREASE)
+		require.Equal(t, info.Info.Worth, "$321.87")
+		require.Equal(t, info.Info.Note, "here you go")
+		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
+		require.Equal(t, info.Info.StatusDescription, "completed")
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
+
+	// check the recipient chat notification
+	select {
+	case info := <-listenerRecip.paymentInfos:
+		t.Logf("info from listener: %+v", info)
+		require.NotNil(t, info)
+		require.Equal(t, info.Uid, tcs[1].Fu.User.GetUID())
+		require.Equal(t, info.MsgID, msgID)
+		require.True(t, info.ConvID.Eq(convID))
+		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
+		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_INCREASE)
+		require.Equal(t, info.Info.Worth, "$321.87")
+		require.Equal(t, info.Info.Note, "here you go")
+		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
+		require.Equal(t, info.Info.StatusDescription, "completed")
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat payment info notification to sender")
+	}
 
 	// check the details
 	checkPaymentDetails := func(p stellar1.PaymentDetailsLocal, sender bool) {
@@ -834,6 +888,24 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 
 	worthInfo := "$1.00 = 3.1414139 XLM\nSource: coinmarketcap.com"
+
+	for _, toIsAccountID := range []bool{false, true} {
+		t.Logf("toIsAccountID: %v", toIsAccountID)
+		bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			From:          senderAccountID,
+			ToIsAccountID: toIsAccountID,
+		})
+		require.NoError(t, err)
+		t.Logf(spew.Sdump(bres))
+		require.Equal(t, false, bres.ReadyToSend)
+		require.Equal(t, "", bres.ToErrMsg)
+		require.Equal(t, "", bres.AmountErrMsg)
+		require.Equal(t, "", bres.SecretNoteErrMsg)
+		require.Equal(t, "", bres.PublicMemoErrMsg)
+		require.Equal(t, "$0.00", bres.WorthDescription)
+		require.Equal(t, worthInfo, bres.WorthInfo)
+		requireBannerSet(t, bres, nil)
+	}
 
 	bres, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
 		From: senderAccountID,
@@ -1048,6 +1120,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, senderAccountID, bres.From)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
@@ -1055,6 +1128,50 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	t.Logf("using `fromDefaultAccount`")
+	for _, x := range []string{"blank", "match", "wrong"} {
+		var from stellar1.AccountID
+		var fromRes stellar1.AccountID
+		shouldFail := false
+		switch x {
+		case "blank":
+			fromRes = senderAccountID
+		case "match":
+			from = senderAccountID
+			fromRes = senderAccountID
+			shouldFail = true
+		case "wrong":
+			otherAccountID, _ := randomStellarKeypair()
+			from = otherAccountID
+			shouldFail = true
+		default:
+			panic("bad case")
+		}
+		bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			From:               from,
+			FromPrimaryAccount: true,
+			To:                 tcs[1].Fu.Username,
+			Amount:             "8.50",
+			Currency:           &usd,
+		})
+		if shouldFail {
+			require.Error(t, err)
+			require.Equal(t, "invalid build payment parameters", err.Error())
+		} else {
+			require.NoError(t, err)
+			t.Logf(spew.Sdump(bres))
+			require.Equal(t, true, bres.ReadyToSend)
+			require.Equal(t, fromRes, bres.From, x)
+			require.Equal(t, "", bres.ToErrMsg)
+			require.Equal(t, "", bres.AmountErrMsg)
+			require.Equal(t, "", bres.SecretNoteErrMsg)
+			require.Equal(t, "", bres.PublicMemoErrMsg)
+			require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+			require.Equal(t, worthInfo, bres.WorthInfo)
+			requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+		}
+	}
 
 	t.Logf("sending to account ID")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
@@ -1243,4 +1360,122 @@ func TestGetSendAssetChoices(t *testing.T) {
 		require.False(t, v.Enabled)
 		require.Contains(t, v.Subtext, "Recipient does not accept")
 	}
+}
+
+func TestMakeRequestLocalBasics(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	xlm := stellar1.AssetNative()
+	_, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "0",
+	})
+	require.Error(t, err)
+
+	_, err = tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "-1.2345",
+	})
+	require.Error(t, err)
+
+	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "1.2345",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, reqID)
+}
+
+func TestMakeRequestLocalNotifications(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// set up notification listeners
+	listenerSender := newChatListener()
+	listenerRecip := newChatListener()
+	tcs[0].G.NotifyRouter.SetListener(listenerSender)
+	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+
+	xlm := stellar1.AssetNative()
+	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Asset:     &xlm,
+		Amount:    "1.2345",
+	})
+	require.NoError(t, err)
+	require.NotEmpty(t, reqID)
+
+	// pretend that the chat message was unboxed and call the request loader to load the info:
+	loaderSender := stellar.DefaultLoader(tcs[0].G)
+	convID := chat1.ConversationID("efef")
+	msgID := chat1.MessageID(654)
+	loaderSender.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+
+	loaderRecip := stellar.NewLoader(tcs[1].G)
+	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+
+	// check the sender chat notification
+	select {
+	case info := <-listenerSender.requestInfos:
+		require.NotNil(t, info)
+		require.Equal(t, tcs[0].Fu.User.GetUID(), info.Uid)
+		require.Equal(t, convID, info.ConvID)
+		require.Equal(t, msgID, info.MsgID)
+		require.Equal(t, "1.2345", info.Info.Amount)
+		require.Equal(t, "1.2345 XLM", info.Info.AmountDescription)
+		require.NotNil(t, info.Info.Asset)
+		require.Equal(t, "native", info.Info.Asset.Type)
+		require.Nil(t, info.Info.Currency)
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat request info notification to sender")
+	}
+
+	// check the recipient chat notification
+	select {
+	case info := <-listenerRecip.requestInfos:
+		require.NotNil(t, info)
+		require.Equal(t, tcs[1].Fu.User.GetUID(), info.Uid)
+		require.Equal(t, convID, info.ConvID)
+		require.Equal(t, msgID, info.MsgID)
+		require.Equal(t, "1.2345", info.Info.Amount)
+		require.Equal(t, "1.2345 XLM", info.Info.AmountDescription)
+		require.NotNil(t, info.Info.Asset)
+		require.Equal(t, "native", info.Info.Asset.Type)
+		require.Nil(t, info.Info.Currency)
+	case <-time.After(20 * time.Second):
+		t.Fatal("timed out waiting for chat request info notification to sender")
+	}
+}
+
+type chatListener struct {
+	libkb.NoopNotifyListener
+
+	paymentInfos chan chat1.ChatPaymentInfoArg
+	requestInfos chan chat1.ChatRequestInfoArg
+}
+
+func newChatListener() *chatListener {
+	x := &chatListener{
+		paymentInfos: make(chan chat1.ChatPaymentInfoArg, 1),
+		requestInfos: make(chan chat1.ChatRequestInfoArg, 1),
+	}
+	return x
+}
+
+func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIPaymentInfo) {
+	c.paymentInfos <- chat1.ChatPaymentInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
+}
+
+func (c *chatListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
+	c.requestInfos <- chat1.ChatRequestInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
 }

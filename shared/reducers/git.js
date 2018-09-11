@@ -27,7 +27,6 @@ export default function(state: Types.State = initialState, action: GitGen.Action
       return state.set('error', null)
 
     // Saga only actions
-    case GitGen.handleIncomingGregor:
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
     case GitGen.repoCreated:

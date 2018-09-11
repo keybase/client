@@ -117,6 +117,9 @@
       "__STORYSHOT__": true
     }
   },
+  "config": {
+    "electron_mirror": "https://kbelectron.keybase.pub/electron-download/v"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",
@@ -205,7 +208,6 @@
     "del": "3.0.0",
     "devtron": "1.4.0",
     "electron": "2.0.8",
-    "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "12.1.1",
     "eslint": "5.3.0",
     "eslint-config-standard": "12.0.0-alpha.0",
@@ -220,7 +222,7 @@
     "eslint-plugin-react": "7.11.1",
     "eslint-plugin-standard": "3.1.0",
     "file-loader": "1.1.11",
-    "flow-bin": "0.79.0",
+    "flow-bin": "0.80.0",
     "flow-typed": "^2.5.1",
     "fs-extra": "6.0.1",
     "jest": "23.1.0",

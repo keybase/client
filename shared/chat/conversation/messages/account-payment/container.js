@@ -35,27 +35,22 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
   switch (ownProps.message.type) {
     case 'sendPayment': {
-      const paymentID = ownProps.message.paymentID
-      const accountID = WalletConstants.getDefaultAccountID(state)
-      if (!accountID) {
-        return loadingProps
-      }
-      const payment = WalletConstants.getPayment(state, accountID, paymentID)
-      if (payment.statusSimplified === 'none') {
-        // no payment
+      const {paymentInfo} = ownProps.message
+      if (!paymentInfo) {
+        // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
       }
       return {
         ...common,
-        action: payment.worth ? 'sent lumens worth' : 'sent',
-        amount: payment.worth ? payment.worth : payment.amountDescription,
-        balanceChange: `${payment.delta === 'increase' ? '+' : '-'}${payment.amountDescription}`,
+        action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
+        amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
+        balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
         balanceChangeColor:
-          payment.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
+          paymentInfo.delta === 'increase' ? Styles.globalColors.green2 : Styles.globalColors.red,
         icon: 'iconfont-stellar-send',
         loading: false,
-        memo: payment.note.stringValue(),
-        pending: false,
+        memo: paymentInfo.note.stringValue(),
+        pending: paymentInfo.status === 'pending',
         sendButtonLabel: '',
       }
     }

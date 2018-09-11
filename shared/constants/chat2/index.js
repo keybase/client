@@ -33,6 +33,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
   pendingMode: 'none',
+  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
@@ -248,6 +249,7 @@ export {
   showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
+  uiPaymentInfoToChatPaymentInfo,
   upgradeMessage,
 } from './message'
 
