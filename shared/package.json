@@ -17,6 +17,7 @@
     "test": "cross-env-shell BABEL_ENV=yarn jest",
     "update-icon-constants": "yarn run _helper update-icon-constants",
     "updated-fonts": "yarn run _helper updated-fonts",
+    "update-protocol": "cd ../protocol && make clean && make",
     "unused-assets": "yarn run _helper unused-assets",
     "build-treeshake": "yarn run _helper build-treeshake",
     "build-dev": "yarn run _helper build-dev",
@@ -47,17 +48,17 @@
     "rn-storybook": "storybook start -p 7007",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile",
-    "coverage-report": "flow-coverage-report -o ./coverage -t text -t html",
+    "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
     "coverage": "flow coverage --color "
   },
   "flow-coverage-report": {
     "concurrentFiles": 50,
     "threshold": 10,
-    "includeGlob": [
+    "globIncludePatterns": [
       "**/*.js",
       "**/*.js.flow"
     ],
-    "excludeGlob": [
+    "globExcludePatterns": [
       "node_modules/**",
       "markdown/parser.js",
       "__mocks__/**",
@@ -116,6 +117,9 @@
       "__STORYBOOK__": true,
       "__STORYSHOT__": true
     }
+  },
+  "config": {
+    "electron_mirror": "https://kbelectron.keybase.pub/electron-download/v"
   },
   "keywords": [],
   "author": "",
@@ -205,7 +209,6 @@
     "del": "3.0.0",
     "devtron": "1.4.0",
     "electron": "2.0.8",
-    "electron-download": "git://github.com/keybase/electron-download#keybase-fixes-off-410",
     "electron-packager": "12.1.1",
     "eslint": "5.3.0",
     "eslint-config-standard": "12.0.0-alpha.0",
@@ -220,7 +223,7 @@
     "eslint-plugin-react": "7.11.1",
     "eslint-plugin-standard": "3.1.0",
     "file-loader": "1.1.11",
-    "flow-bin": "0.79.0",
+    "flow-bin": "0.80.0",
     "flow-typed": "^2.5.1",
     "fs-extra": "6.0.1",
     "jest": "23.1.0",
@@ -245,7 +248,6 @@
     "webpack-merge": "4.1.2"
   },
   "optionalDependencies": {
-    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master",
-    "regedit": "2.2.7"
+    "flow-coverage-report": "0.6.0"
   }
 }

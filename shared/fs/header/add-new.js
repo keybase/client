@@ -63,7 +63,7 @@ const propsToMenuItems = (props: AddNewProps) => {
     })
   props.pickAndUploadPhoto &&
     items.push({
-      title: 'Uplaod an image',
+      title: 'Upload an image',
       onClick: props.pickAndUploadPhoto,
       icon: 'iconfont-upload',
     })

@@ -136,7 +136,7 @@ const getContentTypeFromURL = (
             // 416 can happen if the file is empty.
             statusCode === 416
           ) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
           cb({statusCode, contentType})
@@ -149,7 +149,7 @@ const getContentTypeFromURL = (
         .then(response => {
           let contentType = ''
           if (response.status === 200) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
           }
           cb({statusCode: response.status, contentType})
         })

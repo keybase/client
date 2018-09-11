@@ -9,10 +9,10 @@ declare export var ignoreDisconnectOverlay: boolean
 declare export var immediateStateLogging: boolean
 declare export var isDevApplePushToken: boolean
 declare export var isTesting: boolean
-declare export var printBridgeB64: boolean
 declare export var printOutstandingRPCs: boolean
 declare export var printOutstandingTimerListeners: boolean
 declare export var printRPC: boolean
+declare export var printRPCBytes: boolean
 declare export var printRPCWaitingSession: boolean
 declare export var printRPCStats: boolean
 declare export var reduxSagaLogger: boolean

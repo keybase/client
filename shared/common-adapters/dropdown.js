@@ -19,12 +19,17 @@ type Props = {
   selected?: React.Node,
   items: Array<React.Node>,
   style?: StylesCrossPlatform,
+  disabled: boolean,
 }
 type State = {
   expanded: boolean,
 }
 class Dropdown extends React.Component<Props, State> {
   state = {expanded: false}
+
+  static defaultProps = {
+    disabled: false,
+  }
 
   _toggleOpen = () => {
     this.setState(prevProps => ({
@@ -40,7 +45,7 @@ class Dropdown extends React.Component<Props, State> {
   render() {
     return (
       <Box style={collapseStyles([{width: isMobile ? '100%' : 270}, this.props.style])}>
-        <ButtonBox onClick={this._toggleOpen}>
+        <ButtonBox onClick={!this.props.disabled ? this._toggleOpen : null} disabled={this.props.disabled}>
           {this.state.expanded && (
             <PopupDialog
               onClose={this._toggleOpen}
@@ -107,27 +112,20 @@ const ItemBox = glamorous(Box)({
   width: '100%',
 })
 
-const ButtonBox = glamorous(Box)({
+const ButtonBox = glamorous(Box)(props => ({
   ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? {
-        paddingRight: globalMargins.large,
-      }
-    : {
-        ':hover': {
-          border: `solid 1px ${globalColors.blue}`,
-          color: globalColors.blue,
-        },
-        cursor: 'pointer',
-        paddingRight: globalMargins.small,
-      }),
+  ...(!props.disabled && !isMobile
+    ? {':hover': {border: `solid 1px ${globalColors.blue}`, color: globalColors.blue}, cursor: 'pointer'}
+    : {}),
+  ...(props.disabled ? {opacity: 0.3} : {}),
   alignItems: 'center',
   borderColor: globalColors.black_10,
   borderRadius: 100,
   borderStyle: 'solid',
   borderWidth: 1,
   color: globalColors.black_40,
+  paddingRight: isMobile ? globalMargins.large : globalMargins.small,
   width: '100%',
-})
+}))
 
 export default Dropdown

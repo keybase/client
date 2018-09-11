@@ -262,10 +262,13 @@ const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'rece
 }
 
 const createNewAccountWaitingKey = 'wallets:createNewAccount'
+const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
 const linkExistingWaitingKey = 'wallets:linkExisting'
 const loadEverythingWaitingKey = 'wallets:loadEverything'
 const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
+const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
+const deleteAccountWaitingKey = 'wallets:deleteAccount'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -322,11 +325,13 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
 export {
   accountResultToAccount,
   assetsResultToAssets,
+  changeDisplayCurrencyWaitingKey,
   currenciesResultToCurrencies,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
+  deleteAccountWaitingKey,
   getAccountIDs,
   getAccountName,
   getAccount,
@@ -362,5 +367,6 @@ export {
   sendPaymentWaitingKey,
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
+  setAccountAsDefaultWaitingKey,
   statusSimplifiedToString,
 }

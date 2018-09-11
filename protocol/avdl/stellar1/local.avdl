@@ -188,30 +188,39 @@ protocol local {
   }
 
   // Check but do not send a payment.
-  // Opt  - Optional field.
-  // Opt* - Optional for this RPC but required for res.readyToSend to be set.
+  // Arguments are optional unless marked [required] or otherwise described.
+  // However, a coherent payment is required in order for res.readyToSend to returned as true.
   BuildPaymentResLocal buildPaymentLocal(
     int sessionID,
+
+    // Exactly one of `from` and `fromPrimaryAccount` must be set.
     AccountID from,
-    // Opt. Stellar seqno of the sender when the user started the form.
-    // If it is old, the payment will be blocked blocked.
+    boolean fromPrimaryAccount, // Whether to send from the user's primary account.
+    // Stellar seqno of the sender when the user started the form.
+    // If it is old, the payment will be blocked.
     string fromSeqno,
-    // Opt*. Recipient username, acctID, or assertion.
+
+    // Recipient username, acctID, or assertion.
     // Examples: "", "russel", "GBQTE2V7Y356TFBZL6YZ2PA3KIILNSAAQRV5C7MVWS22KQTS4EMK7I46"
     string to,
-    boolean toIsAccountID,
-    string amount, // Opt*. Amount of the asset OR outside currency being sent. Example: "3.005"
+    boolean toIsAccountID, // [required]
+
+    string amount, // Amount of the asset OR outside currency being sent. Example: "3.005"
     // Zero or one of `asset` and `currency` should be set.
-    // If both are null or `asset` is native XLM then XLM are being sent.
+    // If both are null or `asset` is native then XLM are being sent.
     // If `currency` is set then XLM is being sent after converting `amount`.
     // Note: Sending non-XLM assets is not yet supported.
     union { null, OutsideCurrencyCode } currency,
     union { null, Asset } asset,
-    string secretNote,   // Opt. Encrypted for the sender, and recipient if possible.
-    string publicMemo    // Opt. Public stellar memo field.
+
+    string secretNote,   // Encrypted for the sender, and recipient if possible.
+    string publicMemo    // Public stellar memo field.
   );
   record BuildPaymentResLocal {
     boolean readyToSend;
+
+    // Optional. Set if a valid account ID to send from was found.
+    AccountID from;
 
     // Optional. Error to show with the To field.
     // All errMsg fields are in 'keybase chat language' markdown.
