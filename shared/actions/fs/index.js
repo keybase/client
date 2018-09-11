@@ -514,8 +514,8 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   const state = yield Saga.select()
   let localHTTPServerInfo: Types._LocalHTTPServer =
     state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
-  // This should finish within 2 iterations most. But just in case we bound it
-  // at 3.
+  // This should finish within 2 iterations at most. But just in case we bound
+  // it at 3.
   for (let i = 0; i < 3; ++i) {
     if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
       localHTTPServerInfo = yield Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
