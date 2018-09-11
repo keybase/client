@@ -44,9 +44,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.displayCurrencyReceived:
       return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
     case WalletsGen.secretKeyReceived:
-      return state.set('exportedSecretKey', action.payload.secretKey)
+      return state
+        .set('exportedSecretKey', action.payload.secretKey)
+        .set('exportedSecretKeyAccountID', state.get('selectedAccount'))
     case WalletsGen.secretKeySeen:
-      return state.set('exportedSecretKey', new HiddenString(''))
+      return state
+        .set('exportedSecretKey', new HiddenString(''))
+        .set('exportedSecretKeyAccountID', Types.noAccountID)
     case WalletsGen.selectAccount:
       return state
         .set('exportedSecretKey', new HiddenString(''))
