@@ -19,6 +19,7 @@ const ff: FeatureFlags = {
   fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: false,
+  newTeamBuildingForChat: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {

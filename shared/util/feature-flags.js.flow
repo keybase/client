@@ -6,6 +6,7 @@ export type FeatureFlags = {|
   fsWritesEnabled: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
+  newTeamBuildingForChat: boolean,
 |}
 
 declare var ff: FeatureFlags

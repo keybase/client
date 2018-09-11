@@ -9,6 +9,7 @@ const ff: FeatureFlags = {
   fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: __DEV__,
+  newTeamBuildingForChat: false,
 }
 
 if (__DEV__) {

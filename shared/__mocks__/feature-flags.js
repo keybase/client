@@ -8,6 +8,7 @@ const ff: FeatureFlags = {
   fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: true,
+  newTeamBuildingForChat: false,
 }
 
 console.warn('feature flag mock in effect')
