@@ -99,7 +99,7 @@ const AccountSettings = (props: SettingsProps) => {
             }}
             style={styles.dropdown}
           />
-          <Kb.SaveIndicator saving={props.currencyWaiting} minSavingTimeMs={300} savedTimeoutMs={300} />
+          <Kb.SaveIndicator saving={props.currencyWaiting} minSavingTimeMs={300} savedTimeoutMs={2500} />
         </Kb.Box2>
         <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
         <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
