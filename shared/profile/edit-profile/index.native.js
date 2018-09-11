@@ -32,7 +32,7 @@ const EditProfileRender = (props: Props) => (
       onChangeText={location => props.onLocationChange(location)}
     />
     {props.bioLengthLeft <= 5 && (
-      <Kb.Text style={styles.errorText} type="BodyError">
+      <Kb.Text style={styles.errorText} type="BodySmallError">
         {props.bioLengthLeft} characters left.
       </Kb.Text>
     )}
