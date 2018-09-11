@@ -44,6 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onCheckName: dispatchProps.onCheckName,
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
+  onBack: ownProps.routeProps.get('back') ? dispatchProps.onCancel : undefined,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)

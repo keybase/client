@@ -9,6 +9,7 @@ type View = 'key' | 'name'
 type LinkWalletProps = {|
   secretKey: string,
   linkExistingAccountError: string,
+  onBack?: () => void,
   onCancel: () => void,
   onCheckKey: (key: string) => void,
   onCheckName: (name: string) => void,
@@ -69,6 +70,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
             onKeyChange={this.props.onKeyChange}
             onNext={this._onCheckKey}
             waiting={this.props.secretKeyValidationState === 'waiting' || this.props.waiting}
+            onBack={this.props.onBack}
           />
         )
       case 'name':
@@ -94,6 +96,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
 }
 type WrapperProps = {|
   linkExistingAccountError: string,
+  onBack?: () => void,
   onCancel: () => void,
   onCheckKey: (key: string) => void,
   onCheckName: (name: string) => void,
@@ -121,6 +124,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
       <LinkWallet
         {...this.state}
         linkExistingAccountError={this.props.linkExistingAccountError}
+        onBack={this.props.onBack}
         onCancel={this.props.onCancel}
         onCheckKey={this.props.onCheckKey}
         onCheckName={this.props.onCheckName}

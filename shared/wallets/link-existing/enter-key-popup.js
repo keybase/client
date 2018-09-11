@@ -6,6 +6,7 @@ import {WalletPopup} from '../common'
 
 type EnterKeyProps = {|
   error: string,
+  onBack?: () => void,
   onCancel: () => void,
   onKeyChange: string => void,
   onNext: () => void,
@@ -20,7 +21,7 @@ const EnterKey = (props: EnterKeyProps) => {
   ]
 
   return (
-    <WalletPopup bottomButtons={buttons} onClose={props.onCancel}>
+    <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
       <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text type="Header" style={styles.headerText}>
         Link an existing account
