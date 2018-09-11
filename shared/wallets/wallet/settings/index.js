@@ -88,6 +88,7 @@ const AccountSettings = (props: SettingsProps) => {
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.dropdownContainer} gap="tiny">
           <Kb.Dropdown
+            disabled={props.currencyWaiting}
             items={makeDropdownItems(props.currencies, props.currency)}
             selected={makeDropdownItem(props.currency, false)}
             onChanged={(node: React.Node) => {
