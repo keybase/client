@@ -370,7 +370,7 @@ class Input extends React.PureComponent<Props, State> {
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorText &&
           !this.props.small && (
-            <Text type="BodyError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
+            <Text type="BodySmallError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
               {this.props.errorText}
             </Text>
           )}

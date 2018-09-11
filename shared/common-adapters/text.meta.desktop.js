@@ -157,16 +157,6 @@ const metaData: {[key: TextType]: MetaType} = {
     isLink: true,
     styleOverride: globalStyles.fontRegular,
   },
-  BodyError: {
-    colorForBackgroundMode: {Normal: globalColors.red},
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
-  BodySuccess: {
-    colorForBackgroundMode: {Normal: globalColors.green2},
-    fontSize: 13,
-    styleOverride: globalStyles.fontRegular,
-  },
   // Body Small
   BodySmall: {
     colorForBackgroundMode: {
