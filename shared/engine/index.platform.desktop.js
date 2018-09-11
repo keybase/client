@@ -27,7 +27,7 @@ class NativeTransport extends TransportShared {
       const b = Buffer.from(msg, encoding)
       logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
     }
-    // $FlowIssue Flow doesn't see inherited methods.
+    // $FlowIssue Deliberately overriding private method.
     super._raw_write(msg, encoding)
   }
 

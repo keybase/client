@@ -60,7 +60,7 @@ describe('TransportShared', () => {
     //
     // Since connected is true, this should call send.
     //
-    // $FlowIssue Flow doesn't see inherited methods.
+    // $FlowIssue Deliberately overriding private method.
     t._flush_queue()
     expect(t.lastMessage).toEqual(expectedMessage)
   })
