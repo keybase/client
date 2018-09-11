@@ -247,7 +247,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -282,7 +282,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -307,7 +307,7 @@ func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrackAndSuppress")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		CanSuppressUI:    true,
@@ -342,7 +342,7 @@ func identify2WithUIDWithBrokenTrackMakeEngine(t *testing.T, arg *keybase1.Ident
 	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	eng := NewIdentify2WithUID(tc.G, arg)
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
@@ -417,7 +417,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrackFromChatGUI")
 	defer tc.Cleanup()
 	tester := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = tester
+	tc.G.SetProofServices(tester)
 	tester.checkStatusHook = func(l libkb.SigHint, _ libkb.ProofCheckerMode) libkb.ProofError {
 		if strings.Contains(l.GetHumanURL(), "twitter") {
 			tc.G.Log.Debug("failing twitter proof %s", l.GetHumanURL())
@@ -553,7 +553,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter",
@@ -577,7 +577,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
@@ -601,7 +601,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithNonExistentAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "beyonce@twitter",
@@ -642,7 +642,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacovontaco@twitter",
@@ -692,7 +692,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAncillaryAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		UserAssertion:    "tacoplusplus@github+t_tracy@rooter",
@@ -743,7 +743,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -815,7 +815,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDLocalAssertions")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              tracyUID,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -894,7 +894,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:    "tacovontaco@twitter+t_tracy@rooter",
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -919,7 +919,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	Logout(tc)
 
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		UserAssertion:    u,
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
@@ -1015,7 +1015,7 @@ func TestNoSelfHostedIdentifyInPassiveMode(t *testing.T) {
 			return nil
 		}
 
-		tc.G.Services = i
+		tc.G.SetProofServices(i)
 		arg := &keybase1.Identify2Arg{
 			Uid:              eve.UID(),
 			IdentifyBehavior: identifyBehavior,
