@@ -149,6 +149,86 @@ func (o ResolveIdentifyImplicitTeamRes) DeepCopy() ResolveIdentifyImplicitTeamRe
 	}
 }
 
+type KVPair struct {
+	Key   string `codec:"key" json:"key"`
+	Value string `codec:"value" json:"value"`
+}
+
+func (o KVPair) DeepCopy() KVPair {
+	return KVPair{
+		Key:   o.Key,
+		Value: o.Value,
+	}
+}
+
+type AssertionUrlLite struct {
+	Keys          []string `codec:"keys" json:"keys"`
+	IsKeybase     bool     `codec:"isKeybase" json:"isKeybase"`
+	IsUID         bool     `codec:"isUID" json:"isUID"`
+	IsTeamID      bool     `codec:"isTeamID" json:"isTeamID"`
+	IsTeamName    bool     `codec:"isTeamName" json:"isTeamName"`
+	IsSocial      bool     `codec:"isSocial" json:"isSocial"`
+	IsRemote      bool     `codec:"isRemote" json:"isRemote"`
+	IsFingerprint bool     `codec:"isFingerprint" json:"isFingerprint"`
+	Uid           UID      `codec:"uid" json:"uid"`
+	TeamID        TeamID   `codec:"teamID" json:"teamID"`
+	TeamName      TeamName `codec:"teamName" json:"teamName"`
+	KeyValuePair  KVPair   `codec:"keyValuePair" json:"keyValuePair"`
+}
+
+func (o AssertionUrlLite) DeepCopy() AssertionUrlLite {
+	return AssertionUrlLite{
+		Keys: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Keys),
+		IsKeybase:     o.IsKeybase,
+		IsUID:         o.IsUID,
+		IsTeamID:      o.IsTeamID,
+		IsTeamName:    o.IsTeamName,
+		IsSocial:      o.IsSocial,
+		IsRemote:      o.IsRemote,
+		IsFingerprint: o.IsFingerprint,
+		Uid:           o.Uid.DeepCopy(),
+		TeamID:        o.TeamID.DeepCopy(),
+		TeamName:      o.TeamName.DeepCopy(),
+		KeyValuePair:  o.KeyValuePair.DeepCopy(),
+	}
+}
+
+type AssertionExpressionLite struct {
+	Str           string             `codec:"str" json:"str"`
+	HasOr         bool               `codec:"hasOr" json:"hasOr"`
+	NeedsParens   bool               `codec:"needsParens" json:"needsParens"`
+	AssertionUrls []AssertionUrlLite `codec:"assertionUrls" json:"assertionUrls"`
+}
+
+func (o AssertionExpressionLite) DeepCopy() AssertionExpressionLite {
+	return AssertionExpressionLite{
+		Str:         o.Str,
+		HasOr:       o.HasOr,
+		NeedsParens: o.NeedsParens,
+		AssertionUrls: (func(x []AssertionUrlLite) []AssertionUrlLite {
+			if x == nil {
+				return nil
+			}
+			ret := make([]AssertionUrlLite, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.AssertionUrls),
+	}
+}
+
 type Resolve3Arg struct {
 	Assertion string `codec:"assertion" json:"assertion"`
 }
@@ -204,6 +284,14 @@ type ResolveImplicitTeamArg struct {
 	Id        TeamID `codec:"id" json:"id"`
 }
 
+type NormalizeSocialAssertionArg struct {
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
+type AssertionParseAndOnlyArg struct {
+	Assertion string `codec:"assertion" json:"assertion"`
+}
+
 type IdentifyInterface interface {
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
 	Resolve3(context.Context, string) (UserOrTeamLite, error)
@@ -213,6 +301,8 @@ type IdentifyInterface interface {
 	// resolveImplicitTeam returns a TLF display name given a teamID. The publicness
 	// of the team is inferred from the TeamID.
 	ResolveImplicitTeam(context.Context, ResolveImplicitTeamArg) (Folder, error)
+	NormalizeSocialAssertion(context.Context, string) (SocialAssertion, error)
+	AssertionParseAndOnly(context.Context, string) (AssertionExpressionLite, error)
 }
 
 func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
@@ -299,6 +389,38 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"normalizeSocialAssertion": {
+				MakeArg: func() interface{} {
+					ret := make([]NormalizeSocialAssertionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NormalizeSocialAssertionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NormalizeSocialAssertionArg)(nil), args)
+						return
+					}
+					ret, err = i.NormalizeSocialAssertion(ctx, (*typedArgs)[0].Assertion)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"assertionParseAndOnly": {
+				MakeArg: func() interface{} {
+					ret := make([]AssertionParseAndOnlyArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AssertionParseAndOnlyArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AssertionParseAndOnlyArg)(nil), args)
+						return
+					}
+					ret, err = i.AssertionParseAndOnly(ctx, (*typedArgs)[0].Assertion)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -333,5 +455,17 @@ func (c IdentifyClient) ResolveIdentifyImplicitTeam(ctx context.Context, __arg R
 // of the team is inferred from the TeamID.
 func (c IdentifyClient) ResolveImplicitTeam(ctx context.Context, __arg ResolveImplicitTeamArg) (res Folder, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.resolveImplicitTeam", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) NormalizeSocialAssertion(ctx context.Context, assertion string) (res SocialAssertion, err error) {
+	__arg := NormalizeSocialAssertionArg{Assertion: assertion}
+	err = c.Cli.Call(ctx, "keybase.1.identify.normalizeSocialAssertion", []interface{}{__arg}, &res)
+	return
+}
+
+func (c IdentifyClient) AssertionParseAndOnly(ctx context.Context, assertion string) (res AssertionExpressionLite, err error) {
+	__arg := AssertionParseAndOnlyArg{Assertion: assertion}
+	err = c.Cli.Call(ctx, "keybase.1.identify.assertionParseAndOnly", []interface{}{__arg}, &res)
 	return
 }

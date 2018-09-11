@@ -109,4 +109,34 @@ protocol identify {
    of the team is inferred from the TeamID.
    */
   Folder resolveImplicitTeam(int sessionID, TeamID id);
+
+  record KVPair {
+    string key;
+    string value;
+  }
+
+  record AssertionUrlLite {
+    array<string> keys;
+    boolean isKeybase;
+    boolean isUID;
+    boolean isTeamID;
+    boolean isTeamName;
+    boolean isSocial;
+    boolean isRemote;
+    boolean isFingerprint;
+    UID uid;
+    TeamID teamID;
+    TeamName teamName;
+    KVPair keyValuePair;
+  }
+
+  record AssertionExpressionLite {
+    string str;
+    boolean hasOr;
+    boolean needsParens;
+    array<AssertionUrlLite> assertionUrls;
+  }
+
+  SocialAssertion normalizeSocialAssertion(string assertion);
+  AssertionExpressionLite assertionParseAndOnly(string assertion);
 }

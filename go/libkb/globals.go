@@ -103,7 +103,7 @@ type GlobalContext struct {
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
 	UIRouter           UIRouter                  // How to route UIs
-	Services           ExternalServicesCollector // All known external services
+	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
@@ -159,6 +159,7 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
 
@@ -1023,14 +1024,14 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 }
 
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
-	if g.Services == nil {
+	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.Services)
+	return MakeAssertionContext(g.proofServices)
 }
 
 func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
-	g.Services = s
+	g.proofServices = s
 }
 
 func (g *GlobalContext) SetPvlSource(s PvlSource) {

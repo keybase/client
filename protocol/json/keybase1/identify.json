@@ -137,6 +137,102 @@
           "name": "folderID"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "KVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssertionUrlLite",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "keys"
+        },
+        {
+          "type": "boolean",
+          "name": "isKeybase"
+        },
+        {
+          "type": "boolean",
+          "name": "isUID"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeamID"
+        },
+        {
+          "type": "boolean",
+          "name": "isTeamName"
+        },
+        {
+          "type": "boolean",
+          "name": "isSocial"
+        },
+        {
+          "type": "boolean",
+          "name": "isRemote"
+        },
+        {
+          "type": "boolean",
+          "name": "isFingerprint"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "TeamID",
+          "name": "teamID"
+        },
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "KVPair",
+          "name": "keyValuePair"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AssertionExpressionLite",
+      "fields": [
+        {
+          "type": "string",
+          "name": "str"
+        },
+        {
+          "type": "boolean",
+          "name": "hasOr"
+        },
+        {
+          "type": "boolean",
+          "name": "needsParens"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AssertionUrlLite"
+          },
+          "name": "assertionUrls"
+        }
+      ]
     }
   ],
   "messages": {
@@ -348,6 +444,24 @@
       ],
       "response": "Folder",
       "doc": "resolveImplicitTeam returns a TLF display name given a teamID. The publicness\n   of the team is inferred from the TeamID."
+    },
+    "normalizeSocialAssertion": {
+      "request": [
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "SocialAssertion"
+    },
+    "assertionParseAndOnly": {
+      "request": [
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "AssertionExpressionLite"
     }
   },
   "namespace": "keybase.1"

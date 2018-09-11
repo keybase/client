@@ -103,7 +103,7 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	serviceList := strings.Join(g.Services.ListProofCheckers(g.GetRunMode()), ", ")
+	serviceList := strings.Join(g.GetProofServices().ListProofCheckers(g.GetRunMode()), ", ")
 	description := fmt.Sprintf("Supported services are: %s.", serviceList)
 	cmd := cli.Command{
 		Name:         "prove",
