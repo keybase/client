@@ -3,15 +3,14 @@ import * as React from 'react'
 import {isMobile} from '../constants/platform'
 
 export type OverlayParentProps = {
-  attachmentRef: ?React.Component<any, any>,
+  getAttachmentRef: () => ?React.Component<any, any>,
   showingMenu: boolean,
-  setAttachmentRef: ?(?React.Component<any, any>) => void,
+  setAttachmentRef: (?React.Component<any, any>) => void,
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
 }
 
 type OverlayParentState = {|
-  attachmentRef: ?React.Component<any, any>,
   showingMenu: boolean,
 |}
 
@@ -19,12 +18,16 @@ const OverlayParentHOC = <T: OverlayParentProps>(
   ComposedComponent: React.ComponentType<T>
 ): React.ComponentType<$Diff<T, OverlayParentProps>> => {
   class OverlayParent extends React.Component<$Diff<T, OverlayParentProps>, OverlayParentState> {
-    state = {attachmentRef: null, showingMenu: false}
+    state = {showingMenu: false}
+    _ref: ?React.Component<any, any> = null
     setShowingMenu = (showingMenu: boolean) => this.setState({showingMenu})
     toggleShowingMenu = () => this.setState(oldState => ({showingMenu: !oldState.showingMenu}))
     setAttachmentRef = isMobile
-      ? undefined
-      : (attachmentRef: ?React.Component<any, any>) => this.setState({attachmentRef})
+      ? () => {}
+      : (attachmentRef: ?React.Component<any, any>) => {
+          this._ref = attachmentRef
+        }
+    getAttachmentRef = () => this._ref
 
     render() {
       return (
@@ -33,7 +36,8 @@ const OverlayParentHOC = <T: OverlayParentProps>(
           setShowingMenu={this.setShowingMenu}
           toggleShowingMenu={this.toggleShowingMenu}
           setAttachmentRef={this.setAttachmentRef}
-          {...this.state}
+          getAttachmentRef={this.getAttachmentRef}
+          showingMenu={this.state.showingMenu}
         />
       )
     }

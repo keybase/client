@@ -26,34 +26,7 @@ type Props = {
   timestamp: ?string,
   usernameColor: ?string,
   hasBadge: boolean,
-}
-
-class _Gear extends React.PureComponent<Props & OverlayParentProps> {
-  render() {
-    return (
-      <>
-        <Icon
-          type="iconfont-gear"
-          className="small-team-gear"
-          onClick={this.props.toggleShowingMenu}
-          ref={this.props.setAttachmentRef}
-          color={this.props.subColor}
-          hoverColor={this.props.iconHoverColor}
-          style={{position: 'relative', right: globalMargins.xtiny}}
-        />
-        <TeamMenu
-          visible={this.props.showingMenu}
-          attachTo={this.props.attachmentRef}
-          onHidden={this.props.toggleShowingMenu}
-          isSmallTeam={true}
-          teamname={(this.props.participants.length && this.props.participants[0]) || ''}
-        />
-      </>
-    )
-  }
-}
-
-const Gear = OverlayParentHOC(_Gear)
+} & OverlayParentProps
 
 class _SimpleTopLine extends React.Component<Props> {
   shouldComponentUpdate(nextProps: Props) {
@@ -78,6 +51,15 @@ class _SimpleTopLine extends React.Component<Props> {
           maxHeight: isMobile ? 21 : 17,
         }}
       >
+        {this.props.showGear && (
+          <TeamMenu
+            visible={this.props.showingMenu}
+            attachTo={this.props.getAttachmentRef}
+            onHidden={this.props.toggleShowingMenu}
+            isSmallTeam={true}
+            teamname={(this.props.participants.length && this.props.participants[0]) || ''}
+          />
+        )}
         <Box
           style={{
             ...globalStyles.flexBoxRow,
@@ -146,7 +128,17 @@ class _SimpleTopLine extends React.Component<Props> {
         >
           {this.props.timestamp}
         </Text>
-        {this.props.showGear && <Gear {...this.props} />}
+        {this.props.showGear && (
+          <Icon
+            type="iconfont-gear"
+            className="small-team-gear"
+            onClick={this.props.toggleShowingMenu}
+            ref={this.props.setAttachmentRef}
+            color={this.props.subColor}
+            hoverColor={this.props.iconHoverColor}
+            style={{position: 'relative', right: globalMargins.xtiny}}
+          />
+        )}
         {this.props.hasBadge ? <Box key="1" style={unreadDotStyle} /> : null}
       </Box>
     )

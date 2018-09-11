@@ -44,6 +44,7 @@ class _CopyText extends React.Component<Props, State> {
   }
 
   _isRevealed = () => !this.props.withReveal || this.state.revealed
+  _getAttachmentRef = () => this._attachmentRef
 
   render() {
     return (
@@ -52,7 +53,7 @@ class _CopyText extends React.Component<Props, State> {
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
-        <Toast position="top center" attachTo={this._attachmentRef} visible={this.state.showingToast}>
+        <Toast position="top center" attachTo={this._getAttachmentRef} visible={this.state.showingToast}>
           {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
           <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
             Copied to clipboard

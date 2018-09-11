@@ -85,7 +85,7 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
           <Kb.Button onClick={null} type="Wallet" label="Send" />
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
@@ -132,7 +132,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}

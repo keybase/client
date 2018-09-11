@@ -13,7 +13,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 // and the other for requestPayment. The wrapper decides which to use.
 
 type OwnProps = {|
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any, any>,
   message: ChatTypes.MessageRequestPayment | ChatTypes.MessageSendPayment,
   onHidden: () => void,
   position: Position,
