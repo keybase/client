@@ -80,6 +80,7 @@ const styles = styleSheetCreate({
   },
   team: platformStyles({
     common: {
+      color: globalColors.black_60,
       flexGrow: 1,
       marginLeft: globalMargins.tiny,
       marginRight: globalMargins.tiny,
