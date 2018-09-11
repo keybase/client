@@ -64,7 +64,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedProps) => {
     onUsernameClicked = dispatchProps.onOpenTracker
   } else if (ownProps.onUsernameClicked === 'profile') {
     onUsernameClicked = dispatchProps.onOpenProfile
-  } else if (typeof onUsernameClicked === 'function') {
+  } else if (typeof ownProps.onUsernameClicked === 'function') {
     onUsernameClicked = ownProps.onUsernameClicked
   }
 
