@@ -10,7 +10,7 @@ import {
   Text,
   type IconType,
 } from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   action: string,
@@ -33,10 +33,14 @@ const AccountPayment = (props: Props) => {
     </Box2>
   ) : (
     <React.Fragment>
-      <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
-        <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
+      <Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={collapseStyles([styles.flexWrap, styles.headingContainer])}
+      >
+        <Box2 direction="horizontal" gap="xtiny">
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
-          <Text type="BodySmall" style={styles.purple}>
+          <Text type="BodySmall" lineClamp={1} style={collapseStyles([styles.purple])}>
             {props.action}{' '}
             <Text type="BodySmallExtrabold" style={styles.purple}>
               {props.amount}
@@ -45,8 +49,13 @@ const AccountPayment = (props: Props) => {
           </Text>
         </Box2>
         {!!props.balanceChange && (
-          <Box2 direction="horizontal">
-            <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+          <Box2 direction="horizontal" style={styles.headingContainer} gap="tiny" gapStart={true}>
+            <Box2 direction="horizontal" style={styles.headingContainer} />
+            <Text
+              type="BodyExtrabold"
+              lineClamp={1}
+              style={collapseStyles([{color: props.balanceChangeColor}])}
+            >
               {props.balanceChange}
             </Text>
           </Box2>
@@ -76,10 +85,18 @@ const AccountPayment = (props: Props) => {
 }
 
 const styles = styleSheetCreate({
+  flexWrap: {
+    flexWrap: 'wrap',
+  },
   headingContainer: {
     alignItems: 'center',
     flex: 1,
   },
+  headline: platformStyles({
+    isElectron: {
+      whiteSpace: 'nowrap',
+    },
+  }),
   progressIndicator: platformStyles({
     // Match height of a line of text
     isElectron: {
