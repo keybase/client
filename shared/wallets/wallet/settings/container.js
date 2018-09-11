@@ -5,7 +5,6 @@ import {
   connect,
   lifecycle,
   setDisplayName,
-  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
@@ -83,6 +82,5 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings'),
-  safeSubmit(['onCurrencyChange'], ['currency'])
+  setDisplayName('Settings')
 )(Settings)
