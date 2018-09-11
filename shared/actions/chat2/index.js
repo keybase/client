@@ -36,6 +36,10 @@ const inboxRefresh = (
   action: Chat2Gen.InboxRefreshPayload | Chat2Gen.LeaveConversationPayload,
   state: TypedState
 ) => {
+  if (!state.config.loggedIn) {
+    return
+  }
+
   const username = state.config.username || ''
 
   const onUnverified = function({inbox}) {
@@ -151,6 +155,10 @@ const unboxRows = (
   action: Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload,
   state: TypedState
 ) => {
+  if (!state.config.loggedIn) {
+    return
+  }
+
   const conversationIDKeys = rpcMetaRequestConversationIDKeys(action, state)
   if (!conversationIDKeys.length) {
     return
