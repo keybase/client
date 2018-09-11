@@ -3,7 +3,7 @@ import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {serviceIdToLogo16} from './shared'
-import type {ServiceIdWithContact} from '../constants/team-building'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
 // * Add styles for mobile
@@ -40,11 +40,15 @@ const ServiceIcon = (props: IconProps) => (
       />
       {!!props.showCount &&
         (props.count ? (
-          <Kb.Text type="tiny-semibold" style={styles.resultCount}>
+          <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
             {props.count}
           </Kb.Text>
         ) : (
-          <Kb.Icon type="icon-progress-grey-animated" style={styles.progressIcon} />
+          <Kb.Icon
+            type="icon-progress-grey-animated"
+            color={Styles.globalColors.grey}
+            style={{height: 10, width: 10}}
+          />
         ))}
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -57,7 +61,7 @@ const ServiceTabBar = (props: Props) => (
         key={service}
         service={service}
         onClick={() => props.onChangeService(service)}
-        count={props.showServiceResultCount[service]}
+        count={props.serviceResultCount[service]}
         showCount={props.showServiceResultCount}
         isActive={props.selectedService === service}
       />
@@ -87,10 +91,6 @@ const styles = Styles.styleSheetCreate({
   serviceIcon: {},
   activeIcon: {},
   inactiveIcon: {},
-  progressIcon: {
-    height: 10,
-    width: 10,
-  },
   resultCount: {},
 })
 

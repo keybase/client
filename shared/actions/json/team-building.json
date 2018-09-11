@@ -9,6 +9,6 @@
     "addUsersToTeamSoFar": {"users": "Array<Types.UserID>"},
     "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
     "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "string"},
-    "searchResultCountsLoaded": {"counts": "{[key: string]: number}", "query": "string"}
+    "searchResultCountsLoaded": {"counts": "{[key: Types.ServiceIdWithContact]: number}", "query": "string"}
   }
 }

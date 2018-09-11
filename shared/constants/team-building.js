@@ -8,7 +8,7 @@ type SearchKey = I.List<Types.SearchString | Types.ServiceIdWithContact>
 class SearchCache {
   userMap: I.Map<Types.UserID, Types.User>
   searchCacheMap: I.Map<SearchKey, I.Set<Types.UserID>>
-  searchBuffer: Array<Types.SearchString>
+  searchBuffer: Array<Types.SearchKey>
   cacheSize: number
 
   constructor(cacheSize: number) {
@@ -30,16 +30,17 @@ class SearchCache {
     return ids.map(this.getUserInfo).filter(v => !!v)
   }
 
-  _keyFn = (search: SearchString, service: ServiceIdWithContact): SearchKey => I.List([search, service])
+  _keyFn = (search: Types.SearchString, service: Types.ServiceIdWithContact): SearchKey =>
+    I.List([search, service])
 
-  hasSearchQuery = (search: SearchString, service: ServiceIdWithContact): boolean => {
+  hasSearchQuery = (search: Types.SearchString, service: Types.ServiceIdWithContact): boolean => {
     const k = this._keyFn(search, service)
     return this.searchCacheMap.has(k)
   }
 
   addSearchResult = (
     searchQuery: Types.SearchString,
-    service: ServiceIdWithContact,
+    service: Types.ServiceIdWithContact,
     results: Array<Types.User>
   ): void => {
     const k = this._keyFn(searchQuery, service)
@@ -47,7 +48,7 @@ class SearchCache {
     this.searchBuffer.push(k)
     if (this.searchBuffer.length >= this.cacheSize) {
       let searchKeyToRemove = this.searchBuffer.splice(0, 1)[0] // pop from the front
-      this._removeSearchResultFromCache(k)
+      this._removeSearchResultFromCache(searchKeyToRemove)
     }
 
     let toMergeUserMap = results.reduce((acc, v) => {
@@ -103,9 +104,4 @@ class ServiceResultCountCache {
   }
 }
 
-export const makeState: I.RecordFactory<Types._State> = I.Record({
-  searchCache: new SearchCache(10),
-  searchQuery: null,
-  serviceResultCountCache: new ServiceResultCountCache(10),
-  teamSoFar: I.Set(),
-})
+export {ServiceResultCountCache, SearchCache}

@@ -17,7 +17,12 @@ const Go = () => (
 )
 
 const GoIcon = () => (
-  <Kb.Icon type={'iconfont-add'} fontSize={22} color={Styles.globalColors.white} style={styles.goIcon} />
+  <Kb.Icon
+    type={'iconfont-add'}
+    fontSize={22}
+    color={Styles.globalColors.white}
+    style={Kb.iconCastPlatformStyles(styles.goIcon)}
+  />
 )
 
 const GoWithIconHover = Kb.HoverHoc(Go, GoIcon)

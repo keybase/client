@@ -29,13 +29,14 @@ const OutlineWrapper = ({style, children}: any) => (
   </Kb.Box2>
 )
 
-const commonProps = {}
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
     .add('Team Building', () => (
       <OutlineWrapper style={{marginTop: 20, width: 460, height: 434}}>
         <TeamBuilding
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          clearTextTrigger={0}
           onChangeText={Sb.action('onChangeText')}
           onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
           onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
@@ -191,6 +192,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        highlight={false}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',
@@ -211,6 +213,7 @@ const load = () => {
       <UserResult
         username="chris"
         prettyName="Chris Coyne"
+        highlight={false}
         services={{
           facebook: 'chriscoyne on Facebook',
           github: 'malgorithms on GitHub',

@@ -3,7 +3,7 @@ import React from 'react'
 import * as Kb from '../common-adapters/index'
 import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
-import type {ServiceId} from '../util/platforms'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
 // * Add service icons and colors
@@ -12,7 +12,7 @@ import type {ServiceId} from '../util/platforms'
 export type Props = {
   username: string,
   prettyName: string,
-  service: ServiceId,
+  service: ServiceIdWithContact,
   onRemove: () => void,
 }
 
@@ -29,7 +29,16 @@ const GeneralServiceBubble = (props: Props) => (
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
     <Kb.ClickableBox onClick={() => onRemove()}>
-      <Kb.Icon type={'iconfont-close'} style={styles.removeIcon} />
+      <Kb.Icon
+        type={'iconfont-close'}
+        color={Styles.globalColors.white}
+        fontSize={18}
+        style={{
+          left: 5,
+          position: 'relative',
+          top: 6,
+        }}
+      />
     </Kb.ClickableBox>
   </Kb.WithTooltip>
 )
@@ -61,21 +70,17 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 
-  remove: {
-    backgroundColor: Styles.globalColors.red,
-    borderRadius: 100,
-    cursor: 'pointer',
-    height: BUBBLE_SIZE,
-    width: BUBBLE_SIZE,
-  },
-
-  removeIcon: {
-    color: Styles.globalColors.white,
-    fontSize: 18,
-    left: 5,
-    position: 'relative',
-    top: 6,
-  },
+  remove: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.red,
+      borderRadius: 100,
+      height: BUBBLE_SIZE,
+      width: BUBBLE_SIZE,
+    },
+    isElectron: {
+      cursor: 'pointer',
+    },
+  }),
 
   generalService: {
     backgroundColor: 'grey',

@@ -2,10 +2,9 @@
 import React from 'react'
 import Input from './input'
 import UserBubble from './user-bubble'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import type {ServiceId} from '../util/platforms'
-import type {Props as UserBubbleProps} from './user-bubble'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
 // * Add styles for mobile
@@ -16,7 +15,7 @@ type Props = {
   onEnterKeyDown: (textOnEnter: string) => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
-  teamSoFar: Array<UserBubbleProps & {userId: string}>,
+  teamSoFar: Array<{userId: string, prettyName: string, username: string, service: ServiceIdWithContact}>,
   onRemove: (userId: string) => void,
   onBackspaceWhileEmpty: () => void,
 }
@@ -37,9 +36,9 @@ const TeamBox = (props: Props) => (
       onEnterKeyDown={props.onEnterKeyDown}
       onDownArrowKeyDown={props.onDownArrowKeyDown}
       onUpArrowKeyDown={props.onUpArrowKeyDown}
-      onBackspaceWhileEmpty={() =>
+      onBackspaceWhileEmpty={() => {
         props.teamSoFar.length && props.onRemove(props.teamSoFar[props.teamSoFar.length - 1].userId)
-      }
+      }}
     />
   </Kb.Box2>
 )

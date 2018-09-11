@@ -26,7 +26,7 @@ type _SearchPayload = $ReadOnly<{|
   service: string,
 |}>
 type _SearchResultCountsLoadedPayload = $ReadOnly<{|
-  counts: {[key: string]: number},
+  counts: {[key: Types.ServiceIdWithContact]: number},
   query: string,
 |}>
 type _SearchResultsLoadedPayload = $ReadOnly<{|

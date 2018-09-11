@@ -1,8 +1,16 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
-import type {ServiceId} from '../../util/platforms'
 
-export type ServiceIdWithContact = ServiceId | 'contact'
+export type ServiceIdWithContact =
+  | 'facebook'
+  | 'github'
+  | 'hackernews'
+  | 'keybase'
+  | 'pgp'
+  | 'reddit'
+  | 'twitter'
+  | 'contact'
 
 export type SearchString = string
 type UsernameOnService = string
@@ -19,8 +27,9 @@ export type User = {
 // Treating this as a tuple
 export type SearchKey = I.List<SearchString | ServiceIdWithContact>
 // This is what should be kept in the reducer
+// Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 export type SearchResults = I.Map<SearchKey, Array<User>>
-export type ServiceResultCount = I.Map<SearchKey, Array<User>>
+export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
 
 // Sagas can handle a cache if we want, this shouldn't be in the reducer.
 export interface SearchCache {

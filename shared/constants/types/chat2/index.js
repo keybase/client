@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
 import * as Message from './message'
+import * as TeamBuildingTypes from '../team-building'
 
 export type PendingMode =
   | 'none' // no pending

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import DesktopStyle from './desktop-style'
 import {Box2} from './box'
 import {isMobile} from '../constants/platform'
@@ -11,7 +11,10 @@ type Props = {
 
 // HoverHoc for swapping components out on hover
 // Uses visibility and doesn't mount/unmount components
-export default (DefaultComponent, HoverComponent) => (props: Props) => {
+export default (
+  DefaultComponent: React.ComponentType<{}>,
+  HoverComponent: React.ComponentType<{}>
+): React.ComponentType<Props> => (props: Props) => {
   const realCSS = `
     .hoverContainer { position: relative; }
     .hoverContainer .hoverComponent { visibility: hidden; position: absolute; top: 0; }

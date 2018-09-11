@@ -1,11 +1,12 @@
 // @flow
 import React from 'react'
-import * as Kb from '../common-adapters/index'
+import * as Kb from '../common-adapters'
 import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import {followingStateToStyle} from '../search/shared'
 import {serviceIdToLogo14} from './shared'
 import type {FollowingState} from '../constants/types/search'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
 // * Add service icons and colors
@@ -17,7 +18,7 @@ import type {FollowingState} from '../constants/types/search'
 export type Props = {
   username: string,
   prettyName: string,
-  services: {[key: ServiceId]: string},
+  services: {[key: ServiceIdWithContact]: string},
   inTeam: boolean,
   followingState: FollowingState,
   highlight: boolean,
@@ -71,11 +72,11 @@ const Username = (props: {username: string, prettyName: string, followingState: 
   </Kb.Box2>
 )
 
-const Services = ({services}: {services: {[key: ServiceId]: string}}) => (
+const Services = ({services}: {services: {[key: ServiceIdWithContact]: string}}) => (
   <Kb.Box2 direction="horizontal" style={styles.services}>
     {Object.keys(services).map(service => (
       <Kb.WithTooltip key={service} text={services[service]} position={'top center'}>
-        <Kb.Icon type={serviceIdToLogo14(service)} style={styles.serviceIcon} />
+        <Kb.Icon type={serviceIdToLogo14(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
       </Kb.WithTooltip>
     ))}
   </Kb.Box2>

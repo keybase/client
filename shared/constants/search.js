@@ -49,7 +49,7 @@ function isKeybaseUserId(userId) {
   return userId.indexOf('@') < 0
 }
 
-function followStateHelperWithId(state: TypedState, userId: ?string) {
+function followStateHelperWithId(state: TypedState, userId: string = '') {
   const me = state.config.username
   if (isKeybaseUserId(userId)) {
     if (userId === me) {

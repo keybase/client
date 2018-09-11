@@ -6,8 +6,8 @@ import TeamBox from './team-box'
 import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
-import type {Props as UserBubbleProps} from './user-bubble'
-import type {Props as ResultProps} from './user-result'
+import type {ServiceIdWithContact} from '../constants/types/team-building'
+import type {FollowingState} from '../constants/types/search'
 
 // TODO
 // Top level
@@ -20,7 +20,7 @@ type SearchResult = {
   userId: string,
   username: string,
   prettyName: string,
-  services: {[key: ServiceId]: string},
+  services: {[key: ServiceIdWithContact]: string},
   inTeam: boolean,
   followingState: FollowingState,
 }
@@ -31,7 +31,7 @@ type Props = {
   onEnterKeyDown: (textOnEnter: string) => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
-  teamSoFar: Array<UserBubbleProps & {userId: string}>,
+  teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
   onRemove: (userId: string) => void,
   onBackspaceWhileEmpty: () => void,
   selectedService: ServiceIdWithContact,
@@ -64,7 +64,7 @@ const TeamBuilding = (props: Props) => (
       serviceResultCount={props.serviceResultCount}
       showServiceResultCount={props.showServiceResultCount}
     />
-    {props.searchResults ? (
+    {!props.searchResults ? (
       <Kb.Text type="Body"> TODO: Add Pending state</Kb.Text>
     ) : (
       <Kb.List

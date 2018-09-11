@@ -11,8 +11,8 @@ type Props = {
   onBackspaceWhileEmpty: () => void,
 }
 
-const handleKeyDown = (e: {key: string, target: {value: string}}, props: Props) => {
-  switch (e.key) {
+const handleKeyDown = (key: string, inputVal: string, props: Props) => {
+  switch (key) {
     case 'ArrowDown':
       props.onDownArrowKeyDown()
       break
@@ -20,7 +20,7 @@ const handleKeyDown = (e: {key: string, target: {value: string}}, props: Props) 
       props.onDownArrowKeyDown()
       break
     case 'Backspace':
-      !e.target.value && props.onBackspaceWhileEmpty()
+      !inputVal && props.onBackspaceWhileEmpty()
       break
   }
 }
@@ -30,8 +30,12 @@ const Input = (props: Props) => (
     <Kb.Input
       hintText={'Find people by name, email, or phone'}
       onChangeText={props.onChangeText}
-      onEnterKeyDown={e => props.onEnterKeyDown(e.target.value)}
-      onKeyDown={e => handleKeyDown(e, props)}
+      onEnterKeyDown={e => {
+        e.target instanceof window.HTMLInputElement && props.onEnterKeyDown(e.target.value)
+      }}
+      onKeyDown={e => {
+        e.target instanceof window.HTMLInputElement && handleKeyDown(e.key, e.target.value, props)
+      }}
       uncontrolled={true}
       small={true}
       hideUnderline={true}
