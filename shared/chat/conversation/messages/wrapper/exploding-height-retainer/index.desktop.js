@@ -59,6 +59,12 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       }
       return
     }
+
+    if (__STORYSHOT__) {
+      // Storyshots with react 16.5 can't find the domNode and fails
+      return
+    }
+
     const node = ReactDOM.findDOMNode(this)
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
