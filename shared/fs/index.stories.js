@@ -622,7 +622,9 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />)
+    .add('UploadBanner', () => (
+      <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />
+    ))
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}

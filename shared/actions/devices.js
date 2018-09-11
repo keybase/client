@@ -92,7 +92,7 @@ const showPaperKeyPage = () =>
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked], load)
+  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device
   yield Saga.actionToPromise(DevicesGen.revoke, revoke)
 
