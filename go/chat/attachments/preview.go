@@ -111,7 +111,7 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 	width, height := previewDimensions(img.Bounds())
 
 	log.Debug(ctx, "previewImage: resizing image: bounds: %s", img.Bounds())
-	preview := resize.Resize(width, height, img, resize.NearestNeighbor)
+	preview := resize.Resize(width, height, img, resize.Bicubic)
 	var buf bytes.Buffer
 
 	var encodeContentType string
