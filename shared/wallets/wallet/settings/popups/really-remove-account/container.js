@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -15,6 +15,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     loading: !secretKey,
     name: Constants.getAccount(state, accountID).name,
     secretKey,
+    waitingKey: Constants.deleteAccountWaitingKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -34,10 +35,14 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
+  waitingKey: stateProps.waitingKey,
   onCancel: () => dispatchProps._onClose(stateProps.accountID),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ReallyRemoveAccountPopup)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ReallyRemoveAccountPopup')
+)(ReallyRemoveAccountPopup)

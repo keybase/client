@@ -361,7 +361,7 @@ class Input extends Component<Props, State> {
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodyError" style={collapseStyles([styles.error, this.props.errorStyle])}>
+          <Text type="BodySmallError" style={collapseStyles([styles.error, this.props.errorStyle])}>
             {this.props.errorText || ''}
           </Text>
         )}
@@ -373,7 +373,7 @@ class Input extends Component<Props, State> {
 const _headerTextStyle = getTextStyle('Header')
 const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
-const _bodyErrorTextStyle = getTextStyle('BodyError')
+const _bodyErrorTextStyle = getTextStyle('BodySmallError')
 
 const styles = styleSheetCreate({
   error: {

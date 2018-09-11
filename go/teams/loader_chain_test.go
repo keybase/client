@@ -157,6 +157,11 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 		tc := SetupTest(t, "team", 1)
 		defer tc.Cleanup()
 
+		// The auditor won't work in this case, since we have fake links that won't match the
+		// local database. In particular, the head merkle seqno might be off the right end
+		// of the merkle sequence in the DB.
+		tc.G.Env.Test.TeamSkipAudit = true
+
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")
 		mock := NewMockLoaderContext(t, tc.G, unit)
