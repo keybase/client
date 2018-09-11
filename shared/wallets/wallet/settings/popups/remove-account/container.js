@@ -47,5 +47,5 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   setDisplayName('RemoveAccountPopup'),
-  safeSubmitPerMount(['onClose', 'onDelete'])
+  safeSubmitPerMount(['onDelete'])
 )(RemoveAccountPopup)
