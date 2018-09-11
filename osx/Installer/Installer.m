@@ -24,6 +24,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   KBExitFuseKextError = 4,
   KBExitFuseKextPermissionError = 5,
   KBExitAuthCanceledError = 6,
+  KBExitFuseKextMountsPresentError = 7,
 };
 
 @implementation Installer
@@ -147,6 +148,11 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
   if (error.code == errAuthorizationCanceled) {
     completion(nil, KBExitAuthCanceledError);
+    return;
+  }
+
+  if (error.code == KBErrorCodeFuseKextMountsPresent) {
+    completion(nil, KBExitFuseKextMountsPresentError);
     return;
   }
 

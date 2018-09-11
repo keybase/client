@@ -273,6 +273,14 @@ func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplicati
 	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
 }
 
+type AdminPermissionRequiredError struct{}
+
+func NewAdminPermissionRequiredError() error { return &AdminPermissionRequiredError{} }
+
+func (e AdminPermissionRequiredError) Error() string {
+	return "Only admins can perform this operation."
+}
+
 type ImplicitAdminCannotLeaveError struct{}
 
 func NewImplicitAdminCannotLeaveError() error { return &ImplicitAdminCannotLeaveError{} }
@@ -420,4 +428,16 @@ func NewBadPublicError(id keybase1.TeamID, isPublic bool) error {
 
 func (e BadPublicError) Error() string {
 	return fmt.Sprintf("Public bit for team %s is wrong (%v)", e.id, e.isPublic)
+}
+
+type AuditError struct {
+	Msg string
+}
+
+func NewAuditError(format string, args ...interface{}) error {
+	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
+}
+
+func (e AuditError) Error() string {
+	return fmt.Sprintf("Audit error: %s", e.Msg)
 }

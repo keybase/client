@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/keybase/client/go/kbconst"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
@@ -21,17 +22,18 @@ const (
 
 var TorProxy = "localhost:9050"
 
-type RunMode string
+// TODO (CORE-6576): Remove these aliases once everything outside of
+// this repo points to kbconst.RunMode.
+
+type RunMode = kbconst.RunMode
 
 const (
-	DevelRunMode      RunMode = "devel"
-	StagingRunMode    RunMode = "staging"
-	ProductionRunMode RunMode = "prod"
-	RunModeError      RunMode = "error"
-	NoRunMode         RunMode = ""
+	DevelRunMode      RunMode = kbconst.DevelRunMode
+	StagingRunMode    RunMode = kbconst.StagingRunMode
+	ProductionRunMode RunMode = kbconst.ProductionRunMode
+	RunModeError      RunMode = kbconst.RunModeError
+	NoRunMode         RunMode = kbconst.NoRunMode
 )
-
-var RunModes = []RunMode{DevelRunMode, StagingRunMode, ProductionRunMode}
 
 var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
@@ -202,6 +204,7 @@ const (
 	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)
 	SCMissingResult                    = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                      = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyCorrupted                     = int(keybase1.StatusCode_SCKeyCorrupted)
@@ -275,6 +278,7 @@ const (
 	SCAccountReset                     = int(keybase1.StatusCode_SCAccountReset)
 	SCIdentifiesFailed                 = int(keybase1.StatusCode_SCIdentifiesFailed)
 	SCTeamReadError                    = int(keybase1.StatusCode_SCTeamReadError)
+	SCTeamWritePermDenied              = int(keybase1.StatusCode_SCTeamWritePermDenied)
 	SCNoOp                             = int(keybase1.StatusCode_SCNoOp)
 	SCTeamNotFound                     = int(keybase1.StatusCode_SCTeamNotFound)
 	SCTeamTarDuplicate                 = int(keybase1.StatusCode_SCTeamTarDuplicate)
@@ -567,7 +571,7 @@ const (
 
 const (
 	ServiceLogFileName = "keybase.service.log"
-	KBFSLogFileName    = "keybase.kbfs.log"
+	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"

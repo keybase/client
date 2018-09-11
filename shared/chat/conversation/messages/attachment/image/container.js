@@ -2,7 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, type Dispatch, isMobile} from '../../../../../util/container'
+import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
@@ -77,7 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     showButton: buttonType,
     videoDuration: message.videoDuration || '',
     inlineVideoPlayable: message.inlineVideoPlayable,
-    title: message.title || message.fileName,
+    title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
     width: Math.min(message.previewWidth, imgMaxWidth()),
     hasProgress,

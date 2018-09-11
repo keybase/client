@@ -91,6 +91,9 @@ func (h *Server) getStreamUICli() *keybase1.StreamUiClient {
 
 func (h *Server) handleOfflineError(ctx context.Context, err error,
 	res chat1.OfflinableResult) error {
+	if err == nil {
+		return nil
+	}
 
 	errKind := IsOfflineError(err)
 	h.Debug(ctx, "handleOfflineError: errType: %T", err)
@@ -173,11 +176,12 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	chatUI := h.getChatUI(arg.SessionID)
 	localizeCb := make(chan NonblockInboxResult, 1)
 
-	// Invoke nonblocking inbox read and get remote inbox version to send back as our result
+	// Invoke nonblocking inbox read and get remote inbox version to send back
+	// as our result
 	localizer := NewNonblockingLocalizer(h.G(), localizeCb, arg.MaxUnbox)
-	_, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination)
-	if err != nil {
-		// If this is a convID based query, let's go ahead and drop those onto the retrier
+	if _, err = h.G().InboxSource.Read(ctx, uid.ToBytes(), localizer, true, arg.Query, arg.Pagination); err != nil {
+		// If this is a convID based query, let's go ahead and drop those onto
+		// the retrier
 		if arg.Query != nil && len(arg.Query.ConvIDs) > 0 {
 			h.Debug(ctx, "GetInboxNonblockLocal: failed to get unverified inbox, marking convIDs as failed")
 			for _, convID := range arg.Query.ConvIDs {
@@ -1358,46 +1362,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 // MakePreview implements chat1.LocalInterface.MakePreview.
 func (h *Server) MakePreview(ctx context.Context, arg chat1.MakePreviewArg) (res chat1.MakePreviewRes, err error) {
 	defer h.Trace(ctx, func() error { return err }, "MakePreview")()
-	pre, err := attachments.PreprocessAsset(ctx, h.G(), h.DebugLabeler, arg.Filename, nil)
-	if err != nil {
-		return chat1.MakePreviewRes{}, err
-	}
-	if pre.Preview != nil {
-		if err := attachments.NewPendingPreviews(h.G()).Put(ctx, arg.OutboxID, pre); err != nil {
-			return res, err
-		}
-		return pre.Export(func() *chat1.PreviewLocation {
-			loc := chat1.NewPreviewLocationWithUrl(h.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
-				arg.OutboxID))
-			return &loc
-		})
-	}
-	return pre.Export(func() *chat1.PreviewLocation { return nil })
-}
-
-func (h *Server) makeBaseAttachmentMessage(ctx context.Context, tlfName string, vis keybase1.TLFVisibility,
-	inOutboxID *chat1.OutboxID, ephemeralLifetime *gregor1.DurationSec) (msg chat1.MessagePlaintext, outboxID chat1.OutboxID, err error) {
-	if inOutboxID == nil {
-		if outboxID, err = storage.NewOutboxID(); err != nil {
-			return msg, outboxID, err
-		}
-	} else {
-		outboxID = *inOutboxID
-	}
-	msg = chat1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{
-			MessageType: chat1.MessageType_ATTACHMENT,
-			TlfName:     tlfName,
-			TlfPublic:   vis == keybase1.TLFVisibility_PUBLIC,
-			OutboxID:    &outboxID,
-		},
-	}
-	if ephemeralLifetime != nil {
-		msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
-			Lifetime: *ephemeralLifetime,
-		}
-	}
-	return msg, outboxID, nil
+	return attachments.NewSender(h.G()).MakePreview(ctx, arg.Filename, arg.OutboxID)
 }
 
 func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
@@ -1405,21 +1370,21 @@ func (h *Server) PostFileAttachmentMessageLocalNonblock(ctx context.Context,
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentMessageLocalNonblock")()
+	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
-	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.TlfName, arg.Visibility, nil,
+	// Create non block sender
+	sender := NewNonblockingSender(h.G(), NewBlockingSender(h.G(), h.boxer, h.remoteClient))
+	outboxID, _, err := attachments.NewSender(h.G()).PostFileAttachmentMessage(ctx, sender,
+		arg.ConvID, arg.TlfName, arg.Visibility, arg.Filename, arg.Title, arg.Metadata, arg.ClientPrev,
 		arg.EphemeralLifetime)
 	if err != nil {
 		return res, err
 	}
-	h.Debug(ctx, "PostFileAttachmentMessageLocalNonblock: generated message with outbox ID: %s", outboxID)
-	return h.PostLocalNonblock(ctx, chat1.PostLocalNonblockArg{
-		ConversationID:   arg.ConvID,
-		IdentifyBehavior: arg.IdentifyBehavior,
-		Msg:              msg,
-		OutboxID:         &outboxID,
-		ClientPrev:       arg.ClientPrev,
-	})
+	return chat1.PostLocalNonblockRes{
+		OutboxID:         outboxID,
+		IdentifyFailures: identBreaks,
+	}, nil
 }
 
 func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
@@ -1428,6 +1393,7 @@ func (h *Server) PostFileAttachmentUploadLocalNonblock(ctx context.Context,
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err },
 		fmt.Sprintf("PostFileAttachmentUploadLocalNonblock(%s)", arg.OutboxID))()
+	defer h.suspendConvLoader(ctx)()
 
 	uid := h.getUID()
 	if _, err = h.G().AttachmentUploader.Register(ctx, uid, arg.ConvID, arg.OutboxID, arg.Title,
@@ -1442,53 +1408,25 @@ func (h *Server) PostFileAttachmentLocal(ctx context.Context, arg chat1.PostFile
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.Arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "PostFileAttachmentLocal")()
+	defer h.suspendConvLoader(ctx)()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 
 	// Get base of message we are going to send
 	uid := h.getUID()
-	msg, outboxID, err := h.makeBaseAttachmentMessage(ctx, arg.Arg.TlfName, arg.Arg.Visibility,
-		arg.Arg.OutboxID, arg.Arg.EphemeralLifetime)
+	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
+	_, msgID, err := attachments.NewSender(h.G()).PostFileAttachment(ctx, sender, uid, arg.Arg.ConversationID,
+		arg.Arg.TlfName, arg.Arg.Visibility, arg.Arg.OutboxID, arg.Arg.Filename, arg.Arg.Title,
+		arg.Arg.Metadata, 0, arg.Arg.EphemeralLifetime, arg.Arg.CallerPreview)
 	if err != nil {
 		return res, err
 	}
-	// Start upload
-	uresCb, err := h.G().AttachmentUploader.Register(ctx, uid, arg.Arg.ConversationID,
-		outboxID, arg.Arg.Title, arg.Arg.Filename, arg.Arg.Metadata, arg.Arg.CallerPreview)
-	if err != nil {
-		return res, err
+	if msgID == nil {
+		return res, errors.New("no message ID returned from post")
 	}
-	// Wait for upload
-	ures := <-uresCb.Wait()
-	if ures.Error != nil {
-		h.Debug(ctx, "postAttachmentLocal: upload failed, bailing out: %s", *ures.Error)
-		return res, errors.New(*ures.Error)
-	}
-	// Fill in the rest of the message
-	attachment := chat1.MessageAttachment{
-		Object:   ures.Object,
-		Metadata: arg.Arg.Metadata,
-		Uploaded: true,
-	}
-	if ures.Preview != nil {
-		h.Debug(ctx, "postAttachmentLocal: attachment preview asset added")
-		attachment.Previews = []chat1.Asset{*ures.Preview}
-		attachment.Preview = ures.Preview
-	}
-	msg.MessageBody = chat1.NewMessageBodyWithAttachment(attachment)
-
-	h.Debug(ctx, "postAttachmentLocal: attachment assets uploaded, posting attachment message")
-	plres, err := h.PostLocal(ctx, chat1.PostLocalArg{
-		ConversationID:   arg.Arg.ConversationID,
-		IdentifyBehavior: arg.Arg.IdentifyBehavior,
-		Msg:              msg,
-	})
-	if err != nil {
-		h.Debug(ctx, "postAttachmentLocal: error posting attachment message: %s", err)
-	} else {
-		h.Debug(ctx, "postAttachmentLocal: posted attachment message successfully")
-	}
-
-	return plres, err
+	return chat1.PostLocalRes{
+		MessageID:        *msgID,
+		IdentifyFailures: identBreaks,
+	}, nil
 }
 
 // DownloadAttachmentLocal implements chat1.LocalInterface.DownloadAttachmentLocal.

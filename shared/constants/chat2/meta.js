@@ -298,7 +298,7 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
+const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blueGrey
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
@@ -310,7 +310,7 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
       : hasUnread
         ? globalColors.black_75
         : globalColors.black_40
-  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+  const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 
   return {

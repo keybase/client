@@ -120,18 +120,18 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -139,7 +139,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		}
 	}()
 
-	fmt.Println("Go: Initializing")
+	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
@@ -175,6 +175,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 	config := libkb.AppConfig{
 		HomeDir:                        homeDir,
+		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
 		Debug:                          true,
@@ -245,7 +246,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 		ctx, config, nil)
 	additionalProtocols := []rpc.Protocol{
 		keybase1.SimpleFSProtocol(
-			simplefs.NewSimpleFS(ctx.GetGlobalContext(), config)),
+			simplefs.NewSimpleFS(ctx, config)),
 		keybase1.KBFSGitProtocol(gitrpc),
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	}
@@ -263,10 +264,11 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (res string, err error) {
+func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
+	logSendContext.Logs.CPUProfile = cpuProfileDir
 	env := kbCtx.Env
 	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }

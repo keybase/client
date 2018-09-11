@@ -1,23 +1,38 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, Divider, Icon, Markdown, Text, type IconType} from '../../../../common-adapters'
-import {globalColors, styleSheetCreate} from '../../../../styles'
+import {
+  Box2,
+  Button,
+  Divider,
+  Icon,
+  Markdown,
+  ProgressIndicator,
+  Text,
+  type IconType,
+} from '../../../../common-adapters'
+import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 
-export type Props = {
+export type Props = {|
   action: string,
   amount: string,
   balanceChange: string,
   balanceChangeColor: string,
   icon: IconType,
+  loading: boolean,
   memo: string,
-  onSend?: () => void,
+  onSend: () => void,
   pending: boolean,
-  sendButtonLabel?: string,
-}
+  sendButtonLabel: string,
+|}
 
-export default (props: Props) => {
-  return (
-    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+const AccountPayment = (props: Props) => {
+  const contents = props.loading ? (
+    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
+      <ProgressIndicator style={styles.progressIndicator} />
+      <Text type="BodySmall">loading Stellar ledger...</Text>
+    </Box2>
+  ) : (
+    <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
         <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
@@ -47,9 +62,15 @@ export default (props: Props) => {
             type="Wallet"
             label={props.sendButtonLabel}
             onClick={props.onSend}
+            small={true}
             style={{alignSelf: 'flex-start'}}
           />
         )}
+    </React.Fragment>
+  )
+  return (
+    <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
+      {contents}
     </Box2>
   )
 }
@@ -59,6 +80,19 @@ const styles = styleSheetCreate({
     alignItems: 'center',
     flex: 1,
   },
+  progressIndicator: platformStyles({
+    // Match height of a line of text
+    isElectron: {
+      height: 17,
+      width: 17,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
   purple: {color: globalColors.purple2},
   quoteMarker: {maxWidth: 3, minWidth: 3},
 })
+
+export default AccountPayment

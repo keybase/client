@@ -347,6 +347,7 @@ func (o SendAssetChoiceLocal) DeepCopy() SendAssetChoiceLocal {
 
 type BuildPaymentResLocal struct {
 	ReadyToSend      bool              `codec:"readyToSend" json:"readyToSend"`
+	From             AccountID         `codec:"from" json:"from"`
 	ToErrMsg         string            `codec:"toErrMsg" json:"toErrMsg"`
 	ToUsername       string            `codec:"toUsername" json:"toUsername"`
 	AmountErrMsg     string            `codec:"amountErrMsg" json:"amountErrMsg"`
@@ -360,6 +361,7 @@ type BuildPaymentResLocal struct {
 func (o BuildPaymentResLocal) DeepCopy() BuildPaymentResLocal {
 	return BuildPaymentResLocal{
 		ReadyToSend:      o.ReadyToSend,
+		From:             o.From.DeepCopy(),
 		ToErrMsg:         o.ToErrMsg,
 		ToUsername:       o.ToUsername,
 		AmountErrMsg:     o.AmountErrMsg,
@@ -408,20 +410,16 @@ func (o SendPaymentResLocal) DeepCopy() SendPaymentResLocal {
 }
 
 type RequestDetailsLocal struct {
-	Id                       KeybaseRequestID     `codec:"id" json:"id"`
-	FromAssertion            string               `codec:"fromAssertion" json:"fromAssertion"`
-	FromCurrentUser          bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
-	ToUserType               ParticipantType      `codec:"toUserType" json:"toUserType"`
-	ToAssertion              string               `codec:"toAssertion" json:"toAssertion"`
-	Amount                   string               `codec:"amount" json:"amount"`
-	Asset                    *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency                 *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	AmountDescription        string               `codec:"amountDescription" json:"amountDescription"`
-	AmountStellar            string               `codec:"amountStellar" json:"amountStellar"`
-	AmountStellarDescription string               `codec:"amountStellarDescription" json:"amountStellarDescription"`
-	Completed                bool                 `codec:"completed" json:"completed"`
-	FundingKbTxID            KeybaseTransactionID `codec:"fundingKbTxID" json:"fundingKbTxID"`
-	Status                   RequestStatus        `codec:"status" json:"status"`
+	Id                KeybaseRequestID     `codec:"id" json:"id"`
+	FromAssertion     string               `codec:"fromAssertion" json:"fromAssertion"`
+	FromCurrentUser   bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
+	ToUserType        ParticipantType      `codec:"toUserType" json:"toUserType"`
+	ToAssertion       string               `codec:"toAssertion" json:"toAssertion"`
+	Amount            string               `codec:"amount" json:"amount"`
+	Asset             *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency          *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	AmountDescription string               `codec:"amountDescription" json:"amountDescription"`
+	Status            RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
@@ -446,12 +444,8 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		AmountDescription:        o.AmountDescription,
-		AmountStellar:            o.AmountStellar,
-		AmountStellarDescription: o.AmountStellarDescription,
-		Completed:                o.Completed,
-		FundingKbTxID:            o.FundingKbTxID.DeepCopy(),
-		Status:                   o.Status.DeepCopy(),
+		AmountDescription: o.AmountDescription,
+		Status:            o.Status.DeepCopy(),
 	}
 }
 
@@ -638,9 +632,9 @@ type GetPendingPaymentsLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int       `codec:"sessionID" json:"sessionID"`
-	AccountID AccountID `codec:"accountID" json:"accountID"`
-	Id        PaymentID `codec:"id" json:"id"`
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
+	Id        PaymentID  `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {
@@ -726,16 +720,17 @@ type GetSendAssetChoicesLocalArg struct {
 }
 
 type BuildPaymentLocalArg struct {
-	SessionID     int                  `codec:"sessionID" json:"sessionID"`
-	From          AccountID            `codec:"from" json:"from"`
-	FromSeqno     string               `codec:"fromSeqno" json:"fromSeqno"`
-	To            string               `codec:"to" json:"to"`
-	ToIsAccountID bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
-	Amount        string               `codec:"amount" json:"amount"`
-	Currency      *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	Asset         *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	SecretNote    string               `codec:"secretNote" json:"secretNote"`
-	PublicMemo    string               `codec:"publicMemo" json:"publicMemo"`
+	SessionID          int                  `codec:"sessionID" json:"sessionID"`
+	From               AccountID            `codec:"from" json:"from"`
+	FromPrimaryAccount bool                 `codec:"fromPrimaryAccount" json:"fromPrimaryAccount"`
+	FromSeqno          string               `codec:"fromSeqno" json:"fromSeqno"`
+	To                 string               `codec:"to" json:"to"`
+	ToIsAccountID      bool                 `codec:"toIsAccountID" json:"toIsAccountID"`
+	Amount             string               `codec:"amount" json:"amount"`
+	Currency           *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Asset              *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	SecretNote         string               `codec:"secretNote" json:"secretNote"`
+	PublicMemo         string               `codec:"publicMemo" json:"publicMemo"`
 }
 
 type SendPaymentLocalArg struct {

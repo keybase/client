@@ -117,8 +117,8 @@ func decode(data []byte, res interface{}) error {
 
 // SimpleResultCollector aggregates all results in a basic way. It is not thread safe.
 type SimpleResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)
@@ -128,13 +128,14 @@ func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() {
 		s.cur++
 	}
+	s.curScan++
 }
 
 func (s *SimpleResultCollector) Done() bool {
 	if s.target < 0 {
 		return false
 	}
-	return s.cur >= s.target
+	return s.cur >= s.target || s.curScan >= maxFetchNum
 }
 
 func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
@@ -218,9 +219,9 @@ func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 
 // TypedResultCollector aggregates results with a type constraints. It is not thread safe.
 type TypedResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
-	typmap      map[chat1.MessageType]bool
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
+	typmap               map[chat1.MessageType]bool
 }
 
 var _ ResultCollector = (*TypedResultCollector)(nil)
@@ -241,13 +242,14 @@ func (t *TypedResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() && t.typmap[msg.GetMessageType()] {
 		t.cur++
 	}
+	t.curScan++
 }
 
 func (t *TypedResultCollector) Done() bool {
 	if t.target < 0 {
 		return false
 	}
-	return t.cur >= t.target
+	return t.cur >= t.target || t.curScan >= maxFetchNum
 }
 
 func (t *TypedResultCollector) Result() []chat1.MessageUnboxed {
@@ -450,7 +452,7 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as not valid: %v", msg.DebugString())
 			continue
 		}
 
@@ -554,7 +556,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
@@ -609,7 +611,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if msg.GetMessageType() != chat1.MessageType_DELETEHISTORY {
@@ -711,7 +713,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		if !msg.IsValid() {
-			de("skipping invalid msg: %v", msg.GetMessageID())
+			de("skipping invalid msg: %v", msg.DebugString())
 			continue
 		}
 		mvalid := msg.Valid()

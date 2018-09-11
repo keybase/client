@@ -140,7 +140,7 @@ const reallySignupOnNoErrors = (state: TypedState) => {
       yield RPCTypes.signupSignupRpcSaga({
         incomingCallMap: {
           // Do not add a gpg key for now
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
             response.result(false)
           },
           // We dont show the paperkey anymore

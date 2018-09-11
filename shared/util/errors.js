@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import {capitalize} from 'lodash-es'
+import {errors as transportErrors} from 'framed-msgpack-rpc'
 
 export class RPCError {
   // Fields to make RPCError 'look' like Error, since we don't want to
@@ -125,4 +126,16 @@ export const niceError = (e: RPCError) => {
 
   const caps = capitalize(e.desc || e.message || 'Unknown error')
   return caps.endsWith('.') ? caps : `${caps}.`
+}
+
+export function isEOFError(error: RPCError | Error) {
+  return (
+    error.code && error.code === transportErrors['EOF'] && error.message === transportErrors.msg[error.code]
+  )
+}
+
+export function isErrorTransient(error: RPCError | Error) {
+  // 'EOF from server' error from rpc library thrown when service
+  // restarts no need to show to user
+  return isEOFError(error)
 }

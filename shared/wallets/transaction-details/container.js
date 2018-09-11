@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
   navigateUp: () => dispatch(navigateUp()),

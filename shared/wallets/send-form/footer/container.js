@@ -1,20 +1,27 @@
 // @flow
 import Footer from '.'
 import * as Route from '../../../actions/route-tree'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
+import * as WalletsGen from '../../../actions/wallets-gen'
+import * as Constants from '../../../constants/wallets'
+import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
   disabled: !state.wallets.builtPayment.readyToSend,
   worthDescription: state.wallets.builtPayment.worthDescription,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = (dispatch: Dispatch, ownProps) => ({
+  onClickRequest:
+    ownProps.isRequest &&
+    (() => {
+      dispatch(WalletsGen.createRequestPayment())
+    }),
   onClickSend: () => {
     dispatch(
       Route.navigateAppend([
         {
           props: {},
-          selected: 'confirmForm',
+          selected: Constants.confirmFormRouteKey,
         },
       ])
     )

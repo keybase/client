@@ -368,6 +368,7 @@ func (l *TeamLoader) load2(ctx context.Context, arg load2ArgT) (ret *load2ResT, 
 	if len(arg.reason) > 0 {
 		traceLabel = traceLabel + " '" + arg.reason + "'"
 	}
+
 	defer l.G().CTraceTimed(ctx, traceLabel, func() error { return err })()
 	ret, err = l.load2Inner(ctx, arg)
 	return ret, err
@@ -591,6 +592,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	defer preloadCancel()
 
 	tracer.Stage("linkloop (%v)", len(links))
+	parentsCache := make(parentChainCache)
+
 	// Don't log in the middle links if there are a great many links.
 	suppressLoggingStart := 5
 	suppressLoggingUpto := len(links) - 5
@@ -625,7 +628,8 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 		}
 
 		var signer *SignerX
-		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff, readSubteamID, proofSet, lkc)
+		signer, err = l.verifyLink(ctx, arg.teamID, ret, arg.me, link, fullVerifyCutoff,
+			readSubteamID, proofSet, lkc, parentsCache)
 		if err != nil {
 			return nil, err
 		}
@@ -745,6 +749,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// Mutating this field is safe because only TeamLoader
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
+
+	tracer.Stage("audit")
+	err = l.audit(ctx, readSubteamID, &ret.Chain)
+	if err != nil {
+		return nil, err
+	}
 
 	// Cache the validated result
 	tracer.Stage("put")
@@ -1397,4 +1407,66 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	}
 
 	return nil
+}
+
+func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (ret keybase1.Seqno, err error) {
+	defer mctx.CTrace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
+
+	if state.HeadMerkle != nil {
+		return state.HeadMerkle.Seqno, nil
+	}
+	headSeqno := keybase1.Seqno(1)
+	expectedLinkRaw, ok := state.LinkIDs[headSeqno]
+	if !ok {
+		return ret, fmt.Errorf("couldn't find head link in team state during audit")
+	}
+	expectedLink, err := libkb.ImportLinkID(expectedLinkRaw)
+	if err != nil {
+		return ret, err
+	}
+	teamUpdate, err := l.world.getLinksFromServer(mctx.Ctx(), state.Id, []keybase1.Seqno{headSeqno}, &readSubteamID)
+	if err != nil {
+		return ret, err
+	}
+	newLinks, err := teamUpdate.unpackLinks(mctx.Ctx())
+	if err != nil {
+		return ret, err
+	}
+	if len(newLinks) != 1 {
+		return ret, fmt.Errorf("expected only one chainlink back; got %d", len(newLinks))
+	}
+	headLink := newLinks[0]
+	err = headLink.AssertInnerOuterMatch()
+	if err != nil {
+		return ret, err
+	}
+	if headLink.Seqno() != headSeqno {
+		return ret, NewInvalidLink(headLink, "wrong head seqno; wanted 1 but got something else")
+	}
+	if !headLink.LinkID().Eq(expectedLink) {
+		return ret, NewInvalidLink(headLink, "wrong head link hash: %s != %s", headLink.LinkID, expectedLink)
+	}
+	if headLink.isStubbed() {
+		return ret, NewInvalidLink(headLink, "got a stubbed head link, but wasn't expecting that")
+	}
+	headMerkle := headLink.inner.Body.MerkleRoot.ToMerkleRootV2()
+	state.HeadMerkle = &headMerkle
+	return headMerkle.Seqno, nil
+}
+
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
+	if l.G().Env.Test.TeamSkipAudit {
+		mctx.CDebugf("skipping audit in test due to flag")
+		return nil
+	}
+
+	headMerklSeqno, err := l.getHeadMerkleSeqno(mctx, readSubteamID, state)
+	if err != nil {
+		return err
+	}
+
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	return err
 }

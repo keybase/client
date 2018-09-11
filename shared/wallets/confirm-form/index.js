@@ -5,9 +5,8 @@ import * as Styles from '../../styles'
 import Banner from '../banner'
 import type {Background} from '../../common-adapters/text'
 import Header from './header'
-import Participants from '../participants'
+import Participants from './participants/container'
 import NoteAndMemo from './note-and-memo'
-import type {CounterpartyType} from '../../constants/types/wallets'
 
 type ConfirmSendProps = {|
   onClose: () => void,
@@ -22,13 +21,6 @@ type ConfirmSendProps = {|
   bannerBackground?: Background,
   bannerText?: string,
   waitingKey?: string,
-  // TODO: these props are probably one level too high, and should be in Participants' container.
-  yourUsername: string,
-  yourWalletName: string,
-  yourWalletContents: string,
-  receiverUsername: string,
-  receiverFullName: string,
-  recipientType: CounterpartyType,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
@@ -43,15 +35,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       <Kb.ScrollView style={styles.scrollView}>
         {!!props.bannerBackground &&
           !!props.bannerText && <Banner background={props.bannerBackground} text={props.bannerText} />}
-        <Participants
-          recipientType={props.recipientType}
-          isConfirm={true}
-          recipientUsername={props.receiverUsername}
-          recipientFullName={props.receiverFullName}
-          fromWalletUser={props.yourUsername}
-          fromWallet={props.yourWalletName}
-          fromWalletContents={props.yourWalletContents}
-        />
+        <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
         )}
@@ -75,12 +59,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
             <React.Fragment>
               <Kb.Icon
                 type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
+                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
                 color={Styles.globalColors.white}
               />
-              <Kb.Text type="BodySemibold" style={styles.buttonText}>
+              <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
-                <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
+                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
                   {props.amount} {props.assetType}
                 </Kb.Text>
               </Kb.Text>
@@ -95,7 +79,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.white},
   buttonIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.xtiny,
   },
   buttonContainer: Styles.platformStyles({
     common: {

@@ -93,18 +93,17 @@ const setupEngineListeners = () => {
       .catch(error => console.warn('Error in registering home UI:', error))
   })
 
-  engine().setIncomingActionCreators(
-    'keybase.1.homeUI.homeUIRefresh',
-    () =>
+  engine().setIncomingCallMap({
+    'keybase.1.homeUI.homeUIRefresh': () =>
       _wasOnPeopleTab
-        ? [
+        ? Saga.put(
             PeopleGen.createGetPeopleData({
               markViewed: false,
               numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-            }),
-          ]
-        : null
-  )
+            })
+          )
+        : null,
+  })
 }
 
 const _onNavigateTo = (action: RouteTreeGen.NavigateAppendPayload, state: TypedState) => {

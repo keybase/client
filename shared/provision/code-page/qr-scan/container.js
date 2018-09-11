@@ -12,7 +12,6 @@ import {
   connect,
   safeSubmit,
   type TypedState,
-  type Dispatch,
 } from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 

@@ -4,7 +4,6 @@ import {
   compose,
   connect,
   lifecycle,
-  type Dispatch,
   type TypedState,
   setDisplayName,
 } from '../../util/container'
@@ -34,7 +33,7 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
+const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
@@ -83,7 +82,7 @@ const Renderer = props => {
       // Security risks to links in PDF viewing. See DESKTOP-6888.
       return <DefaultView path={path} routePath={routePath} />
     default:
-      return <Text type="BodyError">This shouldn't happen</Text>
+      return <Text type="BodySmallError">This shouldn't happen</Text>
   }
 }
 

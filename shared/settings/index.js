@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnP
   selectedTab: ((routeSelected: any): Types.Tab),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
   onLogout: () => dispatch(ConfigGen.createLogout()),
   onTabChange: (tab: Types.Tab) => dispatch(switchTo(routePath.push(tab))),
 })

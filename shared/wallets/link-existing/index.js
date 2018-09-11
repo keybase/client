@@ -3,7 +3,6 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import type {ValidationState} from '../../constants/types/wallets'
-
 type View = 'key' | 'name'
 
 type Props = {
@@ -94,6 +93,7 @@ class LinkWallet extends React.Component<Props, State> {
         */
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
+    // TODO: Refactor to use WalletPopup
     return <Kb.MaybePopup onClose={this.props.onCancel}>{view}</Kb.MaybePopup>
   }
 }
@@ -124,7 +124,7 @@ const EnterKey = (props: EnterKeyProps) => (
       <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
       <Kb.Text type="Header">Link an existing account</Kb.Text>
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-        <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
           Paste your secret key
         </Kb.Text>
         <Kb.Input
@@ -192,7 +192,7 @@ const EnterName = (props: EnterNameProps) => (
         <Kb.Icon type="icon-wallet-add-48" style={{width: 48, height: 48}} />
         <Kb.Text type="Header">Name your account</Kb.Text>
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
-          <Kb.Text type="BodySmall" style={{color: Styles.globalColors.blue}}>
+          <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
             Account name
           </Kb.Text>
           <Kb.Input

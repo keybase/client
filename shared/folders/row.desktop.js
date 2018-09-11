@@ -69,7 +69,7 @@ class Modified extends React.PureComponent<any> {
         <Text type="BodySmall" backgroundMode={styles.modifiedMode}>
           Modified {modified.when} by&nbsp;
         </Text>
-        <Text type="BodySmallInlineLink" backgroundMode={styles.modifiedMode}>
+        <Text type="BodySmallSecondaryLink" backgroundMode={styles.modifiedMode}>
           {modified.username}
         </Text>
       </Box>
@@ -134,7 +134,7 @@ class Row extends React.PureComponent<RowType & Folder> {
               users={users}
               type={'BodySmallSemibold'}
               style={{
-                color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
+                color: isPublic ? globalColors.yellowGreen2 : globalColors.black_75,
                 opacity: ignored ? 0.6 : 1,
               }}
               redColor={redColor}

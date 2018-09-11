@@ -845,7 +845,23 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
 	}
@@ -1096,6 +1112,36 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	return nil
 }
 
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+	}
+	return nil
+}
+
+func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIRequestInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_REQUESTPAYMENT:
+		body := msg.MessageBody.Requestpayment()
+		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
+	}
+	return nil
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 
@@ -1151,9 +1197,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1163,6 +1211,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1172,6 +1226,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

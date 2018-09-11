@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {connect, type TypedState} from '../../util/container'
 import {navigateTo} from '../../actions/route-tree'
-import {type MenuItem} from '../../common-adapters/popup-menu'
+import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'
 
@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
     dispatch(
       navigateTo(

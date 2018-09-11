@@ -16,7 +16,6 @@ const ff: FeatureFlags = {
   admin: false,
   avatarUploadsEnabled: true,
   explodingMessagesEnabled: true,
-  fsWritesEnabled: true,
   plansEnabled: false,
   walletsEnabled: false,
 }

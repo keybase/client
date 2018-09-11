@@ -1,4 +1,5 @@
 // @flow
+import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
@@ -22,16 +23,16 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.folderListLoaded: {
       let toRemove = new Set()
       const toMerge = action.payload.pathItems.map((item, path) => {
-        const original = state.pathItems.get(path)
+        const original = state.pathItems.get(path, Constants.unknownPathItem)
 
-        if (original && original.type === 'file' && item.type === 'file') {
+        if (original.type === 'file' && item.type === 'file') {
           return Constants.shouldUseOldMimeType(original, item)
             ? item.set('mimeType', original.mimeType)
             : item
         }
 
         if (item.type !== 'folder') return item
-        if (!original || original.type !== 'folder') return item
+        if (original.type !== 'folder') return item
 
         // Make flow happy by referencing them with a new name that's
         // explicitly typed.
@@ -79,12 +80,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['pathUserSettings', path, 'sort'], sortSetting)
     case FsGen.downloadStarted: {
       const {key, path, localPath, intent, opID} = action.payload
-      const entryType =
-        action.payload.entryType ||
-        (() => {
-          const item = state.pathItems.get(path)
-          return item ? item.type : 'unknown'
-        })()
+      const entryType = action.payload.entryType || state.pathItems.get(path, Constants.unknownPathItem).type
       return state.setIn(
         ['downloads', key],
         Constants.makeDownload({
@@ -111,11 +107,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           original && original.set('completePortion', completePortion).set('endEstimate', endEstimate)
       )
     }
-    case FsGen.downloadFinished: {
-      const {key, error} = action.payload
+    case FsGen.downloadSuccess: {
       return state.updateIn(
-        ['downloads', key, 'state'],
-        original => original && original.set('isDone', true).set('error', error)
+        ['downloads', action.payload.key, 'state'],
+        original => original && original.set('isDone', true)
       )
     }
     case FsGen.dismissDownload: {
@@ -125,12 +120,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
       )
-    case FsGen.uploadWritingFinished: {
-      const {path, error} = action.payload
-      const withError = error ? state.setIn(['uploads', 'errors', path], error) : state
-      return withError.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
-        writingToJournal.remove(action.payload.path)
-      )
+    case FsGen.uploadWritingSuccess: {
+      const {path} = action.payload
+      return state
+        .removeIn(['uploads', 'errors', path])
+        .updateIn(['uploads', 'writingToJournal'], writingToJournal => writingToJournal.remove(path))
     }
     case FsGen.journalUpdate: {
       const {syncingPaths, totalSyncingBytes, endEstimate} = action.payload
@@ -204,11 +198,37 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
-    case FsGen.editFailed:
-      // $FlowFixMe
-      return state.setIn(['edits', action.payload.editID, 'status'], 'failed')
     case FsGen.fsError:
-      return state.setIn(['errors', Constants.makeUUID()], action.payload.error)
+      const {erroredAction, error} = action.payload.error
+      logger.error('error (fs)', erroredAction.type, error)
+      const nextState: Types.State = state.setIn(['errors', Constants.makeUUID()], action.payload.error)
+
+      switch (erroredAction.type) {
+        case FsGen.commitEdit:
+          // $FlowFixMe
+          return nextState.setIn(['edits', erroredAction.payload.editID, 'status'], 'failed')
+        case FsGen.upload:
+          // $FlowFixMe
+          return nextState.setIn(
+            [
+              'uploads',
+              'errors',
+              Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
+            ],
+            error
+          )
+        case FsGen.download:
+          if (erroredAction.payload.intent !== 'none') {
+            return nextState
+          }
+          // $FlowFixMe
+          return nextState.updateIn(
+            ['downloads', erroredAction.payload.key, 'state'],
+            original => original && original.set('isDone', true).set('error', error)
+          )
+        default:
+          return nextState
+      }
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.placeholderAction:
@@ -219,7 +239,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
-    case FsGen.fsActivity:
+    case FsGen.notifySyncActivity:
+    case FsGen.notifyTlfUpdate:
     case FsGen.openSecurityPreferences:
     case FsGen.refreshLocalHTTPServerInfo:
     case FsGen.shareNative:
@@ -228,6 +249,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openPathItem:
     case FsGen.commitEdit:
     case FsGen.letResetUserBackIn:
+    case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
       return state

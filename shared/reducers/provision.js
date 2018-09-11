@@ -58,11 +58,12 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
-      if (state.existingDevices.indexOf(action.payload.name) !== -1) {
+      const newNameLowerCase = action.payload.name.toLowerCase()
+      if (state.existingDevices.find(ed => ed.toLowerCase() === newNameLowerCase)) {
         return state.merge({
           deviceName: action.payload.name,
           error: new HiddenString(
-            `The device name: '${
+            `The device name '${
               action.payload.name
             }' is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.`
           ),
@@ -83,6 +84,10 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         finalError: null,
         usernameOrEmail: action.payload.usernameOrEmail,
       })
+    case ProvisionGen.switchToGPGSignOnly:
+      return state.set('gpgImportError', action.payload.importError)
+    case ProvisionGen.submitGPGSignOK:
+      return state.set('gpgImportError', null)
     // Saga only actions
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:

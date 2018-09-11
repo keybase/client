@@ -10,12 +10,6 @@ export type Props = {
   onSearch: () => void,
   onClickUser: (username: string) => void,
   myUsername: string,
-  todoDispatch: {
-    [key: Types.TodoType]: {
-      onConfirm: () => void,
-      onDismiss: () => void,
-    },
-  },
   waiting: boolean,
 }
 

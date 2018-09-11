@@ -151,9 +151,16 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 
 // Populate `time` with Date.now() if not provided.
 export const makeError = (
-  record?: $Rest<Types._FsError, {time: number}> & {time?: number}
-): I.RecordOf<Types._FsError> =>
-  record && record.time ? _makeError(record) : _makeError({...(record || {}), time: Date.now()})
+  record?: $Rest<Types._FsError, {time: number, error: string}> & {time?: number, error: any}
+): I.RecordOf<Types._FsError> => {
+  let {time, error, erroredAction, retriableAction} = record || {}
+  return _makeError({
+    time: time || Date.now(),
+    error: !error ? 'unknown error' : JSON.stringify(error),
+    erroredAction,
+    retriableAction,
+  })
+}
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
@@ -195,7 +202,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
 const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.darkBlue
+const privateTextColor = globalColors.black_75
 const publicIconColor = globalColors.yellowGreen
 const publicTextColor = globalColors.yellowGreen2
 const unknownTextColor = globalColors.grey
@@ -343,10 +350,15 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-export const makeDownloadKey = (path: Types.Path, localPath: string) =>
-  `download:${Types.pathToString(path)}:${localPath}`
-export const makeUploadKey = (localPath: string, path: Types.Path) =>
-  `upload:${Types.pathToString(path)}:${localPath}`
+const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
+export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
+  path,
+  key: makeDownloadKey(path),
+})
+export const getDownloadIntentFromAction = (
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+): Types.DownloadIntent =>
+  action.type === FsGen.download ? 'none' : action.type === FsGen.shareNative ? 'share' : 'camera-roll'
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -655,8 +667,31 @@ export const kbfsEnabled = (state: TypedState) =>
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 
+export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
+  Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
+    case FsGen.favoritesLoad:
+      return 'Failed to load TLF lists.'
+    case FsGen.filePreviewLoad:
+      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.folderListLoad:
+      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.download:
+      return `Failed to download for ${getDownloadIntentFromAction(action)}: ${Types.getPathName(
+        action.payload.path
+      )}.`
+    case FsGen.upload:
+      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
+    case FsGen.notifySyncActivity:
+      return `Failed to gather information about KBFS uploading activities.`
+    case FsGen.refreshLocalHTTPServerInfo:
+      return 'Failed to get information about internal HTTP server.'
+    case FsGen.mimeTypeLoad:
+      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.favoriteIgnore:
+      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
     default:
       return 'An unexplainable error has occurred.'
   }

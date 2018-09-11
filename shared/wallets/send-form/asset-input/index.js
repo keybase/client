@@ -34,6 +34,7 @@ const AssetInput = (props: Props) => (
           </Text>
         </Box2>
       }
+      containerStyle={styles.inputContainer}
       style={styles.input}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
@@ -48,6 +49,7 @@ const AssetInput = (props: Props) => (
           <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
             {props.warningAsset}
           </Text>
+          .
         </Text>
       )}
     {!!props.warningPayee && (
@@ -60,7 +62,7 @@ const AssetInput = (props: Props) => (
       </Text>
     )}
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.labelMargin}>
+      <Text type="BodySmall" style={styles.labelMargin} selectable={true}>
         {props.bottomLabel}
       </Text>
       <Icon
@@ -81,6 +83,9 @@ const styles = styleSheetCreate({
     color: globalColors.purple2,
     position: 'relative',
     top: -8,
+  },
+  inputContainer: {
+    borderWidth: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',
