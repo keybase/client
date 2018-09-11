@@ -187,5 +187,6 @@ dependencies {
     compile project(':react-native-image-picker')
     compile project(':react-native-fetch-blob')
     compile project(':react-native-contacts')
+    compile project(':lottie-react-native')
     compile 'com.evernote:android-job:1.2.6'
 }
