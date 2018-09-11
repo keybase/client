@@ -398,12 +398,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 		return
 	}
 
-	packet, err := naclSig.ToPacket()
-	if err != nil {
-		return
-	}
-
-	body, err := packet.Encode()
+	body, err := EncodePacketToBytes(naclSig)
 	if err != nil {
 		return
 	}
@@ -442,14 +437,8 @@ func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []
 		return nil, nil, nil, err
 	}
 
-	packet, err := DecodePacket(fullBody)
+	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
 	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	naclSig, ok := packet.Body.(*NaclSigInfo)
-	if !ok {
-		err = UnmarshalError{"NACL signature"}
 		return nil, nil, nil, err
 	}
 
@@ -492,16 +481,8 @@ func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (
 	return
 }
 
-func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(s, TagSignature, KeybasePacketV1)
-}
-
-func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
-	ret, ok := p.Body.(*NaclSigInfo)
-	if !ok {
-		return nil, UnmarshalError{"Signature"}
-	}
-	return ret, nil
+func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagSignature, KeybasePacketV1
 }
 
 func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
@@ -549,7 +530,7 @@ func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
 }
 
 func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
-	return PacketArmoredEncode(s)
+	return EncodePacketToArmoredString(s)
 }
 
 func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
@@ -657,19 +638,13 @@ func KbOpenSig(armored string) ([]byte, error) {
 
 func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
 	var byt []byte
-	var packet *KeybasePacket
-	var sig *NaclSigInfo
-	var ok bool
+	var sig NaclSigInfo
 
 	if byt, err = KbOpenSig(armored); err != nil {
 		return nil, kid, sigID, err
 	}
 
-	if packet, err = DecodePacket(byt); err != nil {
-		return nil, kid, sigID, err
-	}
-	if sig, ok = packet.Body.(*NaclSigInfo); !ok {
-		err = UnmarshalError{"NaCl Signature"}
+	if sig, err = DecodeNaclSigInfoPacket(byt); err != nil {
 		return nil, kid, sigID, err
 	}
 	sigID = ComputeSigIDFromSigBody(byt)
@@ -775,7 +750,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 		return "", err
 	}
 
-	return PacketArmoredEncode(info)
+	return EncodePacketToArmoredString(info)
 }
 
 func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
@@ -857,27 +832,20 @@ func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err
 	return outKey, nil
 }
 
-// ToPacket implements the Packetable interface.
-func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(k, TagEncryption, KeybasePacketV1)
+func (k *NaclEncryptionInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagEncryption, KeybasePacketV1
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,
 // and returns the KID of the other end.
 func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
-	var kbp *KeybasePacket
-	var nei *NaclEncryptionInfo
-	var ok bool
+	var nei NaclEncryptionInfo
 
-	if kbp, err = DecodeArmoredPacket(ciphertext); err != nil {
+	if nei, err = DecodeArmoredNaclEncryptionInfoPacket(ciphertext); err != nil {
 		return
 	}
 
-	if nei, ok = kbp.Body.(*NaclEncryptionInfo); !ok {
-		err = UnmarshalError{"NaCl Encryption"}
-		return
-	}
-	return k.Decrypt(nei)
+	return k.Decrypt(&nei)
 }
 
 // Decrypt a NaclEncryptionInfo packet, and on success return the plaintext
