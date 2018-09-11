@@ -18,9 +18,10 @@ static Engine * sharedEngine = nil;
 
 @interface Engine ()
 
+@property NSDate *appStart;
 @property dispatch_queue_t readQueue;
 @property dispatch_queue_t writeQueue;
-@property (strong) KeybaseEngine * keybaseEngine;
+@property (strong) KeybaseEngine *keybaseEngine;
 
 - (void)start:(KeybaseEngine*)emitter;
 - (void)startReadLoop;
@@ -39,6 +40,7 @@ static NSString *const eventName = @"objc-engine-event";
   if ((self = [super init])) {
     sharedEngine = self;
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onRNReload) name:RCTJavaScriptWillStartLoadingNotification object:nil];
+    self.appStart = settings[@"appStart"];
     [self setupQueues];
     [self setupKeybaseWithSettings:settings error:error];
   }
@@ -152,11 +154,13 @@ RCT_EXPORT_METHOD(start) {
   NSString * appVersionString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
   NSString * appBuildString = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"];
 
+  double appStartMilli = [sharedEngine.appStart timeIntervalSince1970] * 1000;
 
   return @{ @"eventName": eventName,
             @"test": testVal,
             @"appVersionName": appVersionString,
             @"appVersionCode": appBuildString,
+            @"appStartMilli": [NSNumber numberWithDouble:appStartMilli],
             @"usingSimulator": simulatorVal,
             @"version": KeybaseVersion()};
 }

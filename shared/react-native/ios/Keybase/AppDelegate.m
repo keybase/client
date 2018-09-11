@@ -141,8 +141,7 @@ const BOOL isDebug = NO;
   return sharedHome;
 }
 
-- (void) setupGo
-{
+- (void) setupGo:(NSDate *)appStart {
 #if TESTING
   return
 #endif
@@ -171,6 +170,7 @@ const BOOL isDebug = NO;
                                                    @"sharedHome": sharedHome,
                                                    @"logFile": serviceLogFile,
                                                    @"serverURI": @"",
+                                                   @"appStart": appStart,
                                                    @"SecurityAccessGroupOverride": @(securityAccessGroupOverride)
                                                    } error:&err];
 }
@@ -187,12 +187,14 @@ const BOOL isDebug = NO;
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
+  NSDate *appStart = [NSDate date];
+  NSLog(@"App started on %@", appStart);
   self.fileLogger = [[DDFileLogger alloc] init];
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
   self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
   [DDLog addLogger:self.fileLogger];
 
-  [self setupGo];
+  [self setupGo:appStart];
   [self notifyAppState:application];
 
   NSURL *jsCodeLocation;
