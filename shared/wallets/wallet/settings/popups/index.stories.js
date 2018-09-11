@@ -14,21 +14,28 @@ const warningProps = {
 
 const reallyProps = {
   name: 'awesome account',
+  loading: false,
   onCancel: Sb.action('onCancel'),
   onFinish: Sb.action('onFinish'),
   onCopyKey: Sb.action('onCopyKey'),
+  waitingKey: 'waitingKey',
+  onLoadSecretKey: Sb.action('onLoadSecretKey'),
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings/Popups', module)
     .add('Remove account', () => <RemoveAccountPopup {...warningProps} />)
     .add('Really remove account', () => <ReallyRemoveAccountPopup {...reallyProps} />)
+    .add('Really remove account (Loading)', () => (
+      <ReallyRemoveAccountPopup {...reallyProps} loading={true} />
+    ))
     .add('Set as default popup', () => (
       <SetDefaultAccountPopup
         accountName="Second account"
         onAccept={Sb.action('onAccept')}
         onClose={Sb.action('onClose')}
         username="cecileb"
+        waitingKey="waitingKey"
       />
     ))
 }

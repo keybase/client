@@ -1,14 +1,13 @@
 // @flow
 /* eslint-env jest */
 import {TransportShared} from '../transport-shared'
+import {type SendArg} from '../index.platform'
 
 describe('TransportShared', () => {
-  type MessageType = [number, number, string, Object]
-
   // Extend TransportShared to fake out some methods.
   class FakeTransportShared extends TransportShared {
     connected: boolean
-    lastMessage: ?MessageType
+    lastMessage: ?SendArg
 
     constructor() {
       super({}, () => {}, () => {}, () => {})
@@ -18,14 +17,15 @@ describe('TransportShared', () => {
 
     // Override Transport.is_connected -- see transport.iced in
     // framed-msgpack-rpc.
-    is_connected = () => {
+    is_connected() {
       return this.connected
     }
 
     // Override Packetizer.send -- see packetizer.iced in
     // framed-msgpack-rpc.
-    send = (msg: MessageType) => {
+    send(msg: SendArg) {
       this.lastMessage = msg
+      return true
     }
   }
 
@@ -60,7 +60,7 @@ describe('TransportShared', () => {
     //
     // Since connected is true, this should call send.
     //
-    // $FlowIssue Flow doesn't see inherited methods.
+    // $FlowIssue Deliberately overriding private method.
     t._flush_queue()
     expect(t.lastMessage).toEqual(expectedMessage)
   })

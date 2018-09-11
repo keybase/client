@@ -269,11 +269,14 @@ func (g *GlobalContext) Logout() error {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 
+	ctx := context.Background()
+	mctx := NewMetaContext(ctx, g)
+
 	username := g.Env.GetUsername()
 
 	g.ActiveDevice.Clear()
 
-	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
+	g.LocalSigchainGuard().Clear(ctx, "Logout")
 
 	g.CallLogoutHooks()
 
@@ -295,7 +298,7 @@ func (g *GlobalContext) Logout() error {
 
 	auditor := g.teamAuditor
 	if auditor != nil {
-		auditor.OnLogout()
+		auditor.OnLogout(mctx)
 	}
 
 	st := g.stellar
@@ -306,7 +309,7 @@ func (g *GlobalContext) Logout() error {
 	// remove stored secret
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil {
-		if err := g.secretStore.ClearSecret(NewMetaContextBackground(g), username); err != nil {
+		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 			g.Log.Debug("clear stored secret error: %s", err)
 		}
 	}

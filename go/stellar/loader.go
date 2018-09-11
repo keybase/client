@@ -17,57 +17,75 @@ type chatMsg struct {
 	sender libkb.NormalizedUsername
 }
 
-type PaymentLoader struct {
+type Loader struct {
 	libkb.Contextified
-	payments map[stellar1.PaymentID]*stellar1.PaymentLocal
-	messages map[stellar1.PaymentID]chatMsg
-	queue    chan stellar1.PaymentID
-	sync.Mutex
+
+	payments  map[stellar1.PaymentID]*stellar1.PaymentLocal
+	pmessages map[stellar1.PaymentID]chatMsg
+	pqueue    chan stellar1.PaymentID
+
+	requests  map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal
+	rmessages map[stellar1.KeybaseRequestID]chatMsg
+	rqueue    chan stellar1.KeybaseRequestID
+
 	shutdownOnce sync.Once
 	done         bool
+
+	sync.Mutex
 }
 
-var defaultPaymentLoader *PaymentLoader
+var defaultLoader *Loader
 var defaultLock sync.Mutex
 
-func NewPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
-	p := &PaymentLoader{
+func NewLoader(g *libkb.GlobalContext) *Loader {
+	p := &Loader{
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
-		messages:     make(map[stellar1.PaymentID]chatMsg),
-		queue:        make(chan stellar1.PaymentID, 50),
+		pmessages:    make(map[stellar1.PaymentID]chatMsg),
+		pqueue:       make(chan stellar1.PaymentID, 50),
+		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
+		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
+		rqueue:       make(chan stellar1.KeybaseRequestID, 50),
 	}
 
-	go p.run()
+	go p.runPayments()
+	go p.runRequests()
 
 	return p
 }
 
-func DefaultPaymentLoader(g *libkb.GlobalContext) *PaymentLoader {
+func DefaultLoader(g *libkb.GlobalContext) *Loader {
 	defaultLock.Lock()
 	defer defaultLock.Unlock()
 
-	if defaultPaymentLoader == nil {
-		defaultPaymentLoader = NewPaymentLoader(g)
-		g.PushShutdownHook(defaultPaymentLoader.Shutdown)
+	if defaultLoader == nil {
+		defaultLoader = NewLoader(g)
+		g.PushShutdownHook(func() error {
+			defaultLock.Lock()
+			err := defaultLoader.Shutdown()
+			defaultLoader = nil
+			defaultLock.Unlock()
+			return err
+		})
 	}
 
-	return defaultPaymentLoader
+	return defaultLoader
 }
 
-func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
-	defer libkb.CTrace(ctx, p.G().GetLog(), fmt.Sprintf("PaymentLoader.Load(cid=%s,mid=%s,pid=%s)", convID, msgID, paymentID), func() error { return nil })()
+func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+	defer libkb.CTrace(ctx, p.G().GetLog(), fmt.Sprintf("Loader.LoadPayment(cid=%s,mid=%s,pid=%s)", convID, msgID, paymentID), func() error { return nil })()
 
 	p.Lock()
 	defer p.Unlock()
 
+	m := libkb.NewMetaContext(ctx, p.G())
+
 	if p.done {
+		m.CDebugf("loader shutdown, not loading payment %s", paymentID)
 		return nil
 	}
 
-	m := libkb.NewMetaContext(ctx, p.G())
-
-	msg, ok := p.messages[paymentID]
+	msg, ok := p.pmessages[paymentID]
 	// store the msg info if necessary
 	if !ok {
 		msg = chatMsg{
@@ -75,55 +93,114 @@ func (p *PaymentLoader) Load(ctx context.Context, convID chat1.ConversationID, m
 			msgID:  msgID,
 			sender: libkb.NewNormalizedUsername(senderUsername),
 		}
-		p.messages[paymentID] = msg
+		p.pmessages[paymentID] = msg
 	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
-		m.CWarningf("existing message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
+		m.CWarningf("existing payment message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
 	}
 
 	payment, ok := p.payments[paymentID]
 	if ok {
-		info := p.uiInfo(m, payment, msg)
+		info := p.uiPaymentInfo(m, payment, msg)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
-			p.queue <- paymentID
+			p.pqueue <- paymentID
 		}
 
 		return info
 	}
 
 	// not found, need to load payment in background
-	p.queue <- paymentID
+	p.pqueue <- paymentID
 
 	return nil
 }
 
-// status notification handlers should call this
-func (p *PaymentLoader) Update(ctx context.Context, paymentID stellar1.PaymentID) {
+func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+	defer libkb.CTrace(ctx, p.G().GetLog(), fmt.Sprintf("Loader.LoadRequest(cid=%s,mid=%s,rid=%s)", convID, msgID, requestID), func() error { return nil })()
+
+	p.Lock()
+	defer p.Unlock()
+
+	m := libkb.NewMetaContext(ctx, p.G())
+
+	if p.done {
+		m.CDebugf("loader shutdown, not loading request %s", requestID)
+		return nil
+	}
+
+	m.CDebugf("*************** loading %s", requestID)
+
+	msg, ok := p.rmessages[requestID]
+	// store the msg info if necessary
+	if !ok {
+		msg = chatMsg{
+			convID: convID,
+			msgID:  msgID,
+			sender: libkb.NewNormalizedUsername(senderUsername),
+		}
+		p.rmessages[requestID] = msg
+	} else if !msg.convID.Eq(convID) || msg.msgID != msgID {
+		m.CWarningf("existing request message info does not match load info: (%v, %v) != (%v, %v)", msg.convID, msg.msgID, convID, msgID)
+	}
+
+	request, ok := p.requests[requestID]
+	var info *chat1.UIRequestInfo
+	if ok {
+		info = p.uiRequestInfo(m, request, msg)
+	}
+
+	// always load request in background (even if found) to make sure stored value is up-to-date.
+	p.rqueue <- requestID
+
+	return info
+}
+
+// UpdatePayment schedules a load of paymentID. Gregor status notification handlers
+// should call this to update the payment data.
+func (p *Loader) UpdatePayment(ctx context.Context, paymentID stellar1.PaymentID) {
 	if p.done {
 		return
 	}
 
-	p.queue <- paymentID
+	p.pqueue <- paymentID
 }
 
-func (p *PaymentLoader) Shutdown() error {
+// UpdateRequest schedules a load for requestID. Gregor status notification handlers
+// should call this to update the request data.
+func (p *Loader) UpdateRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) {
+	if p.done {
+		return
+	}
+
+	p.rqueue <- requestID
+}
+
+func (p *Loader) Shutdown() error {
 	p.shutdownOnce.Do(func() {
 		p.Lock()
+		p.G().GetLog().Debug("shutting down stellar loader")
 		p.done = true
-		close(p.queue)
+		close(p.pqueue)
+		close(p.rqueue)
 		p.Unlock()
 	})
 	return nil
 }
 
-func (p *PaymentLoader) run() {
-	for id := range p.queue {
-		p.load(id)
+func (p *Loader) runPayments() {
+	for id := range p.pqueue {
+		p.loadPayment(id)
 	}
 }
 
-func (p *PaymentLoader) load(id stellar1.PaymentID) {
+func (p *Loader) runRequests() {
+	for id := range p.rqueue {
+		p.loadRequest(id)
+	}
+}
+
+func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	ctx := context.Background()
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, id.TxID.String())
@@ -143,10 +220,32 @@ func (p *PaymentLoader) load(id stellar1.PaymentID) {
 	p.payments[id] = summary
 	p.Unlock()
 
-	p.sendNotification(m, id, summary)
+	p.sendPaymentNotification(m, id, summary)
 }
 
-func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
+func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
+	ctx := context.Background()
+	m := libkb.NewMetaContext(ctx, p.G())
+	s := getGlobal(p.G())
+	details, err := s.remoter.RequestDetails(ctx, id)
+	if err != nil {
+		m.CDebugf("error getting request details for %s: %s", id, err)
+		return
+	}
+	local, err := TransformRequestDetails(m, details)
+	if err != nil {
+		m.CDebugf("error transforming request details for %s: %s", id, err)
+		return
+	}
+
+	p.Lock()
+	p.requests[id] = local
+	p.Unlock()
+
+	p.sendRequestNotification(m, id, local)
+}
+
+func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
 	info := chat1.UIPaymentInfo{
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
@@ -173,18 +272,45 @@ func (p *PaymentLoader) uiInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 	return &info
 }
 
-func (p *PaymentLoader) sendNotification(m libkb.MetaContext, id stellar1.PaymentID, summary *stellar1.PaymentLocal) {
+func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.PaymentID, summary *stellar1.PaymentLocal) {
 	p.Lock()
-	msg, ok := p.messages[id]
+	msg, ok := p.pmessages[id]
 	p.Unlock()
 
 	if !ok {
-		m.CDebugf("not sending chat notification for %s (no associated convID, msgID)", id.TxID)
+		m.CDebugf("not sending payment chat notification for %s (no associated convID, msgID)", id.TxID)
 		return
 	}
 
 	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
-	info := p.uiInfo(m, summary, msg)
+	info := p.uiPaymentInfo(m, summary, msg)
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
+}
+
+func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDetailsLocal, msg chatMsg) *chat1.UIRequestInfo {
+	info := chat1.UIRequestInfo{
+		Amount:            details.Amount,
+		AmountDescription: details.AmountDescription,
+		Asset:             details.Asset,
+		Currency:          details.Currency,
+	}
+
+	return &info
+}
+
+func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.KeybaseRequestID, details *stellar1.RequestDetailsLocal) {
+	p.Lock()
+	msg, ok := p.rmessages[id]
+	p.Unlock()
+
+	if !ok {
+		m.CDebugf("not sending request chat notification for %s (no associated convID, msgID)", id)
+		return
+	}
+
+	m.CDebugf("sending chat notification for request %s to %s, %s", id, msg.convID, msg.msgID)
+	uid := p.G().ActiveDevice.UID()
+	info := p.uiRequestInfo(m, details, msg)
+	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
 }

@@ -437,19 +437,6 @@ If you get this error message on trying to open the inspector:
 
 It might be because you're importing a library that attaches itself as a renderer, such as `react-dom`. If that's the case, you should make sure not to import any such module outside of a `.desktop.js` file, and if you have to, it should be predicated on `!isMobile` and use `require` to access the library.
 
-### Dependency forks
-
-We have some custom forks of dependencies. This is usually a temporary fix and is something we want to avoid long term.
-
-- react-navigation:
-  - Keep queued transitions, fixes races with dragging and touches
-  - Increase interactivity threshold so you can click while things are still animating
-- electron-download
-  - Add a force-use-cache option so we don't download all the time
-- react-native-push-notification
-  - 1 liner to add RN 0.47 support
-
-
 ### Updating `react-native`
 
 Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
@@ -457,3 +444,8 @@ Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains
  `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
 
  generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.
+
+
+### Updating `electron`
+
+We host the electron binaries used for our build process in keybase.pub. If you update versions copy files from https://github.com/electron/electron/releases/ to https://keybase.pub/kbelectron/electron-download/v{version}. Make sure to get the SHASUM256.txt file also. This only affects the build machines

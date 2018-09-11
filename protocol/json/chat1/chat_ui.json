@@ -477,6 +477,34 @@
     },
     {
       "type": "record",
+      "name": "UIRequestInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.OutsideCurrencyCode"
+          ],
+          "name": "currency"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "UIMessageValid",
       "fields": [
         {
@@ -579,6 +607,13 @@
             "UIPaymentInfo"
           ],
           "name": "paymentInfo"
+        },
+        {
+          "type": [
+            null,
+            "UIRequestInfo"
+          ],
+          "name": "requestInfo"
         }
       ]
     },

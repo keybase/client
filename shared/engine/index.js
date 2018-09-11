@@ -3,6 +3,7 @@
 import logger from '../logger'
 import * as Constants from '../constants/engine'
 import Session from './session'
+import * as ConfigGen from '../actions/config-gen'
 import {initEngine, initEngineSaga} from './require'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {convertToError} from '../util/errors'
@@ -14,10 +15,11 @@ import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
 import {isArray} from 'lodash-es'
-
+import {sagaMiddleware} from '../store/configure-store'
+import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {IncomingCallMapType, LogUiLogRpcParam} from '../constants/types/rpc-gen'
+import type {IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
 
@@ -27,9 +29,8 @@ type TypedActions = {type: string, error: boolean, payload: any}
 type IncomingActionCreator = (
   param: Object,
   response: ?Object,
-  dispatch: Dispatch,
-  getState: () => TypedState
-) => void | null | TypedActions | Array<TypedActions>
+  state: TypedState
+) => Effect | null | void | false | Array<Effect | null | void | false>
 
 class Engine {
   // Bookkeep old sessions
@@ -59,6 +60,15 @@ class Engine {
 
   dispatchWaitingAction = (key: string, waiting: boolean) => {
     Engine._dispatch(createChangeWaiting({key, increment: waiting}))
+  }
+
+  // TODO deprecate
+  deprecatedGetDispatch = () => {
+    return Engine._dispatch
+  }
+  // TODO deprecate
+  deprecatedGetGetState = () => {
+    return Engine._getState
   }
 
   constructor(dispatch: Dispatch, getState: () => TypedState) {
@@ -101,10 +111,12 @@ class Engine {
 
   // Default handlers for incoming messages
   _setupCoreHandlers() {
-    this.setIncomingActionCreators('keybase.1.logUi.log', (param, response) => {
-      const logParam: LogUiLogRpcParam = param
-      log(logParam)
-      response && response.result && response.result()
+    this.setIncomingCallMap({
+      'keybase.1.logUi.log': ({param, response}) => {
+        const logParam = param
+        log(logParam)
+        response && response.result && response.result()
+      },
     })
   }
 
@@ -226,11 +238,21 @@ class Engine {
         // General incoming
         const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
-        // TODO remove dispatch and getState, these callbacks should just dispatch actions
-        const rawActions = creator(param, response, Engine._dispatch, Engine._getState)
-        const arrayActions = isArray(rawActions) ? rawActions : [rawActions]
-        const actions = arrayActions.filter(Boolean)
-        actions.forEach(a => Engine._dispatch(a))
+        const rawEffects = creator(param, response, Engine._getState())
+        const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
+        effects.forEach(effect => {
+          let thrown
+          sagaMiddleware.run(function*(): Generator<any, any, any> {
+            try {
+              yield effect
+            } catch (e) {
+              thrown = e
+            }
+          })
+          if (thrown) {
+            Engine._dispatch(ConfigGen.createGlobalError({globalError: thrown}))
+          }
+        })
       } else {
         // Unhandled
         this._handleUnhandled(sessionID, method, seqid, param, response)
@@ -278,7 +300,7 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: IncomingCallMapType,
+    incomingCallMap?: IncomingCallMapType<TypedState>,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
     waitingKey?: string,
@@ -290,6 +312,7 @@ class Engine {
       cancelHandler,
       dangling,
       endHandler: (session: Session) => this._sessionEnded(session),
+      // $FlowIssue
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback = method => (...args) => {
@@ -299,7 +322,7 @@ class Engine {
           }
           cb(...args)
         }
-        this._rpcClient.invoke(method, param, callback(method))
+        this._rpcClient.invoke(method, param || [{}], callback(method))
       },
       sessionID,
       waitingKey,
@@ -356,8 +379,14 @@ class Engine {
     resetClient(this._rpcClient)
   }
 
-  // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
+  // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
+  setIncomingCallMap(incomingCallMap: any): void {
+    Object.keys(incomingCallMap).forEach(method => {
+      this._setIncomingActionCreators(method, incomingCallMap[method])
+    })
+  }
+
+  _setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
     if (this._incomingActionCreators[method]) {
       rpcLog({
         method,
@@ -450,10 +479,10 @@ class FakeEngine {
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,
-    actionCreator: (param: Object, response: ?Object, dispatch: Dispatch) => ?any
+    actionCreator: ({param: Object, response: ?Object, state: any}) => ?any
   ) {}
   createSession(
-    incomingCallMap: ?IncomingCallMapType,
+    incomingCallMap: ?IncomingCallMapType<TypedState>,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false

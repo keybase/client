@@ -29,6 +29,57 @@ func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p s
 	}
 }
 
+func TransformRequestDetails(m libkb.MetaContext, details stellar1.RequestDetails) (*stellar1.RequestDetailsLocal, error) {
+	fromAssertion, err := lookupUsername(m, details.FromUser.Uid)
+	if err != nil {
+		return nil, err
+	}
+
+	loc := stellar1.RequestDetailsLocal{
+		Id:              details.Id,
+		FromAssertion:   fromAssertion,
+		FromCurrentUser: m.G().GetMyUID().Equal(details.FromUser.Uid),
+		ToAssertion:     details.ToAssertion,
+		Amount:          details.Amount,
+		Asset:           details.Asset,
+		Currency:        details.Currency,
+		Status:          details.Status,
+	}
+
+	if details.ToUser != nil {
+		loc.ToUserType = stellar1.ParticipantType_KEYBASE
+	} else {
+		loc.ToUserType = stellar1.ParticipantType_SBS
+	}
+
+	if details.Currency != nil {
+		amountDesc, err := FormatCurrency(m.Ctx(), m.G(), details.Amount, *details.Currency)
+		if err != nil {
+			amountDesc = details.Amount
+			m.CDebugf("error formatting external currency: %s", err)
+		}
+		loc.AmountDescription = fmt.Sprintf("%s %s", amountDesc, *details.Currency)
+	} else if details.Asset != nil {
+		var code string
+		if details.Asset.IsNativeXLM() {
+			code = "XLM"
+		} else {
+			code = details.Asset.Code
+		}
+
+		amountDesc, err := FormatAmountWithSuffix(details.Amount, false /* precisionTwo */, true /* simplify */, code)
+		if err != nil {
+			amountDesc = fmt.Sprintf("%s %s", details.Amount, code)
+			m.CDebugf("error formatting amount for asset: %s", err)
+		}
+		loc.AmountDescription = amountDesc
+	} else {
+		return nil, errors.New("malformed request - currency/asset not defined")
+	}
+
+	return &loc, nil
+}
+
 func transformPaymentStellar(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, p.To, acctID)
 	if err != nil {
