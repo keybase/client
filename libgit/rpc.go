@@ -276,7 +276,7 @@ func (rh *RPCHandler) Gc(
 		MaxLooseRefs:         arg.Options.MaxLooseRefs,
 		PruneMinLooseObjects: arg.Options.PruneMinLooseObjects,
 		PruneExpireTime:      keybase1.FromTime(arg.Options.PruneExpireTime),
-		MaxObjectPacks:       -1, // Turn off re-packing for now
+		MaxObjectPacks:       arg.Options.MaxObjectPacks,
 	}
 	err = GCRepo(ctx, gitConfig, tlfHandle, string(arg.Name), gco)
 	if err != nil {

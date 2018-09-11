@@ -87,6 +87,7 @@ const (
 
 	defaultMaxLooseRefs         = 50
 	defaultPruneMinLooseObjects = -1
+	defaultMaxObjectPacks       = 50
 	minGCInterval               = 7 * 24 * time.Hour
 
 	unlockPrintBytesStatusThreshold = time.Second / 2
@@ -1106,7 +1107,7 @@ func (r *runner) checkGC(ctx context.Context) (err error) {
 		MaxLooseRefs:         defaultMaxLooseRefs,
 		PruneMinLooseObjects: defaultPruneMinLooseObjects,
 		PruneExpireTime:      time.Time{},
-		MaxObjectPacks:       -1, // Turn off re-packing for now.
+		MaxObjectPacks:       defaultMaxObjectPacks,
 	}
 	doPackRefs, _, doPruneLoose, doObjectRepack, _, err := libgit.NeedsGC(
 		storage, gco)
