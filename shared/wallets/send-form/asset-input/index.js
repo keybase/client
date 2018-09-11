@@ -87,6 +87,7 @@ const styles = Styles.styleSheetCreate({
   inputContainer: {
     borderWidth: 0,
     paddingLeft: 0,
+    paddingTop: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',
@@ -95,6 +96,8 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-start',
     paddingRight: Styles.globalMargins.small,
     paddingLeft: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
   },
   labelMargin: {marginLeft: 1},
   text: {
