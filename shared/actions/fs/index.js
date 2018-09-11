@@ -539,9 +539,9 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
       }
       // It's still possible we have a critical error, but if it's just the
       // server port number that's changed, it's hard to detect. So just treat
-      // all other errors as this case. If this is actaully a critical error,
-      // we end up doing this 3 times for nothing, which isn't as bad as trump
-      // elected as POTUS.
+      // all other errors as this case. If this is actually a critical error,
+      // we end up doing this 3 times for nothing, which isn't the end of the
+      // world.
       logger.info(`_loadMimeType i=${i} error:`, err)
       localHTTPServerInfo.address = ''
     }
