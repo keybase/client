@@ -515,8 +515,8 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   let localHTTPServerInfo: Types._LocalHTTPServer =
     state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
   // This should finish within 2 iterations most. But just in case we bound it
-  // at 4.
-  for (let i = 0; i < 4; ++i) {
+  // at 3.
+  for (let i = 0; i < 3; ++i) {
     if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
       localHTTPServerInfo = yield Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
       yield Saga.put(FsGen.createLocalHTTPServerInfo(localHTTPServerInfo))
@@ -540,9 +540,9 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
       // It's still possible we have a critical error, but if it's just the
       // server port number that's changed, it's hard to detect. So just treat
       // all other errors as this case. If this is actaully a critical error,
-      // we end up doing this 4 times for nothing, which isn't as bad as trump
+      // we end up doing this 3 times for nothing, which isn't as bad as trump
       // elected as POTUS.
-      logger.info(`_loadMimeType attempt=${i} error:`, err)
+      logger.info(`_loadMimeType i=${i} error:`, err)
       localHTTPServerInfo.address = ''
     }
   }
