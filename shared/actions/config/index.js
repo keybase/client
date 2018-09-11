@@ -17,6 +17,7 @@ import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
+import {appStart} from '../../constants/platform'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -124,10 +125,17 @@ const dispatchSetupEngineListeners = () => {
   return Saga.put(ConfigGen.createSetupEngineListeners())
 }
 
-let _firstTimeConnecting = true
+let _firstBootstrapStartDate: ?Date = null
+let _firstBootstrapEndDate: ?Date = null
 const startHandshake = (state: TypedState) => {
-  const firstTimeConnecting = _firstTimeConnecting
-  _firstTimeConnecting = false
+  let firstTimeConnecting = false
+  if (!_firstBootstrapStartDate) {
+    firstTimeConnecting = true
+    const now = new Date()
+    _firstBootstrapStartDate = now
+    const elapsed = (now - appStart) / 1000.0
+    logger.info(`First bootstrap started on ${now.toString()} (${elapsed}s after app start)`)
+  }
   return Saga.put(
     ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
   )
@@ -146,6 +154,17 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
         return Saga.put(ConfigGen.createRestartHandshake())
       }
     } else {
+      if (!_firstBootstrapEndDate) {
+        const now = new Date()
+        _firstBootstrapEndDate = now
+        const appStartElapsed = (now - appStart) / 1000.0
+        const bootstrapElapsed = _firstBootstrapStartDate
+          ? `${(now - _firstBootstrapStartDate) / 1000.0}s`
+          : `?`
+        logger.info(
+          `First bootstrap ended on ${now.toString()} (${appStartElapsed}s after app start, bootstrap took ${bootstrapElapsed})`
+        )
+      }
       return Saga.put(ConfigGen.createDaemonHandshakeDone())
     }
   }
