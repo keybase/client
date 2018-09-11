@@ -28,7 +28,7 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta, isTyping} from './shared'
+import {ExplodingMeta, IsTyping} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
@@ -181,9 +181,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             visible={this.props.showingMenu}
           />
         )}
-        <Box style={collapseStyles([styles.typing, {opacity: this.props.typing.size > 0 ? 1 : 0}])}>
-          {isTyping(this.props.typing)}
-        </Box>
+        <IsTyping
+          style={collapseStyles([styles.typing, {opacity: this.props.typing.size > 0 ? 1 : 0}])}
+          typing={this.props.typing}
+        />
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>

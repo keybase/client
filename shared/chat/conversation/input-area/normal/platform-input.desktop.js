@@ -20,7 +20,7 @@ import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
-import {isTyping} from './shared'
+import {IsTyping} from './shared'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
 
@@ -348,7 +348,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           />
         </Kb.Box>
         <Kb.Box style={styles.footerContainer}>
-          {isTyping(this.props.typing)}
+          <IsTyping typing={this.props.typing} />
           <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
             *bold*, _italics_, `code`, >quote
           </Kb.Text>
@@ -470,6 +470,7 @@ const styles = styleSheetCreate({
     },
   }),
   footer: {
+    alignSelf: 'flex-end',
     color: globalColors.black_20,
     marginBottom: globalMargins.xtiny,
     marginRight: globalMargins.medium + 2,
@@ -478,6 +479,7 @@ const styles = styleSheetCreate({
   footerContainer: {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   hidden: {
     display: 'none',
