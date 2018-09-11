@@ -8,9 +8,8 @@ import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
 import {View} from 'react-native'
 import {globalStyles} from '../styles'
-import {isAndroid, appStart} from '../constants/platform'
+import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
-import log from '../logger'
 
 type Props = {
   routeDef: any,
@@ -18,19 +17,6 @@ type Props = {
   showPushPrompt: any,
   setRouteState: (path: any, partialState: any) => void,
   navigateUp: () => void,
-}
-
-let isFirstRender = true
-
-const logFirstRender = () => {
-  if (!isFirstRender) {
-    return
-  }
-
-  isFirstRender = false
-  const now = new Date()
-  const elapsed = (now - appStart) / 1000.0
-  log.info(`First render completed ${now.toString()} (${elapsed}s after app start)`)
 }
 
 class Main extends React.Component<Props> {
@@ -51,7 +37,7 @@ class Main extends React.Component<Props> {
       return <PushPrompt />
     }
 
-    const rendered = (
+    return (
       <React.Fragment>
         <RenderRoute
           routeDef={this.props.routeDef}
@@ -66,8 +52,6 @@ class Main extends React.Component<Props> {
         />
       </React.Fragment>
     )
-    logFirstRender()
-    return rendered
   }
 }
 
