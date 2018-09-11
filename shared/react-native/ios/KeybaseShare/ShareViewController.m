@@ -125,6 +125,7 @@ const BOOL isSimulator = NO;
   CMTime time = CMTimeMake(1, 1);
   AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+  [generateImg setAppliesPreferredTrackTransform:YES];
   CGImageRef cgOriginal = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];
   [generateImg setMaximumSize:CGSizeMake(640, 640)];
   CGImageRef cgThumb = [generateImg copyCGImageAtTime:time actualTime:NULL error:&error];

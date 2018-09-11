@@ -334,18 +334,6 @@ func ExtensionPostJPEG(strConvID, name string, public bool, membersType int,
 	if err != nil {
 		return err
 	}
-	convID, err := chat1.MakeConvID(strConvID)
-	if err != nil {
-		return err
-	}
-
-	vis := keybase1.TLFVisibility_PRIVATE
-	if public {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 
 	// Compute preview result from the native params
 	mimeType := "image/jpeg"
@@ -358,19 +346,15 @@ func ExtensionPostJPEG(strConvID, name string, public bool, membersType int,
 		Width:  previewWidth,
 		Height: previewHeight,
 	})
-	callerPreview := chat1.MakePreviewRes{
+	callerPreview := &chat1.MakePreviewRes{
 		MimeType:        mimeType,
 		PreviewMimeType: &mimeType,
 		Location:        &location,
 		Metadata:        &previewMD,
 		BaseMetadata:    &baseMD,
 	}
-
-	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
-		filename, caption, nil, 0, nil, &callerPreview); err != nil {
-		return err
-	}
-	return nil
+	return postFileAttachment(ctx, gc, uid, strConvID, name, public, membersType, filename, caption,
+		callerPreview)
 }
 
 func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
@@ -387,19 +371,6 @@ func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 	if err != nil {
 		return err
 	}
-	convID, err := chat1.MakeConvID(strConvID)
-	if err != nil {
-		return err
-	}
-
-	vis := keybase1.TLFVisibility_PRIVATE
-	if public {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-	sender := chat.NewBlockingSender(gc, chat.NewBoxer(gc),
-		func() chat1.RemoteInterface { return extensionRi })
-	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
-
 	// Compute preview result from the native params
 	mimeType := "video/quicktime"
 	previewMimeType := "image/jpeg"
@@ -419,19 +390,15 @@ func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 		Width:  previewWidth,
 		Height: previewHeight,
 	})
-	callerPreview := chat1.MakePreviewRes{
+	callerPreview := &chat1.MakePreviewRes{
 		MimeType:        mimeType,
 		PreviewMimeType: &previewMimeType,
 		Location:        &location,
 		Metadata:        &previewMD,
 		BaseMetadata:    &baseMD,
 	}
-
-	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
-		filename, caption, nil, 0, nil, &callerPreview); err != nil {
-		return err
-	}
-	return nil
+	return postFileAttachment(ctx, gc, uid, strConvID, name, public, membersType, filename, caption,
+		callerPreview)
 }
 
 func ExtensionPostFile(strConvID, name string, public bool, membersType int,
@@ -439,7 +406,6 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 	defer kbCtx.Trace("ExtensionPostFile", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
-
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
@@ -447,6 +413,12 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 	if err != nil {
 		return err
 	}
+	return postFileAttachment(ctx, gc, uid, strConvID, name, public, membersType, filename, caption, nil)
+}
+
+func postFileAttachment(ctx context.Context, gc *globals.Context, uid gregor1.UID,
+	strConvID, name string, public bool, membersType int, filename, caption string,
+	callerPreview *chat1.MakePreviewRes) error {
 	convID, err := chat1.MakeConvID(strConvID)
 	if err != nil {
 		return err
@@ -459,7 +431,7 @@ func ExtensionPostFile(strConvID, name string, public bool, membersType int,
 		func() chat1.RemoteInterface { return extensionRi })
 	name = restoreName(gc, name, chat1.ConversationMembersType(membersType))
 	if _, _, err = attachments.NewSender(gc).PostFileAttachment(ctx, sender, uid, convID, name, vis, nil,
-		filename, caption, nil, 0, nil, nil); err != nil {
+		filename, caption, nil, 0, nil, callerPreview); err != nil {
 		return err
 	}
 	return nil
