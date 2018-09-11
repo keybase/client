@@ -183,15 +183,6 @@ const metaData: {[key: TextType]: MetaType} = {
       fontStyle: 'italic',
     },
   },
-  BodySmallInlineLink: {
-    colorForBackgroundMode: {
-      ..._blueLink,
-      Terminal: globalColors.white,
-    },
-    fontSize: 14,
-    isLink: true,
-    styleOverride: {...globalStyles.fontRegular, textDecorationLine: undefined},
-  },
   BodySmallSemibold: {
     colorForBackgroundMode: {
       Normal: globalColors.black_40,
@@ -208,7 +199,7 @@ const metaData: {[key: TextType]: MetaType} = {
     fontSize: 14,
     styleOverride: {...globalStyles.fontSemibold, fontStyle: 'italic'},
   },
-  BodySmallSemiboldInlineLink: {
+  BodySmallSemiboldSecondaryLink: {
     colorForBackgroundMode: {
       ..._blueLink,
       Terminal: globalColors.white,
