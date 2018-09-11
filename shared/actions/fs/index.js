@@ -8,6 +8,7 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
@@ -536,7 +537,13 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
         // but the path has been removed since then.
         return
       }
-      throw err
+      // It's still possible we have a critical error, but if it's just the
+      // server port number that's changed, it's hard to detect. So just treat
+      // all other errors as this case. If this is actaully a critical error,
+      // we end up doing this 4 times for nothing, which isn't as bad as trump
+      // elected as POTUS.
+      logger.info(`_loadMimeType attempt=${i} error:`, err)
+      localHTTPServerInfo.address = ''
     }
   }
   throw new Error('exceeded max retries')
