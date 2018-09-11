@@ -26,6 +26,7 @@
   UIBarButtonItem* closeButton = [[UIBarButtonItem alloc] initWithTitle:@"Cancel" style:UIBarButtonItemStyleDone target:self action:@selector(onClosed)];
   [self.navigationItem setRightBarButtonItem:closeButton];
   
+  // Stick this right in the center of the control
   [self.view addSubview:text];
   [self.view
    addConstraint:[NSLayoutConstraint constraintWithItem:text

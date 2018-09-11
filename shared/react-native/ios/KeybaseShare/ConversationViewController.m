@@ -11,8 +11,8 @@
 
 @interface ConversationViewController ()
 @property UISearchController* searchController;
-@property NSArray* unfilteredInboxItems;
-@property NSArray* filteredInboxItems;
+@property NSArray* unfilteredInboxItems; // the entire inbox
+@property NSArray* filteredInboxItems; // inbox items that are filtered by the search bar
 @end
 
 @implementation ConversationViewController
@@ -20,7 +20,7 @@
 - (void)viewDidLoad {
   [super viewDidLoad];
   
-  self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height);
+  self.preferredContentSize = CGSizeMake(self.view.frame.size.width, 2*self.view.frame.size.height); // expand
   self.searchController = [[UISearchController alloc] initWithSearchResultsController:nil];
   self.searchController.searchResultsUpdater = self;
   self.searchController.hidesNavigationBarDuringPresentation = false;
@@ -28,6 +28,7 @@
   self.definesPresentationContext = YES;
   [self.tableView setTableHeaderView:self.searchController.searchBar];
   
+  // show this spinner on top of the table view until we have parsed the inbox
   UIActivityIndicatorView* av = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
   [self.view addSubview:av];
   [av setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -54,10 +55,11 @@
     NSError* error = NULL;
     [self setUnfilteredInboxItems:[NSArray new]];
     [self setFilteredInboxItems:[NSArray new]];
-    NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
+    NSString* jsonInbox = KeybaseExtensionGetInbox(&error); // returns the inbox in JSON format
     if (jsonInbox == nil) {
       NSLog(@"failed to get inbox: %@", error);
       [av stopAnimating];
+      // just show blank in this case
       return;
     }
     [self parseInbox:jsonInbox];
@@ -101,7 +103,7 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
   UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"ConvCell"];
   if (NULL == cell) {
-    cell = [[UITableViewCell alloc]  initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
+    cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"ConvCell"];
   }
   NSDictionary* item = [self getItemAtIndex:indexPath];
   [[cell textLabel] setText:item[@"Name"]];
@@ -110,12 +112,13 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   NSDictionary* conv = [self getItemAtIndex:indexPath];
-  [self.delegate convSelected:conv];
+  [self.delegate convSelected:conv]; // let main view controller know we have something
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {
   NSString* term = [searchController.searchBar.text lowercaseString];
   if ([term length] == 0) {
+    // reset on blank search bar
     [self setFilteredInboxItems:self.unfilteredInboxItems];
   } else {
     NSPredicate* pred = [NSPredicate predicateWithBlock:^BOOL(id obj, NSDictionary* bindings) {

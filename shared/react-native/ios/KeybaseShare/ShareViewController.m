@@ -21,43 +21,49 @@ const BOOL isSimulator = NO;
 
 
 @interface ShareViewController ()
-@property NSDictionary* convTarget;
-@property BOOL hasInited;
+@property NSDictionary* convTarget; // the conversation we will be sharing into
+@property BOOL hasInited; // whether or not init has succeeded yet
 @end
 
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    return YES;
+    return self.hasInited;
 }
 
+// presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
+  BOOL skipLogFile = NO;
   NSError* error = nil;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
   KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
   if (error != nil) {
+    // If Init failed, then let's throw up our error screen.
     NSLog(@"Failed to init: %@", error);
     InitFailedViewController* initFailed = [InitFailedViewController alloc];
     [initFailed setDelegate:self];
     [self pushConfigurationViewController:initFailed];
     return;
   }
-  [self setHasInited:YES];
+  [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
+  [self validateContent];
   
-  NSString* jsonSavedConv = KeybaseExtensionGetSavedConv();
+  NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
   if ([jsonSavedConv length] > 0) {
     NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
     NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
     if (!conv) {
       NSLog(@"failed to parse saved conv: %@", error);
     } else {
+      // Success reading a saved convo, set it and reload the items to it.
       [self setConvTarget:conv];
-      [self reloadConfigurationItems];
     }
   }
+  [self reloadConfigurationItems];
 }
 
 -(void)initFailedClosed {
+  // Just bail out of the extension if init failed
   [self cancel];
 }
 
@@ -81,9 +87,15 @@ const BOOL isSimulator = NO;
 }
 
 - (BOOL)isRealURL:(NSItemProvider*)item {
+  // "file URLs" also have type "url", but we want to treat them as files, not text.
   return (BOOL)([item hasItemConformingToTypeIdentifier:@"public.url"] && ![item hasItemConformingToTypeIdentifier:@"public.file-url"]);
 }
 
+// getSendableAttachments will get a list of messages we want to send from the share attempt. The flow is as follows:
+// - If there is a URL item, we take it and only it.
+// - If there is a text item, we take it and only it.
+// - If there are none of the above, collect all the images and videos.
+// - If we still don't have anything, select only the first item and hope for the best.
 - (NSArray*)getSendableAttachments {
   NSExtensionItem *input = self.extensionContext.inputItems.firstObject;
   NSArray* attachments = [input attachments];
@@ -113,6 +125,9 @@ const BOOL isSimulator = NO;
   return res;
 }
 
+// loadPreviewView solves the problem of running out of memory when rendering the image previews on URLs. In some
+// apps, loading URLs from them will crash our extension because of memory constraints. Instead of showing the image
+// preview, just paste the text into the compose box. Otherwise, just do the normal thing.
 - (UIView*)loadPreviewView {
   NSArray* items = [self getSendableAttachments];
   if ([items count] == 0) {
@@ -131,7 +146,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)didReceiveMemoryWarning {
-    KeybaseExtensionForceGC();
+    KeybaseExtensionForceGC(); // run Go GC and hope for the best
     [super didReceiveMemoryWarning];
 }
 
@@ -178,6 +193,7 @@ const BOOL isSimulator = NO;
   });
 }
 
+// processItem will invokve the correct function on the Go side for the given attachment type.
 - (void)processItem:(NSItemProvider*)item lastItem:(BOOL)lastItem {
   PushNotifier* pusher = [[PushNotifier alloc] init];
   NSString* convID = self.convTarget[@"ConvID"];
@@ -193,8 +209,11 @@ const BOOL isSimulator = NO;
     [self maybeCompleteRequest:lastItem];
   };
   
+  // The NSItemProviderCompletionHandler interface is a little tricky. The caller of our handler
+  // will inspect the arguments that we have given, and will attempt to give us the attachment
+  // in this form. For files, we always want a file URL, and so that is what we pass in.
   NSItemProviderCompletionHandler fileHandler = ^(NSURL* url, NSError* error) {
-    // Check for no URL
+    // Check for no URL (it might have not been possible for the OS to give us one)
     if (url == nil) {
       [self maybeCompleteRequest:lastItem];
       return;
@@ -214,7 +233,7 @@ const BOOL isSimulator = NO;
         KeybaseExtensionPostJPEG(convID, name, NO, [membersType longValue], self.contentText, filePath,
                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
-    }  else {
+    } else {
       NSError* error = NULL;
       KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
     }
@@ -240,6 +259,7 @@ const BOOL isSimulator = NO;
 
 - (void)didSelectPost {
   if (!self.convTarget) {
+    // Just bail out of here if nothing was selected
     [self maybeCompleteRequest:YES];
     return;
   }
@@ -257,7 +277,7 @@ const BOOL isSimulator = NO;
 - (NSArray *)configurationItems {
   SLComposeSheetConfigurationItem *item = [[SLComposeSheetConfigurationItem alloc] init];
   item.title = @"Share to...";
-  item.valuePending = !self.hasInited;
+  item.valuePending = !self.hasInited; // show a spinner if we haven't inited
   if (self.convTarget) {
     item.value = self.convTarget[@"Name"];
   } else if (self.hasInited) {
@@ -272,6 +292,7 @@ const BOOL isSimulator = NO;
 }
 
 - (void)convSelected:(NSDictionary *)conv {
+  // This is a delegate method from the inbox view, it gets run when the user taps an item.
   [self setConvTarget:conv];
   [self reloadConfigurationItems];
   [self popConfigurationViewController];
