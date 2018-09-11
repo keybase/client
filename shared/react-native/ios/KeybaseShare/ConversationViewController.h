@@ -10,9 +10,8 @@
 
 @protocol ConversationViewDelegate<NSObject>
 -(void)convSelected:(NSDictionary*)conv;
--(void)inboxLoadFailed;
 @end
 
 @interface ConversationViewController : UITableViewController <UISearchResultsUpdating>
-@property UIViewController<ConversationViewDelegate> *delegate;
+@property (weak) UIViewController<ConversationViewDelegate> *delegate;
 @end

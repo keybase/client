@@ -8,13 +8,6 @@
 
 #import "ConversationViewController.h"
 #import "keybase/keybase.h"
-#import "Fs.h"
-
-#if TARGET_OS_SIMULATOR
-const BOOL isSimulator = YES;
-#else
-const BOOL isSimulator = NO;
-#endif
 
 @interface ConversationViewController ()
 @property UISearchController* searchController;
@@ -59,29 +52,15 @@ const BOOL isSimulator = NO;
   
   dispatch_async(dispatch_get_main_queue(), ^{
     NSError* error = NULL;
-    NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
-    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
-    if (error != nil) {
-      NSLog(@"Failed to init: %@", error);
-      if (self.delegate) {
-        [self.delegate inboxLoadFailed];
-      }
-      return;
-    }
-   
     [self setUnfilteredInboxItems:[NSArray new]];
     [self setFilteredInboxItems:[NSArray new]];
     NSString* jsonInbox = KeybaseExtensionGetInbox(&error);
     if (jsonInbox == nil) {
       NSLog(@"failed to get inbox: %@", error);
-      if (self.delegate) {
-        [self.delegate inboxLoadFailed];
-        [av stopAnimating];
-        return;
-      }
-    } else {
-      [self parseInbox:jsonInbox];
+      [av stopAnimating];
+      return;
     }
+    [self parseInbox:jsonInbox];
     [av stopAnimating];
     [self.tableView reloadData];
   });
@@ -131,9 +110,7 @@ const BOOL isSimulator = NO;
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
   NSDictionary* conv = [self getItemAtIndex:indexPath];
-  if (self.delegate) {
-    [self.delegate convSelected:conv];
-  }
+  [self.delegate convSelected:conv];
 }
 
 - (void)updateSearchResultsForSearchController:(UISearchController *)searchController {

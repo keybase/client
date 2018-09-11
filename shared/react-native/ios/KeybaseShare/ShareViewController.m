@@ -11,6 +11,14 @@
 #import "Pusher.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <AVFoundation/AVFoundation.h>
+#import "Fs.h"
+
+#if TARGET_OS_SIMULATOR
+const BOOL isSimulator = YES;
+#else
+const BOOL isSimulator = NO;
+#endif
+
 
 @interface ShareViewController ()
 @property NSDictionary* convTarget;
@@ -19,8 +27,23 @@
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    // Do validation of contentText and/or NSExtensionContext attachments here
     return YES;
+}
+
+- (void)presentationAnimationDidFinish {
+  NSError* error = nil;
+  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:YES setupSharedHome:NO];
+  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
+  if (error != nil) {
+    NSLog(@"Failed to init: %@", error);
+    InitFailedViewController* initFailed = [InitFailedViewController alloc];
+    [initFailed setDelegate:self];
+    [self pushConfigurationViewController:initFailed];
+  }
+}
+
+-(void)initFailedClosed {
+  [self cancel];
 }
 
 - (NSItemProvider*)firstSatisfiesTypeIdentifierCond:(NSArray*)attachments cond:(BOOL (^)(NSItemProvider*))cond {
