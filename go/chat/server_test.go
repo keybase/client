@@ -362,6 +362,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
+	g.StellarLoader = types.DummyStellarLoader{}
+
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
 	tuc := &chatTestUserContext{
