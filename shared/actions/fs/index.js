@@ -79,9 +79,16 @@ const loadUserFileEdits = (state: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
     .then(writerEdits => {
       const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-      Saga.all(tlfUpdates.map(u =>
-        Saga.put(FsGen.createFilePreviewLoad({path: u.path}))
-      ))
+      // Ensure we stat all path items for all updates, including paths to
+      // navigate through to get to the updated files.
+      Saga.all(tlfUpdates.reduce((acc, u) =>
+        acc.concat(Types
+          .getPathElements(u.path)
+          .map((e, i, a) =>
+            Saga.put(FsGen.createFilePreviewLoad({
+              path: Types.getPathFromElements(a.slice(0, i + 1)),
+            })))
+        ), []))
       return FsGen.createUserFileEditsLoaded({
         tlfUpdates: tlfUpdates,
       })
