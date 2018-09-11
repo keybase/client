@@ -25,7 +25,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
         'You'
       ) : (
         <ConnectedUsernames
-          clickable={true}
+          onUsernameClicked="profile"
           inline={true}
           type="BodySmallSemibold"
           colorFollowing={true}
