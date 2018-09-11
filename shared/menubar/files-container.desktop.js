@@ -16,14 +16,11 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = dispatch => ({
   _onSelectPath: (path: FsTypes.Path) => dispatch(FsGen.createOpenFilesFromWidget({path})),
   loadTlfUpdates: () => dispatch(FsGen.createUserFileEditsLoad()),
-  onViewAll: () => dispatch(FsGen.createOpenFilesFromWidget({})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  onViewAll: dispatchProps.onViewAll,
   loadTlfUpdates: dispatchProps.loadTlfUpdates,
   userTlfUpdates: stateProps._userTlfUpdates.map(c => {
-    console.log(c.tlf)
     const tlf = FsTypes.pathToString(c.tlf)
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(tlf)
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
@@ -47,7 +44,6 @@ const mergeProps = (stateProps, dispatchProps) => ({
 
 type TlfUpdateHocProps = {|
   loadTlfUpdates: () => void,
-  onViewAll: () => void,
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 

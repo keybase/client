@@ -5,22 +5,20 @@ import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
 import PathItemIcon from '../fs/common/path-item-icon'
 import ConnectedUsernames from '../common-adapters/usernames-remote-container'
-// TODO: uncomment once we make this.
-// import * as RemoteContainer from '../fs/row/remote-container'
+import {compose} from '../util/container'
 
 type FileUpdateProps = {|
   name: string,
+  tlfType: FsTypes.TlfType,
   onClick: () => void,
 |}
 
 type FileUpdatesProps = {|
   updates: Array<FileUpdateProps>,
-  moreUpdateCount?: number,
+  tlfType: FsTypes.TlfType,
 |}
 
 export type UserTlfUpdateRowProps = {|
-  // TODO: uncomment once we make this.
-  // ...$Exact<RemoteContainer.RemoteTlfMeta>,
   tlf: string,
   onSelectPath: () => void,
   iconSpec: FsTypes.PathItemIconSpec,
@@ -30,11 +28,10 @@ export type UserTlfUpdateRowProps = {|
   teamname: string,
   timestamp: string,
   updates: Array<FileUpdateProps>,
-  moreUpdateCount?: number,
 |}
 
 type FilesPreviewProps = {|
-  onViewAll: () => void,
+  onShowAll: () => void,
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
@@ -46,13 +43,54 @@ const FileUpdate = (props: FileUpdateProps) => (
   </Kb.Box2>
 )
 
-const FileUpdates = ({updates, moreUpdateCount}: FileUpdatesProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    {updates.map(u => (
-      <FileUpdate key={u.name} {...u} />
-    ))}
+type FileUpdatesState = {
+  isShowingAll: boolean,
+}
+
+const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
+  class extends React.PureComponent<FileUpdatesProps, FileUpdatesState> {
+    state = {
+      isShowingAll: false,
+    }
+    render() {
+      return <ComposedComponent {...this.props} onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})} isShowingAll={this.state.isShowingAll} />
+    }
+  }
+
+type FileUpdatesHocProps = {|
+  onShowAll: () => void,
+  isShowingAll: boolean,
+|}
+
+type ShowAllProps = FileUpdatesHocProps & {|
+  numUpdates: number,
+|}
+
+const FileUpdatesShowAll = (props: ShowAllProps) => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false}>
+    <Kb.ClickableBox onClick={props.onShowAll} className="toggleButtonClass" style={styles.toggleButton}>
+      <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
+        {props.isShowingAll ? 'Collapse' : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
+      </Kb.Text>
+    </Kb.ClickableBox>
   </Kb.Box2>
 )
+
+const defaultNumFileOptionsShown = 3
+
+const FileUpdates = (props: (FileUpdatesProps & FileUpdatesHocProps)) => (
+  <Kb.Box2 direction="vertical" fullWidth={true}>
+    {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
+      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
+    ))}
+    {props.updates.length > defaultNumFileOptionsShown && (
+      // $FlowIssue ¯\_(ツ)_/¯
+      <FileUpdatesShowAll onShowAll={props.onShowAll} isShowingAll={props.isShowingAll} numUpdates={props.updates.length} />
+    )}
+  </Kb.Box2>
+)
+
+const ComposedFileUpdates = compose(FileUpdatesHoc)(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
@@ -79,12 +117,12 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           {props.tlfType === 'team' ? props.teamname : props.participants.join(',')}
         </Kb.Text>
       </Kb.Box2>
-      <FileUpdates updates={props.updates} moreUpdateCount={props.moreUpdateCount} />
+      <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-export const FilesPreview = ({onViewAll, userTlfUpdates}: FilesPreviewProps) => (
+export const FilesPreview = ({onShowAll, userTlfUpdates}: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
       <Kb.Text type="BodySemibold" style={styles.tlfSectionHeader}>
@@ -134,6 +172,7 @@ const styles = Styles.styleSheetCreate({
     fontSize: 12,
   },
   fileUpdateRow: {
+    marginTop: Styles.globalMargins.xtiny,
   },
   toggleButton: Styles.platformStyles({
     common: {
@@ -145,7 +184,6 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xtiny,
     },
     isElectron: {
-      marginLeft: Styles.globalMargins.tiny,
       marginRight: Styles.globalMargins.tiny,
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
