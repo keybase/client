@@ -33,10 +33,6 @@ const styles = Styles.styleSheetCreate({
   containerBox: {
     height: rowHeight,
   },
-  containerBoxSelected: {
-    height: rowHeight,
-    backgroundColor: backgroundColorSelected,
-  },
 
   icon: {
     alignSelf: 'center',
@@ -71,11 +67,20 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
+const HoverBox = Styles.isMobile
+  ? Kb.Box2
+  : Styles.glamorous(Kb.Box2)({
+      ':hover': {backgroundColor: Styles.globalColors.blueGrey2},
+    })
+
 const WalletRow = (props: Props) => {
   return (
     <Kb.ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
-      <Kb.Box2
-        style={props.isSelected ? styles.containerBoxSelected : styles.containerBox}
+      <HoverBox
+        style={Styles.collapseStyles([
+          styles.containerBox,
+          props.isSelected ? {backgroundColor: backgroundColorSelected} : {},
+        ])}
         direction="horizontal"
         fullWidth={true}
       >
@@ -101,7 +106,7 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
-      </Kb.Box2>
+      </HoverBox>
     </Kb.ClickableBox>
   )
 }
