@@ -86,7 +86,7 @@ const BOOL isSimulator = NO;
   return res;
 }
 
-- (BOOL)isRealURL:(NSItemProvider*)item {
+- (BOOL)isWebURL:(NSItemProvider*)item {
   // "file URLs" also have type "url", but we want to treat them as files, not text.
   return (BOOL)([item hasItemConformingToTypeIdentifier:@"public.url"] && ![item hasItemConformingToTypeIdentifier:@"public.file-url"]);
 }
@@ -101,7 +101,7 @@ const BOOL isSimulator = NO;
   NSArray* attachments = [input attachments];
   NSMutableArray* res = [NSMutableArray array];
   NSItemProvider* item = [self firstSatisfiesTypeIdentifierCond:attachments cond:^(NSItemProvider* a) {
-    return [self isRealURL:a];
+    return [self isWebURL:a];
   }];
   if (item) {
    [res addObject:item];
@@ -134,7 +134,7 @@ const BOOL isSimulator = NO;
     return [super loadPreviewView];
   }
   NSItemProvider* item = items[0];
-  if ([self isRealURL:item]) {
+  if ([self isWebURL:item]) {
     [item loadItemForTypeIdentifier:@"public.url" options:nil completionHandler:^(NSURL *url, NSError *error) {
       dispatch_async(dispatch_get_main_queue(), ^{
         [self.textView setText:[NSString stringWithFormat:@"%@\n%@", self.contentText, [url absoluteString]]];
