@@ -82,6 +82,10 @@ function* call(p: {
 
         const response = makeWaitingResponse(_response, waitingKey)
 
+        if (incomingCallMap[method].length > 2) {
+          throw new Error('Invalid incoming callmap method')
+        }
+
         // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
         const customResponseNeeded = incomingCallMap[method].length === 2
         if (!customResponseNeeded && response) {
