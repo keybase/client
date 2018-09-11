@@ -63,6 +63,7 @@ export const commonMerkleTreeID = {
 }
 
 export const commonSeqType = {
+  none: 0,
   public: 1,
   private: 2,
   semiprivate: 3,
@@ -124,6 +125,7 @@ export const constantsStatusCode = {
   scbademail: 472,
   scbadsignupusernametaken: 701,
   scbadinvitationcode: 707,
+  scfeatureflag: 712,
   scmissingresult: 801,
   sckeynotfound: 901,
   sckeycorrupted: 905,
