@@ -688,7 +688,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			id:   id,
 		}, keybase1.SocialAssertion{}, tlfID, nil
 	case NoSuchUserError:
-		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
+		socialAssertion, ok := externals.NormalizeSocialAssertionStatic(ra.assertion)
 		if !ok {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 		}

@@ -180,7 +180,7 @@ func (k *KeybaseDaemonLocal) setCurrentUID(uid keybase1.UID) {
 
 func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 	assertion string) (id keybase1.UserOrTeamID, err error) {
-	expr, err := externals.AssertionParseAndOnly(assertion)
+	expr, err := externals.AssertionParseAndOnlyStatic(assertion)
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -278,7 +278,7 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 		r = append(r, u.Name)
 		resolvedIDs[u.Name] = id
 	} else {
-		a, ok := externals.NormalizeSocialAssertion(name)
+		a, ok := externals.NormalizeSocialAssertionStatic(name)
 		if !ok {
 			return nil, nil, fmt.Errorf("Bad assertion: %s", name)
 		}
