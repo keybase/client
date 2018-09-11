@@ -3,7 +3,7 @@ import {jsonDebugFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = true
+const PERF = false
 
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
