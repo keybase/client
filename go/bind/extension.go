@@ -41,7 +41,7 @@ func ExtensionIsInited() bool {
 }
 
 func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
-	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+	accessGroupOverride bool) (err error) {
 	extensionInitMu.Lock()
 	defer extensionInitMu.Unlock()
 	defer func() { err = flattenError(err) }()
@@ -59,7 +59,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
 
-	dnsNSFetcher := newDNSNSFetcher(externalDNSNSFetcher)
+	dnsNSFetcher := newDNSNSFetcher(nil)
 	dnsServers := dnsNSFetcher.GetServers()
 	for _, srv := range dnsServers {
 		fmt.Printf("Go: DNS Server: %s\n", srv)
@@ -131,7 +131,6 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	if extensionRi, err = getGregorClient(context.Background(), gc); err != nil {
 		return err
 	}
-	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	return nil

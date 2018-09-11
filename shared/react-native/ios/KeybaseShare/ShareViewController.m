@@ -36,7 +36,7 @@ const BOOL isSimulator = NO;
   BOOL skipLogFile = NO;
   NSError* error = nil;
   NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, NULL, NULL, &error);
+  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
   if (error != nil) {
     // If Init failed, then let's throw up our error screen.
     NSLog(@"Failed to init: %@", error);
