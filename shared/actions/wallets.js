@@ -228,7 +228,6 @@ const createdOrLinkedAccount = (
     // Link existing failed, don't nav
     return
   }
-  console.log('nathan test', action.payload, action.payload.show)
   if (action.payload.show) {
     return Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true}))
   }
