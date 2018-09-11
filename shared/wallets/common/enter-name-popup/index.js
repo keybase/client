@@ -37,6 +37,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
           style={styles.input}
           value={props.name}
           onChangeText={props.onNameChange}
+          autoFocus={true}
         />
         {props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>
