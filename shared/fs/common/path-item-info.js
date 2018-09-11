@@ -65,7 +65,7 @@ const PathItemInfo = (props: Props) => (
           type="BodySmallSecondaryLink"
           usernames={[props.lastWriter]}
           inline={true}
-          clickable={true}
+          onUsernameClicked="profile"
           underline={true}
         />
       </Text>

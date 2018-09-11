@@ -132,6 +132,7 @@ func TestChatSubteamRename(t *testing.T) {
 		}, nil)
 		require.NoError(t, err)
 		require.True(t, len(ib.Convs) >= len(u1ExpectedUpdates))
+
 		for _, conv := range ib.Convs {
 			convID := conv.GetConvID()
 			if convID.Eq(subConv1.Id) || convID.Eq(subConv2.Id) {

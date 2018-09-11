@@ -21,24 +21,28 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingActionCreators('keybase.1.secretUi.getPassphrase', (payload, response) => {
-    logger.info('Asked for passphrase')
-    const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
-    const {sessionID} = payload
+  engine().setIncomingCallMap({
+    'keybase.1.secretUi.getPassphrase': (param, response) => {
+      logger.info('Asked for passphrase')
+      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry
+      const {sessionID} = param
 
-    // Stash response
-    sessionIDToResponse[String(sessionID)] = response
+      // Stash response
+      sessionIDToResponse[String(sessionID)] = response
 
-    return PinentryGen.createNewPinentry({
-      cancelLabel,
-      prompt,
-      retryLabel,
-      sessionID,
-      showTyping: features.showTyping,
-      submitLabel,
-      type,
-      windowTitle,
-    })
+      return Saga.put(
+        PinentryGen.createNewPinentry({
+          cancelLabel,
+          prompt,
+          retryLabel,
+          sessionID,
+          showTyping: features.showTyping,
+          submitLabel,
+          type,
+          windowTitle,
+        })
+      )
+    },
   })
 }
 

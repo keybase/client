@@ -97,6 +97,34 @@ func TestFastLoaderKeyGen(t *testing.T) {
 	require.Equal(t, len(team.ApplicationKeys), 1)
 	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
 	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("clear A's FTL state")
+	tcs[0].G.GetFastTeamLoader().OnLogout()
+
+	t.Logf("more tests as A; let's first load at generation=1")
+	arg = keybase1.FastTeamLoadArg{
+		ID:                   teamID,
+		Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{keybase1.PerTeamKeyGeneration(1)},
+	}
+	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+	require.NoError(t, err)
+	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(1))
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("let's now load at the latest generation")
+	arg = keybase1.FastTeamLoadArg{
+		ID:            teamID,
+		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+		NeedLatestKey: true,
+	}
+	team, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+	require.NoError(t, err)
+	require.Equal(t, len(team.ApplicationKeys), 1)
+	require.Equal(t, team.ApplicationKeys[0].KeyGeneration, keybase1.PerTeamKeyGeneration(4))
+	require.True(t, teamName.Eq(team.Name))
+
 }
 
 // Test loading a sub-sub-team: a.b.c.
@@ -180,13 +208,24 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	_, err = tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 	require.NoError(t, err)
 
-	t.Logf("load the subteam")
-	arg = keybase1.FastTeamLoadArg{
-		ID:            *subteamID,
-		Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		NeedLatestKey: true,
+	loadSubteam := func() {
+		t.Logf("load the subteam")
+		arg = keybase1.FastTeamLoadArg{
+			ID:            *subteamID,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			NeedLatestKey: true,
+		}
+		team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+		require.NoError(t, err)
+		require.True(t, expectedSubTeamName.Eq(team.Name))
 	}
-	team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
-	require.NoError(t, err)
-	require.True(t, expectedSubTeamName.Eq(team.Name))
+
+	// Try again via the unstub system
+	loadSubteam()
+
+	// Also check that it works on a fresh load on a clean cache (thought this
+	// duplicates what we did in TestFastLoaderMultilevel)
+	tcs[0].G.GetFastTeamLoader().OnLogout()
+	loadSubteam()
+
 }
