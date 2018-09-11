@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/git"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/stretchr/testify/require"
