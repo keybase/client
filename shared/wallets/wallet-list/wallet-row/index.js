@@ -33,6 +33,9 @@ const styles = Styles.styleSheetCreate({
   containerBox: {
     height: rowHeight,
   },
+  containerBoxSelected: {
+    height: rowHeight,
+  },
 
   icon: {
     alignSelf: 'center',
