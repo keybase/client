@@ -11,7 +11,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/keybase/go-codec/codec"
 )
@@ -256,9 +255,4 @@ func (p *keybasePacket) armoredEncode() (string, error) {
 		return "", err
 	}
 	return buf.String(), nil
-}
-
-func (p *keybasePacket) encodeTo(w io.Writer) error {
-	err := codec.NewEncoder(w, CodecHandle()).Encode(p)
-	return err
 }
