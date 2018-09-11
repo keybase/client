@@ -180,13 +180,13 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
  */
 export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({error: false, payload, type: deletedAccount})
 /**
- * A response from the service after an account's name is changed
- */
-export const createChangedAccountName = (payload: _ChangedAccountNamePayload) => ({error: false, payload, type: changedAccountName})
-/**
  * A response from the service after an account is set as the default
  */
 export const createDidSetAccountAsDefault = (payload: _DidSetAccountAsDefaultPayload) => ({error: false, payload, type: didSetAccountAsDefault})
+/**
+ * A response from the service after an account's name is changed
+ */
+export const createChangedAccountName = (payload: _ChangedAccountNamePayload) => ({error: false, payload, type: changedAccountName})
 /**
  * Add a new wallet to your account
  */
