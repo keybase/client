@@ -11,7 +11,7 @@ import {type TypedState} from '../constants/reducer'
 const load = (state: TypedState) =>
   state.config.loggedIn &&
   RPCTypes.deviceDeviceHistoryListRpcPromise(undefined, Constants.waitingKey)
-    .then((results: ?Array<RPCTypes.DeviceDetail>) => {
+    .then(results => {
       const devices = (results || []).map(d => Constants.rpcDeviceToDevice(d))
       return DevicesGen.createLoaded({devices})
     })
@@ -21,11 +21,9 @@ const requestPaperKey = () =>
   Saga.call(function*() {
     yield RPCTypes.loginPaperKeyRpcSaga({
       incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({
-          phrase,
-        }: RPCTypes.LoginUiDisplayPaperKeyPhraseRpcParam) =>
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
           Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
-        'keybase.1.loginUi.promptRevokePaperKeys': (_, response, __) => {
+        'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
           response.result(false)
         },
       },
@@ -94,7 +92,7 @@ const showPaperKeyPage = () =>
 
 function* deviceSaga(): Saga.SagaGenerator<any, any> {
   // Load devices
-  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked], load)
+  yield Saga.actionToPromise([DevicesGen.load, DevicesGen.revoked, DevicesGen.paperKeyCreated], load)
   // Revoke device
   yield Saga.actionToPromise(DevicesGen.revoke, revoke)
 

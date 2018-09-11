@@ -13,7 +13,7 @@ import moment from 'moment'
 import UserActions from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
-import {usernameText} from '../common-adapters/usernames'
+import {UsernameText} from '../common-adapters/usernames'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
 import flags from '../util/feature-flags'
 
@@ -243,7 +243,7 @@ class Profile extends Component<Props, State> {
           onClick={() => this.props.onFolderClick(folder)}
         >
           {folder.isPublic ? 'public/' : 'private/'}
-          {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
+          <UsernameText type="Body" users={folder.users} style={styleFolderText} />
         </Kb.Text>
       </Kb.Box>
     ))
