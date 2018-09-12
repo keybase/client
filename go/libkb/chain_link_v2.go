@@ -240,9 +240,8 @@ type SigHasRevokes bool
 
 func (b SigIgnoreIfUnsupported) Bool() bool { return bool(b) }
 
-func MakeSigchainV2OuterSig(
+func encodeOuterLink(
 	m MetaContext,
-	signingKey GenericKey,
 	v1LinkType LinkType,
 	seqno keybase1.Seqno,
 	innerLinkJSON []byte,
@@ -251,24 +250,32 @@ func MakeSigchainV2OuterSig(
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
 	hPrevInfo *HPrevInfo,
-) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
+) ([]byte, error) {
+	var encodedOuterLink []byte
+
 	currLinkID := ComputeLinkID(innerLinkJSON)
 
 	v2LinkType, err := SigchainV2TypeFromV1TypeAndRevocations(string(v1LinkType), hasRevokes, ignoreIfUnsupported)
 	if err != nil {
-		return sig, sigid, linkID, err
+		return encodedOuterLink, err
 	}
-
-	var encodedOuterLink []byte
 
 	// When 2.3 links are mandatory, it will be invalid for hPrevInfo == nil,
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
-	if m.G().FeatureFlags.Enabled(m, FeatureRequireHighSkips) && hPrevInfo == nil {
-		// TODO: Need to cache bust to force reverification
-		return sig, sigid, linkID, fmt.Errorf("High skip must be provided: please update your client.")
+	requiredHighSkips, err := m.G().FeatureFlags.EnabledWithError(m, FeatureRequireHighSkips)
+	if err != nil {
+		return encodedOuterLink, err
 	}
-	if m.G().FeatureFlags.Enabled(m, FeatureAllowHighSkips) && hPrevInfo != nil {
+	if requiredHighSkips && hPrevInfo == nil {
+		// TODO: Need to cache bust to force reverification
+		return encodedOuterLink, fmt.Errorf("High skip must be provided: please update your client.")
+	}
+	allowedHighSkips, err := m.G().FeatureFlags.EnabledWithError(m, FeatureAllowHighSkips)
+	if err != nil {
+		return encodedOuterLink, err
+	}
+	if allowedHighSkips && hPrevInfo != nil {
 		hPrevSeqno := &hPrevInfo.Seqno
 		hPrevHash := &hPrevInfo.Hash
 		outerLink := OuterLinkV2{
@@ -291,6 +298,8 @@ func MakeSigchainV2OuterSig(
 		// for arrays. So, we send up the serialization of the
 		// appropriate struct depending on whether we are making a 2.3 link.
 		// When 2.3 links are mandatory, this struct can be deleted.
+		// We cannot use the omitempty codec because it is broken for arrays
+		// in Keybase's fork of go-codec.
 		encodedOuterLink, err = MsgpackEncode(
 			struct {
 				_struct             bool                   `codec:",toarray"`
@@ -312,6 +321,27 @@ func MakeSigchainV2OuterSig(
 			})
 	}
 
+	if err != nil {
+		return encodedOuterLink, err
+	}
+
+	return encodedOuterLink, err
+}
+
+func MakeSigchainV2OuterSig(
+	m MetaContext,
+	signingKey GenericKey,
+	v1LinkType LinkType,
+	seqno keybase1.Seqno,
+	innerLinkJSON []byte,
+	prevLinkID LinkID,
+	hasRevokes SigHasRevokes,
+	seqType keybase1.SeqType,
+	ignoreIfUnsupported SigIgnoreIfUnsupported,
+	hPrevInfo *HPrevInfo,
+) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
+
+	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, hPrevInfo)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}

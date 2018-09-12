@@ -535,3 +535,9 @@ func CreateClonedDevice(tc TestContext, m MetaContext) {
 	d := runAndGetDeviceCloneState()
 	require.True(tc.T, d.IsClone())
 }
+
+func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int) {
+	slot := m.G().FeatureFlags.getOrMakeSlot(feature)
+	rawFeature := rawFeatureSlot{on, cacheSec}
+	slot.readFrom(m, rawFeature)
+}

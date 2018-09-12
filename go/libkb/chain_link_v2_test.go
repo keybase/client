@@ -112,19 +112,23 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
-func serdeOuterLink(t *testing.T, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID, addHPrevHash bool) OuterLinkV2 {
-	o := OuterLinkV2{Version: 2, Seqno: keybase1.Seqno(20), Prev: nil, Curr: nil, LinkType: SigchainV2TypeEldest, SeqType: keybase1.SeqType_PUBLIC, IgnoreIfUnsupported: false}
-	if hPrevSeqno != nil {
-		o.HPrevSeqno = hPrevSeqno
-	}
-	if addHPrevHash {
-		o.HPrevHash = &hPrevHash
-	}
+func serdeOuterLink(t *testing.T, tc TestContext, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID) OuterLinkV2 {
+	m := NewMetaContextForTest(tc)
 
-	s, err := o.Encode()
+	ModifyFeatureForTest(m, FeatureAllowHighSkips, true, 100000)
+	ModifyFeatureForTest(m, FeatureRequireHighSkips, false, 100000)
+
+	var hPrevInfo *HPrevInfo
+	hPrevInfo = nil
+	if hPrevSeqno != nil {
+		hPrevInfoPre := NewHPrevInfo(*hPrevSeqno, hPrevHash)
+		hPrevInfo = &hPrevInfoPre
+	}
+	encoded, err := encodeOuterLink(m, LinkTypeLeave, keybase1.Seqno(20), nil, nil, false, keybase1.SeqType_PUBLIC, false, hPrevInfo)
 	require.NoError(t, err)
+
 	o2 := OuterLinkV2{}
-	err = MsgpackDecode(&o2, s)
+	err = MsgpackDecode(&o2, encoded)
 	require.NoError(t, err)
 	return o2
 }
@@ -134,13 +138,16 @@ func hPrevInfoMatch(ol OuterLinkV2, hPrevInfo *HPrevInfo) error {
 }
 
 func TestHPrevBackwardsCompatibility(t *testing.T) {
-	o := serdeOuterLink(t, nil, nil, false)
+	tc := SetupTest(t, "test_hprev_backwards_compatibility", 1)
+	defer tc.Cleanup()
+
+	o := serdeOuterLink(t, tc, nil, nil)
 	require.True(t, o.HPrevSeqno == nil)
 	require.True(t, o.HPrevHash == nil)
 	require.NoError(t, hPrevInfoMatch(o, nil))
 
 	seqno := keybase1.Seqno(3)
-	o = serdeOuterLink(t, &seqno, nil, false)
+	o = serdeOuterLink(t, tc, &seqno, nil)
 	require.True(t, *o.HPrevSeqno == 3)
 	require.True(t, o.HPrevHash == nil)
 	hPrevInfo := NewHPrevInfo(keybase1.Seqno(3), nil)
@@ -151,7 +158,7 @@ func TestHPrevBackwardsCompatibility(t *testing.T) {
 	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo2))
 
 	hPrevHash := []byte{0, 6, 2, 42, 123}
-	o = serdeOuterLink(t, &seqno, hPrevHash, true)
+	o = serdeOuterLink(t, tc, &seqno, hPrevHash)
 	hPrevInfo = NewHPrevInfo(keybase1.Seqno(3), hPrevHash)
 	badHPrevInfo1 = NewHPrevInfo(keybase1.Seqno(3), []byte{0, 5, 2})
 	badHPrevInfo2 = NewHPrevInfo(keybase1.Seqno(3), nil)
