@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as Styles from '../styles'
-import Avatar from './avatar'
-import Box from './box'
-import ClickableBox from './clickable-box'
-import Icon, {castPlatformStyles, type IconType} from './icon'
-import Text, {type TextType} from './text'
-import ConnectedUsernames from './usernames/container'
+import * as Styles from '../../styles'
+import Avatar from '../avatar'
+import Box from '../box'
+import ClickableBox from '../clickable-box'
+import Icon, {castPlatformStyles, type IconType} from '../icon'
+import Text, {type TextType} from '../text'
+import ConnectedUsernames from '../usernames/container'
 
 type Size = 'small' | 'default' | 'large'
 
