@@ -369,16 +369,10 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 			return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
 		} else if arg.Me != nil {
 			hPrevInfoPre, err := arg.Me.GetExpectedNextHPrevInfo()
-			switch err.(type) {
-			// If we haven't computed the next expected HPrevInfo,
-			// yet, leave it as nil and postpone writing for now.
-			case UserReverifyNeededError:
-				break
-			case nil:
-				hPrevInfo = &hPrevInfoPre
-			default:
+			if err != nil {
 				return nil, err
 			}
+			hPrevInfo = &hPrevInfoPre
 		} else {
 			hPrevInfo = arg.HPrevInfoFallback
 		}
@@ -393,10 +387,6 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 			}
 			ret.SetKey("high_skip", hPrevInfoObj)
 		}
-	}
-	if m.G().FeatureFlags.Enabled(m, FeatureRequireHighSkips) && hPrevInfo == nil {
-		// TODO: Need to cache bust to force reverification
-		return nil, fmt.Errorf("High skip must be provided: please update your client.")
 	}
 
 	if arg.IgnoreIfUnsupported {
