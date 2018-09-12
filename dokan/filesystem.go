@@ -52,6 +52,9 @@ type FileSystem interface {
 	// ErrorPrint is called when dokan needs notify the program of an error message.
 	// A sensible approach is to print the error.
 	ErrorPrint(error)
+
+	// Printf is for information level messages.
+	Printf(format string, v ...interface{})
 }
 
 // CreateStatus marks status of successfull create/open operations.

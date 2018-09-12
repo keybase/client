@@ -66,6 +66,8 @@ extern void *kbfsLibdokanPtr_RemoveMountPoint;
 extern void *kbfsLibdokanPtr_OpenRequestorToken;
 extern void *kbfsLibdokanPtr_Main;
 
+ULONG kbfsLibDokan_GetVersion(void *proc);
+
 #endif /* windows check */
 
 #endif /* KBFS_DOKAN_BRIDGE_H__ */

@@ -259,6 +259,9 @@ func (t emptyFS) ErrorPrint(err error) {
 	debug(err)
 }
 
+func (t emptyFS) Printf(string, ...interface{}) {
+}
+
 func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, CreateStatus, error) {
 	debug("emptyFS.CreateFile")
 	return emptyFile{}, ExistingDir, nil

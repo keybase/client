@@ -18,7 +18,7 @@ type MountHandle struct {
 // Mount mounts a FileSystem with the given Config.
 // Mount returns when the filesystem has been mounted or there is an error.
 func Mount(cfg *Config) (*MountHandle, error) {
-	err := loadDokanDLL(cfg.DllPath)
+	err := loadDokanDLL(cfg)
 	if err != nil {
 		return nil, err
 	}
