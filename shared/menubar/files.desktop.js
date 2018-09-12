@@ -92,7 +92,7 @@ const FileUpdates = (props: (FileUpdatesProps & FileUpdatesHocProps)) => (
   </Kb.Box2>
 )
 
-const ComposedFileUpdates = compose(FileUpdatesHoc)(FileUpdates)
+const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
