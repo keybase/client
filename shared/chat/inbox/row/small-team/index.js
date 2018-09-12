@@ -157,7 +157,6 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     paddingLeft: 8,
     paddingRight: 8,
-    width: InboxSizes.inboxWidth - 48 - 16,
   },
   fastBlank: platformStyles({
     isMobile: {
