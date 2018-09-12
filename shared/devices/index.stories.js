@@ -27,7 +27,7 @@ const provider = Sb.createPropProviderWithCommon({
     firstItem: deviceID === '1',
     isCurrentDevice: deviceID === '1',
     isRevoked: !['1', '2', '3'].includes(deviceID),
-    name: {'1': 'laptop', '2': 'phone', '3': 'hello robot', '4': 'dog party', '5': 'desktop'}[deviceID],
+    name: {'1': 'laptop', '2': 'phone', '3': 'hello robot', '4': 'dog party', '5': 'ccdesktop'}[deviceID],
     showExistingDevicePage: Sb.action('onShowExistingDevicePage'),
     type: idToType(deviceID),
   }),
