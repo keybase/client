@@ -5,6 +5,8 @@ import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapter
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
 import * as _CopyText from '../common-adapters/copy-text'
+import type {NameWithIconProps} from '../common-adapters/name-with-icon'
+import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
 import {action} from '@storybook/addon-actions'
 import {createPropProvider} from './storybook.shared'
 
@@ -81,11 +83,37 @@ const CopyText = () => ({
   CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
 })
 
+export const NameWithIcon = () => ({
+  NameWithIcon: (ownProps: ConnectedNameWithIconProps): NameWithIconProps => {
+    const {onClick, ...props} = ownProps
+
+    let functionOnClick
+    let clickType
+    if (onClick === 'tracker') {
+      functionOnClick = action('onNameWithIconClicked (tracker)')
+      clickType = 'tracker'
+    } else if (onClick === 'profile') {
+      if (ownProps.username) {
+        functionOnClick = action('onNameWithIconClicked (user profile)')
+      } else if (ownProps.teamname) {
+        functionOnClick = action('onNameWithIconClicked (team profile)')
+      }
+      clickType = 'profile'
+    } else if (typeof onClick === 'function') {
+      functionOnClick = onClick
+      clickType = 'custom'
+    }
+
+    return {...props, clickType, onClick: functionOnClick}
+  },
+})
+
 export const Common = () => ({
   ...Usernames(),
   ...Avatar(),
   ...WaitingButton(),
   ...CopyText(),
+  ...NameWithIcon(),
 })
 
 export const createPropProviderWithCommon = (custom: ?Object) =>

@@ -25,10 +25,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
   const {onClick, ...props} = ownProps
 
   let functionOnClick
+  let clickType
   if (onClick === 'tracker') {
     functionOnClick = () => {
       ownProps.username && dispatchProps.onOpenTracker(ownProps.username)
     }
+    clickType = 'tracker'
   } else if (onClick === 'profile') {
     functionOnClick = () => {
       if (ownProps.username) {
@@ -37,19 +39,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
         dispatchProps.onOpenTeamProfile(ownProps.teamname)
       }
     }
+    clickType = 'profile'
   } else if (typeof onClick === 'function') {
     functionOnClick = onClick
+    clickType = 'custom'
   }
 
   return {
     ...props,
+    clickType,
     onClick: functionOnClick,
   }
 }
 
 const ConnectedNameWithIcon = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Usernames')
+  setDisplayName('NameWithIcon')
 )(NameWithIcon)
 
 export default ConnectedNameWithIcon

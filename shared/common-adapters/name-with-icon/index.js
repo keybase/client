@@ -23,6 +23,7 @@ export type NameWithIconProps = {|
   metaStyle?: Styles.StylesCrossPlatform,
   metaTwo?: string | React.Node,
   onClick?: (SyntheticEvent<> | void) => void,
+  clickType?: 'tracker' | 'profile' | 'custom',
   onEditIcon?: any => void,
   size?: Size,
   teamname?: string,
@@ -70,7 +71,9 @@ const NameWithIcon = (props: NameWithIconProps) => {
   }
   const usernameOrTitle = props.username ? (
     <ConnectedUsernames
-      onUsernameClicked="profile"
+      onUsernameClicked={
+        props.clickType === 'tracker' || props.clickType === 'profile' ? undefined : 'profile'
+      }
       type={props.horizontal ? 'BodySemibold' : adapterProps.titleType}
       containerStyle={
         props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
