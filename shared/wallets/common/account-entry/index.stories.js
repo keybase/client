@@ -10,7 +10,7 @@ const account = {
 }
 
 const load = () => {
-  Sb.storiesOf('Wallets/Common/Participants Row', module)
+  Sb.storiesOf('Wallets/Common/Account Entry', module)
     .add('Default', () => <AccountEntry {...account} />)
     .add('Centered with no wallet icon', () => (
       <AccountEntry {...account} center={true} showWalletIcon={false} />
