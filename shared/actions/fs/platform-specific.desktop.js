@@ -12,7 +12,7 @@ import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
-import {spawn, execFileSync} from 'child_process'
+import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
 
@@ -291,6 +291,22 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
+const uninstallDokanPromise = (state: TypedState) => {
+  const uninstallString = Constants.kbfsUninstallString(state)
+  if (!uninstallString) {
+      return
+  }
+  logger.info('Invoking dokan uninstaller')
+  return new Promise(resolve => {
+    try {
+      exec(uninstallString, {windowsHide: true}, resolve)
+    } catch (e) {
+        logger.error('uninstallDokan caught', e)
+        resolve()
+    }
+  }).then(() => FsGen.createFuseStatus())
+}
+
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showOpenDialog(
@@ -322,12 +338,13 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }

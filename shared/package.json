@@ -48,17 +48,17 @@
     "rn-storybook": "cross-env-shell BABEL_PLATFORM=Electron storybook start -p 7007",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile",
-    "coverage-report": "flow-coverage-report -o ./coverage -t text -t html",
+    "coverage-report": "flow-coverage-report --exclude-non-flow -o ./coverage -t text -t html",
     "coverage": "flow coverage --color "
   },
   "flow-coverage-report": {
     "concurrentFiles": 50,
     "threshold": 10,
-    "includeGlob": [
+    "globIncludePatterns": [
       "**/*.js",
       "**/*.js.flow"
     ],
-    "excludeGlob": [
+    "globExcludePatterns": [
       "node_modules/**",
       "markdown/parser.js",
       "__mocks__/**",
@@ -253,7 +253,7 @@
     "webpack-merge": "4.1.4"
   },
   "optionalDependencies": {
-    "flow-coverage-report": "git://github.com/keybase/flow-coverage-report#keybase-changes-off-master",
+    "flow-coverage-report": "0.6.0",
     "regedit": "2.2.7"
   },
   "resolutions": {
