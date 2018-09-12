@@ -306,6 +306,9 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 			break
 		}
 	}
+
+	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
+
 	return tc
 }
 

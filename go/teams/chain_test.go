@@ -85,8 +85,6 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 	tc := SetupTest(t, "team_sig_chain_high_links", 1)
 	defer tc.Cleanup()
 
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAllowHighSkips)
-
 	ctx := context.TODO()
 	var runningTeamSeqno, teamPrevHighSeqno keybase1.Seqno
 	var runningSubteamSeqno, subteamPrevHighSeqno keybase1.Seqno
@@ -220,8 +218,6 @@ func TestTeamSigChainHighLinksUpgradePath(t *testing.T) {
 	tc := SetupTest(t, "team_sig_chain_high_links_upgrade_path", 1)
 	defer tc.Cleanup()
 	ctx := context.TODO()
-
-	libkb.AddEnvironmentFeatureForTest(tc, libkb.EnvironmentFeatureAllowHighSkips)
 
 	// Create a couple users and a team with two links in its chain
 	u2, err := kbtest.CreateAndSignupFakeUser("rg", tc.G) //non-owner
