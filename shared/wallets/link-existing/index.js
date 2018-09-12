@@ -92,6 +92,7 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     }
   }
 }
+
 type WrapperProps = {|
   linkExistingAccountError: string,
   onCancel: () => void,

@@ -248,7 +248,6 @@
     "webpack-merge": "4.1.2"
   },
   "optionalDependencies": {
-    "flow-coverage-report": "0.6.0",
-    "regedit": "2.2.7"
+    "flow-coverage-report": "0.6.0"
   }
 }
