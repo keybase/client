@@ -11332,9 +11332,9 @@ react-dev-utils@6.0.0-next.3e165448:
     strip-ansi "4.0.0"
     text-table "0.2.0"
 
-react-devtools-core@^3.2.2:
-  version "3.2.3"
-  resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-3.2.3.tgz#a37e199d94865e2cbb616b97be8f5820674e6abd"
+react-devtools-core@3.3.4:
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-3.3.4.tgz#9e497a94b73413b91774bf3e3197e539d5f9a21d"
   dependencies:
     shell-quote "^1.6.1"
     ws "^3.3.1"
@@ -11531,9 +11531,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     prop-types "^15.5.8"
 
-"react-native@git://github.com/keybase/react-native#keybase-fixes-off-57-rc4":
-  version "0.57.0-rc.4"
-  resolved "git://github.com/keybase/react-native#935f8e698319d6802d5a3830fc043c5fb2f71d31"
+react-native@0.57.0:
+  version "0.57.0"
+  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.57.0.tgz#b0d098bbd5393fc3c079f8d7c2a8bf9a10b86b9e"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
@@ -11574,7 +11574,7 @@ react-native-tab-view@^0.0.67:
     promise "^7.1.1"
     prop-types "^15.5.8"
     react-clone-referenced-element "^1.0.1"
-    react-devtools-core "^3.2.2"
+    react-devtools-core "3.3.4"
     react-timer-mixin "^0.13.2"
     regenerator-runtime "^0.11.0"
     rimraf "^2.5.4"
