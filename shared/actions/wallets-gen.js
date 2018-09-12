@@ -91,11 +91,11 @@ type _ClearBuiltPaymentPayload = void
 type _ClearErrorsPayload = void
 type _CreateNewAccountPayload = $ReadOnly<{|
   name: string,
-  show?: boolean,
+  showOnCreation?: boolean,
 |}>
 type _CreatedNewAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  show?: boolean,
+  showOnCreation?: boolean,
 |}>
 type _CreatedNewAccountPayloadError = $ReadOnly<{|
   name: string,
@@ -113,11 +113,11 @@ type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|
   name: string,
   secretKey: HiddenString,
-  show?: boolean,
+  showOnCreation?: boolean,
 |}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|
   accountID: Types.AccountID,
-  show?: boolean,
+  showOnCreation?: boolean,
 |}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|
   name: string,

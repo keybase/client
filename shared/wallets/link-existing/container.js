@@ -33,7 +33,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
       WalletsGen.createLinkExistingAccount({
         name,
         secretKey: new HiddenString(sk),
-        show: routeProps.get('show'),
+        showOnCreation: routeProps.get('showOnCreation'),
       })
     ),
 })

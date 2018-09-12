@@ -36,7 +36,9 @@ const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccount
   const {name} = action.payload
   return RPCTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createCreatedNewAccount({accountID, show: action.payload.show}))
+    .then(accountID =>
+      WalletsGen.createCreatedNewAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error creating new account: ${err.desc}`)
       return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
@@ -197,7 +199,9 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     Constants.linkExistingWaitingKey
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID, show: action.payload.show}))
+    .then(accountID =>
+      WalletsGen.createLinkedExistingAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
       return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
@@ -244,7 +248,7 @@ const createdOrLinkedAccount = (
     // Link existing failed, don't nav
     return
   }
-  if (action.payload.show) {
+  if (action.payload.showOnCreation) {
     return Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true}))
   }
   return Saga.put(Route.navigateUp())
