@@ -6,7 +6,6 @@ import {
   NativeWebView,
 } from '../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './image-render.types'
-import {isIOS} from '../../../../../constants/platform'
 
 export class ImageRender extends React.Component<Props> {
   webview: any
@@ -22,7 +21,7 @@ export class ImageRender extends React.Component<Props> {
       return
     }
     const arg = this.playingVideo ? 'pause' : 'play'
-    const runJS = isIOS ? this.webview.evaluateJavaScript : this.webview.injectJavaScript
+    const runJS = this.webview.injectJavaScript
     runJS(`togglePlay("${arg}")`)
     this.playingVideo = !this.playingVideo
   }
