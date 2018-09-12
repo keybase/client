@@ -5,9 +5,6 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	kbun "github.com/keybase/client/go/kbun"
 	logger "github.com/keybase/client/go/logger"
@@ -21,6 +18,8 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // MockdataVersioner is a mock of dataVersioner interface
@@ -2253,6 +2252,19 @@ func (mr *MockresolverMockRecorder) ResolveTeamTLFID(ctx, teamID interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTeamTLFID", reflect.TypeOf((*Mockresolver)(nil).ResolveTeamTLFID), ctx, teamID)
 }
 
+// NormalizeSocialAssertion mocks base method
+func (m *Mockresolver) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+func (mr *MockresolverMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*Mockresolver)(nil).NormalizeSocialAssertion), ctx, assertion)
+}
+
 // Mockidentifier is a mock of identifier interface
 type Mockidentifier struct {
 	ctrl     *gomock.Controller
@@ -2288,19 +2300,6 @@ func (m *Mockidentifier) Identify(ctx context.Context, assertion, reason string)
 // Identify indicates an expected call of Identify
 func (mr *MockidentifierMockRecorder) Identify(ctx, assertion, reason interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*Mockidentifier)(nil).Identify), ctx, assertion, reason)
-}
-
-// NormalizeSocialAssertion mocks base method
-func (m *Mockidentifier) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
-	ret0, _ := ret[0].(keybase1.SocialAssertion)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
-func (mr *MockidentifierMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*Mockidentifier)(nil).NormalizeSocialAssertion), ctx, assertion)
 }
 
 // IdentifyImplicitTeam mocks base method
@@ -2626,6 +2625,19 @@ func (mr *MockKBPKIMockRecorder) ResolveTeamTLFID(ctx, teamID interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTeamTLFID", reflect.TypeOf((*MockKBPKI)(nil).ResolveTeamTLFID), ctx, teamID)
 }
 
+// NormalizeSocialAssertion mocks base method
+func (m *MockKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+func (mr *MockKBPKIMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKBPKI)(nil).NormalizeSocialAssertion), ctx, assertion)
+}
+
 // Identify mocks base method
 func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (kbun.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	ret := m.ctrl.Call(m, "Identify", ctx, assertion, reason)
@@ -2638,19 +2650,6 @@ func (m *MockKBPKI) Identify(ctx context.Context, assertion, reason string) (kbu
 // Identify indicates an expected call of Identify
 func (mr *MockKBPKIMockRecorder) Identify(ctx, assertion, reason interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKBPKI)(nil).Identify), ctx, assertion, reason)
-}
-
-// NormalizeSocialAssertion mocks base method
-func (m *MockKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
-	ret0, _ := ret[0].(keybase1.SocialAssertion)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
-func (mr *MockKBPKIMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKBPKI)(nil).NormalizeSocialAssertion), ctx, assertion)
 }
 
 // IdentifyImplicitTeam mocks base method
