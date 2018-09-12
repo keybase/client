@@ -2,7 +2,6 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
-set GOARCH=386
 
 echo %KEYBASE_SECRET_STORE_FILE%
 :: This has to be reset too for a separate batch command
@@ -44,7 +43,7 @@ call:dosignexe %PathName%
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe
 call:dosignexe %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
-call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+call:dosignexe %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 :: Browser Extension
 call:dosignexe %GOPATH%\src\github.com\keybase\client\go\kbnm\kbnm.exe
 :: prompter
@@ -77,7 +76,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that Keybase.exe gui is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

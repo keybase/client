@@ -1,5 +1,4 @@
 :: Build keybase.exe with prerelease options
-set GOARCH=386
 
 echo GOPATH %GOPATH%
 
