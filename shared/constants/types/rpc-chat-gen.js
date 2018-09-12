@@ -212,7 +212,6 @@ export const localOutboxStateType = {
 export const localPreviewLocationTyp = {
   url: 0,
   file: 1,
-  bytes: 2,
 }
 
 export const notifyChatChatActivitySource = {

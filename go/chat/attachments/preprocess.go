@@ -107,10 +107,6 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 		return p, err
 	}
 	switch ltyp {
-	case chat1.PreviewLocationTyp_BYTES:
-		source := callerPreview.Location.Bytes()
-		p.Preview = make([]byte, len(source))
-		copy(p.Preview, source)
 	case chat1.PreviewLocationTyp_FILE:
 		f, err := os.Open(callerPreview.Location.File())
 		if err != nil {

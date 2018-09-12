@@ -279,8 +279,6 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
-	d.SetupChatModules(nil)
-
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -334,6 +332,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
+	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 	d.addGlobalHooks()
@@ -385,11 +384,9 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
-func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
+func (d *Service) createChatModules() {
 	g := globals.NewContext(d.G(), d.ChatG())
-	if ri == nil {
-		ri = d.gregor.GetClient
-	}
+	ri := d.gregor.GetClient
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
@@ -416,7 +413,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
 	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
@@ -1229,7 +1226,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
-	d.SetupChatModules(nil)
+	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 

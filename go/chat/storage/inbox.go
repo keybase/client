@@ -67,10 +67,9 @@ type inboxDiskData struct {
 }
 
 type SharedInboxItem struct {
-	ConvID      string
-	Name        string
-	Public      bool
-	MembersType chat1.ConversationMembersType
+	ConvID string
+	Name   string
+	Public bool
 }
 
 type Inbox struct {
@@ -169,9 +168,6 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 	}
 	var writable []SharedInboxItem
 	for _, rc := range ibox.Conversations {
-		if rc.Conv.GetTopicType() != chat1.TopicType_CHAT {
-			continue
-		}
 		if rc.Conv.Metadata.TeamType == chat1.TeamType_COMPLEX && rc.LocalMetadata == nil {
 			// need local metadata for channel names, so skip if we don't have it
 			i.Debug(ctx, "writeMobileSharedInbox: skipping convID: %s, big team missing local metadata",
@@ -184,10 +180,9 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData) 
 			continue
 		}
 		writable = append(writable, SharedInboxItem{
-			ConvID:      rc.GetConvID().String(),
-			Name:        name,
-			Public:      rc.Conv.IsPublic(),
-			MembersType: rc.Conv.GetMembersType(),
+			ConvID: rc.GetConvID().String(),
+			Name:   name,
+			Public: rc.Conv.IsPublic(),
 		})
 	}
 	if err := i.sharedInboxFile(ctx).Put(ctx, writable); err != nil {
