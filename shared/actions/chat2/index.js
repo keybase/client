@@ -742,7 +742,30 @@ const setupEngineListeners = () => {
         throw new Error(errMsg)
       }
       return Saga.put(
-        Chat2Gen.createPaymentInfoReceived({conversationIDKey, messageID: notif.msgID, paymentInfo})
+        Chat2Gen.createPaymentInfoReceived({
+          conversationIDKey,
+          messageID: notif.msgID,
+          paymentInfo,
+        })
+      )
+    },
+    'chat.1.NotifyChat.ChatRequestInfo': notif => {
+      const conversationIDKey = Types.conversationIDToKey(notif.convID)
+      const requestInfo = Constants.uiRequestInfoToChatRequestInfo(notif.info)
+      if (!requestInfo) {
+        // This should never happen
+        const errMsg = `ChatHandler: got 'NotifyChat.ChatRequestInfo' with no valid requestInfo for convID ${conversationIDKey} messageID: ${
+          notif.msgID
+        }. The local version may be absent or out of date.`
+        logger.error(errMsg)
+        throw new Error(errMsg)
+      }
+      return Saga.put(
+        Chat2Gen.createRequestInfoReceived({
+          conversationIDKey,
+          messageID: notif.msgID,
+          requestInfo,
+        })
       )
     },
   })

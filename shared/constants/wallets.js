@@ -350,6 +350,7 @@ export {
   linkExistingWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
+  makeAssetDescription,
   makeAssets,
   makeCurrencies,
   makeBuildingPayment,
