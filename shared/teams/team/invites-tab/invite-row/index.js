@@ -60,6 +60,7 @@ export const TeamInviteRow = (props: Props) => {
           label={isMobile ? 'Cancel' : 'Cancel invite'}
           onClick={onCancelInvite}
           type="Secondary"
+          waitingKey={null}
         />
       </Box>
     </ClickableBox>
