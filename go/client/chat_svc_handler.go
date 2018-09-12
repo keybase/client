@@ -236,10 +236,11 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 			IsEphemeral:        mv.IsEphemeral(),
 			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
 			ETime:              mv.Etime(),
-			Reactions:          mv.Reactions,
 			HasPairwiseMacs:    mv.HasPairwiseMacs(),
 		}
-
+		if mv.Reactions.Reactions != nil {
+			msg.Reactions = &mv.Reactions
+		}
 		msg.Content = c.convertMsgBody(mv.MessageBody)
 		msg.Sender.Username = mv.SenderUsername
 		msg.Sender.DeviceName = mv.SenderDeviceName
@@ -1002,7 +1003,7 @@ type MsgSummary struct {
 	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
 	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
 	ETime              gregor1.Time                   `json:"etime,omitempty"`
-	Reactions          chat1.ReactionMap              `json:"reactions,omitempty"`
+	Reactions          *chat1.ReactionMap             `json:"reactions,omitempty"`
 	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
 }
 
