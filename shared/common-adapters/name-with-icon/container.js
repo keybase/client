@@ -25,12 +25,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
   const {onClick, ...props} = ownProps
 
   let functionOnClick
-  if (onClick === 'tracker') {
-    if (ownProps.username) {
-      functionOnClick = dispatchProps.onOpenTracker
-    } else {
-      throw new Error('Cannot open tracker without username')
-    }
+  if (onClick === 'tracker' && ownProps.username) {
+    functionOnClick = dispatchProps.onOpenTracker
   } else if (onClick === 'profile') {
     if (ownProps.username) {
       functionOnClick = dispatchProps.onOpenUserProfile
