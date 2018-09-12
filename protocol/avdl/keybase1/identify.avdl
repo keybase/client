@@ -110,4 +110,5 @@ protocol identify {
    */
   Folder resolveImplicitTeam(int sessionID, TeamID id);
 
+  SocialAssertion normalizeSocialAssertion(string assertion);
 }

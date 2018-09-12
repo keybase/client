@@ -335,6 +335,16 @@ func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
 }
 
+func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
+	ctx = libkb.WithLogTag(ctx, "NSA")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
+}
+
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
 	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
 }
