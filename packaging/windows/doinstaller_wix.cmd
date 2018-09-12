@@ -97,7 +97,7 @@ set BUILD_TAG=%SEMVER%
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
 
-msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x64 /t:Build
+msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=ia64 /t:Build
 popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
