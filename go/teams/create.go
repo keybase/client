@@ -357,7 +357,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 	// starts a root team, and so making that link is very similar to what the
 	// CreateTeamEngine does.
 
-	newSubteamSig, err := generateNewSubteamSigForParentChain(libkb.NewMetaContext(ctx, g), g, me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
+	newSubteamSig, err := generateNewSubteamSigForParentChain(libkb.NewMetaContext(ctx, g), me, deviceSigningKey, parentTeam.chain(), subteamName, subteamID, admin)
 	if err != nil {
 		return nil, err
 	}
@@ -428,8 +428,8 @@ func makeRootTeamSection(teamName string, teamID keybase1.TeamID, members SCTeam
 	return teamSection, nil
 }
 
-func generateNewSubteamSigForParentChain(m libkb.MetaContext, g *libkb.GlobalContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
-	newSubteamSigBody, err := NewSubteamSig(g, me, signingKey, parentTeam, subteamName, subteamID, admin)
+func generateNewSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamName keybase1.TeamName, subteamID keybase1.TeamID, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+	newSubteamSigBody, err := NewSubteamSig(m.G(), me, signingKey, parentTeam, subteamName, subteamID, admin)
 	if err != nil {
 		return nil, err
 	}

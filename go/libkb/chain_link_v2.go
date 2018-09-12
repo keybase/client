@@ -200,8 +200,8 @@ type OuterLinkV2 struct {
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 	// -- Links exist in the wild that are missing fields below this line too.
 	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
-	// Currently, when not provided, these fields are removed from the link due to `omitempty`.
-	// Note that a link providing HPrevSeqno != nil and HPrevHash == nil is valid for an initial link.
+	// Note that a link providing HPrevSeqno == 0 and HPrevHash == nil is valid
+	// (and mandatory) for an initial link.
 	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
 	HPrevHash  *LinkID         `codec:"high_skip_hash"`
 }
@@ -287,8 +287,6 @@ func encodeOuterLink(
 		// for arrays. So, we send up the serialization of the
 		// appropriate struct depending on whether we are making a 2.3 link.
 		// When 2.3 links are mandatory, this struct can be deleted.
-		// We cannot use the omitempty codec because it is broken for arrays
-		// in Keybase's fork of go-codec.
 		encodedOuterLink, err = MsgpackEncode(
 			struct {
 				_struct             bool                   `codec:",toarray"`

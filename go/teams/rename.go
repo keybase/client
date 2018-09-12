@@ -75,14 +75,14 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 
 		g.Log.CDebugf(ctx, "RenameSubteam make sigs")
 		renameSubteamSig, err := generateRenameSubteamSigForParentChain(
-			libkb.NewMetaContext(ctx, g), g, me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin)
+			libkb.NewMetaContext(ctx, g), me, deviceSigningKey, parent.chain(), subteam.ID, newName, admin)
 		if err != nil {
 			return err
 		}
 
 		renameUpPointerSig, err := generateRenameUpPointerSigForSubteamChain(
 			libkb.NewMetaContext(ctx, g),
-			g, me, deviceSigningKey, chainPair{parent: parent.chain(), subteam: subteam.chain()}, newName, admin)
+			me, deviceSigningKey, chainPair{parent: parent.chain(), subteam: subteam.chain()}, newName, admin)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 	})
 }
 
-func generateRenameSubteamSigForParentChain(m libkb.MetaContext, g *libkb.GlobalContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamID keybase1.TeamID, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateRenameSubteamSigForParentChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, parentTeam *TeamSigChainState, subteamID keybase1.TeamID, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 
 	entropy, err := makeSCTeamEntropy()
 	if err != nil {
@@ -133,7 +133,7 @@ func generateRenameSubteamSigForParentChain(m libkb.MetaContext, g *libkb.Global
 		Entropy: entropy,
 	}
 
-	sigBody, err := RenameSubteamSig(g, me, signingKey, parentTeam, teamSection)
+	sigBody, err := RenameSubteamSig(m.G(), me, signingKey, parentTeam, teamSection)
 	if err != nil {
 		return nil, err
 	}
@@ -183,7 +183,7 @@ type chainPair struct {
 	subteam *TeamSigChainState
 }
 
-func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, g *libkb.GlobalContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, teams chainPair, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
+func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, me libkb.UserForSignatures, signingKey libkb.GenericKey, teams chainPair, newSubteamName keybase1.TeamName, admin *SCTeamAdmin) (item *libkb.SigMultiItem, err error) {
 	newSubteamNameStr := newSubteamName.String()
 	teamSection := SCTeamSection{
 		Admin: admin,
@@ -196,7 +196,7 @@ func generateRenameUpPointerSigForSubteamChain(m libkb.MetaContext, g *libkb.Glo
 		},
 	}
 
-	sigBody, err := RenameUpPointerSig(g, me, signingKey, teams.subteam, teamSection)
+	sigBody, err := RenameUpPointerSig(m.G(), me, signingKey, teams.subteam, teamSection)
 	if err != nil {
 		return nil, err
 	}

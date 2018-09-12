@@ -653,6 +653,10 @@ func (u *User) localDelegatePerUserKey(perUserKey keybase1.PerUserKey) error {
 	return nil
 }
 
+// SigChainBump is called during a multikey post to update the correct seqno, hash, and
+// high skip. When a delegator posts a high link, they specify isHighDelegator=true
+// in order to set the new high skip pointer to the delegator's link, so subsequent
+// keys in the multikey will supply the correct high skip.
 func (u *User) SigChainBump(linkID LinkID, sigID keybase1.SigID, isHighDelegator bool) {
 	u.SigChainBumpMT(MerkleTriple{LinkID: linkID, SigID: sigID}, isHighDelegator)
 }
