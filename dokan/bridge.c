@@ -359,4 +359,12 @@ HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo) {
 	return (*openRequestorToken)(DokanFileInfo);
 }
 
+ULONG kbfsLibDokan_GetVersion(void *proc) {
+	if(!proc)
+		return 0;
+	ULONG __stdcall (*fun)() = proc;
+	return fun();
+}
+
+
 #endif /* windows check */
