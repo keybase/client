@@ -69,12 +69,14 @@ const styles = styleSheetCreate({
   conversationRow: {
     ...globalStyles.flexBoxColumn,
     flexGrow: 1,
+    height: '100%',
     justifyContent: 'center',
     paddingLeft: 0,
     paddingRight: 8,
   },
   rowContainer: platformStyles({
     common: {
+      alignItems: 'center',
       ...globalStyles.flexBoxRow,
       height: '100%',
     },
