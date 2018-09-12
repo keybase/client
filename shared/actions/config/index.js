@@ -19,33 +19,28 @@ import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 
 const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyTracking.trackingChanged',
-    ({isTracking, username}) => ConfigGen.createUpdateFollowing({isTracking, username})
-  )
-
   getEngine().actionOnDisconnect('daemonError', () => {
     logger.flush()
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifySession.loggedIn',
-    ({username}, response, _, getState) => {
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
+      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
+    'keybase.1.NotifySession.loggedIn': ({username}, response, state) => {
       response && response.result()
       // only send this if we think we're not logged in
-      if (!getState().config.loggedIn) {
-        return ConfigGen.createLoggedIn({causedByStartup: false})
+      if (!state.config.loggedIn) {
+        return Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
       }
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
-    // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-    if (getState().config.loggedIn) {
-      return ConfigGen.createLoggedOut()
-    }
+    },
+    'keybase.1.NotifySession.loggedOut': (_, __, state) => {
+      // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+      if (state.config.loggedIn) {
+        return Saga.put(ConfigGen.createLoggedOut())
+      }
+    },
   })
 }
 

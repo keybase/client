@@ -5,9 +5,10 @@ import Box from './box'
 import ClickableBox from './clickable-box'
 import Icon, {castPlatformStyles, type IconType} from './icon'
 import Text, {type TextType} from './text'
-import {ConnectedUsernames} from './usernames'
+import ConnectedUsernames from './usernames/container'
 import {
   collapseStyles,
+  globalMargins,
   globalStyles,
   isMobile,
   platformStyles,
@@ -82,7 +83,7 @@ const NameWithIconVertical = (props: Props) => {
         )}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             type={adapterProps.titleType}
             containerStyle={isMobile ? undefined : styles.vUsernameContainerStyle}
             inline={true}
@@ -132,7 +133,7 @@ const NameWithIconHorizontal = (props: Props) => {
         {!props.username && <Text type="BodySemibold">{props.title}</Text>}
         {!!props.username && (
           <ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             type="BodySemibold"
             usernames={[props.username]}
             colorFollowing={props.colorFollowing}
@@ -180,20 +181,23 @@ const TextOrComponent = ({
 const styles = styleSheetCreate({
   fullWidthText: platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
   fullWidthTextContainer: platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
-  hAvatarStyle: {marginRight: 16},
+  hAvatarStyle: platformStyles({
+    isElectron: {marginRight: globalMargins.tiny},
+    isMobile: {marginRight: globalMargins.small},
+  }),
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
   },
   hIconStyle: {
     height: isMobile ? 48 : 32,
-    marginRight: 16,
+    marginRight: isMobile ? globalMargins.small : globalMargins.tiny,
     width: isMobile ? 48 : 32,
   },
   metaStyle: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexBoxCenter,
-    marginTop: 8,
+    marginTop: globalMargins.tiny,
   },
   vContainerStyle: {
     ...globalStyles.flexBoxColumn,

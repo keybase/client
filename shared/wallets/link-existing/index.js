@@ -171,7 +171,7 @@ const EnterKey = (props: EnterKeyProps) => (
 type EnterNameProps = {
   error: string,
   name: string,
-  onBack: ?() => void,
+  onBack?: () => void,
   onCancel: () => void,
   onNameChange: string => void,
   onDone: () => void,

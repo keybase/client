@@ -8,6 +8,7 @@ import * as Saga from '../../util/saga'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
@@ -417,14 +418,13 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () =>
-    FsGen.createNotifySyncActivity()
-  )
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({path}) =>
-    // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
-    // now.
-    FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})
-  )
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
+    'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
+      // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
+      // now.
+      Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),
+  })
 }
 
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
@@ -513,9 +513,9 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   const state = yield Saga.select()
   let localHTTPServerInfo: Types._LocalHTTPServer =
     state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
-  // This should finish within 2 iterations most. But just in case we bound it
-  // at 4.
-  for (let i = 0; i < 4; ++i) {
+  // This should finish within 2 iterations at most. But just in case we bound
+  // it at 3.
+  for (let i = 0; i < 3; ++i) {
     if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
       localHTTPServerInfo = yield Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
       yield Saga.put(FsGen.createLocalHTTPServerInfo(localHTTPServerInfo))
@@ -536,7 +536,13 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
         // but the path has been removed since then.
         return
       }
-      throw err
+      // It's still possible we have a critical error, but if it's just the
+      // server port number that's changed, it's hard to detect. So just treat
+      // all other errors as this case. If this is actually a critical error,
+      // we end up doing this 3 times for nothing, which isn't the end of the
+      // world.
+      logger.info(`_loadMimeType i=${i} error:`, err)
+      localHTTPServerInfo.address = ''
     }
   }
   throw new Error('exceeded max retries')

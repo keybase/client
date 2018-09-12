@@ -18,7 +18,7 @@ class GPGSign extends Component<Props> {
               There was an error importing your pgp key:
               {'\n'}
             </Text>
-            <Text type="BodyError">{this.props.importError}</Text>
+            <Text type="BodySmallError">{this.props.importError}</Text>
             <Text type="Body">You can try asking gpg to sign this install instead.</Text>
           </Box2>
         )}

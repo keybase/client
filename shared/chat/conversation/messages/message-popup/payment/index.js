@@ -68,7 +68,7 @@ const Header = (props: HeaderProps) =>
           <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
           <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             inline={true}
