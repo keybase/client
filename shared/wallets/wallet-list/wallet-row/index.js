@@ -10,6 +10,7 @@ import {
   avatarCastPlatformStyles,
 } from '../../../common-adapters'
 import {
+  glamorous,
   globalStyles,
   globalMargins,
   globalColors,
@@ -86,10 +87,16 @@ const styles = styleSheetCreate({
   },
 })
 
+const HoverBox = isMobile
+  ? Box2
+  : glamorous(Box2)({
+      ':hover': {backgroundColor: globalColors.blueGrey2},
+    })
+
 const WalletRow = (props: Props) => {
   return (
     <ClickableBox onClick={props.onSelect} style={(props.isSelected && styles.containerSelected) || null}>
-      <Box2
+      <HoverBox
         style={props.isSelected ? styles.containerBoxSelected : styles.containerBox}
         direction="horizontal"
         fullWidth={true}
@@ -116,7 +123,7 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Text>
         </Box2>
-      </Box2>
+      </HoverBox>
     </ClickableBox>
   )
 }
