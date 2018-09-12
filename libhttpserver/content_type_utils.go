@@ -37,11 +37,12 @@ func (w *contentTypeOverridingResponseWriter) overrideMimeType(
 	case strings.HasPrefix(ty, "audio/") ||
 		strings.HasPrefix(ty, "image/") ||
 		strings.HasPrefix(ty, "video/") ||
-		ty == "application/pdf":
+		ty == "application/pdf" ||
+		ty == "text/plain":
 		return ty
 	// Otherwise text/plain.
 	default:
-		return "text/plain"
+		return "application/octet-stream"
 	}
 }
 
