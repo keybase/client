@@ -6,25 +6,26 @@ package client
 import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
 // compatibility with node client commands:
 
-func NewCmdCompatDir(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdCompatDir(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "dir",
 		Action: func(c *cli.Context) {
-			GlobUI.Println("`keybase dir` has been deprecated.")
+			g.UI.GetTerminalUI().Printf("`keybase dir` has been deprecated.\n")
 		},
 		Description: "`keybase dir` has been deprecated.",
 	}
 }
 
-func NewCmdCompatPush(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdCompatPush(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name: "push",
 		Action: func(c *cli.Context) {
-			GlobUI.Println("Use `keybase pgp select` instead.")
+			g.UI.GetTerminalUI().Printf("Use `keybase pgp select` instead.\n")
 		},
 		Description: "Use `keybase pgp select` instead.",
 	}

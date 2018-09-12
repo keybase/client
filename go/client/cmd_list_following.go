@@ -39,13 +39,14 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
+func displayTable(g *libkb.GlobalContext, entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
+	tui := g.UI.GetTerminalUI()
 	if verbose {
 		noun := "users"
 		if len(entries) == 1 {
 			noun = "user"
 		}
-		GlobUI.Printf("Following %d %s:\n\n", len(entries), noun)
+		tui.Printf("Following %d %s:\n\n", len(entries), noun)
 	}
 
 	var cols []string
@@ -95,12 +96,13 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 		return row
 	}
 
-	GlobUI.Tablify(cols, rowfunc)
+	libkb.Tablify(tui.OutputWriter(), cols, rowfunc)
 	return
 }
 
-func DisplayJSON(jsonStr string) error {
-	_, err := GlobUI.Println(jsonStr)
+func displayJSON(g *libkb.GlobalContext, jsonStr string) error {
+	tui := g.UI.GetTerminalUI()
+	_, err := tui.Printf("%s\n", jsonStr)
 	return err
 }
 
@@ -119,14 +121,14 @@ func (s *CmdListTracking) Run() error {
 		if err != nil {
 			return err
 		}
-		return DisplayJSON(jsonStr)
+		return displayJSON(s.G(), jsonStr)
 	}
 
 	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: s.assertion})
 	if err != nil {
 		return err
 	}
-	return displayTable(table, s.verbose, s.headers)
+	return displayTable(s.G(), table, s.verbose, s.headers)
 }
 
 func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
