@@ -17,7 +17,7 @@ type EnterNameProps = {|
 
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
-    <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
+    <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" disabled={props.waiting} />,
     <Kb.Button
       key={1}
       type="Wallet"
