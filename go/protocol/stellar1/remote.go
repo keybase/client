@@ -613,8 +613,9 @@ type PendingPaymentsArg struct {
 }
 
 type MarkAsReadArg struct {
-	SessionID    int       `codec:"sessionID" json:"sessionID"`
-	MostRecentID PaymentID `codec:"mostRecentID" json:"mostRecentID"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	MostRecentID PaymentID            `codec:"mostRecentID" json:"mostRecentID"`
 }
 
 type PaymentDetailsArg struct {

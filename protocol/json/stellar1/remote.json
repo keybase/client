@@ -672,8 +672,12 @@
     "markAsRead": {
       "request": [
         {
-          "name": "sessionID",
-          "type": "int"
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
         },
         {
           "name": "mostRecentID",

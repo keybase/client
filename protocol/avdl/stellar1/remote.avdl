@@ -144,9 +144,9 @@ protocol remote {
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 
-  // markAsRead will mark as "read" all the payments created at or before the time 
+  // markAsRead will mark as "read" all the payments in an account created at or before the time 
   // of the payment referenced by `mostRecentID`.
-  void markAsRead(int sessionID, PaymentID mostRecentID);
+  void markAsRead(keybase1.UserVersion caller, AccountID accountID, PaymentID mostRecentID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);
