@@ -233,6 +233,7 @@ export {
   getMessageID,
   isSpecialMention,
   isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
@@ -250,6 +251,7 @@ export {
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
 } from './message'
 

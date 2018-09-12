@@ -69,7 +69,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           position="bottom left"
