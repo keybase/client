@@ -51,20 +51,24 @@
      ]
    ];
   
-  dispatch_async(dispatch_get_main_queue(), ^{
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
     NSError* error = NULL;
     [self setUnfilteredInboxItems:[NSArray new]];
     [self setFilteredInboxItems:[NSArray new]];
     NSString* jsonInbox = KeybaseExtensionGetInbox(&error); // returns the inbox in JSON format
     if (jsonInbox == nil) {
-      NSLog(@"failed to get inbox: %@", error);
-      [av stopAnimating];
+      dispatch_async(dispatch_get_main_queue(), ^{
+        NSLog(@"failed to get inbox: %@", error);
+        [av stopAnimating];
+      });
       // just show blank in this case
       return;
     }
     [self parseInbox:jsonInbox];
-    [av stopAnimating];
-    [self.tableView reloadData];
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [av stopAnimating];
+      [self.tableView reloadData];
+    });
   });
 }
 
