@@ -5,6 +5,7 @@ export type FeatureFlags = {|
   explodingMessagesEnabled: boolean,
   plansEnabled: boolean,
   walletsEnabled: boolean,
+  fileWidgetEnabled: boolean,
 |}
 
 declare var ff: FeatureFlags

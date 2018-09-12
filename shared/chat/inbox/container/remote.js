@@ -7,7 +7,7 @@ import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 
 const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
-export const maxShownConversations = 3
+export const maxShownConversations = 7
 
 const createShallowEqualSelector = Container.createSelectorCreator(Container.defaultMemoize, shallowEqual)
 
