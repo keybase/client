@@ -4,16 +4,16 @@ import * as Chat2Gen from '../actions/chat2-gen'
 import {ChatPreview} from './chat.desktop'
 import {remoteConnect, compose} from '../util/container'
 
-const mapStateToProps = ({conversations}, ownProps) => ({conversations, ...ownProps})
+const mapStateToProps = ({conversations}) => ({conversations})
 
 const mapDispatchToProps = dispatch => ({
   onViewAll: () => dispatch(Chat2Gen.createOpenChatFromWidget({})),
   _onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onViewAll: dispatchProps.onViewAll,
-  convRows: stateProps.conversations.slice(0, stateProps.convLimit ? stateProps.convLimit : stateProps.conversations.length).map(c => ({
+  convRows: stateProps.conversations.slice(0, ownProps.convLimit ? ownProps.convLimit : stateProps.conversations.length).map(c => ({
     conversationIDKey: c.conversationIDKey,
     onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
     ...c,
