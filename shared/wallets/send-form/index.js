@@ -22,7 +22,7 @@ const SendForm = (props: Props) => (
       <Kb.Text type="BodySmallSemibold" style={styles.textColor}>
         Powered by{' '}
         <Kb.Text
-          type="BodySmallSemiboldInlineLink"
+          type="BodySmallSemiboldSecondaryLink"
           isLink={true}
           onClickURL="https://stellar.org"
           style={styles.textColor}

@@ -5,10 +5,11 @@ import {
   connect,
   lifecycle,
   setDisplayName,
+  safeSubmit,
   type TypedState,
   type Dispatch,
 } from '../../../util/container'
-import {navigateAppend, navigateUp} from '../../../actions/route-tree'
+import {anyWaiting} from '../../../constants/waiting'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
@@ -21,10 +22,13 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
   const currency = Constants.getDisplayCurrency(state, accountID)
+  const currencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
+
   return {
     accountID,
     currencies,
     currency,
+    currencyWaiting,
     isDefault: account.isDefault,
     name,
     onEditName: () => {},
@@ -32,7 +36,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+const mapDispatchToProps = (dispatch: Dispatch, {routeProps, navigateUp, navigateAppend}) => {
   return {
     _onBack: (accountID: Types.AccountID) => {
       dispatch(navigateUp())
@@ -62,18 +66,17 @@ const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
       ),
     _onSetDisplayCurrency: (accountID: Types.AccountID, code: Types.CurrencyCode) =>
       dispatch(WalletsGen.createChangeDisplayCurrency({accountID, code})),
-    onAddNew: () => {},
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, ownProps): SettingsProps => ({
   ...stateProps,
   onBack: () => dispatchProps._onBack(stateProps.accountID),
-  refresh: () => dispatchProps._refresh(),
-  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
-  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
   onCurrencyChange: (code: Types.CurrencyCode) =>
     dispatchProps._onSetDisplayCurrency(stateProps.accountID, code),
+  onDelete: () => dispatchProps._onDelete(stateProps.accountID),
+  onSetDefault: () => dispatchProps._onSetDefault(stateProps.accountID),
+  refresh: () => dispatchProps._refresh(),
 })
 
 export default compose(
@@ -83,5 +86,6 @@ export default compose(
       this.props.refresh()
     },
   }),
-  setDisplayName('Settings')
+  setDisplayName('Settings'),
+  safeSubmit(['onCurrencyChange'], ['currencyWaiting'])
 )(Settings)

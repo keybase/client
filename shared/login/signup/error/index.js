@@ -14,7 +14,7 @@ const Error = (props: Props) => (
     <Text type="Header" style={{maxWidth: 460, textAlign: 'center', width: '80%'}}>
       Ah Shoot! Something went wrong, wanna try again?
     </Text>
-    <Text type="BodyError">{props.error}</Text>
+    <Text type="BodySmallError">{props.error}</Text>
     <ContinueButton label="Try again" onClick={props.onRestart} />
   </Wrapper>
 )

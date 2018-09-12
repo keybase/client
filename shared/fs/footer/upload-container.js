@@ -4,9 +4,11 @@ import * as Types from '../../constants/types/fs'
 import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
+import {unknownPathItem} from '../../constants/fs'
 
 const mapStateToProps = (state: TypedState) => ({
   _uploads: state.fs.uploads,
+  _pathItems: state.fs.pathItems,
 })
 
 // NOTE flip this to show a button to debug the upload banner animations.
@@ -33,16 +35,22 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
-const mergeProps = ({_uploads}, {debugToggleShow}) =>
-  ({
+const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
+  const filePaths = _uploads.syncingPaths.filter(
+    path => _pathItems.get(path, unknownPathItem).type !== 'folder'
+  )
+
+  return ({
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    files: _uploads.syncingPaths.size,
+    files: filePaths.size,
+    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
     endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
     totalSyncingBytes: _uploads.totalSyncingBytes,
     debugToggleShow,
   }: UploadCountdownHOCProps)
+}
 
 export default compose(
   // $FlowIssue @jzila

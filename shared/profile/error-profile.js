@@ -11,7 +11,7 @@ export type Props = {|
 const ErrorLoadingProfile = (props: Props) => (
   <Kb.Box style={{width: 320, flex: 1}}>
     <Kb.Box style={{marginTop: Styles.globalMargins.xlarge}}>
-      <Kb.Text type="BodyError" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
+      <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
         Error loading profile: {props.error}
       </Kb.Text>
     </Kb.Box>
