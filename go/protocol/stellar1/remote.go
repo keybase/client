@@ -241,6 +241,7 @@ type PaymentSummaryStellar struct {
 	OperationID uint64        `codec:"operationID" json:"operationID"`
 	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
 	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
+	Unread      bool          `codec:"unread" json:"unread"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -253,6 +254,7 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		OperationID: o.OperationID,
 		Ctime:       o.Ctime.DeepCopy(),
 		CursorToken: o.CursorToken,
+		Unread:      o.Unread,
 	}
 }
 
@@ -461,8 +463,9 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 }
 
 type PaymentsPage struct {
-	Payments []PaymentSummary `codec:"payments" json:"payments"`
-	Cursor   *PageCursor      `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Payments     []PaymentSummary `codec:"payments" json:"payments"`
+	Cursor       *PageCursor      `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	OldestUnread *PaymentID       `codec:"oldestUnread,omitempty" json:"oldestUnread,omitempty"`
 }
 
 func (o PaymentsPage) DeepCopy() PaymentsPage {
@@ -485,6 +488,13 @@ func (o PaymentsPage) DeepCopy() PaymentsPage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Cursor),
+		OldestUnread: (func(x *PaymentID) *PaymentID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OldestUnread),
 	}
 }
 
@@ -602,6 +612,11 @@ type PendingPaymentsArg struct {
 	Limit     int                  `codec:"limit" json:"limit"`
 }
 
+type MarkAsReadArg struct {
+	SessionID    int       `codec:"sessionID" json:"sessionID"`
+	MostRecentID PaymentID `codec:"mostRecentID" json:"mostRecentID"`
+}
+
 type PaymentDetailsArg struct {
 	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
 	TxID   string               `codec:"txID" json:"txID"`
@@ -668,6 +683,7 @@ type RemoteInterface interface {
 	Details(context.Context, DetailsArg) (AccountDetails, error)
 	RecentPayments(context.Context, RecentPaymentsArg) (PaymentsPage, error)
 	PendingPayments(context.Context, PendingPaymentsArg) ([]PaymentSummary, error)
+	MarkAsRead(context.Context, MarkAsReadArg) error
 	PaymentDetails(context.Context, PaymentDetailsArg) (PaymentDetails, error)
 	AccountSeqno(context.Context, AccountSeqnoArg) (string, error)
 	SubmitPayment(context.Context, SubmitPaymentArg) (PaymentResult, error)
@@ -747,6 +763,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.PendingPayments(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"markAsRead": {
+				MakeArg: func() interface{} {
+					ret := make([]MarkAsReadArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MarkAsReadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MarkAsReadArg)(nil), args)
+						return
+					}
+					err = i.MarkAsRead(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -979,6 +1011,11 @@ func (c RemoteClient) RecentPayments(ctx context.Context, __arg RecentPaymentsAr
 
 func (c RemoteClient) PendingPayments(ctx context.Context, __arg PendingPaymentsArg) (res []PaymentSummary, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.pendingPayments", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.remote.markAsRead", []interface{}{__arg}, nil)
 	return
 }
 

@@ -180,6 +180,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -220,6 +224,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -728,6 +739,19 @@
         "type": "array",
         "items": "PaymentOrErrorLocal"
       }
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
     },
     "getPaymentDetailsLocal": {
       "request": [
