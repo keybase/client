@@ -1039,7 +1039,9 @@ func (e *Env) GetFeatureFlags() FeatureFlags {
 			ret = f
 		}
 	}
-	pick(e.Test.EnvironmentFeatureFlags, nil)
+	if e.Test.EnvironmentFeatureFlags != nil {
+		pick(e.Test.EnvironmentFeatureFlags, nil)
+	}
 	pick(e.cmd.GetFeatureFlags())
 	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
 	pick(e.GetConfig().GetFeatureFlags())
