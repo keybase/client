@@ -204,6 +204,7 @@ const (
 	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)
 	SCMissingResult                    = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                      = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyCorrupted                     = int(keybase1.StatusCode_SCKeyCorrupted)

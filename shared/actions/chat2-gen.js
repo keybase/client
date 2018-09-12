@@ -62,6 +62,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const previewConversation = 'chat2:previewConversation'
+export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
@@ -273,6 +274,11 @@ type _PreviewConversationPayload = $ReadOnly<{|
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
 |}>
+type _RequestInfoReceivedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  requestInfo: Types.ChatRequestInfo,
+|}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -427,6 +433,10 @@ export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => (
  */
 export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({error: false, payload, type: paymentInfoReceived})
 /**
+ * We received request info for a requestPayment message
+ */
+export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({error: false, payload, type: requestInfoReceived})
+/**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
@@ -537,6 +547,7 @@ export type NotificationSettingsUpdatedPayload = $Call<typeof createNotification
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SaveMinWriterRolePayload = $Call<typeof createSaveMinWriterRole, _SaveMinWriterRolePayload>
@@ -616,6 +627,7 @@ export type Actions =
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
   | PreviewConversationPayload
+  | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SaveMinWriterRolePayload

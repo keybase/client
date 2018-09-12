@@ -41,7 +41,7 @@
     },
     "showNonUser": {
       "username": "string",
-      "nonUser": "RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam"
+      "nonUser": "{ throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string, }"
     },
     "updateFolders": {
       "username": "string",

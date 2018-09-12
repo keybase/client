@@ -1,5 +1,5 @@
 // @flow
-import {connect, type TypedState} from '../../../../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
@@ -12,6 +12,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     accountID,
     accountName: Constants.getAccount(state, accountID).name,
     username: state.config.username,
+    waitingKey: Constants.setAccountAsDefaultWaitingKey,
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -26,8 +27,12 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountName: stateProps.accountName,
   username: stateProps.username,
+  waitingKey: stateProps.waitingKey,
   onClose: () => dispatchProps._onClose(),
   onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SetDefaultAccountPopup)
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('SetDefaultAccountPopup')
+)(SetDefaultAccountPopup)

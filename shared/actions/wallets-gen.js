@@ -184,13 +184,13 @@ type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
 
 // Action Creators
 /**
+ * A response from the service after an account is deleted.
+ */
+export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({error: false, payload, type: deletedAccount})
+/**
  * A response from the service after an account is set as the default
  */
 export const createDidSetAccountAsDefault = (payload: _DidSetAccountAsDefaultPayload) => ({error: false, payload, type: didSetAccountAsDefault})
-/**
- * A service responde after an account is deleted
- */
-export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({error: false, payload, type: deletedAccount})
 /**
  * Add a new wallet to your account
  */

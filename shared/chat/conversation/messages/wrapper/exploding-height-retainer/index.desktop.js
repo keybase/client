@@ -59,6 +59,12 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       }
       return
     }
+
+    if (__STORYSHOT__) {
+      // Storyshots with react 16.5 can't find the domNode and fails
+      return
+    }
+
     const node = ReactDOM.findDOMNode(this)
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
@@ -126,7 +132,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
         EXPLODED BY{' '}
         <ConnectedUsernames
           type="BodySmallSemibold"
-          clickable={true}
+          onUsernameClicked="profile"
           usernames={[props.explodedBy]}
           inline={true}
           colorFollowing={true}
