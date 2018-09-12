@@ -30,8 +30,9 @@ platform :ios do
       build_number: latest_testflight_build_number(version: version) + 3
     })
 
-    # match(type: "appstore") # more information: https://codesigning.guide
-    gym(scheme: "Keybase") # Build your app - more options available
+    match(type: 'appstore', app_identifier: 'keybase.ios')
+    match(type: 'appstore', app_identifier: 'keybase.ios.KeybaseShare')
+    gym(export_method: 'app-store', scheme: "Keybase") # Build your app - more options available
     pilot(
         changelog: changelog_from_git_commits(
         pretty: '%h %s',
