@@ -86,29 +86,33 @@ func doLoadDokanAndGetSymbols(epc *errorPrinter, path string) error {
 	if err != nil {
 		return err
 	}
+	var dokanVersionProc, dokanDriverVersionProc unsafe.Pointer
 	for _, v := range []struct {
 		name string
 		ptr  *unsafe.Pointer
 	}{{`DokanRemoveMountPoint`, &C.kbfsLibdokanPtr_RemoveMountPoint},
 		{`DokanOpenRequestorToken`, &C.kbfsLibdokanPtr_OpenRequestorToken},
-		{`DokanMain`, &C.kbfsLibdokanPtr_Main}} {
+		{`DokanMain`, &C.kbfsLibdokanPtr_Main},
+		{`DokanVersion`, &dokanVersionProc},
+		{`DokanDriverVersion`, &dokanDriverVersionProc}} {
 		uptr, err := windows.GetProcAddress(hdl, v.name)
 		if err != nil {
 			return fmt.Errorf(`GetProcAddress(%q) -> %v,%v`, v.name, uptr, err)
 		}
 		*v.ptr = unsafe.Pointer(uptr)
 	}
+	epc.Printf("Dokan version: %d driver %d\n",
+		C.kbfsLibDokan_GetVersion(dokanVersionProc),
+		C.kbfsLibDokan_GetVersion(dokanDriverVersionProc))
 	return nil
 }
 
 // loadDokanDLL tries to load the dokan DLL from
 // the given path. Empty path is allowed and will
 // result in the location being guessed.
-func loadDokanDLL(path string) error {
+func loadDokanDLL(cfg *Config) error {
 	var epc errorPrinter
-	err := doLoadDokanAndGetSymbols(&epc, path)
-	if err != nil {
-		return fmt.Errorf("Error: %v\nContext:\n%s", err, epc.buf.Bytes())
-	}
-	return nil
+	err := doLoadDokanAndGetSymbols(&epc, cfg.DllPath)
+	cfg.FileSystem.Printf("%s", epc.buf.Bytes())
+	return err
 }
