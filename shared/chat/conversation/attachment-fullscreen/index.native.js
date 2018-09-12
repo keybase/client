@@ -99,7 +99,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, {loaded: b
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           message={this.props.message}
           onHidden={this.props.toggleShowingMenu}
           position="bottom left"

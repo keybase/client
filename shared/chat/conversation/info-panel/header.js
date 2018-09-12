@@ -34,7 +34,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
   return (
     <Box style={styles.smallContainer}>
       <InfoPanelMenu
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         onHidden={props.toggleShowingMenu}
         isSmallTeam={props.isSmallTeam}
         teamname={props.teamname}

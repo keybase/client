@@ -14,7 +14,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?Component<any, any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,

@@ -122,7 +122,7 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
           )}
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           header={

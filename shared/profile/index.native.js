@@ -77,7 +77,7 @@ const _ShowcasedTeamRow = (
 ) => (
   <ClickableBox key={props.team.fqName} onClick={props.toggleShowingMenu} style={styleShowcasedTeamContainer}>
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
