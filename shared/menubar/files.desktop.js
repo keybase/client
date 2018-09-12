@@ -31,16 +31,18 @@ export type UserTlfUpdateRowProps = {|
 |}
 
 type FilesPreviewProps = {|
-  onShowAll: () => void,
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
 const FileUpdate = (props: FileUpdateProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-    <Kb.Text type="BodySecondaryLink" onClick={props.onClick}>
-      {props.name}
-    </Kb.Text>
-  </Kb.Box2>
+  <Kb.ClickableBox onClick={props.onClick}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
+      <Kb.Icon type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
+      <Kb.Text type="BodySecondaryLink">
+        {props.name}
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 
 type FileUpdatesState = {
@@ -122,7 +124,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   </Kb.Box2>
 )
 
-export const FilesPreview = ({onShowAll, userTlfUpdates}: FilesPreviewProps) => (
+export const FilesPreview = (props: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
       <Kb.Text type="BodySemibold" style={styles.tlfSectionHeader}>
@@ -130,7 +132,7 @@ export const FilesPreview = ({onShowAll, userTlfUpdates}: FilesPreviewProps) => 
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true}>
-      {userTlfUpdates.map(r => {
+      {props.userTlfUpdates.map(r => {
         return <UserTlfUpdateRow key={r.tlf + r.writer + r.timestamp} {...r} />
       })}
     </Kb.Box2>
@@ -139,6 +141,11 @@ export const FilesPreview = ({onShowAll, userTlfUpdates}: FilesPreviewProps) => 
 
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.black_60},
+  iconStyle: {
+    width: 16,
+    height: 16,
+    marginRight: Styles.globalMargins.xtiny,
+  },
   tlfContainer: {
     paddingTop: Styles.globalMargins.tiny,
     paddingBottom: Styles.globalMargins.tiny,
@@ -173,6 +180,7 @@ const styles = Styles.styleSheetCreate({
   },
   fileUpdateRow: {
     marginTop: Styles.globalMargins.xtiny,
+    alignItems: 'center',
   },
   toggleButton: Styles.platformStyles({
     common: {

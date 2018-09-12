@@ -81,14 +81,12 @@ const loadUserFileEdits = (state: TypedState, action) =>
       const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
       // Ensure we stat all path items for all updates, including paths to
       // navigate through to get to the updated files.
-      Saga.all(tlfUpdates.reduce((acc, u) =>
-        acc.concat(Types
-          .getPathElements(u.path)
-          .map((e, i, a) =>
-            Saga.put(FsGen.createFilePreviewLoad({
-              path: Types.getPathFromElements(a.slice(0, i + 1)),
-            })))
-        ), []))
+      Saga.all(tlfUpdates.reduce((acc: I.Map<Types.Path, any>, u) =>
+        Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+          const path = Types.getPathFromElements(a.slice(0, i + 1))
+          return acc.set(path, Saga.put(FsGen.createFilePreviewLoad({path})))
+        }, acc), I.Map()).toList().toArray()
+      )
       return FsGen.createUserFileEditsLoaded({
         tlfUpdates: tlfUpdates,
       })
