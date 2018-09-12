@@ -46,19 +46,16 @@ const walletChildren = {
         component: ConfirmForm,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      linkExisting,
       createNewAccount,
+      linkExisting,
     },
     component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   settings: {
     children: {
-      setDefaultAccount: {
-        children: {},
-        component: SetDefaultAccountPopup,
-        tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
+      createNewAccount,
+      linkExisting,
       removeAccount: {
         children: {
           reallyRemoveAccount: {
@@ -68,6 +65,11 @@ const walletChildren = {
           },
         },
         component: RemoveAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      setDefaultAccount: {
+        children: {},
+        component: SetDefaultAccountPopup,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
     },

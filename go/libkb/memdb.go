@@ -14,17 +14,23 @@ type MemDb struct {
 
 var _ LocalDb = (*MemDb)(nil)
 
-func NewMemDb() *MemDb {
-	c, _ := lru.New(10000)
+func NewMemDb(size int) *MemDb {
+	c, _ := lru.New(size)
 	return &MemDb{
 		lru: c,
 	}
 }
 
-func (m *MemDb) Open() error           { return nil }
-func (m *MemDb) ForceOpen() error      { return nil }
-func (m *MemDb) Close() error          { return nil }
-func (m *MemDb) Nuke() (string, error) { return "", nil }
+func (m *MemDb) Open() error      { return nil }
+func (m *MemDb) ForceOpen() error { return nil }
+func (m *MemDb) Close() error {
+	m.lru.Purge()
+	return nil
+}
+func (m *MemDb) Nuke() (string, error) {
+	m.lru.Purge()
+	return "", nil
+}
 func (m *MemDb) OpenTransaction() (res LocalDbTransaction, err error) {
 	return res, errors.New("not implemented")
 }
