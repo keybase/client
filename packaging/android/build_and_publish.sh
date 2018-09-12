@@ -2,6 +2,8 @@
 
 set -eE -u -o pipefail # Fail on error, call ERR trap
 
+export BABEL_PLATFORM=ReactNative
+
 automated_build=${AUTOMATED_BUILD:-}
 gopath=${GOPATH:-}
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
