@@ -757,20 +757,6 @@
           "name": "y1"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "HPrevInfo",
-      "fields": [
-        {
-          "type": "Seqno",
-          "name": "seqno"
-        },
-        {
-          "type": "LinkID",
-          "name": "hash"
-        }
-      ]
     }
   ],
   "messages": {},

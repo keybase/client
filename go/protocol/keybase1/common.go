@@ -939,18 +939,6 @@ func (o ImageCropRect) DeepCopy() ImageCropRect {
 	}
 }
 
-type HPrevInfo struct {
-	Seqno Seqno  `codec:"seqno" json:"seqno"`
-	Hash  LinkID `codec:"hash" json:"hash"`
-}
-
-func (o HPrevInfo) DeepCopy() HPrevInfo {
-	return HPrevInfo{
-		Seqno: o.Seqno.DeepCopy(),
-		Hash:  o.Hash.DeepCopy(),
-	}
-}
-
 type CommonInterface interface {
 }
 
