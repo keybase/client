@@ -70,8 +70,9 @@ class UpdatePassphrase extends Component<Props, State> {
           hintText="New passphrase"
           type={inputType}
           errorText={this.props.newPassphraseError}
+          value={this.state.passphrase}
           onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
-          uncontrolled={true}
+          uncontrolled={false}
           style={styleInput}
         />
         {!this.props.newPassphraseError && (
@@ -82,9 +83,10 @@ class UpdatePassphrase extends Component<Props, State> {
         <Input
           hintText="Confirm new passphrase"
           type={inputType}
+          value={this.state.passphraseConfirm}
           errorText={this.props.newPassphraseConfirmError}
           onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
-          uncontrolled={true}
+          uncontrolled={false}
           style={styleInput}
         />
         <Checkbox

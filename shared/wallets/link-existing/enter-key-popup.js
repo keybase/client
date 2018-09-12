@@ -39,6 +39,7 @@ const EnterKey = (props: EnterKeyProps) => {
           style={styles.input}
           onChangeText={props.onKeyChange}
           value={props.secretKey}
+          autoFocus={true}
         />
         {props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>

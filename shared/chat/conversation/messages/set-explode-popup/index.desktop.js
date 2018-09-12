@@ -24,7 +24,7 @@ const Header = (props: HeaderProps) => (
           E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
         <Text
-          type="BodySmallSemiboldInlineLink"
+          type="BodySmallSemiboldSecondaryLink"
           backgroundMode="Announcements"
           className="underline"
           onClickURL="https://keybase.io/blog/keybase-exploding-messages"

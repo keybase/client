@@ -51,14 +51,16 @@ const walletChildren = {
         component: ConfirmForm,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      linkExisting,
       createNewAccount,
+      linkExisting,
     },
     component: SendForm,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   },
   settings: {
     children: {
+      createNewAccount,
+      linkExisting,
       removeAccount: {
         children: {
           reallyRemoveAccount: {

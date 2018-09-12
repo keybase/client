@@ -16,6 +16,7 @@ module.exports = (storybookBaseConfig, configType) => {
   storybookBaseConfig.resolve = {
     extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   }
+
   storybookBaseConfig.plugins.push(
     new webpack.DefinePlugin({
       __DEV__: true,

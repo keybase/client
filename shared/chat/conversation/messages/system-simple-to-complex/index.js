@@ -90,7 +90,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
                 Everyone can now create and join channels.{' '}
                 <Text
                   onClick={onManageChannels}
-                  type="BodySmallSemiboldInlineLink"
+                  type="BodySmallSemiboldSecondaryLink"
                   style={{color: globalColors.blue}}
                 >
                   Manage your channel subscriptions

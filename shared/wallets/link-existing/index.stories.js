@@ -28,11 +28,6 @@ const enterKeyProps = {
   view: 'key',
 }
 
-const enterNameProps = {
-  ...common,
-  view: 'name',
-}
-
 const keyErrorProps = {
   ...common,
   keyError: 'Error: invalid key',
@@ -40,11 +35,8 @@ const keyErrorProps = {
   secretKeyValidationState: 'error',
 }
 
-const nameErrorProps = {
+const enterNameProps = {
   ...common,
-  name: 'this is too long',
-  nameError: 'Error: name too long',
-  nameValidationState: 'error',
   view: 'name',
 }
 
@@ -56,10 +48,8 @@ const load = () => {
       </Box>
     ))
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
-    .add('Enter name', () => <LinkExisting {...enterNameProps} />)
-    .add('Prefilled name', () => <LinkExisting {...enterNameProps} name="mikem's third account" />)
     .add('Secret key error', () => <LinkExisting {...keyErrorProps} />)
-    .add('Name error', () => <LinkExisting {...nameErrorProps} />)
+    .add('Enter name', () => <LinkExisting {...enterNameProps} />)
 }
 
 export default load

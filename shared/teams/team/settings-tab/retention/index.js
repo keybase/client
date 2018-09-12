@@ -99,6 +99,7 @@ class RetentionPicker extends React.Component<Props, State> {
     }))
 
   _setDropdownRef = ref => (this._dropdownRef = ref)
+  _getDropdownRef = () => this._dropdownRef
 
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
@@ -158,7 +159,7 @@ class RetentionPicker extends React.Component<Props, State> {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <FloatingMenu
-          attachTo={this._dropdownRef}
+          attachTo={this._getDropdownRef}
           closeOnSelect={true}
           visible={this.state.showMenu}
           onHidden={this._toggleShowMenu}

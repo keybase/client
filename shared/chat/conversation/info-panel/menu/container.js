@@ -15,7 +15,7 @@ import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tr
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?Component<any, any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,
