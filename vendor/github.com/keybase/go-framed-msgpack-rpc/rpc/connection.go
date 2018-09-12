@@ -530,10 +530,11 @@ func (c *Connection) connect(ctx context.Context) error {
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
 func (c *Connection) DoCommand(ctx context.Context, name string,
 	rpcFunc func(GenericClient) error) error {
-	if c.initialReconnectBackoffWindow != nil && isWithFireNow(ctx) {
-		c.randomTimer.FireNow()
-	}
 	for {
+		if c.initialReconnectBackoffWindow != nil && isWithFireNow(ctx) {
+			c.randomTimer.FireNow()
+		}
+
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
 		connErr := c.waitForConnection(ctx, false)

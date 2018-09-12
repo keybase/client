@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"fmt"
 	"sync"
 
 	"golang.org/x/net/context"
@@ -21,6 +22,23 @@ const (
 	MethodNotify   MethodType = 2
 	MethodCancel   MethodType = 3
 )
+
+func (t MethodType) String() string {
+	switch t {
+	case MethodInvalid:
+		return "Invalid"
+	case MethodCall:
+		return "Call"
+	case MethodResponse:
+		return "Response"
+	case MethodNotify:
+		return "Notify"
+	case MethodCancel:
+		return "Cancel"
+	default:
+		return fmt.Sprintf("Method(%d)", t)
+	}
+}
 
 type ErrorUnwrapper interface {
 	MakeArg() interface{}
