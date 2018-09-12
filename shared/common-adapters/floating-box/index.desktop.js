@@ -41,19 +41,24 @@ class FloatingBox extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    let oldAttachTo = null
-    if (prevProps.attachTo) {
-      oldAttachTo = prevProps.attachTo()
-    }
-    let newAttachTo = null
-    if (this.props.attachTo) {
-      newAttachTo = this.props.attachTo()
-    }
-
-    if (oldAttachTo !== newAttachTo) {
-      const targetRect = this._getTargetRect(this.props)
-      this.setState(p => (p.targetRect !== targetRect ? {targetRect} : null))
-    }
+    const targetRect = this._getTargetRect(this.props)
+    this.setState(p => {
+      if (p.targetRect === targetRect) {
+        return null
+      }
+      if (!p.targetRect || !targetRect) {
+        return {targetRect}
+      }
+      if (
+        p.targetRect.left !== targetRect.left ||
+        p.targetRect.top !== targetRect.top ||
+        p.targetRect.width !== targetRect.width ||
+        p.targetRect.height !== targetRect.height
+      ) {
+        return {targetRect}
+      }
+      return null
+    })
   }
 
   render() {
