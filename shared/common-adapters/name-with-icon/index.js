@@ -22,14 +22,14 @@ export type NameWithIconProps = {|
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
   metaTwo?: string | React.Node,
-  onClick?: any => void,
+  onClick?: (SyntheticEvent<> | void) => void,
   onEditIcon?: any => void,
   size?: Size,
   teamname?: string,
-  title?: string, // for non-users
+  title?: string,
   titleStyle?: Styles.StylesCrossPlatform,
   username?: string,
-|}
+|} // for non-users
 
 // If lineclamping isn't working, try adding a static width in containerStyle
 const NameWithIcon = (props: NameWithIconProps) => {

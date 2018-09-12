@@ -13,7 +13,7 @@ type ParticipantsProps = {|
   // Must have a recipient user, stellar address, or account
   recipientUsername?: string,
   recipientFullName?: string,
-  onShowProfile?: string => void,
+  onShowProfile?: () => void,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
   recipientAccountAssets?: string,

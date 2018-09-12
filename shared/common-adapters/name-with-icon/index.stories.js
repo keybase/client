@@ -11,7 +11,7 @@ const commonProps = {
 }
 
 const outerClick = evt => {
-  if (!evt.defaultPrevented) {
+  if (evt && !evt.defaultPrevented) {
     Sb.action('Outer click')(evt)
   }
 }
