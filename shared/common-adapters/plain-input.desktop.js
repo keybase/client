@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
+import {pick} from 'lodash-es'
 
 import type {_StylesDesktop} from '../styles/css'
 import type {InternalProps, TextInfo} from './plain-input'
@@ -129,6 +130,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
 
   _getCommonProps = () => {
     let commonProps: any = {
+      ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
@@ -144,9 +146,6 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
     if (this.props.disabled) {
       commonProps.readOnly = 'readonly'
-    }
-    if (this.props.maxLength) {
-      commonProps.maxlength = this.props.maxLength
     }
     return commonProps
   }

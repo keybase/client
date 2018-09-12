@@ -4,8 +4,10 @@ import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
+import {checkTextInfo} from './input.shared'
+import {pick} from 'lodash-es'
 
-import type {InternalProps} from './plain-input'
+import type {InternalProps, TextInfo} from './plain-input'
 
 type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
 
@@ -26,8 +28,10 @@ class PlainInput extends Component<InternalProps, State> {
     focused: false,
     height: null,
   }
-
   _input: ?NativeTextInput
+  _lastNativeText: ?string // sourced from onChangeText
+  _lastNativeSelection: ?{start: number, end: number}
+
   _setInputRef = (ref: ?NativeTextInput) => {
     this._input = ref
   }
@@ -36,6 +40,32 @@ class PlainInput extends Component<InternalProps, State> {
   // https://facebook.github.io/react-native/docs/direct-manipulation.html .
   setNativeProps = (nativeProps: Object) => {
     this._input && this._input.setNativeProps(nativeProps)
+  }
+
+  transformText = (fn: TextInfo => TextInfo) => {
+    const currentTextInfo = {
+      text: this._lastNativeText || '',
+      selection: this._lastNativeSelection || {start: 0, end: 0},
+    }
+    const newTextInfo = fn(currentTextInfo)
+    checkTextInfo(newTextInfo)
+    this.setNativeProps({text: newTextInfo.text, selection: newTextInfo.selection})
+    this._lastNativeText = newTextInfo.text
+    this._lastNativeSelection = newTextInfo.selection
+  }
+
+  _onChangeText = (t: string) => {
+    this._lastNativeText = t
+    this.props.onChangeText && this.props.onChangeText(t)
+  }
+
+  _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
+    let {start: _start, end: _end} = event.nativeEvent.selection
+    // Work around Android bug which sometimes puts end before start:
+    // https://github.com/facebook/react-native/issues/18579 .
+    const start = Math.min(_start, _end)
+    const end = Math.max(_start, _end)
+    this._lastNativeSelection = {start, end}
   }
 
   _onContentSizeChange = (event: ContentSizeChangeEvent) => {
@@ -116,6 +146,7 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getProps = () => {
     const common: any = {
+      ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
       autoFocus: this.props.autoFocus,
@@ -123,9 +154,10 @@ class PlainInput extends Component<InternalProps, State> {
       keyboardType: this.props.keyboardType,
       multiline: false,
       onBlur: this._onBlur,
-      onChangeText: this.props.onChangeText,
+      onChangeText: this._onChangeText,
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
+      onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
       placeholderTextColor: this.props.placeholderColor || globalColors.black_40,
@@ -151,6 +183,9 @@ class PlainInput extends Component<InternalProps, State> {
 
   render = () => {
     const props = this._getProps()
+    if (props.value) {
+      this._lastNativeText = props.value
+    }
     return <NativeTextInput {...props} />
   }
 }

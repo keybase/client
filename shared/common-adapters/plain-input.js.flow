@@ -38,6 +38,7 @@ export type Props = {
   style?: StylesCrossPlatform,
   textType?: TextType,
   type?: 'password' | 'text' | 'number',
+  value?: string, // Makes this a controlled input when passed
 
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
