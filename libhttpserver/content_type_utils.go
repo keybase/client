@@ -28,19 +28,20 @@ func (w *contentTypeOverridingResponseWriter) overrideMimeType(
 	// by the frontend WebView.
 	ty := strings.ToLower(mimeType)
 	switch {
-	// First reject anything containing javascript/xml/html.
+	// First anything textual as text/plain.
+	// Includes javascript, html, xml. (note that the type may be e.g. application/xhtml+xml)
 	case strings.Contains(ty, "javascript") ||
 		strings.Contains(ty, "xml") ||
-		strings.Contains(ty, "html"):
+		strings.Contains(ty, "html") ||
+		strings.HasPrefix(ty, "text/"):
 		return "text/plain"
 	// Pass multimedia types through, and pdf too.
 	case strings.HasPrefix(ty, "audio/") ||
 		strings.HasPrefix(ty, "image/") ||
 		strings.HasPrefix(ty, "video/") ||
-		ty == "application/pdf" ||
-		ty == "text/plain":
+		ty == "application/pdf":
 		return ty
-	// Otherwise text/plain.
+	// Otherwise default to binary data.
 	default:
 		return "application/octet-stream"
 	}
