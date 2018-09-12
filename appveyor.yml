@@ -3,9 +3,9 @@ environment:
     GOPATH: c:\work\
     KEYBASE_SERVER_URI: https://ci1.keybase.io
     CGO_ENABLED: 1
-    GOARCH: 386
-    CC: c:\MinGW\bin\gcc
-    CPATH: C:\MinGW\include;C:\MinGW\include\ddk
+    GOARCH: amd64
+    CC: c:\msys64\mingw64\bin\gcc
+    CPATH: C:\msys64\include;C:\msys64\include\ddk
     GOVERSION: 1.10.3
 
 install:
@@ -14,16 +14,16 @@ install:
   - ps: rmdir C:\go -Force -Recurse -Confirm:$false
   - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
   - set Path=c:\go\bin;%Path%
-  # Keybase-built and signed v1.0.0-RC4
-  - appveyor DownloadFile https://github.com/keybase/dokany/releases/download/v1.0.4.84/dokany.zip
-  - 7z x dokany.zip -o"C:\" -y -aoa > nul
-  - copy C:\dokany\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
-  - pushd C:\dokany\Win32\Release
-  - copy dokan1.dll C:\windows\syswow64\
+  # Stock Dokan 1.2
+  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.0.1000/dokan.zip 
+  - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
+  - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
+  - pushd C:\dokan\x64\Release
+  - copy dokan1.dll C:\windows\system32\
   - Bcdedit.exe -set TESTSIGNING ON
   - ps: Restart-Computer -Force
   - ps: Start-Sleep -s 10
-  - cd C:\dokany\Win32\Release
+  - cd C:\dokan\x64\Release
   - dokanctl /i d
   - sc query dokan1
 
@@ -46,7 +46,7 @@ after_build:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
-  - SET PATH=%PATH%;c:\MinGW\bin
+  - SET PATH=%PATH%;c:\msys64\mingw64\bin;C:\msys64\bin
   - cd c:\work\src\github.com\keybase\kbfs
   - cd dokan
   - go test -i
