@@ -11,7 +11,7 @@ import ConnectedUsernames from '../usernames/container'
 type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
-type Props = {
+export type NameWithIconProps = {|
   avatarStyle?: Styles.StylesCrossPlatform,
   colorFollowing?: boolean,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -29,10 +29,10 @@ type Props = {
   title?: string, // for non-users
   titleStyle?: Styles.StylesCrossPlatform,
   username?: string,
-}
+|}
 
 // If lineclamping isn't working, try adding a static width in containerStyle
-const NameWithIcon = (props: Props) => {
+const NameWithIcon = (props: NameWithIconProps) => {
   if (props.username && props.teamname) {
     throw new Error('Can only use username or teamname in NameWithIcon; got both')
   }
@@ -222,4 +222,3 @@ const getAdapterProps = (size: Size, isUser: boolean) => {
 }
 
 export default NameWithIcon
-export type {Props}
