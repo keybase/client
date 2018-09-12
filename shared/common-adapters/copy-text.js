@@ -67,18 +67,12 @@ class _CopyText extends React.Component<Props, State> {
   }
 
   _isRevealed = () => !this.props.withReveal || this.state.revealed
-  _getAttachmentRef = () => {
-    console.log('aaa get att', this._attachmentRef)
-    return this._attachmentRef
-  }
+  _getAttachmentRef = () => this._attachmentRef
 
   render() {
     return (
       <Box2
-        ref={r => {
-          console.log('aaa box set ref')
-          this._attachmentRef = r
-        }}
+        ref={r => (this._attachmentRef = r)}
         direction="horizontal"
         style={Styles.collapseStyles([styles.container, this.props.containerStyle])}
       >
