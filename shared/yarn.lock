@@ -6145,13 +6145,13 @@ flow-annotation-check@1.8.1:
     glob "7.1.1"
     load-pkg "^3.0.1"
 
-flow-bin@0.79.0:
-  version "0.79.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.79.0.tgz#a7029f2832d45e5b78f7e77a74fee898722fb6ef"
+flow-bin@0.80.0:
+  version "0.80.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.80.0.tgz#04cc1ee626a6f50786f78170c92ebe1745235403"
 
-"flow-coverage-report@git://github.com/keybase/flow-coverage-report#keybase-changes-off-master":
-  version "0.5.0"
-  resolved "git://github.com/keybase/flow-coverage-report#c8c6201e79d0d902df67e60da7984154845b531a"
+flow-coverage-report@0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/flow-coverage-report/-/flow-coverage-report-0.6.0.tgz#3bab30921f14ef798d709902048205bd7611ec43"
   dependencies:
     array.prototype.find "2.0.4"
     babel-runtime "6.23.0"

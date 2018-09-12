@@ -874,17 +874,6 @@ const _saveChannelMembership = function(action: TeamsGen.SaveChannelMembershipPa
   return Saga.all(calls)
 }
 
-const _afterSaveCalls = results => {
-  const after = last(results)
-  const [rpcs] = results
-
-  // Display any errors from the rpcs
-  const errs = rpcs
-    .filter(r => r.type === 'err')
-    .map(({payload}) => Saga.put(ConfigGen.createGlobalError({globalError: convertToError(payload)})))
-  return Saga.all([...errs, after])
-}
-
 function* _createChannel(action: TeamsGen.CreateChannelPayload) {
   const {channelname, description, teamname, rootPath, sourceSubPath, destSubPath} = action.payload
   yield Saga.put(TeamsGen.createSetTeamCreationError({error: ''}))
@@ -958,150 +947,163 @@ const _setMemberPublicity = function*(action: TeamsGen.SetMemberPublicityPayload
   }
 }
 
-const _setPublicity = function(action: TeamsGen.SetPublicityPayload, state: TypedState) {
-  const {teamname, settings} = action.payload
-  const waitingKey = {key: Constants.settingsWaitingKey(teamname)}
+const _setPublicity = function(state: TypedState, action: TeamsGen.SetPublicityPayload) {
+  return Saga.call(function*() {
+    const {teamname, settings} = action.payload
+    const waitingKey = Constants.settingsWaitingKey(teamname)
 
-  const teamSettings = state.teams.getIn(
-    ['teamNameToSettings', teamname],
-    Constants.makeTeamSettings({
-      open: false,
-      joinAs: RPCTypes.teamsTeamRole['reader'],
-    })
-  )
+    const teamSettings = state.teams.getIn(
+      ['teamNameToSettings', teamname],
+      Constants.makeTeamSettings({
+        joinAs: RPCTypes.teamsTeamRole['reader'],
+        open: false,
+      })
+    )
 
-  const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
+    const teamPublicitySettings = Constants.getTeamPublicitySettings(state, teamname)
 
-  const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
-  const openTeam = teamSettings.open
-  const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
-  const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
-  const publicityMember = teamPublicitySettings.member
-  const publicityTeam = teamPublicitySettings.team
+    const ignoreAccessRequests = teamPublicitySettings.ignoreAccessRequests
+    const openTeam = teamSettings.open
+    const openTeamRole = Constants.teamRoleByEnum[teamSettings.joinAs]
+    const publicityAnyMember = teamPublicitySettings.anyMemberShowcase
+    const publicityMember = teamPublicitySettings.member
+    const publicityTeam = teamPublicitySettings.team
 
-  const calls = []
-  if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
-    calls.push(
-      Saga.call(function*() {
-        RPCTypes.teamsTeamSetSettingsRpcPromise({
-          name: teamname,
-          settings: {
-            joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
-            open: settings.openTeam,
-          },
+    const calls = []
+    if (openTeam !== settings.openTeam || (settings.openTeam && openTeamRole !== settings.openTeamRole)) {
+      calls.push(
+        Saga.call(function*() {
+          return RPCTypes.teamsTeamSetSettingsRpcPromise(
+            {
+              name: teamname,
+              settings: {
+                joinAs: RPCTypes.teamsTeamRole[settings.openTeamRole],
+                open: settings.openTeam,
+              },
+            },
+            waitingKey
+          )
+            .then(payload => ({payload, type: 'ok'}))
+            .catch(payload => ({payload, type: 'error'}))
         })
-          .then(payload => ({type: 'ok', payload}))
-          .catch(payload => ({type: 'error', payload}))
-      })
-    )
-  }
-  if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
-    calls.push(
-      Saga.call(function*() {
-        RPCTypes.teamsSetTarsDisabledRpcPromise({
-          disabled: settings.ignoreAccessRequests,
-          name: teamname,
+      )
+    }
+    if (ignoreAccessRequests !== settings.ignoreAccessRequests) {
+      calls.push(
+        Saga.call(function*() {
+          return RPCTypes.teamsSetTarsDisabledRpcPromise(
+            {
+              disabled: settings.ignoreAccessRequests,
+              name: teamname,
+            },
+            waitingKey
+          )
+            .then(payload => ({payload, type: 'ok'}))
+            .catch(payload => ({payload, type: 'error'}))
         })
-          .then(payload => ({type: 'ok', payload}))
-          .catch(payload => ({type: 'error', payload}))
-      })
-    )
-  }
-  if (publicityAnyMember !== settings.publicityAnyMember) {
-    calls.push(
-      Saga.call(function*() {
-        RPCTypes.teamsSetTeamShowcaseRpcPromise({
-          anyMemberShowcase: settings.publicityAnyMember,
-          name: teamname,
+      )
+    }
+    if (publicityAnyMember !== settings.publicityAnyMember) {
+      calls.push(
+        Saga.call(function*() {
+          return RPCTypes.teamsSetTeamShowcaseRpcPromise(
+            {
+              anyMemberShowcase: settings.publicityAnyMember,
+              name: teamname,
+            },
+            waitingKey
+          )
+            .then(payload => ({payload, type: 'ok'}))
+            .catch(payload => ({payload, type: 'error'}))
         })
-          .then(payload => ({type: 'ok', payload}))
-          .catch(payload => ({type: 'error', payload}))
-      })
-    )
-  }
-  if (publicityMember !== settings.publicityMember) {
-    calls.push(
-      Saga.call(function*() {
-        RPCTypes.teamsSetTeamMemberShowcaseRpcPromise({
-          isShowcased: settings.publicityMember,
-          name: teamname,
+      )
+    }
+    if (publicityMember !== settings.publicityMember) {
+      calls.push(
+        Saga.call(function*() {
+          return RPCTypes.teamsSetTeamMemberShowcaseRpcPromise(
+            {
+              isShowcased: settings.publicityMember,
+              name: teamname,
+            },
+            waitingKey
+          )
+            .then(payload => ({payload, type: 'ok'}))
+            .catch(payload => ({payload, type: 'error'}))
         })
-          .then(payload => ({type: 'ok', payload}))
-          .catch(payload => ({type: 'error', payload}))
-      })
-    )
-  }
-  if (publicityTeam !== settings.publicityTeam) {
-    calls.push(
-      Saga.call(function*() {
-        RPCTypes.teamsSetTeamShowcaseRpcPromise({
-          isShowcased: settings.publicityTeam,
-          name: teamname,
+      )
+    }
+    if (publicityTeam !== settings.publicityTeam) {
+      calls.push(
+        Saga.call(function*() {
+          return RPCTypes.teamsSetTeamShowcaseRpcPromise(
+            {
+              isShowcased: settings.publicityTeam,
+              name: teamname,
+            },
+            waitingKey
+          )
+            .then(payload => ({payload, type: 'ok'}))
+            .catch(payload => ({payload, type: 'error'}))
         })
-          .then(payload => ({type: 'ok', payload}))
-          .catch(payload => ({type: 'error', payload}))
-      })
-    )
-  }
-  return Saga.all([
-    Saga.all(calls),
-    Saga.put(WaitingGen.createIncrementWaiting(waitingKey)),
-    Saga.call(() =>
-      Saga.all([
-        // TODO delete this getDetails call when CORE-7125 is finished
-        Saga.put(TeamsGen.createGetDetails({teamname})),
-        Saga.put(WaitingGen.createDecrementWaiting(waitingKey)),
-      ])
-    ),
-  ])
+      )
+    }
+
+    const results = yield Saga.all(calls)
+    // TODO delete this getDetails call when CORE-7125 is finished
+    Saga.put(TeamsGen.createGetDetails({teamname}))
+
+    // Display any errors from the rpcs
+    const errs = results
+      .filter(r => r.type === 'error')
+      .map(({payload}) => Saga.put(ConfigGen.createGlobalError({globalError: convertToError(payload)})))
+    yield Saga.all(errs)
+  })
 }
 
+// This is to simplify the changes that setIncomingCallMap created. Could clean this up and remove this
+const arrayOfActionsToSequentially = actions =>
+  Saga.call(Saga.sequentially, (actions || []).map(a => Saga.put(a)))
+
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamChangedByName',
-    (args: RPCTypes.NotifyTeamTeamChangedByNameRpcParam, _, __, getState) => {
-      const state = getState()
-      logger.info(`Got teamChanged for ${args.teamName} from service`)
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyTeam.teamChangedByName': (param, _, state) => {
+      logger.info(`Got teamChanged for ${param.teamName} from service`)
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(args.teamName)) {
+      if (selectedTeamNames.includes(param.teamName)) {
         // only reload if that team is selected
-        return getLoadCalls(args.teamName)
+        return arrayOfActionsToSequentially(getLoadCalls(param.teamName))
       }
-      return getLoadCalls()
-    }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamDeleted',
-    (args: RPCTypes.NotifyTeamTeamDeletedRpcParam, _, __, getState) => {
-      const state = getState()
-      const {teamID} = args
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.teamDeleted': (param, _, state) => {
+      const {teamID} = param
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
+        return arrayOfActionsToSequentially([
+          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+          ...getLoadCalls(),
+        ])
       }
-      return getLoadCalls()
-    }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.teamExit',
-    (args: RPCTypes.NotifyTeamTeamExitRpcParam, _, __, getState) => {
-      const state = getState()
-      const {teamID} = args
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.teamExit': (param, _, state) => {
+      const {teamID} = param
       const selectedTeamNames = Constants.getSelectedTeamNames(state)
       if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return [RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}), ...getLoadCalls()]
+        return arrayOfActionsToSequentially([
+          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+          ...getLoadCalls(),
+        ])
       }
-      return getLoadCalls()
-    }
-  )
-  engine().setIncomingActionCreators(
-    'keybase.1.NotifyTeam.avatarUpdated',
-    ({name}: RPCTypes.NotifyTeamAvatarUpdatedRpcParam, _, __, getState) => [
-      getState().teams.teamnames.includes(name)
-        ? ConfigGen.createLoadTeamAvatars({teamnames: [name]})
-        : ConfigGen.createLoadAvatars({usernames: [name]}),
-    ]
-  )
+      return arrayOfActionsToSequentially(getLoadCalls())
+    },
+    'keybase.1.NotifyTeam.avatarUpdated': ({name}, _, state) => [
+      state.teams.teamnames.includes(name)
+        ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+        : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]})),
+    ],
+  })
 }
 
 function getLoadCalls(teamname?: string) {
@@ -1366,7 +1368,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TeamsGen.badgeAppForTeams, _badgeAppForTeams)
   yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange, null, logError)
   yield Saga.safeTakeEvery(TeamsGen.inviteToTeamByPhone, _inviteToTeamByPhone)
-  yield Saga.safeTakeEveryPure(TeamsGen.setPublicity, _setPublicity, _afterSaveCalls)
+  yield Saga.actionToAction(TeamsGen.setPublicity, _setPublicity)
   yield Saga.safeTakeEveryPure(
     TeamsGen.checkRequestedAccess,
     _checkRequestedAccess,

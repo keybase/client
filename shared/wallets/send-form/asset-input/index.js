@@ -62,7 +62,7 @@ const AssetInput = (props: Props) => (
       </Text>
     )}
     <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.labelMargin}>
+      <Text type="BodySmall" style={styles.labelMargin} selectable={true}>
         {props.bottomLabel}
       </Text>
       <Icon

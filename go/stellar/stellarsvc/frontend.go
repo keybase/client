@@ -708,16 +708,37 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		available bool
 		from      stellar1.AccountID
 	}{}
-	owns, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
-	if err != nil || !owns {
-		log("UserOwnsAccount -> owns:%v err:%v", owns, err)
-		res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-			Level:   "error",
-			Message: "Could not find source account.",
-		})
+	if arg.FromPrimaryAccount != arg.From.IsNil() {
+		// Exactly one of `from` and `fromPrimaryAccount` must be set.
+		return res, fmt.Errorf("invalid build payment parameters")
+	}
+	if arg.FromPrimaryAccount {
+		primaryAccountID, err := bpc.PrimaryAccount(s.mctx(ctx))
+		if err != nil {
+			log("PrimaryAccount -> err:%v", err)
+			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+				Level:   "error",
+				Message: "Could not find primary account.",
+			})
+		} else {
+			fromInfo.from = primaryAccountID
+			fromInfo.available = true
+		}
 	} else {
-		fromInfo.from = arg.From
-		fromInfo.available = true
+		owns, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
+		if err != nil || !owns {
+			log("OwnsAccount -> owns:%v err:%v", owns, err)
+			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+				Level:   "error",
+				Message: "Could not find source account.",
+			})
+		} else {
+			fromInfo.from = arg.From
+			fromInfo.available = true
+		}
+	}
+	if fromInfo.available {
+		res.From = fromInfo.from
 		if arg.FromSeqno == "" {
 			readyChecklist.from = true
 		} else {
