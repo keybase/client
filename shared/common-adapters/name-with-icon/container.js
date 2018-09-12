@@ -1,18 +1,22 @@
 // @flow
 import {compose, connect, setDisplayName} from '../../util/container'
+import * as Route from '../../actions/route-tree'
+import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
-  onClick: (any => void) | 'tracker' | 'profile',
+  onClick: ((name: string) => void) | 'tracker' | 'profile',
 |}
 
 const mapStateToProps = () => ({})
 
 const mapDispatchToProps = dispatch => ({
-  onOpenProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onOpenUserProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
+  onOpenTeamProfile: (teamname: string) =>
+    dispatch(Route.navigateTo([teamsTab, {props: {teamname: teamname}, selected: 'team'}])),
   onOpenTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
@@ -22,9 +26,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   let functionOnClick
   if (onClick === 'tracker') {
-    functionOnClick = dispatchProps.onOpenTracker
+    if (ownProps.username) {
+      functionOnClick = dispatchProps.onOpenTracker
+    } else {
+      throw new Error('Cannot open tracker without username')
+    }
   } else if (onClick === 'profile') {
-    functionOnClick = dispatchProps.onOpenProfile
+    if (ownProps.username) {
+      functionOnClick = dispatchProps.onOpenUserProfile
+    } else {
+      functionOnClick = dispatchProps.onOpenTeamProfile
+    }
   } else if (typeof onClick === 'function') {
     functionOnClick = onClick
   }
