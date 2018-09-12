@@ -59,7 +59,7 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 	}
 	tb.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 
-	ctx := context.Background()
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
 	if err != nil {
@@ -68,7 +68,6 @@ func createUserFuse(tb testing.TB, ith int, config *libkbfs.ConfigLocal,
 
 	ctx, cancelFn := context.WithCancel(ctx)
 
-	ctx = filesys.WithContext(ctx)
 	logTags := logger.CtxLogTags{
 		CtxUserKey: CtxOpUser,
 	}
