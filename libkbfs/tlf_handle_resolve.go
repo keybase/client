@@ -12,7 +12,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -688,8 +687,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			id:   id,
 		}, keybase1.SocialAssertion{}, tlfID, nil
 	case NoSuchUserError:
-		socialAssertion, ok := externals.NormalizeSocialAssertionStatic(ra.assertion)
-		if !ok {
+		socialAssertion, serr := ra.resolver.NormalizeSocialAssertion(ctx, ra.assertion)
+		if serr != nil {
 			return nameIDPair{}, keybase1.SocialAssertion{}, tlf.NullID, err
 		}
 		return nameIDPair{}, socialAssertion, tlf.NullID, nil

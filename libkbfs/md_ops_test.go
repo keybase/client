@@ -278,6 +278,7 @@ func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil)
 
+	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).AnyTimes()
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)

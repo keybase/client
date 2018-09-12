@@ -264,6 +264,17 @@ func (k *KeybaseDaemonLocal) Identify(
 	return k.Resolve(ctx, assertion)
 }
 
+// NormalizeSocialAssertion implements the KeybaseService interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) NormalizeSocialAssertion(
+	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
+}
+
 func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 	ctx context.Context, name string, r []kbname.NormalizedUsername,
 	ur []keybase1.SocialAssertion,

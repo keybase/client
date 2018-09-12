@@ -5,11 +5,13 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -50,6 +52,14 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 		Return(ImplicitTeamInfo{}, errors.New("No such team"))
 
 	return mockCtrl, config, ctx
+}
+
+func normalizeSocialAssertion(assertion string) (keybase1.SocialAssertion, error) {
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
 }
 
 func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
@@ -423,6 +433,8 @@ func testKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T, ver kbfsmd.Metad
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
+	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+		normalizeSocialAssertion("bob@twitter"))
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob@twitter", tlf.Public)
@@ -463,6 +475,12 @@ func testKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T, ver kbfsmd.M
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
+	gomock.InOrder(
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("alice@twitter")),
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("charlie@twitter")),
+	)
 	id := tlf.FakeID(1, tlf.Public)
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), constIDGetter{id},
@@ -499,6 +517,14 @@ func testKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsmd.Meta
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
+	gomock.InOrder(
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("bob@twitter")),
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("dave@twitter")),
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("charlie@twitter")),
+	)
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), constIDGetter{id},
@@ -731,6 +757,14 @@ func testKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T, ver kbfsm
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
+	gomock.InOrder(
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("dave@twitter")),
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("bob@twitter")),
+		config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+			normalizeSocialAssertion("charlie@twitter")),
+	)
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,dave@twitter#bob@twitter,charlie@twitter", tlf.Private)
@@ -811,6 +845,8 @@ func testKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T, ver kbf
 	mockCtrl, config, ctx := keyManagerInit(t, ver)
 	defer keyManagerShutdown(mockCtrl, config)
 
+	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).Return(
+		normalizeSocialAssertion("bob@twitter")).Times(2)
 	id := tlf.FakeID(1, tlf.Private)
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), constIDGetter{id}, "alice,bob,bob@twitter",

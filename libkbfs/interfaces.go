@@ -533,6 +533,14 @@ type KeybaseService interface {
 	Identify(ctx context.Context, assertion, reason string) (
 		kbname.NormalizedUsername, keybase1.UserOrTeamID, error)
 
+	// NormalizeSocialAssertion creates a SocialAssertion from its input and
+	// normalizes it.  The service name will be lowercased.  If the service is
+	// case-insensitive, then the username will also be lowercased.  Colon
+	// assertions (twitter:user) will be transformed to the user@twitter
+	// format.  Only registered services are allowed.
+	NormalizeSocialAssertion(
+		ctx context.Context, assertion string) (keybase1.SocialAssertion, error)
+
 	// ResolveIdentifyImplicitTeam resolves, and optionally
 	// identifies, an implicit team.  If the implicit team doesn't yet
 	// exist, and doIdentifies is true, one is created.
@@ -668,6 +676,13 @@ type resolver interface {
 	// team.
 	ResolveTeamTLFID(ctx context.Context, teamID keybase1.TeamID) (
 		tlf.ID, error)
+	// NormalizeSocialAssertion creates a SocialAssertion from its input and
+	// normalizes it.  The service name will be lowercased.  If the service is
+	// case-insensitive, then the username will also be lowercased.  Colon
+	// assertions (twitter:user) will be transformed to the user@twitter
+	// format.  Only registered services are allowed.
+	NormalizeSocialAssertion(
+		ctx context.Context, assertion string) (keybase1.SocialAssertion, error)
 }
 
 type identifier interface {
