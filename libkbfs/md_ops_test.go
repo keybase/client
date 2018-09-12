@@ -81,6 +81,7 @@ func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controlle
 		Return(tlf.NullID, NoSuchTlfIDError{nil})
 	config.mockMdcache.EXPECT().PutIDForHandle(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
+	mockNormalizeSocialAssertion(config)
 
 	return mockCtrl, config, ctx
 }
@@ -278,7 +279,6 @@ func testMDOpsGetIDForUnresolvedHandlePublicSuccess(
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil)
 
-	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).AnyTimes()
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(), constIDGetter{id},
 		"alice,bob@twitter", tlf.Public)
 	require.NoError(t, err)
