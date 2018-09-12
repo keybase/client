@@ -414,6 +414,11 @@ func (f *FS) ErrorPrint(err error) {
 	f.log.Errorf("Dokan error: %v", err)
 }
 
+// Printf prints information from the Dokan library.
+func (f *FS) Printf(fmt string, args ...interface{}) {
+	f.log.Info("Dokan info: "+fmt, args...)
+}
+
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(ctx context.Context, src dokan.File, sourceFI *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking was handled by original file open, this is no longer true.
