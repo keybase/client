@@ -263,19 +263,8 @@ func encodeOuterLink(
 	// When 2.3 links are mandatory, it will be invalid for hPrevInfo == nil,
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
-	requiredHighSkips, err := m.G().FeatureFlags.EnabledWithError(m, FeatureRequireHighSkips)
-	if err != nil {
-		return encodedOuterLink, err
-	}
-	if requiredHighSkips && hPrevInfo == nil {
-		// TODO: Need to cache bust to force reverification
-		return encodedOuterLink, fmt.Errorf("High skip must be provided: please update your client.")
-	}
-	allowedHighSkips, err := m.G().FeatureFlags.EnabledWithError(m, FeatureAllowHighSkips)
-	if err != nil {
-		return encodedOuterLink, err
-	}
-	if allowedHighSkips && hPrevInfo != nil {
+	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
+	if allowHighSkips && hPrevInfo != nil {
 		hPrevSeqno := &hPrevInfo.Seqno
 		hPrevHash := &hPrevInfo.Hash
 		outerLink := OuterLinkV2{

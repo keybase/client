@@ -541,3 +541,7 @@ func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int)
 	rawFeature := rawFeatureSlot{on, cacheSec}
 	slot.readFrom(m, rawFeature)
 }
+
+func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
+	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
+}

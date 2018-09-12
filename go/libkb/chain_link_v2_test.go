@@ -115,8 +115,7 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 func serdeOuterLink(t *testing.T, tc TestContext, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID) OuterLinkV2 {
 	m := NewMetaContextForTest(tc)
 
-	ModifyFeatureForTest(m, FeatureAllowHighSkips, true, 100000)
-	ModifyFeatureForTest(m, FeatureRequireHighSkips, false, 100000)
+	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
 
 	var hPrevInfo *HPrevInfo
 	hPrevInfo = nil

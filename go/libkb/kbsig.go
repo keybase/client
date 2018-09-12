@@ -360,11 +360,8 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("prev", prev)
 
 	var hPrevInfo *HPrevInfo
-	allowedHighSkips, err := m.G().FeatureFlags.EnabledWithError(m, FeatureAllowHighSkips)
-	if err != nil {
-		return nil, err
-	}
-	if allowedHighSkips {
+	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
+	if allowHighSkips {
 		if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
 			return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
 		} else if arg.Me != nil {
@@ -593,6 +590,7 @@ func MakeSig(
 		if hPrevErr != nil {
 			return sig, sigID, linkID, hPrevErr
 		}
+		/* TODO Should this be nullable for kex..? */
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
 			m,
 			signingKey,
