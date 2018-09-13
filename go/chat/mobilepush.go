@@ -52,7 +52,7 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
 	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess")()
-	conn, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler, &remoteNotificationSuccessHandler{})
+	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler, &remoteNotificationSuccessHandler{})
 	if err != nil {
 		return
 	}
@@ -62,11 +62,10 @@ func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []strin
 	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
 	if err = cli.RemoteNotificationSuccessful(ctx,
 		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:        gregor1.SessionToken(nist.Token().String()),
+			AuthToken:        token,
 			CompanionPushIDs: pushIDs,
 		}); err != nil {
-		h.Debug(ctx, "AckNotificationSuccess: failed to invoke remote notification success: %",
-			err.Error())
+		h.Debug(ctx, "AckNotificationSuccess: failed to invoke remote notification success: %s", err)
 	}
 }
 
@@ -104,13 +103,13 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
-		h.Debug(ctx, "UnboxPushNotification: invalid message payload: %s", err.Error())
+		h.Debug(ctx, "UnboxPushNotification: invalid message payload: %s", err)
 		return res, err
 	}
 	var msgBoxed chat1.MessageBoxed
 	mh := codec.MsgpackHandle{WriteExt: true}
 	if err = codec.NewDecoderBytes(bMsg, &mh).Decode(&msgBoxed); err != nil {
-		h.Debug(ctx, "UnboxPushNotification: failed to msgpack decode payload: %s", err.Error())
+		h.Debug(ctx, "UnboxPushNotification: failed to msgpack decode payload: %s", err)
 		return res, err
 	}
 
@@ -122,7 +121,7 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	unboxInfo := newBasicUnboxConversationInfo(convID, membersType, nil, vis)
 	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
 	if err != nil {
-		h.Debug(ctx, "UnboxPushNotification: unbox failed, bailing: %s", err.Error())
+		h.Debug(ctx, "UnboxPushNotification: unbox failed, bailing: %s", err)
 		return res, err
 	}
 
