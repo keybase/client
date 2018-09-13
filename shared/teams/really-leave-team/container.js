@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
-    dispatch(TeamsGen.createLeaveTeam({goToTeamList: true, teamname: routeProps.get('teamname')}))
+    dispatch(TeamsGen.createLeaveTeam({context: 'teams', teamname: routeProps.get('teamname')}))
   },
 })
 

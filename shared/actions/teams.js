@@ -99,23 +99,23 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
   }
 }
 
-const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
-  const {goToTeamList, teamname} = action.payload
-  const steps = [
-    Saga.call(
-      RPCTypes.teamsTeamLeaveRpcPromise,
-      {
-        name: teamname,
-        permanent: false,
-      },
-      Constants.leaveTeamWaitingKey(teamname)
-    ),
-  ]
-  if (goToTeamList) {
-    steps.push(Saga.put(RouteTreeGen.createNavigateTo({path: [teamsTab]})))
+const _leaveTeam = function(state: TypedState, action: TeamsGen.LeaveTeamPayload) {
+  const {context, teamname} = action.payload
+  return RPCTypes.teamsTeamLeaveRpcPromise(
+    {
+      name: teamname,
+      permanent: false,
+    },
+    Constants.leaveTeamWaitingKey(teamname)
+  ).then(() => TeamsGen.createLeftTeam({context, teamname}))
+}
+
+const _leftTeam = (state: TypedState, action: TeamsGen.LeftTeamPayload) => {
+  const selectedTeamnames = Constants.getSelectedTeamNames(state)
+  if (selectedTeamnames.includes(action.payload.teamname)) {
+    // Back out of that team's page
+    return Saga.put(RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []}))
   }
-  steps.push(Saga.put(TeamsGen.createGetTeams()))
-  return Saga.sequentially(steps)
 }
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
@@ -1362,7 +1362,8 @@ const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
 }
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToPromise(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToAction(TeamsGen.leftTeam, _leftTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
@@ -1372,7 +1373,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
-  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams], getTeams)
+  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)

@@ -1,5 +1,6 @@
 // @flow
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/chat2'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -813,6 +814,18 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     }
+    case TeamsGen.leftTeam:
+      const {teamname} = action.payload
+      const selectedConvID = state.selectedConversation
+      const meta = state.metaMap.get(selectedConvID, Constants.makeConversationMeta())
+      if (meta.teamname === teamname) {
+        // Select a different conversation
+        const newConvo = state.metaMap.reduce((nextConv, conv, convID) => {
+          return conv.teamname !== teamname && conv.timestamp > nextConv.timestamp ? conv : nextConv
+        }, Constants.makeConversationMeta())
+        return state.set('selectedConversation', newConvo.conversationIDKey)
+      }
+      return state
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

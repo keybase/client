@@ -1940,10 +1940,13 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 
 // Helpers to nav you to the right place
 const navigateToInbox = (
-  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload,
+  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload | TeamsGen.LeftTeamPayload,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
+    return
+  }
+  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
     return
   }
   const actions = [
@@ -2541,7 +2544,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     markThreadAsRead
   )
 
-  yield Saga.safeTakeEveryPure([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
+    navigateToInbox
+  )
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)

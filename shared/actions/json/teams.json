@@ -104,7 +104,12 @@
     },
     "leaveTeam": {
       "teamname": "string",
-      "goToTeamList?": "boolean"
+      "context": "'teams' | 'chat'"
+    },
+    "leftTeam": {
+      "_description": "We successfully left a team",
+      "teamname": "string",
+      "context": "'teams' | 'chat'"
     },
     "addToTeam": {
       "teamname": "string",

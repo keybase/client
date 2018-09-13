@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _loadOperations: teamname => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
-    dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
+    dispatch(TeamsGen.createLeaveTeam({context: 'chat', teamname: routeProps.get('teamname')}))
   },
 })
 
