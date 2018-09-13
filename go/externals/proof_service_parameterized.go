@@ -87,7 +87,7 @@ func (t ParamProofServiceType) RecheckProofPosting(tryNumber int, status keybase
 func (t ParamProofServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t ParamProofServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
-	return t.BaseCheckProofTextFull(text, id, sig)
+	return fmt.Errorf("Not implemented")
 }
 
 func (t ParamProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
