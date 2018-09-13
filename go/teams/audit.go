@@ -269,7 +269,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		}
 		prev = &tuple
 	}
-
 	return maxMerkleProbe, nil
 }
 
