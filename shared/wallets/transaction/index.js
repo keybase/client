@@ -124,13 +124,13 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text selectable={true} type={textTypeExtrabold}>
+    <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
       {props.amountUser}
     </Text>
   ) : (
     <React.Fragment>
       Lumens worth{' '}
-      <Text selectable={true} type={textTypeExtrabold}>
+      <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
         {props.amountUser}
       </Text>
     </React.Fragment>
@@ -185,7 +185,7 @@ const AmountXLM = (props: AmountXLMProps) => {
       : globalColors.green
   const amount = `${props.amountXLM}`
   return (
-    <Text selectable={true} style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
