@@ -297,7 +297,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	for convLocal := range convLocalsCh {
 		convLocals = append(convLocals, convLocal)
 	}
-	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
+	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid.ToBytes(), convLocals); err != nil {
 		// Don't abort the operation on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
 	}
@@ -331,7 +331,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
 
-	readRes, err := storage.NewInbox(h.G(), uid).GetConversation(ctx, arg.ConversationID)
+	readRes, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, arg.ConversationID)
 	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
 		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
