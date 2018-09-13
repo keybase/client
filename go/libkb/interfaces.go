@@ -411,7 +411,6 @@ type TerminalUI interface {
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
-	Tablify(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 

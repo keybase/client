@@ -594,7 +594,7 @@ func (ui *UI) GetSecretUI() libkb.SecretUI {
 }
 
 func (ui *UI) GetProveUI() libkb.ProveUI {
-	return ProveUI{Contextified: libkb.NewContextified(ui.G()), parent: ui}
+	return ProveUI{Contextified: libkb.NewContextified(ui.G()), terminal: ui.GetTerminalUI()}
 }
 
 func (ui *UI) GetLogUI() libkb.LogUI {
@@ -638,7 +638,7 @@ func (ui *UI) GetPgpUI() libkb.PgpUI {
 
 type ProveUI struct {
 	libkb.Contextified
-	parent     *UI
+	terminal   libkb.TerminalUI
 	outputHook func(string) error
 }
 
@@ -652,7 +652,7 @@ func (p ProveUI) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwrite
 	default:
 		prompt = "Overwrite " + arg.Account + "?"
 	}
-	return p.parent.PromptYesNo(PromptDescriptorProveOverwriteOK, prompt, libkb.PromptDefaultNo)
+	return p.terminal.PromptYesNo(PromptDescriptorProveOverwriteOK, prompt, libkb.PromptDefaultNo)
 }
 
 func (p ProveUI) PromptUsername(_ context.Context, arg keybase1.PromptUsernameArg) (string, error) {
@@ -660,11 +660,11 @@ func (p ProveUI) PromptUsername(_ context.Context, arg keybase1.PromptUsernameAr
 	if err != nil {
 		p.G().Log.Error(err.Error())
 	}
-	return p.parent.Terminal.Prompt(arg.Prompt + ": ")
+	return p.terminal.Prompt(PromptDescriptorLoginUsername, arg.Prompt+": ")
 }
 
 func (p ProveUI) render(txt keybase1.Text) {
-	RenderText(p.G(), p.parent.OutputWriter(), txt)
+	RenderText(p.G(), p.terminal.OutputWriter(), txt)
 }
 
 func (p ProveUI) OutputPrechecks(_ context.Context, arg keybase1.OutputPrechecksArg) error {
@@ -674,7 +674,7 @@ func (p ProveUI) OutputPrechecks(_ context.Context, arg keybase1.OutputPrechecks
 
 func (p ProveUI) PreProofWarning(_ context.Context, arg keybase1.PreProofWarningArg) (bool, error) {
 	p.render(arg.Text)
-	return p.parent.PromptYesNo(PromptDescriptorProvePreWarning, "Proceed?", libkb.PromptDefaultNo)
+	return p.terminal.PromptYesNo(PromptDescriptorProvePreWarning, "Proceed?", libkb.PromptDefaultNo)
 }
 
 func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstructionsArg) (err error) {
@@ -683,7 +683,7 @@ func (p ProveUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstru
 		err = p.outputHook(arg.Proof)
 	} else {
 		// Whitespace is trimmed from proof text before it gets here.
-		p.parent.Output("\n" + arg.Proof + "\n\n")
+		p.terminal.Output("\n" + arg.Proof + "\n\n")
 	}
 	return
 }
@@ -694,7 +694,7 @@ func (p ProveUI) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (bool, 
 		agn = "again "
 	}
 	prompt := "Check " + arg.Name + " " + agn + "now?"
-	return p.parent.PromptYesNo(PromptDescriptorProveOKToCheck, prompt, libkb.PromptDefaultYes)
+	return p.terminal.PromptYesNo(PromptDescriptorProveOKToCheck, prompt, libkb.PromptDefaultYes)
 }
 
 func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
@@ -1034,16 +1034,13 @@ func (ui *UI) TerminalSize() (width int, height int) {
 	return ui.Terminal.GetSize()
 }
 
-func (ui *UI) Tablify(headings []string, rowfunc func() []string) {
-	libkb.Tablify(ui.OutputWriter(), headings, rowfunc)
+func NewTabWriter(g *libkb.GlobalContext, minwidth, tabwidth, padding int, padchar byte, flags uint) *tabwriter.Writer {
+	ow := g.UI.GetTerminalUI().OutputWriter()
+	return tabwriter.NewWriter(ow, minwidth, tabwidth, padding, padchar, flags)
 }
 
-func (ui *UI) NewTabWriter(minwidth, tabwidth, padding int, padchar byte, flags uint) *tabwriter.Writer {
-	return tabwriter.NewWriter(ui.OutputWriter(), minwidth, tabwidth, padding, padchar, flags)
-}
-
-func (ui *UI) DefaultTabWriter() *tabwriter.Writer {
-	return ui.NewTabWriter(5, 0, 3, ' ', 0)
+func DefaultTabWriter(g *libkb.GlobalContext) *tabwriter.Writer {
+	return NewTabWriter(g, 5, 0, 3, ' ', 0)
 }
 
 func (ui *UI) Output(s string) error {
