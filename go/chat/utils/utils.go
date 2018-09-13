@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
 
@@ -1497,4 +1498,42 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 			MessageID: msgID,
 			Hidden:    true,
 		})
+}
+
+func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler, handler rpc.ConnectionHandler) (*rpc.Connection, error) {
+	// Get session token
+	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
+		return nil, libkb.LoggedInError{}
+	}
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to get logged in session: %s", err.Error())
+		return nil, err
+	}
+
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(g.Env.GetGregorURI())
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to parse chat server UR: %s", err.Error())
+		return nil, err
+	}
+
+	var conn *rpc.Connection
+	if uri.UseTLS() {
+		rawCA := g.Env.GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			return nil, err
+		}
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			handler, libkb.NewRPCLogFactory(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
+		conn = rpc.NewConnectionWithTransport(handler, t,
+			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	}
 }

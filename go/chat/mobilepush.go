@@ -11,8 +11,6 @@ import (
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -54,40 +52,9 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
 	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess")()
-	// Get session token
-	nist, _, err := h.G().ActiveDevice.NISTAndUID(ctx)
-	if nist == nil {
-		h.Debug(ctx, "AckNotificationSuccess: got a nil NIST, is the user logged out?")
-		return
-	}
+	conn, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler, &remoteNotificationSuccessHandler{})
 	if err != nil {
-		h.Debug(ctx, "AckNotificationSuccess: failed to get logged in session: %s", err.Error())
 		return
-	}
-
-	// Make an ad hoc connection to gregor
-	uri, err := rpc.ParseFMPURI(h.G().Env.GetGregorURI())
-	if err != nil {
-		h.Debug(ctx, "AckNotificationSuccess: failed to parse chat server UR: %s", err.Error())
-		return
-	}
-
-	var conn *rpc.Connection
-	if uri.UseTLS() {
-		rawCA := h.G().Env.GetBundledCA(uri.Host)
-		if len(rawCA) == 0 {
-			h.Debug(ctx, "AckNotificationSuccess: failed to parse CAs: %s", err.Error())
-			return
-		}
-		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
-			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
-	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(h.G().ExternalG()))
-		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
-			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
 	}
 	defer conn.Shutdown()
 
