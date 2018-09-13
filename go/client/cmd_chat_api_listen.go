@@ -102,6 +102,10 @@ type incomingMessage struct {
 	Sender   string          `json:"sender,omitempty"`
 	Ctime    gregor1.Time    `json:"ctime"`
 
+	// Exploding messages
+	Etime      gregor1.Time `json:"explode_time"`
+	ExplodedBy *string      `json:"exploded_by,omitempty"`
+
 	// For messages that affect other messages (like edits, reactions)
 	TargetMsgID chat1.MessageID `json:"target_msg_id,omitempty"`
 
@@ -119,11 +123,13 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			if inMsg.Message.IsValid() {
 				mv := inMsg.Message.Valid()
 				msgJSON := incomingMessage{
-					ConvName: inMsg.Conv.Name,
-					Channel:  inMsg.Conv.Channel,
-					Sender:   mv.SenderUsername,
-					ID:       mv.MessageID,
-					Ctime:    mv.Ctime,
+					ConvName:   inMsg.Conv.Name,
+					Channel:    inMsg.Conv.Channel,
+					Sender:     mv.SenderUsername,
+					ID:         mv.MessageID,
+					Ctime:      mv.Ctime,
+					Etime:      mv.Etime,
+					ExplodedBy: mv.ExplodedBy,
 				}
 				bodyType, err := mv.MessageBody.MessageType()
 				if err == nil {
