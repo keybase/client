@@ -203,6 +203,10 @@ type TestParameters struct {
 	// might point off of the merkle sequence in the database. So it's just
 	// easiest to skip the audit in those cases.
 	TeamSkipAudit bool
+
+	// TeamAuditParams can be customized if we want to control the behavior
+	// of audits deep in a test
+	TeamAuditParams *TeamAuditParams
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
