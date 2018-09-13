@@ -20,9 +20,6 @@ type EmittedFinished = {
   error: ?RPCError,
 }
 
-// type CallbackWithResponse = (any, CommonResponseHandler) => ?RS.Effect | ?Generator<any, any, any>
-// type CallbackNoResponse = any => ?RS.Effect | ?Generator<any, any, any>
-
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
   if (!r || !waitingKey) {

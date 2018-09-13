@@ -216,11 +216,6 @@ function safeTakeLatest(
   return _safeTakeLatestWithCatch(pattern, () => {}, worker, ...args)
 }
 
-function select(): Generator<TypedState, TypedState, void> {
-  // $FlowIssue we're saying we're returning a stricter type
-  return Effects.select()
-}
-
 export type {Effect, PutEffect, Channel} from 'redux-saga'
 export {buffers, channel, delay, eventChannel} from 'redux-saga'
 export {
@@ -231,6 +226,7 @@ export {
   fork,
   join,
   race,
+  select,
   spawn,
   take,
   takeEvery,
@@ -247,5 +243,4 @@ export {
   safeTakeLatest,
   safeTakeLatestPure,
   sequentially,
-  select,
 }
