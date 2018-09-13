@@ -66,10 +66,6 @@ type SendProps = {|
 |}
 
 class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
-  static defaultProps = {
-    disabled: false,
-  }
-
   _menuItems = [
     {
       onClick: () => this.props.onSendToKeybaseUser(),
@@ -115,10 +111,6 @@ type DropdownProps = {|
 |}
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
-  static defaultProps = {
-    disabled: false,
-  }
-
   _menuItems = [
     {
       onClick: () => this.props.onDeposit(),
