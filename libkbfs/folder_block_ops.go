@@ -1384,14 +1384,22 @@ func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
 	return dblock, err
 }
 
-// GetDirtyDir returns the directory block for a dirty directory,
-// updated with all cached dirty entries.
-func (fbo *folderBlockOps) GetDirtyDir(
+// GetDirtyDirCopy returns a deep copy of the directory block for a
+// dirty directory, while under lock, updated with all cached dirty
+// entries.
+func (fbo *folderBlockOps) GetDirtyDirCopy(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, dir path,
 	rtype blockReqType) (*DirBlock, error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirtyDirLocked(ctx, lState, kmd, dir, rtype)
+	dblock, err := fbo.getDirtyDirLocked(ctx, lState, kmd, dir, rtype)
+	if err != nil {
+		return nil, err
+	}
+	// Copy it while under lock.  Otherwise, another operation like
+	// `Write` can modify it while the caller is trying to copy it,
+	// leading to a panic like in KBFS-3407.
+	return dblock.DeepCopy(), nil
 }
 
 // GetChildren returns a map of EntryInfos for the (possibly dirty)

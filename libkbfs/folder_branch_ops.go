@@ -4320,12 +4320,13 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 
 		dir := fbo.nodeCache.PathFromNode(node)
-		dblock, err := fbo.blocks.GetDirtyDir(ctx, lState, md, dir, blockWrite)
+		dblock, err := fbo.blocks.GetDirtyDirCopy(
+			ctx, lState, md, dir, blockWrite)
 		if err != nil {
 			return err
 		}
 
-		lbc[dir.tailPointer()] = dblock.DeepCopy()
+		lbc[dir.tailPointer()] = dblock
 		if !fbo.nodeCache.IsUnlinked(node) {
 			resolvedPaths[dir.tailPointer()] = dir
 		}
@@ -4336,12 +4337,12 @@ func (fbo *folderBranchOps) syncAllLocked(
 		if dir.hasValidParent() {
 			parentPath := dir.parentPath()
 			if _, ok := lbc[parentPath.tailPointer()]; !ok {
-				parentBlock, err := fbo.blocks.GetDirtyDir(
+				parentBlock, err := fbo.blocks.GetDirtyDirCopy(
 					ctx, lState, md, *parentPath, blockWrite)
 				if err != nil {
 					return err
 				}
-				lbc[parentPath.tailPointer()] = parentBlock.DeepCopy()
+				lbc[parentPath.tailPointer()] = parentBlock
 			}
 		}
 
@@ -4416,12 +4417,12 @@ func (fbo *folderBranchOps) syncAllLocked(
 				// be added to both the `lbc` and `resolvedPaths` so
 				// they are properly synced, and removed from the
 				// dirty block list.
-				dblock, err = fbo.blocks.GetDirtyDir(
+				dblock, err = fbo.blocks.GetDirtyDirCopy(
 					ctx, lState, md, newPath, blockWrite)
 				if err != nil {
 					return err
 				}
-				lbc[newPointer] = dblock.DeepCopy()
+				lbc[newPointer] = dblock
 				if !fbo.nodeCache.IsUnlinked(newNode) {
 					resolvedPaths[newPointer] = newPath
 				}
