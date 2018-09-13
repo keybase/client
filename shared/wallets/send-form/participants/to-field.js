@@ -63,11 +63,12 @@ class ToField extends React.Component<ToFieldProps> {
     if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
       component = (
         <React.Fragment>
-          <Kb.NameWithIcon
+          <Kb.ConnectedNameWithIcon
             colorFollowing={true}
             horizontal={true}
             username={this.props.recipientUsername}
             avatarStyle={styles.avatar}
+            onClick="tracker"
           />
           <Kb.Icon
             type="iconfont-remove"
