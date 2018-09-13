@@ -9,7 +9,7 @@ import {isMobile} from '../../constants/platform'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
-  onClick?: ((SyntheticEvent<> | void) => void) | 'tracker' | 'profile' | 'trackerProfileFallback',
+  onClick?: ((SyntheticEvent<> | void) => void) | 'tracker' | 'profile',
 |}
 
 const mapStateToProps = () => ({})
@@ -27,12 +27,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   let functionOnClick
   let clickType
-  if (!isMobile && (onClick === 'tracker' || onClick === 'trackerProfileFallback')) {
+  if (!isMobile && onClick === 'tracker') {
     functionOnClick = () => {
       ownProps.username && dispatchProps.onOpenTracker(ownProps.username)
     }
     clickType = 'tracker'
-  } else if (onClick === 'profile' || onClick === 'trackerProfileFallback') {
+  } else if (onClick === 'profile' || (isMobile && onClick === 'tracker')) {
     functionOnClick = () => {
       if (ownProps.username) {
         dispatchProps.onOpenUserProfile(ownProps.username)

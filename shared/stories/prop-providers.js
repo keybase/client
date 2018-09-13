@@ -89,10 +89,10 @@ export const NameWithIcon = () => ({
 
     let functionOnClick
     let clickType
-    if (!isMobile && (onClick === 'tracker' || onClick === 'trackerProfileFallback')) {
+    if (!isMobile && onClick === 'tracker') {
       functionOnClick = action('onNameWithIconClicked (tracker)')
       clickType = 'tracker'
-    } else if (onClick === 'profile' || onClick === 'trackerProfileFallback') {
+    } else if (onClick === 'profile' || (isMobile && onClick === 'tracker')) {
       if (ownProps.username) {
         functionOnClick = action('onNameWithIconClicked (user profile)')
       } else if (ownProps.teamname) {
