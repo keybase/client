@@ -17,7 +17,7 @@
 	<key>CFBundlePackageType</key>
 	<string>XPC!</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>2.7.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>NSExtension</key>
@@ -25,7 +25,20 @@
 		<key>NSExtensionAttributes</key>
 		<dict>
 			<key>NSExtensionActivationRule</key>
-			<string>TRUEPREDICATE</string>
+			<dict>
+				<key>NSExtensionActivationSupportsFileWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsImageWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
+				<integer>999</integer>
+				<key>NSExtensionActivationSupportsText</key>
+				<true/>
+				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
+				<integer>1</integer>
+				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
+				<integer>1</integer>
+			</dict>
 		</dict>
 		<key>NSExtensionMainStoryboard</key>
 		<string>MainInterface</string>
