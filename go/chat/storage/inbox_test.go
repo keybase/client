@@ -317,7 +317,7 @@ func TestInboxEmptySuperseder(t *testing.T) {
 	mergeReadAndCheck(t, superseded, "superseded")
 
 	// Now test OneChatTypePerTLF
-	tc, inbox, _ = setupInboxTest(t, "queries2")
+	tc, inbox, uid = setupInboxTest(t, "queries2")
 	defer tc.Cleanup()
 
 	full = []types.RemoteConversation{}
