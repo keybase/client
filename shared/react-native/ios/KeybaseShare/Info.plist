@@ -33,7 +33,7 @@
 				<key>NSExtensionActivationSupportsMovieWithMaxCount</key>
 				<integer>999</integer>
 				<key>NSExtensionActivationSupportsText</key>
-				<integer>1</integer>
+				<true/>
 				<key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
 				<integer>1</integer>
 				<key>NSExtensionActivationSupportsWebPageWithMaxCount</key>
