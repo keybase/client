@@ -5,7 +5,7 @@ import {
   ClickableBox,
   Icon,
   Markdown,
-  NameWithIcon,
+  ConnectedNameWithIcon,
   Text,
   iconCastPlatformStyles,
   type OverlayParentProps,
@@ -24,7 +24,6 @@ import {
 type SmallProps = {
   teamname: string,
   participantCount: number,
-  onClick: () => void,
   isSmallTeam: boolean,
 } & OverlayParentProps
 
@@ -40,11 +39,11 @@ const _SmallTeamHeader = (props: SmallProps) => {
         teamname={props.teamname}
         visible={props.showingMenu}
       />
-      <NameWithIcon
+      <ConnectedNameWithIcon
         containerStyle={styles.flexOne}
         horizontal={true}
         teamname={props.teamname}
-        onClick={props.onClick}
+        onClick="profile"
         title={props.teamname}
         metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
       />

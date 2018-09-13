@@ -354,7 +354,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
-            onClick={row.onViewTeam}
           />
         )
 
