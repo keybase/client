@@ -20,31 +20,31 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
 
 export type MessageTypes = {|
   'stellar.1.local.buildPaymentLocal': {|
-    inParam: $ReadOnly<{from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String}>,
+    inParam: $ReadOnly<{|from: AccountID, fromPrimaryAccount: Boolean, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, currency?: ?OutsideCurrencyCode, asset?: ?Asset, secretNote: String, publicMemo: String|}>,
     outParam: BuildPaymentResLocal,
   |},
   'stellar.1.local.cancelRequestLocal': {|
-    inParam: $ReadOnly<{reqID: KeybaseRequestID}>,
+    inParam: $ReadOnly<{|reqID: KeybaseRequestID|}>,
     outParam: void,
   |},
   'stellar.1.local.changeDisplayCurrencyLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID, currency: OutsideCurrencyCode}>,
+    inParam: $ReadOnly<{|accountID: AccountID, currency: OutsideCurrencyCode|}>,
     outParam: void,
   |},
   'stellar.1.local.changeWalletAccountNameLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID, newName: String}>,
+    inParam: $ReadOnly<{|accountID: AccountID, newName: String|}>,
     outParam: void,
   |},
   'stellar.1.local.createWalletAccountLocal': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: AccountID,
   |},
   'stellar.1.local.deleteWalletAccountLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID, userAcknowledged: String}>,
+    inParam: $ReadOnly<{|accountID: AccountID, userAcknowledged: String|}>,
     outParam: void,
   |},
   'stellar.1.local.getAccountAssetsLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: ?Array<AccountAssetLocal>,
   |},
   'stellar.1.local.getDisplayCurrenciesLocal': {|
@@ -52,27 +52,27 @@ export type MessageTypes = {|
     outParam: ?Array<CurrencyLocal>,
   |},
   'stellar.1.local.getDisplayCurrencyLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: CurrencyLocal,
   |},
   'stellar.1.local.getPaymentDetailsLocal': {|
-    inParam: $ReadOnly<{accountID?: ?AccountID, id: PaymentID}>,
+    inParam: $ReadOnly<{|accountID?: ?AccountID, id: PaymentID|}>,
     outParam: PaymentDetailsLocal,
   |},
   'stellar.1.local.getPaymentsLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID, cursor?: ?PageCursor}>,
+    inParam: $ReadOnly<{|accountID: AccountID, cursor?: ?PageCursor|}>,
     outParam: PaymentsPageLocal,
   |},
   'stellar.1.local.getPendingPaymentsLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: ?Array<PaymentOrErrorLocal>,
   |},
   'stellar.1.local.getRequestDetailsLocal': {|
-    inParam: $ReadOnly<{reqID: KeybaseRequestID}>,
+    inParam: $ReadOnly<{|reqID: KeybaseRequestID|}>,
     outParam: RequestDetailsLocal,
   |},
   'stellar.1.local.getWalletAccountSecretKeyLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: SecretKey,
   |},
   'stellar.1.local.getWalletAccountsLocal': {|
@@ -80,39 +80,39 @@ export type MessageTypes = {|
     outParam: ?Array<WalletAccountLocal>,
   |},
   'stellar.1.local.linkNewWalletAccountLocal': {|
-    inParam: $ReadOnly<{secretKey: SecretKey, name: String}>,
+    inParam: $ReadOnly<{|secretKey: SecretKey, name: String|}>,
     outParam: AccountID,
   |},
   'stellar.1.local.makeRequestLocal': {|
-    inParam: $ReadOnly<{recipient: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amount: String, note: String}>,
+    inParam: $ReadOnly<{|recipient: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amount: String, note: String|}>,
     outParam: KeybaseRequestID,
   |},
   'stellar.1.local.sendPaymentLocal': {|
-    inParam: $ReadOnly<{from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean}>,
+    inParam: $ReadOnly<{|from: AccountID, fromSeqno: String, to: String, toIsAccountID: Boolean, amount: String, asset: Asset, worthAmount: String, worthCurrency?: ?OutsideCurrencyCode, secretNote: String, publicMemo: String, quickReturn: Boolean|}>,
     outParam: SendPaymentResLocal,
   |},
   'stellar.1.local.setWalletAccountAsDefaultLocal': {|
-    inParam: $ReadOnly<{accountID: AccountID}>,
+    inParam: $ReadOnly<{|accountID: AccountID|}>,
     outParam: void,
   |},
   'stellar.1.local.validateAccountNameLocal': {|
-    inParam: $ReadOnly<{name: String}>,
+    inParam: $ReadOnly<{|name: String|}>,
     outParam: void,
   |},
   'stellar.1.local.validateSecretKeyLocal': {|
-    inParam: $ReadOnly<{secretKey: SecretKey}>,
+    inParam: $ReadOnly<{|secretKey: SecretKey|}>,
     outParam: void,
   |},
   'stellar.1.notify.paymentNotification': {|
-    inParam: $ReadOnly<{accountID: AccountID, paymentID: PaymentID}>,
+    inParam: $ReadOnly<{|accountID: AccountID, paymentID: PaymentID|}>,
     outParam: void,
   |},
   'stellar.1.notify.paymentStatusNotification': {|
-    inParam: $ReadOnly<{kbTxID: KeybaseTransactionID, txID: TransactionID}>,
+    inParam: $ReadOnly<{|kbTxID: KeybaseTransactionID, txID: TransactionID|}>,
     outParam: void,
   |},
   'stellar.1.notify.requestStatusNotification': {|
-    inParam: $ReadOnly<{reqID: KeybaseRequestID}>,
+    inParam: $ReadOnly<{|reqID: KeybaseRequestID|}>,
     outParam: void,
   |},
 |}
@@ -298,7 +298,7 @@ export type TransactionStatus =
 export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String}>
 export type WalletSettings = $ReadOnly<{acceptedDisclaimer: Boolean}>
 
-export type IncomingCallMapType<TypedState> = {|'stellar.1.notify.paymentNotification'?: (params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'stellar.1.notify.paymentStatusNotification'?: (params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn, 'stellar.1.notify.requestStatusNotification'?: (params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'> & {sessionID: number}, void, state: TypedState) => IncomingReturn|}
+export type IncomingCallMapType<TypedState> = {|'stellar.1.notify.paymentNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}, void, state: TypedState) => IncomingReturn, 'stellar.1.notify.paymentStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>> & {|sessionID: number|}, void, state: TypedState) => IncomingReturn, 'stellar.1.notify.requestStatusNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>> & {|sessionID: number|}, void, state: TypedState) => IncomingReturn|}
 declare export function localBuildPaymentLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildPaymentLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.buildPaymentLocal'>, 'outParam'>>
 declare export function localCancelRequestLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelRequestLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.cancelRequestLocal'>, 'outParam'>>
 declare export function localChangeDisplayCurrencyLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.changeDisplayCurrencyLocal'>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.local.changeDisplayCurrencyLocal'>, 'outParam'>>
