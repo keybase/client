@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math"
 	"strings"
 	"sync"
 	"time"
@@ -397,13 +396,10 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 
 func computeSetBitsBigEndian(x int) []int {
 	var ret []int
-	bit := 1
-	high := int(math.Ceil(math.Log2(float64(x))))
-	for i := 0; i <= high; i++ {
+	for bit := 1; bit <= x; bit *= 2 {
 		if x&bit != 0 {
 			ret = append(ret, bit)
 		}
-		bit *= 2
 	}
 	return ret
 }
@@ -1173,10 +1169,8 @@ func verifyRootSkips(rootSeqno keybase1.Seqno, skips SkipTable) error {
 
 func computeExpectedRootSkips(start int) []int {
 	var ret []int
-	skip := 1
-	for start-skip > 0 {
+	for skip := 1; skip < start; skip *= 2 {
 		ret = append(ret, start-skip)
-		skip *= 2
 	}
 	return ret
 }
