@@ -5,10 +5,11 @@ import {teamsTab} from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TrackerGen from '../../actions/tracker-gen'
 import NameWithIcon, {type NameWithIconProps} from '.'
+import {isMobile} from '../../constants/platform'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
-  onClick?: ((SyntheticEvent<> | void) => void) | 'tracker' | 'profile',
+  onClick?: ((SyntheticEvent<> | void) => void) | 'tracker' | 'profile' | 'trackerProfileFallback',
 |}
 
 const mapStateToProps = () => ({})
@@ -26,12 +27,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   let functionOnClick
   let clickType
-  if (onClick === 'tracker') {
+  if (!isMobile && (onClick === 'tracker' || onClick === 'trackerProfileFallback')) {
     functionOnClick = () => {
       ownProps.username && dispatchProps.onOpenTracker(ownProps.username)
     }
     clickType = 'tracker'
-  } else if (onClick === 'profile') {
+  } else if (onClick === 'profile' || onClick === 'trackerProfileFallback') {
     functionOnClick = () => {
       if (ownProps.username) {
         dispatchProps.onOpenUserProfile(ownProps.username)

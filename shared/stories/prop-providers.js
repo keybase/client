@@ -8,6 +8,7 @@ import * as _CopyText from '../common-adapters/copy-text'
 import type {NameWithIconProps} from '../common-adapters/name-with-icon'
 import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
 import {createPropProvider, action} from './storybook.shared'
+import {isMobile} from '../constants/platform'
 
 /*
  * Some common prop factory creators.
@@ -88,10 +89,10 @@ export const NameWithIcon = () => ({
 
     let functionOnClick
     let clickType
-    if (onClick === 'tracker') {
+    if (!isMobile && (onClick === 'tracker' || onClick === 'trackerProfileFallback')) {
       functionOnClick = action('onNameWithIconClicked (tracker)')
       clickType = 'tracker'
-    } else if (onClick === 'profile') {
+    } else if (onClick === 'profile' || onClick === 'trackerProfileFallback') {
       if (ownProps.username) {
         functionOnClick = action('onNameWithIconClicked (user profile)')
       } else if (ownProps.teamname) {
