@@ -609,22 +609,6 @@
 			path = KeybaseShare;
 			sourceTree = "<group>";
 		};
-		279FB59D2139AB6A005E4864 /* KeybaseShare */ = {
-			isa = PBXGroup;
-			children = (
-				279FB6F521403B8B005E4864 /* KeybaseShare.entitlements */,
-				279FB59E2139AB6A005E4864 /* ShareViewController.h */,
-				279FB59F2139AB6A005E4864 /* ShareViewController.m */,
-				279FB5A12139AB6A005E4864 /* MainInterface.storyboard */,
-				279FB5A42139AB6A005E4864 /* Info.plist */,
-				279FB5EC2139ADEB005E4864 /* ConversationViewController.h */,
-				279FB5ED2139ADEB005E4864 /* ConversationViewController.m */,
-				27F0BD28214750A2007195B7 /* InitFailedViewController.h */,
-				27F0BD29214750A2007195B7 /* InitFailedViewController.m */,
-			);
-			path = KeybaseShare;
-			sourceTree = "<group>";
-		};
 		374A785B2108C2000053E19E /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -1795,7 +1779,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1835,7 +1819,7 @@
 				);
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				INFOPLIST_FILE = KeybaseShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 11.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.ios.KeybaseShare;
 				PRODUCT_NAME = "$(TARGET_NAME)";
