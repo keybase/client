@@ -29,6 +29,17 @@ type shimKMCrypto struct {
 	pure cryptoPure
 }
 
+func mockNormalizeSocialAssertion(config *ConfigMock) {
+	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+			if !isSocialAssertion {
+				return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+			}
+			return socialAssertion, nil
+		}).AnyTimes()
+}
+
 func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context) {
 	ctr := NewSafeTestReporter(t)
@@ -53,17 +64,6 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 
 	mockNormalizeSocialAssertion(config)
 	return mockCtrl, config, ctx
-}
-
-func mockNormalizeSocialAssertion(config *ConfigMock) {
-	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).DoAndReturn(
-		func(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
-			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
-			if !isSocialAssertion {
-				return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
-			}
-			return socialAssertion, nil
-		}).AnyTimes()
 }
 
 func keyManagerShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {

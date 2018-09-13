@@ -58,11 +58,7 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
-// NormalizeSocialAssertion creates a SocialAssertion from its input and
-// normalizes it.  The service name will be lowercased.  If the service is
-// case-insensitive, then the username will also be lowercased.  Colon
-// assertions (twitter:user) will be transformed to the user@twitter format.
-// Only registered services are allowed.
+// NormalizeSocialAssertion implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) NormalizeSocialAssertion(
 	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
 	return k.serviceOwner.KeybaseService().NormalizeSocialAssertion(ctx, assertion)
