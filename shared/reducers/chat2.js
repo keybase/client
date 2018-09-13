@@ -814,7 +814,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     }
-    case TeamsGen.leftTeam:
+    case TeamsGen.leaveTeam:
       const {teamname} = action.payload
       const selectedConvID = state.selectedConversation
       const meta = state.metaMap.get(selectedConvID, Constants.makeConversationMeta())

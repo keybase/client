@@ -4,7 +4,6 @@ import * as Constants from '../../constants/teams'
 import {
   Avatar,
   Box,
-  Button,
   ButtonBar,
   Icon,
   MaybePopup,
@@ -46,7 +45,13 @@ const _ReallyLeaveTeam = (props: Props) => (
         unless an admin invites you.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
-        <Button type="Secondary" onClick={props.onBack} label="Cancel" />
+        <WaitingButton
+          type="Secondary"
+          onClick={props.onBack}
+          onlyDisable={true}
+          label="Cancel"
+          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+        />
         <WaitingButton
           type="Danger"
           onClick={props.onLeave}
