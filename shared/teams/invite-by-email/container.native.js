@@ -36,12 +36,12 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   return {
     _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : Set(),
     errorMessage: inviteError.message,
-    name: teamname,
     loadingInvites: teamname ? Constants.getTeamLoadingInvites(state, teamname) : Map(),
+    name: teamname,
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
@@ -49,9 +49,20 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
   },
   onInviteEmail: ({invitee, role}) => {
+    const teamname = routeProps.get('teamname')
+    const rootPath = routePath.take(1)
+    const sourceSubPath = routePath.rest()
+    const destSubPath = sourceSubPath.butLast()
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
-      TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees: invitee})
+      TeamsGen.createInviteToTeamByEmail({
+        destSubPath,
+        invitees: invitee,
+        role,
+        rootPath,
+        sourceSubPath,
+        teamname,
+      })
     )
     dispatch(TeamsGen.createGetTeams())
   },

@@ -94,8 +94,8 @@ class Avatars extends React.Component<AvatarProps> {
 const multiStyle = memoize(backgroundColor => {
   return {
     ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
-    height: '100%',
-    width: '100%',
+    height: 48,
+    width: 48,
   }
 })
 
@@ -103,6 +103,7 @@ const avatarBoxStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
+  height: 48,
   justifyContent: 'flex-start',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
@@ -112,11 +113,9 @@ const avatarBoxStyle = {
 }
 
 const avatarInnerBoxStyle = {
-  height: '100%',
+  height: 48,
   maxWidth: 48,
   minWidth: 48,
-  paddingBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
   position: 'relative',
 }
 

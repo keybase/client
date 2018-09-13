@@ -446,6 +446,12 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "paymentInfo": "Types.ChatPaymentInfo"
+    },
+    "requestInfoReceived": {
+      "_description": "We received request info for a requestPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "requestInfo": "Types.ChatRequestInfo"
     }
   }
 }

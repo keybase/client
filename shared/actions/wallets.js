@@ -34,14 +34,11 @@ const buildPayment = (state: TypedState) =>
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
-  return RPCTypes.localCreateWalletAccountLocalRpcPromise(
-    {
-      name,
-    },
-    Constants.createNewAccountWaitingKey
-  )
+  return RPCTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createCreatedNewAccount({accountID}))
+    .then(accountID =>
+      WalletsGen.createCreatedNewAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error creating new account: ${err.desc}`)
       return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
@@ -202,7 +199,9 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     Constants.linkExistingWaitingKey
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID}))
+    .then(accountID =>
+      WalletsGen.createLinkedExistingAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
       return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
@@ -237,7 +236,7 @@ const deletedAccount = (state: TypedState) =>
     })
   )
 
-const navigateUp = (
+const createdOrLinkedAccount = (
   state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
@@ -248,6 +247,9 @@ const navigateUp = (
   if (action.type === WalletsGen.linkedExistingAccount && action.error) {
     // Link existing failed, don't nav
     return
+  }
+  if (action.payload.showOnCreation) {
+    return Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true}))
   }
   return Saga.put(Route.navigateUp())
 }
@@ -309,8 +311,6 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
     'stellar.1.notify.paymentNotification': refreshPayments,
-    // $FlowIssue @cjb this needs to be fixed
-    'stellar.1.notify.paymentStatusNotification': refreshPayments,
   })
 }
 
@@ -369,7 +369,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     [WalletsGen.selectAccount, WalletsGen.didSetAccountAsDefault],
     navigateToAccount
   )
-  yield Saga.actionToAction([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
+  yield Saga.actionToAction(
+    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount],
+    createdOrLinkedAccount
+  )
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [

@@ -664,6 +664,23 @@ export const kbfsEnabled = (state: TypedState) =>
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
 
+export const kbfsOutdated = (state: TypedState) =>
+  isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
+
+export const kbfsUninstallString = (state: TypedState) => {
+  if (state.fs.fuseStatus &&
+    state.fs.fuseStatus.status &&
+    state.fs.fuseStatus.status.fields) {
+      const field = state.fs.fuseStatus.status.fields.find((element) => {
+        return element.key === 'uninstallString'
+      })
+      if (field) {
+        return field.value
+      }
+    }
+    return ''
+  }
+
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 

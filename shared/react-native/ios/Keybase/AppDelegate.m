@@ -7,12 +7,12 @@
 //
 
 #import "AppDelegate.h"
-#import "RCTPushNotificationManager.h"
-#import "RCTBundleURLProvider.h"
-#import "RCTRootView.h"
+#import <React/RCTPushNotificationManager.h>
+#import <React/RCTBundleURLProvider.h>
+#import <React/RCTRootView.h>
 #import "Engine.h"
 #import "LogSend.h"
-#import "RCTLinkingManager.h"
+#import <React/RCTLinkingManager.h>
 #import <keybase/keybase.h>
 #import "Pusher.h"
 
