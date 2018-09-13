@@ -30,8 +30,9 @@ platform :ios do
       build_number: latest_testflight_build_number(version: version) + 4
     })
 
-    sigh(app_identifier: "keybase.ios")
-    sigh(app_identifier: "keybase.ios.KeybaseShare")
+    # if you uncomment this it'll try and dynamically download a profile, which you can then load manually to get one
+    # sigh(app_identifier: "keybase.ios")
+    # sigh(app_identifier: "keybase.ios.KeybaseShare")
     gym(scheme: "Keybase") # Build your app - more options available
     pilot(
         changelog: changelog_from_git_commits(
