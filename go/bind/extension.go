@@ -166,8 +166,8 @@ func ExtensionGetInbox() (res string, err error) {
 	if err != nil {
 		return res, err
 	}
-	inbox := storage.NewInbox(gc, uid)
-	sharedInbox, err := inbox.ReadShared(ctx)
+	inbox := storage.NewInbox(gc)
+	sharedInbox, err := inbox.ReadShared(ctx, uid)
 	if err != nil {
 		return res, err
 	}
