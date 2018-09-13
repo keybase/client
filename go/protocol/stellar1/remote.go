@@ -429,6 +429,7 @@ type AccountDetails struct {
 	SubentryCount int              `codec:"subentryCount" json:"subentryCount"`
 	Available     string           `codec:"available" json:"available"`
 	Reserves      []AccountReserve `codec:"reserves" json:"reserves"`
+	ReadPaymentID *PaymentID       `codec:"readPaymentID,omitempty" json:"readPaymentID,omitempty"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -459,6 +460,13 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 			}
 			return ret
 		})(o.Reserves),
+		ReadPaymentID: (func(x *PaymentID) *PaymentID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ReadPaymentID),
 	}
 }
 

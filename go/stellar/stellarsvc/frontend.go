@@ -1216,7 +1216,7 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 		return err
 	}
 
-	return nil
+	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

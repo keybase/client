@@ -132,6 +132,7 @@ protocol remote {
     int subentryCount;  // number of entries in the ledger (which raise minimum balance)
     string available;   // for native XLM the amount that is available to send (amount - min balance)
     array<AccountReserve> reserves;
+    union { null, PaymentID } readPaymentID;
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 

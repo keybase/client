@@ -99,7 +99,7 @@ protocol local {
 
   // markAsReadLocal will mark as "read" all the payments created at or before the time 
   // of the payment referenced by `mostRecentID`.
-  void markAsReadLocal(int sessionID, PaymentID mostRecentID);
+  void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.

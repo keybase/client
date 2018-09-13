@@ -643,6 +643,7 @@ type GetPendingPaymentsLocalArg struct {
 
 type MarkAsReadLocalArg struct {
 	SessionID    int       `codec:"sessionID" json:"sessionID"`
+	AccountID    AccountID `codec:"accountID" json:"accountID"`
 	MostRecentID PaymentID `codec:"mostRecentID" json:"mostRecentID"`
 }
 
