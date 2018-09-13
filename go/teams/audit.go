@@ -13,17 +13,7 @@ import (
 	"time"
 )
 
-type AuditParams struct {
-	RootFreshness time.Duration
-	// After this many new Merkle updates, another audit is triggered.
-	MerkleMovementTrigger keybase1.Seqno
-	NumPreProbes          int
-	NumPostProbes         int
-	Parallelism           int
-	LRUSize               int
-}
-
-var desktopParams = AuditParams{
+var desktopParams = libkb.TeamAuditParams{
 	RootFreshness:         time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(1000),
 	NumPreProbes:          25,
@@ -32,7 +22,7 @@ var desktopParams = AuditParams{
 	LRUSize:               1000,
 }
 
-var mobileParams = AuditParams{
+var mobileParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(10000),
 	NumPreProbes:          10,
@@ -41,7 +31,7 @@ var mobileParams = AuditParams{
 	LRUSize:               500,
 }
 
-var devParams = AuditParams{
+var devParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(10000),
 	NumPreProbes:          3,
@@ -54,7 +44,10 @@ var devParams = AuditParams{
 // we're going to be performing a smaller audit, and therefore have a smaller
 // security margin (1-2^10). But it's worth it given the bandwidth and CPU
 // constraints.
-func getAuditParams(m libkb.MetaContext) AuditParams {
+func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
+	if m.G().Env.Test.TeamAuditParams != nil {
+		return *m.G().Env.Test.TeamAuditParams
+	}
 	if m.G().Env.GetRunMode() == libkb.DevelRunMode {
 		return devParams
 	}

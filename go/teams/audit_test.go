@@ -53,25 +53,35 @@ func TestAuditStaleTeam(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	setFastAudits := func() {
+	setFastAudits := func(m libkb.MetaContext) {
 		// do a lot of probes so we're likely to find issues
-		devParams.NumPostProbes = 10
-		devParams.MerkleMovementTrigger = keybase1.Seqno(1)
-		devParams.RootFreshness = time.Duration(1)
+		m.G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+			NumPostProbes:         10,
+			MerkleMovementTrigger: keybase1.Seqno(1),
+			RootFreshness:         time.Duration(1),
+			LRUSize:               500,
+			NumPreProbes:          3,
+			Parallelism:           3,
+		}
 	}
 
-	setSlowAudits := func() {
-		devParams.NumPostProbes = 1
-		devParams.MerkleMovementTrigger = keybase1.Seqno(1000000)
-		devParams.RootFreshness = time.Hour
+	setSlowAudits := func(m libkb.MetaContext) {
+		m.G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+			NumPostProbes:         1,
+			MerkleMovementTrigger: keybase1.Seqno(1000000),
+			RootFreshness:         time.Hour,
+			LRUSize:               500,
+			NumPreProbes:          3,
+			Parallelism:           3,
+		}
 	}
 
 	// A adds C to the team and triggers an Audit
-	setFastAudits()
+	setFastAudits(m[A])
 	addC(A)
 
 	// A removes C from the team, and loads the team, but does *not* trigger an audit
-	setSlowAudits()
+	setSlowAudits(m[A])
 	rmC(A)
 	load(A)
 
@@ -84,11 +94,11 @@ func TestAuditStaleTeam(t *testing.T) {
 	}
 
 	// A forces local idea of what the max merkle sequence number is.
-	_, err = tcs[A].G.MerkleClient.FetchRootFromServerBySeqno(m[0], keybase1.Seqno(100000000))
+	_, err = tcs[A].G.MerkleClient.FetchRootFromServerBySeqno(m[A], keybase1.Seqno(100000000))
 	require.NoError(t, err)
 
 	// A forces an audit on a stale team.
-	setFastAudits()
+	setFastAudits(m[A])
 	t.Logf("User A loading the team, and auditing on an primed cached")
 	load(A)
 }
