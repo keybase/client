@@ -16,6 +16,7 @@ import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import engine from '../../engine'
 import logger from '../../logger'
@@ -1412,7 +1413,8 @@ const changeSelectedConversation = (
   const selected = Constants.getSelectedConversation(state)
   switch (action.type) {
     case Chat2Gen.setPendingMode: {
-      if (action.payload.pendingMode !== 'none') {
+      if (action.payload.pendingMode === 'newChat') {
+      } else if (action.payload.pendingMode !== 'none') {
         return Saga.sequentially([
           Saga.put(
             Chat2Gen.createSelectConversation({
@@ -2333,6 +2335,17 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
+  if (action.payload.pendingMode === 'newChat') {
+    const routePath = getPath(state.routeTree.routeState)
+    return Saga.put(
+      RouteTreeGen.createNavigateAppend({
+        path: [{selected: 'newChat', props: {}}],
+      })
+    )
+  }
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2468,6 +2481,12 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(Chat2Gen.filePickerError, handleFilePickerError)
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
+
+  if (flags.newTeamBuildingForChat) {
+    yield Saga.actionToAction(Chat2Gen.setPendingMode, popupTeamBuilding)
+  }
+
+  yield Saga.fork(chatTeamBuildingSaga)
 }
 
 export default chat2Saga

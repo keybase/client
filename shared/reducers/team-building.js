@@ -4,17 +4,21 @@ import * as I from 'immutable'
 import * as ChatTypes from '../constants/types/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 
-// TeamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
-// TeamBuildingSearchResults: TeamBuildingTypes.SearchResults,
-// TeamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
+// Uses ChatState and relies on these fields exisitng
+// teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
+// teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
+// teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
+// teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.UserID>,
 
 export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions) {
   switch (action.type) {
     case TeamBuildingGen.resetStore:
+    case TeamBuildingGen.cancelTeamBuilding:
       return state.merge({
         teamBuildingTeamSoFar: I.Set(),
         teamBuildingSearchResults: I.Map(),
         teamBuildingServiceResultCount: I.Map(),
+        teamBuildingFinishedTeam: I.Set(),
       })
     case TeamBuildingGen.addUsersToTeamSoFar:
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
@@ -34,8 +38,12 @@ export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions)
         serviceResultCount.clear().set(query, I.Map(counts))
       )
     }
-    // Saga only actions
     case TeamBuildingGen.finishedTeamBuilding:
+      return state
+        .set('teamBuildingFinishedTeam', state.teamBuildingTeamSoFar)
+        .set('teamBuildingTeamSoFar', I.Set())
+
+    // Saga only actions
     case TeamBuildingGen.search:
       return state
     default:

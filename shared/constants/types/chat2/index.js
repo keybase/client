@@ -10,6 +10,7 @@ import * as TeamBuildingTypes from '../team-building'
 export type PendingMode =
   | 'none' // no pending
   | 'searchingForUsers' // doing a search
+  | 'newChat' // doing a search
   | 'fixedSetOfUsers' // selected a set of users externally
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
@@ -58,6 +59,7 @@ export type _State = {
   teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
   teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
   teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
+  teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.UserID>,
 }
 
 export type State = I.RecordOf<_State>

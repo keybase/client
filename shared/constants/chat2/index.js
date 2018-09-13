@@ -44,6 +44,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   teamBuildingTeamSoFar: I.Set(),
   teamBuildingSearchResults: I.Map(),
   teamBuildingServiceResultCount: I.Map(),
+  teamBuildingFinishedTeam: I.Set(),
 })
 
 // We stash the resolved pending conversation idkey into the meta itself

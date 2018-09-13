@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from './types/team-building'
+import {trim} from 'lodash-es'
 
 // The I.List is used as a tuple
 type SearchKey = I.List<Types.SearchString | Types.ServiceIdWithContact>
@@ -31,7 +32,7 @@ class SearchCache {
   }
 
   _keyFn = (search: Types.SearchString, service: Types.ServiceIdWithContact): SearchKey =>
-    I.List([search, service])
+    I.List([trim(search), service])
 
   hasSearchQuery = (search: Types.SearchString, service: Types.ServiceIdWithContact): boolean => {
     const k = this._keyFn(search, service)

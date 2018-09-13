@@ -5,7 +5,8 @@
   ],
   "actions": {
     "finishedTeamBuilding": {},
-    "search": {"query": "string", "service": "string"},
+    "cancelTeamBuilding": {},
+    "search": {"query": "string", "service": "string", "limit?": "number"},
     "addUsersToTeamSoFar": {"users": "Array<Types.UserID>"},
     "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
     "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "string"},

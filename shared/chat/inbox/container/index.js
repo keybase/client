@@ -15,6 +15,7 @@ import {
 import type {TypedState} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
+import ff from '../../../util/feature-flags'
 
 const mapStateToProps = (state: TypedState, {routeState}) => {
   const filter = state.chat2.inboxFilter
@@ -35,7 +36,12 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
 const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
-  onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
+  onNewChat: () =>
+    dispatch(
+      Chat2Gen.createSetPendingMode({
+        pendingMode: ff.newTeamBuildingForChat ? 'newChat' : 'searchingForUsers',
+      })
+    ),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({

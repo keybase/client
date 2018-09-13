@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {type TypedState, compose, connect, setDisplayName, withStateHandlers} from '../util/container'
+import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/search'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
@@ -89,6 +90,7 @@ const mapDispatchToProps = dispatch => ({
   _search: (query: string, service: string) => {
     dispatch(TeamBuildingGen.createSearch({query, service}))
   },
+  _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -124,13 +126,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     highlightedIndex: ownProps.highlightedIndex,
     onAdd: dispatchProps.onAdd,
     clearTextTrigger: ownProps.clearTextTrigger,
+    onClosePopup: dispatchProps._onCancelTeamBuilding,
   }
 }
 
-// TODO I don't remember the ordering here
 const Connected = compose(
   withStateHandlers(initialState, stateHandlers),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  PopupDialogHoc,
   setDisplayName('TeamBuilding')
 )(TeamBuilding)
 

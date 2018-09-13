@@ -98,6 +98,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.small,
       paddingBottom: Styles.globalMargins.small,
     },
+    isElectron: {
+      width: 460,
+      height: 434,
+    },
   }),
 })
 
