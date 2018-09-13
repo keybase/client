@@ -232,13 +232,6 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		return maxMerkleProbe, nil
 	}
 
-	// missedTeamSeqnos keeps track of all of the team seqnos that were advertised in the merkle
-	// tree, but that we didn't have data for. This can happen if we have a stale view of the team,
-	// which is OK in many cases. We just need to ensure that all of these "missed" seqnos are at
-	// the end of the team chain.
-	missedTeamSeqnos := make(map[keybase1.Seqno]struct{})
-	var maxTeamSeqno keybase1.Seqno
-
 	for _, tuple := range probeTuples {
 		m.CDebugf("postProbe: checking probe at %+v", tuple)
 
@@ -250,8 +243,14 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		// so this 0 value is checked below (see comment).
 		if tuple.team > keybase1.Seqno(0) {
 			expectedLinkID, ok := chain[tuple.team]
+
+			// It could be that our view of the chain is stale, and that the merkle tree is advertising
+			// chain links that we've never fetched. That's OK, we don't need to error out of the
+			// auditor. But if we're missing links before maxChainSeqno, then we have big problems.
 			if !ok {
-				missedTeamSeqnos[tuple.team] = struct{}{}
+				if tuple.team < maxChainSeqno {
+					return maxMerkleProbe, NewAuditError("team chain didn't contain seqno=%d even though we expected links through %d", tuple.team, maxChainSeqno)
+				}
 				continue
 			}
 			if !expectedLinkID.Eq(tuple.linkID) {
@@ -268,18 +267,7 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		if tuple.merkle > maxMerkleProbe {
 			maxMerkleProbe = tuple.merkle
 		}
-		if tuple.team > maxTeamSeqno {
-			maxTeamSeqno = tuple.team
-		}
 		prev = &tuple
-	}
-
-	// Now go back and check all missed team seqnos were at the end of the chain, and ensure they
-	// are not before the maxTeamSeqno that we hit.
-	for k := range missedTeamSeqnos {
-		if k < maxTeamSeqno {
-			return maxMerkleProbe, NewAuditError("team chain didn't contain seqno=%d even though it did contain one at %d", k, maxTeamSeqno)
-		}
 	}
 
 	return maxMerkleProbe, nil
