@@ -101,3 +101,23 @@ func TestComputeLogPatternMerkleSkips(t *testing.T) {
 		}
 	}
 }
+
+func TestComputeExpectedRootSkips(t *testing.T) {
+	tests := []struct {
+		root     int
+		expected []int
+	}{
+		{0, nil},
+		{1, nil},
+		{100, []int{99, 98, 96, 92, 84, 68, 36}},
+		{256, []int{255, 254, 252, 248, 240, 224, 192, 128}},
+		{1000, []int{999, 998, 996, 992, 984, 968, 936, 872, 744, 488}},
+		{2048, []int{2047, 2046, 2044, 2040, 2032, 2016, 1984, 1920, 1792, 1536, 1024}},
+	}
+	for _, test := range tests {
+		got := computeExpectedRootSkips(test.root)
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input (%d), expected %v, got %v.", test.root, test.expected, got)
+		}
+	}
+}

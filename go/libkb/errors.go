@@ -1215,6 +1215,7 @@ const (
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
 	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {

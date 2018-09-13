@@ -510,19 +510,6 @@ func NewMerkleRootPayloadFromJSONString(s string) (ret MerkleRootPayload, err er
 		return ret, err
 	}
 
-	expectedSkips := computeLogPatternMerkleSkips(0, int(ret.unpacked.Body.Seqno))
-	fmt.Printf("@@@%v, %v\n", expectedSkips, ret.unpacked.Body.Skips)
-	if len(expectedSkips) != len(ret.unpacked.Body.Skips) {
-		return ret, MerkleClientError{fmt.Sprintf("Root check: wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ret.unpacked.Body.Skips)), merkleErrorWrongSkipSequence}
-	}
-	for _, expectedSkip := range expectedSkips {
-		seqno := keybase1.Seqno(expectedSkip)
-		got, ok := ret.unpacked.Body.Skips[seqno]
-		if !ok {
-			return ret, MerkleClientError{fmt.Sprintf("Root check: unexpected skip index: expected %d, got %d.", seqno, got), merkleErrorWrongSkipSequence}
-		}
-	}
-
 	return ret, nil
 }
 
@@ -663,10 +650,12 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	ss, err = mc.readSkipSequenceFromAPIRes(m, apiRes, mr, lastRoot)
 	if err != nil {
 		return nil, nil, nil, err
 	}
+
 	return mr, ss, apiRes, err
 }
 
@@ -1153,6 +1142,12 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 		return err
 	}
 
+	body := root.payload.unpacked.Body
+
+	if err := verifyRootSkips(*root.Seqno(), body.Skips); err != nil {
+		return err
+	}
+
 	m.VLogf(VLog1, "- Merkle: server sig verified")
 
 	mc.verified[*root.Seqno()] = true
@@ -1162,6 +1157,31 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 	}
 
 	return nil
+}
+
+func verifyRootSkips(rootSeqno keybase1.Seqno, skips SkipTable) error {
+	expectedSkips := computeExpectedRootSkips(int(rootSeqno))
+	if len(expectedSkips) != len(skips) {
+		return MerkleClientError{fmt.Sprintf("Root check: wrong number of skips: expected %d, got %d.", len(expectedSkips), len(skips)), merkleErrorWrongRootSkips}
+	}
+	for _, expectedSkip := range expectedSkips {
+		seqno := keybase1.Seqno(expectedSkip)
+		_, ok := skips[seqno]
+		if !ok {
+			return MerkleClientError{fmt.Sprintf("Root check: unexpected skip index: wanted %d, but did not exist.", seqno), merkleErrorWrongRootSkips}
+		}
+	}
+	return nil
+}
+
+func computeExpectedRootSkips(start int) []int {
+	var ret []int
+	skip := 1
+	for start-skip > 0 {
+		ret = append(ret, start-skip)
+		skip *= 2
+	}
+	return ret
 }
 
 func parseTriple(jw *jsonw.Wrapper) (*MerkleTriple, error) {
