@@ -94,13 +94,18 @@ func (d *chatNotificationDisplay) errorf(format string, args ...interface{}) err
 }
 
 type incomingMessage struct {
-	ConvName string          `json:"conv_name"`
-	Channel  string          `json:"channel,omitempty"`
-	ID       chat1.MessageID `json:"id"`
-	Type     string          `json:"type"`
-	Body     string          `json:"message,omitempty"`
-	Sender   string          `json:"sender,omitempty"`
-	Ctime    gregor1.Time    `json:"ctime"`
+	Source string `json:"activity_source"` // "LOCAL" or "REMOTE"
+
+	ConvType string `json:"conv_type"` // "team" or "private"
+	ConvName string `json:"conv_name"`
+	Channel  string `json:"channel,omitempty"`
+	TeamType string `json:"team_type,omitempty"` // "SIMPLE" or "COMPLEX"
+
+	ID     chat1.MessageID `json:"id"`
+	Type   string          `json:"type"`
+	Body   string          `json:"message,omitempty"`
+	Sender string          `json:"sender,omitempty"`
+	Ctime  gregor1.Time    `json:"ctime"`
 
 	// Exploding messages
 	Etime      gregor1.Time `json:"explode_time"`
@@ -123,6 +128,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			if inMsg.Message.IsValid() {
 				mv := inMsg.Message.Valid()
 				msgJSON := incomingMessage{
+					Source:     arg.Source.String(),
 					ConvName:   inMsg.Conv.Name,
 					Channel:    inMsg.Conv.Channel,
 					Sender:     mv.SenderUsername,
@@ -130,6 +136,13 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 					Ctime:      mv.Ctime,
 					Etime:      mv.Etime,
 					ExplodedBy: mv.ExplodedBy,
+				}
+				switch inMsg.Conv.MembersType {
+				case chat1.ConversationMembersType_TEAM:
+					msgJSON.ConvType = "team"
+					msgJSON.TeamType = inMsg.Conv.TeamType.String()
+				default:
+					msgJSON.ConvType = "private"
 				}
 				bodyType, err := mv.MessageBody.MessageType()
 				if err == nil {
