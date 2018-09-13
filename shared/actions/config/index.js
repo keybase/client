@@ -28,19 +28,22 @@ const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
     'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
       Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
-    'keybase.1.NotifySession.loggedIn': ({username}, response, state) => {
-      response && response.result()
-      // only send this if we think we're not logged in
-      if (!state.config.loggedIn) {
-        return Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
-      }
-    },
-    'keybase.1.NotifySession.loggedOut': (_, __, state) => {
-      // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-      if (state.config.loggedIn) {
-        return Saga.put(ConfigGen.createLoggedOut())
-      }
-    },
+    'keybase.1.NotifySession.loggedOut': () =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+        if (state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedOut())
+        }
+      }),
+    'keybase.1.NotifySession.loggedIn': ({username}) =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're not logged in
+        if (!state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+        }
+      }),
   })
 }
 
