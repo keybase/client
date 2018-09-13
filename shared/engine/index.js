@@ -19,7 +19,7 @@ import {sagaMiddleware} from '../store/configure-store'
 import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {IncomingCallMapType} from '../constants/types/rpc-gen'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
 
@@ -324,7 +324,7 @@ class Engine {
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
     incomingCallMap?: ?IncomingCallMapType,
-    customResponseIncomingCallMap?: ?CustomResponseIncomingCallMap,
+    customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
     waitingKey?: string,
@@ -337,7 +337,6 @@ class Engine {
       customResponseIncomingCallMap,
       dangling,
       endHandler: (session: Session) => this._sessionEnded(session),
-      // $FlowIssue
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback = method => (...args) => {
