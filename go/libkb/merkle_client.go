@@ -398,7 +398,8 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 func computeSetBitsBigEndian(x int) []int {
 	var ret []int
 	bit := 1
-	for i := 0; i <= int(math.Ceil(math.Log2(float64(x)))); i++ {
+	high := int(math.Ceil(math.Log2(float64(x))))
+	for i := 0; i <= high; i++ {
 		if x&bit != 0 {
 			ret = append(ret, bit)
 		}
