@@ -43,14 +43,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   linkExistingAccountError: stateProps.linkExistingAccountError,
   nameError: stateProps.nameError,
   nameValidationState: stateProps.nameValidationState,
-  onBack: ownProps.routeProps.get('back') || dispatchProps.onCancel,
+  secretKeyValidationState: stateProps.secretKeyValidationState,
+  waiting: stateProps.waiting,
   onCancel: dispatchProps.onCancel,
   onCheckKey: dispatchProps.onCheckKey,
   onCheckName: dispatchProps.onCheckName,
   onClearErrors: dispatchProps.onClearErrors,
   onDone: dispatchProps.onDone,
-  secretKeyValidationState: stateProps.secretKeyValidationState,
-  waiting: stateProps.waiting,
+  onBack: ownProps.routeProps.get('back') ? dispatchProps.onCancel : undefined,
 })
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)

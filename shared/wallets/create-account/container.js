@@ -28,9 +28,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   error: capitalize(stateProps.error),
-  onBack: ownProps.routeProps.get('back') || dispatchProps.onCancel,
   onCreateAccount: () => dispatchProps._onCreateAccount(ownProps.name),
   onDone: () => dispatchProps._onDone(ownProps.name),
+  onBack: ownProps.routeProps.get('back') ? dispatchProps.onCancel : undefined,
 })
 
 export default compose(
