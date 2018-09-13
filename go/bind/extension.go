@@ -13,13 +13,13 @@ import (
 
 	"github.com/keybase/client/go/encrypteddb"
 	"github.com/keybase/client/go/kbconst"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -226,44 +226,10 @@ func (g *extensionGregorHandler) ShouldRetryOnConnect(err error) bool {
 }
 
 func getGregorClient(ctx context.Context, gc *globals.Context) (res chat1.RemoteClient, err error) {
-	// Get session token
-	nist, _, err := kbCtx.ActiveDevice.NISTAndUID(ctx)
-	if nist == nil {
-		kbCtx.Log.CDebugf(ctx, "getGregorClient: got a nil NIST, is the user logged out?")
-		return res, errors.New("not logged in")
-	}
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to get logged in session: %s", err)
-		return res, err
-	}
-	// Make an ad hoc connection to gregor
-	uri, err := rpc.ParseFMPURI(kbCtx.GetEnv().GetGregorURI())
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to parse chat server UR: %s", err)
-		return res, err
-	}
-
-	var conn *rpc.Connection
-	handler := newExtensionGregorHandler(gc, nist)
-	if uri.UseTLS() {
-		rawCA := kbCtx.GetEnv().GetBundledCA(uri.Host)
-		if len(rawCA) == 0 {
-			kbCtx.Log.CDebugf(ctx, "getGregorClient: failed to parse CAs: %s", err)
-			return
-		}
-		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
-			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(kbCtx),
-			handler, libkb.NewRPCLogFactory(kbCtx),
-			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
-	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(kbCtx))
-		conn = rpc.NewConnectionWithTransport(handler, t,
-			libkb.NewContextifiedErrorUnwrapper(kbCtx),
-			logger.LogOutputWithDepthAdder{Logger: kbCtx.Log}, rpc.ConnectionOpts{})
-	}
-	defer conn.Shutdown()
-
-	// Make remote successful call on our ad hoc conn
+	conn, _, err := utils.GetGregorConn(ctx, gc, utils.NewDebugLabeler(gc.GetLog(), "Extension", false),
+		func(nist *libkb.NIST) rpc.ConnectionHandler {
+			return newExtensionGregorHandler(gc, nist)
+		})
 	return chat1.RemoteClient{Cli: chat.NewRemoteClient(gc, conn.GetClient())}, nil
 }
 

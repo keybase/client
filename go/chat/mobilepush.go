@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/libkb"
 
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/utils"
@@ -52,7 +53,10 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
 	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess")()
-	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler, &remoteNotificationSuccessHandler{})
+	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler,
+		func(nist *libkb.NIST) rpc.ConnectionHandler {
+			return &remoteNotificationSuccessHandler{}
+		})
 	if err != nil {
 		return
 	}

@@ -1500,7 +1500,8 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 		})
 }
 
-func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler, handler rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
+func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
+	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
 	// Get session token
 	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
 	if nist == nil {
@@ -1528,11 +1529,11 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler, ha
 		}
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
-			handler, libkb.NewRPCLogFactory(g.ExternalG()),
+			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
 	} else {
 		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
-		conn = rpc.NewConnectionWithTransport(handler, t,
+		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
 	}
