@@ -2347,7 +2347,8 @@
       "name": "PreviewLocationTyp",
       "symbols": [
         "URL_0",
-        "FILE_1"
+        "FILE_1",
+        "BYTES_2"
       ]
     },
     {
@@ -2371,6 +2372,13 @@
             "def": false
           },
           "body": "string"
+        },
+        {
+          "label": {
+            "name": "BYTES",
+            "def": false
+          },
+          "body": "bytes"
         }
       ]
     },
