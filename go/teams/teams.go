@@ -1237,7 +1237,7 @@ func (t *Team) sigTeamItem(ctx context.Context, section SCTeamSection, linkType 
 	return sig, err
 }
 
-func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, hPrevInfoOverride *libkb.HPrevInfo, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
+func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkType libkb.LinkType, nextSeqno keybase1.Seqno, lastLinkID keybase1.LinkID, highSkipOverride *libkb.HighSkip, merkleRoot *libkb.MerkleRoot) (libkb.SigMultiItem, keybase1.LinkID, error) {
 	me, err := loadMeForSignatures(ctx, t.G())
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
@@ -1251,15 +1251,15 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		return libkb.SigMultiItem{}, "", err
 	}
 
-	hPrevInfo, err := t.chain().GetHPrevInfoIfValid()
+	highSkip, err := t.chain().GetHighSkipIfValid()
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
-	if hPrevInfoOverride != nil {
-		hPrevInfo = hPrevInfoOverride
+	if highSkipOverride != nil {
+		highSkip = highSkipOverride
 	}
 
-	sig, err := ChangeSig(t.G(), me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot, hPrevInfo)
+	sig, err := ChangeSig(t.G(), me, latestLinkID, nextSeqno, deviceSigningKey, section, linkType, merkleRoot, highSkip)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err
 	}
@@ -1304,7 +1304,7 @@ func (t *Team) sigTeamItemRaw(ctx context.Context, section SCTeamSection, linkTy
 		libkb.SigHasRevokes(false),
 		seqType,
 		libkb.SigIgnoreIfUnsupported(false),
-		hPrevInfo,
+		highSkip,
 	)
 	if err != nil {
 		return libkb.SigMultiItem{}, "", err

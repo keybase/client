@@ -77,7 +77,7 @@ func assertHighSeqFromServer(t *testing.T, tc libkb.TestContext, teamID *keybase
 	require.NoError(t, err)
 	links, err := rawTeam.unpackLinks(context.TODO())
 	require.NoError(t, err)
-	actualHighSeq := *links[0].outerLink.HPrevSeqno
+	actualHighSeq := *links[0].outerLink.HighSkipSeqno
 	require.Equal(t, expectedHigh, actualHighSeq)
 }
 
@@ -208,7 +208,7 @@ func TestTeamSigChainHighLinks(t *testing.T) {
 
 // Here we're testing a specific upgrade path. A new client on this code
 // that previously knows nothing about high_skips (i.e. it does not have
-// any hprev details in it's TeamSigchainState) needs to be able to load
+// any high skip details in it's TeamSigchainState) needs to be able to load
 // and validate a new link that has high_skips. To test this, we save the
 // TeamSigchainState before creating a new link. On that saved state, we
 // wipe the high_skip data, and then write that saved state back to the app.

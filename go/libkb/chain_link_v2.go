@@ -199,11 +199,11 @@ type OuterLinkV2 struct {
 	// - it cannot be stubbed for admins
 	IgnoreIfUnsupported SigIgnoreIfUnsupported `codec:"ignore_if_unsupported"`
 	// -- Links exist in the wild that are missing fields below this line too.
-	// If not provided, both of these are nil, and hPrevInfo in the inner link is set to nil.
-	// Note that a link providing HPrevSeqno == 0 and HPrevHash == nil is valid
+	// If not provided, both of these are nil, and highSkip in the inner link is set to nil.
+	// Note that a link providing HighSkipSeqno == 0 and HighSkipHash == nil is valid
 	// (and mandatory) for an initial link.
-	HPrevSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
-	HPrevHash  *LinkID         `codec:"high_skip_hash"`
+	HighSkipSeqno *keybase1.Seqno `codec:"high_skip_seqno"`
+	HighSkipHash  *LinkID         `codec:"high_skip_hash"`
 }
 
 func (o OuterLinkV2) Encode() ([]byte, error) {
@@ -249,7 +249,7 @@ func encodeOuterLink(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
-	hPrevInfo *HPrevInfo,
+	highSkip *HighSkip,
 ) ([]byte, error) {
 	var encodedOuterLink []byte
 
@@ -260,13 +260,13 @@ func encodeOuterLink(
 		return encodedOuterLink, err
 	}
 
-	// When 2.3 links are mandatory, it will be invalid for hPrevInfo == nil,
+	// When 2.3 links are mandatory, it will be invalid for highSkip == nil,
 	// so the featureflag check will be removed and the nil check will result
 	// in an error.
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
-	if allowHighSkips && hPrevInfo != nil {
-		hPrevSeqno := &hPrevInfo.Seqno
-		hPrevHash := &hPrevInfo.Hash
+	if allowHighSkips && highSkip != nil {
+		highSkipSeqno := &highSkip.Seqno
+		highSkipHash := &highSkip.Hash
 		outerLink := OuterLinkV2{
 			Version:             2,
 			Seqno:               seqno,
@@ -275,8 +275,8 @@ func encodeOuterLink(
 			LinkType:            v2LinkType,
 			SeqType:             seqType,
 			IgnoreIfUnsupported: ignoreIfUnsupported,
-			HPrevSeqno:          hPrevSeqno,
-			HPrevHash:           hPrevHash,
+			HighSkipSeqno:       highSkipSeqno,
+			HighSkipHash:        highSkipHash,
 		}
 		encodedOuterLink, err = outerLink.Encode()
 	} else {
@@ -325,10 +325,10 @@ func MakeSigchainV2OuterSig(
 	hasRevokes SigHasRevokes,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
-	hPrevInfo *HPrevInfo,
+	highSkip *HighSkip,
 ) (sig string, sigid keybase1.SigID, linkID LinkID, err error) {
 
-	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, hPrevInfo)
+	encodedOuterLink, err := encodeOuterLink(m, v1LinkType, seqno, innerLinkJSON, prevLinkID, hasRevokes, seqType, ignoreIfUnsupported, highSkip)
 	if err != nil {
 		return sig, sigid, linkID, err
 	}
@@ -506,7 +506,7 @@ func (o OuterLinkV2) AssertFields(
 	linkType SigchainV2Type,
 	seqType keybase1.SeqType,
 	ignoreIfUnsupported SigIgnoreIfUnsupported,
-	hPrevInfo *HPrevInfo,
+	highSkip *HighSkip,
 ) (err error) {
 	if o.Version != version {
 		return mismatchError("version field (%d != %d)", o.Version, version)
@@ -530,7 +530,7 @@ func (o OuterLinkV2) AssertFields(
 		return mismatchError("ignore_if_unsupported: (%v != %v)", o.IgnoreIfUnsupported, ignoreIfUnsupported)
 	}
 
-	err = o.assertHPrevInfo(hPrevInfo)
+	err = o.assertHighSkip(highSkip)
 	if err != nil {
 		return err
 	}
@@ -538,36 +538,36 @@ func (o OuterLinkV2) AssertFields(
 	return nil
 }
 
-func (o OuterLinkV2) assertHPrevInfo(hPrevInfo *HPrevInfo) error {
-	if hPrevInfo == nil && o.HPrevSeqno != nil {
-		return mismatchError("provided HPrevSeqno (%d) in outer link but not in inner link", o.HPrevSeqno)
+func (o OuterLinkV2) assertHighSkip(highSkip *HighSkip) error {
+	if highSkip == nil && o.HighSkipSeqno != nil {
+		return mismatchError("provided HighSkipSeqno (%d) in outer link but not in inner link", o.HighSkipSeqno)
 	}
-	if hPrevInfo == nil && o.HPrevHash != nil {
-		return mismatchError("provided HPrevHash (%v) in outer link but not in inner link", o.HPrevHash)
-	}
-
-	// o.HPrevHash may be nil even if hPrevInfo is not, so we don't check it
-	if hPrevInfo != nil && o.HPrevSeqno == nil {
-		return mismatchError("provided HPrevInfo in inner link but not HPrevSeqno in outer link")
+	if highSkip == nil && o.HighSkipHash != nil {
+		return mismatchError("provided HighSkipHash (%v) in outer link but not in inner link", o.HighSkipHash)
 	}
 
-	if hPrevInfo == nil {
+	// o.HighSkipHash may be nil even if highSkip is not, so we don't check it
+	if highSkip != nil && o.HighSkipSeqno == nil {
+		return mismatchError("provided HighSkip in inner link but not HighSkipSeqno in outer link")
+	}
+
+	if highSkip == nil {
 		return nil
 	}
 
-	if *o.HPrevSeqno != hPrevInfo.Seqno {
-		return mismatchError("hPrevInfo.Seqno field outer (%d)/inner (%d) mismatch", *o.HPrevSeqno, hPrevInfo.Seqno)
+	if *o.HighSkipSeqno != highSkip.Seqno {
+		return mismatchError("highSkip.Seqno field outer (%d)/inner (%d) mismatch", *o.HighSkipSeqno, highSkip.Seqno)
 	}
 
-	if o.HPrevHash == nil && hPrevInfo.Hash != nil {
-		return mismatchError("Provided HPrevInfo.Hash in outer link but not inner.")
+	if o.HighSkipHash == nil && highSkip.Hash != nil {
+		return mismatchError("Provided HighSkip.Hash in outer link but not inner.")
 	}
-	if o.HPrevHash != nil && hPrevInfo.Hash == nil {
-		return mismatchError("Provided HPrevInfo.Hash in inner link but not outer.")
+	if o.HighSkipHash != nil && highSkip.Hash == nil {
+		return mismatchError("Provided HighSkip.Hash in inner link but not outer.")
 	}
 
-	if o.HPrevHash != nil && !o.HPrevHash.Eq(hPrevInfo.Hash) {
-		return mismatchError("hPrevInfo.Hash field outer (%v)/inner (%v) mismatch", o.HPrevHash, hPrevInfo.Hash)
+	if o.HighSkipHash != nil && !o.HighSkipHash.Eq(highSkip.Hash) {
+		return mismatchError("highSkip.Hash field outer (%v)/inner (%v) mismatch", o.HighSkipHash, highSkip.Hash)
 	}
 
 	return nil

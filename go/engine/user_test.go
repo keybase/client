@@ -122,11 +122,11 @@ func assertPostedHighSkipSeqno(t *testing.T, tc libkb.TestContext, name string, 
 		t.Fatal(err)
 	}
 
-	hPrevInfo := u.GetLastLink().GetHPrevInfo()
-	require.Equal(t, hPrevInfo.Seqno, keybase1.Seqno(seqno))
+	highSkip := u.GetLastLink().GetHighSkip()
+	require.Equal(t, highSkip.Seqno, keybase1.Seqno(seqno))
 }
 
-func TestBlankUserHPrevInfo(t *testing.T) {
+func TestBlankUserHighSkip(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
 
@@ -135,7 +135,7 @@ func TestBlankUserHPrevInfo(t *testing.T) {
 	assertPostedHighSkipSeqno(t, tc, i.Username, 1)
 }
 
-func TestPaperUserHPrevInfo(t *testing.T) {
+func TestPaperUserHighSkip(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
 	them, _ := createFakeUserWithNoKeys(tc)

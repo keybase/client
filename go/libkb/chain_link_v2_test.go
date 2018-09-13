@@ -112,18 +112,18 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
-func serdeOuterLink(t *testing.T, tc TestContext, hPrevSeqno *keybase1.Seqno, hPrevHash LinkID) OuterLinkV2 {
+func serdeOuterLink(t *testing.T, tc TestContext, highSkipSeqno *keybase1.Seqno, highSkipHash LinkID) OuterLinkV2 {
 	m := NewMetaContextForTest(tc)
 
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
 
-	var hPrevInfo *HPrevInfo
-	hPrevInfo = nil
-	if hPrevSeqno != nil {
-		hPrevInfoPre := NewHPrevInfo(*hPrevSeqno, hPrevHash)
-		hPrevInfo = &hPrevInfoPre
+	var highSkip *HighSkip
+	highSkip = nil
+	if highSkipSeqno != nil {
+		highSkipPre := NewHighSkip(*highSkipSeqno, highSkipHash)
+		highSkip = &highSkipPre
 	}
-	encoded, err := encodeOuterLink(m, LinkTypeLeave, keybase1.Seqno(20), nil, nil, false, keybase1.SeqType_PUBLIC, false, hPrevInfo)
+	encoded, err := encodeOuterLink(m, LinkTypeLeave, keybase1.Seqno(20), nil, nil, false, keybase1.SeqType_PUBLIC, false, highSkip)
 	require.NoError(t, err)
 
 	o2 := OuterLinkV2{}
@@ -132,36 +132,36 @@ func serdeOuterLink(t *testing.T, tc TestContext, hPrevSeqno *keybase1.Seqno, hP
 	return o2
 }
 
-func hPrevInfoMatch(ol OuterLinkV2, hPrevInfo *HPrevInfo) error {
-	return ol.AssertFields(ol.Version, ol.Seqno, ol.Prev, ol.Curr, ol.LinkType, ol.SeqType, ol.IgnoreIfUnsupported, hPrevInfo)
+func highSkipMatch(ol OuterLinkV2, highSkip *HighSkip) error {
+	return ol.AssertFields(ol.Version, ol.Seqno, ol.Prev, ol.Curr, ol.LinkType, ol.SeqType, ol.IgnoreIfUnsupported, highSkip)
 }
 
-func TestHPrevBackwardsCompatibility(t *testing.T) {
-	tc := SetupTest(t, "test_hprev_backwards_compatibility", 1)
+func TestHighSkipBackwardsCompatibility(t *testing.T) {
+	tc := SetupTest(t, "test_high_skip_backwards_compatibility", 1)
 	defer tc.Cleanup()
 
 	o := serdeOuterLink(t, tc, nil, nil)
-	require.True(t, o.HPrevSeqno == nil)
-	require.True(t, o.HPrevHash == nil)
-	require.NoError(t, hPrevInfoMatch(o, nil))
+	require.True(t, o.HighSkipSeqno == nil)
+	require.True(t, o.HighSkipHash == nil)
+	require.NoError(t, highSkipMatch(o, nil))
 
 	seqno := keybase1.Seqno(3)
 	o = serdeOuterLink(t, tc, &seqno, nil)
-	require.True(t, *o.HPrevSeqno == 3)
-	require.True(t, o.HPrevHash == nil)
-	hPrevInfo := NewHPrevInfo(keybase1.Seqno(3), nil)
-	badHPrevInfo1 := NewHPrevInfo(keybase1.Seqno(3), []byte{0, 5, 2})
-	badHPrevInfo2 := NewHPrevInfo(keybase1.Seqno(4), nil)
-	require.NoError(t, hPrevInfoMatch(o, &hPrevInfo))
-	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo1))
-	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo2))
+	require.True(t, *o.HighSkipSeqno == 3)
+	require.True(t, o.HighSkipHash == nil)
+	highSkip := NewHighSkip(keybase1.Seqno(3), nil)
+	badHighSkip1 := NewHighSkip(keybase1.Seqno(3), []byte{0, 5, 2})
+	badHighSkip2 := NewHighSkip(keybase1.Seqno(4), nil)
+	require.NoError(t, highSkipMatch(o, &highSkip))
+	require.Error(t, highSkipMatch(o, &badHighSkip1))
+	require.Error(t, highSkipMatch(o, &badHighSkip2))
 
-	hPrevHash := []byte{0, 6, 2, 42, 123}
-	o = serdeOuterLink(t, tc, &seqno, hPrevHash)
-	hPrevInfo = NewHPrevInfo(keybase1.Seqno(3), hPrevHash)
-	badHPrevInfo1 = NewHPrevInfo(keybase1.Seqno(3), []byte{0, 5, 2})
-	badHPrevInfo2 = NewHPrevInfo(keybase1.Seqno(3), nil)
-	require.NoError(t, hPrevInfoMatch(o, &hPrevInfo))
-	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo1))
-	require.Error(t, hPrevInfoMatch(o, &badHPrevInfo2))
+	highSkipHash := []byte{0, 6, 2, 42, 123}
+	o = serdeOuterLink(t, tc, &seqno, highSkipHash)
+	highSkip = NewHighSkip(keybase1.Seqno(3), highSkipHash)
+	badHighSkip1 = NewHighSkip(keybase1.Seqno(3), []byte{0, 5, 2})
+	badHighSkip2 = NewHighSkip(keybase1.Seqno(3), nil)
+	require.NoError(t, highSkipMatch(o, &highSkip))
+	require.Error(t, highSkipMatch(o, &badHighSkip1))
+	require.Error(t, highSkipMatch(o, &badHighSkip2))
 }

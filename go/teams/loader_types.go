@@ -187,13 +187,13 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		useSeqType = l.outerLink.SeqType
 	}
 
-	var hPrevInfoPtr *libkb.HPrevInfo
-	if hPrevInfoStr := l.inner.HPrevInfo; hPrevInfoStr != nil {
-		hPrevInfo, err := hPrevInfoStr.ToLibkbHPrevInfo()
+	var highSkipPtr *libkb.HighSkip
+	if highSkipStr := l.inner.HighSkip; highSkipStr != nil {
+		highSkip, err := highSkipStr.ToLibkbHighSkip()
 		if err != nil {
 			return nil
 		}
-		hPrevInfoPtr = &hPrevInfo
+		highSkipPtr = &highSkip
 	}
 
 	return l.outerLink.AssertFields(
@@ -204,5 +204,5 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 		linkType,
 		useSeqType,
 		l.inner.IgnoreIfUnsupported,
-		hPrevInfoPtr)
+		highSkipPtr)
 }

@@ -759,12 +759,12 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 			return fmt.Errorf("Unhandled case in AddMemberTx.Post, unknown tag: %s", tx.payloads[i].Tag)
 		}
 
-		hPrevInfo, err := runningState.GetHPrevInfo()
+		highSkip, err := runningState.GetHighSkip()
 		if err != nil {
 			return err
 		}
 		sigMultiItem, linkID, err := team.sigTeamItemRaw(mctx.Ctx(), section, linkType,
-			nextSeqno, latestLinkID, &hPrevInfo, merkleRoot)
+			nextSeqno, latestLinkID, &highSkip, merkleRoot)
 		if err != nil {
 			return err
 		}

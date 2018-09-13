@@ -93,7 +93,7 @@ func (l LinkID) Eq(i2 LinkID) bool {
 type ChainLinkUnpacked struct {
 	prev                               LinkID
 	seqno                              keybase1.Seqno
-	hPrevInfo                          *HPrevInfo
+	highSkip                           *HighSkip
 	seqType                            keybase1.SeqType
 	ignoreIfUnsupported                SigIgnoreIfUnsupported
 	payloadLocal                       []byte // local track payloads
@@ -205,18 +205,18 @@ var badWhitespaceChainLinks = map[keybase1.SigID]string{
 
 type ChainLink struct {
 	Contextified
-	parent            *SigChain
-	id                LinkID
-	hashVerified      bool
-	sigVerified       bool
-	payloadVerified   bool
-	chainVerified     bool
-	storedLocally     bool
-	revoked           bool
-	unsigned          bool
-	dirty             bool
-	revocationsCache  *[]keybase1.SigID
-	computedHPrevInfo *HPrevInfo
+	parent           *SigChain
+	id               LinkID
+	hashVerified     bool
+	sigVerified      bool
+	payloadVerified  bool
+	chainVerified    bool
+	storedLocally    bool
+	revoked          bool
+	unsigned         bool
+	dirty            bool
+	revocationsCache *[]keybase1.SigID
+	computedHighSkip *HighSkip
 
 	unpacked *ChainLinkUnpacked
 	cki      *ComputedKeyInfos
@@ -259,8 +259,8 @@ func (c *ChainLink) GetIgnoreIfSupported() SigIgnoreIfUnsupported {
 	return c.getIgnoreIfUnsupportedFromPayload()
 }
 
-func (c *ChainLink) getHPrevInfoFromPayload() *HPrevInfo {
-	return c.unpacked.hPrevInfo
+func (c *ChainLink) getHighSkipFromPayload() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) IsStubbed() bool {
@@ -469,7 +469,7 @@ func (c *ChainLink) checkAgainstMerkleTree(t *MerkleTriple) (found bool, err err
 	return
 }
 
-func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevInfo, error) {
+func (tmp *ChainLinkUnpacked) parseHighSkipFromPayload(payload []byte) (*HighSkip, error) {
 	hs, dataType, _, err := jsonparser.Get(payload, "high_skip")
 	// high_skip is optional, but must be an object if it exists
 	if err != nil {
@@ -483,16 +483,16 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 		return nil, ChainLinkError{fmt.Sprintf("When provided, expected high_skip to be a JSON object, was %v.", dataType)}
 	}
 
-	hPrevSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
+	highSkipSeqnoInt, err := jsonparser.GetInt(hs, "seqno")
 	if err != nil {
 		return nil, err
 	}
 
-	// hPrevHash can either be null (zero-value of a LinkID) or a hexstring.
+	// highSkipHash can either be null (zero-value of a LinkID) or a hexstring.
 	// We call GetString first instead of Get so we only parse the value
 	// twice for the first link.
-	hPrevHashStr, err := jsonparser.GetString(hs, "hash")
-	var hPrevHash LinkID
+	highSkipHashStr, err := jsonparser.GetString(hs, "hash")
+	var highSkipHash LinkID
 	if err != nil {
 		// If there was an error parsing as a string, make sure the value is null.
 		_, dataType, _, getErr := jsonparser.Get(hs, "hash")
@@ -505,14 +505,14 @@ func (tmp *ChainLinkUnpacked) parseHPrevInfoFromPayload(payload []byte) (*HPrevI
 			}
 		}
 	} else {
-		hPrevHash, err = LinkIDFromHex(hPrevHashStr)
+		highSkipHash, err = LinkIDFromHex(highSkipHashStr)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	hPrevInfo := NewHPrevInfo(keybase1.Seqno(hPrevSeqnoInt), hPrevHash)
-	return &hPrevInfo, nil
+	highSkip := NewHighSkip(keybase1.Seqno(highSkipSeqnoInt), highSkipHash)
+	return &highSkip, nil
 }
 
 func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte) error {
@@ -549,11 +549,11 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 		}
 	}
 
-	hPrevInfo, err := tmp.parseHPrevInfoFromPayload(payload)
+	highSkip, err := tmp.parseHighSkipFromPayload(payload)
 	if err != nil {
 		return err
 	}
-	tmp.hPrevInfo = hPrevInfo
+	tmp.highSkip = highSkip
 
 	tmp.typ, err = jsonparser.GetString(payload, "body", "type")
 	if err != nil {
@@ -668,13 +668,13 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 
 	c.id = ol.LinkID()
 
-	// Because the outer link does not have a hPrevInfo parent object, we check
-	// for the nullity of hPrevSeqno to see if hPrevInfo should be set, since
-	// a null hPrevHash is valid even when specifying hPrevInfo.
-	var hPrevInfoPtr *HPrevInfo
-	if ol.HPrevSeqno != nil {
-		hPrevInfo := NewHPrevInfo(*ol.HPrevSeqno, *ol.HPrevHash)
-		hPrevInfoPtr = &hPrevInfo
+	// Because the outer link does not have a highSkip parent object, we check
+	// for the nullity of highSkipSeqno to see if highSkip should be set, since
+	// a null highSkipHash is valid even when specifying highSkip.
+	var highSkipPtr *HighSkip
+	if ol.HighSkipSeqno != nil {
+		highSkip := NewHighSkip(*ol.HighSkipSeqno, *ol.HighSkipHash)
+		highSkipPtr = &highSkip
 	}
 
 	c.unpacked = &ChainLinkUnpacked{
@@ -682,7 +682,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 		seqno:               ol.Seqno,
 		seqType:             ol.SeqType,
 		ignoreIfUnsupported: ol.IgnoreIfUnsupported,
-		hPrevInfo:           hPrevInfoPtr,
+		highSkip:            highSkipPtr,
 		sigVersion:          ol.Version,
 		outerLinkV2:         ol,
 		stubbed:             true,
@@ -1007,9 +1007,9 @@ func (c *ChainLink) verifyPayloadV2() error {
 		return err
 	}
 	seqType := c.getSeqTypeFromPayload()
-	hPrevInfo := c.getHPrevInfoFromPayload()
+	highSkip := c.getHighSkipFromPayload()
 
-	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, hPrevInfo); err != nil {
+	if err := ol.AssertFields(version, seqno, prev, curr, linkType, seqType, ignoreIfUnsupported, highSkip); err != nil {
 		return err
 	}
 
@@ -1048,8 +1048,8 @@ func (c *ChainLink) GetSeqno() keybase1.Seqno {
 	return c.unpacked.seqno
 }
 
-func (c *ChainLink) GetHPrevInfo() *HPrevInfo {
-	return c.unpacked.hPrevInfo
+func (c *ChainLink) GetHighSkip() *HighSkip {
+	return c.unpacked.highSkip
 }
 
 func (c *ChainLink) GetSigID() keybase1.SigID {
@@ -1418,20 +1418,20 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 	return isNewHighLink, nil
 }
 
-// ExpectedNextHPrevInfo returns the expected hPrevInfo of the immediately
+// ExpectedNextHighSkip returns the expected highSkip of the immediately
 // subsequent link in the chain (which may not exist yet). This function can
 // only be called after VerifyChain has processed the chainLink, and set
-// c.computedHPrevInfo.
-func (c ChainLink) ExpectedNextHPrevInfo() (HPrevInfo, error) {
+// c.computedHighSkip.
+func (c ChainLink) ExpectedNextHighSkip() (HighSkip, error) {
 	isHigh, err := c.IsHighUserLink()
 	if err != nil {
-		return HPrevInfo{}, err
+		return HighSkip{}, err
 	}
 	if isHigh {
-		return NewHPrevInfo(c.GetSeqno(), c.id), nil
+		return NewHighSkip(c.GetSeqno(), c.id), nil
 	}
-	if c.computedHPrevInfo == nil {
-		return HPrevInfo{}, NewUserReverifyNeededError("Expected to have already computed this link's HPrevInfo, but it was not computed.")
+	if c.computedHighSkip == nil {
+		return HighSkip{}, NewUserReverifyNeededError("Expected to have already computed this link's HighSkip, but it was not computed.")
 	}
-	return *c.computedHPrevInfo, nil
+	return *c.computedHighSkip, nil
 }

@@ -252,28 +252,28 @@ func remoteProofToTrackingStatement(s RemoteProofChainLink, base *jsonw.Wrapper)
 	return nil
 }
 
-type HPrevInfo struct {
+type HighSkip struct {
 	Seqno keybase1.Seqno
 	Hash  LinkID
 }
 
-func NewHPrevInfo(hPrevSeqno keybase1.Seqno, hPrevHash LinkID) HPrevInfo {
-	return HPrevInfo{
-		Seqno: hPrevSeqno,
-		Hash:  hPrevHash,
+func NewHighSkip(highSkipSeqno keybase1.Seqno, highSkipHash LinkID) HighSkip {
+	return HighSkip{
+		Seqno: highSkipSeqno,
+		Hash:  highSkipHash,
 	}
 }
 
-func NewInitialHPrevInfo() HPrevInfo {
-	return NewHPrevInfo(keybase1.Seqno(0), nil)
+func NewInitialHighSkip() HighSkip {
+	return NewHighSkip(keybase1.Seqno(0), nil)
 }
 
-func (h HPrevInfo) AssertEqualsExpected(expected HPrevInfo) error {
+func (h HighSkip) AssertEqualsExpected(expected HighSkip) error {
 	if expected.Seqno != h.Seqno {
-		return fmt.Errorf("Expected hPrevInfo.Seqno %d, got %d.", expected.Seqno, h.Seqno)
+		return fmt.Errorf("Expected highSkip.Seqno %d, got %d.", expected.Seqno, h.Seqno)
 	}
 	if !expected.Hash.Eq(h.Hash) {
-		return fmt.Errorf("Expected hPrevInfo.Hash %s, got %s.", expected.Hash.String(), h.Hash.String())
+		return fmt.Errorf("Expected highSkip.Hash %s, got %s.", expected.Hash.String(), h.Hash.String())
 	}
 	return nil
 }
@@ -293,10 +293,10 @@ type ProofMetadata struct {
 	SeqType             keybase1.SeqType
 	MerkleRoot          *MerkleRoot
 	IgnoreIfUnsupported SigIgnoreIfUnsupported
-	// HPrevInfoFallback is used for teams to provide team chain hPrevInfos and
+	// HighSkipFallback is used for teams to provide team chain highSkips and
 	// for a KEX-provisisonee to provide the provisioner's information as the
 	// latest high link.
-	HPrevInfoFallback *HPrevInfo
+	HighSkipFallback *HighSkip
 }
 
 func (arg ProofMetadata) merkleRootInfo(m MetaContext) (ret *jsonw.Wrapper) {
@@ -359,30 +359,30 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 	ret.SetKey("seqno", jsonw.NewInt64(int64(seqno)))
 	ret.SetKey("prev", prev)
 
-	var hPrevInfo *HPrevInfo
+	var highSkip *HighSkip
 	allowHighSkips := m.G().Env.GetFeatureFlags().HasFeature(EnvironmentFeatureAllowHighSkips)
 	if allowHighSkips {
-		if (arg.Me == nil) == (arg.HPrevInfoFallback == nil) {
-			return nil, fmt.Errorf("Exactly one of arg.Me and arg.HPrevInfoFallback must be non-nil.")
+		if (arg.Me == nil) == (arg.HighSkipFallback == nil) {
+			return nil, fmt.Errorf("Exactly one of arg.Me and arg.HighSkipFallback must be non-nil.")
 		} else if arg.Me != nil {
-			hPrevInfoPre, err := arg.Me.GetExpectedNextHPrevInfo()
+			highSkipPre, err := arg.Me.GetExpectedNextHighSkip()
 			if err != nil {
 				return nil, err
 			}
-			hPrevInfo = &hPrevInfoPre
+			highSkip = &highSkipPre
 		} else {
-			hPrevInfo = arg.HPrevInfoFallback
+			highSkip = arg.HighSkipFallback
 		}
 
-		if hPrevInfo != nil {
-			hPrevInfoObj := jsonw.NewDictionary()
-			hPrevInfoObj.SetKey("seqno", jsonw.NewInt64(int64(hPrevInfo.Seqno)))
-			if hash := hPrevInfo.Hash; hash != nil {
-				hPrevInfoObj.SetKey("hash", jsonw.NewString(hash.String()))
+		if highSkip != nil {
+			highSkipObj := jsonw.NewDictionary()
+			highSkipObj.SetKey("seqno", jsonw.NewInt64(int64(highSkip.Seqno)))
+			if hash := highSkip.Hash; hash != nil {
+				highSkipObj.SetKey("hash", jsonw.NewString(hash.String()))
 			} else {
-				hPrevInfoObj.SetKey("hash", jsonw.NewNil())
+				highSkipObj.SetKey("hash", jsonw.NewNil())
 			}
-			ret.SetKey("high_skip", hPrevInfoObj)
+			ret.SetKey("high_skip", highSkipObj)
 		}
 	}
 
@@ -488,25 +488,25 @@ func KeyProof(m MetaContext, arg Delegator) (ret *jsonw.Wrapper, err error) {
 
 	// Only set the fallback for subkeys during KEX where arg.Me == nil; it is
 	// otherwise updated using me.SigChainBump().
-	var hPrevInfoFallback *HPrevInfo
+	var highSkipFallback *HighSkip
 	if arg.Me == nil && arg.DelegationType == DelegationTypeSubkey {
-		hPrevInfo := NewHPrevInfo(arg.Seqno-1, arg.PrevLinkID)
-		hPrevInfoFallback = &hPrevInfo
+		highSkip := NewHighSkip(arg.Seqno-1, arg.PrevLinkID)
+		highSkipFallback = &highSkip
 	}
 
 	ret, err = ProofMetadata{
-		Me:                arg.Me,
-		SigningUser:       arg.SigningUser,
-		LinkType:          LinkType(arg.DelegationType),
-		ExpireIn:          arg.Expire,
-		SigningKey:        arg.GetSigningKey(),
-		Eldest:            arg.EldestKID,
-		CreationTime:      arg.Ctime,
-		IncludePGPHash:    includePGPHash,
-		Seqno:             arg.Seqno,
-		HPrevInfoFallback: hPrevInfoFallback,
-		PrevLinkID:        arg.PrevLinkID,
-		MerkleRoot:        arg.MerkleRoot,
+		Me:               arg.Me,
+		SigningUser:      arg.SigningUser,
+		LinkType:         LinkType(arg.DelegationType),
+		ExpireIn:         arg.Expire,
+		SigningKey:       arg.GetSigningKey(),
+		Eldest:           arg.EldestKID,
+		CreationTime:     arg.Ctime,
+		IncludePGPHash:   includePGPHash,
+		Seqno:            arg.Seqno,
+		HighSkipFallback: highSkipFallback,
+		PrevLinkID:       arg.PrevLinkID,
+		MerkleRoot:       arg.MerkleRoot,
 	}.ToJSON(m)
 
 	if err != nil {
@@ -586,9 +586,9 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		hPrevInfo, hPrevErr := me.GetExpectedNextHPrevInfo()
-		if hPrevErr != nil {
-			return sig, sigID, linkID, hPrevErr
+		highSkip, highSkipErr := me.GetExpectedNextHighSkip()
+		if highSkipErr != nil {
+			return sig, sigID, linkID, highSkipErr
 		}
 		/* TODO Should this be nullable for kex..? */
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
@@ -601,7 +601,7 @@ func MakeSig(
 			hasRevokes,
 			seqType,
 			ignoreIfUnsupported,
-			&hPrevInfo,
+			&highSkip,
 		)
 	default:
 		err = errors.New("Invalid Signature Version")

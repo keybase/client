@@ -79,18 +79,18 @@ func (t TeamSigChainState) GetLatestHighLinkID() keybase1.LinkID {
 	return t.inner.LastHighLinkID
 }
 
-func (t TeamSigChainState) GetHPrevInfo() (libkb.HPrevInfo, error) {
+func (t TeamSigChainState) GetHighSkip() (libkb.HighSkip, error) {
 	var linkID libkb.LinkID
 	linkIDStr := t.GetLatestHighLinkID()
 	if linkIDStr != "" {
 		preLinkID, err := libkb.ImportLinkID(linkIDStr)
 		if err != nil {
-			return libkb.HPrevInfo{}, err
+			return libkb.HighSkip{}, err
 		}
 		linkID = preLinkID
 	}
-	hPrevInfo := libkb.NewHPrevInfo(t.GetLatestHighSeqno(), linkID)
-	return hPrevInfo, nil
+	highSkip := libkb.NewHighSkip(t.GetLatestHighSeqno(), linkID)
+	return highSkip, nil
 }
 
 // If the chain has posted any link and still has a LatestHighSeqno
@@ -101,13 +101,13 @@ func (t TeamSigChainState) ReverifyNeededForHighSkips() bool {
 	return t.GetLatestSeqno() > 1 && t.GetLatestHighSeqno() == 0
 }
 
-func (t TeamSigChainState) GetHPrevInfoIfValid() (*libkb.HPrevInfo, error) {
+func (t TeamSigChainState) GetHighSkipIfValid() (*libkb.HighSkip, error) {
 	if !t.ReverifyNeededForHighSkips() {
-		hPrevInfo, err := t.GetHPrevInfo()
+		highSkip, err := t.GetHighSkip()
 		if err != nil {
 			return nil, err
 		}
-		return &hPrevInfo, nil
+		return &highSkip, nil
 	}
 	return nil, nil
 }
@@ -1637,10 +1637,10 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 
-	hPrevInfo := payload.HPrevInfo
+	highSkip := payload.HighSkip
 	reverifyNeeded := res.newState.ReverifyNeededForHighSkips()
 	highSkipVerifyDesired := !isInflate && !precheck
-	// If presented with an hPrevInfo, and we are unable to verify it
+	// If presented with an highSkip, and we are unable to verify it
 	// but would like to, throw a CantVerifyNewLinkAttrsError.
 	if highSkipVerifyDesired && reverifyNeeded {
 		t.G().GetLog().Debug("throwing CantVerifyNewLinkAttrsError for high_skip")
@@ -1648,24 +1648,24 @@ func (t *teamSigchainPlayer) addInnerLink(
 	}
 	// We only run addInnerLink out of order when inflating, and so we skip
 	// computing high skips during it.
-	// updates high prev data, so we skip it. If hPrevInfo is presented and
+	// updates high prev data, so we skip it. If highSkip is presented and
 	// either we don't need to reverify or we want to check it, check it.
 	if highSkipVerifyDesired {
-		if hPrevInfo != nil && !reverifyNeeded {
-			if hPrevInfo.Seqno != res.newState.GetLatestHighSeqno() {
-				return res, fmt.Errorf("Expected HPrevSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, hPrevInfo.Seqno, payload.Seqno)
+		if highSkip != nil && !reverifyNeeded {
+			if highSkip.Seqno != res.newState.GetLatestHighSeqno() {
+				return res, fmt.Errorf("Expected HighSkipSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, highSkip.Seqno, payload.Seqno)
 			}
 			lastHighLinkID := res.newState.GetLatestHighLinkID()
 			if string(lastHighLinkID) == "" {
-				if hPrevInfo.Hash != nil {
-					return res, fmt.Errorf("Expected nil HPrevHash, got %s", *hPrevInfo.Hash)
+				if highSkip.Hash != nil {
+					return res, fmt.Errorf("Expected nil HighSkipHash, got %s", *highSkip.Hash)
 				}
 			} else {
-				if hPrevInfo.Hash == nil {
-					return res, fmt.Errorf("Expected non-nil HPrevHash, got nil")
+				if highSkip.Hash == nil {
+					return res, fmt.Errorf("Expected non-nil HighSkipHash, got nil")
 				}
-				if *hPrevInfo.Hash != string(lastHighLinkID) {
-					return res, fmt.Errorf("Expected HPrevHash=%s, got %s", string(lastHighLinkID), *hPrevInfo.Hash)
+				if *highSkip.Hash != string(lastHighLinkID) {
+					return res, fmt.Errorf("Expected HighSkipHash=%s, got %s", string(lastHighLinkID), *highSkip.Hash)
 				}
 			}
 		}
