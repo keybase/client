@@ -509,7 +509,6 @@ func NewMerkleRootPayloadFromJSONString(s string) (ret MerkleRootPayload, err er
 	if err != nil {
 		return ret, err
 	}
-
 	return ret, nil
 }
 
@@ -650,12 +649,10 @@ func (mc *MerkleClient) lookupRootAndSkipSequence(m MetaContext, lastRoot *Merkl
 	if err != nil {
 		return nil, nil, nil, err
 	}
-
 	ss, err = mc.readSkipSequenceFromAPIRes(m, apiRes, mr, lastRoot)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-
 	return mr, ss, apiRes, err
 }
 
@@ -1142,9 +1139,8 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 		return err
 	}
 
-	body := root.payload.unpacked.Body
-
-	if err := verifyRootSkips(*root.Seqno(), body.Skips); err != nil {
+	skips := root.payload.unpacked.Body.Skips
+	if err := verifyRootSkips(*root.Seqno(), skips); err != nil {
 		return err
 	}
 
