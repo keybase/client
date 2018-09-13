@@ -367,7 +367,8 @@ type ServerErrorLockConflict struct{}
 
 // Error implements the Error interface.
 func (e ServerErrorLockConflict) Error() string {
-	return "ServerErrorLockConflict{}"
+	return "This operation conflicted with another operation on the server. " +
+		"Please try again."
 }
 
 // ToStatus implements the ExportableError interface.
