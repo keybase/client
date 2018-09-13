@@ -1648,7 +1648,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 	}
 	// We only run addInnerLink out of order when inflating, and so we skip
 	// computing high skips during it.
-	// updates high prev data, so we skip it. If highSkip is presented and
+	// updates high skip data, so we skip it. If highSkip is presented and
 	// either we don't need to reverify or we want to check it, check it.
 	if highSkipVerifyDesired {
 		if highSkip != nil && !reverifyNeeded {

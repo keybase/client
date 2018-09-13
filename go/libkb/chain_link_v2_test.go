@@ -112,7 +112,7 @@ func TestOuterLinkV2WithMetadataPointerContainerDecode(t *testing.T) {
 	requireErrorHasSuffix(t, errCodecDecodeSelf, err)
 }
 
-func serdeOuterLink(t *testing.T, tc TestContext, highSkipSeqno *keybase1.Seqno, highSkipHash LinkID) OuterLinkV2 {
+func serdeOuterLink(t *testing.T, tc TestContext, seqno keybase1.Seqno, highSkipSeqno *keybase1.Seqno, highSkipHash LinkID) OuterLinkV2 {
 	m := NewMetaContextForTest(tc)
 
 	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
@@ -123,7 +123,7 @@ func serdeOuterLink(t *testing.T, tc TestContext, highSkipSeqno *keybase1.Seqno,
 		highSkipPre := NewHighSkip(*highSkipSeqno, highSkipHash)
 		highSkip = &highSkipPre
 	}
-	encoded, err := encodeOuterLink(m, LinkTypeLeave, keybase1.Seqno(20), nil, nil, false, keybase1.SeqType_PUBLIC, false, highSkip)
+	encoded, err := encodeOuterLink(m, LinkTypeLeave, seqno, nil, nil, false, keybase1.SeqType_PUBLIC, false, highSkip)
 	require.NoError(t, err)
 
 	o2 := OuterLinkV2{}
@@ -140,27 +140,32 @@ func TestHighSkipBackwardsCompatibility(t *testing.T) {
 	tc := SetupTest(t, "test_high_skip_backwards_compatibility", 1)
 	defer tc.Cleanup()
 
-	o := serdeOuterLink(t, tc, nil, nil)
+	seqno := keybase1.Seqno(1)
+	highSkipSeqno := keybase1.Seqno(0)
+
+	o := serdeOuterLink(t, tc, seqno, nil, nil)
 	require.True(t, o.HighSkipSeqno == nil)
 	require.True(t, o.HighSkipHash == nil)
 	require.NoError(t, highSkipMatch(o, nil))
 
-	seqno := keybase1.Seqno(3)
-	o = serdeOuterLink(t, tc, &seqno, nil)
-	require.True(t, *o.HighSkipSeqno == 3)
+	o = serdeOuterLink(t, tc, seqno, &highSkipSeqno, nil)
+	require.True(t, *o.HighSkipSeqno == 0)
 	require.True(t, o.HighSkipHash == nil)
-	highSkip := NewHighSkip(keybase1.Seqno(3), nil)
-	badHighSkip1 := NewHighSkip(keybase1.Seqno(3), []byte{0, 5, 2})
-	badHighSkip2 := NewHighSkip(keybase1.Seqno(4), nil)
+	highSkip := NewHighSkip(keybase1.Seqno(0), nil)
+	badHighSkip1 := NewHighSkip(keybase1.Seqno(0), []byte{0, 5, 2})
+	badHighSkip2 := NewHighSkip(keybase1.Seqno(2), nil)
 	require.NoError(t, highSkipMatch(o, &highSkip))
 	require.Error(t, highSkipMatch(o, &badHighSkip1))
 	require.Error(t, highSkipMatch(o, &badHighSkip2))
 
+	seqno = keybase1.Seqno(10)
+	highSkipSeqno = keybase1.Seqno(5)
+
 	highSkipHash := []byte{0, 6, 2, 42, 123}
-	o = serdeOuterLink(t, tc, &seqno, highSkipHash)
-	highSkip = NewHighSkip(keybase1.Seqno(3), highSkipHash)
-	badHighSkip1 = NewHighSkip(keybase1.Seqno(3), []byte{0, 5, 2})
-	badHighSkip2 = NewHighSkip(keybase1.Seqno(3), nil)
+	o = serdeOuterLink(t, tc, seqno, &highSkipSeqno, highSkipHash)
+	highSkip = NewHighSkip(keybase1.Seqno(5), highSkipHash)
+	badHighSkip1 = NewHighSkip(keybase1.Seqno(5), []byte{0, 5, 2})
+	badHighSkip2 = NewHighSkip(keybase1.Seqno(5), nil)
 	require.NoError(t, highSkipMatch(o, &highSkip))
 	require.Error(t, highSkipMatch(o, &badHighSkip1))
 	require.Error(t, highSkipMatch(o, &badHighSkip2))

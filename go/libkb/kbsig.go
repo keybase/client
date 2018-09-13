@@ -590,7 +590,6 @@ func MakeSig(
 		if highSkipErr != nil {
 			return sig, sigID, linkID, highSkipErr
 		}
-		/* TODO Should this be nullable for kex..? */
 		sig, sigID, linkID, err = MakeSigchainV2OuterSig(
 			m,
 			signingKey,

@@ -670,7 +670,7 @@ func (c *ChainLink) unpackStubbed(raw string) error {
 
 	// Because the outer link does not have a highSkip parent object, we check
 	// for the nullity of highSkipSeqno to see if highSkip should be set, since
-	// a null highSkipHash is valid even when specifying highSkip.
+	// a null highSkipHash is valid when specifying highSkip=0.
 	var highSkipPtr *HighSkip
 	if ol.HighSkipSeqno != nil {
 		highSkip := NewHighSkip(*ol.HighSkipSeqno, *ol.HighSkipHash)
