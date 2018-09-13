@@ -3,9 +3,9 @@ import * as React from 'react'
 import {isMobile} from '../constants/platform'
 
 export type OverlayParentProps = {
-  getAttachmentRef: () => ?React.Component<any, any>,
+  getAttachmentRef: () => ?React.ElementRef<any>,
   showingMenu: boolean,
-  setAttachmentRef: (?React.Component<any, any>) => void,
+  setAttachmentRef: (?React.ElementRef<any>) => void,
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
 }
@@ -24,7 +24,7 @@ const OverlayParentHOC = <T: OverlayParentProps>(
     toggleShowingMenu = () => this.setState(oldState => ({showingMenu: !oldState.showingMenu}))
     setAttachmentRef = isMobile
       ? () => {}
-      : (attachmentRef: ?React.Component<any, any>) => {
+      : (attachmentRef: ?React.ElementRef<any>) => {
           this._ref = attachmentRef
         }
     getAttachmentRef = () => this._ref
