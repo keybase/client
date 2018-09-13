@@ -1218,14 +1218,6 @@ func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convI
 	return nil, nil
 }
 
-func (m *MockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
-}
-
-func (m *MockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
-	return "", nil
-}
-
 func (m *MockChatHelper) convKey(name string, topicName *string) string {
 	if topicName == nil {
 		return name + ":general"
