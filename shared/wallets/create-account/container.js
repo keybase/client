@@ -30,7 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   error: capitalize(stateProps.error),
   onCreateAccount: () => dispatchProps._onCreateAccount(ownProps.name),
   onDone: () => dispatchProps._onDone(ownProps.name),
-  onBack: ownProps.routeProps.get('back') ? dispatchProps.onCancel : undefined,
+  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
 })
 
 export default compose(

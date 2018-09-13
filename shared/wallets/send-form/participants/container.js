@@ -66,7 +66,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(
       RouteTree.navigateAppend([
         {
-          props: {back: true},
+          props: {backButton: true},
           selected: 'createNewAccount',
         },
       ])
@@ -75,7 +75,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(
       RouteTree.navigateAppend([
         {
-          props: {back: true},
+          props: {backButton: true},
           selected: 'linkExisting',
         },
       ])
