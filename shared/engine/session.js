@@ -1,7 +1,6 @@
 // @flow
 import type {SessionID, EndHandlerType, MethodKey} from './types'
 import type {CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
