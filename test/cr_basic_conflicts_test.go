@@ -797,6 +797,39 @@ func TestCrConflictMergedRenameSetMtimeFile(t *testing.T) {
 	)
 }
 
+// alice sets the mtime on and renames a file that had its mtime set by bob.
+func TestCrConflictMergedRenameAcrossDirsSetMtimeFile(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := targetMtime1.Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			write("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a/b", targetMtime1),
+			rename("a/b", "c"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime2),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR", "c$": "FILE"}),
+			lsdir("a/", m{"b$": "FILE"}),
+			mtime("a/b", targetMtime2),
+			mtime("c", targetMtime1),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR", "c$": "FILE"}),
+			lsdir("a/", m{"b$": "FILE"}),
+			mtime("a/b", targetMtime2),
+			mtime("c", targetMtime1),
+		),
+	)
+}
+
 // alice and both both rename the same file, causing a copy.
 func TestCrConflictRenameSameFile(t *testing.T) {
 	test(t,

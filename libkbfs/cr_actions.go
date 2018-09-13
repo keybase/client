@@ -588,6 +588,17 @@ func (rua *renameUnmergedAction) do(
 	return unrefs, nil
 }
 
+func removeRmOpFromChain(
+	original BlockPointer, chains *crChains, oldName string) {
+	chain := chains.byOriginal[original]
+	for i, op := range chain.ops {
+		if ro, ok := op.(*rmOp); !ok || ro.OldName != oldName {
+			continue
+		}
+		chain.ops = append(chain.ops[:i], chain.ops[i+1:]...)
+	}
+}
+
 func (rua *renameUnmergedAction) updateOps(
 	ctx context.Context, unmergedMostRecent, mergedMostRecent BlockPointer,
 	unmergedDir, mergedDir *dirData,
@@ -670,32 +681,62 @@ func (rua *renameUnmergedAction) updateOps(
 		return err
 	}
 
-	rop, err := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
-		mergedMostRecent, newMergedEntry.BlockPointer,
-		newMergedEntry.Type)
+	original, err := unmergedChains.originalFromMostRecentOrSame(
+		unmergedEntry.BlockPointer)
 	if err != nil {
 		return err
 	}
-	// For local notifications, we need to transform the entry's
-	// pointer into the new (de-dup'd) pointer.  newMergedEntry is
-	// not yet the final pointer (that happens during syncBlock),
-	// but a later stage will convert it.
-	if rua.symPath == "" {
-		rop.AddUpdate(unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
-	}
-	co, err := newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type)
-	if err != nil {
-		return err
-	}
-	err = prependOpsToChain(mergedMostRecent, mergedChains, rop, co)
-	if err != nil {
-		return err
+	_, mergedRename := mergedChains.renamedOriginals[original]
+	if rua.toName == rua.fromName && mergedRename {
+		// The merged copy is the one changing its name, so turn the
+		// merged rename op into just a create by removing the rmOp.
+		removeRmOpFromChain(unmergedChain.original, mergedChains, rua.toName)
+		if rua.symPath == "" {
+			// Pretend to write to the new, deduplicated unmerged
+			// copy, to update its pointer in the node cache.
+			so, err := newSyncOp(unmergedEntry.BlockPointer)
+			if err != nil {
+				return err
+			}
+			so.AddUpdate(
+				unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
+			err = prependOpsToChain(
+				unmergedEntry.BlockPointer, mergedChains, so)
+			if err != nil {
+				return err
+			}
+		}
+	} else {
+		// The unmerged copy is changing it's name, so make a local
+		// rename op for it, and a create op for the merged version.
+		rop, err := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
+			mergedMostRecent, newMergedEntry.BlockPointer,
+			newMergedEntry.Type)
+		if err != nil {
+			return err
+		}
+		// For local notifications, we need to transform the entry's
+		// pointer into the new (de-dup'd) pointer.  newMergedEntry is
+		// not yet the final pointer (that happens during syncBlock),
+		// but a later stage will convert it.
+		if rua.symPath == "" {
+			rop.AddUpdate(
+				unmergedEntry.BlockPointer, newMergedEntry.BlockPointer)
+		}
+		co, err := newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type)
+		if err != nil {
+			return err
+		}
+		err = prependOpsToChain(mergedMostRecent, mergedChains, rop, co)
+		if err != nil {
+			return err
+		}
 	}
 
 	// Before merging the unmerged ops, create a file with the new
 	// name, unless the create already exists.
 	found := false
-	co = nil
+	var co *createOp
 	for _, op := range unmergedChain.ops {
 		var ok bool
 		if co, ok = op.(*createOp); ok && co.NewName == rua.toName {
