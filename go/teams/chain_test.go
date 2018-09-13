@@ -222,6 +222,8 @@ func TestTeamSigChainHighLinksUpgradePath(t *testing.T) {
 	// Create a couple users and a team with two links in its chain
 	u2, err := kbtest.CreateAndSignupFakeUser("rg", tc.G) //non-owner
 	require.NoError(t, err)
+	u3, err := kbtest.CreateAndSignupFakeUser("fg", tc.G) //non-owner
+	require.NoError(t, err)
 	u1, err := kbtest.CreateAndSignupFakeUser("ag", tc.G) //owner
 	require.NoError(t, err)
 	teamName := u1.Username + "y"
@@ -241,18 +243,30 @@ func TestTeamSigChainHighLinksUpgradePath(t *testing.T) {
 	oldTeamData := storedTeamData.DeepCopy()
 	oldTeamData.Chain.LastHighSeqno = 0
 	oldTeamData.Chain.LastHighLinkID = keybase1.LinkID("")
-	// add and verify a new link
-	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+
+	// if the first operation by an upgraded user is writing a high_skip
+	teamLoader.storage.Put(ctx, &oldTeamData)
+	_, err = AddMember(ctx, tc.G, teamName, u3.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 	assertHighSeqFromServer(t, tc, teamID, 2, 1)
-	assertHighSeqForTeam(t, tc, teamID, 3)
-	// overwrite with the snapshot, and reload
+	assertHighSeqForTeam(t, tc, teamID, 1)
+
+	// if the first operation by an upgraded user is reading a high_skip
+	storedTeamData = teamLoader.storage.Get(ctx, team.ID, false)
+	oldTeamData = storedTeamData.DeepCopy()
+	oldTeamData.Chain.LastHighSeqno = 0
+	oldTeamData.Chain.LastHighLinkID = keybase1.LinkID("")
+	err = EditMember(ctx, tc.G, teamName, u2.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err)
 	teamLoader.storage.Put(ctx, &oldTeamData)
 	_, err = Load(ctx, tc.G, keybase1.LoadTeamArg{
+		// there should be an error in this Load that then forces a full reload
 		Name:        teamName,
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
+	assertHighSeqFromServer(t, tc, teamID, 2, 1)
+	assertHighSeqForTeam(t, tc, teamID, 4)
 }
 
 func TestTeamSigChainPlay1(t *testing.T) {

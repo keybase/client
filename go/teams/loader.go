@@ -452,6 +452,15 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if !arg.forceFullReload {
 		// Load from cache
 		ret = l.storage.Get(ctx, arg.teamID, arg.public)
+		// as part of rollout of signchain v2.3, if a reverify is needed
+		// then treat it as a cache miss and ask for a full reload.
+		if ret != nil {
+			teamSigChainState := TeamSigChainState{inner: ret.Chain}
+			if teamSigChainState.ReverifyNeededForHighSkips() {
+				arg.forceFullReload = true
+				ret = nil
+			}
+		}
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
