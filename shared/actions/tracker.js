@@ -626,9 +626,8 @@ const setupEngineListeners = () => {
     },
   })
   engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) => {
-      return Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'})
-    },
+    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
+      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
   })
 }
 
