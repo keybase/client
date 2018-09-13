@@ -99,8 +99,10 @@ func previewVideoBlank(ctx context.Context, g *globals.Context, log utils.DebugL
 }
 
 // previewImage will resize a single-frame image.
-func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (*PreviewRes, error) {
+func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, basename, contentType string) (res *PreviewRes, err error) {
+	defer log.Trace(ctx, func() error { return err }, "previewImage")()
 	// images.Decode in camlistore correctly handles exif orientation information.
+	log.Debug(ctx, "previewImage: decoding image")
 	img, _, err := images.Decode(src, nil)
 	if err != nil {
 		return nil, err
@@ -108,7 +110,7 @@ func previewImage(ctx context.Context, log utils.DebugLabeler, src io.Reader, ba
 
 	width, height := previewDimensions(img.Bounds())
 
-	// nfnt/resize with NearestNeighbor is the fastest I've found.
+	log.Debug(ctx, "previewImage: resizing image: bounds: %s", img.Bounds())
 	preview := resize.Resize(width, height, img, resize.Bicubic)
 	var buf bytes.Buffer
 
