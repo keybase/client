@@ -509,6 +509,20 @@ func NewMerkleRootPayloadFromJSONString(s string) (ret MerkleRootPayload, err er
 	if err != nil {
 		return ret, err
 	}
+
+	expectedSkips := computeLogPatternMerkleSkips(0, int(ret.unpacked.Body.Seqno))
+	fmt.Printf("@@@%v, %v\n", expectedSkips, ret.unpacked.Body.Skips)
+	if len(expectedSkips) != len(ret.unpacked.Body.Skips) {
+		return ret, MerkleClientError{fmt.Sprintf("Root check: wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ret.unpacked.Body.Skips)), merkleErrorWrongSkipSequence}
+	}
+	for _, expectedSkip := range expectedSkips {
+		seqno := keybase1.Seqno(expectedSkip)
+		got, ok := ret.unpacked.Body.Skips[seqno]
+		if !ok {
+			return ret, MerkleClientError{fmt.Sprintf("Root check: unexpected skip index: expected %d, got %d.", seqno, got), merkleErrorWrongSkipSequence}
+		}
+	}
+
 	return ret, nil
 }
 
@@ -1061,6 +1075,8 @@ func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot k
 	if len(expectedSkips)+2 != len(ss) {
 		return MerkleClientError{fmt.Sprintf("Wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ss)), merkleErrorWrongSkipSequence}
 	}
+
+	// TODO: move this inline to avoid additional check
 	for index := 1; index < len(ss)-1; index++ {
 		root := ss[index].seqno()
 		if keybase1.Seqno(expectedSkips[index-1]) != root {
