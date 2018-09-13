@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -41,6 +42,8 @@ const (
 	minDeletedAgeForCleaning = 1 * time.Hour
 	cleaningTimeLimit        = 2 * time.Second
 	repoGCLockFileName       = ".gc"
+	repoGCInProgressFileName = ".gc_in_progress"
+	gcTimeLimit              = 1 * time.Hour
 )
 
 // CommitSentinelValue marks the end of a list of commits, where there are
@@ -943,6 +946,30 @@ func markSuccessfulGC(
 		repoGCLockFileName, time.Time{}, config.Clock().Now())
 }
 
+func canDoGC(
+	ctx context.Context, config libkbfs.Config, fs *libfs.FS,
+	log logger.Logger) (bool, error) {
+	log.CDebugf(ctx, "Locking for GC")
+	f, err := fs.Create(repoGCLockFileName)
+	if err != nil {
+		return false, err
+	}
+	defer func() {
+		closeErr := f.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+	err = f.Lock()
+	if err != nil {
+		return false, err
+	}
+
+	return canDoWork(
+		ctx, config.MDServer(), config.Clock(), fs,
+		repoGCInProgressFileName, gcTimeLimit, log)
+}
+
 // GCRepo runs garbage collection on the specified repo, if it exceeds
 // any of the thresholds provided in `options`.
 func GCRepo(
@@ -1005,21 +1032,21 @@ func GCRepo(
 		return nil
 	}
 
-	log.CDebugf(ctx, "Locking for GC")
-	f, err := fs.Create(repoGCLockFileName)
+	doGC, err := canDoGC(ctx, config, fs, log)
 	if err != nil {
 		return err
 	}
+	if !doGC {
+		log.CDebugf(ctx, "Skipping GC due to other worker")
+		return nil
+	}
+
 	defer func() {
-		closeErr := f.Close()
+		removeErr := fs.Remove(repoGCInProgressFileName)
 		if err == nil {
-			err = closeErr
+			err = removeErr
 		}
 	}()
-	err = f.Lock()
-	if err != nil {
-		return err
-	}
 
 	// Check the GC thresholds again since they might have changed
 	// while getting the lock.

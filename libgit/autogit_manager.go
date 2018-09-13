@@ -145,19 +145,6 @@ func (am *AutogitManager) getNewConfigDefault(ctx context.Context) (
 	return getNewConfig(ctx, am.config, am.kbCtx, am.kbfsInitParams, am.log)
 }
 
-// commonTime computes the current time according to our estimate of
-// the mdserver's time.  It's a very crude way of normalizing the
-// local clock.
-func (am *AutogitManager) commonTime(ctx context.Context) time.Time {
-	offset, haveOffset := am.config.MDServer().OffsetFromServerTime()
-	if !haveOffset {
-		am.log.CDebugf(ctx, "No offset, cannot use common time; "+
-			"falling back to local time")
-		return am.config.Clock().Now()
-	}
-	return am.config.Clock().Now().Add(-offset)
-}
-
 func (am *AutogitManager) canWorkOnRepo(
 	ctx context.Context, dstFS *libfs.FS, repo string) (
 	canWork bool, err error) {
@@ -190,42 +177,9 @@ func (am *AutogitManager) canWorkOnRepo(
 	// See if someone else is already working on this repo by seeing
 	// if the timestamp (converted to "common" time) is within the
 	// expected time limit for a worker.
-	workingFileName := autogitWorkingName(repo)
-	fi, err := dstFS.Stat(workingFileName)
-	currCommonTime := am.commonTime(ctx)
-	if err != nil && !os.IsNotExist(err) {
-		return false, err
-	} else if os.IsNotExist(err) {
-		am.log.CDebugf(ctx, "Creating new working file for %s", repo)
-		f, err := dstFS.Create(workingFileName)
-		if err != nil {
-			return false, err
-		}
-		err = f.Close()
-		if err != nil {
-			return false, err
-		}
-	} else { // err == nil
-		modCommonTime := fi.ModTime()
-		if modCommonTime.Add(workTimeLimit).After(currCommonTime) {
-			am.log.CDebugf(ctx, "Other worker is still working on %s; "+
-				"modCommonTime=%s, currCommonTime=%s, workTimeLimit=%s",
-				repo, modCommonTime, currCommonTime, workTimeLimit)
-			// The other worker is still running within the time
-			// limit.
-			return false, nil
-		}
-		am.log.CDebugf(ctx, "Other work expired on %s; "+
-			"modCommonTime=%s, currCommonTime=%s, workTimeLimit=%s",
-			repo, modCommonTime, currCommonTime, workTimeLimit)
-	}
-
-	am.log.CDebugf(ctx, "Setting work common time to %s", currCommonTime)
-	err = dstFS.Chtimes(workingFileName, time.Time{}, currCommonTime)
-	if err != nil {
-		return false, err
-	}
-	return true, nil
+	return canDoWork(
+		ctx, am.config.MDServer(), am.config.Clock(), dstFS,
+		autogitWorkingName(repo), workTimeLimit, am.log)
 }
 
 func (am *AutogitManager) workDoneOnRepo(
