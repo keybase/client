@@ -8,7 +8,7 @@ import {type Props} from './with-tooltip'
 type State = {
   mouseIn: boolean,
   visible: boolean,
-  attachmentRef: any,
+  attachmentRef: ?React.ElementRef<any>,
 }
 
 class WithTooltip extends React.Component<Props, State> {
@@ -46,7 +46,7 @@ class WithTooltip extends React.Component<Props, State> {
           <Toast
             containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
             visible={this.state.visible}
-            attachTo={this.state.attachmentRef}
+            attachTo={() => this.state.attachmentRef}
             position={this.props.position || 'top center'}
           >
             <Text type="BodySmall" style={styles.text}>

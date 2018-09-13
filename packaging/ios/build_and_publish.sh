@@ -85,6 +85,10 @@ cd "$ios_dir"
 if [ -n "$clean" ]; then
     xcodebuild clean -workspace "Keybase.xcworkspace" -scheme "Keybase"
 fi
+
+# fastlane wants these set
+export LC_ALL=en_US.UTF-8
+export LANG=en_US.UTF-8
 fastlane ios beta
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing ios"

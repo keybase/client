@@ -183,6 +183,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
 		ChatInboxSourceLocalizeThreads: 5,
+		LinkCacheSize:                  1000,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {
@@ -199,6 +200,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()
+	svc.SetupChatModules(nil)
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)

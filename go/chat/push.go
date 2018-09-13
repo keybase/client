@@ -58,8 +58,8 @@ func (g *gregorMessageOrderer) isUIDKey(key string, uid gregor1.UID) bool {
 }
 
 func (g *gregorMessageOrderer) latestInboxVersion(ctx context.Context, uid gregor1.UID) (chat1.InboxVers, error) {
-	ibox := storage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		return 0, err
 	}
