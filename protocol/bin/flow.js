@@ -209,7 +209,7 @@ function analyzeMessages(json, project) {
         return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
       })
     const noParams = !arr.length
-    const inParam = noParams ? 'void' : `$ReadOnly<{${arr.join(',')}}>`
+    const inParam = noParams ? 'void' : `$ReadOnly<{|${arr.join(',')}|}>`
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
@@ -218,12 +218,12 @@ function analyzeMessages(json, project) {
     if (isUIMethod) {
       project.incomingMaps[
         methodName
-      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: number}) => IncomingReturn`
+      ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
 
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
-        ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: number}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}) => IncomingReturn`
+        ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}) => IncomingReturn`
       }
     }
 

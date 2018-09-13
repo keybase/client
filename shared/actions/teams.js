@@ -156,7 +156,8 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
   const policy: RPCChatTypes.RetentionPolicy = yield Saga.call(
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
-    {teamID, waitingKey: Constants.teamWaitingKey(teamname)}
+    {teamID},
+    Constants.teamWaitingKey(teamname)
   )
   let retentionPolicy: RetentionPolicy = Constants.makeRetentionPolicy()
   try {
