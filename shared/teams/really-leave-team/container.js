@@ -4,8 +4,6 @@ import {connect, type TypedState} from '../../util/container'
 import {compose, branch, renderComponent} from 'recompose'
 import ReallyLeaveTeam from '.'
 import LastOwnerDialog from './last-owner'
-import {navigateTo} from '../../actions/route-tree'
-import {teamsTab} from '../../constants/tabs'
 import {getTeamMemberCount, isSubteam} from '../../constants/teams'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -22,9 +20,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
-    dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
-    dispatch(navigateTo([teamsTab]))
-    dispatch(TeamsGen.createGetTeams())
+    dispatch(TeamsGen.createLeaveTeam({goToTeamList: true, teamname: routeProps.get('teamname')}))
   },
 })
 

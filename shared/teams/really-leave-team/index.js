@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/teams'
 import {
   Avatar,
   Box,
@@ -10,6 +11,7 @@ import {
   ProgressIndicator,
   HeaderOnMobile,
   Text,
+  WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
@@ -45,7 +47,12 @@ const _ReallyLeaveTeam = (props: Props) => (
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
         <Button type="Secondary" onClick={props.onBack} label="Cancel" />
-        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} fullWidth={true} />
+        <WaitingButton
+          type="Danger"
+          onClick={props.onLeave}
+          label={`Yes, leave ${props.name}`}
+          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+        />
       </ButtonBar>
     </Box>
   </MaybePopup>

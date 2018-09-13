@@ -172,7 +172,10 @@ type _InviteToTeamByPhonePayload = $ReadOnly<{|
   fullName: string,
 |}>
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
-type _LeaveTeamPayload = $ReadOnly<{|teamname: string|}>
+type _LeaveTeamPayload = $ReadOnly<{|
+  teamname: string,
+  goToTeamList?: boolean,
+|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|
   email: string,
   teamname: string,

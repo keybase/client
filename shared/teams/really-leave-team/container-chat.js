@@ -31,8 +31,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   onBack: () => dispatch(navigateUp()),
   onLeave: () => {
     dispatch(TeamsGen.createLeaveTeam({teamname: routeProps.get('teamname')}))
-    dispatch(navigateUp())
-    dispatch(TeamsGen.createGetTeams())
   },
 })
 

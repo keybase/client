@@ -100,11 +100,22 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
 }
 
 const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
-  const {teamname} = action.payload
-  return Saga.call(RPCTypes.teamsTeamLeaveRpcPromise, {
-    name: teamname,
-    permanent: false,
-  })
+  const {goToTeamList, teamname} = action.payload
+  const steps = [
+    Saga.call(
+      RPCTypes.teamsTeamLeaveRpcPromise,
+      {
+        name: teamname,
+        permanent: false,
+      },
+      Constants.leaveTeamWaitingKey(teamname)
+    ),
+  ]
+  if (goToTeamList) {
+    steps.push(Saga.put(RouteTreeGen.createNavigateTo({path: [teamsTab]})))
+  }
+  steps.push(Saga.put(TeamsGen.createGetTeams()))
+  return Saga.sequentially(steps)
 }
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {

@@ -103,7 +103,8 @@
       "teamname": "string"
     },
     "leaveTeam": {
-      "teamname": "string"
+      "teamname": "string",
+      "goToTeamList?": "boolean"
     },
     "addToTeam": {
       "teamname": "string",
