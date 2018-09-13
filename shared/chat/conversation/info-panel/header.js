@@ -60,14 +60,13 @@ const _SmallTeamHeader = (props: SmallProps) => {
 const SmallTeamHeader = OverlayParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
-type BigProps = {
+type BigProps = {|
   canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
-  onClick: () => void,
   onEditChannel: () => void,
-}
+|}
 
 const EditBox = isMobile
   ? ClickableBox
