@@ -143,7 +143,7 @@ class PaymentPopupMoved extends React.Component<React.ElementProps<typeof Paymen
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
-        <PaymentPopup {...this.props} attachTo={this.state.ref} />
+        <PaymentPopup {...this.props} attachTo={() => this.state.ref} />
       </React.Fragment>
     )
   }

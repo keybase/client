@@ -85,8 +85,7 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 }
 
 func (r *AttachmentHTTPSrv) initHTTPSrv() {
-	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
-	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(16423, 18000))
 }
 
 func (r *AttachmentHTTPSrv) startHTTPSrv() {

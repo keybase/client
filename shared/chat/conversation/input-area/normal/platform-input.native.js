@@ -161,14 +161,14 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         )}
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             visible={this.props.showingMenu}
             onHidden={this.props.toggleShowingMenu}
             onSelect={this._launchNativeImagePicker}
           />
         ) : (
           <SetExplodingMessagePicker
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
             visible={this.props.showingMenu}

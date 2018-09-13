@@ -61,12 +61,11 @@ func (c *CmdListTrackers) Run() error {
 }
 
 func (c *CmdListTrackers) output(uss keybase1.UserSummary2Set) (err error) {
-
+	dui := c.G().UI.GetDumbOutputUI()
 	if len(uss.Users) == 0 {
-		GlobUI.Printf("no followers\n")
+		dui.Printf("no followers\n")
 		return nil
 	}
-	dui := c.G().UI.GetDumbOutputUI()
 
 	for _, user := range uss.Users {
 		dui.Printf("%s", user.Username)

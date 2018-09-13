@@ -800,14 +800,12 @@ protocol local {
 
   enum PreviewLocationTyp {
     URL_0,
-    FILE_1,
-    BYTES_2
+    FILE_1
   }
 
   variant PreviewLocation switch (PreviewLocationTyp ltyp) {
     case URL: string;
     case FILE: string;
-    case BYTES: bytes;
   }
 
   record MakePreviewRes {

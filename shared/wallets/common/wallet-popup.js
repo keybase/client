@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {compose, renameProp} from 'recompose'
 
 type WalletModalProps = {|
   children: React.Node,
+  onBack?: () => void,
   onClose: () => void,
   containerStyle?: Styles.StylesCrossPlatform,
   // Since the header is only displayed on mobile, its styles only apply to mobile.
@@ -16,30 +17,47 @@ type WalletModalProps = {|
 |}
 
 const WalletPopup = (props: WalletModalProps) => (
-  <Kb.Box2
-    direction="vertical"
-    fullHeight={true}
-    fullWidth={true}
-    centerChildren={true}
-    style={Styles.collapseStyles([styles.container, props.containerStyle])}
-  >
-    {props.children}
-    {props.bottomButtons &&
-      props.bottomButtons.length > 0 && (
-        <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-          <Kb.ButtonBar
-            direction={Styles.isMobile ? 'column' : 'row'}
-            fullWidth={Styles.isMobile}
-            style={styles.buttonBar}
-          >
-            {props.bottomButtons}
-          </Kb.ButtonBar>
-        </Kb.Box2>
-      )}
+  <Kb.Box2 direction="vertical" style={styles.outerContainer}>
+    {props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
+    <Kb.Box2
+      direction="vertical"
+      fullHeight={true}
+      fullWidth={true}
+      centerChildren={true}
+      style={Styles.collapseStyles([
+        styles.container,
+        props.onBack ? {paddingTop: Styles.globalMargins.small} : {},
+        props.containerStyle,
+      ])}
+    >
+      {props.children}
+      {props.bottomButtons &&
+        props.bottomButtons.length > 0 && (
+          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+            <Kb.ButtonBar
+              direction={Styles.isMobile ? 'column' : 'row'}
+              fullWidth={Styles.isMobile}
+              style={styles.buttonBar}
+            >
+              {props.bottomButtons}
+            </Kb.ButtonBar>
+          </Kb.Box2>
+        )}
+    </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
+  outerContainer: {
+    height: 525,
+    width: 360,
+    borderRadius: 4,
+  },
+  header: Styles.platformStyles({
+    isElectron: {
+      borderRadius: 4,
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -47,8 +65,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
     isElectron: {
-      height: 525,
-      width: 360,
       borderRadius: 'inherit',
       paddingBottom: Styles.globalMargins.xlarge,
       paddingTop: Styles.globalMargins.xlarge,

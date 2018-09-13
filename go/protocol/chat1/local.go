@@ -3883,23 +3883,20 @@ func (o DownloadAttachmentLocalRes) DeepCopy() DownloadAttachmentLocalRes {
 type PreviewLocationTyp int
 
 const (
-	PreviewLocationTyp_URL   PreviewLocationTyp = 0
-	PreviewLocationTyp_FILE  PreviewLocationTyp = 1
-	PreviewLocationTyp_BYTES PreviewLocationTyp = 2
+	PreviewLocationTyp_URL  PreviewLocationTyp = 0
+	PreviewLocationTyp_FILE PreviewLocationTyp = 1
 )
 
 func (o PreviewLocationTyp) DeepCopy() PreviewLocationTyp { return o }
 
 var PreviewLocationTypMap = map[string]PreviewLocationTyp{
-	"URL":   0,
-	"FILE":  1,
-	"BYTES": 2,
+	"URL":  0,
+	"FILE": 1,
 }
 
 var PreviewLocationTypRevMap = map[PreviewLocationTyp]string{
 	0: "URL",
 	1: "FILE",
-	2: "BYTES",
 }
 
 func (e PreviewLocationTyp) String() string {
@@ -3910,10 +3907,9 @@ func (e PreviewLocationTyp) String() string {
 }
 
 type PreviewLocation struct {
-	Ltyp__  PreviewLocationTyp `codec:"ltyp" json:"ltyp"`
-	Url__   *string            `codec:"url,omitempty" json:"url,omitempty"`
-	File__  *string            `codec:"file,omitempty" json:"file,omitempty"`
-	Bytes__ *[]byte            `codec:"bytes,omitempty" json:"bytes,omitempty"`
+	Ltyp__ PreviewLocationTyp `codec:"ltyp" json:"ltyp"`
+	Url__  *string            `codec:"url,omitempty" json:"url,omitempty"`
+	File__ *string            `codec:"file,omitempty" json:"file,omitempty"`
 }
 
 func (o *PreviewLocation) Ltyp() (ret PreviewLocationTyp, err error) {
@@ -3926,11 +3922,6 @@ func (o *PreviewLocation) Ltyp() (ret PreviewLocationTyp, err error) {
 	case PreviewLocationTyp_FILE:
 		if o.File__ == nil {
 			err = errors.New("unexpected nil value for File__")
-			return ret, err
-		}
-	case PreviewLocationTyp_BYTES:
-		if o.Bytes__ == nil {
-			err = errors.New("unexpected nil value for Bytes__")
 			return ret, err
 		}
 	}
@@ -3957,16 +3948,6 @@ func (o PreviewLocation) File() (res string) {
 	return *o.File__
 }
 
-func (o PreviewLocation) Bytes() (res []byte) {
-	if o.Ltyp__ != PreviewLocationTyp_BYTES {
-		panic("wrong case accessed")
-	}
-	if o.Bytes__ == nil {
-		return
-	}
-	return *o.Bytes__
-}
-
 func NewPreviewLocationWithUrl(v string) PreviewLocation {
 	return PreviewLocation{
 		Ltyp__: PreviewLocationTyp_URL,
@@ -3978,13 +3959,6 @@ func NewPreviewLocationWithFile(v string) PreviewLocation {
 	return PreviewLocation{
 		Ltyp__: PreviewLocationTyp_FILE,
 		File__: &v,
-	}
-}
-
-func NewPreviewLocationWithBytes(v []byte) PreviewLocation {
-	return PreviewLocation{
-		Ltyp__:  PreviewLocationTyp_BYTES,
-		Bytes__: &v,
 	}
 }
 
@@ -4005,18 +3979,6 @@ func (o PreviewLocation) DeepCopy() PreviewLocation {
 			tmp := (*x)
 			return &tmp
 		})(o.File__),
-		Bytes__: (func(x *[]byte) *[]byte {
-			if x == nil {
-				return nil
-			}
-			tmp := (func(x []byte) []byte {
-				if x == nil {
-					return nil
-				}
-				return append([]byte{}, x...)
-			})((*x))
-			return &tmp
-		})(o.Bytes__),
 	}
 }
 

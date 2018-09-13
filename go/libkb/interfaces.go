@@ -91,8 +91,6 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
-	GetAttachmentHTTPStartPort() (int, bool)
-	GetAttachmentDisableMulti() (bool, bool)
 }
 
 type CommandLine interface {
@@ -413,7 +411,6 @@ type TerminalUI interface {
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
-	Tablify(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 

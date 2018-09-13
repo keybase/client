@@ -165,6 +165,8 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._stopCycle()
   }
 
+  _getAttachmentRef = () => this.state.attachmentRef
+
   render() {
     return (
       <ButtonBox
@@ -219,7 +221,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         {this.state.showingPicker &&
           !Styles.isMobile && (
             <FloatingBox
-              attachTo={this.state.attachmentRef}
+              attachTo={this._getAttachmentRef}
               containerStyle={styles.emojiContainer}
               position="bottom left"
               onHidden={() => this._setShowingPicker(false)}

@@ -7,8 +7,7 @@ import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/contain
 import * as _CopyText from '../common-adapters/copy-text'
 import type {NameWithIconProps} from '../common-adapters/name-with-icon'
 import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
-import {action} from '@storybook/addon-actions'
-import {createPropProvider} from './storybook.shared'
+import {createPropProvider, action} from './storybook.shared'
 
 /*
  * Some common prop factory creators.
