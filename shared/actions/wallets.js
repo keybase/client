@@ -349,7 +349,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.didSetAccountAsDefault,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
-      ConfigGen.loggedIn,
     ],
     loadAccounts
   )
