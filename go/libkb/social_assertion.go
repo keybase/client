@@ -20,8 +20,7 @@ func IsSocialAssertion(ctx AssertionContext, s string) bool {
 // input and normalizes it.  The service name will be lowercased.
 // If the service is case-insensitive, then the username will also
 // be lowercased.  Colon assertions (twitter:user) will be
-// transformed to the user@twitter format.  Only registered
-// services are allowed.
+// transformed to the user@twitter format.
 func NormalizeSocialAssertion(ctx AssertionContext, s string) (keybase1.SocialAssertion, bool) {
 	url, err := ParseAssertionURL(ctx, s, true)
 	if err != nil || !url.IsRemote() {

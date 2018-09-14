@@ -1383,7 +1383,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	case chat1.ConversationMembersType_KBFS:
 		var err error
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
-			ctx,
+			s.G().MetaContext(ctx),
 			s.G(),
 			umapper,
 			conversationLocal.Info.TlfName,
@@ -1469,7 +1469,7 @@ func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr er
 
 	// Fill readers and writers
 	parts, err := utils.ReorderParticipants(
-		ctx,
+		s.G().MetaContext(ctx),
 		s.G(),
 		s.G().UIDMapper,
 		rekeyInfo.TlfName,

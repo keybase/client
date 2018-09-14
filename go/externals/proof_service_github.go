@@ -87,11 +87,3 @@ func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 func (t GithubServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &GithubChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(GithubServiceType{})
-}
-
-//=============================================================================
