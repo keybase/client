@@ -28,7 +28,7 @@ import io.keybase.ossifrage.modules.BackgroundSyncJob;
 
 public class MainApplication extends Application implements ReactApplication {
   @Override
-  public void onCreate () {
+  public void onCreate() {
     long appStartMilli = System.currentTimeMillis();
     Date d = new Date(appStateMilli);
     NativeLogger.info("App started on " + d.toString());
