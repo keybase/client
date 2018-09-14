@@ -113,7 +113,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
             promise.resolve(totalArray);
         } catch (IOException e) {
             promise.reject(e);
-            e.printStackTrace();
+            rawLog(ERROR_TAG, "Exception in dump: " + Log.getStackTraceString(e));
         }
     }
 }

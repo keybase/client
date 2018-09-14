@@ -52,7 +52,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                           .emit(KeybaseEngine.RPC_EVENT_NAME, data);
               } catch (Exception e) {
-                      e.printStackTrace();
+                  NativeLogger.error("Exception in ReadFromKBLib.run", e);
               }
           } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
@@ -93,7 +93,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             }
             executor = null;
         } catch (Exception e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in KeybaseEngine.destroy", e);
         }
     }
 
@@ -130,7 +130,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       try {
           writeB64(data);
       } catch (Exception e) {
-          e.printStackTrace();
+          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
       }
     }
 
@@ -139,7 +139,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       try {
           Keybase.reset();
       } catch (Exception e) {
-          e.printStackTrace();
+          NativeLogger.error("Exception in KeybaseEngine.reset", e);
       }
     }
 
@@ -153,7 +153,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                 executor.execute(new ReadFromKBLib(this.reactContext));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
     }
 }
