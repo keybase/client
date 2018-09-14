@@ -30,9 +30,7 @@ import io.keybase.ossifrage.modules.NativeLogger;
 public class MainApplication extends Application implements ReactApplication {
   @Override
   public void onCreate() {
-    long appStartMilli = System.currentTimeMillis();
-    Date d = new Date(appStateMilli);
-    NativeLogger.info("App started on " + d.toString());
+    NativeLogger.info("MainApplication created");
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     JobManager manager = JobManager.create(this);

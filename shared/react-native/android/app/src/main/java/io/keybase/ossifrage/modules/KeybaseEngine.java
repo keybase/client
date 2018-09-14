@@ -59,9 +59,9 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
+        NativeLogger.info("KeybaseEngine constructed");
         super(reactContext);
         this.reactContext = reactContext;
-
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -83,7 +83,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         });
     }
 
-    public void destroy(){
+    public void destroy() {
         try {
             executor.shutdownNow();
             // We often hit this timeout during app resume, e.g. hit the back
@@ -143,6 +143,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @ReactMethod
     public void start() {
+        NativeLogger.info("KeybaseEngine started");
         try {
             started = true;
             if (executor == null) {
