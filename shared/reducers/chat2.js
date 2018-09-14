@@ -815,6 +815,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       })
     }
     case TeamsGen.leaveTeam:
+      if (isMobile) {
+        // We navigate to the inbox on mobile
+        return state
+      }
       const {teamname} = action.payload
       const selectedConvID = state.selectedConversation
       const meta = state.metaMap.get(selectedConvID, Constants.makeConversationMeta())

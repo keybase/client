@@ -5,10 +5,11 @@ import {
   Avatar,
   Box,
   ButtonBar,
+  HeaderOnMobile,
   Icon,
   MaybePopup,
   ProgressIndicator,
-  HeaderOnMobile,
+  ScrollView,
   Text,
   WaitingButton,
 } from '../../common-adapters'
@@ -34,7 +35,13 @@ const Spinner = HeaderOnMobile(_Spinner)
 
 const _ReallyLeaveTeam = (props: Props) => (
   <MaybePopup onClose={props.onBack}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
+    <ScrollView
+      contentContainerStyle={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        padding: globalMargins.large,
+      }}
+    >
       <Avatar teamname={props.name} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
       <Text type="Header" style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}>
@@ -59,7 +66,7 @@ const _ReallyLeaveTeam = (props: Props) => (
           waitingKey={Constants.leaveTeamWaitingKey(props.name)}
         />
       </ButtonBar>
-    </Box>
+    </ScrollView>
   </MaybePopup>
 )
 

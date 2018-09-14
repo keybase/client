@@ -1450,8 +1450,7 @@ const changeSelectedConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload
-    | TeamsGen.LeaveTeamPayload,
+    | Chat2Gen.BlockConversationPayload,
   state: TypedState
 ) => {
   const selected = Constants.getSelectedConversation(state)
@@ -1505,8 +1504,7 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
-    | Chat2Gen.NavigateToInboxPayload
-    | TeamsGen.LeaveTeamPayload,
+    | Chat2Gen.NavigateToInboxPayload,
   state: TypedState
 ) => {
   let selected = Constants.getSelectedConversation(state)
@@ -1548,27 +1546,13 @@ const _maybeAutoselectNewestConversation = (
   }
 
   // If we got here we're auto selecting the newest convo
-  const meta = state.chat2.metaMap.maxBy(
-    meta =>
-      meta.teamType !== 'big' &&
-      (action.type !== TeamsGen.leaveTeam || meta.teamname !== action.payload.teamname)
-        ? meta.timestamp
-        : 0
-  )
+  const meta = state.chat2.metaMap.maxBy(meta => (meta.teamType !== 'big' ? meta.timestamp : 0))
 
   if (meta) {
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: meta.conversationIDKey,
         reason: 'findNewestConversation',
-      })
-    )
-  } else if (action.type === TeamsGen.leaveTeam) {
-    // the team we left is the only chat we had
-    return Saga.put(
-      Chat2Gen.createSelectConversation({
-        conversationIDKey: Constants.noConversationIDKey,
-        reason: 'clearSelected',
       })
     )
   }
@@ -1940,21 +1924,40 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 
 // Helpers to nav you to the right place
 const navigateToInbox = (
-  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload | TeamsGen.LeftTeamPayload,
+  action:
+    | Chat2Gen.NavigateToInboxPayload
+    | Chat2Gen.LeaveConversationPayload
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.LeftTeamPayload,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  if (action.type === TeamsGen.leftTeam && action.payload.context !== 'chat') {
+  const resetRouteAction = Saga.put(
+    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
+  )
+  if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
+    const {context, teamname} = action.payload
+    switch (action.type) {
+      case TeamsGen.leaveTeam:
+        // If we're leaving a team from somewhere else and we have a team convo
+        // selected, reset the chat tab to the root
+        if (context !== 'chat' && Constants.isTeamConversationSelected(state, teamname)) {
+          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [chatTab]}))
+        }
+        break
+      case TeamsGen.leftTeam:
+        if (context === 'chat') {
+          // If we've left a team from the chat tab indiscriminately navigate to
+          // the tab root
+          return resetRouteAction
+        }
+    }
     return
   }
-  const actions = [
-    Saga.put(
-      RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
-    ),
-  ]
-  if (action.payload.findNewConversation && !isMobile) {
+  const actions = [resetRouteAction]
+  if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
     actions.push(_maybeAutoselectNewestConversation(action, state))
   }
   return Saga.sequentially(actions)
@@ -2464,7 +2467,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
       Chat2Gen.blockConversation,
-      TeamsGen.leaveTeam,
     ],
     changeSelectedConversation
   )
@@ -2545,7 +2547,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
 
   yield Saga.safeTakeEveryPure(
-    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leftTeam],
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
     navigateToInbox
   )
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
