@@ -58,8 +58,8 @@ export type _State = {
   // TeamBuilding
   teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
   teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
-  teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
-  teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.UserID>,
+  teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.User>,
+  teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.User>,
 }
 
 export type State = I.RecordOf<_State>

@@ -5,10 +5,10 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 
 // Uses ChatState and relies on these fields exisitng
-// teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.UserID>,
+// teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.User>,
 // teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
 // teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
-// teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.UserID>,
+// teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.User>,
 
 export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions) {
   switch (action.type) {
@@ -22,8 +22,11 @@ export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions)
       })
     case TeamBuildingGen.addUsersToTeamSoFar:
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
-    case TeamBuildingGen.removeUsersFromTeamSoFar:
-      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.subtract(action.payload.users))
+    case TeamBuildingGen.removeUsersFromTeamSoFar: {
+      const setToRemove = I.Set(action.payload.users)
+
+      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
+    }
     case TeamBuildingGen.searchResultsLoaded: {
       const {query, service, users} = action.payload
       return state.update('teamBuildingSearchResults', searchResults =>

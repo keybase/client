@@ -19,7 +19,7 @@ export const searchResultCountsLoaded = 'team-building:searchResultCountsLoaded'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 
 // Payload Types
-type _AddUsersToTeamSoFarPayload = $ReadOnly<{|users: Array<Types.UserID>|}>
+type _AddUsersToTeamSoFarPayload = $ReadOnly<{|users: Array<Types.User>|}>
 type _CancelTeamBuildingPayload = void
 type _FinishedTeamBuildingPayload = void
 type _RemoveUsersFromTeamSoFarPayload = $ReadOnly<{|users: Array<Types.UserID>|}>
