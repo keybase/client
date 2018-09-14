@@ -116,6 +116,11 @@ type incomingMessage struct {
 
 	// Message deletions
 	DeletedMessageIDs []chat1.MessageID `json:"target_msg_ids,omitempty"`
+
+	// Attachment
+	Filename string `json:"filename,omitempty"`
+	MimeType string `json:"mime_type,omitempty"`
+	Title    string `json:"title,omitempty"`
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
@@ -160,6 +165,11 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 						msgJSON.TargetMsgID = e.MessageID
 					case chat1.MessageType_DELETE:
 						msgJSON.DeletedMessageIDs = mv.MessageBody.Delete().MessageIDs
+					case chat1.MessageType_ATTACHMENT:
+						a := mv.MessageBody.Attachment()
+						msgJSON.Filename = a.Object.Filename
+						msgJSON.MimeType = a.Object.MimeType
+						msgJSON.Title = a.Object.Title
 					}
 				}
 
