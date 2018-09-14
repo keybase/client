@@ -10,12 +10,6 @@ const commonProps = {
   containerStyle: {padding: 24},
 }
 
-const outerClick = evt => {
-  if (evt && !evt.defaultPrevented) {
-    Sb.action('Outer click')(evt)
-  }
-}
-
 const innerClick = evt => {
   evt.preventDefault()
   Sb.action('Inner click')(evt)
@@ -84,7 +78,7 @@ const load = () => {
           {...commonProps}
           teamname="keybasefriends"
           title="keybasefriends"
-          onClick={outerClick}
+          onClick={Sb.action('Outer click')}
           metaOne={
             <Text type="BodySmallPrimaryLink" onClick={innerClick}>
               Manage members
