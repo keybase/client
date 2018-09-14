@@ -28,38 +28,44 @@ const BOOL isSimulator = NO;
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    return self.hasInited;
+    return self.hasInited && self.convTarget != nil;
 }
 
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
-  BOOL skipLogFile = NO;
-  NSError* error = nil;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
-  if (error != nil) {
-    // If Init failed, then let's throw up our error screen.
-    NSLog(@"Failed to init: %@", error);
-    InitFailedViewController* initFailed = [InitFailedViewController alloc];
-    [initFailed setDelegate:self];
-    [self pushConfigurationViewController:initFailed];
-    return;
-  }
-  [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
-  [self validateContent];
-  
-  NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
-  if ([jsonSavedConv length] > 0) {
-    NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
-    if (!conv) {
-      NSLog(@"failed to parse saved conv: %@", error);
-    } else {
-      // Success reading a saved convo, set it and reload the items to it.
-      [self setConvTarget:conv];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    BOOL skipLogFile = NO;
+    NSError* error = nil;
+    NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
+    if (error != nil) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        // If Init failed, then let's throw up our error screen.
+        NSLog(@"Failed to init: %@", error);
+        InitFailedViewController* initFailed = [InitFailedViewController alloc];
+        [initFailed setDelegate:self];
+        [self pushConfigurationViewController:initFailed];
+      });
+      return;
     }
-  }
-  [self reloadConfigurationItems];
+    [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
+   
+    NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
+    if ([jsonSavedConv length] > 0) {
+      NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
+      NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
+      if (!conv) {
+        NSLog(@"failed to parse saved conv: %@", error);
+      } else {
+        // Success reading a saved convo, set it and reload the items to it.
+        [self setConvTarget:conv];
+      }
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self validateContent];
+      [self reloadConfigurationItems];
+    });
+  });
 }
 
 -(void)initFailedClosed {
@@ -294,6 +300,7 @@ const BOOL isSimulator = NO;
 - (void)convSelected:(NSDictionary *)conv {
   // This is a delegate method from the inbox view, it gets run when the user taps an item.
   [self setConvTarget:conv];
+  [self validateContent];
   [self reloadConfigurationItems];
   [self popConfigurationViewController];
 }
