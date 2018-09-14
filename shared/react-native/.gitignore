@@ -38,6 +38,10 @@ android/.idea
 *.iml
 index.bundle
 
+# iOS
+ios/AppStore_keybase.ios.KeybaseShare.mobileprovision
+ios/AppStore_keybase.ios.mobileprovision
+
 # Builds
 ios/dist
 android/dist

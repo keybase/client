@@ -4,6 +4,7 @@ import * as Constants from '../../../../../constants/wallets'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as Types from '../../../../../constants/types/wallets'
+import {anyWaiting} from '../../../../../constants/waiting'
 import ReallyRemoveAccountPopup from '.'
 
 const mapStateToProps = (state: TypedState, {routeProps}) => {
@@ -15,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     loading: !secretKey,
     name: Constants.getAccount(state, accountID).name,
     secretKey,
-    waitingKey: Constants.deleteAccountWaitingKey,
+    waiting: anyWaiting(state, Constants.deleteAccountWaitingKey),
   }
 }
 const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
@@ -35,7 +36,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   loading: stateProps.loading,
   name: stateProps.name,
-  waitingKey: stateProps.waitingKey,
+  waiting: stateProps.waiting,
   onCancel: () => dispatchProps._onClose(stateProps.accountID),
   onCopyKey: () => dispatchProps._onCopyKey(stateProps.secretKey),
   onFinish: () => dispatchProps._onFinish(stateProps.accountID),

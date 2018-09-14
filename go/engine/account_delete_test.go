@@ -94,7 +94,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	require.NoError(t, err)
 
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              u.GetUID(),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,

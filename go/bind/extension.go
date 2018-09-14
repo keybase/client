@@ -67,7 +67,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
-	kbCtx.SetServices(externals.GetServices())
+	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))

@@ -578,7 +578,7 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers(mode RunMode) []string
+	ListProofCheckers() []string
 }
 
 type PvlSource interface {
