@@ -1200,11 +1200,8 @@ const (
 	merkleErrorNoLegacyUIDRoot
 	merkleErrorUIDMismatch
 	merkleErrorNoSkipSequence
-	merkleErrorSkipSequence
 	merkleErrorSkipMissing
 	merkleErrorSkipHashMismatch
-	merkleErrorNoLeftBookend
-	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
 	merkleErrorNotFound
@@ -1218,6 +1215,8 @@ const (
 	merkleErrorBadRoot
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
+	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {
