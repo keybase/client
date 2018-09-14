@@ -19,12 +19,7 @@ import io.keybase.ossifrage.modules.ScreenProtector;
 import io.keybase.ossifrage.modules.ShareFiles;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
-    private final String logFilePath;
     private List<KillableModule> killableModules = new ArrayList<>();
-
-    public KBReactPackage(String logFilePath) {
-        this.logFilePath = logFilePath;
-    }
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
