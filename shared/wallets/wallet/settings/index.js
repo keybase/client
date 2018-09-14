@@ -44,19 +44,23 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   </Kb.Box2>
 )
 
+const HoverText = Styles.isMobile
+  ? Kb.Text
+  : Styles.glamorous(Kb.Text)({
+      ':hover': {
+        backgroundColor: Styles.globalColors.yellow3,
+      },
+    })
+
 const AccountSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
       <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
-        <Kb.ClickableBox style={styles.nameBox}>
-          <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
-          <Kb.Icon
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-            type="iconfont-edit"
-            onClick={props.onEditName}
-          />
+        <Kb.ClickableBox onClick={props.onEditName} style={styles.nameBox}>
+          <HoverText type="BodySemibold">{props.name}</HoverText>
+          <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="iconfont-edit" />
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>

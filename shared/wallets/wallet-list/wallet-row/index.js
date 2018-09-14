@@ -79,7 +79,7 @@ const WalletRow = (props: Props) => {
         />
         <Kb.Box2 direction="vertical" style={styles.rightColumn}>
           <Kb.Box2 direction="horizontal" fullWidth={true}>
-            {props.keybaseUser && (
+            {!!props.keybaseUser && (
               <Kb.Avatar
                 size={16}
                 style={Kb.avatarCastPlatformStyles(styles.avatar)}

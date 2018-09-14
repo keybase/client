@@ -17,15 +17,31 @@ type EnterNameProps = {|
 
 const EnterNamePopup = (props: EnterNameProps) => {
   const buttons = [
-    <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" />,
-    <Kb.Button key={1} type="Wallet" onClick={props.onPrimaryClick} label="Done" waiting={props.waiting} />,
+    <Kb.Button
+      key={1}
+      type="Wallet"
+      onClick={props.onPrimaryClick}
+      label={props.primaryLabel}
+      waiting={props.waiting}
+      fullWidth={Styles.isMobile}
+    />,
   ]
+  if (!Styles.isMobile) {
+    buttons.unshift(
+      <Kb.Button key={0} type="Secondary" onClick={props.onCancel} label="Cancel" disabled={props.waiting} />
+    )
+  }
+
   return (
     <WalletPopup bottomButtons={buttons} onClose={props.onCancel} onBack={props.onBack}>
-      <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
-      <Kb.Text type="Header" style={styles.headerText}>
-        Name your account
-      </Kb.Text>
+      {!Styles.isMobile && (
+        <React.Fragment>
+          <Kb.Icon type="icon-wallet-add-48" style={Kb.iconCastPlatformStyles(styles.icon)} />
+          <Kb.Text type="Header" style={styles.headerText}>
+            Name your account
+          </Kb.Text>
+        </React.Fragment>
+      )}
       <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.inputContainer}>
         <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.blue}}>
           Account name
@@ -39,7 +55,7 @@ const EnterNamePopup = (props: EnterNameProps) => {
           onChangeText={props.onNameChange}
           autoFocus={true}
         />
-        {props.error && (
+        {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>
             {props.error}
           </Kb.Text>
@@ -106,14 +122,18 @@ const styles = Styles.styleSheetCreate({
   }),
   tallSingleLineInput: Styles.platformStyles({
     isMobile: {
-      minHeight: 32,
       paddingBottom: 0,
       paddingTop: 0,
     },
   }),
-  infoNote: {
-    marginTop: Styles.globalMargins.medium,
-  },
+  infoNote: Styles.platformStyles({
+    isElectron: {
+      marginTop: Styles.globalMargins.medium,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
   textCenter: {textAlign: 'center'},
 })
 

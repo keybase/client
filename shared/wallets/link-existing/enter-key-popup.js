@@ -42,7 +42,7 @@ const EnterKey = (props: EnterKeyProps) => {
           value={props.secretKey}
           autoFocus={true}
         />
-        {props.error && (
+        {!!props.error && (
           <Kb.Text type="BodySmall" style={styles.error}>
             {props.error}
           </Kb.Text>
