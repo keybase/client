@@ -84,12 +84,12 @@ const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
         const path = Types.getPathFromElements(a.slice(0, i + 1))
         return acc.add(path)
       }, acc), I.Set()).toArray()
-    return Saga.sequentially([
+    yield Saga.sequentially([
       ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
       Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
     ])
   } catch (ex) {
-    return makeRetriableErrorHandler(action)
+    yield makeRetriableErrorHandler(action)
   }
 })
 
