@@ -5,7 +5,7 @@ import {capitalize} from 'lodash-es'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
+import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 
@@ -209,13 +209,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
       </Text>
     )
   }
-  let human
-  let tooltip
-  if (props.relative) {
-    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
-  } else {
-    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
-  }
+  const human = formatTimeForMessages(props.timestamp)
+  const tooltip = formatTimeForStellarTooltip(props.timestamp)
   return (
     <Text title={tooltip} type="BodySmall">
       {human}
