@@ -59,8 +59,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
     }
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
-        NativeLogger.info("KeybaseEngine constructed");
         super(reactContext);
+        NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
@@ -111,7 +111,9 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
             isDeviceSecure = keyguardManager.isKeyguardSecure();
         } catch (Exception e) {
-            NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
+          NativeLogger.warn(NAME + ": Error reading keyguard secure state");
+          // TODO: Log exception.
+          //, e);
         }
 
         final Map<String, Object> constants = new HashMap<>();
