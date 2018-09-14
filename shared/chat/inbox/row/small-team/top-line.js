@@ -61,7 +61,7 @@ class _SimpleTopLine extends React.Component<Props> {
           style={{
             ...globalStyles.flexBoxRow,
             flexGrow: 1,
-            height: 17,
+            height: isMobile ? 21 : 17,
             position: 'relative',
           }}
         >
