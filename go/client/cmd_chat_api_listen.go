@@ -20,10 +20,14 @@ import (
 
 type CmdChatAPIListen struct {
 	libkb.Contextified
-}
 
-func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
-	return nil
+	// Print exploding messages? false by default. We want API consumer to make
+	// a concious choice that they want to process exploding messages, which
+	// depending on their use case might require extra care to keep secrecy
+	// of chat participants.
+	showExploding bool
+
+	showLocal bool
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -37,8 +41,23 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 			}, "api-listen", c)
 			cl.SetNoStandalone()
 		},
-		Flags: []cli.Flag{},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "exploding",
+				Usage: "Show exploding messages (skipped by default)",
+			},
+			cli.BoolFlag{
+				Name:  "local",
+				Usage: "Show local messages (skipped by default)",
+			},
+		},
 	}
+}
+
+func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
+	c.showExploding = ctx.Bool("exploding")
+	c.showLocal = ctx.Bool("local")
+	return nil
 }
 
 func NewCmdChatAPIListenRunner(g *libkb.GlobalContext) *CmdChatAPIListen {
@@ -50,6 +69,7 @@ func NewCmdChatAPIListenRunner(g *libkb.GlobalContext) *CmdChatAPIListen {
 func (c *CmdChatAPIListen) Run() error {
 	display := &chatNotificationDisplay{
 		Contextified: libkb.NewContextified(c.G()),
+		cmd:          c,
 	}
 	protocols := []rpc.Protocol{
 		chat1.NotifyChatProtocol(display),
@@ -81,6 +101,7 @@ func (c *CmdChatAPIListen) GetUsage() libkb.Usage {
 
 type chatNotificationDisplay struct {
 	libkb.Contextified
+	cmd *CmdChatAPIListen
 }
 
 func (d *chatNotificationDisplay) printf(fmt string, args ...interface{}) error {
@@ -132,6 +153,14 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			inMsg := activity.IncomingMessage()
 			if inMsg.Message.IsValid() {
 				mv := inMsg.Message.Valid()
+				if !d.cmd.showExploding && !mv.Etime.IsZero() {
+					// Skip exploding message
+					return nil
+				}
+				if !d.cmd.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
+					// Skip local message
+					return nil
+				}
 				msgJSON := incomingMessage{
 					Source:     arg.Source.String(),
 					ConvName:   inMsg.Conv.Name,
