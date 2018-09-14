@@ -15,27 +15,28 @@ export type UserListItem = {
 
 export type UserList = Array<UserListItem>
 
-export type Props = {
-  type: TextType,
+export type BaseUsernamesProps = {|
   backgroundMode?: Background,
-  style?: Styles.StylesCrossPlatform,
-  joinerStyle?: Styles.StylesCrossPlatform,
+  colorBroken?: boolean,
+  colorFollowing?: boolean,
+  colorYou?: boolean | string,
   commaColor?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   inline?: boolean,
-  redColor?: string,
-  title?: string,
-  prefix?: ?string,
-  suffix?: ?string,
-  colorFollowing?: boolean,
-  colorBroken?: boolean,
-  colorYou?: boolean | string,
   inlineGrammar?: boolean,
-  showAnd?: boolean,
+  joinerStyle?: Styles.StylesCrossPlatform,
   onUsernameClicked?: (username: string) => void,
+  prefix?: ?string,
+  redColor?: string,
+  showAnd?: boolean,
+  style?: Styles.StylesCrossPlatform,
+  suffix?: ?string,
+  title?: string,
+  type: TextType,
   underline?: boolean,
-  users: UserList,
-}
+|}
+
+export type Props = {|...BaseUsernamesProps, users: UserList|}
 
 export type PlaintextProps = {
   type: TextType,
@@ -72,6 +73,7 @@ function UsernameText(props: Props) {
     // as to not override any existing onClick handler from containers
     // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = props.onUsernameClicked
+    console.log('nathan test', _onUsernameClicked)
     return (
       <Text type={props.type} key={u.username}>
         {i !== 0 &&

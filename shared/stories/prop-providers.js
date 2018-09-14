@@ -25,10 +25,10 @@ const defaultFollowers = ['max', 'akalin']
 
 export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
   Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
-    const {usernames, onUsernameClicked, ...props} = ownProps
+    const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
       .map(username => ({username, following: following.includes(username), you: username === you}))
-      .filter(u => !ownProps.skipSelf || !u.you)
+      .filter(u => !skipSelf || !u.you)
 
     let mockedOnUsernameClick
     if (onUsernameClicked === 'tracker') {
