@@ -180,7 +180,7 @@ func (k *KeybaseDaemonLocal) setCurrentUID(uid keybase1.UID) {
 
 func (k *KeybaseDaemonLocal) assertionToIDLocked(ctx context.Context,
 	assertion string) (id keybase1.UserOrTeamID, err error) {
-	expr, err := externals.AssertionParseAndOnly(assertion)
+	expr, err := externals.AssertionParseAndOnlyStatic(assertion)
 	if err != nil {
 		return keybase1.UserOrTeamID(""), err
 	}
@@ -264,6 +264,17 @@ func (k *KeybaseDaemonLocal) Identify(
 	return k.Resolve(ctx, assertion)
 }
 
+// NormalizeSocialAssertion implements the KeybaseService interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) NormalizeSocialAssertion(
+	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
+}
+
 func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 	ctx context.Context, name string, r []kbname.NormalizedUsername,
 	ur []keybase1.SocialAssertion,
@@ -278,7 +289,7 @@ func (k *KeybaseDaemonLocal) resolveForImplicitTeam(
 		r = append(r, u.Name)
 		resolvedIDs[u.Name] = id
 	} else {
-		a, ok := externals.NormalizeSocialAssertion(name)
+		a, ok := externals.NormalizeSocialAssertionStatic(name)
 		if !ok {
 			return nil, nil, fmt.Errorf("Bad assertion: %s", name)
 		}

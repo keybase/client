@@ -81,6 +81,7 @@ func mdOpsInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controlle
 		Return(tlf.NullID, NoSuchTlfIDError{nil})
 	config.mockMdcache.EXPECT().PutIDForHandle(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
+	mockNormalizeSocialAssertion(config)
 
 	return mockCtrl, config, ctx
 }

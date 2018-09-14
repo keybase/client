@@ -5,11 +5,13 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfsblock"
@@ -25,6 +27,17 @@ import (
 type shimKMCrypto struct {
 	Crypto
 	pure cryptoPure
+}
+
+func mockNormalizeSocialAssertion(config *ConfigMock) {
+	config.mockKbpki.EXPECT().NormalizeSocialAssertion(gomock.Any(), gomock.Any()).DoAndReturn(
+		func(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+			socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+			if !isSocialAssertion {
+				return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+			}
+			return socialAssertion, nil
+		}).AnyTimes()
 }
 
 func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Controller,
@@ -49,6 +62,7 @@ func keyManagerInit(t *testing.T, ver kbfsmd.MetadataVer) (mockCtrl *gomock.Cont
 		gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().
 		Return(ImplicitTeamInfo{}, errors.New("No such team"))
 
+	mockNormalizeSocialAssertion(config)
 	return mockCtrl, config, ctx
 }
 

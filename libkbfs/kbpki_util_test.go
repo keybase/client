@@ -32,6 +32,11 @@ func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
 	return d.daemon.Resolve(ctx, assertion)
 }
 
+func (d *daemonKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (
+	keybase1.SocialAssertion, error) {
+	return d.daemon.NormalizeSocialAssertion(ctx, assertion)
+}
+
 func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
 	return d.daemon.Identify(ctx, assertion, reason)

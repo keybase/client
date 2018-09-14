@@ -33,6 +33,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
@@ -90,6 +91,8 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
+	GetAttachmentHTTPStartPort() (int, bool)
+	GetAttachmentDisableMulti() (bool, bool)
 }
 
 type CommandLine interface {
@@ -190,6 +193,7 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
@@ -409,7 +413,6 @@ type TerminalUI interface {
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
-	Tablify(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 
@@ -575,7 +578,7 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers(mode RunMode) []string
+	ListProofCheckers() []string
 }
 
 type PvlSource interface {
@@ -621,7 +624,14 @@ type TeamLoader interface {
 
 type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	OnLogout()
+}
+
+type TeamAuditor interface {
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	OnLogout(m MetaContext)
 }
 
 type Stellar interface {
@@ -792,9 +802,6 @@ type ChatHelper interface {
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
-	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)

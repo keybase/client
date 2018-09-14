@@ -2,6 +2,7 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
@@ -69,6 +70,32 @@ func (n nullFastTeamLoader) Load(MetaContext, keybase1.FastTeamLoadArg) (keybase
 	return keybase1.FastTeamLoadRes{}, fmt.Errorf("null fast team loader")
 }
 
+func (n nullFastTeamLoader) HintLatestSeqno(_ MetaContext, _ keybase1.TeamID, _ keybase1.Seqno) error {
+	return nil
+}
+
 func (n nullFastTeamLoader) OnLogout() {}
 
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }
+
+type nullTeamAuditor struct{}
+
+var _ TeamAuditor = nullTeamAuditor{}
+
+func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error) {
+	return fmt.Errorf("null team auditor")
+}
+
+func (n nullTeamAuditor) OnLogout(m MetaContext) {}
+
+func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
+
+type TeamAuditParams struct {
+	RootFreshness time.Duration
+	// After this many new Merkle updates, another audit is triggered.
+	MerkleMovementTrigger keybase1.Seqno
+	NumPreProbes          int
+	NumPostProbes         int
+	Parallelism           int
+	LRUSize               int
+}

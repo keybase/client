@@ -58,6 +58,12 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	return k.serviceOwner.KeybaseService().Identify(ctx, assertion, reason)
 }
 
+// NormalizeSocialAssertion implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) NormalizeSocialAssertion(
+	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	return k.serviceOwner.KeybaseService().NormalizeSocialAssertion(ctx, assertion)
+}
+
 // ResolveImplicitTeam implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) ResolveImplicitTeam(
 	ctx context.Context, assertions, suffix string, tlfType tlf.Type) (

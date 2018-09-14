@@ -1905,6 +1905,19 @@ func (mr *MockKeybaseServiceMockRecorder) Identify(ctx, assertion, reason interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Identify", reflect.TypeOf((*MockKeybaseService)(nil).Identify), ctx, assertion, reason)
 }
 
+// NormalizeSocialAssertion mocks base method
+func (m *MockKeybaseService) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+func (mr *MockKeybaseServiceMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKeybaseService)(nil).NormalizeSocialAssertion), ctx, assertion)
+}
+
 // ResolveIdentifyImplicitTeam mocks base method
 func (m *MockKeybaseService) ResolveIdentifyImplicitTeam(ctx context.Context, assertions, suffix string, tlfType tlf.Type, doIdentifies bool, reason string) (ImplicitTeamInfo, error) {
 	ret := m.ctrl.Call(m, "ResolveIdentifyImplicitTeam", ctx, assertions, suffix, tlfType, doIdentifies, reason)
@@ -2237,6 +2250,19 @@ func (m *Mockresolver) ResolveTeamTLFID(ctx context.Context, teamID keybase1.Tea
 // ResolveTeamTLFID indicates an expected call of ResolveTeamTLFID
 func (mr *MockresolverMockRecorder) ResolveTeamTLFID(ctx, teamID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTeamTLFID", reflect.TypeOf((*Mockresolver)(nil).ResolveTeamTLFID), ctx, teamID)
+}
+
+// NormalizeSocialAssertion mocks base method
+func (m *Mockresolver) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+func (mr *MockresolverMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*Mockresolver)(nil).NormalizeSocialAssertion), ctx, assertion)
 }
 
 // Mockidentifier is a mock of identifier interface
@@ -2597,6 +2623,19 @@ func (m *MockKBPKI) ResolveTeamTLFID(ctx context.Context, teamID keybase1.TeamID
 // ResolveTeamTLFID indicates an expected call of ResolveTeamTLFID
 func (mr *MockKBPKIMockRecorder) ResolveTeamTLFID(ctx, teamID interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveTeamTLFID", reflect.TypeOf((*MockKBPKI)(nil).ResolveTeamTLFID), ctx, teamID)
+}
+
+// NormalizeSocialAssertion mocks base method
+func (m *MockKBPKI) NormalizeSocialAssertion(ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	ret := m.ctrl.Call(m, "NormalizeSocialAssertion", ctx, assertion)
+	ret0, _ := ret[0].(keybase1.SocialAssertion)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// NormalizeSocialAssertion indicates an expected call of NormalizeSocialAssertion
+func (mr *MockKBPKIMockRecorder) NormalizeSocialAssertion(ctx, assertion interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSocialAssertion", reflect.TypeOf((*MockKBPKI)(nil).NormalizeSocialAssertion), ctx, assertion)
 }
 
 // Identify mocks base method

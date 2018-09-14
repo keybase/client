@@ -9,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/keybase/client/go/externals"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -72,6 +73,15 @@ func (ti *testIdentifier) Identify(
 
 	ei.userBreak(userInfo.Name, userInfo.UID, nil)
 	return userInfo.Name, userInfo.UID.AsUserOrTeam(), nil
+}
+
+func (ti *testIdentifier) NormalizeSocialAssertion(
+	ctx context.Context, assertion string) (keybase1.SocialAssertion, error) {
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertionStatic(assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
 }
 
 func (ti *testIdentifier) IdentifyImplicitTeam(

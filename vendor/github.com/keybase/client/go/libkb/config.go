@@ -818,10 +818,22 @@ func (f *JSONConfigFile) GetAppType() AppType {
 	return AppType(f.GetTopLevelString("app_type"))
 }
 
+func (f *JSONConfigFile) IsMobileExtension() (bool, bool) {
+	return f.GetBoolAtPath("mobile_extension")
+}
+
 func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 	return f.GetBoolAtPath("slow_gregor_conn")
 }
 
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
+}
+
+func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
+	return f.GetIntAtPath("attachment_httpsrv_port")
+}
+
+func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
+	return f.GetBoolAtPath("attachment_disable_multi")
 }
