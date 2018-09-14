@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as ChatTypes from '../../../../../constants/types/chat2'
-import * as WalletConstants from '../../../../../constants/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as Styles from '../../../../../styles'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
@@ -13,7 +12,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 // and the other for requestPayment. The wrapper decides which to use.
 
 type OwnProps = {|
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   message: ChatTypes.MessageRequestPayment | ChatTypes.MessageSendPayment,
   onHidden: () => void,
   position: Position,
@@ -81,17 +80,9 @@ const sendMergeProps = (stateProps, _, ownProps: OwnProps) => {
 const SendPaymentPopup = Container.connect(sendMapStateToProps, () => ({}), sendMergeProps)(PaymentPopup)
 
 // MessageRequestPayment ================================
-const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
-  if (ownProps.message.type !== 'requestPayment') {
-    throw new Error(`RequestPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
-  }
-  const {requestID} = ownProps.message
-  const _request = WalletConstants.getRequest(state, requestID)
-  return {
-    _request,
-    _you: state.config.username,
-  }
-}
+const requestMapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => ({
+  _you: state.config.username,
+})
 
 const requestMapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onCancel: () => {
@@ -109,8 +100,12 @@ const requestMapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 })
 
 const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {_request: request, _you: you} = stateProps
-  if (!request) {
+  const {_you: you} = stateProps
+  const {message} = ownProps
+  if (message.type !== 'requestPayment') {
+    throw new Error(`RequestPaymentPopup: impossible case encountered: ${message.type}`)
+  }
+  if (!message.requestInfo) {
     return {
       ...commonLoadingProps,
       attachTo: ownProps.attachTo,
@@ -119,18 +114,19 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
       visible: ownProps.visible,
     }
   }
+  const {requestInfo} = message
 
   let bottomLine = ''
-  if (request.asset !== 'native' && request.asset !== 'currency') {
-    bottomLine = request.asset.issuerName || request.asset.issuerAccountID || ''
+  if (requestInfo.asset !== 'native' && requestInfo.asset !== 'currency') {
+    bottomLine = requestInfo.asset.issuerName || requestInfo.asset.issuerAccountID || ''
   }
 
   let topLine = `${ownProps.message.author === you ? 'you requested' : 'requested'}${
-    request.asset === 'currency' ? ' lumens worth' : ''
+    requestInfo.asset === 'currency' ? ' lumens worth' : ''
   }`
 
   return {
-    amountNominal: request.amountDescription,
+    amountNominal: requestInfo.amountDescription,
     attachTo: ownProps.attachTo,
     balanceChange: '',
     balanceChangeColor: '',

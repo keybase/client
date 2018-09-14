@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
 
@@ -112,9 +113,9 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
 	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx.G(), tlfname, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -122,7 +123,7 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, time.Hour*24, 10*time.Second,
+	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
 		true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {
@@ -166,10 +167,10 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
-func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(name, public)
+func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(g, name, public)
 	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
-		return kbfs.SplitAndNormalizeTLFName(retryErr.NameToTry, public)
+		return kbfs.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -355,6 +356,8 @@ func VisibleChatMessageTypes() []chat1.MessageType {
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_SYSTEM,
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_REQUESTPAYMENT,
 	}
 }
 
@@ -1497,4 +1500,44 @@ func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
 			MessageID: msgID,
 			Hidden:    true,
 		})
+}
+
+func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
+	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
+	// Get session token
+	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
+		return conn, token, libkb.LoggedInError{}
+	}
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to get logged in session: %s", err.Error())
+		return conn, token, err
+	}
+	token = gregor1.SessionToken(nist.Token().String())
+
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(g.Env.GetGregorURI())
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to parse chat server UR: %s", err.Error())
+		return conn, token, err
+	}
+
+	if uri.UseTLS() {
+		rawCA := g.Env.GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			return conn, token, err
+		}
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
+		conn = rpc.NewConnectionWithTransport(handler(nist), t,
+			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	}
+	return conn, token, nil
 }

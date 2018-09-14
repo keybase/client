@@ -176,11 +176,3 @@ func (t WebServiceType) LastWriterWins() bool { return false }
 func (t WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &WebChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(WebServiceType{})
-}
-
-//=============================================================================

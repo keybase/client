@@ -72,7 +72,7 @@ class Devices extends React.PureComponent<Props, State> {
         <Kb.List items={items} renderItem={this._renderRow} />
         <Kb.FloatingMenu
           closeOnSelect={true}
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
           items={menuItems}

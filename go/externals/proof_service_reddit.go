@@ -184,11 +184,3 @@ func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 func (t RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &RedditChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(RedditServiceType{})
-}
-
-//=============================================================================

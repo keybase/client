@@ -2,7 +2,6 @@ package io.keybase.ossifrage.modules;
 
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.util.Log;
 
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -18,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 import static keybase.Keybase.readB64;
 import static keybase.Keybase.writeB64;
@@ -45,14 +45,14 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                   final String data = readB64();
 
                   if (!reactContext.hasActiveCatalystInstance()) {
-                      Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
+                      NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
                   }
 
                   reactContext
                           .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                           .emit(KeybaseEngine.RPC_EVENT_NAME, data);
               } catch (Exception e) {
-                      e.printStackTrace();
+                  NativeLogger.error("Exception in ReadFromKBLib.run", e);
               }
           } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
@@ -60,8 +60,8 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     public KeybaseEngine(final ReactApplicationContext reactContext) {
         super(reactContext);
+        NativeLogger.info("KeybaseEngine constructed");
         this.reactContext = reactContext;
-
 
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
@@ -83,17 +83,17 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         });
     }
 
-    public void destroy(){
+    public void destroy() {
         try {
             executor.shutdownNow();
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
             if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                Log.w(NAME, "Executor pool didn't shut down cleanly");
+                NativeLogger.warn(NAME + ": Executor pool didn't shut down cleanly");
             }
             executor = null;
         } catch (Exception e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in KeybaseEngine.destroy", e);
         }
     }
 
@@ -111,7 +111,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
             isDeviceSecure = keyguardManager.isKeyguardSecure();
         } catch (Exception e) {
-            Log.w(NAME, "Error reading keyguard secure state", e);
+          NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
         }
 
         final Map<String, Object> constants = new HashMap<>();
@@ -128,7 +128,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       try {
           writeB64(data);
       } catch (Exception e) {
-          e.printStackTrace();
+          NativeLogger.error("Exception in KeybaseEngine.runWithData", e);
       }
     }
 
@@ -137,12 +137,13 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
       try {
           Keybase.reset();
       } catch (Exception e) {
-          e.printStackTrace();
+          NativeLogger.error("Exception in KeybaseEngine.reset", e);
       }
     }
 
     @ReactMethod
     public void start() {
+        NativeLogger.info("KeybaseEngine started");
         try {
             started = true;
             if (executor == null) {
@@ -150,7 +151,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                 executor.execute(new ReadFromKBLib(this.reactContext));
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in KeybaseEngine.start", e);
         }
     }
 }

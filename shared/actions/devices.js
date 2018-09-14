@@ -20,12 +20,14 @@ const load = (state: TypedState) =>
 const requestPaperKey = () =>
   Saga.call(function*() {
     yield RPCTypes.loginPaperKeyRpcSaga({
-      incomingCallMap: {
-        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
-          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
+      customResponseIncomingCallMap: {
         'keybase.1.loginUi.promptRevokePaperKeys': (_, response) => {
           response.result(false)
         },
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase}) =>
+          Saga.put(DevicesGen.createPaperKeyCreated({paperKey: new HiddenString(phrase)})),
       },
       params: undefined,
       waitingKey: Constants.waitingKey,

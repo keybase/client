@@ -17,6 +17,7 @@ import {isIOS} from '../../constants/platform'
 
 import type {TypedState} from '../../constants/reducer'
 
+let lastCount = -1
 const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePayload) => {
   const count = (action.payload.badgeState.conversations || []).reduce(
     (total, c) => (c.badgeCounts ? total + c.badgeCounts[`${RPCTypes.commonDeviceType.mobile}`] : total),
@@ -24,9 +25,11 @@ const updateAppBadge = (_: any, action: NotificationsGen.ReceivedBadgeStatePaylo
   )
 
   PushNotifications.setApplicationIconBadgeNumber(count)
-  if (count === 0) {
+  // Only do this native call if the count actually changed, not over and over if its zero
+  if (count === 0 && lastCount !== 0) {
     PushNotifications.cancelAllLocalNotifications()
   }
+  lastCount = count
 }
 
 // Push notifications on android are very messy. It works differently if we're entirely killed or if we're in the background

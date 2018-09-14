@@ -25,9 +25,12 @@ class FloatingBox extends React.Component<Props, State> {
   _getTargetRect = (p: Props) => {
     let targetRect = null
     if (this.props.attachTo) {
-      const node = findDOMNode(this.props.attachTo)
-      if (node instanceof window.HTMLElement) {
-        targetRect = node.getBoundingClientRect()
+      const attachTo = this.props.attachTo()
+      if (attachTo) {
+        const node = findDOMNode(attachTo)
+        if (node instanceof window.HTMLElement) {
+          targetRect = node.getBoundingClientRect()
+        }
       }
     }
     return targetRect
@@ -38,10 +41,24 @@ class FloatingBox extends React.Component<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    if (this.props.attachTo !== prevProps.attachTo) {
-      const targetRect = this._getTargetRect(this.props)
-      this.setState(p => (p.targetRect !== targetRect ? {targetRect} : null))
-    }
+    const targetRect = this._getTargetRect(this.props)
+    this.setState(p => {
+      if (p.targetRect === targetRect) {
+        return null
+      }
+      if (!p.targetRect || !targetRect) {
+        return {targetRect}
+      }
+      if (
+        p.targetRect.left !== targetRect.left ||
+        p.targetRect.top !== targetRect.top ||
+        p.targetRect.width !== targetRect.width ||
+        p.targetRect.height !== targetRect.height
+      ) {
+        return {targetRect}
+      }
+      return null
+    })
   }
 
   render() {

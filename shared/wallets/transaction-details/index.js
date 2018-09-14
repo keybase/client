@@ -90,8 +90,8 @@ const colorForStatus = (status: Types.StatusSimplified) => {
   }
 }
 
-const descriptionForStatus = (status: Types.StatusSimplified) =>
-  status === 'completed' ? 'Sent' : capitalize(status)
+const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Role) =>
+  status === 'completed' ? (yourRole === 'receiver' ? 'Received' : 'Sent') : capitalize(status)
 
 class TransactionDetails extends React.Component<Props> {
   componentDidMount() {
@@ -161,7 +161,7 @@ class TransactionDetails extends React.Component<Props> {
               ])}
               type="Body"
             >
-              {descriptionForStatus(this.props.status)}
+              {descriptionForStatus(this.props.status, this.props.yourRole)}
             </Text>
           </Box2>
           {this.props.status !== 'error' && (

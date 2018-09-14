@@ -1,7 +1,6 @@
 // @flow
 import type {SessionID, EndHandlerType, MethodKey} from './types'
-import type {IncomingCallMapType} from '../constants/types/rpc-gen'
-import type {TypedState} from '../constants/reducer'
+import type {CustomResponseIncomingCallMap, IncomingCallMapType} from '../constants/types/rpc-gen'
 import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {constantsStatusCode} from '../constants/types/rpc-gen'
@@ -15,7 +14,9 @@ class Session {
   // Our id
   _id: SessionID
   // Map of methods => callbacks
-  _incomingCallMap: IncomingCallMapType<TypedState> | {}
+  _incomingCallMap: IncomingCallMapType | {}
+  // Map of methods => callbacks
+  _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
   // Let the outside know we're waiting
   _waitingKey: string
   // Tell engine we're done
@@ -41,7 +42,8 @@ class Session {
 
   constructor(p: {
     sessionID: SessionID,
-    incomingCallMap: ?IncomingCallMapType<TypedState>,
+    incomingCallMap: ?IncomingCallMapType,
+    customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
     waitingKey?: string,
     invoke: invokeType,
     endHandler: EndHandlerType,
@@ -50,6 +52,7 @@ class Session {
   }) {
     this._id = p.sessionID
     this._incomingCallMap = p.incomingCallMap || {}
+    this._customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
     this._waitingKey = p.waitingKey || ''
     this._invoke = p.invoke
     this._endHandler = p.endHandler
@@ -170,7 +173,12 @@ class Session {
       reason: '[-calling:session]',
       type: 'engineInternal',
     })
-    const handler = this._incomingCallMap[method]
+
+    let handler = this._incomingCallMap[method]
+
+    if (!handler) {
+      handler = this._customResponseIncomingCallMap[method]
+    }
 
     if (!handler) {
       return false

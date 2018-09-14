@@ -435,7 +435,12 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 		link := sc.chainLinks[i]
 		var didStore bool
 		if didStore, err = link.Store(sc.G()); err != nil || !didStore {
-			return
+			return err
+		}
+		select {
+		case <-m.Ctx().Done():
+			return m.Ctx().Err()
+		default:
 		}
 	}
 	return nil
@@ -951,12 +956,10 @@ func (l *SigChainLoader) AccessPreload() bool {
 }
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
-	var mt *MerkleTriple
-
 	uid := l.user.GetUID()
-
-	l.M().CDebugf("+ SigChainLoader.LoadFromStorage(%s)", uid)
-	defer func() { l.M().CDebugf("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
+	defer l.M().CTraceTimed(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
+		func() error { return err })()
+	var mt *MerkleTriple
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
 		l.M().CDebugf("| Failed to load last link ID")
@@ -985,6 +988,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// a reset has happened, so this result only gets used if the local chain
 	// turns out to be fresh.
 	for {
+		select {
+		case <-l.M().Ctx().Done():
+			return l.M().Ctx().Err()
+		default:
+		}
+
 		if currentLink.GetSeqno() == 1 {
 			if l.currentSubchainStart == 0 {
 				l.currentSubchainStart = 1

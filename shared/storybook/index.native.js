@@ -3,19 +3,21 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
-import * as Sb from './storybook'
+import * as Sb from '../stories/storybook'
 import {AppRegistry, StatusBar, KeyboardAvoidingView} from 'react-native'
 import {getStorybookUI, configure, addDecorator} from '@storybook/react-native'
-import sharedStories from './shared-stories'
-import nativeStories from './platform-stories.native'
+import sharedStories from '../stories/shared-stories'
+import nativeStories from '../stories/platform-stories.native'
 
 const load = () => {
   loadStories()
 
   const StorybookUI = getStorybookUI({
+    disableWebsockets: true, // TEMP since the webui isn't working
     host: 'localhost',
     // set this to true to show the in-app UI or just use the web ui
-    onDeviceUI: false,
+    // https://github.com/storybooks/storybook/pull/3746#issuecomment-416623500
+    onDeviceUI: true, // prefer false but babel7 webpack is currently busted
     port: 7007,
   })
 

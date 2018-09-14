@@ -52,7 +52,7 @@ const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentPro
     </ClickableBox>
     <Overlay
       style={styles.popup}
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
       position="bottom right"

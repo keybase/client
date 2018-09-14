@@ -86,4 +86,22 @@ protocol proveCommon {
     PGP_1002,
     ROOTER_100001
   }
+
+  record ProofServiceGroup {
+    // TODO need to spec out
+    string id;
+  }
+
+  record ParamProofServiceConfig {
+    boolean enabled;
+    boolean isDevel;
+    string displayName;
+    string domain;
+    union { null, ProofServiceGroup } group;
+    string usernameRe;
+    string prefillUrl;
+    string checkUrl;
+    array<string> checkPath;
+  }
+
 }

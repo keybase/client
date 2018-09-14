@@ -16,6 +16,7 @@ module.exports = (storybookBaseConfig, configType) => {
   storybookBaseConfig.resolve = {
     extensions: ['.desktop.js', '.js', '.jsx', '.json', '.flow'],
   }
+
   storybookBaseConfig.plugins.push(
     new webpack.DefinePlugin({
       __DEV__: true,
@@ -27,7 +28,8 @@ module.exports = (storybookBaseConfig, configType) => {
     new webpack.NormalModuleReplacementPlugin(/^electron$/, __dirname + '/../__mocks__/electron.js'),
     new webpack.NormalModuleReplacementPlugin(/engine/, __dirname + '/../__mocks__/engine.js'),
     new webpack.NormalModuleReplacementPlugin(/util\/saga/, __dirname + '/../__mocks__/saga.js'),
-    new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js')
+    new webpack.NormalModuleReplacementPlugin(/route-tree/, __dirname + '/../__mocks__/empty.js'),
+    new webpack.NormalModuleReplacementPlugin(/feature-flags/, __dirname + '/../__mocks__/feature-flags.js')
   )
 
   // Override default ignoring node_modules

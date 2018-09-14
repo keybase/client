@@ -72,6 +72,7 @@ export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta
 export type {
   AttachmentType,
   ChatPaymentInfo,
+  ChatRequestInfo,
   DecoratedMessage,
   MentionsAt,
   MentionsChannel,

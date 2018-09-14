@@ -1,13 +1,11 @@
 // @flow
 import * as React from 'react'
-import WKWebView from 'react-native-wkwebview-reborn'
 import {
   NativeImage,
   NativeDimensions,
   NativeWebView,
 } from '../../../../../common-adapters/native-wrappers.native'
 import type {Props} from './image-render.types'
-import {isIOS} from '../../../../../constants/platform'
 
 export class ImageRender extends React.Component<Props> {
   webview: any
@@ -23,7 +21,7 @@ export class ImageRender extends React.Component<Props> {
       return
     }
     const arg = this.playingVideo ? 'pause' : 'play'
-    const runJS = isIOS ? this.webview.evaluateJavaScript : this.webview.injectJavaScript
+    const runJS = this.webview.injectJavaScript
     runJS(`togglePlay("${arg}")`)
     this.playingVideo = !this.playingVideo
   }
@@ -38,18 +36,10 @@ export class ImageRender extends React.Component<Props> {
       const source = {
         uri: `${this.props.videoSrc}&poster=${encodeURIComponent(this.props.src)}`,
       }
-      return isIOS ? (
-        <WKWebView
-          ref={ref => {
-            this.webview = ref
-          }}
-          styles={this.props.style}
-          onLoadEnd={this._allLoads}
-          source={source}
-          scrollEnabled={false}
-        />
-      ) : (
+      return (
         <NativeWebView
+          allowsInlineMediaPlayback={true}
+          useWebKit={true}
           ref={ref => {
             this.webview = ref
           }}

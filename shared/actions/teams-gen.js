@@ -158,9 +158,12 @@ type _IgnoreRequestPayload = $ReadOnly<{|
   username: string,
 |}>
 type _InviteToTeamByEmailPayload = $ReadOnly<{|
-  teamname: string,
-  role: Types.TeamRoleType,
+  destSubPath: I.List<string>,
   invitees: string,
+  role: Types.TeamRoleType,
+  rootPath: I.List<string>,
+  sourceSubPath: I.List<string>,
+  teamname: string,
 |}>
 type _InviteToTeamByPhonePayload = $ReadOnly<{|
   teamname: string,

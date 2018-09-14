@@ -6,15 +6,16 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {anyWaiting} from '../../constants/waiting'
 import CreateAccount from '.'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = (state: TypedState, {routeProps}) => ({
   createNewAccountError: state.wallets.createNewAccountError,
   error: state.wallets.accountNameError,
   nameValidationState: state.wallets.accountNameValidationState,
   waiting: anyWaiting(state, Constants.createNewAccountWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {name, navigateUp}) => ({
-  _onCreateAccount: (name: string) => dispatch(WalletsGen.createCreateNewAccount({name})),
+const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+  _onCreateAccount: (name: string) =>
+    dispatch(WalletsGen.createCreateNewAccount({name, showOnCreation: routeProps.get('showOnCreation')})),
   _onDone: (name: string) => {
     dispatch(WalletsGen.createValidateAccountName({name}))
   },
@@ -29,6 +30,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   error: capitalize(stateProps.error),
   onCreateAccount: () => dispatchProps._onCreateAccount(ownProps.name),
   onDone: () => dispatchProps._onDone(ownProps.name),
+  onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
 })
 
 export default compose(

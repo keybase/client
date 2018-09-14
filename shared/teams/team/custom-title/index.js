@@ -50,7 +50,7 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
       style={iconCastPlatformStyles(styles.icon)}
     />
     <TeamMenu
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       teamname={props.teamname}
       visible={props.showingMenu}
