@@ -9,7 +9,7 @@ import {isMobile} from '../../constants/platform'
 
 export type ConnectedNameWithIconProps = {|
   ...NameWithIconProps,
-  onClick?: ((SyntheticEvent<> | void) => void) | 'tracker' | 'profile',
+  onClick?: 'tracker' | 'profile',
 |}
 
 const mapStateToProps = () => ({})
@@ -27,6 +27,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   let functionOnClick
   let clickType
+
+  // Since there's no tracker on mobile, we can't open it. Fallback to profile.
   if (!isMobile && onClick === 'tracker') {
     functionOnClick = () => {
       ownProps.username && dispatchProps.onOpenTracker(ownProps.username)
@@ -41,9 +43,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
       }
     }
     clickType = 'profile'
-  } else if (typeof onClick === 'function') {
-    functionOnClick = onClick
-    clickType = 'custom'
   }
 
   return {

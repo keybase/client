@@ -99,11 +99,7 @@ export const NameWithIcon = () => ({
         functionOnClick = action('onNameWithIconClicked (team profile)')
       }
       clickType = 'profile'
-    } else if (typeof onClick === 'function') {
-      functionOnClick = onClick
-      clickType = 'custom'
     }
-
     return {...props, clickType, onClick: functionOnClick}
   },
 })
