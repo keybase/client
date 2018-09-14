@@ -25,6 +25,7 @@ import java.util.List;
 import io.keybase.ossifrage.modules.StorybookConstants;
 import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 public class MainApplication extends Application implements ReactApplication {
   @Override
