@@ -24,6 +24,7 @@ type ParticipantsProps = {|
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
+  toFieldInput: string,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
@@ -53,6 +54,7 @@ const Participants = (props: ParticipantsProps) => (
       recipientFullName={props.recipientFullName}
       recipientType={props.recipientType}
       recipientUsername={props.recipientUsername}
+      toFieldInput={props.toFieldInput}
       user={props.user}
     />
   </Kb.Box2>
