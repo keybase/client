@@ -77,20 +77,20 @@ const filePreview = (state: TypedState, action) =>
 
 const loadUserFileEdits = (state: TypedState, action) =>
   RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-    .then(writerEdits => {
-      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    .then(writerEdits => Constants.userTlfHistoryRPCToState(writerEdits || []))
+    .then(tlfUpdates =>
       // Ensure we stat all path items for all updates, including paths to
       // navigate through to get to the updated files.
-      Saga.all(tlfUpdates.reduce((acc: I.Map<Types.Path, any>, u) =>
+      Promise.all(tlfUpdates.reduce((acc: I.Map<Types.Path, any>, u) =>
         Types.getPathElements(u.path).reduce((acc, e, i, a) => {
           const path = Types.getPathFromElements(a.slice(0, i + 1))
-          return acc.set(path, Saga.put(FsGen.createFilePreviewLoad({path})))
+          return acc.set(path, () => Saga.put(FsGen.createFilePreviewLoad({path})))
         }, acc), I.Map()).toList().toArray()
       )
-      return FsGen.createUserFileEditsLoaded({
+      .then(() => FsGen.createUserFileEditsLoaded({
         tlfUpdates: tlfUpdates,
       })
-    })
+    ))
     .catch(makeRetriableErrorHandler(action))
 
 // See constants/types/fs.js on what this is for.
