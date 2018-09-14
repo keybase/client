@@ -161,8 +161,7 @@ class Session {
   }
 
   // We have an incoming call tied to a sessionID, called only by engine
-  incomingCall(method: MethodKey, param: Object, _response: ?Object): boolean {
-    let response = _response
+  incomingCall(method: MethodKey, param: Object, response: ?Object): boolean {
     measureStart(`engine:${method}:${this.getId()}`)
     rpcLog({
       extra: {
