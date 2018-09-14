@@ -22,7 +22,7 @@ export type NameWithIconProps = {|
   metaOne?: string | React.Node,
   metaStyle?: Styles.StylesCrossPlatform,
   metaTwo?: string | React.Node,
-  onClick?: (SyntheticEvent<> | void) => void,
+  onClick?: (SyntheticEvent<>) => void,
   clickType?: 'tracker' | 'profile',
   onEditIcon?: any => void,
   size?: Size,
