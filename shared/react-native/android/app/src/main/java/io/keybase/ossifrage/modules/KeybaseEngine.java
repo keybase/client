@@ -2,7 +2,6 @@ package io.keybase.ossifrage.modules;
 
 import android.app.KeyguardManager;
 import android.content.Context;
-import android.util.Log;
 
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -18,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import keybase.Keybase;
 import io.keybase.ossifrage.BuildConfig;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 import static keybase.Keybase.readB64;
 import static keybase.Keybase.writeB64;
@@ -45,7 +45,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
                   final String data = readB64();
 
                   if (!reactContext.hasActiveCatalystInstance()) {
-                      Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
+                      NativeLogger.info(NAME + ": JS Bridge is dead, dropping engine message: " + data);
                   }
 
                   reactContext
@@ -89,7 +89,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             // We often hit this timeout during app resume, e.g. hit the back
             // button to go to home screen and then tap Keybase app icon again.
             if (!executor.awaitTermination(3, TimeUnit.SECONDS)) {
-                Log.w(NAME, "Executor pool didn't shut down cleanly");
+                NativeLogger.warn(NAME + ": Executor pool didn't shut down cleanly");
             }
             executor = null;
         } catch (Exception e) {
@@ -111,7 +111,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
             isDeviceSecure = keyguardManager.isKeyguardSecure();
         } catch (Exception e) {
-            Log.w(NAME, "Error reading keyguard secure state", e);
+            NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
         }
 
         final Map<String, Object> constants = new HashMap<>();
