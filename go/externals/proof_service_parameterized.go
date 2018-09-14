@@ -29,7 +29,7 @@ func NewParamProofChecker(p libkb.RemoteProofChainLink) (*ParamProofChecker, lib
 
 func (rc *ParamProofChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *ParamProofChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+func (rc *ParamProofChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
 	// TODO will have to use the `check_url`/`check_path` config values to verify the proof.
 	return libkb.NewProofError(keybase1.ProofStatus_BASE_HARD_ERROR, "Not implemented")
 }

@@ -1543,7 +1543,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 
 	m.CDebugf("+ RemoteCheckProof %s", p.ToDebugString())
 	doCache := false
-	pvlHashUsed := PvlKitHash("")
+	pvlHashUsed := keybase1.MerkleStoreKitHash("")
 	sid := p.GetSigID()
 
 	defer func() {
@@ -1575,7 +1575,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "no pvl source for proof verification")
 		return
 	}
-	pvlU, err := pvlSource.GetPVL(m)
+	pvlU, err := pvlSource.GetLatestEntry(m)
 	if err != nil {
 		res.err = NewProofError(keybase1.ProofStatus_MISSING_PVL, "error getting pvl: %s", err)
 		return

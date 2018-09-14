@@ -1,0 +1,51 @@
+{
+  "protocol": "merkle_store",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "MerkleStoreSupportedVersion",
+      "fields": [],
+      "typedef": "int"
+    },
+    {
+      "type": "record",
+      "name": "MerkleStoreKitHash",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "MerkleStoreKit",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "MerkleStoreEntryString",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "MerkleStoreEntry",
+      "fields": [
+        {
+          "type": "MerkleStoreKitHash",
+          "name": "hash"
+        },
+        {
+          "type": "MerkleStoreEntryString",
+          "name": "entry"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

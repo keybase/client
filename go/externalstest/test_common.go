@@ -8,7 +8,7 @@ package externalstest
 import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/merklestore"
 	"github.com/keybase/client/go/uidmap"
 )
 
@@ -19,6 +19,6 @@ func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.Test
 
 	tc.G.SetProofServices(externals.NewProofServices(tc.G))
 	tc.G.SetUIDMapper(uidmap.NewUIDMap(10000))
-	pvlsource.NewPvlSourceAndInstall(tc.G)
+	merklestore.NewPvlSourceAndInstall(tc.G)
 	return tc
 }

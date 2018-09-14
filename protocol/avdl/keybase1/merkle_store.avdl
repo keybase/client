@@ -1,0 +1,22 @@
+@namespace("keybase.1")
+
+protocol merkle_store {
+  import idl "common.avdl";
+
+  @typedef("int")
+  record MerkleStoreSupportedVersion {}
+
+  @typedef("string")
+  record MerkleStoreKitHash {}
+
+  @typedef("string")
+  record MerkleStoreKit {}
+
+  @typedef("string")
+  record MerkleStoreEntryString {}
+
+  record MerkleStoreEntry {
+    MerkleStoreKitHash hash;
+    MerkleStoreEntryString entry;
+  }
+}
