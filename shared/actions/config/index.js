@@ -128,11 +128,16 @@ let _firstTimeConnecting = true
 const startHandshake = (state: TypedState) => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
+  if (firstTimeConnecting) {
+    const now = new Date()
+    logger.info(`First bootstrap started on ${now.toString()}`)
+  }
   return Saga.put(
     ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
   )
 }
 
+let _firstTimeBootstrapDone = true
 const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
@@ -146,6 +151,11 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
         return Saga.put(ConfigGen.createRestartHandshake())
       }
     } else {
+      if (_firstTimeBootstrapDone) {
+        _firstTimeBootstrapDone = false
+        const now = new Date()
+        logger.info(`First bootstrap ended on ${now.toString()}`)
+      }
       return Saga.put(ConfigGen.createDaemonHandshakeDone())
     }
   }
