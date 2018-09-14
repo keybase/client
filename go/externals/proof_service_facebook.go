@@ -101,11 +101,3 @@ func (t FacebookServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 func (t FacebookServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &FacebookChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(FacebookServiceType{})
-}
-
-//=============================================================================

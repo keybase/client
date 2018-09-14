@@ -552,7 +552,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}

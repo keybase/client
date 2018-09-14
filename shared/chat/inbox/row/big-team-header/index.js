@@ -36,7 +36,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
     return (
       <Box style={styles.teamRowContainer}>
         <TeamMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           teamname={props.teamname}
@@ -80,6 +80,7 @@ const styles = styleSheetCreate({
   },
   team: platformStyles({
     common: {
+      color: globalColors.black_60,
       flexGrow: 1,
       marginLeft: globalMargins.tiny,
       marginRight: globalMargins.tiny,

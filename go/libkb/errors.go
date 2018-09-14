@@ -734,11 +734,12 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 //=============================================================================
 
 type UnmarshalError struct {
-	T string
+	ExpectedTag PacketTag
+	Tag         PacketTag
 }
 
 func (u UnmarshalError) Error() string {
-	return "Bad " + u.T + " packet"
+	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
 }
 
 type VerificationError struct {
@@ -1199,11 +1200,8 @@ const (
 	merkleErrorNoLegacyUIDRoot
 	merkleErrorUIDMismatch
 	merkleErrorNoSkipSequence
-	merkleErrorSkipSequence
 	merkleErrorSkipMissing
 	merkleErrorSkipHashMismatch
-	merkleErrorNoLeftBookend
-	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
 	merkleErrorNotFound
@@ -1217,6 +1215,8 @@ const (
 	merkleErrorBadRoot
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
+	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {

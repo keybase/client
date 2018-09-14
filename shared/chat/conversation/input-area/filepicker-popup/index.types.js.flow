@@ -2,7 +2,7 @@
 import * as React from 'react'
 
 export type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   visible: boolean,
   onHidden: () => void,
   onSelect: (mediaType: 'photo' | 'video' | 'mixed', location: 'camera' | 'library') => void,

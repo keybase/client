@@ -81,7 +81,7 @@ const _ShowcasedTeamRow = (
     style={styleShowcasedTeamContainer}
   >
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
@@ -464,7 +464,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={this.state.selectedProofMenuRowRef}
+                    attachTo={() => this.state.selectedProofMenuRowRef}
                     position="bottom right"
                     containerStyle={styles.floatingMenu}
                     {...proofMenuContent}

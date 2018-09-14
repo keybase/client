@@ -8,6 +8,7 @@ import Text, {type TextType} from './text'
 import ConnectedUsernames from './usernames/container'
 import {
   collapseStyles,
+  globalMargins,
   globalStyles,
   isMobile,
   platformStyles,
@@ -180,20 +181,23 @@ const TextOrComponent = ({
 const styles = styleSheetCreate({
   fullWidthText: platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
   fullWidthTextContainer: platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
-  hAvatarStyle: {marginRight: 16},
+  hAvatarStyle: platformStyles({
+    isElectron: {marginRight: globalMargins.tiny},
+    isMobile: {marginRight: globalMargins.small},
+  }),
   hContainerStyle: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
   },
   hIconStyle: {
     height: isMobile ? 48 : 32,
-    marginRight: 16,
+    marginRight: isMobile ? globalMargins.small : globalMargins.tiny,
     width: isMobile ? 48 : 32,
   },
   metaStyle: {
     ...globalStyles.flexBoxColumn,
     ...globalStyles.flexBoxCenter,
-    marginTop: 8,
+    marginTop: globalMargins.tiny,
   },
   vContainerStyle: {
     ...globalStyles.flexBoxColumn,

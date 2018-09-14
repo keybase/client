@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
-import type {Component} from 'react'
+import * as React from 'react'
 import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
 import {
   compose,
@@ -15,7 +15,7 @@ import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tr
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,

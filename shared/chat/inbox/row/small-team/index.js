@@ -14,7 +14,7 @@ import {
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import * as RowSizes from '../sizes'
+import * as InboxSizes from '../sizes'
 
 export type Props = {
   backgroundColor: string,
@@ -99,33 +99,48 @@ class SmallTeam extends React.PureComponent<Props, State> {
             />
           )}
           <Box style={collapseStyles([styles.conversationRow, styles.fastBlank])}>
-            <SimpleTopLine
-              backgroundColor={props.backgroundColor}
-              hasUnread={props.hasUnread}
-              hasBadge={props.hasBadge}
-              iconHoverColor={props.iconHoverColor}
-              participants={props.teamname ? [props.teamname] : props.participants}
-              showBold={props.showBold}
-              showGear={!!props.teamname && !isMobile && !props.isInWidget}
-              subColor={props.subColor}
-              timestamp={props.timestamp}
-              usernameColor={props.usernameColor}
-              teamname={props.teamname}
-              {...(props.channelname ? {channelname: props.channelname} : {})}
-            />
-
-            <BottomLine
-              backgroundColor={props.backgroundColor}
-              participantNeedToRekey={props.participantNeedToRekey}
-              youAreReset={props.youAreReset}
-              showBold={props.showBold}
-              snippet={props.snippet}
-              snippetDecoration={props.snippetDecoration}
-              subColor={props.subColor}
-              hasResetUsers={props.hasResetUsers}
-              youNeedToRekey={props.youNeedToRekey}
-              isSelected={props.isSelected}
-            />
+            <Box
+              style={collapseStyles([
+                globalStyles.flexBoxColumn,
+                styles.flexOne,
+                {justifyContent: 'flex-end'},
+              ])}
+            >
+              <SimpleTopLine
+                backgroundColor={props.backgroundColor}
+                hasUnread={props.hasUnread}
+                hasBadge={props.hasBadge}
+                iconHoverColor={props.iconHoverColor}
+                participants={props.teamname ? [props.teamname] : props.participants}
+                showBold={props.showBold}
+                showGear={!!props.teamname && !isMobile && !props.isInWidget}
+                subColor={props.subColor}
+                timestamp={props.timestamp}
+                usernameColor={props.usernameColor}
+                teamname={props.teamname}
+                {...(props.channelname ? {channelname: props.channelname} : {})}
+              />
+            </Box>
+            <Box
+              style={collapseStyles([
+                globalStyles.flexBoxColumn,
+                styles.flexOne,
+                {justifyContent: 'flex-start'},
+              ])}
+            >
+              <BottomLine
+                backgroundColor={props.backgroundColor}
+                participantNeedToRekey={props.participantNeedToRekey}
+                youAreReset={props.youAreReset}
+                showBold={props.showBold}
+                snippet={props.snippet}
+                snippetDecoration={props.snippetDecoration}
+                subColor={props.subColor}
+                hasResetUsers={props.hasResetUsers}
+                youNeedToRekey={props.youNeedToRekey}
+                isSelected={props.isSelected}
+              />
+            </Box>
           </Box>
         </Box>
       </SmallTeamBox>
@@ -134,7 +149,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
 }
 
 const styles = styleSheetCreate({
-  container: {flexShrink: 0, height: RowSizes.smallRowHeight},
+  container: {flexShrink: 0, height: InboxSizes.smallRowHeight},
   conversationRow: {
     ...globalStyles.flexBoxColumn,
     flexGrow: 1,
@@ -148,16 +163,13 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
     },
   }),
+  flexOne: {
+    flex: 1,
+  },
   rowContainer: platformStyles({
     common: {
       ...globalStyles.flexBoxRow,
-      height: '100%',
-    },
-    isElectron: desktopStyles.clickable,
-  }),
-  rowContainerSelected: platformStyles({
-    common: {
-      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
       height: '100%',
     },
     isElectron: desktopStyles.clickable,

@@ -900,7 +900,7 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 	// if the caller is ok with receiving placeholders
 	var iboxMaxMsgID chat1.MessageID
 	if maxPlaceholders > 0 {
-		iboxRes, err := storage.NewInbox(s.G(), uid).GetConversation(ctx, convID)
+		iboxRes, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
 		if err != nil {
 			s.Debug(ctx, "PullLocalOnly: failed to read inbox for conv, not using: %s", err)
 		} else if iboxRes.Conv.ReaderInfo == nil {

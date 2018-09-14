@@ -156,7 +156,8 @@ const _getTeamRetentionPolicy = function*(action: TeamsGen.GetTeamRetentionPolic
   }
   const policy: RPCChatTypes.RetentionPolicy = yield Saga.call(
     RPCChatTypes.localGetTeamRetentionLocalRpcPromise,
-    {teamID, waitingKey: Constants.teamWaitingKey(teamname)}
+    {teamID},
+    Constants.teamWaitingKey(teamname)
   )
   let retentionPolicy: RetentionPolicy = Constants.makeRetentionPolicy()
   try {
@@ -228,8 +229,9 @@ const _updateTeamRetentionPolicy = function(
 }
 
 const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
-  const {invitees, role, teamname} = action.payload
+  const {destSubPath, invitees, role, rootPath, sourceSubPath, teamname} = action.payload
   yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.addToTeamByEmailWaitingKey(teamname)}))
   yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: true}))
   try {
     const res: RPCTypes.BulkRes = yield Saga.call(RPCTypes.teamsTeamAddEmailsBulkRpcPromise, {
@@ -257,12 +259,22 @@ const _inviteByEmail = function*(action: TeamsGen.InviteToTeamByEmailPayload) {
           message: '',
         })
       )
+      if (!isMobile) {
+        yield Saga.put(
+          RouteTreeGen.createPutActionIfOnPath({
+            expectedPath: rootPath.concat(sourceSubPath),
+            otherAction: RouteTreeGen.createNavigateTo({path: destSubPath, parentPath: rootPath}),
+            parentPath: rootPath,
+          })
+        )
+      }
     }
   } catch (err) {
     // other error. display messages and leave all emails in input box
     yield Saga.put(TeamsGen.createSetEmailInviteError({malformed: [], message: err.desc}))
   } finally {
     yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamWaitingKey(teamname)}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.addToTeamByEmailWaitingKey(teamname)}))
     yield Saga.put(TeamsGen.createSetTeamLoadingInvites({teamname, invitees, loadingInvites: false}))
   }
 }

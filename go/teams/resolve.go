@@ -66,7 +66,7 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		suffix = split1[1]
 	}
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(g, assertions)
 	if err != nil {
 		return res, err
 	}

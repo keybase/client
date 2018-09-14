@@ -86,11 +86,3 @@ func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig s
 func (t TwitterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &TwitterChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(TwitterServiceType{})
-}
-
-//=============================================================================

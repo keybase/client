@@ -170,7 +170,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
         </Box2>
         <FloatingMenu
           closeOnSelect={true}
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           containerStyle={styles.floatingMenu}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}

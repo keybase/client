@@ -205,7 +205,7 @@ function analyzeMessages(json, project) {
         return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
       })
     const noParams = !arr.length
-    const inParam = noParams ? 'void' : `$ReadOnly<{${arr.join(',')}}>`
+    const inParam = noParams ? 'void' : `$ReadOnly<{|${arr.join(',')}|}>`
     const name = `${json.protocol}${capitalize(m)}`
     const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
@@ -217,7 +217,7 @@ function analyzeMessages(json, project) {
         : `response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
       project.incomingMaps[
         methodName
-      ] = `(params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'> & {sessionID: number},${r}, state: TypedState) => IncomingReturn`
+      ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|},${r}, state: TypedState) => IncomingReturn`
     }
 
     const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)

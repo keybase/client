@@ -13,3 +13,5 @@ export const dividerHeight = (showingButton: boolean) => {
     return showingButton ? 60 : 41
   }
 }
+
+export const inboxWidth = 260

@@ -122,11 +122,3 @@ func (t HackerNewsServiceType) PreProofCheck(m libkb.MetaContext, un string) (ma
 func (t HackerNewsServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &HackerNewsChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(HackerNewsServiceType{})
-}
-
-//=============================================================================
