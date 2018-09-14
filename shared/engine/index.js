@@ -112,10 +112,8 @@ class Engine {
   // Default handlers for incoming messages
   _setupCoreHandlers() {
     this.setIncomingCallMap({
-      'keybase.1.logUi.log': ({param, response}) => {
-        const logParam = param
-        log(logParam)
-        response && response.result && response.result()
+      'keybase.1.logUi.log': param => {
+        log(param)
       },
     })
   }

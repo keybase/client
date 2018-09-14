@@ -9,6 +9,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-codec/codec"
 )
 
 type SKBKeyringFile struct {
@@ -64,19 +65,63 @@ func (k *SKBKeyringFile) MarkDirty() {
 	k.dirty = true
 }
 
-func (k *SKBKeyringFile) loadLocked() (err error) {
-	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
-	var packets KeybasePackets
-	var file *os.File
-	if file, err = os.OpenFile(k.filename, os.O_RDONLY, 0); err == nil {
-		stream := base64.NewDecoder(base64.StdEncoding, file)
-		packets, err = DecodePacketsUnchecked(stream)
-		tmp := file.Close()
-		if err == nil && tmp != nil {
-			err = tmp
-		}
+type skbPacket struct {
+	skb *SKB
+}
+
+// Okay to panic in Codec{Encode,Decode}Self, since the
+// encoder/decoder catches panics and turns them back into errors.
+
+func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
+	err := EncodePacket(s.skb, e)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
+	var skb SKB
+	err := DecodePacket(d, &skb)
+	if err != nil {
+		panic(err)
+	}
+	s.skb = &skb
+}
+
+func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
+	ch := codecHandle()
+	encoder := codec.NewEncoder(w, ch)
+
+	packets := make([]skbPacket, len(skbs))
+	for i := range skbs {
+		packets[i].skb = skbs[i]
 	}
 
+	return encoder.Encode(packets)
+}
+
+func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
+	ch := codecHandle()
+	decoder := codec.NewDecoder(r, ch)
+
+	var packets []skbPacket
+	err := decoder.Decode(&packets)
+	if err != nil {
+		return nil, err
+	}
+
+	skbs := make([]*SKB, len(packets))
+	for i, s := range packets {
+		s.skb.SetGlobalContext(g)
+		skbs[i] = s.skb
+	}
+	return skbs, nil
+}
+
+func (k *SKBKeyringFile) loadLocked() (err error) {
+	k.G().Log.Debug("+ Loading SKB keyring: %s", k.filename)
+
+	file, err := os.OpenFile(k.filename, os.O_RDONLY, 0)
 	if err != nil {
 		if os.IsNotExist(err) {
 			k.G().Log.Debug("| Keybase secret keyring doesn't exist: %s", k.filename)
@@ -85,12 +130,25 @@ func (k *SKBKeyringFile) loadLocked() (err error) {
 
 			MobilePermissionDeniedCheck(k.G(), err, fmt.Sprintf("skb keyring: %s", k.filename))
 		}
-	} else if err == nil {
-		k.Blocks, err = packets.ToListOfSKBs(k.G())
+		return err
+	}
+	defer func() {
+		closeErr := file.Close()
+		if err == nil {
+			err = closeErr
+		}
+	}()
+
+	stream := base64.NewDecoder(base64.StdEncoding, file)
+	skbs, err := decodeSKBPacketList(stream, k.G())
+	if err != nil {
+		return err
 	}
 
+	k.Blocks = skbs
+
 	k.G().Log.Debug("- Loaded SKB keyring: %s -> %s", k.filename, ErrToOk(err))
-	return
+	return nil
 }
 
 func (k *SKBKeyringFile) addToIndexLocked(g GenericKey, b *SKB) {
@@ -312,30 +370,27 @@ func (k *SKBKeyringFile) GetFilename() string { return k.filename }
 
 // WriteTo is similar to GetFilename described just above in terms of
 // locking discipline.
-func (k *SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
+func (k *SKBKeyringFile) WriteTo(w io.Writer) (n int64, err error) {
 	k.G().Log.Debug("+ SKBKeyringFile WriteTo")
 	defer k.G().Log.Debug("- SKBKeyringFile WriteTo")
-	packets := make(KeybasePackets, len(k.Blocks))
-	var err error
-	for i, b := range k.Blocks {
-		if packets[i], err = b.ToPacket(); err != nil {
-			return 0, err
-		}
-	}
 	b64 := base64.NewEncoder(base64.StdEncoding, w)
-	defer b64.Close()
+	defer func() {
+		// explicitly check for error on Close:
+		if closeErr := b64.Close(); closeErr != nil {
+			k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", closeErr)
+			if err == nil {
+				n = 0
+				err = closeErr
+				return
+			}
+		}
+		k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
+	}()
 
-	if err = packets.EncodeTo(b64); err != nil {
+	if err := encodeSKBPacketList(k.Blocks, b64); err != nil {
 		k.G().Log.Warning("Encoding problem: %s", err)
 		return 0, err
 	}
-
-	// explicitly check for error on Close:
-	if err := b64.Close(); err != nil {
-		k.G().Log.Warning("SKBKeyringFile: WriteTo b64.Close() error: %s", err)
-		return 0, err
-	}
-	k.G().Log.Debug("SKBKeyringFile: b64 stream closed successfully")
 
 	return 0, nil
 }

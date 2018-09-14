@@ -38,6 +38,7 @@ export class ImageRender extends React.Component<Props> {
       }
       return (
         <NativeWebView
+          allowsInlineMediaPlayback={true}
           useWebKit={true}
           ref={ref => {
             this.webview = ref

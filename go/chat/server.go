@@ -27,7 +27,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -297,7 +296,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	for convLocal := range convLocalsCh {
 		convLocals = append(convLocals, convLocal)
 	}
-	if err = storage.NewInbox(h.G(), uid.ToBytes()).MergeLocalMetadata(ctx, convLocals); err != nil {
+	if err = storage.NewInbox(h.G()).MergeLocalMetadata(ctx, uid.ToBytes(), convLocals); err != nil {
 		// Don't abort the operation on this kind of error
 		h.Debug(ctx, "GetInboxNonblockLocal: unable to write inbox local metadata: %s", err)
 	}
@@ -331,7 +330,7 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 
 	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
 
-	readRes, err := storage.NewInbox(h.G(), uid).GetConversation(ctx, arg.ConversationID)
+	readRes, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, arg.ConversationID)
 	if err == nil && readRes.GetConvID().Eq(arg.ConversationID) &&
 		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
 		h.Debug(ctx, "MarkAsReadLocal: conversation fully read: %s, not sending remote call",
@@ -1925,26 +1924,6 @@ func (h *Server) SetAppNotificationSettingsLocal(ctx context.Context,
 	return res, nil
 }
 
-type remoteNotificationSuccessHandler struct{}
-
-func (g *remoteNotificationSuccessHandler) HandlerName() string {
-	return "remote notification success"
-}
-func (g *remoteNotificationSuccessHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
-	return nil
-}
-func (g *remoteNotificationSuccessHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-}
-func (g *remoteNotificationSuccessHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-}
-func (g *remoteNotificationSuccessHandler) OnDoCommandError(err error, nextTime time.Duration) {}
-func (g *remoteNotificationSuccessHandler) ShouldRetry(name string, err error) bool {
-	return false
-}
-func (g *remoteNotificationSuccessHandler) ShouldRetryOnConnect(err error) bool {
-	return false
-}
-
 func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.UnboxMobilePushNotificationArg) (res string, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks, h.identNotifier)
@@ -1960,11 +1939,16 @@ func (h *Server) UnboxMobilePushNotification(ctx context.Context, arg chat1.Unbo
 		return res, err
 	}
 	convID := chat1.ConversationID(bConvID)
-	if res, err = h.G().ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, arg.MembersType, arg.Payload); err != nil {
+	mp := NewMobilePush(h.G())
+	mbu, err := mp.UnboxPushNotification(ctx, uid, convID, arg.MembersType, arg.Payload)
+	if err != nil {
+		return res, err
+	}
+	if res, err = mp.FormatPushText(ctx, uid, convID, arg.MembersType, mbu); err != nil {
 		return res, err
 	}
 	if arg.ShouldAck {
-		h.G().ChatHelper.AckMobileNotificationSuccess(ctx, arg.PushIDs)
+		mp.AckNotificationSuccess(ctx, arg.PushIDs)
 	}
 	return res, nil
 }
