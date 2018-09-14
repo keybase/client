@@ -30,20 +30,23 @@ type staticProofServices struct {
 	collection map[string]libkb.ServiceType
 }
 
-func NewStaticProofServices() libkb.ExternalServicesCollector {
+func newStaticProofServices() libkb.ExternalServicesCollector {
 	staticServices := getStaticProofServices()
 	p := staticProofServices{
 		collection: make(map[string]libkb.ServiceType),
 	}
-	for _, st := range staticServices {
-		p.register(st)
-	}
+	p.register(staticServices)
 	return &p
 }
 
-func (p *staticProofServices) register(st libkb.ServiceType) {
-	for _, k := range st.AllStringKeys() {
-		p.collection[k] = st
+func (p *staticProofServices) register(services []libkb.ServiceType) {
+	for _, st := range services {
+		if !useDevelProofCheckers && st.IsDevelOnly() {
+			continue
+		}
+		for _, k := range st.AllStringKeys() {
+			p.collection[k] = st
+		}
 	}
 }
 
@@ -53,10 +56,8 @@ func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
 
 func (p *staticProofServices) ListProofCheckers(mode libkb.RunMode) []string {
 	var ret []string
-	for k, v := range p.collection {
-		if useDevelProofCheckers || !v.IsDevelOnly() {
-			ret = append(ret, k)
-		}
+	for k := range p.collection {
+		ret = append(ret, k)
 	}
 	return ret
 }
@@ -79,15 +80,18 @@ func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
 	staticServices := getStaticProofServices()
 	p.Lock()
 	defer p.Unlock()
-	for _, st := range staticServices {
-		p.register(st)
-	}
+	p.register(staticServices)
 	return p
 }
 
-func (p *proofServices) register(st libkb.ServiceType) {
-	for _, k := range st.AllStringKeys() {
-		p.collection[k] = st
+func (p *proofServices) register(services []libkb.ServiceType) {
+	for _, st := range services {
+		if !useDevelProofCheckers && st.IsDevelOnly() {
+			continue
+		}
+		for _, k := range st.AllStringKeys() {
+			p.collection[k] = st
+		}
 	}
 }
 
@@ -103,10 +107,8 @@ func (p *proofServices) ListProofCheckers(mode libkb.RunMode) []string {
 	defer p.Unlock()
 	p.loadParamProofServices()
 	var ret []string
-	for k, v := range p.collection {
-		if useDevelProofCheckers || !v.IsDevelOnly() {
-			ret = append(ret, k)
-		}
+	for k := range p.collection {
+		ret = append(ret, k)
 	}
 	return ret
 }
@@ -126,8 +128,10 @@ func (p *proofServices) loadParamProofServices() {
 		p.G().Log.CDebugf(context.TODO(), "unable to load configs: %v", err)
 		return
 	}
+	services := []libkb.ServiceType{}
 	for _, params := range proofTypes {
-		p.register(NewParamProofServiceType(params))
+		services = append(services, NewParamProofServiceType(params))
 	}
+	p.register(services)
 	p.loaded = true
 }

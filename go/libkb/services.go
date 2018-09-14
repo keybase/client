@@ -153,6 +153,10 @@ func (a assertionContext) NormalizeSocialName(service string, username string) (
 
 //=============================================================================
 
+// NOTE the static methods should only be used in tests or as a basic sanity
+// check for the syntactical correctness of an assertion. All other callers
+// should use the non-static versions.
+// This uses only the 'static' services which exclude any parameterized proofs.
 type staticAssertionContext struct {
 	esc ExternalServicesCollector
 }
