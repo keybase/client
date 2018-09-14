@@ -115,7 +115,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
         </Kb.Text>
-        <Kb.Text type="BodySmallInlineLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+        <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
           {props.tlfType === 'team' ? props.teamname : props.participants.join(',')}
         </Kb.Text>
       </Kb.Box2>
