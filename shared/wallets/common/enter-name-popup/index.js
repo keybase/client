@@ -122,7 +122,6 @@ const styles = Styles.styleSheetCreate({
   }),
   tallSingleLineInput: Styles.platformStyles({
     isMobile: {
-      // minHeight: 32,
       paddingBottom: 0,
       paddingTop: 0,
     },
