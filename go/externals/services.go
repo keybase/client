@@ -54,7 +54,7 @@ func (p *staticProofServices) GetServiceType(s string) libkb.ServiceType {
 	return p.collection[strings.ToLower(s)]
 }
 
-func (p *staticProofServices) ListProofCheckers(mode libkb.RunMode) []string {
+func (p *staticProofServices) ListProofCheckers() []string {
 	var ret []string
 	for k := range p.collection {
 		ret = append(ret, k)
@@ -102,7 +102,7 @@ func (p *proofServices) GetServiceType(s string) libkb.ServiceType {
 	return p.collection[strings.ToLower(s)]
 }
 
-func (p *proofServices) ListProofCheckers(mode libkb.RunMode) []string {
+func (p *proofServices) ListProofCheckers() []string {
 	p.Lock()
 	defer p.Unlock()
 	p.loadParamProofServices()
