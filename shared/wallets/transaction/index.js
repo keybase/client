@@ -210,7 +210,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
     )
   }
   const human = formatTimeForMessages(props.timestamp)
-  const tooltip = formatTimeForStellarTooltip(props.timestamp)
+  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
     <Text title={tooltip} type="BodySmall">
       {human}
