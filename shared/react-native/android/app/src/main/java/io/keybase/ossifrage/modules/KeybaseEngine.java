@@ -111,9 +111,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             final KeyguardManager keyguardManager = (KeyguardManager) this.reactContext.getSystemService(Context.KEYGUARD_SERVICE);
             isDeviceSecure = keyguardManager.isKeyguardSecure();
         } catch (Exception e) {
-          NativeLogger.warn(NAME + ": Error reading keyguard secure state");
-          // TODO: Log exception.
-          //, e);
+          NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
         }
 
         final Map<String, Object> constants = new HashMap<>();
