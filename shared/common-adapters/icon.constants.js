@@ -59,6 +59,12 @@ const iconMeta_ = {
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-addon-lock-active-22.png'),
   },
+  'icon-addon-lock-hover-16': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-addon-lock-hover-16.png'),
+  },
   'icon-bitcoin-logo-48': {
     isFont: false,
     extension: 'png',
@@ -1714,6 +1720,12 @@ const iconMeta_ = {
     extension: 'png',
     // $FlowIssue https://github.com/facebook/flow/issues/6628
     require: require('../images/icons/icon-shh-active-24.png'),
+  },
+  'icon-shh-hover-16': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue https://github.com/facebook/flow/issues/6628
+    require: require('../images/icons/icon-shh-hover-16.png'),
   },
   'icon-skull-48': {
     isFont: false,

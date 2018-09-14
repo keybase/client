@@ -25,13 +25,21 @@ type Props = {
   onSelectConversation: () => void,
 }
 
+type State = {
+  isHovered: boolean,
+}
+
 const HoverBox = isMobile
   ? Box
   : glamorous(Box)({
       ':hover': {backgroundColor: globalColors.blueGrey2},
     })
 
-class BigTeamChannel extends PureComponent<Props> {
+class BigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
@@ -41,6 +49,8 @@ class BigTeamChannel extends PureComponent<Props> {
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
             ])}
+            onMouseLeave={() => this.setState({isHovered: false})}
+            onMouseOver={() => this.setState({isHovered: true})}
           >
             <Text
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
@@ -58,7 +68,9 @@ class BigTeamChannel extends PureComponent<Props> {
             >
               #{this.props.channelname}
             </Text>
-            {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
+            {this.props.isMuted && (
+              <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
+            )}
             {this.props.hasBadge && <UnreadIcon />}
           </HoverBox>
         </Box>
@@ -67,16 +79,18 @@ class BigTeamChannel extends PureComponent<Props> {
   }
 }
 
-const MutedIcon = ({isSelected}) => (
+const MutedIcon = ({isHovered, isSelected}) => (
   <Icon
     type={
-      isSelected
-        ? isMobile
+      isMobile
+        ? isSelected
           ? 'icon-shh-active-24'
-          : 'icon-shh-active-16'
-        : isMobile
-          ? 'icon-shh-24'
-          : 'icon-shh-16'
+          : 'icon-shh-24'
+        : isSelected
+          ? 'icon-shh-active-16'
+          : isHovered
+            ? 'icon-shh-hover-16'
+            : 'icon-shh-16'
     }
     style={mutedStyle}
   />

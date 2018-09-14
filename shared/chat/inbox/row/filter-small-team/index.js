@@ -4,11 +4,14 @@ import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
 import {
-  globalStyles,
-  desktopStyles,
-  styleSheetCreate,
-  platformStyles,
   collapseStyles,
+  desktopStyles,
+  glamorous,
+  globalStyles,
+  globalColors,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
 } from '../../../../styles'
 import * as RowSizes from '../sizes'
 
@@ -24,7 +27,21 @@ type Props = {
   usernameColor: string,
 }
 
-class FilterSmallTeam extends PureComponent<Props> {
+type State = {
+  isHovered: boolean,
+}
+
+const HoverBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      ':hover': {backgroundColor: globalColors.blueGrey2},
+    })
+
+class FilterSmallTeam extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
   render() {
     const props = this.props
     return (
@@ -32,16 +49,22 @@ class FilterSmallTeam extends PureComponent<Props> {
         onClick={props.onSelectConversation}
         style={collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])}
       >
-        <Box style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}>
+        <HoverBox
+          style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}
+          onMouseLeave={() => this.setState({isHovered: false})}
+          onMouseOver={() => this.setState({isHovered: true})}
+        >
           {props.teamname ? (
             <TeamAvatar
               teamname={props.teamname}
+              isHovered={this.state.isHovered}
               isMuted={this.props.isMuted}
               isSelected={this.props.isSelected}
             />
           ) : (
             <Avatars
               backgroundColor={props.backgroundColor}
+              isHovered={this.state.isHovered}
               isMuted={props.isMuted}
               isSelected={props.isSelected}
               isLocked={props.isLocked}
@@ -55,7 +78,7 @@ class FilterSmallTeam extends PureComponent<Props> {
               usernameColor={props.usernameColor}
             />
           </Box>
-        </Box>
+        </HoverBox>
       </ClickableBox>
     )
   }

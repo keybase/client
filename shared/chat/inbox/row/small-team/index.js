@@ -88,10 +88,12 @@ class SmallTeam extends React.PureComponent<Props, State> {
               teamname={props.teamname}
               isMuted={props.isMuted}
               isSelected={this.props.isSelected}
+              isHovered={this.state.isHovered}
             />
           ) : (
             <Avatars
               backgroundColor={this._backgroundColor()}
+              isHovered={this.state.isHovered}
               isMuted={props.isMuted}
               isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}

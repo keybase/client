@@ -3,6 +3,8 @@ import React, {PureComponent} from 'react'
 import {Box, Text, ClickableBox} from '../../../../common-adapters'
 import {
   collapseStyles,
+  isMobile,
+  glamorous,
   globalStyles,
   globalColors,
   globalMargins,
@@ -19,17 +21,38 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-class FilterBigTeamChannel extends PureComponent<Props> {
+type State = {
+  isHovered: boolean,
+}
+
+const HoverBox = isMobile
+  ? Box
+  : glamorous(Box)({
+      ':hover': {backgroundColor: globalColors.blueGrey2},
+    })
+
+class FilterBigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
-        <Box
+        <HoverBox
           style={collapseStyles([
             styles.filteredRow,
             this.props.isSelected && {backgroundColor: globalColors.blue},
           ])}
+          onMouseLeave={() => this.setState({isHovered: false})}
+          onMouseOver={() => this.setState({isHovered: true})}
         >
-          <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
+          <TeamAvatar
+            teamname={this.props.teamname}
+            isMuted={false}
+            isSelected={false}
+            isHovered={this.state.isHovered}
+          />
           <Text
             type="BodySemibold"
             style={collapseStyles([
@@ -50,7 +73,7 @@ class FilterBigTeamChannel extends PureComponent<Props> {
           >
             &nbsp;#{this.props.channelname}
           </Text>
-        </Box>
+        </HoverBox>
       </ClickableBox>
     )
   }
