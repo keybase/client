@@ -23,7 +23,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 20
+const inboxVersion = 21
 
 type queryHash []byte
 
@@ -1558,7 +1558,17 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 				cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList[:resetIndex],
 					cp.Conv.Metadata.ResetList[resetIndex+1:]...)
 			} else {
-				cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+				// Double check this user isn't already in here
+				exists := false
+				for _, u := range cp.Conv.Metadata.AllList {
+					if u.Eq(oj.Uid) {
+						exists = true
+						break
+					}
+				}
+				if !exists {
+					cp.Conv.Metadata.AllList = append(cp.Conv.Metadata.AllList, oj.Uid)
+				}
 			}
 			cp.Conv.Metadata.Version = vers.ToConvVers()
 		}
