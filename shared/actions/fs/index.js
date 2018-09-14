@@ -75,23 +75,23 @@ const filePreview = (state: TypedState, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
-const loadUserFileEdits = (state: TypedState, action) =>
-  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-    .then(writerEdits => Constants.userTlfHistoryRPCToState(writerEdits || []))
-    .then(tlfUpdates =>
-      // Ensure we stat all path items for all updates, including paths to
-      // navigate through to get to the updated files.
-      Promise.all(tlfUpdates.reduce((acc: I.Map<Types.Path, any>, u) =>
-        Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-          const path = Types.getPathFromElements(a.slice(0, i + 1))
-          return acc.set(path, () => Saga.put(FsGen.createFilePreviewLoad({path})))
-        }, acc), I.Map()).toList().toArray()
-      )
-      .then(() => FsGen.createUserFileEditsLoaded({
-        tlfUpdates: tlfUpdates,
-      })
-    ))
-    .catch(makeRetriableErrorHandler(action))
+const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
+  try {
+    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
+      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+        const path = Types.getPathFromElements(a.slice(0, i + 1))
+        return acc.add(path)
+      }, acc), I.Set()).toArray()
+    return Saga.sequentially([
+      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
+      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+    ])
+  } catch (ex) {
+    return makeRetriableErrorHandler(action)
+  }
+})
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -668,7 +668,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
-  yield Saga.actionToPromise(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
