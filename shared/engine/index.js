@@ -9,7 +9,6 @@ import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
-import {log} from '../native/log/logui'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
@@ -83,7 +82,6 @@ class Engine {
     Engine._dispatch = dispatch
     Engine._getState = getState
     this._setupClient()
-    this._setupCoreHandlers()
     this._setupIgnoredHandlers()
     this._setupDebugging()
   }
@@ -114,15 +112,6 @@ class Engine {
         }
       }, 10 * 1000)
     }
-  }
-
-  // Default handlers for incoming messages
-  _setupCoreHandlers() {
-    this.setIncomingCallMap({
-      'keybase.1.logUi.log': param => {
-        log(param)
-      },
-    })
   }
 
   _setupIgnoredHandlers() {
@@ -246,6 +235,8 @@ class Engine {
         let creator = this._incomingActionCreators[method]
         let rawEffects
         if (creator) {
+          // Handle it by default
+          response && response.result()
           rawEffects = creator(param, Engine._getState())
         } else {
           if (!response) {

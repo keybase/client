@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
@@ -26,6 +27,9 @@ const setupEngineListeners = () => {
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
   getEngine().setIncomingCallMap({
+    'keybase.1.logUi.log': param => {
+      log(param)
+    },
     'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
       Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
     'keybase.1.NotifySession.loggedOut': () =>
