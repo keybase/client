@@ -318,7 +318,7 @@ func (p *Prove) checkProofText(m libkb.MetaContext) error {
 }
 
 func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
-	if p.st = m.G().Services.GetServiceType(p.arg.Service); p.st == nil {
+	if p.st = m.G().GetProofServices().GetServiceType(p.arg.Service); p.st == nil {
 		err = libkb.BadServiceError{Service: p.arg.Service}
 	}
 	return
