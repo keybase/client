@@ -29,8 +29,6 @@ class Inbox extends PureComponent<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
-    // If we click the expand button let's try and show the floater. Kinda tricky as we decide if we're showing it
-    // based on a callback the list gives us so there's a race. Let's just give it half a sec
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
       listRowsResized = true
     }
@@ -161,7 +159,6 @@ class Inbox extends PureComponent<Props, State> {
                   width={width}
                   ref={this._setRef}
                   onItemsRendered={this._onItemsRendered}
-                  itemRenderer={this._itemRenderer}
                   itemCount={this.props.rows.length}
                   itemSize={this._itemSizeGetter}
                   estimatedItemSize={56}
