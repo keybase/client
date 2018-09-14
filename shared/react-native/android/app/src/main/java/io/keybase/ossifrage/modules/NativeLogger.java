@@ -74,7 +74,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
     }
 
     public static void warn(String log, Throwable tr) {
-      rawLog(WARN_TAG, dumpLine(log, tr));
+        rawLog(WARN_TAG, dumpLine(log, tr));
     }
 
     public NativeLogger(final ReactApplicationContext reactContext) {
