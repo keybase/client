@@ -40,7 +40,7 @@ func TestVerifyResolveEvilServer(t *testing.T) {
 	defer cleanup()
 
 	t.Logf("check good assertion")
-	assertion, err := externals.AssertionParseAndOnly("t_tracy@rooter")
+	assertion, err := externals.AssertionParseAndOnly(tcs[0].G, "t_tracy@rooter")
 	require.NoError(t, err)
 	err = verifyResolveResult(context.TODO(), tcs[0].G, libkb.ResolvedAssertion{
 		Assertion: assertion,
@@ -49,7 +49,7 @@ func TestVerifyResolveEvilServer(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("check bad assertion")
-	assertion, err = externals.AssertionParseAndOnly("beluga@rooter")
+	assertion, err = externals.AssertionParseAndOnly(tcs[0].G, "beluga@rooter")
 	require.NoError(t, err)
 	err = verifyResolveResult(context.TODO(), tcs[0].G, libkb.ResolvedAssertion{
 		Assertion: assertion,

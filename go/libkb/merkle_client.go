@@ -891,7 +891,7 @@ func (mr MerkleRoot) ExportToAVDL(g *GlobalContext) keybase1.MerkleRootAndTime {
 // storeRoot stores the root in the db and mem.
 // Must be called from under a lock.
 func (mc *MerkleClient) storeRoot(m MetaContext, root *MerkleRoot) {
-	m.VLogf(VLog0, "storing merkling root: %d", *root.Seqno())
+	m.VLogf(VLog0, "storing merkle root: %d", *root.Seqno())
 	err := root.Store()
 	if err != nil {
 		m.CErrorf("Cannot commit Merkle root to local DB: %s", err)

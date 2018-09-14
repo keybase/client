@@ -13,17 +13,7 @@ import (
 	"time"
 )
 
-type AuditParams struct {
-	RootFreshness time.Duration
-	// After this many new Merkle updates, another audit is triggered.
-	MerkleMovementTrigger keybase1.Seqno
-	NumPreProbes          int
-	NumPostProbes         int
-	Parallelism           int
-	LRUSize               int
-}
-
-var desktopParams = AuditParams{
+var desktopParams = libkb.TeamAuditParams{
 	RootFreshness:         time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(1000),
 	NumPreProbes:          25,
@@ -32,7 +22,7 @@ var desktopParams = AuditParams{
 	LRUSize:               1000,
 }
 
-var mobileParams = AuditParams{
+var mobileParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(10000),
 	NumPreProbes:          10,
@@ -41,7 +31,7 @@ var mobileParams = AuditParams{
 	LRUSize:               500,
 }
 
-var devParams = AuditParams{
+var devParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
 	MerkleMovementTrigger: keybase1.Seqno(10000),
 	NumPreProbes:          3,
@@ -54,7 +44,10 @@ var devParams = AuditParams{
 // we're going to be performing a smaller audit, and therefore have a smaller
 // security margin (1-2^10). But it's worth it given the bandwidth and CPU
 // constraints.
-func getAuditParams(m libkb.MetaContext) AuditParams {
+func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
+	if m.G().Env.Test.TeamAuditParams != nil {
+		return *m.G().Env.Test.TeamAuditParams
+	}
 	if m.G().Env.GetRunMode() == libkb.DevelRunMode {
 		return devParams
 	}
@@ -243,8 +236,15 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		// so this 0 value is checked below (see comment).
 		if tuple.team > keybase1.Seqno(0) {
 			expectedLinkID, ok := chain[tuple.team]
+
+			// It could be that our view of the chain is stale, and that the merkle tree is advertising
+			// chain links that we've never fetched. That's OK, we don't need to error out of the
+			// auditor. But if we're missing links before maxChainSeqno, then we have big problems.
 			if !ok {
-				return maxMerkleProbe, NewAuditError("team chain doesn't have a link for seqno %d, but expected one", tuple.team)
+				if tuple.team < maxChainSeqno {
+					return maxMerkleProbe, NewAuditError("team chain didn't contain seqno=%d even though we expected links through %d", tuple.team, maxChainSeqno)
+				}
+				continue
 			}
 			if !expectedLinkID.Eq(tuple.linkID) {
 				return maxMerkleProbe, NewAuditError("team chain linkID mismatch at %d: wanted %s but got %s via merkle seqno %d", tuple.team, expectedLinkID, tuple.linkID, tuple.merkle)
