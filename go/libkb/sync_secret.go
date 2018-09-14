@@ -213,13 +213,8 @@ func (k *ServerPrivateKey) FindActiveKey(g *GlobalContext, ckf *ComputedKeyFamil
 	if ckf.GetKeyRole(kid) != DLGSibkey {
 		return
 	}
-	var packet *KeybasePacket
-	if packet, err = DecodeArmoredPacket(k.Bundle); err != nil && packet == nil {
+	if ret, err = DecodeArmoredSKBPacket(k.Bundle); err != nil {
 		return
-	}
-	ret, err = packet.ToSKB()
-	if err != nil {
-		return nil, err
 	}
 	ret.SetGlobalContext(g)
 	return ret, nil
@@ -352,13 +347,9 @@ func (k ServerPrivateKey) ToSKB(gc *GlobalContext) (*SKB, error) {
 	if k.KeyType != KeyTypeP3skbPrivate {
 		return nil, fmt.Errorf("invalid key type for skb conversion: %d", k.KeyType)
 	}
-	p, err := DecodeArmoredPacket(k.Bundle)
+	skb, err := DecodeArmoredSKBPacket(k.Bundle)
 	if err != nil {
 		return nil, err
-	}
-	skb, ok := p.Body.(*SKB)
-	if !ok {
-		return nil, fmt.Errorf("invalid packet type: %T", p.Body)
 	}
 	return skb, nil
 }

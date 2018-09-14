@@ -38,19 +38,19 @@ func NewMockLoaderContext(t *testing.T, g *libkb.GlobalContext, unit TestCase) *
 }
 
 func (l *MockLoaderContext) getNewLinksFromServer(ctx context.Context,
-	teamID keybase1.TeamID, public bool, lows getLinksLows,
+	teamID keybase1.TeamID, lows getLinksLows,
 	readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	return l.getLinksFromServerHelper(ctx, teamID, lows, nil, readSubteamID)
+	return l.getLinksFromServerCommon(ctx, teamID, lows, nil, readSubteamID)
 }
 
 func (l *MockLoaderContext) getLinksFromServer(ctx context.Context,
 	teamID keybase1.TeamID, requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 
-	return l.getLinksFromServerHelper(ctx, teamID, getLinksLows{}, requestSeqnos, readSubteamID)
+	return l.getLinksFromServerCommon(ctx, teamID, getLinksLows{}, requestSeqnos, readSubteamID)
 }
 
-func (l *MockLoaderContext) getLinksFromServerHelper(ctx context.Context,
+func (l *MockLoaderContext) getLinksFromServerCommon(ctx context.Context,
 	teamID keybase1.TeamID, lows getLinksLows,
 	requestSeqnos []keybase1.Seqno, readSubteamID *keybase1.TeamID) (*rawTeam, error) {
 

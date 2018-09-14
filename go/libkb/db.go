@@ -126,6 +126,10 @@ func (j *JSONLocalDb) OpenTransaction() (JSONLocalDbTransaction, error) {
 	return jtr, nil
 }
 
+func (j *JSONLocalDb) GetEngine() LocalDb {
+	return j.engine
+}
+
 type JSONLocalDbTransaction struct {
 	tr LocalDbTransaction
 }

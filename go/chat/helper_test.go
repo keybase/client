@@ -54,7 +54,7 @@ func TestRecentConversationParticipants(t *testing.T) {
 		}
 	}
 
-	require.NoError(t, storage.NewInbox(tc.Context(), uid).Clear(ctx))
+	require.NoError(t, storage.NewInbox(tc.Context()).Clear(ctx, uid))
 	_, err := tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, err)
 
