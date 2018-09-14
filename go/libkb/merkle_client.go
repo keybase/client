@@ -403,19 +403,10 @@ func computeSetBitsBigEndian(x uint) []uint {
 	}
 	// Allocate maximum array size necessary
 	high := int(math.Ceil(math.Log2(float64(x))))
-	ret := make([]uint, high)
-	j := 0
+	ret := make([]uint, 0, high)
 	for i, bit := 0, uint(1); i <= high; i, bit = i+1, bit*2 {
 		if x&bit != 0 {
-			ret[j] = bit
-			j++
-		}
-	}
-	// Truncate zero-padded array whose valid values
-	// will never be 0.
-	for idx, x := range ret {
-		if x == 0 {
-			return ret[:idx]
+			ret = append(ret, bit)
 		}
 	}
 	return ret
