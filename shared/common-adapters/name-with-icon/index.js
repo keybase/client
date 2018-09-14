@@ -132,7 +132,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
 
     return (
       <BoxComponent
-        onClick={this._onClickWrapper}
+        onClick={this.props.onClick ? this._onClickWrapper : undefined}
         style={Styles.collapseStyles([
           this.props.horizontal ? styles.hContainerStyle : styles.vContainerStyle,
           this.props.containerStyle,
