@@ -588,13 +588,16 @@ const arrayOfActionsToSequentially = actions =>
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
+  // TODO clean this up so we don't need this
+  const getState = engine().deprecatedGetGetState()
+
   engine().setIncomingCallMap({
-    'chat.1.NotifyChat.NewChatActivity': ({activity}, _, state) => {
+    'chat.1.NotifyChat.NewChatActivity': ({activity}) => {
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage
-            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, state))
+            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, getState()))
             : null
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.setStatus))
@@ -606,7 +609,7 @@ const setupEngineListeners = () => {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
           return failedMessage && failedMessage.outboxRecords
             ? arrayOfActionsToSequentially(
-                onErrorMessage(failedMessage.outboxRecords, state.config.username || '')
+                onErrorMessage(failedMessage.outboxRecords, getState().config.username || '')
               )
             : null
         }
@@ -637,7 +640,7 @@ const setupEngineListeners = () => {
           return Saga.put(Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'}))
         case RPCChatTypes.notifyChatChatActivityType.expunge:
           return activity.expunge
-            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, state))
+            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, getState()))
             : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge
@@ -653,8 +656,8 @@ const setupEngineListeners = () => {
     },
     'chat.1.NotifyChat.ChatTLFFinalize': ({convID}) =>
       Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})),
-    'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}, _, state) =>
-      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, state)),
+    'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}) =>
+      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, getState())),
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
     'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),

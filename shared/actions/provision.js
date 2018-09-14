@@ -260,28 +260,35 @@ class ProvisioningManager {
     response.result({passphrase, storeSecret: false})
   }
 
-  getIncomingCallMap = () =>
+  getCustomResponseIncomingCallMap = () =>
     this._addingANewDevice
       ? {
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
         }
       : {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
           'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
           'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
           'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
+        }
+
+  getIncomingCallMap = () =>
+    this._addingANewDevice
+      ? {
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+        }
+      : {
+          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         }
 
   showCodePage = () =>
@@ -328,6 +335,7 @@ const startProvisioning = (state: TypedState) =>
       }
 
       yield RPCTypes.loginLoginRpcSaga({
+        customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
         incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
@@ -347,6 +355,7 @@ const addNewDevice = (state: TypedState) =>
     makeProvisioningManager(true)
     try {
       yield RPCTypes.deviceDeviceAddRpcSaga({
+        customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
         incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: undefined,
         waitingKey: Constants.waitingKey,
