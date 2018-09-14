@@ -46,7 +46,7 @@ class WaitingButton extends React.Component<Props, {localWaiting: boolean}> {
       <Button
         {...this.props}
         onClick={this._onClick}
-        disabled={this.props.onlyDisable ? waiting : false}
+        disabled={this.props.onlyDisable ? waiting || this.props.disabled : this.props.disabled}
         waiting={this.props.onlyDisable ? false : waiting}
       />
     )
