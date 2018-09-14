@@ -27,10 +27,11 @@ import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
 
 public class MainApplication extends Application implements ReactApplication {
-  private File logFile;
-
   @Override
   public void onCreate () {
+    long appStartMilli = System.currentTimeMillis();
+    Date d = new Date(appStateMilli);
+    NativeLogger.info("App started on " + d.toString());
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     JobManager manager = JobManager.create(this);
@@ -44,8 +45,6 @@ public class MainApplication extends Application implements ReactApplication {
         manager.cancelAllForTag(BackgroundSyncJob.TAG);
         BackgroundSyncJob.scheduleJob();
     }
-
-    logFile = this.getFileStreamPath("android.log");
   }
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
