@@ -73,7 +73,6 @@ function UsernameText(props: Props) {
     // as to not override any existing onClick handler from containers
     // on native. (See DESKTOP-3963.)
     const _onUsernameClicked = props.onUsernameClicked
-    console.log('nathan test', _onUsernameClicked)
     return (
       <Text type={props.type} key={u.username}>
         {i !== 0 &&
