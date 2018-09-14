@@ -46,7 +46,7 @@ const search = (_, {payload: {query, service, limit = 10}}: TeamBuildingGen.Sear
       {key: 'q', value: trim(query)},
       {key: 'num_wanted', value: String(limit)},
       {key: 'service', value: service === 'keybase' ? '' : service},
-      {key: 'include_services_summary', value: 1},
+      {key: 'include_services_summary', value: '1'},
     ],
     endpoint: 'user/user_search',
   })
