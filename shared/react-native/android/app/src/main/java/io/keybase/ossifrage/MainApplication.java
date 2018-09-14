@@ -60,7 +60,7 @@ public class MainApplication extends Application implements ReactApplication {
       if (BuildConfig.BUILD_TYPE == "storyBook") {
         return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-          new KBReactPackage("") {
+          new KBReactPackage() {
             @Override
             public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
               List<NativeModule> modules = new ArrayList<>();
@@ -78,7 +78,7 @@ public class MainApplication extends Application implements ReactApplication {
 
       return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
-              new KBReactPackage(logFile.getAbsolutePath()),
+              new KBReactPackage(),
               new ReactNativePushNotificationPackage(),
               new RNCameraPackage(),
               new ImagePickerPackage(),
