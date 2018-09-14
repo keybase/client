@@ -37,14 +37,14 @@ func ParseAssertionList(g *libkb.GlobalContext, s string) ([]libkb.AssertionExpr
 // check for the syntactical correctness of an assertion. All other callers
 // should use the non-static versions.
 // This uses only the 'static' services which exclude any parameterized proofs.
-func MakeStaticAssertionContext() libkb.AssertionContext {
-	return libkb.MakeStaticAssertionContext(NewStaticProofServices())
+func makeStaticAssertionContext() libkb.AssertionContext {
+	return libkb.MakeStaticAssertionContext(newStaticProofServices())
 }
 
 func NormalizeSocialAssertionStatic(s string) (keybase1.SocialAssertion, bool) {
-	return libkb.NormalizeSocialAssertion(MakeStaticAssertionContext(), s)
+	return libkb.NormalizeSocialAssertion(makeStaticAssertionContext(), s)
 }
 
 func AssertionParseAndOnlyStatic(s string) (libkb.AssertionExpression, error) {
-	return libkb.AssertionParseAndOnly(MakeStaticAssertionContext(), s)
+	return libkb.AssertionParseAndOnly(makeStaticAssertionContext(), s)
 }

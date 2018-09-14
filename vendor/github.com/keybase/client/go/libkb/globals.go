@@ -1024,6 +1024,8 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 }
 
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	if g.proofServices == nil {
 		return nil
 	}
@@ -1031,10 +1033,14 @@ func (g *GlobalContext) MakeAssertionContext() AssertionContext {
 }
 
 func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.proofServices = s
 }
 
 func (g *GlobalContext) SetPvlSource(s PvlSource) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.pvlSource = s
 }
 

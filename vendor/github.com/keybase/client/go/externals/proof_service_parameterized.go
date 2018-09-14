@@ -87,7 +87,7 @@ func (t ParamProofServiceType) RecheckProofPosting(tryNumber int, status keybase
 func (t ParamProofServiceType) GetProofType() string { return t.BaseGetProofType(t) }
 
 func (t ParamProofServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
-	return t.BaseCheckProofTextFull(text, id, sig)
+	return fmt.Errorf("Not implemented")
 }
 
 func (t ParamProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
@@ -97,9 +97,11 @@ func (t ParamProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) li
 func (t ParamProofServiceType) IsDevelOnly() bool { return t.conf.IsDevel }
 
 func (t ParamProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
+	// TODO
 	//url := strings.replace(t.conf.PrefillUrl, usernameKey, username, 1)
 	//url = strings.replace(url, sigHashKey, ppr.ID, 1)
 	//return libkb.FmtMarkup(fmt.Sprintf("Please visit <strong>%s</strong>, to complete the proof", url))
-	// TODO
+	// NOTE whenever this interpolation gets implemented copying func
+	// substituteExact from pvl/helpers.go could be a good way.
 	return "", fmt.Errorf("Not implemented")
 }
