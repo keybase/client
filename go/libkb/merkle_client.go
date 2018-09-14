@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -394,19 +395,36 @@ func GetNodeHashVoid(w *jsonw.Wrapper, nhp *NodeHash, errp *error) {
 	}
 }
 
-func computeSetBitsBigEndian(x int) []int {
-	var ret []int
-	for bit := 1; bit <= x; bit *= 2 {
+func computeSetBitsBigEndian(x uint) []uint {
+	if x == 0 {
+		return nil
+	} else if x == 1 {
+		return []uint{1}
+	}
+	// Allocate maximum array size necessary
+	high := int(math.Ceil(math.Log2(float64(x))))
+	ret := make([]uint, high)
+	j := 0
+	for i, bit := 0, uint(1); i <= high; i, bit = i+1, bit*2 {
 		if x&bit != 0 {
-			ret = append(ret, bit)
+			ret[j] = bit
+			j++
+		}
+	}
+	// Truncate zero-padded array whose valid values
+	// will never be 0.
+	for idx, x := range ret {
+		if x == 0 {
+			return ret[:idx]
 		}
 	}
 	return ret
 }
 
-func computeLogPatternMerkleSkips(start int, end int) []int {
-	var ret []int
-	diff := end - start
+func computeLogPatternMerkleSkips(startSeqno keybase1.Seqno, endSeqno keybase1.Seqno) []uint {
+	end := uint(endSeqno)
+	var ret []uint
+	diff := end - uint(startSeqno)
 	if diff <= 0 {
 		return ret
 	}
@@ -1053,13 +1071,12 @@ func (mc *MerkleClient) verifySkipSequence(m MetaContext, ss SkipSequence, thisR
 func (ss SkipSequence) verify(m MetaContext, thisRoot keybase1.Seqno, lastRoot keybase1.Seqno) (err error) {
 	defer m.CVTrace(VLog1, "SkipSequence#verify", func() error { return err })()
 
-	expectedSkips := computeLogPatternMerkleSkips(int(lastRoot), int(thisRoot))
+	expectedSkips := computeLogPatternMerkleSkips(lastRoot, thisRoot)
 	// Don't check bookends that were added by client
 	if len(expectedSkips)+2 != len(ss) {
 		return MerkleClientError{fmt.Sprintf("Wrong number of skips: expected %d, got %d.", len(expectedSkips)+2, len(ss)), merkleErrorWrongSkipSequence}
 	}
 
-	// TODO: move this inline to avoid additional check
 	for index := 1; index < len(ss)-1; index++ {
 		root := ss[index].seqno()
 		if keybase1.Seqno(expectedSkips[index-1]) != root {
@@ -1153,7 +1170,7 @@ func (mc *MerkleClient) verifyAndStoreRootHelper(m MetaContext, root *MerkleRoot
 }
 
 func verifyRootSkips(rootSeqno keybase1.Seqno, skips SkipTable) error {
-	expectedSkips := computeExpectedRootSkips(int(rootSeqno))
+	expectedSkips := computeExpectedRootSkips(uint(rootSeqno))
 	if len(expectedSkips) != len(skips) {
 		return MerkleClientError{fmt.Sprintf("Root check: wrong number of skips: expected %d, got %d.", len(expectedSkips), len(skips)), merkleErrorWrongRootSkips}
 	}
@@ -1167,10 +1184,14 @@ func verifyRootSkips(rootSeqno keybase1.Seqno, skips SkipTable) error {
 	return nil
 }
 
-func computeExpectedRootSkips(start int) []int {
-	var ret []int
-	for skip := 1; skip < start; skip *= 2 {
-		ret = append(ret, start-skip)
+func computeExpectedRootSkips(start uint) []uint {
+	if start <= 1 {
+		return nil
+	}
+	high := int(math.Ceil(math.Log2(float64(start))))
+	ret := make([]uint, high)
+	for i, skip := 0, uint(1); i < high; i, skip = i+1, skip*2 {
+		ret[i] = start - skip
 	}
 	return ret
 }
