@@ -27,20 +27,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconPr
 
   let functionOnClick
   let clickType
-
   // Since there's no tracker on mobile, we can't open it. Fallback to profile.
   if (!isMobile && onClick === 'tracker') {
-    functionOnClick = () => {
-      ownProps.username && dispatchProps.onOpenTracker(ownProps.username)
+    if (ownProps.username) {
+      functionOnClick = dispatchProps.onOpenTracker(ownProps.username)
     }
     clickType = 'tracker'
   } else if (onClick === 'profile' || (isMobile && onClick === 'tracker')) {
-    functionOnClick = () => {
-      if (ownProps.username) {
-        dispatchProps.onOpenUserProfile(ownProps.username)
-      } else if (ownProps.teamname) {
-        dispatchProps.onOpenTeamProfile(ownProps.teamname)
-      }
+    if (ownProps.username) {
+      functionOnClick = dispatchProps.onOpenUserProfile(ownProps.username)
+    } else if (ownProps.teamname) {
+      functionOnClick = dispatchProps.onOpenTeamProfile(ownProps.teamname)
     }
     clickType = 'profile'
   }
