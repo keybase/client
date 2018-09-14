@@ -43,8 +43,7 @@ const setupEngineListeners = () => {
   const dispatch = engine().deprecatedGetDispatch()
 
   // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingCallMap({
-    // else we get this also as part of delegateRekeyUI
+  engine().setCustomResponseIncomingCallMap({
     'keybase.1.rekeyUI.delegateRekeyUI': (_, response) => {
       // Dangling, never gets closed
       const session = engine().createSession({
@@ -64,9 +63,11 @@ const setupEngineListeners = () => {
       })
       response && response.result(session.id)
     },
-    'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
+  })
+  engine().setIncomingCallMap({
+    // else we get this also as part of delegateRekeyUI
+    'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) => {
       logger.info('Asked for rekey')
-      response && response.result()
       return Saga.put(
         UnlockFoldersGen.createNewRekeyPopup({
           devices: problemSetDevices.devices || [],

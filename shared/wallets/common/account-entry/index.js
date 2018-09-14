@@ -47,6 +47,7 @@ const AccountEntry = (props: AccountEntryProps) => {
         </Kb.Box2>
         <Kb.Text
           type="BodySmall"
+          selectable={true}
           style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
         >
           {props.contents}

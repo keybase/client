@@ -1079,42 +1079,50 @@ const arrayOfActionsToSequentially = actions =>
 
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'keybase.1.NotifyTeam.teamChangedByName': (param, _, state) => {
-      logger.info(`Got teamChanged for ${param.teamName} from service`)
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(param.teamName)) {
-        // only reload if that team is selected
-        return arrayOfActionsToSequentially(getLoadCalls(param.teamName))
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.teamDeleted': (param, _, state) => {
-      const {teamID} = param
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return arrayOfActionsToSequentially([
-          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
-          ...getLoadCalls(),
-        ])
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.teamExit': (param, _, state) => {
-      const {teamID} = param
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return arrayOfActionsToSequentially([
-          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
-          ...getLoadCalls(),
-        ])
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.avatarUpdated': ({name}, _, state) => [
-      state.teams.teamnames.includes(name)
-        ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
-        : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]})),
-    ],
+    'keybase.1.NotifyTeam.teamChangedByName': param =>
+      Saga.call(function*() {
+        logger.info(`Got teamChanged for ${param.teamName} from service`)
+        const state = yield Saga.select()
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(param.teamName)) {
+          // only reload if that team is selected
+          yield arrayOfActionsToSequentially(getLoadCalls(param.teamName))
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.teamDeleted': param =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        const {teamID} = param
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+          yield arrayOfActionsToSequentially([
+            RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+            ...getLoadCalls(),
+          ])
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.teamExit': param =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        const {teamID} = param
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+          yield arrayOfActionsToSequentially([
+            RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+            ...getLoadCalls(),
+          ])
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.avatarUpdated': ({name}) =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        yield state.teams.teamnames.includes(name)
+          ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+          : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+      }),
   })
 }
 

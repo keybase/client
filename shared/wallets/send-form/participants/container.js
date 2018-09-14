@@ -40,6 +40,7 @@ const mapStateToProps = (state: TypedState) => {
 
   // Building section
   const recipientType = build.recipientType || 'keybaseUser'
+  const toFieldInput = build.to
   // Built section
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
@@ -47,10 +48,11 @@ const mapStateToProps = (state: TypedState) => {
   return {
     allAccounts,
     fromAccount,
-    toAccount,
     incorrect,
     recipientType,
     recipientUsername,
+    toAccount,
+    toFieldInput,
     user: state.config.username,
   }
 }

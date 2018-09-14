@@ -356,6 +356,8 @@ func VisibleChatMessageTypes() []chat1.MessageType {
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_SYSTEM,
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_REQUESTPAYMENT,
 	}
 }
 
