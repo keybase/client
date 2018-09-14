@@ -1093,11 +1093,11 @@
 			"revisionTime": "2018-08-28T14:57:48Z"
 		},
 		{
-			"checksumSHA1": "7ez+2OoukgL3XPaFsx/A9E/HaCE=",
+			"checksumSHA1": "mhvhIlp5MhrHWtwJ1jhqpltXBJY=",
 			"origin": "github.com/keybase/go-git",
 			"path": "gopkg.in/src-d/go-git.v4",
-			"revision": "61b023b83f0d855dcbdce31584512aa08deec92c",
-			"revisionTime": "2018-09-05T18:44:19Z"
+			"revision": "39bf28be7d67dd9ac87c520c551ba6d3e2f02226",
+			"revisionTime": "2018-09-14T16:37:04Z"
 		},
 		{
 			"checksumSHA1": "j8WJ/k3pubPRZduu4zJGahxMRtA=",
