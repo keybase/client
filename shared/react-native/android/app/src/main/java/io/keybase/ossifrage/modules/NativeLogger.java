@@ -44,21 +44,37 @@ public class NativeLogger extends ReactContextBaseJavaModule {
                 .close();
             return sw.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            rawLog(ERROR_TAG, "Exception in dumpLine: " + Log.getStackTraceString(e));
             return toLog;
         }
+    }
+
+    private static String dumpLine(String toLog, Throwable tr) {
+      return dumpLine(toLog + ": " + Log.getStackTraceString(tr));
     }
 
     public static void error(String log) {
         rawLog(ERROR_TAG, dumpLine(log));
     }
 
+    public static void error(String log, Throwable tr) {
+        rawLog(ERROR_TAG, dumpLine(log, tr));
+    }
+
     public static void info(String log) {
         rawLog(INFO_TAG, dumpLine(log));
     }
 
+    public static void info(String log, Throwable tr) {
+        rawLog(INFO_TAG, dumpLine(log, tr));
+    }
+
     public static void warn(String log) {
         rawLog(WARN_TAG, dumpLine(log));
+    }
+
+    public static void warn(String log, Throwable tr) {
+      rawLog(WARN_TAG, dumpLine(log, tr));
     }
 
     public NativeLogger(final ReactApplicationContext reactContext) {
