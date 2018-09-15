@@ -41,7 +41,7 @@ const load = () => {
           onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
           onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
           onEnterKeyDown={Sb.action('onEnterKeyDown')}
-          onBackspaceWhileEmpty={Sb.action('onBackspaceWhileEmpty')}
+          onBackspace={Sb.action('onBackspace')}
           onRemove={Sb.action('onRemove')}
           teamSoFar={[
             {
@@ -116,11 +116,12 @@ const load = () => {
     ))
     .add('Input', () => (
       <Input
+        clearTextTrigger={0}
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspaceWhileEmpty={Sb.action('onBackspaceWhileEmpty')}
+        onBackspace={Sb.action('onBackspace')}
       />
     ))
     .add('TeamBox', () => (
@@ -129,8 +130,9 @@ const load = () => {
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
-        onBackspaceWhileEmpty={Sb.action('onBackspaceWhileEmpty')}
+        onBackspace={Sb.action('onBackspace')}
         onRemove={Sb.action('onRemove')}
+        clearTextTrigger={0}
         teamSoFar={[
           {
             username: 'max',

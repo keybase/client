@@ -32,10 +32,25 @@ class Input extends React.PureComponent<Props, State> {
     if (!this.props.uncontrolled && this.props.value !== prevProps.value) {
       this._autoResize()
     }
+
+    if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
+      this._clearText()
+    }
   }
 
   _getValue = () => {
     return (this.props.uncontrolled ? this._input && this._input.value : this.props.value) || ''
+  }
+
+  _clearText = () => {
+    if (!this.props.uncontrolled) {
+      throw new Error('clearTextCounter only works on uncontrolled components')
+    }
+
+    this.transformText(() => ({
+      text: '',
+      selection: {start: 0, end: 0},
+    }))
   }
 
   getValue = (): string => {

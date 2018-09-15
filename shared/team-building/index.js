@@ -6,15 +6,12 @@ import TeamBox from './team-box'
 import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
-import type {FollowingState} from '../constants/types/search'
+import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 // TODO
-// Top level
-// Text Input
-// Go button
-// Services Search Results count bar (
+// Services Search Results count bar
 // Handle pending state
+// Handle No search results
 
 type SearchResult = {
   userId: string,
@@ -25,15 +22,15 @@ type SearchResult = {
   followingState: FollowingState,
 }
 
-type Props = {
+export type Props = {
   onFinishTeamBuilding: () => void,
   onChangeText: (newText: string) => void,
-  onEnterKeyDown: (textOnEnter: string) => void,
+  onEnterKeyDown: () => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
   teamSoFar: Array<{userId: string, prettyName: string, service: ServiceIdWithContact, username: string}>,
   onRemove: (userId: string) => void,
-  onBackspaceWhileEmpty: () => void,
+  onBackspace: () => void,
   selectedService: ServiceIdWithContact,
   onChangeService: (newService: ServiceIdWithContact) => void,
   serviceResultCount: {[key: ServiceIdWithContact]: ?number},
@@ -44,17 +41,24 @@ type Props = {
   clearTextTrigger: number,
 }
 
+// const searchResultToUser = (result: SearchResult): User => ({
+// serviceMap: I.Map(result.services),
+// id: result.userId,
+// prettyName: result.prettyName,
+// })
+
 const TeamBuilding = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <TeamBox
         onChangeText={props.onChangeText}
+        clearTextTrigger={props.clearTextTrigger}
         onDownArrowKeyDown={props.onDownArrowKeyDown}
-        onUpArrowKeyDown={props.onDownArrowKeyDown}
+        onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onRemove={props.onRemove}
         teamSoFar={props.teamSoFar}
-        onBackspaceWhileEmpty={props.onBackspaceWhileEmpty}
+        onBackspace={props.onBackspace}
       />
       {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
     </Kb.Box2>
@@ -99,7 +103,7 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: Styles.globalMargins.small,
     },
     isElectron: {
-      width: 460,
+      width: 470,
       height: 434,
     },
   }),

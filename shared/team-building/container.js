@@ -1,15 +1,21 @@
 // @flow
+import logger from '../logger'
+import React from 'react'
 import * as I from 'immutable'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
-import {type TypedState, compose, connect, setDisplayName, withStateHandlers} from '../util/container'
+import {type TypedState, compose, connect, setDisplayName, createSelector} from '../util/container'
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
-import {followStateHelperWithId} from '../constants/search'
-import type {ServiceIdWithContact} from '../constants/types/team-building'
+import {followStateHelperWithId} from '../constants/team-building'
+import type {ServiceIdWithContact, User} from '../constants/types/team-building'
+
+// TODO
+// * there's a lot of render thrashing going on. using keyboard arrows is kinda slow becuase of it.
+// * Limit the highlight index to the max lenght of the list
 
 type OwnProps = {
-  // Supplied by withStateHandlers
+  // Supplied by StateComponent
   searchString: ?string,
   selectedService: ServiceIdWithContact,
   highlightedIndex: ?number,
@@ -31,81 +37,92 @@ type LocalState = {
 const initialState: LocalState = {
   searchString: null,
   selectedService: 'keybase',
-  highlightedIndex: null,
+  highlightedIndex: 0,
   clearTextTrigger: 0,
 }
 
-const stateHandlers = {
-  onChangeService: (state: LocalState) => (selectedService: ServiceIdWithContact) => ({selectedService}),
-  onChangeText: (state: LocalState) => (newText: string) => ({searchString: newText}),
-  onDownArrowKeyDown: (state: LocalState) => () => ({
-    highlightedIndex: state.highlightedIndex === null ? 0 : state.highlightedIndex + 1,
-  }),
-  onUpArrowKeyDown: (state: LocalState) => () => ({
-    highlightedIndex: !state.highlightedIndex ? null : state.highlightedIndex - 1,
-  }),
-  incClearTextTrigger: (state: LocalState) => () => ({clearTextTrigger: state.clearTextTrigger + 1}),
-}
+const searchResultsSelector = (state: TypedState, ownProps: OwnProps) =>
+  state.chat2.teamBuildingSearchResults.get(I.List([ownProps.searchString, ownProps.selectedService]))
 
-const deriveSearchResults = (state: TypedState, searchQuery: ?string, service: ServiceIdWithContact) => {
-  if (!searchQuery) {
-    return []
+const searchResultsPropSelector = createSelector(
+  searchResultsSelector,
+  (state: TypedState) => state.chat2.teamBuildingTeamSoFar,
+  (state: TypedState) => state.config.username,
+  (state: TypedState) => state.config.following,
+  (
+    searchResults: ?Array<User>,
+    teamSoFar: I.Set<User>,
+    myUsername: string,
+    followingState: I.Set<string>
+  ) => {
+    return (searchResults || []).map(info => ({
+      userId: info.id,
+      username: info.id.split('@')[0],
+      services: info.serviceMap,
+      prettyName: info.prettyName,
+      followingState: followStateHelperWithId(myUsername, followingState, info.id),
+      inTeam: teamSoFar.has(info),
+    }))
   }
+)
 
-  const userInfos = state.chat2.teamBuildingSearchResults.get(I.List([searchQuery, service])) || []
-  const teamSoFar = state.chat2.teamBuildingTeamSoFar
-
-  return userInfos.map(info => ({
-    userId: info.id,
-    username: info.id.split('@')[0],
-    services: info.serviceMap,
-    prettyName: info.prettyName,
-    followingState: followStateHelperWithId(state, info.id),
-    inTeam: teamSoFar.has(info.id),
-  }))
-}
+const teamSoFarPropSelector = createSelector(
+  (state: TypedState) => state.chat2.teamBuildingTeamSoFar,
+  (teamSoFar: I.Set<User>) =>
+    teamSoFar.toArray().map(userInfo => {
+      const {username, serviceId} = parseUserId(userInfo.id)
+      return {
+        userId: userInfo.id,
+        prettyName: userInfo.prettyName,
+        service: serviceId,
+        username,
+      }
+    })
+)
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const searchResults = deriveSearchResults(state, ownProps.searchString, ownProps.selectedService)
-  const teamSoFar = state.chat2.teamBuildingTeamSoFar.toArray().map(userId => {
-    const {username, serviceId} = parseUserId(userId)
-    return {
-      userId,
-      prettyName: username, // TODO
-      service: serviceId,
-      username,
-    }
-  })
-
   return {
-    searchResults,
-    teamSoFar,
+    searchResults: searchResultsSelector(state, ownProps),
+    searchResultsProp: searchResultsPropSelector(state, ownProps),
+    teamSoFarProp: teamSoFarPropSelector(state),
   }
 }
 
 const mapDispatchToProps = dispatch => ({
-  onAdd: (userId: string) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userId]})),
+  _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
   onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
-  _search: (query: string, service: string) => {
+  _search: (query: string, service: ServiceIdWithContact) => {
     dispatch(TeamBuildingGen.createSearch({query, service}))
   },
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const {teamSoFarProp, searchResultsProp, searchResults} = stateProps
+
   const onChangeText = (newText: string) => {
     ownProps.onChangeText(newText)
     dispatchProps._search(newText, ownProps.selectedService)
   }
 
-  const onEnterKeyDown = (newText: string) => {
-    if (stateProps.searchResults && !!ownProps.highlightedIndex && ownProps.highlightedIndex >= 0) {
-      const selectedResult = stateProps.searchResults[ownProps.highlightedIndex]
-      if (selectedResult) {
-        dispatchProps.onAdd(selectedResult.userId)
+  const onAdd = (userId: string) => {
+    if (searchResults) {
+      const user = searchResults.filter(u => u.id === userId)[0]
+      if (!user) {
+        logger.error(`Couldn't find User to add for ${userId}`)
       }
       ownProps.incClearTextTrigger()
+      dispatchProps._onAdd(user)
+    }
+  }
+
+  const onEnterKeyDown = () => {
+    if (searchResultsProp.length) {
+      const selectedResult = searchResultsProp[ownProps.highlightedIndex || 0]
+      if (selectedResult) {
+        onAdd(selectedResult.userId)
+      }
     }
   }
 
@@ -115,26 +132,67 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onEnterKeyDown,
     onDownArrowKeyDown: ownProps.onDownArrowKeyDown,
     onUpArrowKeyDown: ownProps.onUpArrowKeyDown,
-    teamSoFar: stateProps.teamSoFar,
+    teamSoFar: teamSoFarProp,
     onRemove: dispatchProps.onRemove,
-    onBackspaceWhileEmpty: () => {}, // TODO
+    onBackspace: () => {
+      // Check if empty and we have a team so far
+      !ownProps.searchString &&
+        teamSoFarProp.length &&
+        dispatchProps.onRemove(teamSoFarProp[teamSoFarProp.length - 1].userId)
+    },
     selectedService: ownProps.selectedService,
     onChangeService: ownProps.onChangeService,
     serviceResultCount: {}, // TODO
     showServiceResultCount: false, // TODO
-    searchResults: stateProps.searchResults,
+    searchResults: searchResultsProp,
     highlightedIndex: ownProps.highlightedIndex,
-    onAdd: dispatchProps.onAdd,
+    onAdd,
     clearTextTrigger: ownProps.clearTextTrigger,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
   }
 }
 
 const Connected = compose(
-  withStateHandlers(initialState, stateHandlers),
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
   PopupDialogHoc,
   setDisplayName('TeamBuilding')
 )(TeamBuilding)
 
-export default Connected
+class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
+  state: LocalState = initialState
+
+  onChangeService = (selectedService: ServiceIdWithContact) => this.setState({selectedService})
+
+  onChangeText = (newText: string) => this.setState({searchString: newText})
+
+  onDownArrowKeyDown = () =>
+    this.setState((state: LocalState) => ({
+      highlightedIndex: state.highlightedIndex === null ? 0 : state.highlightedIndex + 1,
+    }))
+
+  onUpArrowKeyDown = () =>
+    this.setState((state: LocalState) => ({
+      highlightedIndex: !state.highlightedIndex ? 0 : state.highlightedIndex - 1,
+    }))
+
+  incClearTextTrigger = () =>
+    this.setState((state: LocalState) => ({clearTextTrigger: state.clearTextTrigger + 1, searchString: ''}))
+
+  render() {
+    return (
+      <Connected
+        onChangeService={this.onChangeService}
+        onChangeText={this.onChangeText}
+        onDownArrowKeyDown={this.onDownArrowKeyDown}
+        onUpArrowKeyDown={this.onUpArrowKeyDown}
+        incClearTextTrigger={this.incClearTextTrigger}
+        searchString={this.state.searchString}
+        selectedService={this.state.selectedService}
+        highlightedIndex={this.state.highlightedIndex}
+        clearTextTrigger={this.state.clearTextTrigger}
+      />
+    )
+  }
+}
+
+export default StateWrapperForTeamBuilding

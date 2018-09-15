@@ -25,7 +25,7 @@ type _FinishedTeamBuildingPayload = void
 type _RemoveUsersFromTeamSoFarPayload = $ReadOnly<{|users: Array<Types.UserID>|}>
 type _SearchPayload = $ReadOnly<{|
   query: string,
-  service: string,
+  service: Types.ServiceIdWithContact,
   limit?: number,
 |}>
 type _SearchResultCountsLoadedPayload = $ReadOnly<{|
@@ -35,7 +35,7 @@ type _SearchResultCountsLoadedPayload = $ReadOnly<{|
 type _SearchResultsLoadedPayload = $ReadOnly<{|
   users: Array<Types.User>,
   query: string,
-  service: string,
+  service: Types.ServiceIdWithContact,
 |}>
 
 // Action Creators

@@ -1,12 +1,13 @@
 // @flow
-import * as I from 'immutable'
 import logger from '../../logger'
 import * as TeamBuildingTypes from '../../constants/types/team-building'
 import * as TeamBuildingGen from '../team-building-gen'
+import * as Chat2Gen from '../chat2-gen'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {trim} from 'lodash-es'
+import {type TypedState} from '../../constants/reducer'
 
 type RawSearchResult = {
   score: number,
@@ -51,27 +52,31 @@ const search = (_, {payload: {query, service, limit = 10}}: TeamBuildingGen.Sear
     endpoint: 'user/user_search',
   })
     .then(results => JSON.parse(results.body).list)
-    .then(results => results.map(r => parserRawResultToUser(r, service)))
+    .then(results => results.map(r => parseRawResultToUser(r, service)).filter(u => !!u))
     .then(users => TeamBuildingGen.createSearchResultsLoaded({users, query, service}))
 }
 
-const parserRawResultToUser = (
+const parseRawResultToUser = (
   result: RawSearchResult,
-  service: ServiceIdWithContact
-): TeamBuildingTypes.User => {
+  service: TeamBuildingTypes.ServiceIdWithContact
+): ?TeamBuildingTypes.User => {
   const serviceMap = Object.keys(result.services_summary).reduce((acc, service_name) => {
     acc[service_name] = result.services_summary[service_name].username
     return acc
   }, {})
 
-  if (service === 'keybase') {
+  // Add the keybase service to the service map since it isn't there by default
+  if (result.keybase) {
+    serviceMap['keybase'] = result.keybase.username
+  }
+
+  if (service === 'keybase' && result.keybase) {
     return {
-      serviceMap: I.Map(serviceMap),
+      serviceMap,
       id: result.keybase.username,
-      keybaseUserID: result.keybase.username,
       prettyName: result.keybase.full_name || result.keybase.username,
     }
-  } else {
+  } else if (result.service) {
     if (result.service.service_name !== service) {
       // This shouldn't happen
       logger.error(
@@ -81,23 +86,38 @@ const parserRawResultToUser = (
       )
     }
 
+    const kbPrettyName = result.keybase && (result.keybase.full_name || result.keybase.username)
+
     const prettyName =
-      result.service.full_name || result.keybase
-        ? result.keybase.full_name || result.keybase.username
-        : `${result.service.username} on ${result.service.service_name}`
+      result.service.full_name ||
+      kbPrettyName ||
+      `${result.service.username} on ${result.service.service_name}`
     return {
       serviceMap,
-      id: `${result.service}@${result.service.service_name}`,
-      keybaseUserID: result.keybase ? result.keybase.username : null,
+      id: `${result.service.username}@${result.service.service_name}`,
       prettyName,
     }
+  } else {
+    return null
   }
 }
 
+const createConversation = (state: TypedState) =>
+  Saga.put(
+    Chat2Gen.createCreateConversation({
+      participants: state.chat2.teamBuildingFinishedTeam.toArray().map(u => u.id),
+    })
+  )
+
 function* chatTeamBuildingSaga(): Saga.SagaGenerator<any, any> {
-  // Navigation
-  yield Saga.actionToAction(TeamBuildingGen.cancelTeamBuilding, closeTeamBuilding)
   yield Saga.actionToPromise(TeamBuildingGen.search, search)
+  yield Saga.actionToAction(TeamBuildingGen.finishedTeamBuilding, createConversation)
+
+  // Navigation
+  yield Saga.actionToAction(
+    [TeamBuildingGen.cancelTeamBuilding, TeamBuildingGen.finishedTeamBuilding],
+    closeTeamBuilding
+  )
 }
 
 export default chatTeamBuildingSaga

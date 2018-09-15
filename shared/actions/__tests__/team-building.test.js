@@ -1,16 +1,10 @@
 // @flow
 /* eslint-env jest */
 import * as I from 'immutable'
-import * as Types from '../../constants/types/devices'
-import * as Constants from '../../constants/devices'
-import * as Tabs from '../../constants/tabs'
 import * as TeamBuildingGen from '../team-building-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../route-tree'
 import teamBuildingSaga from '../chat2/team-building'
 import * as Testing from '../../util/testing'
-import {getPath as getRoutePath} from '../../route-tree'
-import HiddenString from '../../util/hidden-string'
 
 jest.mock('../../engine')
 
@@ -71,19 +65,20 @@ const parsedSearchResults = {
     keybase: I.Map().set(I.List(['marcopolo', 'keybase']), [
       {
         id: 'marcopolo',
-        keybaseUserID: 'marcopolo',
         prettyName: 'Marco Munizaga',
         serviceMap: I.Map({
           twitter: 'open_sourcery',
           facebook: 'mmunizaga1337',
           github: 'marcopolo',
+          keybase: 'marcopolo',
         }),
       },
       {
         id: 'rustybot',
-        keybaseUserID: 'rustybot',
         prettyName: 'rustybot',
-        serviceMap: I.Map({}),
+        serviceMap: I.Map({
+          keybase: 'rustybot',
+        }),
       },
     ]),
   },
@@ -121,7 +116,7 @@ describe('Search Actions', () => {
 
   it('Adds users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']))[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
       expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
@@ -130,7 +125,7 @@ describe('Search Actions', () => {
 
   it('Remove users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']))[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
@@ -140,7 +135,7 @@ describe('Search Actions', () => {
 
   it('Moves finished team over and clears the teamSoFar on finished', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']))[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding())
     return Testing.flushPromises().then(() => {
@@ -151,7 +146,7 @@ describe('Search Actions', () => {
 
   it('Cancel team building clears the state', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']))[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding())
     return Testing.flushPromises().then(() => {
@@ -160,13 +155,3 @@ describe('Search Actions', () => {
     })
   })
 })
-
-// Hacks, don't look!
-// import repl from 'repl'
-// const r = repl.start('> ')
-// r.context.evalMe = `
-// require('@babel/register')({
-// ignore: ['node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js'],
-// extensions: ['.es6', '.es', '.jsx', '.js', '.mjs', '.desktop.js'],
-// })
-// `

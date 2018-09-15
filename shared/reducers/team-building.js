@@ -30,15 +30,13 @@ export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions)
     case TeamBuildingGen.searchResultsLoaded: {
       const {query, service, users} = action.payload
       return state.update('teamBuildingSearchResults', searchResults =>
-        // Clear this so we don't keep stale data. Caching should be handled in saga.
-        searchResults.clear().set(I.List([query, service]), users)
+        searchResults.set(I.List([query, service]), users)
       )
     }
     case TeamBuildingGen.searchResultCountsLoaded: {
       const {query, counts} = action.payload
       return state.update('teamBuildingServiceResultCount', serviceResultCount =>
-        // Clear this so we don't keep stale data. Caching should be handled in saga.
-        serviceResultCount.clear().set(query, I.Map(counts))
+        serviceResultCount.set(query, I.Map(counts))
       )
     }
     case TeamBuildingGen.finishedTeamBuilding:

@@ -6,10 +6,10 @@
   "actions": {
     "finishedTeamBuilding": {},
     "cancelTeamBuilding": {},
-    "search": {"query": "string", "service": "string", "limit?": "number"},
+    "search": {"query": "string", "service": "Types.ServiceIdWithContact", "limit?": "number"},
     "addUsersToTeamSoFar": {"users": "Array<Types.User>"},
     "removeUsersFromTeamSoFar": {"users": "Array<Types.UserID>"},
-    "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "string"},
+    "searchResultsLoaded": {"users": "Array<Types.User>", "query": "string", "service": "Types.ServiceIdWithContact"},
     "searchResultCountsLoaded": {"counts": "{[key: Types.ServiceIdWithContact]: number}", "query": "string"}
   }
 }

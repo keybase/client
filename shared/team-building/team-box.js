@@ -12,12 +12,13 @@ import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 type Props = {
   onChangeText: (newText: string) => void,
-  onEnterKeyDown: (textOnEnter: string) => void,
+  onEnterKeyDown: () => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
   teamSoFar: Array<{userId: string, prettyName: string, username: string, service: ServiceIdWithContact}>,
   onRemove: (userId: string) => void,
-  onBackspaceWhileEmpty: () => void,
+  onBackspace: () => void,
+  clearTextTrigger: number,
 }
 
 const TeamBox = (props: Props) => (
@@ -36,9 +37,8 @@ const TeamBox = (props: Props) => (
       onEnterKeyDown={props.onEnterKeyDown}
       onDownArrowKeyDown={props.onDownArrowKeyDown}
       onUpArrowKeyDown={props.onUpArrowKeyDown}
-      onBackspaceWhileEmpty={() => {
-        props.teamSoFar.length && props.onRemove(props.teamSoFar[props.teamSoFar.length - 1].userId)
-      }}
+      clearTextTrigger={props.clearTextTrigger}
+      onBackspace={props.onBackspace}
     />
   </Kb.Box2>
 )

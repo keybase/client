@@ -5,22 +5,25 @@ import * as Styles from '../styles'
 
 type Props = {
   onChangeText: (newText: string) => void,
-  onEnterKeyDown: (textOnEnter: string) => void,
+  onEnterKeyDown: () => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
-  onBackspaceWhileEmpty: () => void,
+  onBackspace: () => void,
+  clearTextTrigger: number,
 }
 
-const handleKeyDown = (key: string, inputVal: string, props: Props) => {
+const handleKeyDown = (e: any, key: string, props: Props) => {
   switch (key) {
     case 'ArrowDown':
+      e.preventDefault()
       props.onDownArrowKeyDown()
       break
     case 'ArrowUp':
-      props.onDownArrowKeyDown()
+      e.preventDefault()
+      props.onUpArrowKeyDown()
       break
     case 'Backspace':
-      !inputVal && props.onBackspaceWhileEmpty()
+      props.onBackspace()
       break
   }
 }
@@ -31,12 +34,14 @@ const Input = (props: Props) => (
       hintText={'Find people by name, email, or phone'}
       onChangeText={props.onChangeText}
       onEnterKeyDown={e => {
-        e.target instanceof window.HTMLInputElement && props.onEnterKeyDown(e.target.value)
+        e.preventDefault()
+        props.onEnterKeyDown()
       }}
       onKeyDown={e => {
-        e.target instanceof window.HTMLInputElement && handleKeyDown(e.key, e.target.value, props)
+        handleKeyDown(e, e.key, props)
       }}
       uncontrolled={true}
+      clearTextCounter={props.clearTextTrigger}
       small={true}
       hideUnderline={true}
     />

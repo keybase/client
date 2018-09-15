@@ -2337,7 +2337,6 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
 
 const popupTeamBuilding = (state: TypedState, action: Chat2Gen.SetPendingModePayload) => {
   if (action.payload.pendingMode === 'newChat') {
-    const routePath = getPath(state.routeTree.routeState)
     return Saga.put(
       RouteTreeGen.createNavigateAppend({
         path: [{selected: 'newChat', props: {}}],
