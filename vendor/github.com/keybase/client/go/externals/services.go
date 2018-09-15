@@ -11,19 +11,6 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 )
 
-func getStaticProofServices() []libkb.ServiceType {
-	return []libkb.ServiceType{
-		DNSServiceType{},
-		FacebookServiceType{},
-		GithubServiceType{},
-		HackerNewsServiceType{},
-		RedditServiceType{},
-		RooterServiceType{},
-		TwitterServiceType{},
-		WebServiceType{},
-	}
-}
-
 // staticProofServies are only used for testing or for basic assertion
 // validation
 type staticProofServices struct {

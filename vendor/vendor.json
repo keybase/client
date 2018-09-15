@@ -243,10 +243,10 @@
 			"revisionTime": "2018-08-28T18:44:39Z"
 		},
 		{
-			"checksumSHA1": "Vc2KNvlc9/7IfK8akpw3H/qQy34=",
+			"checksumSHA1": "uRIxAmwciiyx808wRFQ0qYmQaKQ=",
 			"path": "github.com/keybase/client/go/externals",
-			"revision": "db1530488437a88f2dd00221706e81bc83bf0dc9",
-			"revisionTime": "2018-09-14T15:22:44Z"
+			"revision": "fd643720c7413d917e1c6ee50bdd1d9c83041cc8",
+			"revisionTime": "2018-09-14T23:10:04Z"
 		},
 		{
 			"checksumSHA1": "sN2RBTeKHJ2ZTm1dgQQWOdCHiG8=",
