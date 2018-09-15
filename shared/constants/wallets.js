@@ -283,7 +283,7 @@ const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => 
   }
 }
 
-const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
+const paymentToYourRole = (p: Types.Payment): 'sender' | 'receiver' => {
   return p.delta === 'increase' ? 'receiver' : 'sender'
 }
 
