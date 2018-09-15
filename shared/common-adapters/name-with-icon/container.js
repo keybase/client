@@ -23,27 +23,29 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: ConnectedNameWithIconProps) => {
-  const {onClick, ...props} = ownProps
+  const {onClick, username, teamname, ...props} = ownProps
 
   let functionOnClick
   let clickType
   // Since there's no tracker on mobile, we can't open it. Fallback to profile.
   if (!isMobile && onClick === 'tracker') {
-    if (ownProps.username) {
-      functionOnClick = dispatchProps.onOpenTracker(ownProps.username)
+    if (username) {
+      functionOnClick = () => dispatchProps.onOpenTracker(username)
     }
     clickType = 'tracker'
   } else if (onClick === 'profile' || (isMobile && onClick === 'tracker')) {
-    if (ownProps.username) {
-      functionOnClick = dispatchProps.onOpenUserProfile(ownProps.username)
-    } else if (ownProps.teamname) {
-      functionOnClick = dispatchProps.onOpenTeamProfile(ownProps.teamname)
+    if (username) {
+      functionOnClick = () => dispatchProps.onOpenUserProfile(username)
+    } else if (teamname) {
+      functionOnClick = () => dispatchProps.onOpenTeamProfile(teamname)
     }
     clickType = 'profile'
   }
 
   return {
     ...props,
+    username,
+    teamname,
     clickType,
     onClick: functionOnClick,
   }
