@@ -180,7 +180,7 @@ const BOOL isSimulator = NO;
   CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
                         (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
-                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageAlways,
                         [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
