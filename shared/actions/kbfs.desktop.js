@@ -271,8 +271,14 @@ function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state:
   }
 }
 
-function* waitForKBFS() {
-  yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: 'kbfs.waitingForDaemon'}))
+function* waitForKBFS(action: ConfigGen.DaemonHandshakePayload) {
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'kbfs.waitingForDaemon',
+      version: action.payload.version,
+    })
+  )
   const connected = yield Saga.call(RPCTypes.configWaitForClientRpcPromise, {
     clientType: RPCTypes.commonClientType.kbfs,
     timeout: 10.0,
@@ -281,9 +287,10 @@ function* waitForKBFS() {
   yield Saga.put(FsGen.createFuseStatus())
   yield Saga.put(
     ConfigGen.createDaemonHandshakeWait({
-      failedReason: connected ? null : "Can't connect to KBFS",
+      failedReason: connected ? null : Constants.noKBFSFailReason,
       increment: false,
       name: 'kbfs.waitingForDaemon',
+      version: action.payload.version,
     })
   )
 }

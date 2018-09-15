@@ -9,7 +9,6 @@ const provider = Sb.createPropProviderWithCommon(
 )
 
 const props1: Props = {
-  onClickUser: Sb.action('onClickUser'),
   suggestions: [
     {
       username: 'ayoubd',
@@ -21,7 +20,6 @@ const props1: Props = {
 }
 
 const props2: Props = {
-  onClickUser: Sb.action('onClickUser'),
   suggestions: [
     {
       username: 'ayoubd',
@@ -69,7 +67,6 @@ const props2: Props = {
 }
 
 const props3: Props = {
-  onClickUser: Sb.action('onClickUser'),
   suggestions: props2.suggestions.concat(
     props2.suggestions.map(suggestion => ({...suggestion, username: suggestion.username + '1'}))
   ),

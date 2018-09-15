@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -14,13 +13,10 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
-	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -249,138 +245,6 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 	return messages, nil
 }
 
-func (h *Helper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
-	defer h.Trace(ctx, func() error { return nil }, "AckMobileNotificationSuccess")()
-	// Get session token
-	nist, _, err := h.G().ActiveDevice.NISTAndUID(ctx)
-	if nist == nil {
-		h.Debug(ctx, "AckMobileNotificationSuccess: got a nil NIST, is the user logged out?")
-		return
-	}
-	if err != nil {
-		h.Debug(ctx, "AckMobileNotificationSuccess: failed to get logged in session: %s", err.Error())
-		return
-	}
-
-	// Make an ad hoc connection to gregor
-	uri, err := rpc.ParseFMPURI(h.G().Env.GetGregorURI())
-	if err != nil {
-		h.Debug(ctx, "AckMobileNotificationSuccess: failed to parse chat server UR: %s", err.Error())
-		return
-	}
-
-	var conn *rpc.Connection
-	if uri.UseTLS() {
-		rawCA := h.G().Env.GetBundledCA(uri.Host)
-		if len(rawCA) == 0 {
-			h.Debug(ctx, "AckMobileNotificationSuccess: failed to parse CAs: %s", err.Error())
-			return
-		}
-		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
-			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			&remoteNotificationSuccessHandler{}, libkb.NewRPCLogFactory(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
-	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(h.G().ExternalG()))
-		conn = rpc.NewConnectionWithTransport(&remoteNotificationSuccessHandler{}, t,
-			libkb.NewContextifiedErrorUnwrapper(h.G().ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: h.G().Log}, rpc.ConnectionOpts{})
-	}
-	defer conn.Shutdown()
-
-	// Make remote successful call on our ad hoc conn
-	cli := chat1.RemoteClient{Cli: NewRemoteClient(h.G(), conn.GetClient())}
-	if err = cli.RemoteNotificationSuccessful(ctx,
-		chat1.RemoteNotificationSuccessfulArg{
-			AuthToken:        gregor1.SessionToken(nist.Token().String()),
-			CompanionPushIDs: pushIDs,
-		}); err != nil {
-		h.Debug(ctx, "AckMobileNotificationSuccess: failed to invoke remote notification success: %",
-			err.Error())
-	}
-}
-
-func (h *Helper) formatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) string {
-	switch membersType {
-	case chat1.ConversationMembersType_TEAM:
-		// Try to get the channel name
-		ib, err := h.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-		if err != nil || len(ib.Convs) == 0 {
-			// Don't give up here, just display the team name only
-			h.Debug(ctx, "formatPushText: failed to unbox convo, using team only")
-			return fmt.Sprintf("%s (%s): %s", msg.Valid().SenderUsername, msg.Valid().ClientHeader.TlfName,
-				msg.Valid().MessageBody.Text().Body)
-		}
-		return fmt.Sprintf("%s (%s#%s): %s", msg.Valid().SenderUsername, msg.Valid().ClientHeader.TlfName,
-			utils.GetTopicName(ib.Convs[0]), msg.Valid().MessageBody.Text().Body)
-	default:
-		return fmt.Sprintf("%s: %s", msg.Valid().SenderUsername, msg.Valid().MessageBody.Text().Body)
-	}
-}
-
-func (h *Helper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res string, err error) {
-	defer h.Trace(ctx, func() error { return err }, "UnboxMobilePushNotification")()
-	// Parse the message payload
-	bMsg, err := base64.StdEncoding.DecodeString(payload)
-	if err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: invalid message payload: %s", err.Error())
-		return res, err
-	}
-	var msgBoxed chat1.MessageBoxed
-	mh := codec.MsgpackHandle{WriteExt: true}
-	if err = codec.NewDecoderBytes(bMsg, &mh).Decode(&msgBoxed); err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: failed to msgpack decode payload: %s", err.Error())
-		return res, err
-	}
-
-	// Unbox first
-	vis := keybase1.TLFVisibility_PRIVATE
-	if msgBoxed.ClientHeader.TlfPublic {
-		vis = keybase1.TLFVisibility_PUBLIC
-	}
-	unboxInfo := newBasicUnboxConversationInfo(convID, membersType, nil, vis)
-	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
-	if err != nil {
-		h.Debug(ctx, "UnboxMobilePushNotification: unbox failed, bailing: %s", err.Error())
-		return res, err
-	}
-
-	// Check to see if this will be a strict append before adding to the body cache
-	if err := h.G().ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
-		return res, err
-	}
-	maxMsgID, err := storage.New(h.G(), h.G().ConvSource).GetMaxMsgID(ctx, convID, uid)
-	if err == nil {
-		if msgUnboxed.GetMessageID() > maxMsgID {
-			if _, err = h.G().ConvSource.PushUnboxed(ctx, convID, uid, msgUnboxed); err != nil {
-				h.Debug(ctx, "UnboxMobilePushNotification: failed to push message to conv source: %s",
-					err.Error())
-			}
-		} else {
-			h.Debug(ctx, "UnboxMobilePushNotification: message from the past, skipping insert: msgID: %d maxMsgID: %d", msgUnboxed.GetMessageID(), maxMsgID)
-
-		}
-	} else {
-		h.Debug(ctx, "UnboxMobilePushNotification: failed to fetch max msg ID: %s", err)
-	}
-	h.G().ConvSource.ReleaseConversationLock(ctx, uid, convID)
-
-	// Form the push notification message
-	if msgUnboxed.IsValid() && msgUnboxed.GetMessageType() == chat1.MessageType_TEXT {
-		res = h.formatPushText(ctx, uid, convID, membersType, msgUnboxed)
-		h.Debug(ctx, "UnboxMobilePushNotification: successful unbox")
-		return res, nil
-	}
-
-	h.Debug(ctx, "UnboxMobilePushNotification: invalid message received: typ: %v",
-		msgUnboxed.GetMessageType())
-	return "", errors.New("invalid message")
-}
-
 type sendHelper struct {
 	utils.DebugLabeler
 
@@ -491,7 +355,7 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 }
 
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
-	_, convs, err := storage.NewInbox(r.G(), myUID).ReadAll(ctx)
+	_, convs, err := storage.NewInbox(r.G()).ReadAll(ctx, myUID)
 	if err != nil {
 		if _, ok := err.(storage.MissError); ok {
 			r.Debug(ctx, "get: no inbox, returning blank results")
@@ -598,8 +462,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 			continue
 		}
 		if !msg.IsValid() {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message",
-				conv.GetConvID())
+			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message: %v",
+				conv.GetConvID(), msg.DebugString())
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{

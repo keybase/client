@@ -60,7 +60,9 @@ export const navigateToInbox = 'chat2:navigateToInbox'
 export const navigateToThread = 'chat2:navigateToThread'
 export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openFolder = 'chat2:openFolder'
+export const paymentInfoReceived = 'chat2:paymentInfoReceived'
 export const previewConversation = 'chat2:previewConversation'
+export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
 export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
@@ -76,6 +78,7 @@ export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
+export const setPendingStatus = 'chat2:setPendingStatus'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
@@ -259,12 +262,22 @@ type _NotificationSettingsUpdatedPayload = $ReadOnly<{|
   settings: RPCChatTypes.ConversationNotificationInfo,
 |}>
 type _OpenFolderPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
+type _PaymentInfoReceivedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  paymentInfo: Types.ChatPaymentInfo,
+|}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
   channelname?: string,
   conversationIDKey?: Types.ConversationIDKey,
   reason: 'manageView' | 'messageLink' | 'resetChatWithoutThem' | 'tracker' | 'teamHeader' | 'files' | 'teamInvite' | 'fromAReset' | 'profile' | 'teamMember' | 'teamHeader' | 'convertAdHoc' | 'memberView' | 'newChannel',
+|}>
+type _RequestInfoReceivedPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  messageID: RPCChatTypes.MessageID,
+  requestInfo: Types.ChatRequestInfo,
 |}>
 type _ResetChatWithoutThemPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _ResetLetThemInPayload = $ReadOnly<{|
@@ -314,6 +327,7 @@ type _SetPendingModePayload = $ReadOnly<{|
   pendingMode: Types.PendingMode,
   noneDestination?: 'inbox' | 'thread',
 |}>
+type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleLocalReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -415,6 +429,14 @@ export const createToggleLocalReaction = (payload: _ToggleLocalReactionPayload) 
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({error: false, payload, type: saveMinWriterRole})
 /**
+ * We received payment info for a sendPayment message
+ */
+export const createPaymentInfoReceived = (payload: _PaymentInfoReceivedPayload) => ({error: false, payload, type: paymentInfoReceived})
+/**
+ * We received request info for a requestPayment message
+ */
+export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) => ({error: false, payload, type: requestInfoReceived})
+/**
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({error: false, payload, type: setPendingConversationExistingConversationIDKey})
@@ -470,6 +492,7 @@ export const createSetConversationOffline = (payload: _SetConversationOfflinePay
 export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error: false, payload, type: setInboxFilter})
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
+export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({error: false, payload, type: setPendingStatus})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
@@ -522,7 +545,9 @@ export type NavigateToInboxPayload = $Call<typeof createNavigateToInbox, _Naviga
 export type NavigateToThreadPayload = $Call<typeof createNavigateToThread, _NavigateToThreadPayload>
 export type NotificationSettingsUpdatedPayload = $Call<typeof createNotificationSettingsUpdated, _NotificationSettingsUpdatedPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
+export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
+export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
 export type ResetLetThemInPayload = $Call<typeof createResetLetThemIn, _ResetLetThemInPayload>
 export type SaveMinWriterRolePayload = $Call<typeof createSaveMinWriterRole, _SaveMinWriterRolePayload>
@@ -538,6 +563,7 @@ export type SetMinWriterRolePayload = $Call<typeof createSetMinWriterRole, _SetM
 export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeof createSetPendingConversationExistingConversationIDKey, _SetPendingConversationExistingConversationIDKeyPayload>
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
+export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetPendingStatusPayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
@@ -599,7 +625,9 @@ export type Actions =
   | NavigateToThreadPayload
   | NotificationSettingsUpdatedPayload
   | OpenFolderPayload
+  | PaymentInfoReceivedPayload
   | PreviewConversationPayload
+  | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload
   | ResetLetThemInPayload
   | SaveMinWriterRolePayload
@@ -615,6 +643,7 @@ export type Actions =
   | SetPendingConversationExistingConversationIDKeyPayload
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
+  | SetPendingStatusPayload
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload

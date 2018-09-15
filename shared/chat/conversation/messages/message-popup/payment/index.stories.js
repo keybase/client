@@ -9,6 +9,7 @@ const receiveIcon = 'receiving'
 const sendIcon = 'sending'
 
 const commonProps = {
+  loading: false,
   onCancel: null,
   onHidden: Sb.action('onHidden'),
   position: 'bottom left',
@@ -105,6 +106,19 @@ const youSendBTCProps = {
   txVerb: 'sent',
 }
 
+const loadingProps = {
+  ...commonProps,
+  amountNominal: '',
+  balanceChange: '',
+  balanceChangeColor: '',
+  bottomLine: '',
+  icon: sendIcon,
+  loading: true,
+  sender: '',
+  topLine: '',
+  txVerb: 'sent',
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
     .add('They request lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
@@ -114,6 +128,7 @@ const load = () => {
     .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)
 }
 
 type State = {
@@ -128,7 +143,7 @@ class PaymentPopupMoved extends React.Component<React.ElementProps<typeof Paymen
           style={{left: 20, position: 'absolute', top: 20}}
           ref={ref => this.setState(s => (s.ref ? null : {ref}))}
         />
-        <PaymentPopup {...this.props} attachTo={this.state.ref} />
+        <PaymentPopup {...this.props} attachTo={() => this.state.ref} />
       </React.Fragment>
     )
   }

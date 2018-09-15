@@ -39,10 +39,18 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state
         .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
         .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+    case WalletsGen.displayCurrenciesReceived:
+      return state.set('currencies', I.List(action.payload.currencies))
+    case WalletsGen.displayCurrencyReceived:
+      return state.setIn(['currencyMap', action.payload.accountID], action.payload.currency)
     case WalletsGen.secretKeyReceived:
-      return state.set('exportedSecretKey', action.payload.secretKey)
+      return state
+        .set('exportedSecretKey', action.payload.secretKey)
+        .set('exportedSecretKeyAccountID', state.get('selectedAccount'))
     case WalletsGen.secretKeySeen:
-      return state.set('exportedSecretKey', new HiddenString(''))
+      return state
+        .set('exportedSecretKey', new HiddenString(''))
+        .set('exportedSecretKeyAccountID', Types.noAccountID)
     case WalletsGen.selectAccount:
       return state
         .set('exportedSecretKey', new HiddenString(''))
@@ -137,18 +145,35 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             secretKeyValidationState: 'none',
             selectedAccount: action.payload.accountID,
           })
+    case WalletsGen.requestDetailReceived:
+      const request = Constants.requestResultToRequest(action.payload.request)
+      return request ? state.update('requests', r => r.set(request.id, request)) : state
     // Saga only actions
+    case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.buildPayment:
+    case WalletsGen.cancelRequest:
     case WalletsGen.createNewAccount:
     case WalletsGen.exportSecretKey:
     case WalletsGen.linkExistingAccount:
     case WalletsGen.loadAssets:
     case WalletsGen.loadPaymentDetail:
     case WalletsGen.loadPayments:
+    case WalletsGen.loadDisplayCurrencies:
+    case WalletsGen.loadDisplayCurrency:
+    case WalletsGen.changeDisplayCurrency:
+    case WalletsGen.changeAccountName:
+    case WalletsGen.changedAccountName:
+    case WalletsGen.deleteAccount:
+    case WalletsGen.deletedAccount:
     case WalletsGen.loadAccounts:
+    case WalletsGen.setAccountAsDefault:
+    case WalletsGen.loadRequestDetail:
     case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
+    case WalletsGen.requestPayment:
+    case WalletsGen.requestedPayment:
+    case WalletsGen.abandonPayment:
       return state
     default:
       /*::

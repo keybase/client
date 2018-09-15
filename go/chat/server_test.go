@@ -362,6 +362,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
+	g.StellarLoader = types.DummyStellarLoader{}
+
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
 	tuc := &chatTestUserContext{
@@ -1902,6 +1904,7 @@ type serverChatListener struct {
 	setConvSettings  chan chat1.ConversationID
 	kbfsUpgrade      chan chat1.ConversationID
 	resolveConv      chan resolveRes
+	subteamRename    chan []chat1.ConversationID
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1976,6 +1979,9 @@ func (n *serverChatListener) ChatSetConvSettings(uid keybase1.UID, convID chat1.
 func (n *serverChatListener) ChatKBFSToImpteamUpgrade(uid keybase1.UID, convID chat1.ConversationID) {
 	n.kbfsUpgrade <- convID
 }
+func (n *serverChatListener) ChatSubteamRename(uid keybase1.UID, convIDs []chat1.ConversationID) {
+	n.subteamRename <- convIDs
+}
 func newServerChatListener() *serverChatListener {
 	buf := 100
 	return &serverChatListener{
@@ -2000,6 +2006,7 @@ func newServerChatListener() *serverChatListener {
 		setConvSettings:  make(chan chat1.ConversationID, buf),
 		kbfsUpgrade:      make(chan chat1.ConversationID, buf),
 		resolveConv:      make(chan resolveRes, buf),
+		subteamRename:    make(chan []chat1.ConversationID, buf),
 	}
 }
 
@@ -3281,7 +3288,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		t.Logf("testing untrusted inbox load failure")
 		ttype := chat1.TopicType_CHAT
-		require.NoError(t, storage.NewInbox(g, uid).Clear(context.TODO()))
+		require.NoError(t, storage.NewInbox(g).Clear(context.TODO(), uid))
 		g.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
@@ -3308,7 +3315,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		rquery, _, err := g.InboxSource.GetInboxQueryLocalToRemote(context.TODO(), query)
 		require.NoError(t, err)
-		_, lconvs, _, err := storage.NewInbox(g, uid).Read(context.TODO(), rquery, p)
+		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, rquery, p)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), conv.Id)
@@ -3468,6 +3475,16 @@ func consumeSetConvSettings(t *testing.T, listener *serverChatListener) chat1.Co
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "failed to get setConvSettings notification")
 		return chat1.ConversationID{}
+	}
+}
+
+func consumeSubteamRename(t *testing.T, listener *serverChatListener) []chat1.ConversationID {
+	select {
+	case x := <-listener.subteamRename:
+		return x
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get subteamRename notification")
+		return nil
 	}
 }
 

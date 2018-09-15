@@ -1,16 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/people'
-import {Box, NameWithIcon, ScrollView, Text} from '../../common-adapters'
+import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 export type FollowSuggestion = Types._FollowSuggestion
 
-export type Props = {
+export type Props = {|
   suggestions: Array<FollowSuggestion>,
-  onClickUser: (username: string) => void,
-}
+|}
 
 export default (props: Props) => (
   <Box style={styles.container}>
@@ -22,12 +21,12 @@ export default (props: Props) => (
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
-        <NameWithIcon
+        <ConnectedNameWithIcon
           key={suggestion.username}
           username={suggestion.username}
           metaOne={suggestion.fullName}
           metaStyle={styles.meta}
-          onClick={() => props.onClickUser(suggestion.username)}
+          onClick="profile"
           colorFollowing={true}
           size="small"
           containerStyle={styles.suggestionContainer}

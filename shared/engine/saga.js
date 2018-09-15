@@ -11,7 +11,7 @@ import {isArray} from 'lodash-es'
 type EmittedCall = {
   method: string,
   params: any,
-  response?: CommonResponseHandler,
+  response: ?CommonResponseHandler,
 }
 
 type EmittedFinished = {
@@ -19,9 +19,6 @@ type EmittedFinished = {
   params: any,
   error: ?RPCError,
 }
-
-type CallbackWithResponse = (any, CommonResponseHandler) => ?RS.Effect | ?Generator<any, any, any>
-type CallbackNoResponse = any => ?RS.Effect | ?Generator<any, any, any>
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
@@ -58,10 +55,27 @@ const makeWaitingResponse = (r, waitingKey) => {
 function* call(p: {
   method: string,
   params: ?Object,
-  incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
+  incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
+  customResponseIncomingCallMap?: {[method: string]: any},
   waitingKey?: string,
 }): Generator<any, any, any> {
-  const {method, params, incomingCallMap, waitingKey} = p
+  const {method, params, waitingKey} = p
+  const incomingCallMap = p.incomingCallMap || {}
+  const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
+
+  // custom and normal incomingCallMaps
+  const bothCallMaps = [
+    ...Object.keys(incomingCallMap).map(method => ({
+      custom: false,
+      handler: incomingCallMap[method],
+      method,
+    })),
+    ...Object.keys(customResponseIncomingCallMap).map(method => ({
+      custom: true,
+      handler: customResponseIncomingCallMap[method],
+      method,
+    })),
+  ]
 
   // Waiting on the server
   if (waitingKey) {
@@ -73,19 +87,26 @@ function* call(p: {
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
-    const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
+    const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
           getEngine().dispatchWaitingAction(waitingKey, false)
         }
 
-        const response = makeWaitingResponse(_response, waitingKey)
+        let response = makeWaitingResponse(_response, waitingKey)
 
-        // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
-        const customResponseNeeded = incomingCallMap[method].length === 2
-        if (!customResponseNeeded && response) {
-          response.result()
+        if (__DEV__) {
+          if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
+            throw new Error('Invalid method in both incomingCallMap and customResponseIncomingCallMap ')
+          }
+        }
+
+        if (!custom) {
+          if (response) {
+            response.result()
+            response = null
+          }
         }
 
         // defer to process network first
@@ -93,7 +114,7 @@ function* call(p: {
           const toEmit: EmittedCall = {
             method,
             params,
-            ...(customResponseNeeded ? {response} : {}),
+            response,
           }
           emitter(toEmit)
         }, 5)
@@ -149,25 +170,25 @@ function* call(p: {
 
       if (r.method) {
         const res: EmittedCall = (r: EmittedCall)
-        // See if its handled
-        const cb = incomingCallMap[res.method]
-        if (cb) {
-          let actions
+        let actions
 
-          if (res.response) {
-            const c: CallbackWithResponse = (cb: CallbackWithResponse)
-            actions = yield RSE.call(c, res.params, res.response)
-          } else {
-            const c: CallbackNoResponse = (cb: CallbackNoResponse)
-            actions = yield RSE.call(c, res.params)
+        if (res.response) {
+          const cb = customResponseIncomingCallMap[r.method]
+          if (cb) {
+            actions = yield RSE.call(cb, res.params, res.response)
           }
+        } else {
+          const cb = incomingCallMap[r.method]
+          if (cb) {
+            actions = yield RSE.call(cb, res.params)
+          }
+        }
 
-          if (actions) {
-            if (isArray(actions)) {
-              yield sequentially(actions.filter(Boolean))
-            } else {
-              yield actions
-            }
+        if (actions) {
+          if (isArray(actions)) {
+            yield sequentially(actions.filter(Boolean))
+          } else {
+            yield actions
           }
         }
       } else {

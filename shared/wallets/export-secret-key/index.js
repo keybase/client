@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
-import WalletPopup from '../wallet-popup'
+import {WalletPopup} from '../common'
 
 type Props = {
   secretKey: ?string,
@@ -12,7 +12,7 @@ type Props = {
 }
 
 export default class ExportSecretKeyPopup extends React.Component<Props> {
-  componentWillMount() {
+  componentDidMount() {
     this.props.onLoadSecretKey()
   }
 

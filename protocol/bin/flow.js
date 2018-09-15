@@ -11,40 +11,44 @@ const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-c
 
 var projects = {
   chat1: {
-    root: './json/chat1',
-    import: ['Gregor1', 'Keybase1', 'Stellar1'],
-    out: 'rpc-chat-gen',
-    incomingMaps: {},
-    seenTypes: {},
+    customResponseIncomingMaps: {},
     enums: {},
+    import: ['Gregor1', 'Keybase1', 'Stellar1'],
+    incomingMaps: {},
     notEnabled: [],
+    out: 'rpc-chat-gen',
+    root: './json/chat1',
+    seenTypes: {},
   },
   keybase1: {
-    root: 'json/keybase1',
-    out: 'rpc-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: ['Gregor1'],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-gen',
+    root: 'json/keybase1',
+    seenTypes: {},
   },
   gregor1: {
-    root: './json/gregor1',
-    out: 'rpc-gregor-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: [],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-gregor-gen',
+    root: './json/gregor1',
+    seenTypes: {},
   },
   stellar1: {
-    root: './json/stellar1',
-    out: 'rpc-stellar-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: ['Keybase1'],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-stellar-gen',
+    root: './json/stellar1',
+    seenTypes: {},
   },
 }
 
@@ -196,87 +200,57 @@ function analyzeMessages(json, project) {
 
   return Object.keys(json.messages).reduce((map, m) => {
     const message = json.messages[m]
-
     lintMessage(m, message)
 
-    const buildParams = incoming => {
-      const arr = message.request
-        .filter(r => incoming || r.name !== 'sessionID') // We have the engine handle this under the hood
-        .map(r => {
-          const rtype = figureType(r.type)
-          return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
-        })
-      const noParams = !incoming && !arr.length
-      return noParams ? 'void' : `$ReadOnly<{${arr.join(',')}}>`
-    }
-
+    const arr = message.request
+      .filter(r => r.name !== 'sessionID') // We have the engine handle this under the hood
+      .map(r => {
+        const rtype = figureType(r.type)
+        return `${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
+      })
+    const noParams = !arr.length
+    const inParam = noParams ? 'void' : `$ReadOnly<{|${arr.join(',')}|}>`
     const name = `${json.protocol}${capitalize(m)}`
-    const responseType = figureType(message.response)
-    const response =
-      responseType === 'null' ? null : `export type ${capitalize(name)}Result = ${responseType}`
-
-    const isNotify = message.hasOwnProperty('notify')
-    let r = null
-    if (!isNotify) {
-      const type = responseType === 'null' ? '' : `result: ${capitalize(name)}Result`
-      if (type) {
-        r = `,response: {error: ({code: number, desc: string}) => void, result: (${type}) => void}`
-      } else {
-        r = ''
-      }
-    } else {
-      r = ''
-    }
-
-    const inParams = buildParams(true)
-    if (isUIProtocol) {
-      project.incomingMaps[`${json.namespace}.${json.protocol}.${m}`] = `(params: ${
-        inParams ? `${inParams}` : 'void'
-      }${r}) => Effect | Array<Effect> | null | void`
-    }
-
-    r = ''
-    if (responseType !== 'null') {
-      r = `, response: ${capitalize(name)}Result`
-    }
-
-    const outParams = buildParams(false)
-    const paramType = outParams ? `export type ${capitalize(name)}RpcParam = ${outParams}` : ''
-    const innerParamType = outParams ? `${capitalize(name)}RpcParam` : null
+    const outParam = figureType(message.response)
     const methodName = `'${json.namespace}.${json.protocol}.${m}'`
-    const rpcPromise = isUIProtocol
-      ? ''
-      : rpcPromiseGen(methodName, name, r, innerParamType, responseType, false)
-    const rpcPromiseType = isUIProtocol
-      ? ''
-      : rpcPromiseGen(methodName, name, r, innerParamType, responseType, true)
-    const rpcChannelMap = isUIProtocol
-      ? ''
-      : rpcChannelMapGen(methodName, name, r, innerParamType, responseType, false)
-    const rpcChannelMapType = isUIProtocol
-      ? ''
-      : rpcChannelMapGen(methodName, name, r, innerParamType, responseType, true)
-    const engineSaga = isUIProtocol
-      ? ''
-      : engineSagaGen(methodName, name, r, innerParamType, responseType, false)
-    const engineSagaType = isUIProtocol
-      ? ''
-      : engineSagaGen(methodName, name, r, innerParamType, responseType, true)
+    const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
+
+    if (isUIMethod) {
+      project.incomingMaps[
+        methodName
+      ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
+
+      if (!message.hasOwnProperty('notify')) {
+        project.customResponseIncomingMaps[
+          methodName
+        ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}) => IncomingReturn`
+      }
+    }
+
+    const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
+    const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
+    const rpcChannelMap = isUIMethod ? '' : rpcChannelMapGen(methodName, name, false)
+    const rpcChannelMapType = isUIMethod ? '' : rpcChannelMapGen(methodName, name, true)
+    const engineSaga = isUIMethod ? '' : engineSagaGen(methodName, name, false)
+    const engineSagaType = isUIMethod ? '' : engineSagaGen(methodName, name, true)
 
     const cleanName = methodName.substring(1, methodName.length - 1)
     if (!enabledCalls[cleanName]) {
       project.notEnabled.push(methodName)
     }
 
-    map[name] = {
-      paramType,
-      response,
-      rpcPromise,
-      rpcPromiseType,
-      rpcChannelMap,
-      rpcChannelMapType,
-      engineSaga,
-      engineSagaType,
+    // Must be an rpc we use
+    if (rpcPromiseType || rpcChannelMapType || engineSagaType || isUIMethod) {
+      map[methodName] = {
+        inParam,
+        outParam: outParam === 'null' ? 'void' : outParam,
+        rpcPromise,
+        rpcPromiseType,
+        rpcChannelMap,
+        rpcChannelMapType,
+        engineSaga,
+        engineSagaType,
+      }
     }
     return map
   }, {})
@@ -287,36 +261,31 @@ function enabledCall(methodName, type) {
   return enabledCalls[cleanName] && enabledCalls[cleanName][type]
 }
 
-function engineSagaGen(methodName, name, response, requestType, responseType, justType) {
+function engineSagaGen(methodName, name, justType) {
   if (!enabledCall(methodName, 'engineSaga')) {
     return ''
   }
-
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: ${requestType}, incomingCallMap: IncomingCallMapType, waitingKey?: string}): CallEffect<void>`
-    : `export const ${name}RpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})`
+    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>`
+    : `export const ${name}RpcSaga = (p) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
-function rpcChannelMapGen(methodName, name, response, requestType, responseType, justType) {
+function rpcChannelMapGen(methodName, name, justType) {
   if (!enabledCall(methodName, 'channelMap')) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: ${requestType}): void /* not void but this is deprecated */`
+    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>): void /* not void but this is deprecated */`
     : `export const ${name}RpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
-function rpcPromiseGen(methodName, name, response, requestType, responseType, justType) {
+function rpcPromiseGen(methodName, name, justType) {
   if (!enabledCall(methodName, 'promise')) {
     return ''
   }
-  const resultType = responseType !== 'null' ? `${capitalize(name)}Result` : 'void'
-
   return justType
-    ? `declare export function ${name}RpcPromise (params: ${requestType}, waitingKey?: string): Promise<${resultType}>`
-    : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(${
-        resultType === 'void' ? '' : 'result'
-      }), waitingKey}))`
+    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
+    : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
 // Type parsing
@@ -428,11 +397,11 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
-  const messageResponse = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].response)
-  const messageParams = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].paramType)
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromiseType)
   const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMapType)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
@@ -440,13 +409,41 @@ export type Uint64 = number
   const incomingMap =
     `\nexport type IncomingCallMapType = {|` +
     Object.keys(project.incomingMaps)
-      .map(im => `  '${im}'?: ${project.incomingMaps[im]}`)
+      .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
       .join(',') +
     '|}'
+
+  const customResponseCallMapType = Object.keys(project.customResponseIncomingMaps).length
+    ? 'CustomResponseIncomingCallMap'
+    : 'void'
+  const customResponseIncomingMap =
+    `\nexport type CustomResponseIncomingCallMap = {|` +
+    Object.keys(project.customResponseIncomingMaps)
+      .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
+      .join(',') +
+    '|}'
+
+  const messageTypesData = Object.keys(typeDefs.messages)
+    .map(k => {
+      const data = typeDefs.messages[k]
+      const types = {}
+      return `  ${k}: {|
+    inParam: ${data.inParam},
+    outParam: ${data.outParam || 'void'},
+  |},`
+    })
+    .sort()
+    .join('\n')
+
+  const messageTypes = `\nexport type MessageTypes = {|
+${messageTypesData}
+|}`
+
   const data = [
-    ...[...consts, ...types, ...messageResponse].sort(),
-    ...messageParams.sort(),
+    messageTypes,
+    ...[...consts, ...types].sort(),
     incomingMap,
+    customResponseIncomingMap,
     ...[...messagePromise, ...messageChannelMap, ...messageEngineSaga].sort(),
   ]
     .filter(Boolean)

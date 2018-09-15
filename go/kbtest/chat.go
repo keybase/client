@@ -235,6 +235,9 @@ func (m *TlfMock) AllCryptKeys(ctx context.Context, tlfName string, public bool)
 	}
 	return res, nil
 }
+func (m *TlfMock) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+	return res, nil
+}
 
 func (m *TlfMock) LookupID(ctx context.Context, tlfName string, public bool) (res *types.NameInfo, err error) {
 	var tlfID keybase1.TLFID
@@ -1213,14 +1216,6 @@ func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName strin
 func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error) {
 	return nil, nil
-}
-
-func (m *MockChatHelper) AckMobileNotificationSuccess(ctx context.Context, pushIDs []string) {
-}
-
-func (m *MockChatHelper) UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error) {
-	return "", nil
 }
 
 func (m *MockChatHelper) convKey(name string, topicName *string) string {

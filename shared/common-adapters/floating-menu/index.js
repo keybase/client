@@ -19,7 +19,7 @@ export type Props = {|
   header?: MenuItem,
   onHidden: () => void,
   visible: boolean,
-  attachTo?: ?React.Component<any, any>,
+  attachTo?: ?() => ?React.ElementRef<any>,
   position?: Position,
   positionFallbacks?: Position[],
   propagateOutsideClicks?: boolean,

@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
@@ -199,15 +199,33 @@ func (s *BlockingSender) checkConvID(ctx context.Context, conv chat1.Conversatio
 		return fmt.Errorf("Chat public-ness does not match reference message")
 	}
 	if headerQ.TlfName != headerRef.TlfName {
-		// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
-		namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName, conv,
-			headerQ.TlfPublic)
-		if err != nil {
-			return err
-		}
-		if !namesEq {
-			s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
-			return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+		// If we're of type TEAM, we lookup the name info for the team and
+		// verify it matches what is on the message itself. If we rename a
+		// subteam the names between the current and reference message will
+		// differ so we cannot rely on that.
+		switch conv.GetMembersType() {
+		case chat1.ConversationMembersType_TEAM:
+			// Cannonicalize the given TlfName
+			teamNameParsed, err := keybase1.TeamNameFromString(headerQ.TlfName)
+			if err != nil {
+				return fmt.Errorf("invalid team name: %v", err)
+			}
+			if info, err := CreateNameInfoSource(ctx, s.G(), conv.GetMembersType()).LookupName(ctx,
+				conv.Metadata.IdTriple.Tlfid,
+				conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC); err != nil {
+				return err
+			} else if info.CanonicalName != teamNameParsed.String() {
+				return fmt.Errorf("TlfName does not match conversation tlf [%q vs ref %q]", teamNameParsed.String(), info.CanonicalName)
+			}
+		default:
+			// Try normalizing both tlfnames if simple comparison fails because they may have resolved.
+			if namesEq, err := s.boxer.CompareTlfNames(ctx, headerQ.TlfName, headerRef.TlfName,
+				conv.GetMembersType(), headerQ.TlfPublic); err != nil {
+				return err
+			} else if !namesEq {
+				s.Debug(ctx, "checkConvID: TlfName %s != %s", headerQ.TlfName, headerRef.TlfName)
+				return fmt.Errorf("TlfName does not match reference message [%q vs ref %q]", headerQ.TlfName, headerRef.TlfName)
+			}
 		}
 	}
 

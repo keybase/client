@@ -9,11 +9,10 @@ type ParticipantsProps = {|
   recipientType: CounterpartyType,
   yourUsername: string,
   fromAccountName: string,
-  fromAccountContents: string,
+  fromAccountAssets: string,
   // Must have a recipient user, stellar address, or account
   recipientUsername?: string,
   recipientFullName?: string,
-  onShowProfile?: string => void,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
   recipientAccountAssets?: string,
@@ -24,17 +23,17 @@ const Participants = (props: ParticipantsProps) => {
 
   switch (props.recipientType) {
     case 'keybaseUser':
-      if (!props.recipientUsername || !props.recipientFullName) {
-        throw new Error('Recipient type keybaseUser requires props recipientUsername and recipientFullName')
+      if (!props.recipientUsername) {
+        throw new Error('Recipient type keybaseUser requires prop recipientUsername')
       }
       toFieldContent = (
-        <Kb.NameWithIcon
+        <Kb.ConnectedNameWithIcon
           colorFollowing={true}
           horizontal={true}
           username={props.recipientUsername}
           metaOne={props.recipientFullName}
           avatarStyle={styles.avatar}
-          onClick={props.onShowProfile}
+          onClick="tracker"
         />
       )
       break
@@ -73,7 +72,7 @@ const Participants = (props: ParticipantsProps) => {
         <AccountEntry
           keybaseUser={props.yourUsername}
           name={props.fromAccountName}
-          contents={props.fromAccountContents}
+          contents={props.fromAccountAssets}
         />
       </ParticipantsRow>
       <ParticipantsRow heading="To" bottomDivider={false}>

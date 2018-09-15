@@ -36,7 +36,7 @@ const getPopupItems = sortSettingToAction =>
       title: sortSettingText,
       view: (
         <Box style={styles.sortSetting}>
-          <Box style={styles.iconBox}>
+          <Box>
             <Icon
               type={sortSettingIconType}
               style={iconCastPlatformStyles(styles.icon)}
@@ -69,7 +69,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           position="bottom left"
@@ -102,9 +102,6 @@ const styles = Styles.styleSheetCreate({
   },
   icon: {
     marginRight: Styles.globalMargins.xtiny,
-  },
-  iconBox: {
-    marginTop: 4,
   },
   loading: {
     ...Styles.globalStyles.flexBoxRow,

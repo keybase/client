@@ -1,5 +1,6 @@
 // @flow
 import * as ConfigGen from '../config-gen'
+import * as ConfigConstants from '../../constants/config'
 import * as GregorGen from '../gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -15,6 +16,7 @@ import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
+import type {TypedState} from '../../constants/reducer'
 
 function showShareActionSheet(options: {
   url?: ?any,
@@ -111,10 +113,12 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
-const checkRPCOwnership = () =>
+const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
   Saga.call(function*() {
     const waitKey = 'pipeCheckFail'
-    yield Saga.put(ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey}))
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+    )
     try {
       logger.info('Checking RPC ownership')
 
@@ -142,13 +146,21 @@ const checkRPCOwnership = () =>
             })
           })
       )
+      yield Saga.put(
+        ConfigGen.createDaemonHandshakeWait({
+          increment: false,
+          name: waitKey,
+          version: action.payload.version,
+        })
+      )
     } catch (e) {
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           failedFatal: true,
-          failedReason: e.message,
+          failedReason: e.message || 'windows pipe owner fail',
           increment: false,
           name: waitKey,
+          version: action.payload.version,
         })
       )
     }
@@ -168,45 +180,39 @@ const setupReachabilityWatcher = () =>
   })
 
 const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators('keybase.1.NotifyApp.exit', () => {
-    console.log('App exit requested')
-    SafeElectron.getApp().exit(0)
+  getEngine().setCustomResponseIncomingCallMap({
+    'keybase.1.logsend.prepareLogsend': (_, response) => {
+      dumpLogs().then(() => {
+        response && response.result()
+      })
+    },
   })
-
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyFS.FSActivity',
-    ({notification}, _, __, getState) => {
-      kbfsNotification(notification, NotifyPopup, getState)
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifyPGP.pgpKeyInSecretStoreFile', () => {
-    RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-      console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-    })
-  })
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifyService.shutdown', ({code}, response) => {
-    response && response.result()
-    if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
-      console.log('Quitting due to service shutdown')
-      // Quit just the app, not the service
-      SafeElectron.getApp().quit()
-    }
-  })
-
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifySession.clientOutOfDate',
-    ({upgradeTo, upgradeURI, upgradeMsg}) => {
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyApp.exit': () => {
+      console.log('App exit requested')
+      SafeElectron.getApp().exit(0)
+    },
+    'keybase.1.NotifyFS.FSActivity': ({notification}) =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        kbfsNotification(notification, NotifyPopup, state)
+      }),
+    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
+      RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+      })
+    },
+    'keybase.1.NotifyService.shutdown': code => {
+      if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+        console.log('Quitting due to service shutdown')
+        // Quit just the app, not the service
+        SafeElectron.getApp().quit()
+      }
+    },
+    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.logsend.prepareLogsend', (_, response) => {
-    dumpLogs().then(() => {
-      response && response.result()
-    })
+    },
   })
 }
 
@@ -226,6 +232,16 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
+const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+  if (
+    action.payload.version === state.config.daemonHandshakeVersion &&
+    state.config.daemonHandshakeWaiters.size === 0 &&
+    state.config.daemonHandshakeFailedReason === ConfigConstants.noKBFSFailReason
+  ) {
+    SafeElectron.getIpcRenderer().send('kb-service-check')
+  }
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
   yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
@@ -235,6 +251,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
   yield Saga.fork(initializeAppSettingsState)
+  yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
 
   if (isWindows) {
     yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)

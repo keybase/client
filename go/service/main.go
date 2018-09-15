@@ -279,6 +279,8 @@ func (d *Service) Run() (err error) {
 		return err
 	}
 
+	d.SetupChatModules(nil)
+
 	d.RunBackgroundOperations(uir)
 
 	// At this point initialization is complete, and we're about to start the
@@ -332,7 +334,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.chatOutboxPurgeCheck()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
-	d.createChatModules()
 	d.startupGregor()
 	d.startChatModules()
 	d.addGlobalHooks()
@@ -384,9 +385,11 @@ func (d *Service) stopChatModules() {
 	<-d.ChatG().EphemeralPurger.Stop(context.Background())
 }
 
-func (d *Service) createChatModules() {
+func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g := globals.NewContext(d.G(), d.ChatG())
-	ri := d.gregor.GetClient
+	if ri == nil {
+		ri = d.gregor.GetClient
+	}
 
 	// Set up main chat data sources
 	boxer := chat.NewBoxer(g)
@@ -413,7 +416,7 @@ func (d *Service) createChatModules() {
 	g.PushHandler = pushHandler
 
 	// Message sending apparatus
-	store := attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir())
+	store := attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir())
 	g.AttachmentUploader = attachments.NewUploader(g, store, attachments.NewS3Signer(ri), ri)
 	sender := chat.NewBlockingSender(g, chat.NewBoxer(g), ri)
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
@@ -422,6 +425,8 @@ func (d *Service) createChatModules() {
 	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
+
+	g.StellarLoader = stellar.DefaultLoader(g.ExternalG())
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -1224,7 +1229,7 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 	g.ConnectionManager = libkb.NewConnectionManager()
 	g.NotifyRouter = libkb.NewNotifyRouter(g)
 
-	d.createChatModules()
+	d.SetupChatModules(nil)
 	d.startupGregor()
 	d.startChatModules()
 

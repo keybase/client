@@ -48,7 +48,7 @@ js_tests() {
 
     echo 'yarn install'
     yarn cache clean
-    yarn install --pure-lockfile --prefer-offline --no-emoji --no-progress
+    yarn install --pure-lockfile --no-emoji --no-progress --network-concurrency 1
     check_rc $? 'yarn install fail' 1
     echo 'yarn run -s flow status'
     flow_status_output=$(yarn run -s flow status)

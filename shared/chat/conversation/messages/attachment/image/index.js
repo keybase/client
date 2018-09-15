@@ -85,84 +85,88 @@ class ImageAttachment extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <ClickableBox
-        style={styles.imageContainer}
-        onClick={this._onClick}
-        onDoubleClick={this._onDoubleClick}
-        onLongPress={this.props.toggleMessageMenu}
-        onMouseEnter={this._onMouseEnter}
-        onMouseLeave={this._onMouseLeave}
-      >
-        <Text type="BodySemibold" style={styles.title}>
-          {this.props.title}
-        </Text>
-        <Box
-          style={collapseStyles([
-            styles.loading,
-            !this.state.loaded && styles.spinner,
-            {
-              height: this.props.height,
-              width: this.props.width,
-            },
-          ])}
+      <React.Fragment>
+        <ClickableBox
+          style={styles.imageContainer}
+          onClick={this._onClick}
+          onDoubleClick={this._onDoubleClick}
+          onLongPress={this.props.toggleMessageMenu}
+          onMouseEnter={this._onMouseEnter}
+          onMouseLeave={this._onMouseLeave}
         >
-          {!!this.props.path && (
-            <ImageRender
-              ref={ref => {
-                this.imageRef = ref
-              }}
-              src={this.props.path}
-              videoSrc={this.props.fullPath}
-              onLoad={this._setLoaded}
-              onLoadedVideo={this._setVideoLoaded}
-              loaded={this.state.loaded}
-              inlineVideoPlayable={this.props.inlineVideoPlayable}
-              style={collapseStyles([
-                styles.image,
-                {
-                  height: this.props.height,
-                  opacity: this.state.loaded ? 1 : 0,
-                  width: this.props.width,
-                },
-              ])}
-            />
-          )}
-          {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
-            <ProgressIndicator style={styles.progress} />
-          )}
-          {!!this.props.showButton &&
-            !this.state.playingVideo && (
-              <Icon
-                type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
-                style={iconCastPlatformStyles(styles.playButton)}
+          <Text type="BodySemibold" style={styles.title}>
+            {this.props.title}
+          </Text>
+          <Box
+            style={collapseStyles([
+              styles.loading,
+              !this.state.loaded && styles.spinner,
+              {
+                height: this.props.height,
+                width: this.props.width,
+              },
+            ])}
+          >
+            {!!this.props.path && (
+              <ImageRender
+                ref={ref => {
+                  this.imageRef = ref
+                }}
+                src={this.props.path}
+                videoSrc={this.props.fullPath}
+                onLoad={this._setLoaded}
+                onLoadedVideo={this._setVideoLoaded}
+                loaded={this.state.loaded}
+                inlineVideoPlayable={this.props.inlineVideoPlayable}
+                style={collapseStyles([
+                  styles.image,
+                  {
+                    height: this.props.height,
+                    opacity: this.state.loaded ? 1 : 0,
+                    width: this.props.width,
+                  },
+                ])}
               />
             )}
-          {this.props.videoDuration.length > 0 &&
-            !this.state.playingVideo &&
-            this.state.loaded && (
-              <Box style={styles.durationContainer}>
-                <Text type={'BodySmall'} style={styles.durationText}>
-                  {this.props.videoDuration}
-                </Text>
+            {(!this.state.loaded || this.state.loadingVideo === 'loading') && (
+              <ProgressIndicator style={styles.progress} />
+            )}
+            {!!this.props.showButton &&
+              !this.state.playingVideo && (
+                <Icon
+                  type={this.props.showButton === 'play' ? 'icon-play-64' : 'icon-film-64'}
+                  style={iconCastPlatformStyles(styles.playButton)}
+                />
+              )}
+            {this.props.videoDuration.length > 0 &&
+              !this.state.playingVideo &&
+              this.state.loaded && (
+                <Box style={styles.durationContainer}>
+                  <Text type={'BodyTinyBold'} style={styles.durationText}>
+                    {this.props.videoDuration}
+                  </Text>
+                </Box>
+              )}
+            {!!this.props.arrowColor && (
+              <Box style={styles.downloadedIconWrapper}>
+                <Icon
+                  type="iconfont-download"
+                  style={iconCastPlatformStyles(styles.downloadIcon)}
+                  color={this.props.arrowColor}
+                />
               </Box>
             )}
-          {!!this.props.arrowColor && (
-            <Box style={styles.downloadedIconWrapper}>
-              <Icon
-                type="iconfont-download"
-                style={iconCastPlatformStyles(styles.downloadIcon)}
-                color={this.props.arrowColor}
-              />
-            </Box>
-          )}
-        </Box>
-        <Box style={styles.progressContainer}>
-          <Text type={'BodySmall'} style={styles.progressLabel}>
-            {this.props.progressLabel ||
-              '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
-          </Text>
-          {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
-        </Box>
+          </Box>
+          <Box style={styles.progressContainer}>
+            {!this.props.onShowInFinder && (
+              <Text type={'BodySmall'} style={styles.progressLabel}>
+                {this.props.progressLabel ||
+                  '\u00A0' /* always show this so we don't change sizes when we're uploading. This is a short term thing, ultimately we should hoist this type of overlay up over the content so it can go away and we won't be left with a gap */}
+              </Text>
+            )}
+            {this.props.hasProgress && <ProgressBar ratio={this.props.progress} />}
+          </Box>
+        </ClickableBox>
         {this.props.onShowInFinder && (
           <Text
             type="BodySmallPrimaryLink"
@@ -173,7 +177,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             Show in {fileUIName}
           </Text>
         )}
-      </ClickableBox>
+      </React.Fragment>
     )
   }
 }
@@ -232,26 +236,19 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: platformStyles({
-    isElectron: {
-      bottom: '5%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-    isMobile: {
-      bottom: '7%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-  }),
+  durationContainer: {
+    backgroundColor: globalColors.black_60,
+    bottom: globalMargins.tiny,
+    position: 'absolute',
+    right: globalMargins.tiny,
+    borderRadius: 2,
+    alignSelf: 'flex-start',
+    padding: 1,
+  },
   durationText: {
     color: globalColors.white,
-    paddingLeft: 5,
-    paddingRight: 5,
+    paddingLeft: 3,
+    paddingRight: 3,
   },
   progressContainer: {
     ...globalStyles.flexBoxRow,
@@ -270,13 +267,14 @@ const styles = styleSheetCreate({
     isElectron: {
       bottom: '50%',
       left: '50%',
-      marginBottom: -32,
-      marginLeft: -32,
-      marginRight: -32,
-      marginTop: -32,
+      marginBottom: -24,
+      marginLeft: -24,
+      marginRight: -24,
+      marginTop: -24,
       position: 'absolute',
       right: '50%',
       top: '50%',
+      width: 48,
     },
     isMobile: {
       width: 48,

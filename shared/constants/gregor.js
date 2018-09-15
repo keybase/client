@@ -1,10 +1,8 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from './types/gregor'
 import * as RPCTypes from './types/rpc-gen'
 
-const initialState: Types.State = {
-  reachability: {reachable: RPCTypes.reachabilityReachable.unknown},
-  seenMsgs: {},
-}
-
-export {initialState}
+export const makeState: I.RecordFactory<Types._State> = I.Record({
+  reachable: RPCTypes.reachabilityReachable.unknown,
+})

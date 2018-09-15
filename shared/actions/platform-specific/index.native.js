@@ -72,15 +72,17 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
       throw new Error('Unable to acquire storage permissions')
     }
   }
+  const fetchURL = `${fileURL}&nostream=true`
+  logger.info(logPrefix + `Fetching from URL: ${fetchURL}`)
   const download = await RNFetchBlob.config({
     appendExt: mime.extension(mimeType),
     fileCache: true,
-  }).fetch('GET', fileURL)
+  }).fetch('GET', fetchURL)
   logger.info(logPrefix + 'Fetching success, getting local file path')
   const path = download.path()
   logger.info(logPrefix + `Saving to ${path}`)
   try {
-    logger.info(logPrefix + 'Attempting to save')
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
     logger.info(logPrefix + 'Success')
   } catch (err) {
@@ -134,7 +136,7 @@ const getContentTypeFromURL = (
             // 416 can happen if the file is empty.
             statusCode === 416
           ) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
           cb({statusCode, contentType})
@@ -147,7 +149,7 @@ const getContentTypeFromURL = (
         .then(response => {
           let contentType = ''
           if (response.status === 200) {
-            contentType = response.headers.get('Content-Type')
+            contentType = response.headers.get('Content-Type') || ''
           }
           cb({statusCode: response.status, contentType})
         })
@@ -265,7 +267,7 @@ function* loadStartupDetails() {
   )
 }
 
-const waitForStartupDetails = (state: TypedState) => {
+const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
@@ -273,11 +275,19 @@ const waitForStartupDetails = (state: TypedState) => {
   // Else we have to wait for the loadStartupDetails to finish
   return Saga.call(function*() {
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: true, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
     yield Saga.take(ConfigGen.setStartupDetails)
     yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: false, name: 'platform.native-waitStartupDetails'})
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: 'platform.native-waitStartupDetails',
+        version: action.payload.version,
+      })
     )
   })
 }

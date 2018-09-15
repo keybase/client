@@ -78,7 +78,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.FloatingMenu
             closeOnSelect={true}
             visible={this.state.showingMenu}
-            attachTo={this.attachmentRef.current}
+            attachTo={this._getAttachmentRef}
             items={this._menuItems(this.props.badgeInfo || {})}
             onHidden={() => this.setState({showingMenu: false})}
           />
@@ -163,6 +163,8 @@ class MenubarRender extends React.Component<Props, State> {
     this.props.refresh()
   }
 
+  _getAttachmentRef = () => this.attachmentRef.current
+
   _renderLoggedIn() {
     const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
     const badgesInMenu = [
@@ -218,7 +220,7 @@ class MenubarRender extends React.Component<Props, State> {
                 showingMenu: false,
               })
             }
-            attachTo={this.attachmentRef.current}
+            attachTo={this._getAttachmentRef}
             position="bottom right"
           />
         </Kb.Box>

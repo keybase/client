@@ -15,8 +15,7 @@ export type PendingMode =
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
 export type PendingStatus =
-  | 'none' // no pending
-  | 'waiting' // attempting to create conversation
+  | 'none' // no special status
   | 'failed' // creating conversation failed
 
 export type _QuoteInfo = {
@@ -54,6 +53,7 @@ export type _State = {
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
+  pendingStatus: PendingStatus, // the status of creating a new conversation
 
   // TeamBuilding
   teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
@@ -79,6 +79,9 @@ export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.
 export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
+  ChatPaymentInfo,
+  ChatRequestInfo,
+  DecoratedMessage,
   MentionsAt,
   MentionsChannel,
   MentionsChannelName,
@@ -86,6 +89,8 @@ export type {
   MessageAttachment,
   MessageExplodeDescription,
   MessageID,
+  MessageRequestPayment,
+  MessageSendPayment,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

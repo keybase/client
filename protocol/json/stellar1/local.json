@@ -372,6 +372,10 @@
           "name": "readyToSend"
         },
         {
+          "type": "AccountID",
+          "name": "from"
+        },
+        {
           "type": "string",
           "name": "toErrMsg"
         },
@@ -485,22 +489,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountStellar"
-        },
-        {
-          "type": "string",
-          "name": "amountStellarDescription"
-        },
-        {
-          "type": "boolean",
-          "name": "completed"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "fundingKbTxID"
         },
         {
           "type": "RequestStatus",
@@ -749,7 +737,10 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
@@ -989,6 +980,10 @@
         {
           "name": "from",
           "type": "AccountID"
+        },
+        {
+          "name": "fromPrimaryAccount",
+          "type": "boolean"
         },
         {
           "name": "fromSeqno",

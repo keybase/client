@@ -7,6 +7,7 @@
 *.snap                                             linguist-generated=true
 shared/actions/*-gen.js                            linguist-generated=true
 shared/flow-typed/*                                linguist-generated=true
+shared/constants/types/rpc*.js.flow                linguist-generated=true
 shared/constants/types/rpc*.js                     linguist-generated=true
 shared/common-adapters/icon.constants.js           linguist-generated=true
 shared/images/iconfont/kb-icomoon-project-app.json linguist-generated=true

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
+import {Avatar, Text, Box} from '../../../../../common-adapters'
 import {
   desktopStyles,
   globalStyles,
@@ -13,6 +13,7 @@ import {
 } from '../../../../../styles'
 import TextMessage from '../../text/container'
 import AttachmentMessage from '../../attachment/container'
+import PaymentMessage from '../../account-payment/container'
 import SendIndicator from '../chat-send'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
 
@@ -30,10 +31,13 @@ export type Props = {|
   isEditing: boolean,
   isExplodingUnreadable: boolean,
   isFollowing: boolean,
-  isRevoked: boolean,
   isYou: boolean,
   measure: null | (() => void),
-  message: Types.MessageText | Types.MessageAttachment,
+  message:
+    | Types.MessageText
+    | Types.MessageAttachment
+    | Types.MessageSendPayment
+    | Types.MessageRequestPayment,
   messageFailed: boolean,
   messageKey: string,
   messagePending: boolean,
@@ -45,7 +49,6 @@ export type Props = {|
   ordinal: Types.Ordinal,
   timestamp: number,
   toggleMessageMenu: () => void,
-  type: 'text' | 'attachment',
 |}
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
@@ -157,25 +160,17 @@ const RightSide = props => (
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
-          {/* Additional checks on `props.message.type` here to satisfy flow */}
-          {props.type === 'text' &&
-            props.message.type === 'text' && (
-              <TextMessage message={props.message} isEditing={props.isEditing} />
-            )}
-          {props.type === 'attachment' &&
-            props.message.type === 'attachment' && (
-              <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
-            )}
+          {props.message.type === 'text' && (
+            <TextMessage message={props.message} isEditing={props.isEditing} />
+          )}
+          {props.message.type === 'attachment' && (
+            <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
+          )}
+          {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+            <PaymentMessage message={props.message} />
+          )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
-        {props.isRevoked && (
-          <Icon
-            type="iconfont-exclamation"
-            style={iconCastPlatformStyles(styles.exclamation)}
-            color={globalColors.blue}
-            fontSize={14}
-          />
-        )}
       </Box>
       {!!props.failureDescription &&
         !props.exploded && (
@@ -222,10 +217,6 @@ class WrapperAuthor extends React.PureComponent<Props> {
 
 const styles = styleSheetCreate({
   edited: {color: globalColors.black_20},
-  exclamation: {
-    paddingBottom: globalMargins.xtiny,
-    paddingTop: globalMargins.xtiny,
-  },
   fail: {color: globalColors.red},
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},

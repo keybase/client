@@ -53,7 +53,6 @@ type InfoPanelProps = {|
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
-  onViewTeam: () => void,
   canSetMinWriterRole: boolean,
   canSetRetention: boolean,
 
@@ -170,7 +169,6 @@ type SmallTeamHeaderRow = {
   isSmallTeam: boolean,
   teamname: string,
   participantCount: number,
-  onViewTeam: () => void,
 }
 
 type BigTeamHeaderRow = {
@@ -181,7 +179,6 @@ type BigTeamHeaderRow = {
   description: ?string,
   teamname: string,
   channelname: string,
-  onViewTeam: () => void,
 }
 
 type JoinChannelRow = {
@@ -354,7 +351,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -367,7 +363,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             channelname={row.channelname}
             description={row.description}
             teamname={row.teamname}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -447,7 +442,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam} = props
+    const {teamname, channelname} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
@@ -456,7 +451,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         teamname,
         isSmallTeam: props.smallTeam,
         participantCount,
-        onViewTeam,
       }
       if (props.smallTeam) {
         // Small team.
@@ -535,7 +529,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           description: props.description,
           teamname,
           channelname,
-          onViewTeam,
         }
         const participantCountRow = {
           type: 'participant count',

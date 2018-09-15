@@ -21,9 +21,9 @@ import {
   UserProofs,
   Usernames,
   BackButton,
+  PopupHeaderText,
 } from '../common-adapters'
 import UserActions from './user-actions'
-import {PopupHeaderText} from '../common-adapters/popup-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -81,7 +81,7 @@ const _ShowcasedTeamRow = (
     style={styleShowcasedTeamContainer}
   >
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
@@ -402,6 +402,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onRefresh={this.props.refresh}
+                    onSendOrRequestLumens={this.props.onSendOrRequestLumens}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}
@@ -463,7 +464,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={this.state.selectedProofMenuRowRef}
+                    attachTo={() => this.state.selectedProofMenuRowRef}
                     position="bottom right"
                     containerStyle={styles.floatingMenu}
                     {...proofMenuContent}

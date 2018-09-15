@@ -14,7 +14,6 @@ import {
   ClickableBox,
   Icon,
   Text,
-  type IconType,
   FloatingMenu,
   OverlayParentHOC,
   type OverlayParentProps,
@@ -24,20 +23,91 @@ import StaticBreadcrumb from '../common/static-breadcrumb'
 type AddNewProps = {
   style?: Object,
   showText: boolean,
-  menuItems: Array<
-    | {
-        onClick: () => void,
-        icon: IconType,
-        title: string,
-      }
-    | 'Divider'
-  >,
   pathElements: Array<string>,
+
+  openAndUploadBoth?: () => void,
+  openAndUploadFile?: () => void,
+  openAndUploadDir?: () => void,
+  pickAndUploadMixed?: () => void,
+  pickAndUploadPhoto?: () => void,
+  pickAndUploadVideo?: () => void,
+  newFolderRow?: () => void,
+}
+
+const propsToMenuItems = (props: AddNewProps) => {
+  const items = []
+  props.openAndUploadBoth &&
+    items.push({
+      title: 'Upload a file or folder',
+      onClick: props.openAndUploadBoth,
+      icon: 'iconfont-upload',
+    })
+  props.openAndUploadFile &&
+    items.push({
+      title: 'Upload a file',
+      onClick: props.openAndUploadFile,
+      icon: 'iconfont-upload',
+    })
+  props.openAndUploadDir &&
+    items.push({
+      title: 'Upload a folder',
+      onClick: props.openAndUploadDir,
+      icon: 'iconfont-upload',
+    })
+  props.openAndUploadFile && props.openAndUploadDir && items.push('Divider')
+  props.pickAndUploadMixed &&
+    items.push({
+      title: 'Upload an image or video',
+      onClick: props.pickAndUploadMixed,
+      icon: 'iconfont-upload',
+    })
+  props.pickAndUploadPhoto &&
+    items.push({
+      title: 'Upload an image',
+      onClick: props.pickAndUploadPhoto,
+      icon: 'iconfont-upload',
+    })
+  props.pickAndUploadVideo &&
+    items.push({
+      title: 'Upload a video',
+      onClick: props.pickAndUploadVideo,
+      icon: 'iconfont-upload',
+    })
+  props.pickAndUploadPhoto && props.pickAndUploadVideo && items.push('Divider')
+  items.push({title: 'Create new folder', onClick: props.newFolderRow, icon: 'iconfont-folder-new'})
+
+  return isMobile
+    ? items.map(
+        item =>
+          item === 'Divider'
+            ? 'Divider'
+            : {
+                title: item.title,
+                onClick: item.onClick,
+              }
+      )
+    : items.map(
+        item =>
+          item === 'Divider'
+            ? 'Divider'
+            : {
+                onClick: item.onClick,
+                title: item.title,
+                view: (
+                  <Box style={styles.stylesBox}>
+                    <Icon type={item.icon} color={globalColors.blue} />
+                    <Text type="Body" style={styles.stylesText}>
+                      {item.title}
+                    </Text>
+                  </Box>
+                ),
+              }
+      )
 }
 
 const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
-    !!props.menuItems.length && (
+    !!props.newFolderRow && (
       <Box>
         <ClickableBox style={props.style} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
           <Icon
@@ -52,7 +122,7 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
           )}
         </ClickableBox>
         <FloatingMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           header={
@@ -71,27 +141,7 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
                 }
               : undefined
           }
-          items={props.menuItems.map(
-            item =>
-              item === 'Divider'
-                ? 'Divider'
-                : {
-                    onClick: item.onClick,
-                    ...(isMobile
-                      ? {title: item.title}
-                      : {
-                          title: item.title,
-                          view: (
-                            <Box style={styles.stylesBox}>
-                              <Icon type={item.icon} color={globalColors.blue} />
-                              <Text type="Body" style={styles.stylesText}>
-                                {item.title}
-                              </Text>
-                            </Box>
-                          ),
-                        }),
-                  }
-          )}
+          items={propsToMenuItems(props)}
           position="bottom center"
           closeOnSelect={true}
         />

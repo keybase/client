@@ -435,7 +435,12 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 		link := sc.chainLinks[i]
 		var didStore bool
 		if didStore, err = link.Store(sc.G()); err != nil || !didStore {
-			return
+			return err
+		}
+		select {
+		case <-m.Ctx().Done():
+			return m.Ctx().Err()
+		default:
 		}
 	}
 	return nil
@@ -824,23 +829,26 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		}
 
 		i := len(allLinks) - 1
-		eldest := allLinks[i].ToEldestKID()
+		link := allLinks[i]
+		eldest := link.ToEldestKID()
+		seqno := link.GetSeqno()
+
 		if eldest.IsNil() {
-			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", i)
+			m.CDebugf("Ending iteration through previous subchains; saw a nil eldest (@%d)", seqno)
 			break
 		}
-		m.CDebugf("Examining subchain that ends at %d with eldest %s", i, eldest)
+		m.CDebugf("Examining subchain that ends at %d with eldest %s", seqno, eldest)
 
 		var links ChainLinks
 		links, err = cropToRightmostSubchain(allLinks, eldest)
 		if err != nil {
-			m.CInfof("Error backtracking all links from %d: %s", i, err)
+			m.CInfof("Error backtracking all links from %d: %s", seqno, err)
 			break
 		}
 
 		cached, _, err = sc.verifySubchain(m, kf, links)
 		if err != nil {
-			m.CInfof("Error verifying subchain from %d: %s", i, err)
+			m.CInfof("Error verifying subchain from %d: %s", seqno, err)
 			break
 		}
 		if !cached {
@@ -948,12 +956,10 @@ func (l *SigChainLoader) AccessPreload() bool {
 }
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
-	var mt *MerkleTriple
-
 	uid := l.user.GetUID()
-
-	l.M().CDebugf("+ SigChainLoader.LoadFromStorage(%s)", uid)
-	defer func() { l.M().CDebugf("- SigChainLoader.LoadFromStorage(%s) -> %s", uid, ErrToOk(err)) }()
+	defer l.M().CTraceTimed(fmt.Sprintf("SigChainLoader.LoadFromStorage(%s)", uid),
+		func() error { return err })()
+	var mt *MerkleTriple
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
 		l.M().CDebugf("| Failed to load last link ID")
@@ -982,6 +988,12 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	// a reset has happened, so this result only gets used if the local chain
 	// turns out to be fresh.
 	for {
+		select {
+		case <-l.M().Ctx().Done():
+			return l.M().Ctx().Err()
+		default:
+		}
+
 		if currentLink.GetSeqno() == 1 {
 			if l.currentSubchainStart == 0 {
 				l.currentSubchainStart = 1

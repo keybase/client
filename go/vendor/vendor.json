@@ -39,6 +39,12 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
+			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
+			"path": "github.com/Keybase/go-winio",
+			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
+			"revisionTime": "2018-09-13T22:10:37Z"
+		},
+		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
@@ -294,16 +300,16 @@
 			"revisionTime": "2017-05-08T13:19:45Z"
 		},
 		{
-			"checksumSHA1": "+7f5OHMz0oyEHavDp0QpHDS4Zqc=",
+			"checksumSHA1": "NYTzYJFl1q7e4KVBDefKnUroxU8=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc",
-			"revision": "1065769545385e54d471cb2cc82bf33357f8de61",
-			"revisionTime": "2018-07-17T19:39:21Z"
+			"revision": "90b66cf1fabef350ab12761b2c6153335e766331",
+			"revisionTime": "2018-09-04T18:05:18Z"
 		},
 		{
 			"checksumSHA1": "RLs8GIV4e+D350pyzZh5RC3mgQg=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc/rpc/resinit",
-			"revision": "b15b7539fa19070d32f1d734d7f7d19761ad5930",
-			"revisionTime": "2018-05-08T17:00:28Z"
+			"revision": "90b66cf1fabef350ab12761b2c6153335e766331",
+			"revisionTime": "2018-09-04T18:05:18Z"
 		},
 		{
 			"checksumSHA1": "rvlJlCMLMSpfITBgFv6OdWxlhco=",
@@ -379,9 +385,10 @@
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
-			"path": "github.com/keybase/npipe",
-			"revision": "fcc44a83dcb12dae0f3f325c449bef3e1f38892b",
-			"revisionTime": "2017-04-28T11:20:20-07:00"
+			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",
+			"path": "github.com/keybase/pipeliner",
+			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
+			"revisionTime": "2018-08-24T13:24:23Z"
 		},
 		{
 			"path": "github.com/keybase/ps-go",

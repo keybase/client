@@ -109,4 +109,6 @@ protocol identify {
    of the team is inferred from the TeamID.
    */
   Folder resolveImplicitTeam(int sessionID, TeamID id);
+
+  SocialAssertion normalizeSocialAssertion(string assertion);
 }

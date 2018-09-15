@@ -19,6 +19,7 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 // Waiting keys
 // Add granularity as necessary
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const settingsWaitingKey = (teamname: Types.Teamname) => `teamSettings:${teamname}`
 export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:${teamname}`

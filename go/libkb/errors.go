@@ -709,8 +709,8 @@ func NewBadUsernameError(n string) BadUsernameError {
 	return BadUsernameError{N: n}
 }
 
-func NewBadUsernameErrorWithFullMessage(format string, args ...interface{}) BadUsernameError {
-	return BadUsernameError{msg: fmt.Sprintf(format, args...)}
+func NewBadUsernameErrorWithFullMessage(msg string) BadUsernameError {
+	return BadUsernameError{msg: msg}
 }
 
 //=============================================================================
@@ -734,11 +734,12 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 //=============================================================================
 
 type UnmarshalError struct {
-	T string
+	ExpectedTag PacketTag
+	Tag         PacketTag
 }
 
 func (u UnmarshalError) Error() string {
-	return "Bad " + u.T + " packet"
+	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
 }
 
 type VerificationError struct {
@@ -1199,11 +1200,8 @@ const (
 	merkleErrorNoLegacyUIDRoot
 	merkleErrorUIDMismatch
 	merkleErrorNoSkipSequence
-	merkleErrorSkipSequence
 	merkleErrorSkipMissing
 	merkleErrorSkipHashMismatch
-	merkleErrorNoLeftBookend
-	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
 	merkleErrorNotFound
@@ -1217,6 +1215,8 @@ const (
 	merkleErrorBadRoot
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
+	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {
@@ -2404,6 +2404,14 @@ func (e TeamInviteBadTokenError) Error() string {
 
 //=============================================================================
 
+type TeamWritePermDeniedError struct{}
+
+func (e TeamWritePermDeniedError) Error() string {
+	return "permission denied to modify team"
+}
+
+//=============================================================================
+
 type TeamInviteTokenReusedError struct{}
 
 func (e TeamInviteTokenReusedError) Error() string {
@@ -2465,6 +2473,12 @@ func (e HexWrongLengthError) Error() string { return e.msg }
 
 type EphemeralPairwiseMACsMissingUIDsError struct{ UIDs []keybase1.UID }
 
+func NewEphemeralPairwiseMACsMissingUIDsError(uids []keybase1.UID) EphemeralPairwiseMACsMissingUIDsError {
+	return EphemeralPairwiseMACsMissingUIDsError{
+		UIDs: uids,
+	}
+}
+
 func (e EphemeralPairwiseMACsMissingUIDsError) Error() string {
 	return fmt.Sprintf("Missing %d uids from pairwise macs", len(e.UIDs))
 }
@@ -2494,3 +2508,26 @@ func NewTeamFTLOutdatedError(s string) error {
 func (t TeamFTLOutdatedError) Error() string {
 	return fmt.Sprintf("FTL outdated: %s", t.msg)
 }
+
+var _ error = TeamFTLOutdatedError{}
+
+//=============================================================================
+
+type FeatureFlagError struct {
+	msg     string
+	feature Feature
+}
+
+func NewFeatureFlagError(s string, f Feature) error {
+	return FeatureFlagError{s, f}
+}
+
+func (f FeatureFlagError) Feature() Feature {
+	return f.feature
+}
+
+func (f FeatureFlagError) Error() string {
+	return fmt.Sprintf("Feature %q flagged off: %s", f.feature, f.msg)
+}
+
+var _ error = FeatureFlagError{}

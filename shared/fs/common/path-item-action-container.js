@@ -3,13 +3,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as FsGen from '../../actions/fs-gen'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type TypedState,
-} from '../../util/container'
+import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../util/container'
 import PathItemAction from './path-item-action'
 import {isMobile, isIOS, isAndroid} from '../../constants/platform'
 import {OverlayParentHOC} from '../../common-adapters'
@@ -36,8 +30,8 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
   ...(isMobile
     ? {
-        _saveMedia: () => dispatch(FsGen.createSaveMedia({path})),
-        _shareNative: () => dispatch(FsGen.createShareNative({path})),
+        _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
+        _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
       }
     : {
         _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
@@ -45,7 +39,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 
   ...(!isIOS
     ? {
-        _download: () => dispatch(FsGen.createDownload({path, intent: 'none'})),
+        _download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
       }
     : {}),
 })
@@ -187,7 +181,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     lastWriter: pathItem.lastWriter.username,
     name: pathElements[pathElements.length - 1],
     size: pathItem.size,
-    needLoadMimeType: type === 'file' && pathItem.mimeType === '',
+    // The file content could change, resulting in a mime type change. So just
+    // request it regardless whether we have it or not. The FS saga takes care
+    // of preventing the RPC if it's already subscribed.
+    needLoadMimeType: type === 'file',
     needFolderList: type === 'folder' && pathElements.length >= 3,
     childrenFolders,
     childrenFiles,
@@ -218,7 +215,6 @@ export default compose(
       if (!this.props.showingMenu || (prevProps.showingMenu && this.props.path === prevProps.path)) {
         return
       }
-      // TODO: get rid of these when we have notifications in place.
       this.props.needFolderList && this.props.loadFolderList()
       this.props.needLoadMimeType && this.props.loadMimeType()
     },

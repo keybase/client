@@ -40,39 +40,42 @@ const setupEngineListeners = () => {
       })
   })
 
-  // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreators(
-    'keybase.1.rekeyUI.refresh',
-    ({sessionID, problemSetDevices}, response) => {
-      logger.info('Asked for rekey')
-      response && response.result()
-      return UnlockFoldersGen.createNewRekeyPopup({
-        devices: problemSetDevices.devices || [],
-        problemSet: problemSetDevices.problemSet,
-        sessionID,
-      })
-    }
-  )
+  const dispatch = engine().deprecatedGetDispatch()
 
-  // else we get this also as part of delegateRekeyUI
-  engine().setIncomingActionCreators('keybase.1.rekeyUI.delegateRekeyUI', (_, response, dispatch) => {
-    // Dangling, never gets closed
-    const session = engine().createSession({
-      dangling: true,
-      incomingCallMap: {
-        'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-          dispatch(
-            UnlockFoldersGen.createNewRekeyPopup({
-              devices: problemSetDevices.devices || [],
-              problemSet: problemSetDevices.problemSet,
-              sessionID,
-            })
-          )
+  // we get this with sessionID == 0 if we call openDialog
+  engine().setCustomResponseIncomingCallMap({
+    'keybase.1.rekeyUI.delegateRekeyUI': (_, response) => {
+      // Dangling, never gets closed
+      const session = engine().createSession({
+        dangling: true,
+        incomingCallMap: {
+          'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
+            dispatch(
+              UnlockFoldersGen.createNewRekeyPopup({
+                devices: problemSetDevices.devices || [],
+                problemSet: problemSetDevices.problemSet,
+                sessionID,
+              })
+            )
+          },
+          'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
         },
-        'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
-      },
-    })
-    response && response.result(session.id)
+      })
+      response && response.result(session.id)
+    },
+  })
+  engine().setIncomingCallMap({
+    // else we get this also as part of delegateRekeyUI
+    'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) => {
+      logger.info('Asked for rekey')
+      return Saga.put(
+        UnlockFoldersGen.createNewRekeyPopup({
+          devices: problemSetDevices.devices || [],
+          problemSet: problemSetDevices.problemSet,
+          sessionID,
+        })
+      )
+    },
   })
 }
 

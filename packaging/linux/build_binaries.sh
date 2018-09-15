@@ -65,7 +65,7 @@ if should_build_kbfs ; then
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
   export KEYBASE_SKIP_DEV_TOOLS=1
-  (cd "$this_repo/shared" && yarn)
+  (cd "$this_repo/shared" && yarn install --pure-lockfile --ignore-engines)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
 fi

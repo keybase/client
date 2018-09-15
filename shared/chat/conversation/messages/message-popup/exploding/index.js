@@ -10,17 +10,18 @@ import {
   ProgressIndicator,
   Text,
   type PropsWithTimer,
+  PopupHeaderText,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
+import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   author: string,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -93,7 +94,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Avatar username={author} size={16} clickToProfile="tracker" />
             <ConnectedUsernames
-              clickable={true}
+              onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
               usernames={[author]}

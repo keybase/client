@@ -36,7 +36,7 @@ class NewRepo extends React.Component<Props, State> {
     if (!item) {
       return (
         <Box style={globalStyles.flexBoxCenter}>
-          <Text type="Header">Pick a team</Text>
+          <Text type="BodyBig">Pick a team</Text>
         </Box>
       )
     }

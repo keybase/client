@@ -1,7 +1,41 @@
 // @flow
-import type {TypedState, TypedActions, Dispatch} from '../util/container'
+import Session from './session'
+import type {TypedActions} from '../util/container'
+import type {TypedState} from '../constants/reducer'
+import type {
+  CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
+  IncomingCallMapType as KBIncomingCallMap,
+} from '../constants/types/rpc-gen'
+import type {
+  CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
+  IncomingCallMapType as ChatIncomingCallMap,
+} from '../constants/types/rpc-chat-gen'
+import type {
+  CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
+  IncomingCallMapType as GregorIncomingCallMap,
+} from '../constants/types/rpc-gregor-gen'
+import type {
+  CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
+  IncomingCallMapType as SellarIncomingCallMap,
+} from '../constants/types/rpc-stellar-gen'
+
+export type IncomingCallMapType = {|
+  ...KBIncomingCallMap,
+  ...ChatIncomingCallMap,
+  ...GregorIncomingCallMap,
+  ...SellarIncomingCallMap,
+|}
+
+export type CustomResponseIncomingCallMapType = {|
+  ...KBCustomResponseIncomingCallMap,
+  ...ChatCustomResponseIncomingCallMap,
+  ...GregorCustomResponseIncomingCallMap,
+  ...SellarCustomResponseIncomingCallMap,
+|}
 
 declare export class Engine {
+  deprecatedGetDispatch: () => TypedActions => void; // escape hatch for deprecated code to get dispatch, TODO remove all usages of this
+  deprecatedGetGetState: () => () => TypedState; // escape hatch for deprecated code to get getState, TODO remove all usages of this
   dispatchWaitingAction: (key: string, waiting: boolean) => void;
   reset(): void;
   cancelRPC(): void;
@@ -11,16 +45,14 @@ declare export class Engine {
   actionOnConnect(key: string, f: () => ?TypedActions): void;
   actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
-  setIncomingActionCreators(
-    method: string,
-    actionCreator: (
-      param: Object,
-      response: ?Object,
-      dispatch: Dispatch,
-      getState: () => TypedState
-    ) => null | false | void | TypedActions | Array<TypedActions | null | false | void>
-  ): void;
-  createSession({incomingCallMap?: any, waitingKey?: string, cancelHandler?: any, dangling?: boolean}): any;
+  setIncomingCallMap(incomingCallMap: IncomingCallMapType): void;
+  setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
+  createSession({
+    incomingCallMap?: IncomingCallMapType,
+    waitingKey?: string,
+    cancelHandler?: any,
+    dangling?: boolean,
+  }): Session;
   _rpcOutgoing({
     method: string,
     params: ?Object,

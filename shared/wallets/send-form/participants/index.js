@@ -3,26 +3,28 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import FromField from './from-field'
 import ToField from './to-field'
-import type {CounterpartyType} from '../../../constants/types/wallets'
+import type {CounterpartyType, AccountID} from '../../../constants/types/wallets'
 
 export type Account = {|
-  name: string,
-  user: string,
   contents: string,
+  name: string,
+  id: AccountID,
 |}
 
 type ParticipantsProps = {|
   recipientType: CounterpartyType,
   // Used for send to other account
+  user: string,
   fromAccount: Account,
+  toAccount?: Account,
   allAccounts: Account[],
-  onChangeFromAccount: (accountName: string) => void,
-  onChangeToAccount: (accountName: string) => void,
+  onChangeFromAccount: string => void,
+  onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
-  onChangeAddress: string => void,
+  toFieldInput: string,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
@@ -37,20 +39,23 @@ const Participants = (props: ParticipantsProps) => (
         initialAccount={props.fromAccount}
         accounts={props.allAccounts}
         onChangeSelectedAccount={props.onChangeFromAccount}
+        user={props.user}
       />
     )}
     <ToField
-      recipientType={props.recipientType}
+      toAccount={props.toAccount}
       accounts={props.allAccounts}
       incorrect={props.incorrect}
-      username={props.recipientUsername}
-      fullName={props.recipientFullName}
+      onChangeRecipient={props.onChangeRecipient}
+      onCreateNewAccount={props.onCreateNewAccount}
+      onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
-      onChangeAddress={props.onChangeAddress}
-      onLinkAccount={props.onLinkAccount}
-      onCreateNewAccount={props.onCreateNewAccount}
-      onChangeSelectedAccount={props.onChangeToAccount}
+      recipientFullName={props.recipientFullName}
+      recipientType={props.recipientType}
+      recipientUsername={props.recipientUsername}
+      toFieldInput={props.toFieldInput}
+      user={props.user}
     />
   </Kb.Box2>
 )

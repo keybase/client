@@ -20,6 +20,7 @@ type HeaderProps = {|
   balanceChangeColor: string,
   bottomLine: string, // may be empty
   icon: 'sending' | 'receiving',
+  loading: boolean,
   sender: string,
   senderDeviceName: string,
   timestamp: string,
@@ -29,68 +30,77 @@ type HeaderProps = {|
 
 type Props = {|
   ...HeaderProps,
-  attachTo?: ?React.Component<any, any>,
+  attachTo?: () => ?React.ElementRef<any>,
   onCancel: ?() => void, // if falsy tx is not cancelable
   onHidden: () => void,
   position: Position,
   visible: boolean,
 |}
 
-const Header = (props: HeaderProps) => (
-  <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical">
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
-      <Kb.Icon
-        type={props.icon === 'sending' ? sendIcon : receiveIcon}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
-      <Kb.Text type="BodyTiny" style={styles.colorWhite}>
-        {toUpper(props.topLine)}
-      </Kb.Text>
-      <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
-        {props.amountNominal}
-      </Kb.Text>
-      {!!props.bottomLine && (
+const Header = (props: HeaderProps) =>
+  props.loading ? (
+    <Kb.Box2 direction="vertical" fullWidth={true}>
+      <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true} style={styles.loadingHeaderTop}>
+        <Kb.ProgressIndicator white={true} style={styles.loadingIndicator} />
+      </Kb.Box2>
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 fullWidth={true} gap="small" gapEnd={true} direction="vertical">
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
+        <Kb.Icon
+          type={props.icon === 'sending' ? sendIcon : receiveIcon}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
         <Kb.Text type="BodyTiny" style={styles.colorWhite}>
-          {toUpper(props.bottomLine)}
+          {toUpper(props.topLine)}
+        </Kb.Text>
+        <Kb.Text type="HeaderExtrabold" style={styles.colorWhite}>
+          {props.amountNominal}
+        </Kb.Text>
+        {!!props.bottomLine && (
+          <Kb.Text type="BodyTiny" style={styles.colorWhite}>
+            {toUpper(props.bottomLine)}
+          </Kb.Text>
+        )}
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+        <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
+          <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
+          <Kb.ConnectedUsernames
+            onUsernameClicked="profile"
+            colorFollowing={true}
+            colorYou={true}
+            inline={true}
+            usernames={[props.sender]}
+            type="BodyTinySemibold"
+          />
+        </Kb.Box2>
+        <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
+        <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
+      </Kb.Box2>
+      {!!props.balanceChange && (
+        <Kb.Text
+          type="BodyExtrabold"
+          style={Styles.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
+        >
+          {props.balanceChange}
         </Kb.Text>
       )}
     </Kb.Box2>
-    <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-      <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true} centerChildren={true}>
-        <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
-        <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
-        <Kb.ConnectedUsernames
-          clickable={true}
-          colorFollowing={true}
-          inline={true}
-          usernames={[props.sender]}
-          type="BodyTiny"
-        />
-      </Kb.Box2>
-      <Kb.Text type="BodyTiny">using device {props.senderDeviceName}</Kb.Text>
-      <Kb.Text type="BodyTiny">{props.timestamp}</Kb.Text>
-    </Kb.Box2>
-    {!!props.balanceChange && (
-      <Kb.Text
-        type="BodyExtrabold"
-        style={Styles.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
-      >
-        {props.balanceChange}
-      </Kb.Text>
-    )}
-  </Kb.Box2>
-)
+  )
 
 const PaymentPopup = (props: Props) => {
-  const items = props.onCancel
-    ? [
-        {
-          danger: true,
-          onClick: props.onCancel,
-          title: 'Cancel request',
-        },
-      ]
-    : []
+  const items =
+    !props.loading && props.onCancel
+      ? [
+          {
+            danger: true,
+            onClick: props.onCancel,
+            title: 'Cancel request',
+          },
+        ]
+      : []
 
   // separate out header props
   const {attachTo, onCancel, onHidden, position, visible, ...headerProps} = props
@@ -143,6 +153,21 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.tiny,
     },
   }),
+  loadingHeaderTop: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purple,
+    },
+    isElectron: {
+      height: 133,
+    },
+    isMobile: {
+      height: 215,
+    },
+  }),
+  loadingIndicator: {
+    height: 80,
+    width: 80,
+  },
   textAlignCenter: {
     textAlign: 'center',
   },

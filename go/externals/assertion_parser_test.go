@@ -7,21 +7,16 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
-func testAssertionContext() libkb.AssertionContext {
-	return libkb.MakeAssertionContext(GetServices())
-}
-
 func TestNormalization(t *testing.T) {
-	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid"
-	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid"
-	expr, err := AssertionParse(inp)
-	if err != nil {
-		t.Error(err)
-	} else if expr.String() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
-	}
+	tc := libkb.SetupTest(t, "Normalization", 1)
+	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid || josh@mastodon.SoCiAl"
+	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid,josh@mastodon.social"
+	expr, err := AssertionParse(tc.G, inp)
+	require.NoError(t, err)
+	require.Equal(t, expr.String(), outp)
 }
 
 type Pair struct {
@@ -29,6 +24,7 @@ type Pair struct {
 }
 
 func TestParserFail1(t *testing.T) {
+	tc := libkb.SetupTest(t, "ParserFail1", 1)
 	bads := []Pair{
 		{"aa ||", "Unexpected EOF"},
 		{"aa &&", "Unexpected EOF"},
@@ -47,11 +43,8 @@ func TestParserFail1(t *testing.T) {
 	}
 
 	for _, bad := range bads {
-		expr, err := AssertionParse(bad.k)
-		if err == nil {
-			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
-		} else if err.Error() != bad.v {
-			t.Errorf("Got wrong error; wanted '%s', but got '%s'", bad.v, err)
-		}
+		_, err := AssertionParse(tc.G, bad.k)
+		require.Error(t, err)
+		require.Equal(t, err.Error(), bad.v)
 	}
 }

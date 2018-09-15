@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -938,4 +939,76 @@ func TestLoaderCORE_8445(t *testing.T) {
 	require.True(t, ok)
 	require.NotNil(t, subB.Data.ReaderKeyMasks)
 	require.Len(t, subB.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 1, "number of chat rkms")
+}
+
+// Earlier versions of the app didn't store the merkle head in the TeamChainState, but
+// we need it to perform an audit. This code tests the path that refetches that data
+// from the server.
+func TestLoaderUpgradeMerkleHead(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	tc.G.Env.Test.TeamNoHeadMerkleStore = true
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("create a team")
+	teamName, teamID := createTeam2(tc)
+
+	t.Logf("load the team")
+	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("load the team again")
+	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+}
+
+// Load a team where a writer wrote a kbfs link.
+func TestLoaderKBFSWriter(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 as a writer")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 associates a tlf ID")
+	err = CreateTLF(context.Background(), tcs[1].G, keybase1.CreateTLFArg{
+		TeamID: rootID,
+		TlfID:  randomTlfID(t),
+	})
+	require.NoError(t, err)
+
+	t.Logf("users can still load the team")
+
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+func randomTlfID(t *testing.T) keybase1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	require.NoError(t, err)
+	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }

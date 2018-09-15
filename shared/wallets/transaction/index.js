@@ -5,7 +5,7 @@ import {capitalize} from 'lodash-es'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
+import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 
@@ -55,11 +55,13 @@ type CounterpartyTextProps = {|
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -77,14 +79,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
     case 'otherAccount':
       return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
+        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
       ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
       )
     default:
       /*::
@@ -122,10 +124,15 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text type={textTypeExtrabold}>{props.amountUser}</Text>
+    <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+      {props.amountUser}
+    </Text>
   ) : (
     <React.Fragment>
-      Lumens worth <Text type={textTypeExtrabold}>{props.amountUser}</Text>
+      Lumens worth{' '}
+      <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+        {props.amountUser}
+      </Text>
     </React.Fragment>
   )
 
@@ -133,14 +140,14 @@ const Detail = (props: DetailProps) => {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
-        <Text type={textType}>
+        <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
@@ -149,7 +156,7 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
@@ -157,7 +164,7 @@ const Detail = (props: DetailProps) => {
 
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
-    <Text type={textType}>
+    <Text type={textTypeSemibold}>
       {counterparty} {verbPhrase} {amount}.
     </Text>
   )
@@ -178,7 +185,12 @@ const AmountXLM = (props: AmountXLMProps) => {
       : globalColors.green
   const amount = `${props.amountXLM}`
   return (
-    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text
+      onClick={event => event.stopPropagation()}
+      selectable={true}
+      style={{color, textAlign: 'right'}}
+      type="BodyExtrabold"
+    >
       {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
@@ -207,13 +219,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
       </Text>
     )
   }
-  let human
-  let tooltip
-  if (props.relative) {
-    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
-  } else {
-    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
-  }
+  const human = formatTimeForMessages(props.timestamp)
+  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
     <Text title={tooltip} type="BodySmall">
       {human}

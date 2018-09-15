@@ -45,6 +45,8 @@ const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
         return
       }
       pathLevel === 2 && this.props.loadFavorites()
+      // This is needed not only inside in a tlf, but also in tlf list, to get
+      // `writable` for tlf root.
       this.props.loadFolderList()
     }
     componentDidMount() {
