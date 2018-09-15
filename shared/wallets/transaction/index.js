@@ -178,12 +178,20 @@ type AmountXLMProps = {|
 |}
 
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.pending
-    ? globalColors.black_20
-    : props.delta === 'decrease'
-      ? globalColors.red
-      : globalColors.green
-  const amount = `${props.amountXLM}`
+  let color = globalColors.black_20
+  if (!props.pending) {
+    if (props.delta === 'decrease') {
+      color = globalColors.red
+    } else if (props.delta === 'increase') {
+      color = globalColors.green
+    }
+  }
+  let amount = '0'
+  if (props.delta === 'decrease') {
+    amount = `- ${props.amountXLM}`
+  } else if (props.delta === 'increase') {
+    amount = `+ ${props.amountXLM}`
+  }
   return (
     <Text
       onClick={event => event.stopPropagation()}
@@ -191,7 +199,6 @@ const AmountXLM = (props: AmountXLMProps) => {
       style={{color, textAlign: 'right'}}
       type="BodyExtrabold"
     >
-      {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
   )
