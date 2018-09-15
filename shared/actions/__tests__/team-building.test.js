@@ -66,19 +66,19 @@ const parsedSearchResults = {
       {
         id: 'marcopolo',
         prettyName: 'Marco Munizaga',
-        serviceMap: I.Map({
+        serviceMap: {
           twitter: 'open_sourcery',
           facebook: 'mmunizaga1337',
           github: 'marcopolo',
           keybase: 'marcopolo',
-        }),
+        },
       },
       {
         id: 'rustybot',
         prettyName: 'rustybot',
-        serviceMap: I.Map({
+        serviceMap: {
           keybase: 'rustybot',
-        }),
+        },
       },
     ]),
   },
