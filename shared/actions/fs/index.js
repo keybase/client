@@ -81,6 +81,7 @@ const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
     const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
     const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
       Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+        if (i < 2) return acc
         const path = Types.getPathFromElements(a.slice(0, i + 1))
         return acc.add(path)
       }, acc), I.Set()).toArray()
