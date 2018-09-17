@@ -3,7 +3,6 @@ package teams
 import (
 	"encoding/hex"
 	"testing"
-	"time"
 
 	"golang.org/x/net/context"
 
