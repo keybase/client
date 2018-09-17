@@ -227,5 +227,65 @@ func TestFastLoaderUpPointerUnstub(t *testing.T) {
 	// duplicates what we did in TestFastLoaderMultilevel)
 	tcs[0].G.GetFastTeamLoader().OnLogout()
 	loadSubteam()
+}
 
+// See CORE-8859, there was a bug that showed up when we loaded the subteam first and then
+// the parent, since when we loaded the subteam, we were in "subteam reader" mode, and
+// due to a previous server bug, didn't get boxes and prevs back when in subteam reader mode.
+// Then, when we tried to access a box in the parent, we would fail. Test that it works.
+func TestLoadSubteamThenParent(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// Require that a team is at this key generation
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	t.Logf("add B to the team so they can load it")
+	m := make([]libkb.MetaContext, 2)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_WRITER /* addSelfAs */)
+	require.NoError(t, err)
+
+	expectedSubTeamName, err := teamName.Append("abc")
+	require.NoError(t, err)
+	t.Logf("subsubteam is: %s (%s)", expectedSubTeamName.String(), *subteamID)
+
+	t.Logf("rotate the parent team a bunch of times")
+	// Rotate the key by removing and adding B from the team
+	for i := 0; i < 3; i++ {
+		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		require.NoError(t, err)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+	}
+
+	loadSubteam := func() {
+		t.Logf("load the subteam")
+		arg := keybase1.FastTeamLoadArg{
+			ID:            *subteamID,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			NeedLatestKey: true,
+		}
+		team, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+		require.NoError(t, err)
+		require.True(t, expectedSubTeamName.Eq(team.Name))
+	}
+
+	loadTeam := func(g keybase1.PerTeamKeyGeneration) {
+		t.Logf("load the team")
+		arg := keybase1.FastTeamLoadArg{
+			ID:                   teamID,
+			Applications:         []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			KeyGenerationsNeeded: []keybase1.PerTeamKeyGeneration{g},
+		}
+		_, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+		require.NoError(t, err)
+	}
+
+	loadSubteam()
+	loadTeam(3)
 }
