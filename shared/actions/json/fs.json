@@ -167,6 +167,10 @@
       "type": "Types.MobilePickType",
       "parentPath": "Types.Path"
     },
+    "userFileEditsLoad": {},
+    "userFileEditsLoaded": {
+      "tlfUpdates": "Types.UserTlfUpdates"
+    },
 
     "placeholderAction": {}
   }

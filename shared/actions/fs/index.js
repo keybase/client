@@ -75,6 +75,19 @@ const filePreview = (state: TypedState, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
+const loadUserFileEdits = (state: TypedState, action) =>
+  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
+    .then(writerEdits => {
+      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+      Saga.all(tlfUpdates.map(u =>
+        Saga.put(FsGen.createFilePreviewLoad({path: u.path}))
+      ))
+      return FsGen.createUserFileEditsLoaded({
+        tlfUpdates: tlfUpdates,
+      })
+    })
+    .catch(makeRetriableErrorHandler(action))
+
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
 const folderListRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
@@ -650,6 +663,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
+  yield Saga.actionToPromise(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
