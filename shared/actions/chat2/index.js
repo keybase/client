@@ -1450,7 +1450,8 @@ const changeSelectedConversation = (
     | Chat2Gen.MessageSendPayload
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
-    | Chat2Gen.BlockConversationPayload,
+    | Chat2Gen.BlockConversationPayload
+    | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
   const selected = Constants.getSelectedConversation(state)
@@ -1504,11 +1505,20 @@ const _maybeAutoselectNewestConversation = (
     | Chat2Gen.SetPendingModePayload
     | Chat2Gen.AttachmentsUploadPayload
     | Chat2Gen.BlockConversationPayload
-    | Chat2Gen.NavigateToInboxPayload,
+    | Chat2Gen.NavigateToInboxPayload
+    | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
+  // If there is a team we should avoid when selecting a new conversation (e.g.
+  // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
+  // take it into account
+  let avoidTeam = ''
+  if (action.type === TeamsGen.leaveTeam) {
+    avoidTeam = action.payload.teamname
+  }
   let selected = Constants.getSelectedConversation(state)
-  if (!state.chat2.metaMap.get(selected)) {
+  const selectedMeta = state.chat2.metaMap.get(selected)
+  if (!selectedMeta) {
     selected = Constants.noConversationIDKey
   }
   if (action.type === Chat2Gen.metaDelete) {
@@ -1540,13 +1550,30 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (Constants.isValidConversationIDKey(selected)) {
-    // Stay with our existing convo if it was not empty or pending
+  } else if (
+    Constants.isValidConversationIDKey(selected) &&
+    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
+  ) {
+    // Stay with our existing convo if it was not empty or pending, or the
+    // selected convo already doesn't belong to the team we're trying to switch
+    // away from
     return
   }
 
+  const isEligibleConvo = meta => {
+    if (meta.teamType === 'big') {
+      // Don't select a big team channel
+      return false
+    }
+    if (avoidTeam && meta.teamname === avoidTeam) {
+      // We just left this team, don't select a convo from it
+      return false
+    }
+    return true
+  }
+
   // If we got here we're auto selecting the newest convo
-  const meta = state.chat2.metaMap.maxBy(meta => (meta.teamType !== 'big' ? meta.timestamp : 0))
+  const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
 
   if (meta) {
     return Saga.put(
@@ -2467,6 +2494,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.messageSend,
       Chat2Gen.attachmentsUpload,
       Chat2Gen.blockConversation,
+      TeamsGen.leaveTeam,
     ],
     changeSelectedConversation
   )
