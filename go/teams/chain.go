@@ -830,6 +830,15 @@ func (t *teamSigchainPlayer) addInnerLink(
 	// When isInflate then it is likely prevSeqno != prevState.GetLatestSeqno()
 	prevSeqno := link.Seqno() - 1
 
+	reverifyNeeded := prevState != nil && prevState.ReverifyNeededForHighSkips()
+	highSkipVerifyDesired := !isInflate && !precheck
+	// If presented with an highSkip, and we are unable to verify it
+	// but would like to, throw a CantVerifyNewLinkAttrsError.
+	if highSkipVerifyDesired && reverifyNeeded {
+		t.G().GetLog().Debug("throwing CantVerifyNewLinkAttrsError for high_skip")
+		return res, NewCantVerifyNewLinkAttrsError(payload.Seqno)
+	}
+
 	allowInflate := func(allow bool) error {
 		if isInflate && !allow {
 			return fmt.Errorf("inflating link type not supported: %v", payload.Body.Type)
@@ -1637,14 +1646,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 
-	reverifyNeeded := prevState != nil && prevState.ReverifyNeededForHighSkips()
-	highSkipVerifyDesired := !isInflate && !precheck
-	// If presented with an highSkip, and we are unable to verify it
-	// but would like to, throw a CantVerifyNewLinkAttrsError.
-	if highSkipVerifyDesired && reverifyNeeded {
-		t.G().GetLog().Debug("throwing CantVerifyNewLinkAttrsError for high_skip")
-		return res, NewCantVerifyNewLinkAttrsError(payload.Seqno)
-	}
 	// We only run addInnerLink out of order when inflating, and so we skip
 	// computing high skips during it.
 	// updates high skip data, so we skip it. If highSkip is presented and
