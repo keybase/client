@@ -9,16 +9,25 @@ import {remoteConnect, compose} from '../util/container'
 
 const mapStateToProps = (state) => ({
   _username: state.username,
-  _tlfRows: [
+  _userTlfUpdates: [
     {
-      tlf: FsTypes.stringToPath('/keybase/team/zila.test/abc'),
+      tlf: FsTypes.stringToPath('/keybase/team/zila.test'),
       writer: 'jzila',
       timestamp: 1535497273,
+      updates: [
+        FsTypes.stringToPath('/keybase/team/zila.test/abc'),
+      ],
     },
     {
-      tlf: FsTypes.stringToPath('/keybase/team/zila.test/def'),
+      tlf: FsTypes.stringToPath('/keybase/team/zila.test'),
       writer: 'songgao',
       timestamp: 1535497273,
+      updates: [
+        FsTypes.stringToPath('/keybase/team/zila.test/ghi.txt'),
+        FsTypes.stringToPath('/keybase/team/zila.test/def'),
+        FsTypes.stringToPath('/keybase/team/zila.test/abc'),
+      ],
+      moreUpdateCount: 17,
     },
   ],
 })
@@ -30,7 +39,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   onViewAll: dispatchProps.onViewAll,
-  tlfRows: stateProps._tlfRows.map(c => {
+  userTlfUpdates: stateProps._userTlfUpdates.map(c => {
     const {participants, teamname} = FsUtil.tlfToParticipantsOrTeamname(FsTypes.pathToString(c.tlf))
     const iconSpec = FsConstants.getIconSpecFromUsernamesAndTeamname([c.writer], null, stateProps._username)
     return {
@@ -43,6 +52,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
       teamname: teamname || '',
       iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
+      updates: c.updates.map(u => ({
+        name: FsTypes.getPathName(u),
+        onClick: () => dispatchProps._onSelectPath(u),
+      })),
     }
   }),
 })
