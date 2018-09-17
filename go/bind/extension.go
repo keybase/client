@@ -307,7 +307,7 @@ func extensionPushResult(pusher PushNotifier, err error, strConvID, typ string) 
 func ExtensionPostImage(strConvID, name string, public bool, membersType int,
 	caption string, filename string, mimeType string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
-	defer kbCtx.Trace("ExtensionPostJPEG", func() error { return err })()
+	defer kbCtx.Trace("ExtensionPostImage", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
@@ -319,29 +319,46 @@ func ExtensionPostImage(strConvID, name string, public bool, membersType int,
 		return err
 	}
 
-	// Compute preview result from the native params
-	location := chat1.NewPreviewLocationWithBytes(previewData)
-	baseMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
-		Width:  baseWidth,
-		Height: baseHeight,
-	})
-	previewMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
-		Width:  previewWidth,
-		Height: previewHeight,
-	})
-	callerPreview := &chat1.MakePreviewRes{
-		MimeType:        mimeType,
-		PreviewMimeType: &mimeType,
-		Location:        &location,
-		Metadata:        &previewMD,
-		BaseMetadata:    &baseMD,
+	var callerPreview *chat1.MakePreviewRes
+	if previewData != nil {
+		// Compute preview result from the native params
+		callerPreview = new(chat1.MakePreviewRes)
+		callerPreview.MimeType = mimeType
+		callerPreview.PreviewMimeType = &mimeType
+		callerPreview.BaseMetadata = new(chat1.AssetMetadata)
+		callerPreview.Metadata = new(chat1.AssetMetadata)
+		location := chat1.NewPreviewLocationWithBytes(previewData)
+		callerPreview.Location = &location
+		switch mimeType {
+		case "image/gif":
+			*callerPreview.BaseMetadata = chat1.NewAssetMetadataWithVideo(chat1.AssetMetadataVideo{
+				Width:      baseWidth,
+				Height:     baseHeight,
+				DurationMs: 10, // make something up, we don't display this anyway
+			})
+			*callerPreview.Metadata = chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+				Width:  previewWidth,
+				Height: previewHeight,
+			})
+			callerPreview.PreviewMimeType = new(string)
+			*callerPreview.PreviewMimeType = "image/jpeg"
+		default:
+			*callerPreview.BaseMetadata = chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+				Width:  baseWidth,
+				Height: baseHeight,
+			})
+			*callerPreview.Metadata = chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
+				Width:  previewWidth,
+				Height: previewHeight,
+			})
+		}
 	}
 	return postFileAttachment(ctx, gc, uid, strConvID, name, public, membersType, filename, caption,
 		callerPreview)
 }
 
 func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
-	caption string, filename string,
+	caption string, filename string, mimeType string,
 	duration, baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostVideo", func() error { return err })()
 	defer func() { err = flattenError(err) }()
@@ -355,7 +372,6 @@ func ExtensionPostVideo(strConvID, name string, public bool, membersType int,
 		return err
 	}
 	// Compute preview result from the native params
-	mimeType := "video/quicktime"
 	previewMimeType := "image/jpeg"
 	location := chat1.NewPreviewLocationWithBytes(previewData)
 	if duration < 1 {
