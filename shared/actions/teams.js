@@ -51,7 +51,7 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
       Saga.put(
         RouteTreeGen.createNavigateTo({
           path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
-          parentPath: [teamsTab],
+          parentPath: isMobile ? [] : [teamsTab],
         })
       ),
       // Show the avatar editor on desktop.
