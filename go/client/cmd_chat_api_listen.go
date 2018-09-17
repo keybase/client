@@ -6,13 +6,13 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
@@ -102,6 +102,7 @@ func (c *CmdChatAPIListen) GetUsage() libkb.Usage {
 type chatNotificationDisplay struct {
 	libkb.Contextified
 	cmd *CmdChatAPIListen
+	svc chatServiceHandler
 }
 
 func (d *chatNotificationDisplay) printf(fmt string, args ...interface{}) error {
@@ -114,37 +115,60 @@ func (d *chatNotificationDisplay) errorf(format string, args ...interface{}) err
 	return err
 }
 
-type incomingMessage struct {
-	Source string `json:"activity_source"` // "LOCAL" or "REMOTE"
+type msgNotification struct {
+	Source     string              `json:"source,omitempty"`
+	Msg        *Message            `json:"msg,omitempty"`
+	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
+}
 
-	ConvType string `json:"conv_type"` // "team" or "private"
-	ConvName string `json:"conv_name"`
-	Channel  string `json:"channel,omitempty"`
-	TeamType string `json:"team_type,omitempty"` // "SIMPLE" or "COMPLEX"
+func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Message {
+	if inMsg.Message.IsValid() {
+		mv := inMsg.Message.Valid()
+		summary := &MsgSummary{
+			ID: mv.MessageID,
+			Channel: ChatChannel{
+				Name:        inMsg.Conv.Name,
+				MembersType: strings.ToLower(inMsg.Conv.MembersType.String()),
+				TopicType:   strings.ToLower(inMsg.Conv.TopicType.String()),
+				TopicName:   inMsg.Conv.Channel,
+				Public:      inMsg.Conv.Visibility == keybase1.TLFVisibility_PUBLIC,
+			},
+			Sender: MsgSender{
+				Username:   mv.SenderUsername,
+				DeviceName: mv.SenderDeviceName,
+			},
+			SentAt:             mv.Ctime.UnixSeconds(),
+			SentAtMs:           mv.Ctime.UnixMilliseconds(),
+			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
+			IsEphemeral:        mv.IsEphemeral,
+			IsEphemeralExpired: mv.IsEphemeralExpired,
+			ETime:              mv.Etime,
+			HasPairwiseMacs:    mv.HasPairwiseMacs,
+			Reactions:          mv.Reactions,
+			Content:            d.svc.convertMsgBody(mv.MessageBody),
+		}
+		return &Message{Msg: summary}
+	}
 
-	ID     chat1.MessageID `json:"id"`
-	Type   string          `json:"type"`
-	Body   string          `json:"message,omitempty"`
-	Sender string          `json:"sender,omitempty"`
-	Ctime  gregor1.Time    `json:"ctime"`
-
-	// Exploding messages
-	Etime      gregor1.Time `json:"explode_time"`
-	ExplodedBy *string      `json:"exploded_by,omitempty"`
-
-	// For messages that affect other messages (like edits, reactions)
-	TargetMsgID chat1.MessageID `json:"target_msg_id,omitempty"`
-
-	// Message deletions
-	DeletedMessageIDs []chat1.MessageID `json:"target_msg_ids,omitempty"`
-
-	// Attachment
-	Filename string `json:"filename,omitempty"`
-	MimeType string `json:"mime_type,omitempty"`
-	Title    string `json:"title,omitempty"`
+	state, err := inMsg.Message.State()
+	switch {
+	case err != nil:
+		errStr := err.Error()
+		return &Message{Error: &errStr}
+	case state == chat1.MessageUnboxedState_ERROR:
+		errStr := inMsg.Message.Error().ErrMsg
+		return &Message{Error: &errStr}
+	default:
+		return nil
+	}
 }
 
 func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
+	if !d.cmd.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
+		// Skip local message
+		return nil
+	}
+
 	activity := arg.Activity
 	typ, err := activity.ActivityType()
 	if err == nil {
@@ -157,56 +181,20 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 					// Skip exploding message
 					return nil
 				}
-				if !d.cmd.showLocal && arg.Source == chat1.ChatActivitySource_LOCAL {
-					// Skip local message
-					return nil
-				}
-				msgJSON := incomingMessage{
-					Source:     arg.Source.String(),
-					ConvName:   inMsg.Conv.Name,
-					Channel:    inMsg.Conv.Channel,
-					Sender:     mv.SenderUsername,
-					ID:         mv.MessageID,
-					Ctime:      mv.Ctime,
-					Etime:      mv.Etime,
-					ExplodedBy: mv.ExplodedBy,
-				}
-				switch inMsg.Conv.MembersType {
-				case chat1.ConversationMembersType_TEAM:
-					msgJSON.ConvType = "team"
-					msgJSON.TeamType = inMsg.Conv.TeamType.String()
-				default:
-					msgJSON.ConvType = "private"
-				}
-				bodyType, err := mv.MessageBody.MessageType()
-				if err == nil {
-					msgJSON.Type = bodyType.String()
-					switch bodyType {
-					case chat1.MessageType_TEXT:
-						msgJSON.Body = mv.MessageBody.Text().Body
-					case chat1.MessageType_REACTION:
-						r := mv.MessageBody.Reaction()
-						msgJSON.Body = r.Body
-						msgJSON.TargetMsgID = r.MessageID
-					case chat1.MessageType_EDIT:
-						e := mv.MessageBody.Edit()
-						msgJSON.Body = e.Body
-						msgJSON.TargetMsgID = e.MessageID
-					case chat1.MessageType_DELETE:
-						msgJSON.DeletedMessageIDs = mv.MessageBody.Delete().MessageIDs
-					case chat1.MessageType_ATTACHMENT:
-						a := mv.MessageBody.Attachment()
-						msgJSON.Filename = a.Object.Filename
-						msgJSON.MimeType = a.Object.MimeType
-						msgJSON.Title = a.Object.Title
-					}
-				}
-
-				if jsonStr, err := json.Marshal(msgJSON); err == nil {
-					d.printf("%s\n", string(jsonStr))
-				} else {
-					d.errorf("Error while marshaling JSON: %s\n", err)
-				}
+			}
+			msg := d.formatMessage(inMsg)
+			if msg == nil {
+				return nil
+			}
+			notif := msgNotification{
+				Source:     strings.ToLower(arg.Source.String()),
+				Msg:        msg,
+				Pagination: inMsg.Pagination,
+			}
+			if jsonStr, err := json.Marshal(notif); err == nil {
+				d.printf("%s\n", string(jsonStr))
+			} else {
+				d.errorf("Error while marshaling JSON: %s\n", err)
 			}
 		}
 	}
