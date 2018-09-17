@@ -77,7 +77,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     const controlled = !!this.props.value
     if (controlled) {
-      const errMsg = 'Attempted to use transformText on controlled input component!'
+      const errMsg =
+        'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
       logger.error(errMsg)
       throw new Error(errMsg)
     }
@@ -105,6 +106,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   setSelection = (s: Selection) => {
+    const controlled = !!this.props.value
+    if (!controlled) {
+      const errMsg =
+        'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
     const n = this._input
     if (n) {
       n.selectionStart = s.start

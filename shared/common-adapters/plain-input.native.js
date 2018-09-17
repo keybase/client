@@ -59,7 +59,8 @@ class PlainInput extends Component<InternalProps, State> {
   transformText = (fn: TextInfo => TextInfo) => {
     const controlled = !!this.props.value
     if (controlled) {
-      const errMsg = 'Attempted to use transformText on controlled input component!'
+      const errMsg =
+        'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
       logger.error(errMsg)
       throw new Error(errMsg)
     }
@@ -75,6 +76,13 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   setSelection = (s: Selection) => {
+    const controlled = !!this.props.value
+    if (!controlled) {
+      const errMsg =
+        'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
     this._setSelection(s)
   }
 
