@@ -793,6 +793,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 
 const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   switch (reason) {
+    case 'extension':
     case 'push':
       return RPCChatTypes.commonGetThreadReason.push
     case 'foregrounding':

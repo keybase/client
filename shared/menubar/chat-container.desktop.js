@@ -11,9 +11,9 @@ const mapDispatchToProps = dispatch => ({
   _onSelectConversation: (conversationIDKey: ChatTypes.ConversationIDKey) => dispatch(Chat2Gen.createOpenChatFromWidget({conversationIDKey})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onViewAll: dispatchProps.onViewAll,
-  convRows: stateProps.conversations.map(c => ({
+  convRows: stateProps.conversations.slice(0, ownProps.convLimit ? ownProps.convLimit : stateProps.conversations.length).map(c => ({
     conversationIDKey: c.conversationIDKey,
     onSelectConversation: () => dispatchProps._onSelectConversation(c.conversationIDKey),
     ...c,
