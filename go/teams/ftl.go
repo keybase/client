@@ -301,6 +301,12 @@ func (f *FastTeamChainLoader) deriveKeysForApplication(m libkb.MetaContext, app 
 		return nil
 	}
 
+	if arg.NeedLatestKey {
+		// This debug is useful to have since it will spell out which version is the latest in the log
+		// if the caller asked for latest.
+		m.CDebugf("FastTeamChainLoader#deriveKeysForApplication: sending back latest at key generation %d", state.LatestKeyGeneration)
+	}
+
 	for _, gen := range arg.KeyGenerationsNeeded {
 		if err = doKey(gen); err != nil {
 			return nil, err
@@ -389,8 +395,18 @@ func stateHasKeys(m libkb.MetaContext, shoppingList *shoppingList, arg fastLoadA
 		fresh = false
 	}
 
+	// The key generations needed are the ones passed in, and also, potentially, our cached
+	// LatestKeyGeneration from the state. It could be that when we go to the server, this is no
+	// longer the LatestKeyGeneration, but it might be. It depends. But in either case, we should
+	// pull down the mask, since it's a bug to not have it if it turns out the server refresh
+	// didn't budge the latest key generation.
+	kgn := append([]keybase1.PerTeamKeyGeneration{}, arg.KeyGenerationsNeeded...)
+	if arg.NeedLatestKey && state.LoadedLatest && state.LatestKeyGeneration > 0 {
+		kgn = append(kgn, state.LatestKeyGeneration)
+	}
+
 	for _, app := range arg.Applications {
-		for _, gen := range arg.KeyGenerationsNeeded {
+		for _, gen := range kgn {
 			add := false
 			if state.ReaderKeyMasks[app] == nil || state.ReaderKeyMasks[app][gen] == nil {
 				m.CDebugf("state doesn't have mask for <%d,%d>", app, gen)

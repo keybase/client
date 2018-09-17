@@ -237,7 +237,6 @@ func TestLoadSubteamThenParent(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
 
-	// Require that a team is at this key generation
 	t.Logf("create team")
 	teamName, teamID := createTeam2(*tcs[0])
 	t.Logf("add B to the team so they can load it")
@@ -288,4 +287,61 @@ func TestLoadSubteamThenParent(t *testing.T) {
 
 	loadSubteam()
 	loadTeam(3)
+}
+
+// See CORE-8894 for what happened here. The flow is: (1) user loads parent team at generation=N;
+// (2) there's a key rotation; (3) loads child team and gets the new box and prevs for generation=N+1,
+// but no RKMs; (4) loads the RKMs for the most recent generation. Test a fix for this case.
+func TestLoadRKMForLatestCORE8894(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	// Require that a team is at this key generation
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	t.Logf("add B to the team so they can load it")
+	m := make([]libkb.MetaContext, 2)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+	_, err := AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+	require.NoError(t, err)
+	subteamID, err := CreateSubteam(m[0].Ctx(), tcs[0].G, "abc", teamName, keybase1.TeamRole_WRITER /* addSelfAs */)
+	require.NoError(t, err)
+
+	expectedSubTeamName, err := teamName.Append("abc")
+	require.NoError(t, err)
+	t.Logf("subsubteam is: %s (%s)", expectedSubTeamName.String(), *subteamID)
+
+	loadTeam := func(id keybase1.TeamID, g keybase1.PerTeamKeyGeneration, forceRefresh bool) {
+		t.Logf("load the subteam")
+		arg := keybase1.FastTeamLoadArg{
+			ID:           id,
+			Applications: []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			ForceRefresh: forceRefresh,
+		}
+		if g == keybase1.PerTeamKeyGeneration(0) {
+			arg.NeedLatestKey = true
+		} else {
+			arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{g}
+		}
+		res, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
+		m[0].CDebugf("shit %+v", res)
+		require.NoError(t, err)
+	}
+
+	loadTeam(teamID, keybase1.PerTeamKeyGeneration(0), false)
+
+	// Rotate the key by removing and adding B from the team
+	for i := 0; i < 3; i++ {
+		err = RemoveMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username)
+		require.NoError(t, err)
+		_, err = AddMember(m[0].Ctx(), tcs[0].G, teamName.String(), fus[1].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+	}
+	err = RotateKey(m[0].Ctx(), tcs[0].G, teamID)
+	require.NoError(t, err)
+
+	loadTeam(*subteamID, keybase1.PerTeamKeyGeneration(0), true)
+	loadTeam(teamID, keybase1.PerTeamKeyGeneration(0), false)
 }
