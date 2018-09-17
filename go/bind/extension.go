@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
@@ -186,6 +187,16 @@ func ExtensionGetInbox() (res string, err error) {
 	return string(dat), nil
 }
 
+func ExtensionDetectMIMEType(filename string) (res string, err error) {
+	defer kbCtx.Trace("ExtensionDetectMIMEType", func() error { return err })()
+	src, err := os.Open(filename)
+	if err != nil {
+		return res, err
+	}
+	defer src.Close()
+	return attachments.DetectMIMEType(context.TODO(), src)
+}
+
 type extensionGregorHandler struct {
 	globals.Contextified
 	nist *libkb.NIST
@@ -293,8 +304,8 @@ func extensionPushResult(pusher PushNotifier, err error, strConvID, typ string) 
 	pusher.LocalNotification("extension", msg, -1, "default", strConvID, "chat.extension")
 }
 
-func ExtensionPostJPEG(strConvID, name string, public bool, membersType int,
-	caption string, filename string,
+func ExtensionPostImage(strConvID, name string, public bool, membersType int,
+	caption string, filename string, mimeType string,
 	baseWidth, baseHeight, previewWidth, previewHeight int, previewData []byte, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostJPEG", func() error { return err })()
 	defer func() { err = flattenError(err) }()
@@ -309,7 +320,6 @@ func ExtensionPostJPEG(strConvID, name string, public bool, membersType int,
 	}
 
 	// Compute preview result from the native params
-	mimeType := "image/jpeg"
 	location := chat1.NewPreviewLocationWithBytes(previewData)
 	baseMD := chat1.NewAssetMetadataWithImage(chat1.AssetMetadataImage{
 		Width:  baseWidth,

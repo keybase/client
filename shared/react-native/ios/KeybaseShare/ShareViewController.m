@@ -174,8 +174,15 @@ const BOOL isSimulator = NO;
   CGImageRelease(cgThumb);
 }
 
-- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSData*))resultCb  {
+- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSString*,NSData*))resultCb  {
+  NSError* error = nil;
+  NSString* path = [url relativePath];
   UIImage* original = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
+  if (error != nil) {
+    NSLog(@"MIME type error, setting to JPEG: %@", error);
+    mimeType = @"image/jpeg";
+  }
   CFURLRef cfurl = CFBridgingRetain(url);
   CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -185,8 +192,15 @@ const BOOL isSimulator = NO;
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  NSData* preview = nil;
+  if ([mimeType isEqualToString:@"image/png"]) {
+    preview = UIImagePNGRepresentation(scaled);
+  } else if ([mimeType isEqualToString:@"image/gif"]) {
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  } else {
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  }
+  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
   CGImageRelease(image);
   CFRelease(cfurl);
   CFRelease(is);
@@ -234,10 +248,10 @@ const BOOL isSimulator = NO;
       }];
     } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
-      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSString* mimeType, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostJPEG(convID, name, NO, [membersType longValue], self.contentText, filePath,
-                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+        KeybaseExtensionPostImage(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else {
       NSError* error = NULL;
