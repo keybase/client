@@ -842,32 +842,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
 	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
-
-	// this payment should be "unread"
-	require.True(t, p.Unread)
-	// and it should be the oldest unread payment on the page
-	require.NotNil(t, recipPaymentsPage.OldestUnread)
-	require.Equal(t, *recipPaymentsPage.OldestUnread, p.Id)
-
-	// Mark p.Id (and everything before it) as read:
-	err = srvRecip.MarkAsReadLocal(context.Background(), stellar1.MarkAsReadLocalArg{MostRecentID: p.Id})
-	require.NoError(t, err)
-	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
-	require.NoError(t, err)
-	recipPayments = recipPaymentsPage.Payments
-	require.Len(t, recipPayments, 1)
-	t.Logf("recipPayments after MarkAsReadLocal: %+v", recipPayments)
-	p = recipPayments[0].Payment
-	require.NotNil(t, p)
-	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
-	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
-
-	// should no longer be unread
-	require.False(t, p.Unread)
-	// should be no OldestUnread payment
-	require.Nil(t, recipPaymentsPage.OldestUnread)
 }
 
 func TestPaymentDetailsEmptyAccId(t *testing.T) {
