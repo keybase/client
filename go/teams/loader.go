@@ -452,15 +452,6 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if !arg.forceFullReload {
 		// Load from cache
 		ret = l.storage.Get(ctx, arg.teamID, arg.public)
-		// as part of rollout of signchain v2.3, if a reverify is needed
-		// then treat it as a cache miss and ask for a full reload.
-		if ret != nil {
-			teamSigChainState := TeamSigChainState{inner: ret.Chain}
-			if teamSigChainState.ReverifyNeededForHighSkips() {
-				arg.forceFullReload = true
-				ret = nil
-			}
-		}
 	}
 
 	if ret != nil && !ret.Chain.Reader.Eq(arg.me) {
@@ -875,6 +866,15 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	if arg.needAdmin {
 		if !l.satisfiesNeedAdmin(ctx, arg.me, fromCache) {
 			// Start from scratch if we are newly admin
+			return true, true
+		}
+	}
+
+	// as part of rollout of signchain v2.3, if a reverify is needed
+	// then treat it as a cache miss and ask for a full reload.
+	if fromCache != nil {
+		teamSigChainState := TeamSigChainState{inner: fromCache.Chain}
+		if teamSigChainState.ReverifyNeededForHighSkips() {
 			return true, true
 		}
 	}
