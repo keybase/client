@@ -82,8 +82,7 @@ func NewMerkleStore(g *libkb.GlobalContext, tag, endpoint, kitFilename string, s
 
 type merkleStoreKitT struct {
 	KitVersion int `json:"kit_version"`
-	// TODO CORE-8655 add ctime to paramproofs
-	Ctime int `json:"ctime"`
+	Ctime      int `json:"ctime"`
 	// Versioned entries of the store
 	Tab map[int]json.RawMessage `json:"tab"`
 }

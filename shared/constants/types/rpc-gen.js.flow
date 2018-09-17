@@ -2095,7 +2095,8 @@ export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Bo
 export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
 export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
-export type ParamProofServiceConfig = $ReadOnly<{enabled: Boolean, isDevel: Boolean, displayName: String, domain: String, group?: ?ProofServiceGroup, usernameRe: String, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
+export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, group?: ?ProofServiceGroup, username: ParamProofUsernameConfig, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
+export type ParamProofUsernameConfig = $ReadOnly<{re: String, min: Int, max: Int}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
   | 0 // NONE_0
