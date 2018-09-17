@@ -1,6 +1,10 @@
 // @flow
 import * as React from 'react'
-import PlainInput, {type PropsWithInput, type KeyboardType} from './plain-input'
+import PlainInput, {
+  castProps as plainInputCastProps,
+  type PropsWithInput,
+  type KeyboardType,
+} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType, castPlatformStyles} from './icon'
 import {getStyle as getTextStyle, type TextType} from './text'
@@ -75,7 +79,7 @@ class NewInput extends React.Component<DefaultProps & Props, State> {
             />
           </Box>
         )}
-        <PlainInput {...this.props} onFocus={this._onFocus} onBlur={this._onBlur} />
+        <PlainInput {...plainInputCastProps(this.props)} onFocus={this._onFocus} onBlur={this._onBlur} />
         {this.props.decoration}
       </Box2>
     )

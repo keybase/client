@@ -34,7 +34,6 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
               borderColor: errorText ? globalColors.red : globalColors.grey,
             },
           ])}
-          small={true}
         />
         {!!errorText && (
           <Text type="BodySmallError" style={styles.errorText}>

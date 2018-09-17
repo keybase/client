@@ -20,7 +20,7 @@ export type KeyboardType =
   // Android Only
   | 'visible-password'
 
-export type Props = {
+export type Props = {|
   autoFocus?: boolean,
   className?: string,
   disabled?: boolean,
@@ -56,13 +56,16 @@ export type Props = {
   returnKeyType?: 'done' | 'go' | 'next' | 'search' | 'send',
   selectTextOnFocus?: boolean,
   onEndEditing?: () => void,
-}
+|}
 
 // Use this to mix your props with input props like type Props = PropsWithInput<{foo: number}>
 export type PropsWithInput<P> = {|
   ...$Exact<Props>,
   ...$Exact<P>,
 |}
+
+// Use this in components that use PropsWithInput to pass `this.props` through to this component
+declare export function castProps<T>(p: PropsWithInput<T>): Props
 
 /**
  * Flow does the work of making the default props nullable when instantiating
@@ -74,10 +77,10 @@ export type PropsWithInput<P> = {|
  * use `InternalProps`.
  * See more discussion here: https://github.com/facebook/flow/issues/1660
  */
-export type DefaultProps = {
+export type DefaultProps = {|
   keyboardType: KeyboardType,
   textType: TextType,
-}
+|}
 
 export type Selection = {start: number, end: number}
 
@@ -86,7 +89,7 @@ export type TextInfo = {
   selection: Selection,
 }
 
-export type InternalProps = DefaultProps & Props
+export type InternalProps = {...DefaultProps, ...Props}
 declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;

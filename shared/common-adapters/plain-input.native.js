@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
+import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
@@ -16,9 +17,11 @@ type State = {
   height: ?number,
 }
 
+type Props = PropsWithTimer<InternalProps>
+
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
-class PlainInput extends Component<InternalProps, State> {
+class _PlainInput extends Component<Props, State> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
@@ -52,6 +55,10 @@ class PlainInput extends Component<InternalProps, State> {
     this.setNativeProps({text: newTextInfo.text, selection: newTextInfo.selection})
     this._lastNativeText = newTextInfo.text
     this._lastNativeSelection = newTextInfo.selection
+  }
+
+  setSelection = (selection: {end: number, start: number}) => {
+    // this.props.setTimeout()
   }
 
   _onChangeText = (t: string) => {
@@ -189,6 +196,7 @@ class PlainInput extends Component<InternalProps, State> {
     return <NativeTextInput {...props} />
   }
 }
+const PlainInput = HOCTimers(_PlainInput)
 
 const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},
@@ -202,3 +210,4 @@ const styles = styleSheetCreate({
 })
 
 export default PlainInput
+export {castProps} from './plain-input.shared'
