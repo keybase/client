@@ -39,9 +39,8 @@ func canDoWork(
 	log logger.Logger) (bool, error) {
 	fi, err := fs.Stat(workingFileName)
 	currCommonTime := commonTime(ctx, mdserver, clock, log)
-	if err != nil && !os.IsNotExist(err) {
-		return false, err
-	} else if os.IsNotExist(err) {
+	switch {
+	case os.IsNotExist(err):
 		log.CDebugf(ctx, "Creating new working file %s", workingFileName)
 		f, err := fs.Create(workingFileName)
 		if err != nil {
@@ -51,7 +50,9 @@ func canDoWork(
 		if err != nil {
 			return false, err
 		}
-	} else { // err == nil
+	case err != nil:
+		return false, err
+	default: // err == nil
 		modCommonTime := fi.ModTime()
 		if modCommonTime.Add(workTimeLimit).After(currCommonTime) {
 			log.CDebugf(ctx, "Other worker is still working; "+
