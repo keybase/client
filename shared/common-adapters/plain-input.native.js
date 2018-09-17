@@ -6,8 +6,9 @@ import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
 import {pick} from 'lodash-es'
+import logger from '../logger'
 
-import type {InternalProps, TextInfo} from './plain-input'
+import type {InternalProps, TextInfo, Selection} from './plain-input'
 
 type ContentSizeChangeEvent = {nativeEvent: {contentSize: {width: number, height: number}}}
 
@@ -30,7 +31,7 @@ class PlainInput extends Component<InternalProps, State> {
   }
   _input: ?NativeTextInput
   _lastNativeText: ?string // sourced from onChangeText
-  _lastNativeSelection: ?{start: number, end: number}
+  _lastNativeSelection: ?Selection
 
   // TODO remove this when we can use forwardRef with react-redux. That'd let us
   // use HOCTimers with this component.
@@ -56,18 +57,28 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   transformText = (fn: TextInfo => TextInfo) => {
+    const controlled = !!this.props.value
+    if (controlled) {
+      const errMsg = 'Attempted to use transformText on controlled input component!'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
     const currentTextInfo = {
       text: this._lastNativeText || '',
       selection: this._lastNativeSelection || {start: 0, end: 0},
     }
     const newTextInfo = fn(currentTextInfo)
     checkTextInfo(newTextInfo)
-    this.setNativeProps({text: newTextInfo.text, selection: newTextInfo.selection})
+    this.setNativeProps({text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
     this._setSelection(newTextInfo.selection)
   }
 
-  _setSelection = (selection: {start: number, end: number}) => {
+  setSelection = (s: Selection) => {
+    this._setSelection(s)
+  }
+
+  _setSelection = (selection: Selection) => {
     this._setTimeout(() => {
       // Validate that this selection makes sense with current value
       let {start, end} = selection
@@ -85,7 +96,7 @@ class PlainInput extends Component<InternalProps, State> {
     this.props.onChangeText && this.props.onChangeText(t)
   }
 
-  _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
+  _onSelectionChange = (event: {nativeEvent: {selection: Selection}}) => {
     const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .

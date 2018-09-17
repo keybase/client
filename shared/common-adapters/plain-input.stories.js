@@ -24,19 +24,34 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
   state = {}
   mutationTarget = React.createRef()
   _onChangeText = (valueKey: string) => (t: string) => this.setState({[valueKey]: t})
-  _onChangeSelection = () => {
+
+  _onChangeChangingValue = (t: string) => this.setState({changingValue: t})
+  _testChangingSelection = () => {
     if (this.mutationTarget.current) {
       const input = this.mutationTarget.current
-      input.transformText(ti => ({text: ti.text, selection: {start: 2, end: 5}}))
       input.focus()
+      input.setSelection({start: 2, end: 5})
     }
   }
-  _onTestCrossSelection = () => {
+  _testCrossSelection = () => {
     if (this.mutationTarget.current) {
       const input = this.mutationTarget.current
       input.focus()
-      input.transformText(ti => ({text: '5char', selection: {start: 0, end: 0}}))
-      input.transformText(ti => ({text: 'a lot more than 5 characters', selection: {start: 3, end: 5}}))
+      this.setState({changingValue: '5char'}, () => {
+        this.forceUpdate(() => {
+          if (this.mutationTarget.current) {
+            const input = this.mutationTarget.current
+            input.setSelection({start: 0, end: 0})
+            this.setState({changingValue: 'a lot more than 5 characters'})
+            this.forceUpdate(() => {
+              if (this.mutationTarget.current) {
+                const input = this.mutationTarget.current
+                input.setSelection({start: 3, end: 5})
+              }
+            })
+          }
+        })
+      })
     }
   }
   render() {
@@ -69,7 +84,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
             {...commonProps}
             ref={this.mutationTarget}
             value={this.state.changingValue || ''}
-            onChangeText={this._onChangeText('changingValue')}
+            onChangeText={this._onChangeChangingValue}
           />
           <ButtonBar>
             <Button
@@ -77,8 +92,8 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
               label="Set value"
               onClick={() => this.setState({changingValue: 'reset value!'})}
             />
-            <Button type="Secondary" label="Set selection" onClick={this._onChangeSelection} />
-            <Button type="Secondary" label="Run test" onClick={this._onTestCrossSelection} />
+            <Button type="Secondary" label="Set selection" onClick={this._testChangingSelection} />
+            <Button type="Secondary" label="Run test" onClick={this._testCrossSelection} />
           </ButtonBar>
         </Box2>
       </Box2>

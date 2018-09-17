@@ -3,9 +3,10 @@ import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
 import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
 import {pick} from 'lodash-es'
+import logger from '../logger'
 
 import type {_StylesDesktop} from '../styles/css'
-import type {InternalProps, TextInfo} from './plain-input'
+import type {InternalProps, TextInfo, Selection} from './plain-input'
 import {checkTextInfo} from './input.shared'
 
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
@@ -74,6 +75,12 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
+    const controlled = !!this.props.value
+    if (controlled) {
+      const errMsg = 'Attempted to use transformText on controlled input component!'
+      logger.error(errMsg)
+      throw new Error(errMsg)
+    }
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
@@ -94,6 +101,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
       }
 
       this._autoResize()
+    }
+  }
+
+  setSelection = (s: Selection) => {
+    const n = this._input
+    if (n) {
+      n.selectionStart = s.start
+      n.selectionEnd = s.end
     }
   }
 

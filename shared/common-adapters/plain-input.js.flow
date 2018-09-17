@@ -38,7 +38,7 @@ export type Props = {|
   style?: StylesCrossPlatform,
   textType?: TextType,
   type?: 'password' | 'text' | 'number',
-  value?: string, // Makes this a controlled input when passed
+  value?: string, // Makes this a controlled input when passed. Also disables mutating value via `transformText`, see note at component API
 
   /* Platform discrepancies */
   // Maps to onSubmitEditing on native
@@ -94,8 +94,19 @@ declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
-  // Note that a selection will only appear when the input is focused. Call
-  // `focus()` before this if you want to be sure the user will see the
-  // selection.
+  /**
+   *  This can only be used when the input is controlled. Use `transformText` if
+   *  you want to do this on an uncontrolled input. Make sure the Selection is
+   *  valid against the `value` prop. Avoid changing `value` and calling this at
+   *  the same time if you don't want bad things to happen. Note that a
+   *  selection will only appear when the input is focused. Call `focus()`
+   *  before this if you want to be sure the user will see the selection.
+   **/
+  setSelection: Selection => void;
+  /**
+   *  This can only be used when the input is uncontrolled. Like `setSelection`,
+   *  if you want to be sure the user will see a selection use `focus()` before
+   *  calling this.
+   **/
   transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }
