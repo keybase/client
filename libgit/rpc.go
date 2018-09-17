@@ -95,9 +95,9 @@ func (rh *RPCHandler) waitForJournal(
 
 func (rh *RPCHandler) getHandleAndConfig(
 	ctx context.Context, folder keybase1.Folder) (
-	newCtx context.Context, gitConfig libkbfs.Config,
-	tlfHandle *libkbfs.TlfHandle, tempDir string, err error) {
-	newCtx, gitConfig, tempDir, err = getNewConfig(
+	newCtx context.Context, gitConfigRet libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, tempDirRet string, err error) {
+	newCtx, gitConfig, tempDir, err := getNewConfig(
 		ctx, rh.config, rh.kbCtx, rh.kbfsInitParams, rh.log)
 	if err != nil {
 		return nil, nil, nil, "", err
