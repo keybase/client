@@ -305,6 +305,8 @@ func precheckLinksToPost(ctx context.Context, g *libkb.GlobalContext,
 	return nil
 }
 
+// playSigItem takes a pointer to a state and plays a single sig item on top of it.
+// `state` is moved into this function. There must exist no live references into it from now on.
 func playSigItem(ctx context.Context, g *libkb.GlobalContext, me keybase1.UserVersion, state *TeamSigChainState, sigMultiItem libkb.SigMultiItem, precheck bool) (*TeamSigChainState, error) {
 	isAdmin := true
 	if state != nil {

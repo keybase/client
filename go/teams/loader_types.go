@@ -188,8 +188,8 @@ func (l *ChainLinkUnpacked) AssertInnerOuterMatch() (err error) {
 	}
 
 	var highSkipPtr *libkb.HighSkip
-	if highSkipStr := l.inner.HighSkip; highSkipStr != nil {
-		highSkip, err := highSkipStr.ToLibkbHighSkip()
+	if scHighSkip := l.inner.HighSkip; scHighSkip != nil {
+		highSkip, err := scHighSkip.ToLibkbHighSkip()
 		if err != nil {
 			return nil
 		}
