@@ -442,6 +442,9 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
     },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
+    },
     "paymentInfoReceived": {
       "_description": "We received payment info for a sendPayment message",
       "conversationIDKey": "Types.ConversationIDKey",

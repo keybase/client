@@ -25,6 +25,7 @@ import type {TypedState} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
+import {switchTo} from '../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -2446,6 +2447,15 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const openChatFromWidget = (state: TypedState, {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload) =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([chatTab])),
+    ...(conversationIDKey
+      ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
+      : []),
+  ])
+
 const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
   const actions = []
   const items = action.payload.state
@@ -2613,6 +2623,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     createConversationError
   )
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
+  yield Saga.actionToAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
   yield Saga.safeTakeEveryPure(
