@@ -657,7 +657,7 @@ func (am *AutogitManager) Pull(
 func (am *AutogitManager) Delete(
 	ctx context.Context, dstTLF *libkbfs.TlfHandle, dstDir string,
 	repo, branchName string) (doneCh <-chan struct{}, err error) {
-	am.log.CDebugf(ctx, "Autogit delete request for %s/%s:%s",
+	am.log.CDebugf(ctx, "Autogit delete request for %s/%s/%s:%s",
 		dstTLF.GetCanonicalPath(), dstDir, repo, branchName)
 	defer func() {
 		am.deferLog.CDebugf(ctx, "Delete request processed: %+v", err)
