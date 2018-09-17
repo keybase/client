@@ -98,7 +98,7 @@ func (t TeamSigChainState) GetHighSkip() (libkb.HighSkip, error) {
 // In the special case of the first link, we already know what the
 // next high skip should be, so reverification is not needed.
 func (t TeamSigChainState) ReverifyNeededForHighSkips() bool {
-	return t.GetLatestSeqno() > 1 && t.GetLatestHighSeqno() == 0
+	return t.GetLatestSeqno() >= 1 && t.GetLatestHighSeqno() == 0
 }
 
 func (t TeamSigChainState) GetHighSkipIfValid() (*libkb.HighSkip, error) {
@@ -1637,8 +1637,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 
-	highSkip := payload.HighSkip
-	reverifyNeeded := res.newState.ReverifyNeededForHighSkips()
+	reverifyNeeded := prevState != nil && prevState.ReverifyNeededForHighSkips()
 	highSkipVerifyDesired := !isInflate && !precheck
 	// If presented with an highSkip, and we are unable to verify it
 	// but would like to, throw a CantVerifyNewLinkAttrsError.
@@ -1650,6 +1649,7 @@ func (t *teamSigchainPlayer) addInnerLink(
 	// computing high skips during it.
 	// updates high skip data, so we skip it. If highSkip is presented and
 	// either we don't need to reverify or we want to check it, check it.
+	highSkip := payload.HighSkip
 	if highSkipVerifyDesired {
 		if highSkip != nil && !reverifyNeeded {
 			if highSkip.Seqno != res.newState.GetLatestHighSeqno() {
