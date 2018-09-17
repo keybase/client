@@ -9,6 +9,7 @@ const common = {
   onChangeDisplayUnit: action('onChangeDisplayUnit'),
   onClickInfo: action('onClickInfo'),
   topLabel: '',
+  value: '',
 }
 
 const props1 = {
@@ -26,11 +27,20 @@ const props2 = {
   inputPlaceholder: '0.0000000',
 }
 
-export const props3 = {
+const props3 = {
   ...common,
   bottomLabel: '1 XLM = $0.2303',
   displayUnit: 'XLM',
   inputPlaceholder: '0.0000000',
+}
+
+// Exported for use in main send form story
+export const props4 = {
+  ...common,
+  bottomLabel: '1 XLM = $0.2303',
+  displayUnit: 'XLM',
+  inputPlaceholder: '0.0000000',
+  value: '3.4289000',
 }
 
 const warning1 = {
@@ -52,6 +62,7 @@ const load = () => {
     .add('XLM worth USD', () => <AssetInput {...props1} />)
     .add('XLM', () => <AssetInput {...props3} />)
     .add('Asset', () => <AssetInput {...props2} />)
+    .add('Prefilled XLM', () => <AssetInput {...props4} />)
     .add('USD over warning', () => <AssetInput {...props1} {...warning1} />)
     .add('XLM over warning', () => <AssetInput {...props2} {...warning2} />)
     .add('asset type warning', () => <AssetInput {...props3} {...warning3} />)
