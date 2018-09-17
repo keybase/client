@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const yourRole = Constants.paymentToYourRole(tx, stateProps._you)
+  const yourRole = Constants.paymentToYourRole(tx)
   const counterpartyType = Constants.paymentToCounterpartyType(tx)
   return {
     amountUser: tx.worth,
