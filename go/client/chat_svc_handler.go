@@ -21,6 +21,7 @@ import (
 type ChatServiceHandler interface {
 	ListV1(context.Context, listOptionsV1) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
+	GetV1(context.Context, getOptionsV1) Reply
 	SendV1(context.Context, sendOptionsV1) Reply
 	EditV1(context.Context, editOptionsV1) Reply
 	ReactionV1(context.Context, reactionOptionsV1) Reply
@@ -124,61 +125,17 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	return Reply{Result: cl}
 }
 
-// ReadV1 implements ChatServiceHandler.ReadV1.
-func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
-	var rlimits []chat1.RateLimit
-	client, err := GetChatLocalClient(c.G())
-	if err != nil {
-		return c.errReply(err)
-	}
-
-	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
-	if err != nil {
-		return c.errReply(err)
-	}
-
-	arg := chat1.GetThreadLocalArg{
-		ConversationID: conv.Info.Id,
-		Pagination:     opts.Pagination,
-		Query: &chat1.GetThreadQuery{
-			MarkAsRead: !opts.Peek,
-		},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
-	}
-	threadView, err := client.GetThreadLocal(ctx, arg)
-	if err != nil {
-		return c.errReply(err)
-	}
-	rlimits = append(rlimits, threadView.RateLimits...)
-
-	// Check to see if this was fetched offline and we should fail
-	if opts.FailOffline && threadView.Offline {
-		return c.errReply(chat.OfflineError{})
-	}
-
-	// This could be lower than the truth if any messages were
-	// posted between the last two gregor rpcs.
-	readMsgID := conv.ReaderInfo.ReadMsgid
-
-	selfUID := c.G().Env.GetUID()
-	if selfUID.IsNil() {
-		c.G().Log.Warning("Could not get self UID for api")
-	}
-
-	thread := Thread{
-		Offline:          threadView.Offline,
-		IdentifyFailures: threadView.IdentifyFailures,
-		Pagination:       threadView.Thread.Pagination,
-	}
-	for _, m := range threadView.Thread.Messages {
+func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
+	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []Message, err error) {
+	for _, m := range messages {
 		st, err := m.State()
 		if err != nil {
-			return c.errReply(errors.New("invalid message: unknown state"))
+			return nil, errors.New("invalid message: unknown state")
 		}
 
 		if st == chat1.MessageUnboxedState_ERROR {
 			em := m.Error().ErrMsg
-			thread.Messages = append(thread.Messages, Message{
+			ret = append(ret, Message{
 				Error: &em,
 			})
 			continue
@@ -197,13 +154,13 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		}
 
 		unread := mv.ServerHeader.MessageID > readMsgID
-		if opts.UnreadOnly && !unread {
+		if unreadOnly && !unread {
 			continue
 		}
 		if !selfUID.IsNil() {
 			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
 			unread = unread && (!fromSelf)
-			if opts.UnreadOnly && fromSelf {
+			if unreadOnly && fromSelf {
 				continue
 			}
 		}
@@ -245,16 +202,119 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		msg.Sender.Username = mv.SenderUsername
 		msg.Sender.DeviceName = mv.SenderDeviceName
 
-		thread.Messages = append(thread.Messages, Message{
+		ret = append(ret, Message{
 			Msg: &msg,
 		})
 	}
 
-	// Avoid having null show up in the output JSON.
-	if thread.Messages == nil {
-		thread.Messages = []Message{}
+	if ret == nil {
+		// Avoid having null show up in the output JSON.
+		ret = []Message{}
+	}
+	return ret, nil
+}
+
+// ReadV1 implements ChatServiceHandler.ReadV1.
+func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
 	}
 
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.GetThreadLocalArg{
+		ConversationID: conv.Info.Id,
+		Pagination:     opts.Pagination,
+		Query: &chat1.GetThreadQuery{
+			MarkAsRead: !opts.Peek,
+		},
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+	threadView, err := client.GetThreadLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+	rlimits = append(rlimits, threadView.RateLimits...)
+
+	// Check to see if this was fetched offline and we should fail
+	if opts.FailOffline && threadView.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+
+	// This could be lower than the truth if any messages were
+	// posted between the last two gregor rpcs.
+	readMsgID := conv.ReaderInfo.ReadMsgid
+
+	selfUID := c.G().Env.GetUID()
+	if selfUID.IsNil() {
+		c.G().Log.Warning("Could not get self UID for api")
+	}
+
+	messages, err := c.formatMessages(ctx, threadView.Thread.Messages, conv, selfUID, readMsgID, opts.UnreadOnly)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	thread := Thread{
+		Offline:          threadView.Offline,
+		IdentifyFailures: threadView.IdentifyFailures,
+		Pagination:       threadView.Thread.Pagination,
+		Messages:         messages,
+	}
+
+	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
+	return Reply{Result: thread}
+}
+
+// GetV1 implements ChatServiceHandler.GetV1.
+func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.GetMessagesLocalArg{
+		ConversationID:   conv.Info.Id,
+		MessageIDs:       opts.MessageIDs,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+
+	res, err := client.GetMessagesLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	// Check to see if this was fetched offline and we should fail
+	if opts.FailOffline && res.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+
+	selfUID := c.G().Env.GetUID()
+	if selfUID.IsNil() {
+		c.G().Log.Warning("Could not get self UID for api")
+	}
+
+	messages, err := c.formatMessages(ctx, res.Messages, conv, selfUID, 0 /* readMsgID */, false /* unreadOnly */)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	thread := Thread{
+		Offline:          res.Offline,
+		IdentifyFailures: res.IdentifyFailures,
+		Messages:         messages,
+	}
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
 }
