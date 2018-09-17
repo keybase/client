@@ -225,8 +225,10 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer />
-        <FilesPreview />
+        <Kb.ScrollView>
+          <ChatContainer />
+          <FilesPreview />
+        </Kb.ScrollView>
         {this.props.isAsyncWriteHappening && (
           <Kb.Box style={styles.uploadingContainer}>
             <Kb.Icon type="icon-loader-uploading-16" />

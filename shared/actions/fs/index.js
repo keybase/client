@@ -75,18 +75,24 @@ const filePreview = (state: TypedState, action) =>
     )
     .catch(makeRetriableErrorHandler(action))
 
-const loadUserFileEdits = (state: TypedState, action) =>
-  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise()
-    .then(writerEdits => {
-      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-      Saga.all(tlfUpdates.map(u =>
-        Saga.put(FsGen.createFilePreviewLoad({path: u.path}))
-      ))
-      return FsGen.createUserFileEditsLoaded({
-        tlfUpdates: tlfUpdates,
-      })
-    })
-    .catch(makeRetriableErrorHandler(action))
+const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
+  try {
+    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
+      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+        if (i < 2) return acc
+        const path = Types.getPathFromElements(a.slice(0, i + 1))
+        return acc.add(path)
+      }, acc), I.Set()).toArray()
+    yield Saga.sequentially([
+      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
+      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+    ])
+  } catch (ex) {
+    yield makeRetriableErrorHandler(action)
+  }
+})
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -663,7 +669,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
-  yield Saga.actionToPromise(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)

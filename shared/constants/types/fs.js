@@ -210,8 +210,10 @@ export type TlfUpdate = I.RecordOf<_TlfUpdate>
 
 export type UserTlfUpdates = I.List<TlfUpdate>
 
+export type PathItems = I.Map<Path, PathItem>
+
 export type _State = {
-  pathItems: I.Map<Path, PathItem>,
+  pathItems: PathItems,
   tlfs: Tlfs,
   edits: I.Map<EditID, Edit>,
   pathUserSettings: I.Map<Path, PathUserSetting>,
@@ -262,6 +264,7 @@ export const getPathParent = (p: Path): Path =>
         .slice(0, -1)
         .join('/')
 export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
   const visibility = elems[1]

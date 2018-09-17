@@ -20,7 +20,6 @@ const mergeProps = (stateProps, {_onUsernameClicked}, ownProps) => {
       username,
       you: stateProps.username === username,
     }))
-    // .filter(u => !ownProps.skipSelf || !u.you)
 
   return {
     ...ownProps,
