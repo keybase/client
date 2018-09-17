@@ -28,6 +28,7 @@ export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) 
 // also for pending invites, hence id rather than username
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
+export const leaveTeamWaitingKey = (teamname: Types.Teamname) => `teamLeave:${teamname}`
 
 export const makeChannelInfo: I.RecordFactory<Types._ChannelInfo> = I.Record({
   channelname: '',

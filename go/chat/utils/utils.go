@@ -867,6 +867,10 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
+	case chat1.MessageType_REQUESTPAYMENT:
+		return "payment request", "🚀"
+	case chat1.MessageType_SENDPAYMENT:
+		return "payment sent", "🚀"
 	}
 	return "", ""
 }
