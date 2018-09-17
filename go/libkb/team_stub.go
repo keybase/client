@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	gregor "github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -56,6 +57,10 @@ func (n *nullTeamLoader) HintLatestSeqno(ctx context.Context, id keybase1.TeamID
 
 func (n *nullTeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error) {
 	return id, fmt.Errorf("null team loader")
+}
+
+func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error {
+	return nil
 }
 
 func (n nullTeamLoader) OnLogout() {}
