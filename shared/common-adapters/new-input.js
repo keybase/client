@@ -91,7 +91,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
     )
   }
 }
-// $FlowIssue doesn't know about forwardRef
+// $FlowIssue doesn't know about forwardRef (https://github.com/facebook/flow/issues/6103)
 const NewInput = React.forwardRef((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({
