@@ -40,6 +40,7 @@ const mapStateToProps = (state: TypedState) => {
 
   // Building section
   const recipientType = build.recipientType || 'keybaseUser'
+  const toFieldInput = build.to
   // Built section
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
@@ -47,10 +48,11 @@ const mapStateToProps = (state: TypedState) => {
   return {
     allAccounts,
     fromAccount,
-    toAccount,
     incorrect,
     recipientType,
     recipientUsername,
+    toAccount,
+    toFieldInput,
     user: state.config.username,
   }
 }
@@ -62,8 +64,24 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount: () => dispatch(RouteTree.navigateAppend(['createNewAccount'])),
-  onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'createNewAccount',
+        },
+      ])
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'linkExisting',
+        },
+      ])
+    ),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))

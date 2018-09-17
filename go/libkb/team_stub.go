@@ -2,7 +2,9 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 
+	gregor "github.com/keybase/client/go/gregor"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 )
@@ -57,6 +59,10 @@ func (n *nullTeamLoader) ResolveNameToIDUntrusted(ctx context.Context, teamName 
 	return id, fmt.Errorf("null team loader")
 }
 
+func (n *nullTeamLoader) ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error {
+	return nil
+}
+
 func (n nullTeamLoader) OnLogout() {}
 
 func (n nullTeamLoader) ClearMem() {}
@@ -88,3 +94,13 @@ func (n nullTeamAuditor) AuditTeam(m MetaContext, id keybase1.TeamID, isPublic b
 func (n nullTeamAuditor) OnLogout(m MetaContext) {}
 
 func newNullTeamAuditor() nullTeamAuditor { return nullTeamAuditor{} }
+
+type TeamAuditParams struct {
+	RootFreshness time.Duration
+	// After this many new Merkle updates, another audit is triggered.
+	MerkleMovementTrigger keybase1.Seqno
+	NumPreProbes          int
+	NumPostProbes         int
+	Parallelism           int
+	LRUSize               int
+}

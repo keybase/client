@@ -84,11 +84,3 @@ func (t RooterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.
 }
 
 func (t RooterServiceType) IsDevelOnly() bool { return true }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(RooterServiceType{})
-}
-
-//=============================================================================

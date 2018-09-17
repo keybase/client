@@ -1,19 +1,13 @@
 // @flow
 import * as React from 'react'
-import * as Sb from '../stories/storybook'
-import ScrollView from './scroll-view'
-import Text from './text'
-import NameWithIcon from './name-with-icon'
+import * as Sb from '../../stories/storybook'
+import ScrollView from '../scroll-view'
+import Text from '../text'
+import NameWithIcon from '../name-with-icon'
 
 const commonProps = {
   colorFollowing: true,
   containerStyle: {padding: 24},
-}
-
-const outerClick = evt => {
-  if (!evt.defaultPrevented) {
-    Sb.action('Outer click')(evt)
-  }
 }
 
 const innerClick = evt => {
@@ -84,7 +78,7 @@ const load = () => {
           {...commonProps}
           teamname="keybasefriends"
           title="keybasefriends"
-          onClick={outerClick}
+          onClick={Sb.action('Outer click')}
           metaOne={
             <Text type="BodySmallPrimaryLink" onClick={innerClick}>
               Manage members

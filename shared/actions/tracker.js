@@ -583,10 +583,7 @@ const setupEngineListeners = () => {
       })
   })
 
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) => {
-      return Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'})
-    },
+  engine().setCustomResponseIncomingCallMap({
     'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
@@ -627,6 +624,10 @@ const setupEngineListeners = () => {
 
       response && response.result(session.getId())
     },
+  })
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
+      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
   })
 }
 

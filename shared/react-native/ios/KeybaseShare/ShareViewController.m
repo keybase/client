@@ -28,38 +28,44 @@ const BOOL isSimulator = NO;
 @implementation ShareViewController
 
 - (BOOL)isContentValid {
-    return self.hasInited;
+    return self.hasInited && self.convTarget != nil;
 }
 
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
-  BOOL skipLogFile = NO;
-  NSError* error = nil;
-  NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
-  KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
-  if (error != nil) {
-    // If Init failed, then let's throw up our error screen.
-    NSLog(@"Failed to init: %@", error);
-    InitFailedViewController* initFailed = [InitFailedViewController alloc];
-    [initFailed setDelegate:self];
-    [self pushConfigurationViewController:initFailed];
-    return;
-  }
-  [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
-  [self validateContent];
-  
-  NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
-  if ([jsonSavedConv length] > 0) {
-    NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
-    NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
-    if (!conv) {
-      NSLog(@"failed to parse saved conv: %@", error);
-    } else {
-      // Success reading a saved convo, set it and reload the items to it.
-      [self setConvTarget:conv];
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    BOOL skipLogFile = NO;
+    NSError* error = nil;
+    NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
+    KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
+    if (error != nil) {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        // If Init failed, then let's throw up our error screen.
+        NSLog(@"Failed to init: %@", error);
+        InitFailedViewController* initFailed = [InitFailedViewController alloc];
+        [initFailed setDelegate:self];
+        [self pushConfigurationViewController:initFailed];
+      });
+      return;
     }
-  }
-  [self reloadConfigurationItems];
+    [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
+   
+    NSString* jsonSavedConv = KeybaseExtensionGetSavedConv(); // result is in JSON format
+    if ([jsonSavedConv length] > 0) {
+      NSData* data = [jsonSavedConv dataUsingEncoding:NSUTF8StringEncoding];
+      NSDictionary* conv = [NSJSONSerialization JSONObjectWithData:data options: NSJSONReadingMutableContainers error: &error];
+      if (!conv) {
+        NSLog(@"failed to parse saved conv: %@", error);
+      } else {
+        // Success reading a saved convo, set it and reload the items to it.
+        [self setConvTarget:conv];
+      }
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self validateContent];
+      [self reloadConfigurationItems];
+    });
+  });
 }
 
 -(void)initFailedClosed {
@@ -150,8 +156,14 @@ const BOOL isSimulator = NO;
     [super didReceiveMemoryWarning];
 }
 
-- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSData*))resultCb  {
+- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSString*,NSData*))resultCb  {
   NSError *error = NULL;
+  NSString* path = [url relativePath];
+  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
+  if (error != nil) {
+    NSLog(@"MIME type error, setting to Quicktime: %@", error);
+    mimeType = @"video/quicktime";
+  }
   CMTime time = CMTimeMake(1, 1);
   AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
@@ -163,24 +175,49 @@ const BOOL isSimulator = NO;
   UIImage* original = [UIImage imageWithCGImage:cgOriginal];
   UIImage* scaled = [UIImage imageWithCGImage:cgThumb];
   NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
   CGImageRelease(cgOriginal);
   CGImageRelease(cgThumb);
 }
 
-- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSData*))resultCb  {
-  UIImage* original = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSString*,NSData*))resultCb  {
+  NSError* error = nil;
+  NSString* path = [url relativePath];
+  NSData* imageDat = [NSData dataWithContentsOfURL:url];
+  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
+  if (error != nil) {
+    NSLog(@"createImagePreview: MIME type error, setting to JPEG: %@", error);
+    mimeType = @"image/jpeg";
+  }
+  // If this GIF is small enough, then we can probably create the real preview in
+  // Go, so let's give it a shot.
+  if ([mimeType isEqualToString:@"image/gif"] && imageDat.length < 10*1024*1024) {
+    NSLog(@"createImagePreview: not generating preview for small GIF");
+    resultCb(0, 0, 0, 0, mimeType, nil);
+    return;
+  }
+  
+  UIImage* original = [UIImage imageWithData:imageDat];
   CFURLRef cfurl = CFBridgingRetain(url);
   CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
                         (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
-                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageAlways,
                         [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  NSData* preview = nil;
+  if ([mimeType isEqualToString:@"image/png"]) {
+    preview = UIImagePNGRepresentation(scaled);
+  } else if ([mimeType isEqualToString:@"image/gif"]) {
+    // We aren't going to be playing this in the thread, so let's just
+    // use a JPEG
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  } else {
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  }
+  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
   CGImageRelease(image);
   CFRelease(cfurl);
   CFRelease(is);
@@ -221,17 +258,19 @@ const BOOL isSimulator = NO;
     NSString* filePath = [url relativePath];
     if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
       // Generate image preview here, since it runs out of memory easy in Go
-      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight,
+                                              NSString* mimeType, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath,
+        KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
                                  duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
-      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight,
+                                              NSString* mimeType, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostJPEG(convID, name, NO, [membersType longValue], self.contentText, filePath,
-                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+        KeybaseExtensionPostImage(convID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else {
       NSError* error = NULL;
@@ -294,6 +333,7 @@ const BOOL isSimulator = NO;
 - (void)convSelected:(NSDictionary *)conv {
   // This is a delegate method from the inbox view, it gets run when the user taps an item.
   [self setConvTarget:conv];
+  [self validateContent];
   [self reloadConfigurationItems];
   [self popConfigurationViewController];
 }

@@ -158,6 +158,15 @@ const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDispl
     Constants.changeDisplayCurrencyWaitingKey
   ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
+const changeAccountName = (state: TypedState, action: WalletsGen.ChangeAccountNamePayload) =>
+  RPCTypes.localChangeWalletAccountNameLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      newName: action.payload.name,
+    },
+    Constants.changeAccountNameWaitingKey
+  ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
+
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
   RPCTypes.localDeleteWalletAccountLocalRpcPromise(
     {
@@ -240,12 +249,8 @@ const createdOrLinkedAccount = (
   state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
-  if (action.type === WalletsGen.createdNewAccount && action.error) {
+  if (action.error) {
     // Create new account failed, don't nav
-    return
-  }
-  if (action.type === WalletsGen.linkedExistingAccount && action.error) {
-    // Link existing failed, don't nav
     return
   }
   if (action.payload.showOnCreation) {
@@ -254,7 +259,18 @@ const createdOrLinkedAccount = (
   return Saga.put(Route.navigateUp())
 }
 
-const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
+const navigateUp = (
+  state: TypedState,
+  action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
+) => {
+  if (action.error) {
+    // we don't want to nav on error
+    return
+  }
+  return Saga.put(Route.navigateUp())
+}
+
+const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPayload) => {
   if (action.type === WalletsGen.selectAccount && !action.payload.show) {
     // we don't want to show, don't nav
     return
@@ -331,6 +347,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
       WalletsGen.didSetAccountAsDefault,
+      WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
       ConfigGen.loggedIn,
     ],
@@ -365,10 +382,9 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
-  yield Saga.safeTakeEveryPure(
-    [WalletsGen.selectAccount, WalletsGen.didSetAccountAsDefault],
-    navigateToAccount
-  )
+  yield Saga.actionToPromise(WalletsGen.changeAccountName, changeAccountName)
+  yield Saga.actionToAction(WalletsGen.selectAccount, navigateToAccount)
+  yield Saga.actionToAction([WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName], navigateUp)
   yield Saga.actionToAction(
     [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount],
     createdOrLinkedAccount

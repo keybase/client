@@ -99,11 +99,3 @@ func (t DNSServiceType) LastWriterWins() bool { return false }
 func (t DNSServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &DNSChecker{l}
 }
-
-//=============================================================================
-
-func init() {
-	externalServices.Register(DNSServiceType{})
-}
-
-//=============================================================================

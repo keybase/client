@@ -1538,3 +1538,38 @@ func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
 		require.Error(t, err)
 	}
 }
+
+func TestForceRepollState(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+	tt.addUser("wtr")
+
+	_, err := tt.users[0].tc.G.API.Post(libkb.APIArg{
+		Endpoint:    "test/big_state_cutoff",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"cutoff": libkb.I{Val: 1},
+		},
+	})
+	require.NoError(t, err)
+
+	team := tt.users[0].createTeam()
+	for i := 0; i < 3; i++ {
+		tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
+		tt.users[0].removeTeamMember(team, tt.users[1].username)
+	}
+	found := false
+	w := 10 * time.Millisecond
+	for i := 0; i < 10; i++ {
+		found = tt.users[0].tc.G.GetTeamLoader().(*teams.TeamLoader).InForceRepollMode(context.TODO())
+		if found {
+			break
+		}
+		w *= 2
+		t.Logf("Waiting for %v, for gregor state update", w)
+		time.Sleep(w)
+	}
+	require.True(t, found)
+}

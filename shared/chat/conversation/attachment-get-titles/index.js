@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {
   Box,
+  Box2,
   Button,
   Icon,
   OrientedImage,
@@ -12,7 +13,7 @@ import {
   ScrollView,
   WaitingButton,
 } from '../../../common-adapters/index'
-import {globalColors, globalStyles, isMobile, isIPhoneX} from '../../../styles'
+import {globalMargins, globalStyles, isMobile, isIPhoneX} from '../../../styles'
 
 export type PathToInfo = {
   [path: string]: {
@@ -119,12 +120,19 @@ class GetTitles extends React.Component<Props, State> {
               )}
             </Box>
             {paths.length > 0 && (
-              <Text
-                type="Body"
-                style={{color: globalColors.black_40, marginTop: 5, maxWidth: isMobile ? 300 : undefined}}
+              <Box2
+                direction="vertical"
+                style={{
+                  alignItems: 'center',
+                  marginTop: globalMargins.xtiny,
+                  maxWidth: isMobile ? 300 : undefined,
+                }}
               >
-                Filename: {info.filename} ({this.state.index + 1} of {paths.length})
-              </Text>
+                <Text type="BodySmallSemibold">Filename</Text>
+                <Text type="BodySmall">
+                  {info.filename} ({this.state.index + 1} of {paths.length})
+                </Text>
+              </Box2>
             )}
             <Input
               style={isMobile ? stylesInputMobile : stylesInputDesktop}
