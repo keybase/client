@@ -250,10 +250,6 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		mungedForceRepoll = true
 		mungedWantMembers = nil
 	}
-	if !mungedForceRepoll && l.InForceRepollMode(ctx) {
-		l.G().Log.CDebugf(ctx, "Must force-repoll in force-repoll mode")
-		mungedForceRepoll = true
-	}
 
 	ret, err := l.load2(ctx, load2ArgT{
 		teamID: teamID,
@@ -855,6 +851,8 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - ForceRepoll
 // - Cache freshness / StaleOK
 // - NeedSeqnos
+// - If this user is in global "force repoll" mode, where it would be too spammy to
+//   push out individual team changed notifications, so all team loads need a repoll.
 func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (bool, bool) {
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
@@ -923,6 +921,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
+		repoll = true
+	}
+
+	// InForceRepoll needs to a acquire a lock, so avoid it if we can
+	// (i.e., if repoll is already set to true).
+	if !repoll && l.InForceRepollMode(ctx) {
 		repoll = true
 	}
 
@@ -1498,6 +1502,7 @@ func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
 		return false
 	}
 	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
+		l.G().Log.CDebugf(ctx, "TeamLoader#InForceRepollMode: returning true")
 		return true
 	}
 	l.forceRepollUntil = nil
