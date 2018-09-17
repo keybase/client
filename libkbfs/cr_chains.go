@@ -1109,7 +1109,28 @@ func (ccs *crChains) findPathForDeleted(mostRecent BlockPointer) path {
 			}
 		}
 	}
-	return path{}
+	// We can get here if the entry in question was also created
+	// during the chain period, in which case `mostRecent` doesn't
+	// need to be unreferenced explicitly.  There's nothing easy we
+	// can do here.  But the path isn't very important; for the most
+	// part, it's just informational for log messages and journal
+	// status.  So if we are stuck, just pick use the root directory
+	// and a fake name.
+	var rootMostRecent BlockPointer
+	if ccs.mostRecentChainMDInfo != nil {
+		rootMostRecent =
+			ccs.mostRecentChainMDInfo.GetRootDirEntry().BlockPointer
+	}
+	return path{
+		FolderBranch: FolderBranch{
+			Tlf:    ccs.mostRecentChainMDInfo.TlfID(),
+			Branch: MasterBranch,
+		},
+		path: []pathNode{{
+			BlockPointer: rootMostRecent,
+			Name:         mostRecent.String(),
+		}},
+	}
 }
 
 // getPaths returns a sorted slice of most recent paths to all the
