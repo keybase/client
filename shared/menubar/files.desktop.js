@@ -4,8 +4,7 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as FsTypes from '../constants/types/fs'
 import PathItemIcon from '../fs/common/path-item-icon'
-import ConnectedUsernames from '../common-adapters/usernames-remote-container'
-import {compose} from '../util/container'
+import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
   name: string,
@@ -101,8 +100,8 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
           usernames={[props.writer]}
+          onUsernameClicked="profile"
           type="BodySemibold"
-          clickable={true}
           underline={true}
           colorFollowing={true}
           colorBroken={true}
