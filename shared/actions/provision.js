@@ -10,7 +10,6 @@ import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
-import {niceError} from '../util/errors'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import type {CommonResponseHandler} from '../engine/types'
 
