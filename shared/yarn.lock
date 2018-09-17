@@ -11361,7 +11361,7 @@ react-native-tab-view@^0.0.67:
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-543":
   version "0.54.3"
-  resolved "git://github.com/keybase/react-native#6e857b593e24a02aa64b9288be62694ee6414100"
+  resolved "git://github.com/keybase/react-native#29b2087d1a2b3296e9436bf0131741d7c1a4380f"
   dependencies:
     absolute-path "^0.0.0"
     art "^0.10.0"
