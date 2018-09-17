@@ -707,7 +707,7 @@ func (rua *renameUnmergedAction) updateOps(
 			}
 		}
 	} else {
-		// The unmerged copy is changing it's name, so make a local
+		// The unmerged copy is changing its name, so make a local
 		// rename op for it, and a create op for the merged version.
 		rop, err := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
 			mergedMostRecent, newMergedEntry.BlockPointer,
