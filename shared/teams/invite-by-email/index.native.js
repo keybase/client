@@ -131,7 +131,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     if (this.props.hasPermission) {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
-          {this.props.errorMessage && (
+          {!!this.props.errorMessage && (
             <Box2
               direction="horizontal"
               style={{
