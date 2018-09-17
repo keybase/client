@@ -94,6 +94,8 @@ declare export default class PlainInput extends React.Component<Props> {
   static defaultProps: DefaultProps;
   blur: () => void;
   focus: () => void;
-  // Supported only on desktop right now
+  // Note that a selection will only appear when the input is focused. Call
+  // `focus()` before this if you want to be sure the user will see the
+  // selection.
   transformText: (fn: (TextInfo) => TextInfo, reflectChange?: boolean) => void;
 }

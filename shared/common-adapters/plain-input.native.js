@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {getStyle as getTextStyle} from './text'
 import {NativeTextInput} from './native-wrappers.native'
-import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {collapseStyles, globalColors, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 import {checkTextInfo} from './input.shared'
@@ -17,11 +16,9 @@ type State = {
   height: ?number,
 }
 
-type Props = PropsWithTimer<InternalProps>
-
 // A plain text input component. Handles callbacks, text styling, and auto resizing but
 // adds no styling.
-class _PlainInput extends Component<Props, State> {
+class PlainInput extends Component<InternalProps, State> {
   static defaultProps = {
     keyboardType: 'default',
     textType: 'Body',
@@ -35,8 +32,21 @@ class _PlainInput extends Component<Props, State> {
   _lastNativeText: ?string // sourced from onChangeText
   _lastNativeSelection: ?{start: number, end: number}
 
+  // TODO remove this when we can use forwardRef with react-redux. That'd let us
+  // use HOCTimers with this component.
+  // https://github.com/reduxjs/react-redux/pull/1000
+  _timeoutIDs = []
+
   _setInputRef = (ref: ?NativeTextInput) => {
     this._input = ref
+  }
+
+  _setTimeout = (fn: () => void, timeoutMS: number) => {
+    this._timeoutIDs.push(setTimeout(fn, timeoutMS))
+  }
+
+  componentWillUnmount() {
+    this._timeoutIDs.forEach(clearTimeout)
   }
 
   // Needed to support wrapping with e.g. a ClickableBox. See
@@ -54,11 +64,20 @@ class _PlainInput extends Component<Props, State> {
     checkTextInfo(newTextInfo)
     this.setNativeProps({text: newTextInfo.text, selection: newTextInfo.selection})
     this._lastNativeText = newTextInfo.text
-    this._lastNativeSelection = newTextInfo.selection
+    this._setSelection(newTextInfo.selection)
   }
 
-  setSelection = (selection: {end: number, start: number}) => {
-    // this.props.setTimeout()
+  _setSelection = (selection: {start: number, end: number}) => {
+    this._setTimeout(() => {
+      // Validate that this selection makes sense with current value
+      let {start, end} = selection
+      const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
+      end = Math.max(0, Math.min(end, text.length))
+      start = Math.min(start, end)
+      const newSelection = {start, end}
+      this.setNativeProps({selection: newSelection})
+      this._lastNativeSelection = selection
+    }, 0)
   }
 
   _onChangeText = (t: string) => {
@@ -67,7 +86,7 @@ class _PlainInput extends Component<Props, State> {
   }
 
   _onSelectionChange = (event: {nativeEvent: {selection: {start: number, end: number}}}) => {
-    let {start: _start, end: _end} = event.nativeEvent.selection
+    const {start: _start, end: _end} = event.nativeEvent.selection
     // Work around Android bug which sometimes puts end before start:
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
@@ -196,7 +215,6 @@ class _PlainInput extends Component<Props, State> {
     return <NativeTextInput {...props} />
   }
 }
-const PlainInput = HOCTimers(_PlainInput)
 
 const styles = styleSheetCreate({
   common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},

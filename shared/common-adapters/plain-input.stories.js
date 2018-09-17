@@ -34,6 +34,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
   _onTestCrossSelection = () => {
     if (this.mutationTarget.current) {
       const input = this.mutationTarget.current
+      input.focus()
       input.transformText(ti => ({text: '5char', selection: {start: 0, end: 0}}))
       input.transformText(ti => ({text: 'a lot more than 5 characters', selection: {start: 3, end: 5}}))
     }
