@@ -21,6 +21,7 @@ export type _Props = {
   containerStyle?: StylesCrossPlatform,
   decoration?: React.Node,
   error?: boolean,
+  forwardedRef: React.Ref<typeof PlainInput>,
   hideBorder?: boolean,
   icon?: IconType,
 }
@@ -36,7 +37,7 @@ type State = {
   focused: boolean,
 }
 
-class NewInput extends React.Component<DefaultProps & Props, State> {
+class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
   static defaultProps = {
     flexable: true,
     keyboardType: 'default',
@@ -79,12 +80,19 @@ class NewInput extends React.Component<DefaultProps & Props, State> {
             />
           </Box>
         )}
-        <PlainInput {...plainInputCastProps(this.props)} onFocus={this._onFocus} onBlur={this._onBlur} />
+        <PlainInput
+          {...plainInputCastProps(this.props)}
+          onFocus={this._onFocus}
+          onBlur={this._onBlur}
+          ref={this.props.forwardedRef}
+        />
         {this.props.decoration}
       </Box2>
     )
   }
 }
+// $FlowIssue doesn't know about forwardRef
+const NewInput = React.forwardRef((props, ref) => <ReflessNewInput {...props} forwardedRef={ref} />)
 
 const styles = styleSheetCreate({
   container: platformStyles({
