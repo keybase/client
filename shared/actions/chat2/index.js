@@ -1582,6 +1582,18 @@ const _maybeAutoselectNewestConversation = (
         reason: 'findNewestConversation',
       })
     )
+  } else if (avoidTeam) {
+    // No conversations besides in the team we're trying to avoid. Select
+    // nothing
+    logger.info(
+      `AutoselectNewestConversation: no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
+    )
+    return Saga.put(
+      Chat2Gen.createSelectConversation({
+        conversationIDKey: Constants.noConversationIDKey,
+        reason: 'clearSelected',
+      })
+    )
   }
 }
 
@@ -1968,9 +1980,10 @@ const navigateToInbox = (
     const {context, teamname} = action.payload
     switch (action.type) {
       case TeamsGen.leaveTeam:
-        // If we're leaving a team from somewhere else and we have a team convo
-        // selected, reset the chat tab to the root
         if (context !== 'chat' && Constants.isTeamConversationSelected(state, teamname)) {
+          // If we're leaving a team from somewhere else and we have a team convo
+          // selected, reset the chat tab to the root
+          logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
           return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [chatTab]}))
         }
         break
@@ -1978,6 +1991,7 @@ const navigateToInbox = (
         if (context === 'chat') {
           // If we've left a team from the chat tab indiscriminately navigate to
           // the tab root
+          logger.info(`chat:navigateToInbox navigating to cleared chat routes because of leftTeam`)
           return resetRouteAction
         }
     }

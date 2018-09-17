@@ -101,13 +101,17 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
 
 const _leaveTeam = function(state: TypedState, action: TeamsGen.LeaveTeamPayload) {
   const {context, teamname} = action.payload
+  logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
   return RPCTypes.teamsTeamLeaveRpcPromise(
     {
       name: teamname,
       permanent: false,
     },
     Constants.leaveTeamWaitingKey(teamname)
-  ).then(() => TeamsGen.createLeftTeam({context, teamname}))
+  ).then(() => {
+    logger.info(`leaveTeam: left ${teamname} successfully`)
+    return TeamsGen.createLeftTeam({context, teamname})
+  })
 }
 
 const _leftTeam = (state: TypedState, action: TeamsGen.LeftTeamPayload) => {
