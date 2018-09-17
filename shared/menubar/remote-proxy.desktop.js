@@ -50,6 +50,8 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 }
 
 const mapStateToProps = (state: TypedState) => ({
+  broken: state.tracker.userTrackers,
+  _following: state.config.following,
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
   isAsyncWriteHappening: state.fs.flags.syncing,
@@ -67,6 +69,8 @@ const mergeProps = stateProps => ({
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
   conversations: stateProps.conversations,
+  broken: stateProps.broken,
+  following: stateProps._following.toJS(),
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',
