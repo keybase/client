@@ -160,7 +160,7 @@
     "react-gateway": "3.0.0",
     "react-list": "0.8.10",
     "react-measure": "^2.1.2",
-    "react-native": "0.57.0",
+    "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-570",
     "react-native-camera": "1.2.0",
     "react-native-contacts": "2.2.3",
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
