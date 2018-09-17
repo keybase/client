@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -68,6 +69,13 @@ type TeamLoader struct {
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
 	nameLookupBurstCache *libkb.BurstCache
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
@@ -241,6 +249,10 @@ func (l *TeamLoader) load1(ctx context.Context, me keybase1.UserVersion, lArg ke
 		// drop the error and just force a repoll.
 		mungedForceRepoll = true
 		mungedWantMembers = nil
+	}
+	if !mungedForceRepoll && l.InForceRepollMode(ctx) {
+		l.G().Log.CDebugf(ctx, "Must force-repoll in force-repoll mode")
+		mungedForceRepoll = true
 	}
 
 	ret, err := l.load2(ctx, load2ArgT{
@@ -1469,4 +1481,25 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 
 	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
 	return err
+}
+
+func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOffset) error {
+	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v)", dtime)
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	l.forceRepollUntil = dtime
+	return nil
+}
+
+func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	if l.forceRepollUntil == nil {
+		return false
+	}
+	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
+		return true
+	}
+	l.forceRepollUntil = nil
+	return false
 }
