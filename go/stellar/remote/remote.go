@@ -609,7 +609,7 @@ func CancelRequest(ctx context.Context, g *libkb.GlobalContext, requestID stella
 	return g.API.PostDecode(apiArg, &res)
 }
 
-func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, mostRecentID stellar1.PaymentID) error {
+func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	payload := make(libkb.JSONPayload)
 	payload["account_id"] = accountID
 	payload["most_recent_id"] = mostRecentID

@@ -305,6 +305,10 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	}
 	page.Cursor = srvPayments.Cursor
 
+	if srvPayments.OldestUnread != nil {
+		page.OldestUnread = &stellar1.PaymentID{TxID: *srvPayments.OldestUnread}
+	}
+
 	return page, nil
 }
 
@@ -1217,7 +1221,7 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 		return err
 	}
 
-	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID)
+	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID.TxID)
 }
 
 // Subtract a 100 stroop fee from the available balance.
