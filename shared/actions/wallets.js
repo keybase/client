@@ -80,6 +80,11 @@ const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 
 const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
 
+const loadAccount = (state: TypedState, action: WalletsGen.LoadAccountPayload) =>
+  RPCTypes.localGetWalletAccountLocalRpcPromise({accountID: action.payload.accountID}).then(account =>
+    WalletsGen.createAccountsReceived({accounts: [Constants.accountResultToAccount(account)]})
+  )
+
 const loadAccounts = (
   state: TypedState,
   action:
@@ -340,6 +345,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
+  yield Saga.actionToPromise(WalletsGen.loadAccount, loadAccount)
   yield Saga.actionToPromise(
     [
       WalletsGen.loadAccounts,

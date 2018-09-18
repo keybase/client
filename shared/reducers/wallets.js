@@ -174,6 +174,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.requestPayment:
     case WalletsGen.requestedPayment:
     case WalletsGen.abandonPayment:
+    case WalletsGen.loadAccount:
       return state
     default:
       /*::
