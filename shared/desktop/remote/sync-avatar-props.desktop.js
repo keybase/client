@@ -47,6 +47,7 @@ export const deserialize = (state: any = initialState, props: any) => {
   return {
     ...state,
     config: {
+      ...state.config,
       avatars: {
         ...state.config.avatars,
         ...props.avatars,
