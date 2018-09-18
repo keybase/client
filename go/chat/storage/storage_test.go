@@ -223,7 +223,7 @@ func doSimpleBench(b *testing.B, storage *Storage, uid gregor1.UID) {
 		mustMerge(b, storage, conv.Metadata.ConversationID, uid, msgs)
 		_, err := storage.Fetch(context.TODO(), conv, uid, nil, nil, nil)
 		require.NoError(b, err)
-		storage.MaybeNuke(context.TODO(), true, nil, conv.Metadata.ConversationID, uid)
+		storage.maybeNuke(context.TODO(), true, nil, conv.Metadata.ConversationID, uid)
 	}
 }
 

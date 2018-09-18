@@ -46,7 +46,7 @@ func TestFetchRetry(t *testing.T) {
 	}
 
 	// Nuke body cache
-	require.NoError(t, store.MaybeNuke(context.TODO(), true, nil, convs[0].GetConvID(), uid))
+	require.NoError(t, store.MaybeNukeLocked(context.TODO(), true, nil, convs[0].GetConvID(), uid))
 
 	errorRI := func() chat1.RemoteInterface { return chat1.RemoteClient{Cli: errorClient{}} }
 	tc.ChatG.ConvSource.SetRemoteInterface(errorRI)

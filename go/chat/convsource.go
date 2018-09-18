@@ -286,6 +286,10 @@ func (s *RemoteConversationSource) Clear(ctx context.Context, convID chat1.Conve
 	return nil
 }
 
+func (s *RemoteConversationSource) ClearLocalCache(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return nil
+}
+
 func (s *RemoteConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 
@@ -930,6 +934,10 @@ func (s *HybridConversationSource) PullLocalOnly(ctx context.Context, convID cha
 
 func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
 	return s.storage.ClearAll(ctx, convID, uid)
+}
+
+func (s *HybridConversationSource) ClearLocalCache(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error {
+	return s.storage.MaybeNukeLocked(ctx, true /* force */, nil /* err */, convID, uid)
 }
 
 type ByMsgID []chat1.MessageUnboxed
