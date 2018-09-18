@@ -161,26 +161,34 @@ export default class AppState {
               // our login item is there, nothing to do
               return
             }
-            applescript.execString(
-              `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
-                ''}", hidden:false, name:"${appName}"}`,
-              (err, result) => {
-                if (err) {
-                  logger.info(`apple script error making login item: ${err}, ${result}`)
+            try {
+              applescript.execString(
+                `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
+                  ''}", hidden:false, name:"${appName}"}`,
+                (err, result) => {
+                  if (err) {
+                    logger.info(`apple script error making login item: ${err}, ${result}`)
+                  }
                 }
-              }
-            )
-          }
-        )
-      } else {
-        applescript.execString(
-          `tell application "System Events" to delete login item "${appName}"`,
-          (err, result) => {
-            if (err) {
-              logger.info(`apple script error removing login item: ${err}, ${result}`)
+              )
+            } catch (e) {
+              logger.info('Error setting apple startup prefs: ', e)
             }
           }
         )
+      } else {
+        try {
+          applescript.execString(
+            `tell application "System Events" to delete login item "${appName}"`,
+            (err, result) => {
+              if (err) {
+                logger.info(`apple script error removing login item: ${err}, ${result}`)
+              }
+            }
+          )
+        } catch (e) {
+          logger.info('Error setting apple startup prefs: ', e)
+        }
       }
     } catch (e) {
       logger.info('Error setting apple startup prefs: ', e)

@@ -57,7 +57,7 @@ const styleRowContainer = {
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
     {props.newItems.map(item => itemToComponent(item, props))}
-    <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
+    <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Box>
 )

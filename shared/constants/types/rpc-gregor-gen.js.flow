@@ -49,5 +49,7 @@ export type Time = Long
 export type TimeOrOffset = $ReadOnly<{time: Time, offset: DurationMsec}>
 export type UID = Bytes
 
-export type IncomingCallMapType<TypedState> = {||}
+export type IncomingCallMapType = {||}
+
+export type CustomResponseIncomingCallMap = {||}
 // Not enabled calls. To enable add to enabled-calls.json: 'gregor.1.auth.authenticateSessionToken' 'gregor.1.authInternal.createGregorSuperUserSessionToken' 'gregor.1.authUpdate.revokeSessionIDs' 'gregor.1.incoming.sync' 'gregor.1.incoming.consumeMessage' 'gregor.1.incoming.consumePublishMessage' 'gregor.1.incoming.consumeMessageMulti' 'gregor.1.incoming.ping' 'gregor.1.incoming.version' 'gregor.1.incoming.state' 'gregor.1.incoming.stateByCategoryPrefix' 'gregor.1.incoming.describeConnectedUsers' 'gregor.1.incoming.describeConnectedUsersInternal' 'gregor.1.outgoing.broadcastMessage' 'gregor.1.remind.getReminders' 'gregor.1.remind.deleteReminders'

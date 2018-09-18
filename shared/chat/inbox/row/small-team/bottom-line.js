@@ -144,7 +144,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
-    height: 17,
+    height: isMobile ? 21 : 17,
     position: 'relative',
   },
   rekeyNeededContainer: {

@@ -5,6 +5,7 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
@@ -13,7 +14,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend} from '../route-tree'
+import {switchTo, putActionIfOnPath, navigateAppend} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -73,6 +74,25 @@ const filePreview = (state: TypedState, action) =>
       })
     )
     .catch(makeRetriableErrorHandler(action))
+
+const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
+  try {
+    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
+      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+        if (i < 2) return acc
+        const path = Types.getPathFromElements(a.slice(0, i + 1))
+        return acc.add(path)
+      }, acc), I.Set()).toArray()
+    yield Saga.sequentially([
+      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
+      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+    ])
+  } catch (ex) {
+    yield makeRetriableErrorHandler(action)
+  }
+})
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -592,12 +612,10 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
     yield Saga.put(
       putActionIfOnPath(
         routePath,
-        navigateAppend([
-          {
-            props: {path},
-            selected: 'folder',
-          },
-        ])
+        navigateAppend([{
+          props: {path},
+          selected: 'folder',
+        }])
       )
     )
     return
@@ -615,14 +633,27 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   yield Saga.put(
     putActionIfOnPath(
       routePath,
-      navigateAppend([
-        {
-          props: {path},
-          selected: bare ? 'barePreview' : 'preview',
-        },
-      ])
+      navigateAppend([{
+        props: {path},
+        selected: bare ? 'barePreview' : 'preview',
+      }])
     )
   )
+}
+
+const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
+  const pathItem = path ? state.fs.pathItems.get(path) : undefined
+  const selected = (pathItem && pathItem.type !== 'folder') ? 'preview' : 'folder'
+  return Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([Tabs.fsTab])),
+    ...(path
+      ? [Saga.put(navigateAppend([{
+          props: {path},
+          selected,
+        }]))]
+      : []),
+  ])
 }
 
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
@@ -638,6 +669,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
+  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
@@ -645,6 +677,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)

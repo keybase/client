@@ -1,15 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/teams'
 import {
   Avatar,
   Box,
-  Button,
   ButtonBar,
+  HeaderOnMobile,
   Icon,
   MaybePopup,
   ProgressIndicator,
-  HeaderOnMobile,
+  ScrollView,
   Text,
+  WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../styles'
 
@@ -33,7 +35,13 @@ const Spinner = HeaderOnMobile(_Spinner)
 
 const _ReallyLeaveTeam = (props: Props) => (
   <MaybePopup onClose={props.onBack}>
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
+    <ScrollView
+      contentContainerStyle={{
+        ...globalStyles.flexBoxColumn,
+        alignItems: 'center',
+        padding: globalMargins.large,
+      }}
+    >
       <Avatar teamname={props.name} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
       <Text type="Header" style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}>
@@ -44,10 +52,21 @@ const _ReallyLeaveTeam = (props: Props) => (
         unless an admin invites you.
       </Text>
       <ButtonBar direction={isMobile ? 'column' : 'row'} fullWidth={isMobile}>
-        <Button type="Secondary" onClick={props.onBack} label="Cancel" />
-        <Button type="Danger" onClick={props.onLeave} label={`Yes, leave ${props.name}`} fullWidth={true} />
+        <WaitingButton
+          type="Secondary"
+          onClick={props.onBack}
+          onlyDisable={true}
+          label="Cancel"
+          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+        />
+        <WaitingButton
+          type="Danger"
+          onClick={props.onLeave}
+          label={`Yes, leave ${props.name}`}
+          waitingKey={Constants.leaveTeamWaitingKey(props.name)}
+        />
       </ButtonBar>
-    </Box>
+    </ScrollView>
   </MaybePopup>
 )
 

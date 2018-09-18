@@ -43,6 +43,7 @@ export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
 export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
+export const openFilesFromWidget = 'fs:openFilesFromWidget'
 export const openInFileUI = 'fs:openInFileUI'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
@@ -57,6 +58,8 @@ export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
+export const userFileEditsLoad = 'fs:userFileEditsLoad'
+export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
@@ -154,6 +157,7 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
 type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
@@ -194,6 +198,8 @@ type _UploadPayload = $ReadOnly<{|
 |}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
+type _UserFileEditsLoadPayload = void
+type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|}>
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})
@@ -230,6 +236,7 @@ export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: fa
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({error: false, payload, type: notifySyncActivity})
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({error: false, payload, type: openAndUpload})
+export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({error: false, payload, type: openFilesFromWidget})
 export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
@@ -244,6 +251,8 @@ export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload
 export const createUpload = (payload: _UploadPayload) => ({error: false, payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({error: false, payload, type: uploadStarted})
 export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({error: false, payload, type: uploadWritingSuccess})
+export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({error: false, payload, type: userFileEditsLoad})
+export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({error: false, payload, type: userFileEditsLoaded})
 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
@@ -280,6 +289,7 @@ export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRow
 export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
 export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
 export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
+export type OpenFilesFromWidgetPayload = $Call<typeof createOpenFilesFromWidget, _OpenFilesFromWidgetPayload>
 export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
@@ -294,6 +304,8 @@ export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfir
 export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
 export type UploadStartedPayload = $Call<typeof createUploadStarted, _UploadStartedPayload>
 export type UploadWritingSuccessPayload = $Call<typeof createUploadWritingSuccess, _UploadWritingSuccessPayload>
+export type UserFileEditsLoadPayload = $Call<typeof createUserFileEditsLoad, _UserFileEditsLoadPayload>
+export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded, _UserFileEditsLoadedPayload>
 
 // All Actions
 // prettier-ignore
@@ -332,6 +344,7 @@ export type Actions =
   | NotifySyncActivityPayload
   | NotifyTlfUpdatePayload
   | OpenAndUploadPayload
+  | OpenFilesFromWidgetPayload
   | OpenInFileUIPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
@@ -346,4 +359,6 @@ export type Actions =
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload
+  | UserFileEditsLoadPayload
+  | UserFileEditsLoadedPayload
   | {type: 'common:resetStore', payload: void}

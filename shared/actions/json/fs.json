@@ -152,6 +152,9 @@
       "path": "Types.Path",
       "routePath": "I.List<string>"
     },
+    "openFilesFromWidget": {
+      "path?": "Types.Path"
+    },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
@@ -163,6 +166,10 @@
     "pickAndUpload": {
       "type": "Types.MobilePickType",
       "parentPath": "Types.Path"
+    },
+    "userFileEditsLoad": {},
+    "userFileEditsLoaded": {
+      "tlfUpdates": "Types.UserTlfUpdates"
     },
 
     "placeholderAction": {}

@@ -28,6 +28,10 @@ export type PushNotification =
       userInteraction: boolean,
       username: string,
     }
+  | {
+      type: 'chat.extension',
+      conversationIDKey: ChatTypes.ConversationIDKey,
+    }
 
 export type _State = {
   hasPermissions: boolean,

@@ -9,7 +9,6 @@ import {constantsStatusCode} from '../constants/types/rpc-gen'
 import {convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {localLog} from '../util/forward-logs'
-import {log} from '../native/log/logui'
 import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createChangeWaiting} from '../actions/waiting-gen'
@@ -19,7 +18,7 @@ import {sagaMiddleware} from '../store/configure-store'
 import type {Effect} from 'redux-saga'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
-import type {IncomingCallMapType} from '../constants/types/rpc-gen'
+import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
 import type {SessionID, SessionIDKey, WaitingHandlerType, ResponseType, MethodKey} from './types'
 import type {TypedState, Dispatch} from '../util/container'
 
@@ -28,7 +27,11 @@ type TypedActions = {type: string, error: boolean, payload: any}
 
 type IncomingActionCreator = (
   param: Object,
-  response: ?Object,
+  state: TypedState
+) => Effect | null | void | false | Array<Effect | null | void | false>
+type CustomResponseIncomingActionCreator = (
+  param: Object,
+  response: Object,
   state: TypedState
 ) => Effect | null | void | false | Array<Effect | null | void | false>
 
@@ -42,6 +45,9 @@ class Engine {
   // All incoming call handlers
   _incomingActionCreators: {
     [key: MethodKey]: IncomingActionCreator,
+  } = {}
+  _customResponseIncomingActionCreators: {
+    [key: MethodKey]: CustomResponseIncomingActionCreator,
   } = {}
   // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
   _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
@@ -76,7 +82,6 @@ class Engine {
     Engine._dispatch = dispatch
     Engine._getState = getState
     this._setupClient()
-    this._setupCoreHandlers()
     this._setupIgnoredHandlers()
     this._setupDebugging()
   }
@@ -107,15 +112,6 @@ class Engine {
         }
       }, 10 * 1000)
     }
-  }
-
-  // Default handlers for incoming messages
-  _setupCoreHandlers() {
-    this.setIncomingCallMap({
-      'keybase.1.logUi.log': param => {
-        log(param)
-      },
-    })
   }
 
   _setupIgnoredHandlers() {
@@ -232,11 +228,24 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
-      } else if (this._incomingActionCreators[method]) {
+      } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
         // General incoming
-        const creator = this._incomingActionCreators[method]
         rpcLog({reason: '[incoming]', type: 'engineInternal', method})
-        const rawEffects = creator(param, response, Engine._getState())
+
+        let creator = this._incomingActionCreators[method]
+        let rawEffects
+        if (creator) {
+          // Handle it by default
+          response && response.result()
+          rawEffects = creator(param, Engine._getState())
+        } else {
+          if (!response) {
+            throw new Error("Expected response but there isn't any" + method)
+          }
+          creator = this._customResponseIncomingActionCreators[method]
+          rawEffects = creator(param, response, Engine._getState())
+        }
+
         const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
         effects.forEach(effect => {
           let thrown
@@ -285,10 +294,15 @@ class Engine {
     params: Object,
     callback: (...args: Array<any>) => void,
     incomingCallMap?: any, // IncomingCallMapType, actually a mix of all the incomingcallmap types, which we don't handle yet TODO we could mix them all
+    customResponseIncomingCallMap?: any,
     waitingKey?: string,
   }) {
     // Make a new session and start the request
-    const session = this.createSession({incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})
+    const session = this.createSession({
+      incomingCallMap: p.incomingCallMap,
+      waitingKey: p.waitingKey,
+      customResponseIncomingCallMap: p.customResponseIncomingCallMap,
+    })
     // Don't make outgoing calls immediately since components can do this when they mount
     setImmediate(() => {
       session.start(p.method, p.params, p.callback)
@@ -298,19 +312,20 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession(p: {
-    incomingCallMap?: IncomingCallMapType<TypedState>,
+    incomingCallMap?: ?IncomingCallMapType,
+    customResponseIncomingCallMap?: ?CustomResponseIncomingCallMapType,
     cancelHandler?: CancelHandlerType,
     dangling?: boolean,
     waitingKey?: string,
   }): Session {
-    const {incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
+    const {customResponseIncomingCallMap, incomingCallMap, cancelHandler, dangling = false, waitingKey} = p
     const sessionID = this._generateSessionID()
 
     const session = new Session({
       cancelHandler,
+      customResponseIncomingCallMap,
       dangling,
       endHandler: (session: Session) => this._sessionEnded(session),
-      // $FlowIssue
       incomingCallMap,
       invoke: (method, param, cb) => {
         const callback = method => (...args) => {
@@ -380,25 +395,40 @@ class Engine {
   // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
   setIncomingCallMap(incomingCallMap: any): void {
     Object.keys(incomingCallMap).forEach(method => {
-      this._setIncomingActionCreators(method, incomingCallMap[method])
+      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
+        rpcLog({
+          method,
+          reason: "duplicate incoming action creator!!! this isn't allowed",
+          type: 'engineInternal',
+        })
+        return
+      }
+      rpcLog({
+        method,
+        reason: '[register]',
+        type: 'engineInternal',
+      })
+      this._incomingActionCreators[method] = incomingCallMap[method]
     })
   }
 
-  _setIncomingActionCreators(method: MethodKey, actionCreator: IncomingActionCreator) {
-    if (this._incomingActionCreators[method]) {
+  setCustomResponseIncomingCallMap(customResponseIncomingCallMap: any): void {
+    Object.keys(customResponseIncomingCallMap).forEach(method => {
+      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
+        rpcLog({
+          method,
+          reason: "duplicate incoming action creator!!! this isn't allowed",
+          type: 'engineInternal',
+        })
+        return
+      }
       rpcLog({
         method,
-        reason: "duplicate incoming action creator!!! this isn't allowed",
+        reason: '[register]',
         type: 'engineInternal',
       })
-      return
-    }
-    rpcLog({
-      method,
-      reason: '[register]',
-      type: 'engineInternal',
+      this._customResponseIncomingActionCreators[method] = customResponseIncomingCallMap[method]
     })
-    this._incomingActionCreators[method] = actionCreator
   }
 
   // Test want to fail on any error
@@ -480,7 +510,7 @@ class FakeEngine {
     actionCreator: ({param: Object, response: ?Object, state: any}) => ?any
   ) {}
   createSession(
-    incomingCallMap: ?IncomingCallMapType<TypedState>,
+    incomingCallMap: ?IncomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false

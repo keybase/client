@@ -11,40 +11,44 @@ const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-c
 
 var projects = {
   chat1: {
-    root: './json/chat1',
-    import: ['Gregor1', 'Keybase1', 'Stellar1'],
-    out: 'rpc-chat-gen',
-    incomingMaps: {},
-    seenTypes: {},
+    customResponseIncomingMaps: {},
     enums: {},
+    import: ['Gregor1', 'Keybase1', 'Stellar1'],
+    incomingMaps: {},
     notEnabled: [],
+    out: 'rpc-chat-gen',
+    root: './json/chat1',
+    seenTypes: {},
   },
   keybase1: {
-    root: 'json/keybase1',
-    out: 'rpc-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: ['Gregor1'],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-gen',
+    root: 'json/keybase1',
+    seenTypes: {},
   },
   gregor1: {
-    root: './json/gregor1',
-    out: 'rpc-gregor-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: [],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-gregor-gen',
+    root: './json/gregor1',
+    seenTypes: {},
   },
   stellar1: {
-    root: './json/stellar1',
-    out: 'rpc-stellar-gen',
+    customResponseIncomingMaps: {},
+    enums: {},
     import: ['Keybase1'],
     incomingMaps: {},
-    seenTypes: {},
-    enums: {},
     notEnabled: [],
+    out: 'rpc-stellar-gen',
+    root: './json/stellar1',
+    seenTypes: {},
   },
 }
 
@@ -212,12 +216,15 @@ function analyzeMessages(json, project) {
     const isUIMethod = isUIProtocol || enabledCall(methodName, 'incoming')
 
     if (isUIMethod) {
-      const r = message.hasOwnProperty('notify')
-        ? 'void'
-        : `response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}`
       project.incomingMaps[
         methodName
-      ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|},${r}, state: TypedState) => IncomingReturn`
+      ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
+
+      if (!message.hasOwnProperty('notify')) {
+        project.customResponseIncomingMaps[
+          methodName
+        ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>) => void}) => IncomingReturn`
+      }
     }
 
     const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
@@ -259,8 +266,8 @@ function engineSagaGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcSaga<TypedState> (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType<TypedState>, waitingKey?: string}): CallEffect<void>`
-    : `export const ${name}RpcSaga = (p, incomingCallMap, waitingKey) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, waitingKey: p.waitingKey})`
+    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void>`
+    : `export const ${name}RpcSaga = (p) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
 }
 
 function rpcChannelMapGen(methodName, name, justType) {
@@ -400,9 +407,19 @@ type IncomingReturn = Effect | null | void | false | Array<Effect | null | void 
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
   const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
   const incomingMap =
-    `\nexport type IncomingCallMapType<TypedState> = {|` +
+    `\nexport type IncomingCallMapType = {|` +
     Object.keys(project.incomingMaps)
       .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
+      .join(',') +
+    '|}'
+
+  const customResponseCallMapType = Object.keys(project.customResponseIncomingMaps).length
+    ? 'CustomResponseIncomingCallMap'
+    : 'void'
+  const customResponseIncomingMap =
+    `\nexport type CustomResponseIncomingCallMap = {|` +
+    Object.keys(project.customResponseIncomingMaps)
+      .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
       .join(',') +
     '|}'
 
@@ -426,6 +443,7 @@ ${messageTypesData}
     messageTypes,
     ...[...consts, ...types].sort(),
     incomingMap,
+    customResponseIncomingMap,
     ...[...messagePromise, ...messageChannelMap, ...messageEngineSaga].sort(),
   ]
     .filter(Boolean)
