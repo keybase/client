@@ -105,7 +105,7 @@ export type NewReactionButtonProps = {|
 |}
 type NewReactionButtonState = {|
   applyClasses: boolean, // don't use classes on first mount. Saves on performance and prevents animation thrashing
-  attachmentRef: ?React.Component<any, any>,
+  attachmentRef: ?React.ElementRef<any>,
   hovering: boolean,
   iconIndex: number,
   showingPicker: boolean,

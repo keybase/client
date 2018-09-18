@@ -2,7 +2,7 @@
 import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {orderBy} from 'lodash-es'
 import moment from 'moment'
 import {
@@ -40,7 +40,7 @@ type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
-  selectedProofMenuRowRef: ?React.Component<any, any>,
+  selectedProofMenuRowRef: ?React.ElementRef<any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -99,7 +99,7 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
-class ProfileRender extends PureComponent<Props, State> {
+class ProfileRender extends React.PureComponent<Props, State> {
   state: State = {
     searchHovered: false,
     foldersExpanded: false,

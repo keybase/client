@@ -22,7 +22,7 @@ class ReactionsRow extends React.Component<Props, State> {
     showAddReaction: false,
     showMobileTooltip: false,
   }
-  _attachmentRefs: {[emojiName: string]: ?React.Component<any, any>} = {}
+  _attachmentRefs: {[emojiName: string]: ?React.ElementRef<typeof ReactButton>} = {}
 
   _setHoveringButton = (hovering: boolean, emojiName: string) => {
     this._setActiveEmoji(hovering ? emojiName : '')
@@ -54,7 +54,7 @@ class ReactionsRow extends React.Component<Props, State> {
             key={emoji}
           >
             <ReactButton
-              ref={r => (this._attachmentRefs[emoji] = r)}
+              ref={ref => (this._attachmentRefs[emoji] = ref)}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
               onLongPress={() => this._setShowMobileTooltip(true)}

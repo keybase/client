@@ -6,7 +6,7 @@ import {navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {
-  attachTo: ?() => ?React.ElementRef<any>,
+  attachTo: () => ?React.ElementRef<any>,
   onHidden: () => void,
   teamname: string,
   visible: boolean,

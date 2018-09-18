@@ -12,7 +12,7 @@ import type {OwnProps} from './container'
 const provider = Sb.createPropProviderWithCommon(ReactButton)
 
 const common = {
-  attachmentRef: null,
+  attachmentRef: () => null,
   conversationIDKey: Constants.noConversationIDKey,
   onAddReaction: Sb.action('onAddReaction'),
   onHidden: Sb.action('onHidden'),
