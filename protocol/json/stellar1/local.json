@@ -688,6 +688,19 @@
         "items": "WalletAccountLocal"
       }
     },
+    "getWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "WalletAccountLocal"
+    },
     "getAccountAssetsLocal": {
       "request": [
         {

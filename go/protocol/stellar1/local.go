@@ -625,6 +625,11 @@ type GetWalletAccountsLocalArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetWalletAccountLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type GetAccountAssetsLocalArg struct {
 	SessionID int       `codec:"sessionID" json:"sessionID"`
 	AccountID AccountID `codec:"accountID" json:"accountID"`
@@ -865,6 +870,7 @@ type LookupCLILocalArg struct {
 
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
+	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
 	GetAccountAssetsLocal(context.Context, GetAccountAssetsLocalArg) ([]AccountAssetLocal, error)
 	GetPaymentsLocal(context.Context, GetPaymentsLocalArg) (PaymentsPageLocal, error)
 	GetPendingPaymentsLocal(context.Context, GetPendingPaymentsLocalArg) ([]PaymentOrErrorLocal, error)
@@ -926,6 +932,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetWalletAccountsLocal(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getWalletAccountLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetWalletAccountLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetWalletAccountLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetWalletAccountLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetWalletAccountLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1609,6 +1631,11 @@ type LocalClient struct {
 func (c LocalClient) GetWalletAccountsLocal(ctx context.Context, sessionID int) (res []WalletAccountLocal, err error) {
 	__arg := GetWalletAccountsLocalArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetWalletAccountLocal(ctx context.Context, __arg GetWalletAccountLocalArg) (res WalletAccountLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getWalletAccountLocal", []interface{}{__arg}, &res)
 	return
 }
 

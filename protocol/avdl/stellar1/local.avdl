@@ -14,6 +14,7 @@ protocol local {
     string seqno;               // the stellar sequence number for this account 
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+  WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
