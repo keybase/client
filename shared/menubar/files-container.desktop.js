@@ -47,10 +47,23 @@ type TlfUpdateHocProps = {|
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
+type TlfUpdateHocState = {|
+  timeoutID: ?TimeoutID,
+|}
+
 const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
-  class extends React.PureComponent<TlfUpdateHocProps> {
-    componentDidMount() {
+  class extends React.PureComponent<TlfUpdateHocProps, TlfUpdateHocState> {
+    state = {
+      timeoutID: null,
+    }
+    componentDidMount = () => {
       this.props.loadTlfUpdates()
+      this.setState({timeoutID: setTimeout(this.componentDidMount, 60000)})
+    }
+    componentWillUnmount = () => {
+      if (this.state.timeoutID) {
+        clearTimeout(this.state.timeoutID)
+      }
     }
     render() {
       return <ComposedComponent {...this.props} />
