@@ -100,7 +100,7 @@ const AccountSettings = (props: SettingsProps) => {
             onChanged={(node: React.Node) => {
               // $ForceType doesn't understand key will be string
               const selectedCode: Types.CurrencyCode = node.key
-              if (selectedCode !== props.currency.code && node.key !== headerKey) {
+              if (selectedCode !== props.currency.code && selectedCode !== headerKey) {
                 props.onCurrencyChange(selectedCode)
               }
             }}
