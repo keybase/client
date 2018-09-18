@@ -292,9 +292,6 @@ declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
 declare module 'react-navigation' {
   declare module.exports: any
 }
-declare module 'react-virtualized' {
-  declare module.exports: any
-}
 declare module 'react-waypoint' {
   declare module.exports: any
 }
