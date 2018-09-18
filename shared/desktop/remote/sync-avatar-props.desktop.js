@@ -5,7 +5,6 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {pick} from 'lodash-es'
 import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
 import memoize from 'memoize-one'
 
@@ -37,21 +36,28 @@ export const serialize = {
 
 const initialState = {
   config: {
-    avatars: {},
+    avatars: I.Map(),
     followers: I.Set(),
     following: I.Set(),
   },
 }
 export const deserialize = (state: any = initialState, props: any) => {
   if (!props) return state
+
+  const pa = props.avatars || {}
+  const arrs = Object.keys(pa).reduce((arr, name) => {
+    const sizes = Object.keys(pa[name]).reduce((arr, size) => {
+      arr.push([size, pa[name][size]])
+      return arr
+    }, [])
+    arr.push([name, I.Map(sizes)])
+    return arr
+  }, [])
   return {
     ...state,
     config: {
       ...state.config,
-      avatars: {
-        ...state.config.avatars,
-        ...props.avatars,
-      },
+      avatars: (state.config.avatars || I.Map()).merge(I.Map(arrs)),
       followers: I.Set(props.followers),
       following: I.Set(props.following),
     },
@@ -97,7 +103,7 @@ function SyncAvatarProps(ComposedComponent: any) {
   })
 
   const getRemoteAvatars = memoize((avatars, usernames) => {
-    const a = pick(avatars, usernames.toArray())
+    const a = avatars.filter((_, name) => usernames.has(name)).toJS()
     if (Object.keys(a).length === 0) return undefined
     return a
   })

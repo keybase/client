@@ -16,12 +16,11 @@ export const serialize = {
         return map
       }, {}),
   broken: v => v,
-  conversationIDs: v => v.conversationIDKey,
+  conversationIDs: v => v.map(v => v.conversationIDKey),
   conversationMap: (v, o) =>
-    v.reduce((map, k) => {
-      const toSend = v[k]
+    v.reduce((map, toSend) => {
       if (!o || o.indexOf(toSend) === -1) {
-        map[k] = conversationSerialize(toSend)
+        map[toSend.conversationIDKey] = conversationSerialize(toSend)
       }
       return map
     }, {}),
@@ -38,8 +37,11 @@ export const serialize = {
 
 const initialState = {
   badgeInfo: {},
+  badgeKeys: [],
   badgeMap: {},
   config: {},
+  conversationIDs: [],
+  conversationMap: {},
 }
 export const deserialize = (state: any = initialState, props: any) => {
   if (!props) return state
@@ -49,16 +51,23 @@ export const deserialize = (state: any = initialState, props: any) => {
     ...(props.badgeMap || {}),
   }
 
-  const badgeInfo = (props.badgeKeys || []).reduce((map, k) => {
+  const badgeInfo = (props.badgeKeys || state.badgeKeys).reduce((map, k) => {
     map[k] = badgeMap[k]
     return map
   }, {})
+
+  const conversationMap = {
+    ...state.conversationMap,
+    ...props.conversationMap,
+  }
 
   const newState = {
     ...state,
     ...props,
     badgeInfo,
     badgeMap,
+    conversationMap,
+    conversations: (props.conversationIDs || state.conversationIDs).map(id => conversationMap[id]),
   }
   return Avatar.deserialize(newState, props)
 }

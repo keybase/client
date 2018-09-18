@@ -4,9 +4,10 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
+import Flags from '../../../util/feature-flags'
 import memoize from 'memoize-one'
 
-export const maxShownConversations = 7
+export const maxShownConversations = Flags.fileWidgetEnabled ? 3 : 7
 
 export type RemoteConvMeta = $Diff<
   {|
@@ -53,7 +54,11 @@ export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
     isSelected: false,
     // excluding onSelectConversation
     participantNeedToRekey,
-    participants: m.teamname ? [] : Constants.getRowParticipants(m, _username).toArray(),
+    participants: m.teamname
+      ? []
+      : Constants.getRowParticipants(m, _username)
+          .toArray()
+          .slice(0, 2),
     showBold: styles.showBold,
     snippet: m.snippet,
     snippetDecoration: m.snippetDecoration,
