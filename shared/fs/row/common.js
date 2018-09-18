@@ -39,6 +39,9 @@ const rowText = Styles.platformStyles({
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
   },
+  isMobile: {
+    flexShrink: 1,
+  },
 })
 
 const rowText_30 = Styles.platformStyles({
