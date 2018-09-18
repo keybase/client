@@ -117,7 +117,8 @@ func (d *chatNotificationDisplay) errorf(format string, args ...interface{}) err
 
 type msgNotification struct {
 	Source     string              `json:"source,omitempty"`
-	Msg        *Message            `json:"msg,omitempty"`
+	Msg        *MsgSummary         `json:"msg,omitempty"`
+	Error      *string             `json:"error,omitempty"`
 	Pagination *chat1.UIPagination `json:"pagination,omitempty"`
 }
 
@@ -188,7 +189,8 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 			}
 			notif := msgNotification{
 				Source:     strings.ToLower(arg.Source.String()),
-				Msg:        msg,
+				Msg:        msg.Msg,
+				Error:      msg.Error,
 				Pagination: inMsg.Pagination,
 			}
 			if jsonStr, err := json.Marshal(notif); err == nil {
