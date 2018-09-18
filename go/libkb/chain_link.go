@@ -1408,7 +1408,13 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 		return false, err
 	}
 
-	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == keybase1.Seqno(1) || c.GetSeqno() == c.parent.EldestSeqno()
+	hardcodedEldest := false
+	if c.GetSeqno() > 1 {
+		prevLink := c.parent.GetLinkFromSeqno(c.GetSeqno() - 1)
+		hardcodedEldest = isSubchainStart(&c, prevLink)
+	}
+
+	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == 1 || hardcodedEldest
 	isNewHighLink := isFirstLink ||
 		v2Type == SigchainV2TypeRevoke ||
 		v2Type == SigchainV2TypeWebServiceBindingWithRevoke ||
