@@ -40,7 +40,6 @@ type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
-  selectedProofMenuRowRef: ?React.ElementRef<any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -104,8 +103,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
     searchHovered: false,
     foldersExpanded: false,
     selectedProofMenuRowIndex: null,
-    selectedProofMenuRowRef: null,
   }
+  _selectedProofMenuRowRef: ?React.Component<any>
   _proofList: ?UserProofs = null
   _scrollContainer: ?React.Component<any, any> = null
 
@@ -206,13 +205,13 @@ class ProfileRender extends React.PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    const selectedProofMenuRowRef = this._proofList.getRow(idx)
-
-    this.setState({selectedProofMenuRowIndex: idx, selectedProofMenuRowRef})
+    this._selectedProofMenuRowRef = this._proofList.getRow(idx)
+    this.setState({selectedProofMenuRowIndex: idx})
   }
 
   handleHideMenu() {
-    this.setState({selectedProofMenuRowIndex: null, selectedProofMenuRowRef: null})
+    this._selectedProofMenuRowRef = null
+    this.setState({selectedProofMenuRowIndex: null})
   }
 
   componentDidMount() {
@@ -464,7 +463,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={() => this.state.selectedProofMenuRowRef}
+                    attachTo={() => this._selectedProofMenuRowRef}
                     position="bottom right"
                     containerStyle={styles.floatingMenu}
                     {...proofMenuContent}

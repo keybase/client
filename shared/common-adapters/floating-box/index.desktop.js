@@ -4,6 +4,7 @@ import {findDOMNode} from 'react-dom'
 import {Box} from '..'
 import {ModalPositionRelative} from '../relative-popup-hoc.desktop'
 import type {Props} from './index.types'
+import logger from '../../logger'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />
 const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
@@ -27,7 +28,13 @@ class FloatingBox extends React.Component<Props, State> {
     if (this.props.attachTo) {
       const attachTo = this.props.attachTo()
       if (attachTo) {
-        const node = findDOMNode(attachTo)
+        let node
+        try {
+          node = findDOMNode(attachTo)
+        } catch (e) {
+          logger.error(`FloatingBox: unable to find rect to attach to. Error: ${e.message}`)
+          return null
+        }
         if (node instanceof window.HTMLElement) {
           targetRect = node.getBoundingClientRect()
         }
