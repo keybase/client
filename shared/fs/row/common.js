@@ -40,7 +40,7 @@ const rowText = Styles.platformStyles({
     whiteSpace: 'nowrap',
   },
   isMobile: {
-    maxWidth: '75%',
+    flexShrink: 1,
   },
 })
 
