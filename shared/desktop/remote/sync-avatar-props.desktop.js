@@ -22,6 +22,8 @@ type Props = {
 export const serialize = {
   avatars: (v: any, o: any) => {
     if (!v) return undefined
+    return v.toJS()
+    // TODO do diff
     const toSend = Object.keys(v).reduce((map, k) => {
       if (!o || v[k] !== o[k]) {
         map[k] = v[k]
@@ -30,8 +32,8 @@ export const serialize = {
     }, {})
     return Object.keys(toSend).length ? toSend : undefined
   },
-  followers: (v: any) => v,
-  following: (v: any) => v,
+  followers: (v: any) => v.toArray(),
+  following: (v: any) => v.toArray(),
 }
 
 const initialState = {
@@ -102,21 +104,9 @@ function SyncAvatarProps(ComposedComponent: any) {
     following: getRemoteFollowing(state.config.following, ownProps.usernames),
   })
 
-  const getRemoteAvatars = memoize((avatars, usernames) => {
-    const a = avatars.filter((_, name) => usernames.has(name)).toJS()
-    if (Object.keys(a).length === 0) return undefined
-    return a
-  })
-  const getRemoteFollowers = memoize((followers, usernames) => {
-    const f = followers.intersect(usernames).toArray()
-    if (f.length === 0) return undefined
-    return f
-  })
-  const getRemoteFollowing = memoize((following, usernames) => {
-    const f = following.intersect(usernames).toArray()
-    if (f.length === 0) return undefined
-    return f
-  })
+  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
+  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
+  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
