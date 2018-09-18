@@ -151,6 +151,15 @@ func (s Bundle) PrimaryAccount() (BundleEntry, error) {
 	return BundleEntry{}, errors.New("primary stellar account not found")
 }
 
+func (s Bundle) Lookup(acctID AccountID) (BundleEntry, error) {
+	for _, entry := range s.Accounts {
+		if entry.AccountID == acctID {
+			return entry, nil
+		}
+	}
+	return BundleEntry{}, errors.New("stellar account not found")
+}
+
 // Eq compares assets strictly.
 // Assets are not Eq if their type is different
 //   even if they have the same code and issuer.

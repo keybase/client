@@ -171,7 +171,7 @@ func (pc *ProofCache) memPut(sid keybase1.SigID, cr CheckResult) {
 	pc.lru.Add(sid, cr)
 }
 
-func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash PvlKitHash) *CheckResult {
+func (pc *ProofCache) Get(sid keybase1.SigID, pvlHash keybase1.MerkleStoreKitHash) *CheckResult {
 	if pc == nil {
 		return nil
 	}
@@ -252,7 +252,7 @@ func (pc *ProofCache) dbPut(sid keybase1.SigID, cr CheckResult) error {
 	return pc.G().LocalDb.Put(dbkey, []DbKey{}, jw)
 }
 
-func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash PvlKitHash) error {
+func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError, pvlHash keybase1.MerkleStoreKitHash) error {
 	if pc == nil {
 		return nil
 	}

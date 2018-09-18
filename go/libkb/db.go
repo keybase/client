@@ -205,7 +205,7 @@ const (
 	DBIdentify                 = 0xfa
 	DBResolveUsernameToUID     = 0xfb
 	DBChatBodyHashIndex        = 0xfc
-	DBPvl                      = 0xfd
+	DBMerkleStore              = 0xfd
 	DBChatConvFailures         = 0xfe
 	DBTeamList                 = 0xff
 )
