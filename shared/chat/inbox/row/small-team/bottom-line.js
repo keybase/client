@@ -94,7 +94,9 @@ class BottomLine extends PureComponent<Props> {
           )
           break
         default:
-          snippetDecoration = <Text type="BodySmall">this.props.snippetDecoration</Text>
+          snippetDecoration = this.props.snippetDecoration ? (
+            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+          ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
