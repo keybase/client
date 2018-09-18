@@ -126,7 +126,7 @@ helpers.rootLinuxNode(env, {
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
-                                        if (hasGoChanges || true) {
+                                        if (hasGoChanges) {
                                             dir("go/keybase") {
                                                 sh "go build --tags=production"
                                             }
@@ -248,7 +248,7 @@ helpers.rootLinuxNode(env, {
                                         //    }
                                         //},
                                         test_macos_go: {
-                                            if (hasGoChanges || true) {
+                                            if (hasGoChanges) {
                                                 dir("go/keybase") {
                                                     sh "go build --tags=production"
                                                 }
