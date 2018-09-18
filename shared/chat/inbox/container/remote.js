@@ -1,11 +1,9 @@
 // @flow
-// import shallowEqual from 'shallowequal'
-import * as Container from '../../../util/container'
 import * as Constants from '../../../constants/chat2'
 import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
-import type {TypedState} from '../../../constants/reducers'
+import type {TypedState} from '../../../constants/reducer'
 import memoize from 'memoize-one'
 
 export const maxShownConversations = 7
@@ -18,9 +16,6 @@ export type RemoteConvMeta = $Diff<
   {onSelectConversation: () => void}
 >
 
-// Just to cache the sorted values
-// const GetNewestConvMetas = createShallowEqualSelector([getSortedConvMetas], map => map)
-
 // To cache the list
 const valuesCached = memoize((...vals) => vals.map(v => v))
 
@@ -30,19 +25,25 @@ const metaMapToFirstValues = memoize(metaMap =>
     .valueSeq()
     .toArray()
 )
-export const conversationsToSend = (state: TypedState) =>
-  valuesCached(...metaMapToFirstValues(state.chat2.metaMap))
-export const serialize = (m: ChatTypes.Meta): RemoteConvMeta => {
-  const hasUnread = Constants.getHasUnread(state, m.conversationIDKey)
+
+// A hack to store the state so we can convert at the last possible minute. This is a lot simpler than plumbing this all the way through
+let _lastState: TypedState
+export const conversationsToSend = (state: TypedState) => {
+  _lastState = state
+  return valuesCached(...metaMapToFirstValues(state.chat2.metaMap))
+}
+
+export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
+  const hasUnread = Constants.getHasUnread(_lastState, m.conversationIDKey)
   const styles = Constants.getRowStyles(m, false, hasUnread)
   const participantNeedToRekey = m.rekeyers.size > 0
-  const _username = state.config.username || ''
+  const _username = _lastState.config.username || ''
   const youNeedToRekey = !!participantNeedToRekey && m.rekeyers.has(_username)
   return {
     backgroundColor: Styles.globalColors.white,
     channelname: m.channelname,
     conversationIDKey: m.conversationIDKey,
-    hasBadge: Constants.getHasBadge(state, m.conversationIDKey),
+    hasBadge: Constants.getHasBadge(_lastState, m.conversationIDKey),
     hasResetUsers: !!m.resetParticipants && m.resetParticipants.size > 0,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,

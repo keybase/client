@@ -1,5 +1,6 @@
 // @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
+import {serialize as conversationSerialize} from '../chat/inbox/container/remote'
 
 export const serialize = {
   ...Avatar.serialize,
@@ -20,7 +21,7 @@ export const serialize = {
     v.reduce((map, k) => {
       const toSend = v[k]
       if (!o || o.indexOf(toSend) === -1) {
-        map[k] = toSend
+        map[k] = conversationSerialize(toSend)
       }
       return map
     }, {}),
