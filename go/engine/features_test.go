@@ -1,11 +1,12 @@
 package engine
 
 import (
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func TestFeatureFlagSet(t *testing.T) {
@@ -17,29 +18,29 @@ func TestFeatureFlagSet(t *testing.T) {
 	CreateAndSignupFakeUserPaper(tc, "feat")
 	on, err := tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 	require.NoError(t, err)
-	require.False(t, on)
+	require.True(t, on)
 
 	_, err = tc.G.API.Post(libkb.APIArg{
 		Endpoint:    "test/feature",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"feature":   libkb.S{Val: string(libkb.FeatureFTL)},
-			"value":     libkb.I{Val: 1},
+			"value":     libkb.I{Val: 0},
 			"cache_sec": libkb.I{Val: 100},
 		},
 		MetaContext: m,
 	})
 	require.NoError(t, err)
 
-	// Still off, since it's still cached.
+	// Still on, since it's still cached.
 	on, err = tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 	require.NoError(t, err)
-	require.False(t, on)
+	require.True(t, on)
 
 	fakeClock.Advance(time.Hour * 10)
 	for i := 0; i < 2; i++ {
 		on, err = tc.G.FeatureFlags.EnabledWithError(m, libkb.FeatureFTL)
 		require.NoError(t, err)
-		require.True(t, on)
+		require.False(t, on)
 	}
 }
