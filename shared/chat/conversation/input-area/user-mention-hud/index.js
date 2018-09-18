@@ -117,7 +117,7 @@ const MentionHud = compose(
   lifecycle({
     componentWillReceiveProps(nextProps) {
       if (nextProps.data.length === 0) {
-        if (this.props.selectIndex !== 0) {
+        if (this.props.selectedIndex === 0) {
           // We've already done this, so just get out of here so we don't infinite loop
           return
         }
