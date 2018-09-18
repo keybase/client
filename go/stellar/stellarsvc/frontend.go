@@ -1208,8 +1208,9 @@ func (s *Server) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequ
 
 func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) (err error) {
 	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "MarkAsReadLocal",
-		Err:     &err,
+		RPCName:       "MarkAsReadLocal",
+		Err:           &err,
+		RequireWallet: true,
 	})
 	defer fin()
 	if err != nil {
