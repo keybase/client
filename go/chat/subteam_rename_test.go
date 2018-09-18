@@ -79,6 +79,22 @@ func TestChatSubteamRename(t *testing.T) {
 				require.NoError(t, err)
 				convs = append(convs, ncres.Conv.Info)
 				versMap[ncres.Conv.GetConvID().String()] = ncres.Conv.Info.Version
+
+				// Write a message so we have something that uses the old team name in the chat history.
+				_, err = ctc.as(t, users[0]).chatLocalHandler().PostLocal(context.TODO(), chat1.PostLocalArg{
+					ConversationID: ncres.Conv.Info.Id,
+					Msg: chat1.MessagePlaintext{
+						ClientHeader: chat1.MessageClientHeader{
+							Conv:        ncres.Conv.Info.Triple,
+							MessageType: chat1.MessageType_TEXT,
+							TlfName:     ncres.Conv.Info.TlfName,
+						},
+						MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
+							Body: "Hello",
+						}),
+					},
+				})
+				require.NoError(t, err)
 			}
 		}
 
@@ -157,6 +173,14 @@ func TestChatSubteamRename(t *testing.T) {
 				},
 			})
 			require.NoError(t, err)
+			// Make sure user1 (user0 did all the sends) can decrypt everything
+			// in conversation.
+			tv, err := tc.Context().ConvSource.Pull(context.TODO(), convID, users[1].GetUID().ToBytes(), chat1.GetThreadReason_GENERAL, nil,
+				nil)
+			require.NoError(t, err)
+			for _, msg := range tv.Messages {
+				require.True(t, msg.IsValid())
+			}
 		}
 	})
 }
