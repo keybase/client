@@ -6,7 +6,6 @@ import deviceSaga from '../actions/devices'
 import fsSaga from '../actions/fs'
 import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
-import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import provisionSaga from '../actions/provision'
 import notificationsSaga from '../actions/notifications'
@@ -33,7 +32,6 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(deviceSaga)
   yield Saga.fork(fsSaga)
   yield Saga.fork(gregorSaga)
-  yield Saga.fork(kbfsSaga)
   yield Saga.fork(loginSaga)
   yield Saga.fork(provisionSaga)
   yield Saga.fork(notificationsSaga)

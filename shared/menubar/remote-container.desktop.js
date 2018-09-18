@@ -1,12 +1,10 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import * as KBFSGen from '../actions/kbfs-gen'
 import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
@@ -28,10 +26,6 @@ const mapDispatchToProps = dispatch => ({
   logIn: () => {
     dispatch(ConfigGen.createShowMain())
     dispatch(navigateTo([loginTab]))
-  },
-  onFolderClick: (path: ?string) => {
-    dispatch(KBFSGen.createOpen({path: path || defaultKBFSPath}))
-    closeWindow()
   },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
