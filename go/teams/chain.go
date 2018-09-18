@@ -1646,28 +1646,14 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 
-	// We only run addInnerLink out of order when inflating, and so we skip
-	// computing high skips during it.
-	// updates high skip data, so we skip it. If highSkip is presented and
-	// either we don't need to reverify or we want to check it, check it.
+	// We skip high skip verification and assignment during inflation and precheck.
+	// For now, high skips are optional so they are not always validated.
 	highSkip := payload.HighSkip
 	if highSkipVerifyDesired {
-		if highSkip != nil && !reverifyNeeded {
-			if highSkip.Seqno != res.newState.GetLatestHighSeqno() {
-				return res, fmt.Errorf("Expected HighSkipSeqno %d, got %d @ %d", res.newState.inner.LastHighSeqno, highSkip.Seqno, payload.Seqno)
-			}
-			lastHighLinkID := res.newState.GetLatestHighLinkID()
-			if string(lastHighLinkID) == "" {
-				if highSkip.Hash != nil {
-					return res, fmt.Errorf("Expected nil HighSkipHash, got %s", *highSkip.Hash)
-				}
-			} else {
-				if highSkip.Hash == nil {
-					return res, fmt.Errorf("Expected non-nil HighSkipHash, got nil")
-				}
-				if *highSkip.Hash != string(lastHighLinkID) {
-					return res, fmt.Errorf("Expected HighSkipHash=%s, got %s", string(lastHighLinkID), *highSkip.Hash)
-				}
+		if highSkip != nil {
+			err := t.validateHighSkip(*highSkip, res.newState)
+			if err != nil {
+				return res, err
 			}
 		}
 		if isHighLink {
@@ -1676,6 +1662,26 @@ func (t *teamSigchainPlayer) addInnerLink(
 		}
 	}
 	return res, nil
+}
+
+func (t *teamSigchainPlayer) validateHighSkip(highSkip SCHighSkip, newState TeamSigChainState) error {
+	if highSkip.Seqno != newState.GetLatestHighSeqno() {
+		return fmt.Errorf("Expected HighSkipSeqno %d, got %d", newState.inner.LastHighSeqno, highSkip.Seqno)
+	}
+	lastHighLinkID := newState.GetLatestHighLinkID()
+	if string(lastHighLinkID) == "" {
+		if highSkip.Hash != nil {
+			return fmt.Errorf("Expected nil HighSkipHash, got %s", *highSkip.Hash)
+		}
+	} else {
+		if highSkip.Hash == nil {
+			return fmt.Errorf("Expected non-nil HighSkipHash, got nil")
+		}
+		if *highSkip.Hash != string(lastHighLinkID) {
+			return fmt.Errorf("Expected HighSkipHash=%s, got %s", string(lastHighLinkID), *highSkip.Hash)
+		}
+	}
+	return nil
 }
 
 func (t *teamSigchainPlayer) roleUpdateChangedHighSet(prevState *TeamSigChainState, roleUpdates chainRoleUpdates) (bool, error) {
