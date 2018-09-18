@@ -2048,6 +2048,11 @@ export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String,
 export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
 export type MerkleRootAndTime = $ReadOnly<{root: MerkleRootV2, updateTime: Time, fetchTime: Time}>
 export type MerkleRootV2 = $ReadOnly<{seqno: Seqno, hashMeta: HashMeta}>
+export type MerkleStoreEntry = $ReadOnly<{hash: MerkleStoreKitHash, entry: MerkleStoreEntryString}>
+export type MerkleStoreEntryString = String
+export type MerkleStoreKit = String
+export type MerkleStoreKitHash = String
+export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeID =
   | 0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
