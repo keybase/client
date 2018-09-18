@@ -150,8 +150,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 
 	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
-			err = s.checkConvID(ctx, conv, msg, msg2)
-			if err != nil {
+			if err = s.checkConvID(ctx, conv, msg, msg2); err != nil {
 				return resMsg, err
 			}
 			break
