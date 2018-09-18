@@ -1,7 +1,7 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import * as FavoriteGen from '../actions/favorite-gen'
 import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
@@ -49,9 +49,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: () => {
-    dispatch(FavoriteGen.createFavoriteList())
-  },
+  refresh: () => dispatch(FsGen.createUserFileEditsLoad()),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(

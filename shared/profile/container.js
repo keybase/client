@@ -12,7 +12,6 @@ import * as WalletsGen from '../actions/wallets-gen'
 import * as Route from '../actions/route-tree-gen'
 import * as WalletConstants from '../constants/wallets'
 import type {AccountID} from '../constants/types/wallets'
-import {pathFromFolder} from '../constants/favorite'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
 import Profile from './index'
@@ -81,9 +80,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),
   _onBrowsePublicFolder: (username: string) =>
-    dispatch(
-      KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
-    ),
+    dispatch(KBFSGen.createOpen({path: `/keybase/public/${username}`})),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   _onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
@@ -102,15 +99,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
-    dispatch(
-      KBFSGen.createOpen({
-        path: pathFromFolder({
-          isPublic: false,
-          isTeam: false,
-          users: [{username: theirUsername}, {username: myUsername}],
-        }).path,
-      })
-    ),
+    dispatch(KBFSGen.createOpen({path: `/keybase/private/${theirUsername},${myUsername}`})),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
   onRevokeProof: (proof: TrackerTypes.Proof) =>
     dispatch(

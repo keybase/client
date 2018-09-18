@@ -9,7 +9,6 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
-import {ExitCodeFuseKextPermissionError} from '../constants/favorite'
 import {delay} from 'redux-saga'
 import {spawn, execFileSync} from 'child_process'
 import {folderTab} from '../constants/tabs'
@@ -119,6 +118,11 @@ function fuseStatusUpdateSaga({payload: {prevStatus, status}}: KBFSGen.FuseStatu
     return Saga.call(installKBFSSaga)
   }
 }
+
+// Copied from old constants/favorite.js:
+//
+// See Installer.m: KBExitFuseKextPermissionError
+const ExitCodeFuseKextPermissionError = 5
 
 function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
