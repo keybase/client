@@ -247,4 +247,3 @@ const styles = styleSheetCreate({
 })
 
 export default PlainInput
-export {castProps} from './plain-input.shared'

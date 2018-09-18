@@ -64,9 +64,6 @@ export type PropsWithInput<P> = {|
   ...$Exact<P>,
 |}
 
-// Use this in components that use PropsWithInput to pass `this.props` through to this component
-declare export function castProps<T>(p: PropsWithInput<T>): Props
-
 /**
  * Flow does the work of making the default props nullable when instantiating
  * this component, but doesn't go as far as letting the props be

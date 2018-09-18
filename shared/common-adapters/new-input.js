@@ -1,10 +1,6 @@
 // @flow
 import * as React from 'react'
-import PlainInput, {
-  castProps as plainInputCastProps,
-  type PropsWithInput,
-  type KeyboardType,
-} from './plain-input'
+import PlainInput, {type PropsWithInput, type KeyboardType} from './plain-input'
 import Box, {Box2} from './box'
 import Icon, {type IconType, castPlatformStyles} from './icon'
 import {getStyle as getTextStyle, type TextType} from './text'
@@ -59,6 +55,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
 
   render() {
     const textStyle = getTextStyle(this.props.textType)
+    const {containerStyle, decoration, error, forwardedRef, hideBorder, icon, ...plainInputProps} = this.props
     return (
       <Box2
         direction="horizontal"
@@ -81,7 +78,7 @@ class ReflessNewInput extends React.Component<DefaultProps & Props, State> {
           </Box>
         )}
         <PlainInput
-          {...plainInputCastProps(this.props)}
+          {...plainInputProps}
           onFocus={this._onFocus}
           onBlur={this._onBlur}
           ref={this.props.forwardedRef}
