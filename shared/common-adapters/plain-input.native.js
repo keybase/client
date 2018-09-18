@@ -30,7 +30,7 @@ class PlainInput extends Component<InternalProps, State> {
     height: null,
   }
   _input: ?NativeTextInput
-  _lastNativeText: ?string // sourced from onChangeText
+  _lastNativeText: ?string
   _lastNativeSelection: ?Selection
 
   // TODO remove this when we can use forwardRef with react-redux. That'd let us
