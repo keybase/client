@@ -199,6 +199,10 @@
         {
           "type": "string",
           "name": "cursorToken"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -460,6 +464,13 @@
             "items": "AccountReserve"
           },
           "name": "reserves"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "readPaymentID"
         }
       ]
     },
@@ -480,6 +491,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -657,6 +675,23 @@
         "type": "array",
         "items": "PaymentSummary"
       }
+    },
+    "markAsRead": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
     },
     "paymentDetails": {
       "request": [

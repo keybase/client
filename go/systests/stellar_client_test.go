@@ -448,3 +448,14 @@ func (s *stellarRetryClient) LookupCLILocal(ctx context.Context, name string) (r
 	}
 	return res, err
 }
+
+func (s *stellarRetryClient) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.MarkAsReadLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}

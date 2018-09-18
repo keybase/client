@@ -1206,6 +1206,20 @@ func (s *Server) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequ
 	return s.remoter.CancelRequest(ctx, arg.ReqID)
 }
 
+func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "MarkAsReadLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID)
+}
+
 // Subtract a 100 stroop fee from the available balance.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.

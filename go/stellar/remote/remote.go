@@ -609,6 +609,20 @@ func CancelRequest(ctx context.Context, g *libkb.GlobalContext, requestID stella
 	return g.API.PostDecode(apiArg, &res)
 }
 
+func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, mostRecentID stellar1.PaymentID) error {
+	payload := make(libkb.JSONPayload)
+	payload["account_id"] = accountID
+	payload["most_recent_id"] = mostRecentID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/markasread",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	return g.API.PostDecode(apiArg, &res)
+}
+
 type lookupUnverifiedResult struct {
 	libkb.AppStatusEmbed
 	Users []struct {

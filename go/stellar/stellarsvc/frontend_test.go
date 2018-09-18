@@ -829,6 +829,19 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+
+	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
+	require.NoError(t, err)
+	recipPayments = recipPaymentsPage.Payments
+	require.Len(t, recipPayments, 1)
+	t.Logf("recipPayments: %+v", recipPayments)
+	p = recipPayments[0].Payment
+	require.NotNil(t, p)
+	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
+	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
 }
 
 func TestPaymentDetailsEmptyAccId(t *testing.T) {
