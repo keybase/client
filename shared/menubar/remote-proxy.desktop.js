@@ -8,6 +8,7 @@ import {NullComponent, connect, type TypedState, compose, renderNothing, branch}
 import * as SafeElectron from '../util/safe-electron.desktop'
 import GetNewestConvMetas from '../chat/inbox/container/remote'
 import GetFileRows from '../fs/remote-container'
+import {serialize} from './remote-serializer'
 
 const windowOpts = {}
 
@@ -51,29 +52,32 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  broken: state.tracker.userTrackers,
-  _following: state.config.following,
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
+  _following: state.config.following,
+  _tlfUpdates: state.fs.tlfUpdates,
+  broken: state.tracker.userTrackers,
+  conversations: GetNewestConvMetas(state),
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
-  conversations: GetNewestConvMetas(state),
-  _tlfUpdates: state.fs.tlfUpdates,
 })
 
 const mergeProps = stateProps => ({
-  badgeInfo: stateProps._badgeInfo.toJS(),
+  badgeKeys: stateProps._badgeInfo,
+  badgeMap: stateProps._badgeInfo,
+  broken: stateProps.broken,
+  // TEMP
+  // conversations: stateProps.conversations,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
+  // TEMP
+  // fileRows: GetFileRows(stateProps._tlfUpdates),
+  following: stateProps._following,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
-  fileRows: GetFileRows(stateProps._tlfUpdates),
-  conversations: stateProps.conversations,
-  broken: stateProps.broken,
-  following: stateProps._following.toArray(),
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',
@@ -88,5 +92,5 @@ export default compose(
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,
-  SyncProps
+  SyncProps(serialize)
 )(NullComponent)

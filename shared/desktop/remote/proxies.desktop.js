@@ -8,9 +8,9 @@ import RemoteUnlockFolders from '../../unlock-folders/remote-proxy.desktop'
 const RemoteProxies = () => (
   <div style={style}>
     <RemoteMenubar />
-    <RemoteTracker />
+    {/* TEMP <RemoteTracker />
     <RemotePinentry />
-    <RemoteUnlockFolders />
+    <RemoteUnlockFolders /> */}
   </div>
 )
 

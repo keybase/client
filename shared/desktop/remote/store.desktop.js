@@ -6,7 +6,6 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {sendToMainWindow} from './util.desktop'
 import {createStore, applyMiddleware, type Store} from 'redux'
-import * as I from 'immutable'
 
 const updateStore = 'remoteStore:update'
 
@@ -14,10 +13,12 @@ class RemoteStore {
   _window: ?SafeElectron.BrowserWindowType
   _store: Store<any, any, any>
   _gotPropsCallback: ?() => void // let component know it loaded once so it can show itself. Set to null after calling once
+  _deserialize: (any, any) => any
 
   getStore = () => this._store
 
   _onPropsUpdated = propsStr => {
+    console.log('aaa', propsStr.length, propsStr)
     // setImmediate since this can be a side effect of the reducer which redux doesn't like
     setImmediate(() => {
       this._store.dispatch({
@@ -42,45 +43,28 @@ class RemoteStore {
     sendToMainWindow('remoteWindowWantsProps', props.windowComponent, props.windowParam)
   }
 
-  // Some shared inner components needs immutable structures (Avatar), we can likely fix this longer term but for now lets just
-  // map these types back to immutable so the components aren't aware we're doing this over-the-wire store stuff which requires
-  // things to not be immutable. We have very little stuff in remote windows so i think this is simpler than some larger overhaul
-  // to enable embedded connected components
-  _makeImmutable = (props: any) => {
-    if (
-      !props.hasOwnProperty('config') ||
-      (!props.config.hasOwnProperty('followers') && !props.config.hasOwnProperty('followering'))
-    ) {
-      return props
-    }
-
-    return {
-      ...props,
-      config: {
-        ...props.config,
-        followers: I.Set(props.config ? props.config.followers : []),
-        following: I.Set(props.config ? props.config.following : []),
-      },
-    }
-  }
-
   _reducer = (state: any, action: any) => {
     switch (action.type) {
       case updateStore: {
-        const props = this._makeImmutable(JSON.parse(action.payload.propsStr))
-        // We get diffs of the top level props so we always overwrite
-        return {
-          ...state,
-          ...props,
-        }
+        return this._deserialize(state, JSON.parse(action.payload.propsStr))
       }
     }
 
     return state
   }
 
-  constructor(props: {windowComponent: string, windowParam: string, gotPropsCallback: () => void}) {
-    this._store = createStore(this._reducer, {}, applyMiddleware(sendToRemoteMiddleware))
+  constructor(props: {
+    windowComponent: string,
+    windowParam: string,
+    gotPropsCallback: () => void,
+    deserialize: (any, any) => any,
+  }) {
+    this._store = createStore(
+      this._reducer,
+      props.deserialize(undefined, undefined),
+      applyMiddleware(sendToRemoteMiddleware)
+    )
+    this._deserialize = props.deserialize
     this._gotPropsCallback = props.gotPropsCallback
     this._registerForRemoteUpdate()
     this._askMainWindowForOurProps(props)

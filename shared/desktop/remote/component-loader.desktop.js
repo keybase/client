@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom'
 import RemoteStore from './store.desktop'
 import Root from '../renderer/container.desktop'
 import Menubar from '../../menubar/remote-container.desktop'
+import {deserialize as menubarDeserialize} from '../../menubar/remote-serializer.desktop'
 import Pinentry from '../../pinentry/remote-container.desktop'
 import Tracker from '../../tracker/remote-container.desktop'
 import UnlockFolders from '../../unlock-folders/remote-container.desktop'
@@ -33,6 +34,7 @@ class RemoteComponentLoader extends Component<Props> {
     super(props)
     this._window = SafeElectron.getRemote().getCurrentWindow()
     const remoteStore = new RemoteStore({
+      deserialize: this._getDeserializer(props.windowComponent),
       gotPropsCallback: this._onGotProps,
       windowComponent: props.windowComponent,
       windowParam: props.windowParam,
@@ -56,6 +58,21 @@ class RemoteComponentLoader extends Component<Props> {
 
   _onClose = () => {
     this._window && this._window.close()
+  }
+
+  _getDeserializer = (key: string) => {
+    switch (key) {
+      case 'unlockFolders':
+        return () => ({})
+      case 'menubar':
+        return menubarDeserialize
+      case 'pinentry':
+        return () => ({})
+      case 'tracker':
+        return () => ({})
+      default:
+        throw new TypeError('Invalid Remote Component passed through')
+    }
   }
 
   _getComponent = (key: string) => {

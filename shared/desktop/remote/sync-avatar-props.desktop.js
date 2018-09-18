@@ -7,6 +7,7 @@ import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {pick} from 'lodash-es'
 import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
+import memoize from 'memoize-one'
 
 type Props = {
   avatars: Object,
@@ -17,6 +18,34 @@ type Props = {
   usernames: I.Set<string>,
   windowComponent: string,
   windowParam: string,
+}
+
+export const serialize = {
+  avatars: (v, o) => v,
+  followers: (v, o) => v,
+  following: (v, o) => v,
+}
+
+const initialState = {
+  config: {
+    avatars: {},
+    followers: I.Set(),
+    following: I.Set(),
+  },
+}
+export const deserialize = (state: any = initialState, props: any) => {
+  if (!props) return state
+  return {
+    ...state,
+    config: {
+      avatars: {
+        ...state.config.avatars,
+        ...props.avatars,
+      },
+      followers: I.Set(props.followers),
+      following: I.Set(props.following),
+    },
+  }
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
@@ -46,28 +75,27 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
 
     render() {
-      // Don't send our internal props forward
-      const {avatars, following, followers, setUsernames, usernames, ...rest} = this.props
-      const config = {avatars, followers, following}
-      return <ComposedComponent {...rest} config={config} />
+      const {setUsernames, usernames, ...rest} = this.props
+      return <ComposedComponent {...rest} />
     }
   }
 
   const mapStateToProps = (state: TypedState) => ({
-    _allAvatars: state.config.avatars,
-    _allFollowers: state.config.followers,
-    _allFollowing: state.config.following,
+    avatars: state.config.avatars,
+    followers: state.config.followers,
+    following: state.config.following,
   })
 
-  const mergeProps = (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...dispatchProps,
-      ...ownProps,
-      avatars: pick(stateProps._allAvatars, ownProps.usernames.toArray()),
-      followers: stateProps._allFollowers.intersect(ownProps.usernames).toArray(),
-      following: stateProps._allFollowing.intersect(ownProps.usernames).toArray(),
-    }
-  }
+  const getRemoteAvatars = memoize((avatars, usernames) => pick(avatars, usernames.toArray()))
+  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames).toArray())
+  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames).toArray())
+
+  const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    avatars: getRemoteAvatars(stateProps.avatars, ownProps.usernames),
+    followers: getRemoteFollowers(stateProps.followers, ownProps.usernames),
+    following: getRemoteFollowing(stateProps.following, ownProps.usernames),
+  })
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
