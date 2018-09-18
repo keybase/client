@@ -63,8 +63,8 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         youAreReset: m.membershipType === 'youAreReset',
         youNeedToRekey,
       }
-    })
-).toArray()
+    }).toArray()
+)
 
 // Just to cache the sorted values
 const GetNewestConvMetas = createShallowEqualSelector([getSortedConvMetas], map => map)
