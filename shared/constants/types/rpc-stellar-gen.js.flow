@@ -179,7 +179,7 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readPaymentID?: ?PaymentID}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
@@ -263,7 +263,7 @@ export type PaymentSummaryType =
   | 2 // DIRECT_2
   | 3 // RELAY_3
 
-export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
+export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?TransactionID}>
 export type PaymentsPageLocal = $ReadOnly<{payments?: ?Array<PaymentOrErrorLocal>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
 export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String, autoClaimToken?: ?String}>
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>

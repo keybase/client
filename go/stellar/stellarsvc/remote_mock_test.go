@@ -466,7 +466,7 @@ func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1
 	return r.Backend.CancelRequest(ctx, r.Tc, requestID)
 }
 
-func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.AccountID, mostRecentID stellar1.PaymentID) error {
+func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return r.Backend.MarkAsRead(ctx, r.Tc, acctID, mostRecentID)
 }
 
@@ -964,7 +964,7 @@ func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, reques
 	return nil
 }
 
-func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.PaymentID) error {
+func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return nil
 }
 
