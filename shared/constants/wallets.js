@@ -24,7 +24,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   amount: '0',
   currency: 'XLM', // FIXME: Use default currency?
-  from: '',
+  from: Types.noAccountID,
   publicMemo: new HiddenString(''),
   recipientType: null,
   secretNote: new HiddenString(''),
@@ -34,6 +34,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
   banners: null,
+  from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
   readyToSend: false,
   secretNoteErrMsg: new HiddenString(''),
@@ -71,6 +72,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
+    from: b.from,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),

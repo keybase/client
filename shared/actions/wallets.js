@@ -19,8 +19,8 @@ const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
-    fromPrimaryAccount: !state.wallets.buildingPayment.from,
-    from: state.wallets.buildingPayment.from,
+    fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
+    from: state.wallets.buildingPayment.from === Types.noAccountID ? '' : state.wallets.buildingPayment.from,
     fromSeqno: '',
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
@@ -51,7 +51,7 @@ const sendPayment = (state: TypedState) =>
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
       asset: {type: 'native', code: '', issuer: ''},
-      from: state.wallets.buildingPayment.from,
+      from: state.wallets.builtPayment.from,
       fromSeqno: '',
       publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
       quickReturn: true,
