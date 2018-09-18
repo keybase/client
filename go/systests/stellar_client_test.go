@@ -28,6 +28,16 @@ func (s *stellarRetryClient) GetWalletAccountsLocal(ctx context.Context, sid int
 	return res, err
 }
 
+func (s *stellarRetryClient) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (res stellar1.WalletAccountLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetWalletAccountLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (res []stellar1.AccountAssetLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.GetAccountAssetsLocal(ctx, arg)
