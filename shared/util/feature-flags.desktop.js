@@ -18,10 +18,12 @@ const ff: FeatureFlags = {
   explodingMessagesEnabled: true,
   plansEnabled: false,
   walletsEnabled: false,
+  fileWidgetEnabled: false,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   walletsEnabled: true,
+  fileWidgetEnabled: true,
 }
 
 // load overrides
