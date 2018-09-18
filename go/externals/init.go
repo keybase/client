@@ -12,11 +12,11 @@ func NewParamProofStoreAndInstall(g *libkb.GlobalContext) libkb.MerkleStore {
 	supportedVersion := keybase1.MerkleStoreSupportedVersion(SupportedVersion)
 	tag := "paramproofs"
 	endpoint := "merkle/proof_params"
-	getRootHash := func(root libkb.MerkleRoot) string {
+	getHash := func(root libkb.MerkleRoot) string {
 		return root.ProofServicesHash()
 	}
 	kitFilename := g.Env.GetParamProofKitFilename()
-	s := merklestore.NewMerkleStore(g, tag, endpoint, kitFilename, supportedVersion, getRootHash)
+	s := merklestore.NewMerkleStore(g, tag, endpoint, kitFilename, supportedVersion, getHash)
 	g.SetParamProofStore(s)
 	return s
 }

@@ -57,7 +57,7 @@ type MerkleStoreImpl struct {
 	supportedVersion keybase1.MerkleStoreSupportedVersion
 
 	// getter for merkle hash we want to verify against
-	getRootHash func(libkb.MerkleRoot) string
+	getHash func(libkb.MerkleRoot) string
 
 	// path to load kit from a file while debugging, if present this will be
 	// used instead of requesting data from the server, helpful for debugging.
@@ -69,14 +69,14 @@ type MerkleStoreImpl struct {
 var _ libkb.MerkleStore = (*MerkleStoreImpl)(nil)
 
 func NewMerkleStore(g *libkb.GlobalContext, tag, endpoint, kitFilename string, supportedVersion keybase1.MerkleStoreSupportedVersion,
-	getRootHash func(root libkb.MerkleRoot) string) libkb.MerkleStore {
+	getHash func(root libkb.MerkleRoot) string) libkb.MerkleStore {
 	return &MerkleStoreImpl{
 		Contextified:     libkb.NewContextified(g),
 		tag:              tag,
 		endpoint:         endpoint,
 		kitFilename:      kitFilename,
 		supportedVersion: supportedVersion,
-		getRootHash:      getRootHash,
+		getHash:          getHash,
 	}
 }
 
@@ -160,7 +160,7 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 	}
 
 	// This is the hash we are being instructed to use.
-	hash := keybase1.MerkleStoreKitHash(s.getRootHash(*root))
+	hash := keybase1.MerkleStoreKitHash(s.getHash(*root))
 
 	if hash == "" {
 		return "", "", NewMerkleStoreError("merkle root has empty %s hash: %v", s.tag, seqnoWrap(root.Seqno()))
@@ -168,7 +168,7 @@ func (s *MerkleStoreImpl) getKitString(m libkb.MetaContext) (
 
 	// Use in-memory cache if it matches
 	if fromMem := s.memGet(hash); fromMem != nil {
-		m.CDebugf("MerkleStore: mem cache hit, using hash: %s", hash)
+		m.CDebugf("MerkleStore: mem cache hit %s, using hash: %s", s.tag, hash)
 		return *fromMem, hash, nil
 	}
 

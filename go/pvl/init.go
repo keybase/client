@@ -11,11 +11,11 @@ func NewPvlSourceAndInstall(g *libkb.GlobalContext) libkb.MerkleStore {
 	supportedVersion := keybase1.MerkleStoreSupportedVersion(SupportedVersion)
 	tag := "pvl"
 	endpoint := "merkle/pvl"
-	getRootHash := func(root libkb.MerkleRoot) string {
+	getHash := func(root libkb.MerkleRoot) string {
 		return root.PvlHash()
 	}
 	kitFilename := g.Env.GetPvlKitFilename()
-	s := merklestore.NewMerkleStore(g, tag, endpoint, kitFilename, supportedVersion, getRootHash)
+	s := merklestore.NewMerkleStore(g, tag, endpoint, kitFilename, supportedVersion, getHash)
 	g.SetPvlSource(s)
 	return s
 }
