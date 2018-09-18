@@ -15,11 +15,9 @@ export const serialize = {
         return map
       }, {}),
   broken: v => v,
-  // TEMP
-  conversations: v => undefined,
+  conversations: v => v,
   externalRemoteWindow: v => v,
-  // TEMP
-  fileRows: v => undefined,
+  fileRows: v => v,
   isAsyncWriteHappening: v => v,
   loggedIn: v => v,
   username: v => v,

@@ -63,17 +63,17 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
+const TEMPTEMP = []
+
 const mergeProps = stateProps => ({
   badgeKeys: stateProps._badgeInfo,
   badgeMap: stateProps._badgeInfo,
   broken: stateProps.broken,
-  // TEMP
-  // conversations: stateProps.conversations,
+  conversations: TEMPTEMP, // TEMP stateProps.conversations,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  // TEMP
-  // fileRows: GetFileRows(stateProps._tlfUpdates),
+  fileRows: TEMPTEMP, // TEMP GetFileRows(stateProps._tlfUpdates),
   following: stateProps._following,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
