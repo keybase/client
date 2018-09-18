@@ -34,7 +34,6 @@ export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exportSecretKey = 'wallets:exportSecretKey'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
-export const loadAccount = 'wallets:loadAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
@@ -131,7 +130,6 @@ type _LinkedExistingAccountPayloadError = $ReadOnly<{|
   secretKey: HiddenString,
   error: string,
 |}>
-type _LoadAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadAccountsPayload = void
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
@@ -268,10 +266,6 @@ export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) 
  * Load a request's details
  */
 export const createLoadRequestDetail = (payload: _LoadRequestDetailPayload) => ({error: false, payload, type: loadRequestDetail})
-/**
- * Load details for a single account
- */
-export const createLoadAccount = (payload: _LoadAccountPayload) => ({error: false, payload, type: loadAccount})
 /**
  * Load display currency for an account
  */
@@ -435,7 +429,6 @@ export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _Export
 export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
 export type LinkedExistingAccountPayload = $Call<typeof createLinkedExistingAccount, _LinkedExistingAccountPayload>
 export type LinkedExistingAccountPayloadError = $Call<typeof createLinkedExistingAccountError, _LinkedExistingAccountPayloadError>
-export type LoadAccountPayload = $Call<typeof createLoadAccount, _LoadAccountPayload>
 export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
 export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
 export type LoadDisplayCurrenciesPayload = $Call<typeof createLoadDisplayCurrencies, _LoadDisplayCurrenciesPayload>
@@ -497,7 +490,6 @@ export type Actions =
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
-  | LoadAccountPayload
   | LoadAccountsPayload
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload

@@ -272,6 +272,7 @@ const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
 const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 const deleteAccountWaitingKey = 'wallets:deleteAccount'
+const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -325,6 +326,9 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
+const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.has(accountID)
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -351,7 +355,9 @@ export {
   getRequest,
   getSecretKey,
   getSelectedAccount,
+  isAccountLoaded,
   linkExistingWaitingKey,
+  loadAccountWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssetDescription,

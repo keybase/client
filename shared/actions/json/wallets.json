@@ -60,10 +60,6 @@
       "_description": "Refresh our list of assets for a given account",
       "accountID": "Types.AccountID",
     },
-    "loadAccount": {
-      "_description": "Load details for a single account",
-      "accountID": "Types.AccountID",
-    },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
     },
