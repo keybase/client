@@ -15,7 +15,15 @@ export const serialize = {
         return map
       }, {}),
   broken: v => v,
-  conversations: v => v,
+  conversationIDs: v => v.conversationIDKey,
+  conversationMap: (v, o) =>
+    v.reduce((map, k) => {
+      const toSend = v[k]
+      if (!o || o.indexOf(toSend) === -1) {
+        map[k] = toSend
+      }
+      return map
+    }, {}),
   externalRemoteWindow: v => v,
   fileRows: v => v,
   isAsyncWriteHappening: v => v,

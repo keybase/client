@@ -6,9 +6,9 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import GetNewestConvMetas from '../chat/inbox/container/remote'
-import GetFileRows from '../fs/remote-container'
-import {serialize} from './remote-serializer'
+import {conversationsToSend} from '../chat/inbox/container/remote'
+// import GetFileRows from '../fs/remote-container'
+import {serialize} from './remote-serializer.desktop'
 
 const windowOpts = {}
 
@@ -57,7 +57,7 @@ const mapStateToProps = (state: TypedState) => ({
   _following: state.config.following,
   _tlfUpdates: state.fs.tlfUpdates,
   broken: state.tracker.userTrackers,
-  conversations: GetNewestConvMetas(state),
+  conversationsToSend: conversationsToSend(state),
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
@@ -69,7 +69,8 @@ const mergeProps = stateProps => ({
   badgeKeys: stateProps._badgeInfo,
   badgeMap: stateProps._badgeInfo,
   broken: stateProps.broken,
-  conversations: TEMPTEMP, // TEMP stateProps.conversations,
+  conversationIDs: stateProps.conversationsToSend,
+  conversationMap: stateProps.conversationsToSend,
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
