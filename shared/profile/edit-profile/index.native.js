@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Box, Button, ButtonBar, FormInput} from '../../common-adapters/mobile.native'
-import {globalMargins, globalStyles} from '../../styles'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Styles from '../../styles'
+
 import type {Props} from '.'
 
 const EditProfileRender = (props: Props) => (
-  <Box style={globalStyles.flexBoxColumn}>
-    <FormInput
+  <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+    <Kb.FormInput
       autoCorrect={true}
       autoFocus={true}
       label="Full name"
@@ -14,7 +15,7 @@ const EditProfileRender = (props: Props) => (
       onChangeText={fullname => props.onFullnameChange(fullname)}
       hideBottomBorder={true}
     />
-    <FormInput
+    <Kb.FormInput
       autoCorrect={true}
       label="Bio"
       value={props.bio}
@@ -23,21 +24,37 @@ const EditProfileRender = (props: Props) => (
       onChangeText={bio => props.onBioChange(bio)}
       hideBottomBorder={true}
     />
-    <FormInput
+    <Kb.FormInput
       autoCorrect={true}
       label="Location"
       value={props.location}
       onEnterKeyDown={props.onSubmit}
       onChangeText={location => props.onLocationChange(location)}
     />
-    <ButtonBar fullWidth={true}>
-      <Button style={styleButton} type="Primary" onClick={props.onSubmit} label="Save" />
-    </ButtonBar>
-  </Box>
+    {props.bioLengthLeft <= 5 && (
+      <Kb.Text style={styles.errorText} type="BodySmallError">
+        {props.bioLengthLeft} characters left.
+      </Kb.Text>
+    )}
+    <Kb.ButtonBar fullWidth={true}>
+      <Kb.Button
+        disabled={props.bioLengthLeft <= 0}
+        style={styles.button}
+        type="Primary"
+        onClick={props.onSubmit}
+        label="Save"
+      />
+    </Kb.ButtonBar>
+  </Kb.Box>
 )
 
-const styleButton = {
-  marginTop: globalMargins.medium,
-}
+const styles = Styles.styleSheetCreate({
+  button: {
+    marginTop: Styles.globalMargins.medium,
+  },
+  errorText: {
+    textAlign: 'center',
+  },
+})
 
 export default EditProfileRender

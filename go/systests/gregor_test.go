@@ -5,7 +5,6 @@ package systests
 
 import (
 	"bytes"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +16,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
+	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
 )
 
@@ -74,9 +74,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 		tc.G.Log.Debug("+ Service.Run")
 		err := svc.Run()
 		tc.G.Log.Debug("- Service.Run")
-		if err != nil {
-			t.Logf("Running the service produced an error: %v", err)
-		}
+		require.NoError(t, err)
 		stopCh <- err
 	}()
 
@@ -91,22 +89,13 @@ func TestGregorForwardToElectron(t *testing.T) {
 
 	// Wait for the server to start up
 	<-startCh
+	require.NoError(t, signup.Run())
 
-	if err := signup.Run(); err != nil {
-		t.Fatal(err)
-	}
-
-	var err error
-	check := func() {
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
 	cli, xp, err := client.GetRPCClientWithContext(tc1.G)
 	srv := rpc.NewServer(xp, nil)
 	em := newElectronMock(tc.G)
 	err = srv.Register(keybase1.GregorUIProtocol(em))
-	check()
+	require.NoError(t, err)
 	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
 
 	// Spin until gregor comes up; it should come up after signup
@@ -118,50 +107,34 @@ func TestGregorForwardToElectron(t *testing.T) {
 			tc.G.Log.Debug("spinning, waiting for gregor to come up (attempt %d)", i)
 		}
 	}
-	if !ok {
-		t.Fatal("Gregor never came up after we signed up")
-	}
+	require.True(t, ok)
 
 	svc.SetGregorPushStateFilter(func(m gregor.Message) bool {
 		cat := m.ToInBandMessage().ToStateUpdateMessage().Creation().Category()
-		return cat.String() != "user.identity_change" && cat.String() != "user.key_change"
+		return cat.String() != "user.identity_change" && cat.String() != "user.key_change" &&
+			!strings.HasPrefix(cat.String(), "home.") && !strings.HasPrefix(cat.String(), "stellar.")
 	})
-	err = ncli.RegisterGregorFirehose(context.TODO())
-	check()
+	require.NoError(t, ncli.RegisterGregorFirehose(context.TODO()))
 
 	select {
 	case a := <-em.stateCh:
-		if a.Reason != keybase1.PushReason_RECONNECTED {
-			t.Fatal(fmt.Sprintf("got wrong reason: %v", a.Reason))
-		}
-		if d := len(filterPubsubdItems(a.State.Items_)); d != 0 {
-			t.Fatal(fmt.Sprintf("Wrong number of items in state -- should have 0, but got %d", d))
-		}
+		require.Equal(t, keybase1.PushReason_RECONNECTED, a.Reason)
+		require.Zero(t, filterPubsubdItems(a.State.Items_))
 	case <-time.After(3 * time.Second):
-		t.Fatalf("never got a reconnect message")
+		require.Fail(t, "no reconnect message")
 	}
 
 	msgID, err := svc.GregorInject("foo", []byte("bar"))
-	check()
-	err = svc.GregorInjectOutOfBandMessage("baz", []byte("bip"))
-	check()
+	require.NoError(t, err)
+	require.NoError(t, svc.GregorInjectOutOfBandMessage("baz", []byte("bip")))
 
 	checkState := func(s gregor1.State) {
 		items := filterPubsubdItems(s.Items_)
-		if n := len(items); n != 1 {
-			t.Errorf("Expected one item back; got %d", n)
-			return
-		}
+		require.Equal(t, 1, len(items))
 		i := items[0]
-		if !bytes.Equal(i.Md_.MsgID_.Bytes(), msgID.Bytes()) {
-			t.Error("Wrong gregor message ID received")
-		}
-		if i.Item_.Category_.String() != "foo" {
-			t.Error("Wrong gregor category")
-		}
-		if string(i.Item_.Body_.Bytes()) != "bar" {
-			t.Error("Wrong gregor body")
-		}
+		require.True(t, bytes.Equal(i.Md_.MsgID_.Bytes(), msgID.Bytes()))
+		require.Equal(t, "foo", i.Item_.Category_.String())
+		require.Equal(t, "bar", string(i.Item_.Body_.Bytes()))
 	}
 
 	// We get two push states, one from the local send, and one from receiving broadcast
@@ -169,11 +142,9 @@ func TestGregorForwardToElectron(t *testing.T) {
 		select {
 		case pushArg := <-em.stateCh:
 			checkState(pushArg.State)
-			if pushArg.Reason != keybase1.PushReason_NEW_DATA {
-				t.Errorf("wrong reason for push: %v", pushArg.Reason)
-			}
-		case <-time.After(3 * time.Second):
-			t.Fatalf("never got an IBM")
+			require.Equal(t, keybase1.PushReason_NEW_DATA, pushArg.Reason)
+		case <-time.After(10 * time.Second):
+			require.Fail(t, "no ibm")
 		}
 	}
 
@@ -196,24 +167,17 @@ func TestGregorForwardToElectron(t *testing.T) {
 	select {
 	case pushArg := <-em.stateCh:
 		checkState(pushArg.State)
-		if pushArg.Reason != keybase1.PushReason_RECONNECTED {
-			t.Errorf("wrong reason for push: %v", pushArg.Reason)
-		}
-	case <-time.After(3 * time.Second):
-		t.Fatalf("never got an IBM")
+		require.Equal(t, keybase1.PushReason_RECONNECTED, pushArg.Reason)
+	case <-time.After(10 * time.Second):
+		require.Fail(t, "no ibm")
 	}
 
 	gcli := keybase1.GregorClient{Cli: cli}
 	state, err := gcli.GetState(context.TODO())
-	check()
+	require.NoError(t, err)
 	checkState(state)
 
-	if err := client.CtlServiceStop(tc.G); err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, client.CtlServiceStop(tc.G))
 	// If the server failed, it's also an error
-	if err := <-stopCh; err != nil {
-		t.Fatal(err)
-	}
-
+	require.NoError(t, <-stopCh)
 }

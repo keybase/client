@@ -5,7 +5,7 @@ import {capitalize} from 'lodash-es'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
+import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 type Role = 'sender' | 'receiver'
 
@@ -22,7 +22,7 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
       return <Avatar username={props.counterparty} size={size} />
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
-    case 'account':
+    case 'otherAccount':
       return <Icon type="icon-wallet-add-48" style={{height: size, width: size}} />
     default:
       /*::
@@ -55,11 +55,13 @@ type CounterpartyTextProps = {|
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
+  textTypeSemiboldItalic?: 'BodySemiboldItalic' | 'BodySmallSemiboldItalic',
 |}
 
 export const CounterpartyText = (props: CounterpartyTextProps) => {
-  const textType = props.textType || (props.large ? 'Body' : 'BodySmall')
   const textTypeSemibold = props.textTypeSemibold || (props.large ? 'BodySemibold' : 'BodySmallSemibold')
+  const textTypeSemiboldItalic =
+    props.textTypeSemiboldItalic || (props.large ? 'BodySemiboldItalic' : 'BodySmallSemiboldItalic')
 
   switch (props.counterpartyType) {
     case 'keybaseUser':
@@ -77,14 +79,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         <StellarPublicKey
           publicKey={props.counterparty}
           showFullKey={props.showFullKey}
-          textType={textType}
+          textType={textTypeSemibold}
         />
       )
-    case 'account':
+    case 'otherAccount':
       return props.large ? (
-        <Text type={textType}>{props.counterparty}</Text>
+        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
       ) : (
-        <Text type={'BodySmallItalic'}>{props.counterparty}</Text>
+        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
       )
     default:
       /*::
@@ -109,6 +111,7 @@ type DetailProps = {|
 const Detail = (props: DetailProps) => {
   const textType = props.large ? 'Body' : 'BodySmall'
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
+  const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const counterparty = (
     <CounterpartyText
@@ -121,25 +124,30 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text type={textTypeSemibold}>{props.amountUser}</Text>
+    <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+      {props.amountUser}
+    </Text>
   ) : (
     <React.Fragment>
-      Lumens worth <Text type={textTypeSemibold}>{props.amountUser}</Text>
+      Lumens worth{' '}
+      <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+        {props.amountUser}
+      </Text>
     </React.Fragment>
   )
 
-  if (props.counterpartyType === 'account') {
+  if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     if (props.yourRole === 'sender') {
       return (
-        <Text type={textType}>
+        <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
         </Text>
       )
     }
 
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} from {counterparty} to this account.
       </Text>
     )
@@ -148,7 +156,7 @@ const Detail = (props: DetailProps) => {
   if (props.yourRole === 'sender') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
-      <Text type={textType}>
+      <Text type={textTypeSemibold}>
         {verbPhrase} {amount} to {counterparty}.
       </Text>
     )
@@ -156,14 +164,14 @@ const Detail = (props: DetailProps) => {
 
   const verbPhrase = props.pending ? 'sending' : 'sent you'
   return (
-    <Text type={textType}>
+    <Text type={textTypeSemibold}>
       {counterparty} {verbPhrase} {amount}.
     </Text>
   )
 }
 
 type AmountXLMProps = {|
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -177,7 +185,12 @@ const AmountXLM = (props: AmountXLMProps) => {
       : globalColors.green
   const amount = `${props.amountXLM}`
   return (
-    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text
+      onClick={event => event.stopPropagation()}
+      selectable={true}
+      style={{color, textAlign: 'right'}}
+      type="BodyExtrabold"
+    >
       {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
@@ -206,13 +219,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
       </Text>
     )
   }
-  let human
-  let tooltip
-  if (props.relative) {
-    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
-  } else {
-    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
-  }
+  const human = formatTimeForMessages(props.timestamp)
+  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
     <Text title={tooltip} type="BodySmall">
       {human}
@@ -226,7 +234,7 @@ export type Props = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   // whether account balance has increased or decreased
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.

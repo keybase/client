@@ -1,21 +1,24 @@
 // @flow
 import Avatar from './avatar'
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import Text from './text'
 import Box from './box'
 import {globalStyles} from '../styles'
-import {storiesOf, action, createPropProvider, PropProviders} from '../stories/storybook'
 
 const sizes = [128, 96, 64, 48, 32, 16]
-const provider = createPropProvider(PropProviders.Avatar(['following', 'both'], ['followers', 'both']))
+const provider = Sb.createPropProviderWithCommon(
+  Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
 
 const load = () => {
-  storiesOf('Common', module)
+  Sb.storiesOf('Common', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Avatar', () =>
       sizes.map(size => {
         const commonProps = {
-          onClick: action('Avatar clicked'),
+          onClick: Sb.action('Avatar clicked'),
           showFollowingStatus: true,
           size: size,
           style: avatarStyle,

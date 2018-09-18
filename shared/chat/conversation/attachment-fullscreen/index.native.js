@@ -8,8 +8,9 @@ import {
   NativeImage,
   ZoomableBox,
   NativeDimensions,
+  OverlayParentHOC,
+  type OverlayParentProps,
 } from '../../../common-adapters/mobile.native'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
 import MessagePopup from '../messages/message-popup/'
 import {globalColors, globalMargins, globalStyles, isIPhoneX} from '../../../styles'
 import type {Props} from './index.types'
@@ -59,7 +60,7 @@ class AutoMaxSizeImage extends Component<any, {width: number, height: number, lo
   }
 }
 
-class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, {loaded: boolean}> {
+class _Fullscreen extends React.Component<Props & OverlayParentProps, {loaded: boolean}> {
   state = {loaded: false}
   _setLoaded = () => this.setState({loaded: true})
   render() {
@@ -98,7 +99,7 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, {load
           onClick={this.props.toggleShowingMenu}
         />
         <MessagePopup
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           message={this.props.message}
           onHidden={this.props.toggleShowingMenu}
           position="bottom left"
@@ -108,7 +109,7 @@ class _Fullscreen extends React.Component<Props & FloatingMenuParentProps, {load
     )
   }
 }
-const Fullscreen = FloatingMenuParentHOC(_Fullscreen)
+const Fullscreen = OverlayParentHOC(_Fullscreen)
 
 const styleHeaderFooter = {
   ...globalStyles.flexBoxRow,

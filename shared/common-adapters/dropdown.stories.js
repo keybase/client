@@ -16,21 +16,21 @@ const load = () => {
         height: 400,
         borderStyle: 'solid',
         borderWidth: 1,
-        borderColor: globalColors.black_05,
+        borderColor: globalColors.black_10,
       }}
     >
       <Dropdown
         items={[
-          <Text type="Header" key="pick">
+          <Text type="BodyBig" key="pick">
             Pick a value
           </Text>,
-          <Text type="Header" key="one">
+          <Text type="BodyBig" key="one">
             One
           </Text>,
-          <Text type="Header" key="two">
+          <Text type="BodyBig" key="two">
             Two
           </Text>,
-          <Text type="Header" key="three">
+          <Text type="BodyBig" key="three">
             Three
           </Text>,
         ]}
@@ -38,22 +38,42 @@ const load = () => {
       />
       <Dropdown
         items={[
-          <Text type="Header" key="pick">
+          <Text type="BodyBig" key="pick">
             Pick a value
           </Text>,
-          <Text type="Header" key="one">
+          <Text type="BodyBig" key="one">
             One
           </Text>,
-          <Text type="Header" key="two">
+          <Text type="BodyBig" key="two">
             Two
           </Text>,
-          <Text type="Header" key="trhee">
+          <Text type="BodyBig" key="trhee">
             Three
           </Text>,
         ]}
         onChanged={action('onChanged')}
-        selected={<Text type="Header">Pick a value</Text>}
+        selected={<Text type="BodyBig">Pick a value</Text>}
         style={{marginTop: 100}}
+      />
+      <Dropdown
+        items={[
+          <Text type="BodyBig" key="pick">
+            Pick a value
+          </Text>,
+          <Text type="BodyBig" key="one">
+            One
+          </Text>,
+          <Text type="BodyBig" key="two">
+            Two
+          </Text>,
+          <Text type="BodyBig" key="trhee">
+            Three
+          </Text>,
+        ]}
+        onChanged={action('onChanged')}
+        selected={<Text type="BodyBig">Pick a value</Text>}
+        style={{marginTop: 100}}
+        disabled={true}
       />
     </Box>
   ))

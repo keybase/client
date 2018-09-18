@@ -131,7 +131,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
     if (this.props.hasPermission) {
       contents = (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, paddingBottom: globalMargins.xtiny}}>
-          {this.props.errorMessage && (
+          {!!this.props.errorMessage && (
             <Box2
               direction="horizontal"
               style={{
@@ -151,7 +151,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             style={{
               ...globalStyles.flexBoxRow,
               borderBottomWidth: hairlineWidth,
-              borderBottomColor: globalColors.black_05,
+              borderBottomColor: globalColors.black_10,
             }}
           >
             <Input
@@ -182,7 +182,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               justifyContent: 'center',
               padding: globalMargins.small,
               borderBottomWidth: hairlineWidth,
-              borderBottomColor: globalColors.black_05,
+              borderBottomColor: globalColors.black_10,
               marginBottom: globalMargins.xtiny,
             }}
           >

@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState) => ({
   pending: state.teams.teamCreationPending,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
   _onCreateNewTeam: (joinSubteam: boolean, teamname: string) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()

@@ -16,7 +16,7 @@ const addTags = component => ({
   tags: makeLeafTags({hideStatusBar: true, underStatusBar: !isIPhoneX}),
 })
 
-const routes = {
+const children = {
   codePage: addTags(CodePage),
   error: addTags(RegisterError),
   gpgSign: addTags(GPGSign),
@@ -27,4 +27,4 @@ const routes = {
   usernameOrEmail: addTags(UsernameOrEmail),
 }
 
-export default routes
+export default children

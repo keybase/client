@@ -8,7 +8,8 @@ import * as Types from '../constants/types/tracker'
 import * as FolderTypes from '../constants/types/folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of tracker but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'tracker:'
 export const cacheIdentify = 'tracker:cacheIdentify'
 export const follow = 'tracker:follow'
 export const getMyProfile = 'tracker:getMyProfile'
@@ -33,7 +34,6 @@ export const setOnUnfollow = 'tracker:setOnUnfollow'
 export const setProofs = 'tracker:setProofs'
 export const setRegisterIdentifyUi = 'tracker:setRegisterIdentifyUi'
 export const setUpdateTrackers = 'tracker:setUpdateTrackers'
-export const setupTrackerHandlers = 'tracker:setupTrackerHandlers'
 export const showNonUser = 'tracker:showNonUser'
 export const showTracker = 'tracker:showTracker'
 export const unfollow = 'tracker:unfollow'
@@ -119,10 +119,9 @@ type _SetUpdateTrackersPayload = $ReadOnly<{|
   trackers: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
   tracking: Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>,
 |}>
-type _SetupTrackerHandlersPayload = void
 type _ShowNonUserPayload = $ReadOnly<{|
   username: string,
-  nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam,
+  nonUser: {throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string},
 |}>
 type _ShowTrackerPayload = $ReadOnly<{|username: string|}>
 type _UnfollowPayload = $ReadOnly<{|username: string|}>
@@ -201,7 +200,6 @@ export const createSetOnUnfollow = (payload: _SetOnUnfollowPayload) => ({error: 
 export const createSetProofs = (payload: _SetProofsPayload) => ({error: false, payload, type: setProofs})
 export const createSetRegisterIdentifyUi = (payload: _SetRegisterIdentifyUiPayload) => ({error: false, payload, type: setRegisterIdentifyUi})
 export const createSetUpdateTrackers = (payload: _SetUpdateTrackersPayload) => ({error: false, payload, type: setUpdateTrackers})
-export const createSetupTrackerHandlers = (payload: _SetupTrackerHandlersPayload) => ({error: false, payload, type: setupTrackerHandlers})
 export const createShowNonUser = (payload: _ShowNonUserPayload) => ({error: false, payload, type: showNonUser})
 export const createShowTracker = (payload: _ShowTrackerPayload) => ({error: false, payload, type: showTracker})
 export const createUnfollow = (payload: _UnfollowPayload) => ({error: false, payload, type: unfollow})
@@ -246,7 +244,6 @@ export type SetOnUnfollowPayload = $Call<typeof createSetOnUnfollow, _SetOnUnfol
 export type SetProofsPayload = $Call<typeof createSetProofs, _SetProofsPayload>
 export type SetRegisterIdentifyUiPayload = $Call<typeof createSetRegisterIdentifyUi, _SetRegisterIdentifyUiPayload>
 export type SetUpdateTrackersPayload = $Call<typeof createSetUpdateTrackers, _SetUpdateTrackersPayload>
-export type SetupTrackerHandlersPayload = $Call<typeof createSetupTrackerHandlers, _SetupTrackerHandlersPayload>
 export type ShowNonUserPayload = $Call<typeof createShowNonUser, _ShowNonUserPayload>
 export type ShowTrackerPayload = $Call<typeof createShowTracker, _ShowTrackerPayload>
 export type UnfollowPayload = $Call<typeof createUnfollow, _UnfollowPayload>
@@ -293,7 +290,6 @@ export type Actions =
   | SetProofsPayload
   | SetRegisterIdentifyUiPayload
   | SetUpdateTrackersPayload
-  | SetupTrackerHandlersPayload
   | ShowNonUserPayload
   | ShowTrackerPayload
   | UnfollowPayload

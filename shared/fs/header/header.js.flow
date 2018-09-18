@@ -5,7 +5,6 @@ import * as Types from '../../constants/types/fs'
 export type FolderHeaderProps = {
   path: Types.Path,
   title: string,
-  openInFileUI: () => void,
   onBack: () => void,
   onChat: () => void,
 }

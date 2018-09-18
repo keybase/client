@@ -12,7 +12,7 @@ import {
   StandardScreen,
   ButtonBar,
 } from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../styles'
+import {globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
   teamname: string,
@@ -36,7 +36,7 @@ type TextState = {
 const EditChannelBare = (props: Props & TextState) => (
   <Box style={_boxStyle}>
     <Avatar isTeam={true} teamname={props.teamname} size={32} />
-    <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
+    <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
       {props.teamname}
     </Text>
     {props.waitingForGetInfo ? (

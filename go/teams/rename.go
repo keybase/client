@@ -60,7 +60,7 @@ func RenameSubteam(ctx context.Context, g *libkb.GlobalContext, prevName keybase
 			return err
 		}
 
-		admin, err := parent.getAdminPermission(ctx, true)
+		admin, err := parent.getAdminPermission(ctx)
 		if err != nil {
 			return err
 		}

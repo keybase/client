@@ -1,8 +1,6 @@
 // @flow
 import * as React from 'react'
-import {isIOS} from '../constants/platform'
 import {WebView} from 'react-native'
-import WKWebView from 'react-native-wkwebview-reborn'
 import type {WebViewInjections, WebViewProps} from './web-view'
 import {memoize} from 'lodash-es'
 
@@ -22,18 +20,19 @@ const combineJavaScriptAndCSS = (injections?: WebViewInjections) =>
 (function() {\` ${escape(injections.javaScript)} \`})()
 `
 
-export default (isIOS
-  ? (props: WebViewProps) => (
-      <WKWebView
-        source={{uri: props.url}}
-        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-        style={props.style}
-      />
-    )
-  : (props: WebViewProps) => (
-      <WebView
-        source={{uri: props.url}}
-        injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
-        style={props.style}
-      />
-    ))
+const KBWebView = (props: WebViewProps) => {
+  const {onLoadingStateChange} = props
+  return (
+    <WebView
+      allowsInlineMediaPlayback={true}
+      useWebKit={true}
+      source={{uri: props.url}}
+      injectedJavaScript={memoize(combineJavaScriptAndCSS)(props.injections)}
+      style={props.style}
+      onLoadStart={onLoadingStateChange && (() => onLoadingStateChange(true))}
+      onLoadEnd={onLoadingStateChange && (() => onLoadingStateChange(false))}
+    />
+  )
+}
+
+export default KBWebView

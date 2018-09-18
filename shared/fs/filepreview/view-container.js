@@ -4,7 +4,6 @@ import {
   compose,
   connect,
   lifecycle,
-  type Dispatch,
   type TypedState,
   setDisplayName,
 } from '../../util/container'
@@ -22,6 +21,7 @@ import {globalStyles, globalColors, platformStyles} from '../../styles'
 type Props = {
   path: Types.Path,
   routePath: I.List<string>,
+  onLoadingStateChange: (isLoading: boolean) => void,
 }
 
 const mapStateToProps = (state: TypedState, {path}: Props) => {
@@ -33,25 +33,33 @@ const mapStateToProps = (state: TypedState, {path}: Props) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {path}: Props) => ({
+const mapDispatchToProps = (dispatch, {path}: Props) => ({
   loadMimeType: () => dispatch(FsGen.createMimeTypeLoad({path})),
 })
 
-const mergeProps = ({_serverInfo, mimeType, isSymlink}, {loadMimeType}, {path, routePath}) => ({
+const mergeProps = (
+  {_serverInfo, mimeType, isSymlink},
+  {loadMimeType},
+  {path, routePath, onLoadingStateChange}
+) => ({
   url: Constants.generateFileURL(path, _serverInfo),
   mimeType,
   isSymlink,
   path,
   loadMimeType,
   routePath,
+  onLoadingStateChange,
 })
 
-const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => {
+const Renderer = props => {
+  const {mimeType, isSymlink, url, path, routePath, onLoadingStateChange} = props
   if (isSymlink) {
     return <DefaultView path={path} routePath={routePath} />
   }
 
   if (mimeType === '') {
+    // We are still loading mimeType which is needed to determine which
+    // component to use.
     return (
       <Box style={stylesLoadingContainer}>
         <Text type="BodySmall" style={stylesLoadingText}>
@@ -63,18 +71,18 @@ const Renderer = ({mimeType, isSymlink, url, path, routePath, loadMimeType}) => 
 
   switch (Constants.viewTypeFromMimeType(mimeType)) {
     case 'default':
-      return <DefaultView path={path} routePath={routePath} />
+      return <DefaultView path={path} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
     case 'text':
-      return <TextView url={url} routePath={routePath} />
+      return <TextView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
     case 'image':
-      return <ImageView url={url} routePath={routePath} />
+      return <ImageView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
     case 'av':
-      return <AVView url={url} routePath={routePath} />
+      return <AVView url={url} routePath={routePath} onLoadingStateChange={onLoadingStateChange} />
     case 'pdf':
       // Security risks to links in PDF viewing. See DESKTOP-6888.
       return <DefaultView path={path} routePath={routePath} />
     default:
-      return <Text type="BodyError">This shouldn't happen</Text>
+      return <Text type="BodySmallError">This shouldn't happen</Text>
   }
 }
 

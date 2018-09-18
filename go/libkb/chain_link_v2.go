@@ -62,6 +62,8 @@ const (
 // be stubbed, that means we potentially won't get to verify its signature,
 // since we need the full link to verify signatures. However, in some cases,
 // signature verification is required, and hence stubbing is disallowed.
+// NOTE when modifying this function ensure that web/sig.iced#_allow_stubbing
+// is updated as well.
 func (t SigchainV2Type) AllowStubbing() bool {
 
 	// Unsupported types don't need signatures. Otherwise we can't
@@ -80,6 +82,8 @@ func (t SigchainV2Type) AllowStubbing() bool {
 	}
 }
 
+// NOTE when modifying this function ensure that web/sig.iced#_is_supported_user_type
+// is updated as well.
 func (t SigchainV2Type) IsSupportedUserType() bool {
 	switch t {
 	case SigchainV2TypeNone,
@@ -142,7 +146,8 @@ func (t SigchainV2Type) RequiresAtLeastRole() keybase1.TeamRole {
 	case SigchainV2TypeTeamRoot,
 		SigchainV2TypeTeamLeave:
 		return keybase1.TeamRole_READER
-	case SigchainV2TypeTeamRotateKey:
+	case SigchainV2TypeTeamRotateKey,
+		SigchainV2TypeTeamKBFSSettings:
 		return keybase1.TeamRole_WRITER
 	default:
 		return keybase1.TeamRole_ADMIN
@@ -275,8 +280,7 @@ func DecodeStubbedOuterLinkV2(b64encoded string) (*OuterLinkV2WithMetadata, erro
 		return nil, err
 	}
 	var ol OuterLinkV2
-	err = MsgpackDecode(&ol, payload)
-	if err != nil {
+	if err = MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
 	}
 	return &OuterLinkV2WithMetadata{OuterLinkV2: ol, raw: payload}, nil
@@ -316,8 +320,7 @@ func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 		return nil, err
 	}
 	var ol OuterLinkV2
-	err = MsgpackDecode(&ol, payload)
-	if err != nil {
+	if err := MsgpackDecode(&ol, payload); err != nil {
 		return nil, err
 	}
 	ret := OuterLinkV2WithMetadata{

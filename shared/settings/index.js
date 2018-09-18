@@ -1,5 +1,6 @@
 // @flow
-import * as LoginGen from '../actions/login-gen'
+import * as ConfigGen from '../actions/config-gen'
+import * as Types from '../constants/types/settings'
 import SettingsContainer from './render'
 import {connect, type TypedState} from '../util/container'
 import {switchTo} from '../actions/route-tree'
@@ -11,13 +12,12 @@ const mapStateToProps = (state: TypedState, {routeLeafTags, routeSelected}: OwnP
   _badgeNumbers: state.notifications.get('navBadges'),
   badgeNotifications: !state.push.hasPermissions,
   isModal: routeLeafTags.modal,
-  // TODO: Is there a way to validate that routeSelected is a Tab?
-  selectedTab: (routeSelected: any),
+  selectedTab: ((routeSelected: any): Types.Tab),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}: OwnProps) => ({
-  onLogout: () => dispatch(LoginGen.createLogout()),
-  onTabChange: tab => dispatch(switchTo(routePath.push(tab))),
+const mapDispatchToProps = (dispatch, {routePath}: OwnProps) => ({
+  onLogout: () => dispatch(ConfigGen.createLogout()),
+  onTabChange: (tab: Types.Tab) => dispatch(switchTo(routePath.push(tab))),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -25,8 +25,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   badgeNumbers: stateProps._badgeNumbers.toObject(),
   children: ownProps.children,
   isModal: stateProps.isModal,
+  onLogout: dispatchProps.onLogout,
+  onTabChange: dispatchProps.onTabChange,
   selectedTab: stateProps.selectedTab,
-  ...dispatchProps,
 })
 
+// $FlowIssue fix badgeNumbers
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)

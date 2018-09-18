@@ -32,6 +32,14 @@ func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
+func NewCmdUntrackRunner(g *libkb.GlobalContext) *CmdUntrack {
+	return &CmdUntrack{Contextified: libkb.NewContextified(g)}
+}
+
+func (v *CmdUntrack) SetUser(user string) {
+	v.user = user
+}
+
 func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Unfollow only takes one argument, the user to unfollow.")

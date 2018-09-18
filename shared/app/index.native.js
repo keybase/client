@@ -1,22 +1,14 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import Main from './main'
+import Main from './main.native'
 import React, {Component} from 'react'
 import configureStore from '../store/configure-store'
 import loginRouteTree from './routes-login'
-import {AppRegistry, AppState, Linking, Text} from 'react-native'
+import {AppRegistry, AppState, Linking} from 'react-native'
 import {GatewayProvider} from 'react-gateway'
 import {Provider} from 'react-redux'
 import {makeEngine} from '../engine'
 import {refreshRouteDef, setInitialRouteDef} from '../actions/route-tree'
-import {setup as setupLocalDebug} from '../local-debug'
-
-// We don't want global font scaling as this messes up a TON of stuff. let's opt in
-function disallowFontScalingByDefault() {
-  Text.defaultProps.allowFontScaling = false
-}
-
-disallowFontScalingByDefault()
 
 module.hot &&
   module.hot.accept(() => {
@@ -42,9 +34,11 @@ class Keybase extends Component<any> {
       if (__DEV__) {
         global.DEBUGStore = this.store
       }
-      setupLocalDebug(this.store)
       this.store.dispatch(setInitialRouteDef(loginRouteTree))
       makeEngine(this.store.dispatch, this.store.getState)
+
+      // On mobile there is no installer
+      this.store.dispatch(ConfigGen.createInstallerRan())
     } else {
       this.store = global.store
     }

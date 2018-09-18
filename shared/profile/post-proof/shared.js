@@ -2,7 +2,7 @@
 import FacebookDescription from '../facebook-description'
 import * as React from 'react'
 import openUrl from '../../util/open-url'
-import {Box, Text, type IconType} from '../../common-adapters'
+import {Box, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {subtitle} from '../../util/platforms'
 import type {Props} from '.'
@@ -13,7 +13,6 @@ type MoreProps = {
   onCompleteText?: ?string,
   proofText?: ?string,
   platformSubtitle?: ?string,
-  proofActionIcon?: ?IconType,
   proofActionText?: ?string,
 }
 
@@ -42,7 +41,6 @@ export function propsForPlatform(props: Props): MoreProps {
         ),
         proofActionText: 'Tweet it now',
         proofText: props.proofText,
-        proofActionIcon: 'iconfont-tweet',
         onCompleteText: 'OK tweeted! Check for it!',
         noteText: null,
       }
@@ -59,7 +57,6 @@ export function propsForPlatform(props: Props): MoreProps {
         noteText: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
         proofText: null,
         proofActionText: 'Reddit form',
-        proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
       }
     case 'facebook':
@@ -67,8 +64,7 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: <FacebookDescription />,
         proofText: null,
-        proofActionText: null,
-        proofActionIcon: 'icon-facebook-continue',
+        proofActionText: 'Continue with Facebook',
         onCompleteText: 'OK posted! Check for it!',
       }
     case 'github':
@@ -82,7 +78,6 @@ export function propsForPlatform(props: Props): MoreProps {
         ),
         proofActionText: 'Create gist now',
         proofText: props.proofText,
-        proofActionIcon: 'iconfont-open-browser',
         onCompleteText: 'OK posted! Check for it!',
         noteText: null,
       }
@@ -99,7 +94,6 @@ export function propsForPlatform(props: Props): MoreProps {
           </Text>
         ),
         proofActionText: 'Go to Hacker News',
-        proofActionIcon: 'iconfont-open-browser',
         proofText: props.proofText,
         onCompleteText: 'OK posted! Check for it!',
         noteText: null,
@@ -117,7 +111,6 @@ export function propsForPlatform(props: Props): MoreProps {
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
         noteText: null,
-        proofActionIcon: null,
       }
     case 'http':
     case 'https':
@@ -127,7 +120,6 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         proofText: props.proofText,
-        proofActionIcon: null,
         descriptionView: (
           <Box style={globalStyles.flexBoxColumn}>
             <Text type="BodySemibold" {...styleCentered}>

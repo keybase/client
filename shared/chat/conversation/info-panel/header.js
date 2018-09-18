@@ -5,11 +5,12 @@ import {
   ClickableBox,
   Icon,
   Markdown,
-  NameWithIcon,
+  ConnectedNameWithIcon,
   Text,
   iconCastPlatformStyles,
+  type OverlayParentProps,
+  OverlayParentHOC,
 } from '../../../common-adapters'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../common-adapters/floating-menu'
 import InfoPanelMenu from './menu/container'
 import {
   glamorous,
@@ -23,9 +24,8 @@ import {
 type SmallProps = {
   teamname: string,
   participantCount: number,
-  onClick: () => void,
   isSmallTeam: boolean,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 const gearIconSize = isMobile ? 24 : 16
 
@@ -33,17 +33,17 @@ const _SmallTeamHeader = (props: SmallProps) => {
   return (
     <Box style={styles.smallContainer}>
       <InfoPanelMenu
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         onHidden={props.toggleShowingMenu}
         isSmallTeam={props.isSmallTeam}
         teamname={props.teamname}
         visible={props.showingMenu}
       />
-      <NameWithIcon
+      <ConnectedNameWithIcon
         containerStyle={styles.flexOne}
         horizontal={true}
         teamname={props.teamname}
-        onClick={props.onClick}
+        onClick="profile"
         title={props.teamname}
         metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
       />
@@ -57,17 +57,16 @@ const _SmallTeamHeader = (props: SmallProps) => {
     </Box>
   )
 }
-const SmallTeamHeader = FloatingMenuParentHOC(_SmallTeamHeader)
+const SmallTeamHeader = OverlayParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
-type BigProps = {
+type BigProps = {|
   canEditChannel: boolean,
   channelname: string,
   description: ?string,
   teamname: string,
-  onClick: () => void,
   onEditChannel: () => void,
-}
+|}
 
 const EditBox = isMobile
   ? ClickableBox

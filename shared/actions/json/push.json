@@ -1,36 +1,11 @@
 {
   "prelude": ["import * as Types from '../constants/types/push'"],
   "actions": {
-    "configurePush": {},
-    "checkIOSPush": {},
-    "permissionsNo": {},
-    "permissionsRequest": {},
-    "permissionsRequesting": {
-      "requesting": "boolean"
-    },
-    "permissionsPrompt": {
-      "prompt": "boolean"
-    },
-    "pushToken": {
-      "token": "string",
-      "tokenType": "Types.TokenType"
-    },
-    "registrationError": {
-      "error": "Error"
-    },
-    "error": {
-      "error": "Error"
-    },
-    "updatePushToken": {
-      "token": "string",
-      "tokenType": "Types.TokenType"
-    },
-    "savePushToken": {},
-    "notification": {
-      "notification": "Types.PushNotification"
-    },
-    "setHasPermissions": {
-      "hasPermissions": "boolean"
-    }
+    "rejectPermissions": {},
+    "requestPermissions": {},
+    "showPermissionsPrompt": { "show": "boolean" },
+    "updatePushToken": { "token": "string", },
+    "updateHasPermissions": { "hasPermissions": "boolean" },
+    "notification": { "notification": "Types.PushNotification" }
   }
 }

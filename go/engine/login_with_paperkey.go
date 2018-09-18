@@ -70,7 +70,7 @@ func (e *LoginWithPaperKey) Run(m libkb.MetaContext) error {
 
 	// Convert our paper keys into a provisional active device, to use for
 	// API session authentication. BAM! We're "logged in".
-	m = m.WithPaperKeyActiveDevice(kp, me.ToUserVersion())
+	m = m.WithProvisioningKeyActiveDevice(kp, me.ToUserVersion())
 
 	// Get the LKS client half.
 	gen, clientLKS, err := fetchLKS(m, kp.EncryptionKey())

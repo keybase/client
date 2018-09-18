@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Box2, ConnectedUsernames, Icon, Text, type IconType} from '../../../../common-adapters'
-import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
+import {isAndroid} from '../../../../constants/platform'
 import type {DeviceType} from '../../../../constants/types/devices'
 
-const iconNameForDeviceType = isMobile
-  ? (deviceType: string, isRevoked: boolean): IconType => {
+const iconNameForDeviceType = Styles.isMobile
+  ? (deviceType: string, isRevoked: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked ? 'icon-fancy-revoked-phone-183-x-96' : 'icon-fancy-encrypted-phone-183-x-96'
@@ -15,7 +15,7 @@ const iconNameForDeviceType = isMobile
           return isRevoked ? 'icon-fancy-revoked-computer-226-x-96' : 'icon-fancy-encrypted-computer-226-x-96'
       }
     }
-  : (deviceType: string, isRevoked: boolean): IconType => {
+  : (deviceType: string, isRevoked: boolean): Kb.IconType => {
       switch (deviceType) {
         case 'mobile':
           return isRevoked ? 'icon-fancy-revoked-phone-122-x-64' : 'icon-fancy-encrypted-phone-122-x-64'
@@ -37,79 +37,106 @@ const MessagePopupHeader = (props: {
   const iconName = iconNameForDeviceType(deviceType, !!deviceRevokedAt)
   const whoRevoked = yourMessage ? 'You' : author
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        maxWidth: isMobile ? '100%' : 240,
-        textAlign: 'center',
-        width: '100%',
-      }}
-    >
-      <Icon
-        type={iconName}
-        style={{
-          marginBottom: globalMargins.tiny,
-          marginTop: !isMobile ? globalMargins.small : 0,
-        }}
-      />
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-        }}
-      >
-        <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
+    <Kb.Box style={styles.headerContainer}>
+      <Kb.Icon type={iconName} style={Kb.iconCastPlatformStyles(styles.headerIcon)} />
+      <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+        <Kb.Text
+          type="BodySmall"
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+        >
           ENCRYPTED
-        </Text>
-        <Text type="BodySmall" style={{color: deviceRevokedAt ? globalColors.black_40 : globalColors.green2}}>
+        </Kb.Text>
+        <Kb.Text
+          type="BodySmall"
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green2}}
+        >
           &nbsp;& SIGNED
-        </Text>
-      </Box>
-      <Box2 direction="horizontal">
-        <Text type="BodySmall" style={{color: globalColors.black_40}}>
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Box2 direction="horizontal">
+        <Kb.Text type="BodySmall" style={styles.colorBlack40}>
           by
-        </Text>
-        <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
-          <Avatar username={author} size={16} clickToProfile="tracker" />
-          <ConnectedUsernames
-            clickable={true}
+        </Kb.Text>
+        <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
+          <Kb.Avatar username={author} size={16} clickToProfile="tracker" />
+          <Kb.ConnectedUsernames
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             usernames={[author]}
             underline={true}
             type="BodySmallSemibold"
           />
-        </Box2>
-      </Box2>
-      <Box
-        style={{
-          ...globalStyles.flexBoxRow,
-          paddingLeft: globalMargins.small,
-          paddingRight: globalMargins.small,
-        }}
-      >
-        <Text type="BodySmall">
-          from device&nbsp;<Text type="BodySmallSemibold">{deviceName}</Text>
-        </Text>
-      </Box>
-      <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+        </Kb.Box2>
+      </Kb.Box2>
+      <Kb.Box style={styles.headerDetailsContainer}>
+        <Kb.Text type="BodySmall">
+          from device&nbsp;<Kb.Text type="BodySmallSemibold">{deviceName}</Kb.Text>
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Text type="BodySmall">{formatTimeForPopup(timestamp)}</Kb.Text>
       {deviceRevokedAt && (
-        <PopupHeaderText
-          color={globalColors.white}
-          backgroundColor={globalColors.blue}
-          style={{
-            marginTop: globalMargins.small,
-            ...(isLast
-              ? {borderBottomLeftRadius: 3, borderBottomRightRadius: 3, marginBottom: -globalMargins.small}
-              : {}),
-            width: '100%',
-          }}
+        <Kb.Box2
+          gap="small"
+          fullWidth={true}
+          gapStart={true}
+          direction="vertical"
+          style={Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-        </PopupHeaderText>
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
+          </Kb.PopupHeaderText>
+        </Kb.Box2>
       )}
-    </Box>
+    </Kb.Box>
   )
 }
+
+// The mobile special casing below is because RN doesn't support overflow on Android
+const iconSpacing = Styles.isMobile ? 96 - (isAndroid ? 16 : 30) : 64
+const styles = Styles.styleSheetCreate({
+  alignItemsCenter: {alignItems: 'center'},
+  colorBlack40: {color: Styles.globalColors.black_40},
+  headerContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      width: '100%',
+    },
+    isElectron: {
+      maxWidth: 240,
+      paddingTop: iconSpacing,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium + iconSpacing,
+    },
+  }),
+  headerDetailsContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  headerIcon: Styles.platformStyles({
+    common: {
+      marginBottom: Styles.globalMargins.tiny,
+      position: 'absolute',
+    },
+    isAndroid: {
+      top: 0,
+    },
+    isElectron: {marginTop: Styles.globalMargins.small, top: -25},
+    isIOS: {top: -15},
+    isMobile: {
+      marginTop: 0,
+    },
+  }),
+  revokedAtContainerLast: {
+    borderBottomLeftRadius: 3,
+    borderBottomRightRadius: 3,
+    marginBottom: -Styles.globalMargins.small,
+    overflow: 'hidden',
+  },
+})
 
 export default MessagePopupHeader

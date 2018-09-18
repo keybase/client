@@ -1,75 +1,71 @@
 // @flow
+import * as ConfigGen from './config-gen'
 import * as PeopleGen from './people-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
-import * as RouteTypes from '../constants/types/route-tree'
-import * as RouteConstants from '../constants/route-tree'
+import * as RouteTreeGen from './route-tree-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import engine from '../engine'
 import {peopleTab} from '../constants/tabs'
 import {type TypedState} from '../constants/reducer'
-import {createDecrementWaiting, createIncrementWaiting} from '../actions/waiting-gen'
 import {getPath} from '../route-tree'
 
-const _getPeopleData = function(action: PeopleGen.GetPeopleDataPayload, state: TypedState) {
-  return Saga.sequentially([
-    Saga.put(createIncrementWaiting({key: Constants.getPeopleDataWaitingKey})),
-    Saga.call(RPCTypes.homeHomeGetScreenRpcPromise, {
-      markViewed: action.payload.markViewed,
-      numFollowSuggestionsWanted: action.payload.numFollowSuggestionsWanted,
-    }),
-    Saga.identity(state.config.following),
-    Saga.identity(state.config.followers),
-    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey})),
-  ])
-}
+const getPeopleData = (
+  state: TypedState,
+  action: PeopleGen.GetPeopleDataPayload | ConfigGen.LoggedInPayload
+) => {
+  let markViewed = false
+  let numFollowSuggestionsWanted = Constants.defaultNumFollowSuggestions
+  if (action.type === PeopleGen.getPeopleData) {
+    markViewed = action.payload.markViewed
+    numFollowSuggestionsWanted = action.payload.numFollowSuggestionsWanted
+  }
+  return RPCTypes.homeHomeGetScreenRpcPromise(
+    {markViewed, numFollowSuggestionsWanted},
+    Constants.getPeopleDataWaitingKey
+  ).then((data: RPCTypes.HomeScreen) => {
+    const following = state.config.following
+    const followers = state.config.followers
+    const oldItems: I.List<Types.PeopleScreenItem> =
+      (data.items &&
+        data.items
+          .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
+          .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
+      I.List()
+    const newItems: I.List<Types.PeopleScreenItem> =
+      (data.items &&
+        data.items
+          .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
+          .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
+      I.List()
 
-const _processPeopleData = function(fromGetPeopleData: any[]) {
-  const data: RPCTypes.HomeScreen = fromGetPeopleData[1]
-  const following: I.Set<string> = fromGetPeopleData[2]
-  const followers: I.Set<string> = fromGetPeopleData[3]
+    const followSuggestions: I.List<Types.FollowSuggestion> =
+      (data.followSuggestions &&
+        data.followSuggestions.reduce((list, suggestion) => {
+          const followsMe = followers.has(suggestion.username)
+          const iFollow = following.has(suggestion.username)
+          return list.push(
+            Constants.makeFollowSuggestion({
+              username: suggestion.username,
+              followsMe,
+              iFollow,
+              fullName: suggestion.fullName,
+            })
+          )
+        }, I.List())) ||
+      I.List()
 
-  const oldItems: I.List<Types.PeopleScreenItem> =
-    (data.items &&
-      data.items
-        .filter(item => !item.badged && item.data.t !== RPCTypes.homeHomeScreenItemType.todo)
-        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
-    I.List()
-  const newItems: I.List<Types.PeopleScreenItem> =
-    (data.items &&
-      data.items
-        .filter(item => item.badged || item.data.t === RPCTypes.homeHomeScreenItemType.todo)
-        .reduce(Constants.reduceRPCItemToPeopleItem, I.List())) ||
-    I.List()
-
-  const followSuggestions: I.List<Types.FollowSuggestion> =
-    (data.followSuggestions &&
-      data.followSuggestions.reduce((list, suggestion) => {
-        const followsMe = followers.has(suggestion.username)
-        const iFollow = following.has(suggestion.username)
-        return list.push(
-          Constants.makeFollowSuggestion({
-            username: suggestion.username,
-            followsMe,
-            iFollow,
-            fullName: suggestion.fullName,
-          })
-        )
-      }, I.List())) ||
-    I.List()
-
-  return Saga.put(
-    PeopleGen.createPeopleDataProcessed({
+    return PeopleGen.createPeopleDataProcessed({
       oldItems,
       newItems,
       lastViewed: new Date(data.lastViewed),
       followSuggestions,
       version: data.version,
     })
-  )
+  })
 }
 
 const _markViewed = (action: PeopleGen.MarkViewedPayload) => Saga.call(RPCTypes.homeHomeMarkViewedRpcPromise)
@@ -89,29 +85,28 @@ const _skipTodo = (action: PeopleGen.SkipTodoPayload) => {
   ])
 }
 
-let _wasOnPeopleTab = true
-const _setupPeopleHandlers = () => {
-  engine().listenOnConnect('registerHomeUI', () => {
+let _wasOnPeopleTab = false
+const setupEngineListeners = () => {
+  engine().actionOnConnect('registerHomeUI', () => {
     RPCTypes.delegateUiCtlRegisterHomeUIRpcPromise()
       .then(() => console.log('Registered home UI'))
       .catch(error => console.warn('Error in registering home UI:', error))
   })
 
-  engine().setIncomingActionCreators(
-    'keybase.1.homeUI.homeUIRefresh',
-    () =>
+  engine().setIncomingCallMap({
+    'keybase.1.homeUI.homeUIRefresh': () =>
       _wasOnPeopleTab
-        ? [
+        ? Saga.put(
             PeopleGen.createGetPeopleData({
               markViewed: false,
               numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-            }),
-          ]
-        : null
-  )
+            })
+          )
+        : null,
+  })
 }
 
-const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => {
+const _onNavigateTo = (action: RouteTreeGen.NavigateAppendPayload, state: TypedState) => {
   const list = I.List(action.payload.path)
   const root = list.first()
   const peoplePath = getPath(state.routeTree.routeState, [peopleTab])
@@ -121,7 +116,7 @@ const _onNavigateTo = (action: RouteTypes.NavigateAppend, state: TypedState) => 
   }
 }
 
-const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
+const _onTabChange = (action: RouteTreeGen.SwitchToPayload, state: TypedState) => {
   // TODO replace this with notification based refreshing
   const list = I.List(action.payload.path)
   const root = list.first()
@@ -132,12 +127,6 @@ const _onTabChange = (action: RouteTypes.SwitchTo, state: TypedState) => {
     return Saga.put(PeopleGen.createMarkViewed())
   } else if (root === peopleTab && !_wasOnPeopleTab) {
     _wasOnPeopleTab = true
-    return Saga.put(
-      PeopleGen.createGetPeopleData({
-        markViewed: false,
-        numFollowSuggestionsWanted: Constants.defaultNumFollowSuggestions,
-      })
-    )
   }
 }
 
@@ -148,10 +137,7 @@ const networkErrors = [
 ]
 
 const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(PeopleGen.getPeopleData, _getPeopleData, _processPeopleData, () =>
-    // TODO replace this with engine handling once that lands
-    Saga.put(createDecrementWaiting({key: Constants.getPeopleDataWaitingKey}))
-  )
+  yield Saga.actionToPromise(PeopleGen.getPeopleData, getPeopleData)
   yield Saga.safeTakeEveryPure(PeopleGen.markViewed, _markViewed, null, err => {
     if (networkErrors.includes(err.code)) {
       logger.warn('Network error calling homeMarkViewed')
@@ -160,9 +146,9 @@ const peopleSaga = function*(): Saga.SagaGenerator<any, any> {
     }
   })
   yield Saga.safeTakeEveryPure(PeopleGen.skipTodo, _skipTodo)
-  yield Saga.safeTakeEveryPure(PeopleGen.setupPeopleHandlers, _setupPeopleHandlers)
-  yield Saga.safeTakeEveryPure(RouteConstants.switchTo, _onTabChange)
-  yield Saga.safeTakeEveryPure(RouteConstants.navigateTo, _onNavigateTo)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.switchTo, _onTabChange)
+  yield Saga.safeTakeEveryPure(RouteTreeGen.navigateTo, _onNavigateTo)
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default peopleSaga

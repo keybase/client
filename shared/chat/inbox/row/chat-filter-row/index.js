@@ -1,7 +1,15 @@
 // @flow
 import * as React from 'react'
 import {Icon, Box, ClickableBox, LoadingLine, Input, Text} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {
+  desktopStyles,
+  globalStyles,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 
 let KeyHandler = c => c
 if (!isMobile) {
@@ -106,10 +114,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       ]
     } else {
       children = (
-        <ClickableBox
-          style={isMobile ? styleFilterContainerMobile : styleFilterContainer}
-          onClick={this._startEditing}
-        >
+        <ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
           <Icon
             type="iconfont-search"
             style={{
@@ -125,7 +130,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       )
     }
     return (
-      <Box style={styleContainer}>
+      <Box style={styles.container}>
         {children}
         <Icon
           type="iconfont-compose"
@@ -135,7 +140,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           onClick={this.props.onNewChat}
         />
         {this.props.isLoading && (
-          <Box style={loadingContainer}>
+          <Box style={styles.loadingContainer}>
             <LoadingLine />
           </Box>
         )}
@@ -144,40 +149,41 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
   }
 }
 
-const loadingContainer = {
-  bottom: 0,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-}
-
-const styleContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blue5,
-  justifyContent: 'space-between',
-  minHeight: 48,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
-  position: 'relative',
-}
-
-const styleFilterContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  backgroundColor: globalColors.black_05,
-  borderRadius: 19,
-  flexGrow: 1,
-  height: 24,
-  justifyContent: 'center',
-  marginRight: globalMargins.small,
-}
-
-const styleFilterContainerMobile = {
-  ...styleFilterContainer,
-  height: 32,
-  marginRight: globalMargins.small,
-}
+const styles = styleSheetCreate({
+  loadingContainer: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+  container: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: isMobile ? globalColors.fastBlank : globalColors.blueGrey,
+    justifyContent: 'space-between',
+    minHeight: 48,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.small,
+    position: 'relative',
+  },
+  filterContainer: platformStyles({
+    common: {
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
+      backgroundColor: globalColors.black_10,
+      borderRadius: 19,
+      flexGrow: 1,
+      height: 24,
+      justifyContent: 'center',
+      marginRight: globalMargins.small,
+    },
+    isElectron: desktopStyles.editable,
+    isMobile: {
+      height: 32,
+      marginRight: globalMargins.small,
+    },
+  }),
+})
 
 const propsIconCompose = {
   color: globalColors.blue,

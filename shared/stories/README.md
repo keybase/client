@@ -12,6 +12,11 @@ There's a native storybook UI that controls the selected story. You can also con
 #### Android
 Storybook can be enabled by going to Build > Select Build Variant and selecting 'storyBook'.
 
+```
+# Enable storybook web UI connection
+adb reverse tcp:7007 tcp:7007
+```
+
 #### iOS
 Storybook is controlled by the constants return value in `Storybook.m`. Changing it to `@{@"isStorybook": @true}` enables storybook mode.
 

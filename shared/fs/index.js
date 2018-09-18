@@ -6,16 +6,16 @@ import {globalStyles, globalMargins} from '../styles'
 import {Box, Divider, Icon, List, ScrollView, Text} from '../common-adapters'
 import FolderHeader from './header/container'
 import SortBar from './sortbar/container'
-import {Still, Editing, Placeholder, Uploading} from './row'
+import {TlfType, Tlf, Still, Editing, Placeholder, Uploading} from './row/containers'
 import Footer from './footer/footer'
 import {isMobile} from '../constants/platform'
-import ConnectedBanner from './banner/container'
+import ConnectedResetBanner from './banner/reset-banner/container'
 
 type FolderProps = {
-  items: Array<Types.RowItem>,
   isUserReset: boolean,
-  resetParticipants: Array<string>,
+  items: Array<Types.RowItem>,
   path: Types.Path,
+  resetParticipants: Array<string>,
   routePath: I.List<string>,
 }
 
@@ -35,16 +35,28 @@ class Files extends React.PureComponent<FolderProps> {
             <Placeholder type={item.type} />
           </WrapRow>
         )
+      case 'tlf-type':
+        return (
+          <WrapRow key={`still:${item.name}`}>
+            <TlfType name={item.name} routePath={this.props.routePath} />
+          </WrapRow>
+        )
+      case 'tlf':
+        return (
+          <WrapRow key={`still:${item.name}`}>
+            <Tlf name={item.name} tlfType={item.tlfType} routePath={this.props.routePath} />
+          </WrapRow>
+        )
       case 'still':
         return (
           <WrapRow key={`still:${item.name}`}>
-            <Still path={item.path} routePath={this.props.routePath} />
+            <Still name={item.name} path={item.path} routePath={this.props.routePath} />
           </WrapRow>
         )
       case 'uploading':
         return (
           <WrapRow key={`uploading:${item.name}`}>
-            <Uploading path={item.path} />
+            <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
@@ -61,7 +73,7 @@ class Files extends React.PureComponent<FolderProps> {
       */
         return (
           <WrapRow key="">
-            <Text type="BodyError">This should not happen.</Text>
+            <Text type="BodySmallError">This should not happen.</Text>
           </WrapRow>
         )
     }
@@ -89,7 +101,7 @@ class Files extends React.PureComponent<FolderProps> {
           <SortBar path={this.props.path} />
           {isMobile && this.props.resetParticipants.length > 0 ? (
             <ScrollView>
-              <ConnectedBanner path={this.props.path} />
+              <ConnectedResetBanner path={this.props.path} />
               <Box>{content}</Box>
             </ScrollView>
           ) : (

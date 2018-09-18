@@ -1,18 +1,18 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
-import * as Inbox from '../..'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {isDarwin} from '../../../../constants/platform'
 import {connect, compose, setDisplayName, withProps} from '../../../../util/container'
-import type {TypedState, Dispatch} from '../../../../util/container'
+import type {TypedState} from '../../../../util/container'
+import type {RowItem, RowItemSmall, RowItemBig} from '../../index.types'
 import ChatFilterRow from '.'
 
 type OwnProps = {
   onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  rows: Array<Inbox.RowItem>,
+  rows: Array<RowItem>,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
@@ -25,7 +25,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
+const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
       dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
@@ -34,11 +34,11 @@ const mapDispatchToProps = (dispatch: Dispatch, {focusFilter}) => ({
     }
   },
   _onSelectNext: (
-    rows: Array<Inbox.RowItem>,
+    rows: Array<RowItem>,
     selectedConversationIDKey: ?Types.ConversationIDKey,
     direction: -1 | 1
   ) => {
-    const goodRows: Array<Inbox.RowItemSmall | Inbox.RowItemBig> = rows.reduce((arr, row) => {
+    const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
       if (row.type === 'small' || row.type === 'big') {
         arr.push(row)
       }

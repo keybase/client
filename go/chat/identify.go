@@ -134,9 +134,9 @@ func (h *IdentifyChangedHandler) getTLFtoCrypt(ctx context.Context, uid gregor1.
 	if me.IsNil() {
 		return "", nil, libkb.LoggedInError{}
 	}
-	inbox := storage.NewInbox(h.G(), me.ToBytes())
+	inbox := storage.NewInbox(h.G())
 
-	_, allConvs, err := inbox.ReadAll(ctx)
+	_, allConvs, err := inbox.ReadAll(ctx, me.ToBytes())
 	if err != nil {
 		return "", nil, err
 	}
@@ -239,11 +239,10 @@ func (h *IdentifyChangedHandler) HandleUserChanged(uid keybase1.UID) (err error)
 	}
 
 	// Run against CryptKeys to generate notifications if necessary
-	_, err = CtxKeyFinder(ctx, h.G()).Find(ctx, tlfName, chat1.ConversationMembersType_KBFS, false)
-	if err != nil {
+	if _, err = CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_IMPTEAMNATIVE).LookupID(ctx,
+		tlfName, false); err != nil {
 		h.Debug(ctx, "HandleUserChanged: failed to run CryptKeys: %s", err.Error())
 	}
-
 	return nil
 }
 

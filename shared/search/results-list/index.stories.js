@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
+import * as Styles from '../../styles'
 import ResultsList from '.'
 import ConnectedResultsList, {type OwnProps, type Props} from './container'
 import {Box} from '../../common-adapters'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {
   type ConnectPropsMap as RowConnectPropsMap,
   makeSelectorMap as makeRowSelectorMap,
@@ -13,44 +14,56 @@ const defaultConnectPropsMap: RowConnectPropsMap = {
   chris: {
     leftFullname: 'chris on GitHub',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'chris',
 
     rightIcon: 'iconfont-identity-github',
+    rightIconOpaque: true,
     rightService: 'GitHub',
     rightUsername: 'chrisname',
 
     leftFollowingState: 'Following',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
   cjb: {
     leftFullname: 'cjb on facebook',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'cjb',
 
     rightIcon: 'iconfont-identity-facebook',
+    rightIconOpaque: true,
     rightService: 'Facebook',
     rightUsername: 'cjbname',
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
   jzila: {
     leftFullname: 'jzila on twitter',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'jzila',
 
     rightIcon: 'iconfont-identity-twitter',
+    rightIconOpaque: true,
     rightService: 'Twitter',
     rightUsername: 'jzilatwit',
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NoState',
+    userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
 }
 
@@ -63,7 +76,7 @@ Object.keys(defaultConnectPropsMap).forEach(id => {
   }
 })
 
-const onMouseOver = action('onMouseOver')
+const onMouseOver = Sb.action('onMouseOver')
 
 // Can extend to vary items based on ownProps.searchKey if needed.
 const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: OwnProps): Props => {
@@ -79,8 +92,8 @@ const mockOwnPropsToProps = (rowConnectPropsMap: RowConnectPropsMap, ownProps: O
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search-key',
-  onShowTracker: action('onShowTracker'),
-  onClick: action('onClick'),
+  onShowTracker: Sb.action('onShowTracker'),
+  onClick: Sb.action('onClick'),
   disableIfInTeamName: '',
 }
 
@@ -91,12 +104,12 @@ export const makeSelectorMap = (rowConnectPropsMap: RowConnectPropsMap = default
   ResultsList: (ownProps: OwnProps) => mockOwnPropsToProps(rowConnectPropsMap, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
 const load = () => {
-  storiesOf('Search/ResultsList', module)
+  Sb.storiesOf('Search/ResultsList', module)
     .addDecorator(provider)
-    .addDecorator(story => <Box style={{width: 420}}>{story()}</Box>)
+    .addDecorator(story => <Box style={{width: Styles.isMobile ? undefined : 420}}>{story()}</Box>)
     .add('keybaseResults', () => <ResultsList {...defaultProps} items={['chris', 'cjb', 'jzila']} />)
     .add('keybaseResultsOne', () => <ResultsList {...defaultProps} items={['chris']} />)
     .add('facebookResults', () => (

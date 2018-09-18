@@ -3,6 +3,7 @@ package chat
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -44,8 +45,29 @@ func (m mockAttachmentRemoteStore) DecryptAsset(ctx context.Context, w io.Writer
 	return nil
 }
 
-func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error {
+func (m mockAttachmentRemoteStore) DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer,
+	assets []chat1.Asset) error {
 	return nil
+}
+
+func (m mockAttachmentRemoteStore) DeleteAsset(ctx context.Context, params chat1.S3Params, signer s3.Signer,
+	asset chat1.Asset) error {
+	return nil
+}
+
+func (m mockAttachmentRemoteStore) DownloadAsset(ctx context.Context, params chat1.S3Params,
+	asset chat1.Asset, w io.Writer, signer s3.Signer, progress types.ProgressReporter) error {
+	return errors.New("not implemented")
+}
+
+func (m mockAttachmentRemoteStore) UploadAsset(ctx context.Context, task *attachments.UploadTask,
+	encryptedOut io.Writer) (chat1.Asset, error) {
+	return chat1.Asset{}, errors.New("not implemented")
+}
+
+func (m mockAttachmentRemoteStore) StreamAsset(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
+	signer s3.Signer) (io.ReadSeeker, error) {
+	return nil, errors.New("not implemented")
 }
 
 func (m mockAttachmentRemoteStore) GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
@@ -185,7 +207,7 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	useRemoteMock = false
 	tc := ctc.world.Tcs[users[0].Username]
 	store := attachments.NewStoreTesting(logger.NewTestLogger(t), nil)
-	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 1)
+	fetcher := NewCachingAttachmentFetcher(tc.Context(), store, 5)
 	ri := ctc.as(t, users[0]).ri
 	d, err := libkb.RandHexString("", 8)
 	require.NoError(t, err)
@@ -223,8 +245,41 @@ func TestChatSrvAttachmentUploadPreviewCached(t *testing.T) {
 	body := msgRes.Messages[0].Valid().MessageBody
 	require.NotNil(t, body.Attachment().Preview)
 
+	t.Logf("remote preview path: %s", body.Attachment().Preview.Path)
+	t.Logf("remote object path: %s", body.Attachment().Object.Path)
 	found, path, err := fetcher.localAssetPath(context.TODO(), *body.Attachment().Preview)
 	require.NoError(t, err)
 	require.True(t, found)
 	t.Logf("found path: %s", path)
+
+	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	require.NoError(t, err)
+	require.True(t, found)
+	t.Logf("found path: %s", path)
+
+	// Try with an attachment with no preview
+	res, err = ctc.as(t, users[0]).chatLocalHandler().PostFileAttachmentLocal(context.TODO(),
+		chat1.PostFileAttachmentLocalArg{
+			Arg: chat1.PostFileAttachmentArg{
+				ConversationID: conv.Id,
+				TlfName:        conv.TlfName,
+				Visibility:     keybase1.TLFVisibility_PRIVATE,
+				Filename:       "testdata/weather.pdf",
+				Title:          "WEATHER",
+			},
+		})
+	require.NoError(t, err)
+	msgRes, err = ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(context.TODO(),
+		chat1.GetMessagesLocalArg{
+			ConversationID: conv.Id,
+			MessageIDs:     []chat1.MessageID{res.MessageID},
+		})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(msgRes.Messages))
+	require.True(t, msgRes.Messages[0].IsValid())
+	body = msgRes.Messages[0].Valid().MessageBody
+	require.Nil(t, body.Attachment().Preview)
+	found, path, err = fetcher.localAssetPath(context.TODO(), body.Attachment().Object)
+	require.NoError(t, err)
+	require.False(t, found)
 }

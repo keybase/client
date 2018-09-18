@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect} from 'react-redux'
+import {connect} from '../util/container'
 import {navigateUp} from '../actions/route-tree'
 import {globalStyles} from '../styles'
 import {PopupDialog, Text} from '../common-adapters'
@@ -13,6 +13,8 @@ function TestPopup({onClose}: {onClose: () => void}) {
   )
 }
 
-export default connect(null, (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClose: () => dispatch(navigateUp()),
-}))(TestPopup)
+})
+
+export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(TestPopup)

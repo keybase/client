@@ -244,12 +244,15 @@ func getNIST(m MetaContext, sessType APISessionType) *NIST {
 // needed. This finisher is always non-nil (and just a noop in some cases),
 // so therefore it's fine to call it without checking for nil-ness.
 func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (_ *http.Response, finisher func(), jw *jsonw.Wrapper, err error) {
+	m = m.EnsureCtx().WithLogTag("API")
+	defer m.CTraceTimed("api.doRequestShared", func() error { return err })()
+	m, tbs := m.WithTimeBuckets()
+	defer tbs.Record("API.request")() // note this doesn't include time reading body from GetResp
+
 	if !m.G().Env.GetTorMode().UseSession() && arg.SessionType == APISessionTypeREQUIRED {
 		err = TorSessionRequiredError{}
 		return
 	}
-
-	m = m.EnsureCtx().WithLogTag("API")
 
 	finisher = noopFinisher
 
@@ -419,6 +422,12 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	// check to see if the current context is canceled
+	select {
+	case <-m.Ctx().Done():
+		return nil, nil, m.Ctx().Err()
+	default:
+	}
 	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
@@ -659,11 +668,24 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	if ast.Code == SCBadSession {
-		return BadSessionError{"server rejected session; is your device revoked?"}
-	}
+	return appStatusToTypedError(ast)
+}
 
-	return NewAppStatusError(ast)
+func appStatusToTypedError(ast *AppStatus) error {
+	switch ast.Code {
+	case SCBadSession:
+		return BadSessionError{"server rejected session; is your device revoked?"}
+	case SCFeatureFlag:
+		var feature Feature
+		if ast.Fields != nil {
+			if tmp, ok := ast.Fields["feature"]; ok {
+				feature = Feature(tmp)
+			}
+		}
+		return NewFeatureFlagError(ast.Desc, feature)
+	default:
+		return NewAppStatusError(ast)
+	}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
@@ -699,6 +721,7 @@ func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, func(), error) 
 // JSON into the value pointed to by v.
 func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 	return a.getDecode(m, arg, v)
 }
 
@@ -770,6 +793,7 @@ func (a *InternalAPIEngine) postResp(m MetaContext, arg APIArg) (*http.Response,
 
 func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	m := arg.GetMetaContext(a.G())
+	m = m.EnsureCtx().WithLogTag("API")
 	return a.postDecode(m, arg, v)
 }
 
@@ -816,7 +840,6 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 
 func (a *InternalAPIEngine) doRequest(m MetaContext, arg APIArg, req *http.Request) (res *APIRes, err error) {
 	m = m.EnsureCtx().WithLogTag("API")
-	defer a.G().CTraceTimed(m.Ctx(), "InternalAPIEngine#doRequest", func() error { return err })()
 	resp, finisher, jw, err := doRequestShared(m, a, arg, req, true)
 	if err != nil {
 		return nil, err

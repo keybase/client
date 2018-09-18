@@ -1,10 +1,14 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/wallets'",
+    "import * as ChatTypes from '../constants/types/chat2'",
     "import * as StellarRPCTypes from '../constants/types/rpc-stellar-gen'",
     "import HiddenString from '../util/hidden-string'",
   ],
   "actions": {
+    "abandonPayment": {
+      "_description": "Signal that a payment being built is abandoned and reset the form fields to their initial states.",
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>",
@@ -14,13 +18,47 @@
       "accountID": "Types.AccountID",
       "assets": "Array<Types.Assets>",
     },
+    "buildPayment": {
+      "_description": "Prepare a payment for sending",
+    },
+    "builtPaymentReceived": {
+      "_description": "Update our store with a prepared payment",
+      "build": "Types.BuiltPayment",
+    },
+    "clearBuildingPayment": {
+      "_description": "Clear a payment that was being prepared",
+    },
+    "clearBuiltPayment": {
+      "_description": "Clear a prepared payment once it has been sent or canceled",
+    },
+    "cancelRequest": {
+      "_description": "Cancel a request. Optionally delete an associated message",
+      "conversationIDKey?": "ChatTypes.ConversationIDKey",
+      "ordinal?": "ChatTypes.Ordinal",
+      "requestID": "StellarRPCTypes.KeybaseRequestID",
+    },
+    "createNewAccount": {
+      "_description": "Add a new wallet to your account",
+      "name": "string",
+      "showOnCreation?": "boolean",
+    },
+    "createdNewAccount": {
+      "_description":
+        "The service responded with an error or that the create new account operation succeeded",
+      "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID",
     },
     "loadAssets": {
       "_description": "Refresh our list of assets for a given account",
-      "accountID": "Types.AccountID"
+      "accountID": "Types.AccountID",
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
@@ -34,18 +72,83 @@
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
     },
+    "loadDisplayCurrencies": {
+      "_description": "Load valid display currencies to choose from",
+    },
+    "displayCurrenciesReceived": {
+      "_description": "Update valid display currencies to choose from",
+      "currencies": "Array<Types.Currency>",
+    },
+    "changeAccountName": {
+      "_description": "Change the name of an account",
+      "accountID": "Types.AccountID",
+      "name": "string",
+    },
+    "changedAccountName": {
+      "_description": "A response from the service after an account's name is changed",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
+    },
+    "setAccountAsDefault": {
+      "_description": "Change the default account",
+      "accountID": "Types.AccountID",
+    },
+    "didSetAccountAsDefault": {
+      "_description": "A response from the service after an account is set as the default",
+      "accountID": "Types.AccountID",
+    },
+    "deleteAccount": {
+      "_description": "Delete an account",
+      "accountID": "Types.AccountID",
+    },
+    "deletedAccount": {
+      "_description": "A response from the service after an account is deleted.",
+    },
+    "loadDisplayCurrency": {
+      "_description": "Load display currency for an account",
+      "accountID": "Types.AccountID",
+    },
+    "displayCurrencyReceived": {
+      "_description": "Update display currency for a certain account",
+      "accountID": "Types.AccountID",
+      "currency": "Types.Currency",
+    },
+    "changeDisplayCurrency": {
+      "_description": "Change display currency for an account",
+      "accountID": "Types.AccountID",
+      "code": "Types.CurrencyCode",
+    },
+    "loadRequestDetail": {
+      "_description": "Load a request's details",
+      "requestID": "StellarRPCTypes.KeybaseRequestID",
+    },
+    "requestPayment": {
+      "_description": "Request payment",
+    },
+    "requestedPayment": {
+      "_description": "Successfully request payment",
+      "kbRqID": "HiddenString",
+    },
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
       "paymentID": "StellarRPCTypes.PaymentID",
-      "publicNote": "string",
-      "publicNoteType": "string",
+      "publicMemo": "HiddenString",
+      "publicMemoType": "string",
       "txID": "string",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",
       "accountID": "Types.AccountID",
       "payments": "Array<Types.Payment>",
+      "pending": "Array<Types.Payment>",
+    },
+    "requestDetailReceived": {
+      "_description": "Store a request's details",
+      "request": "StellarRPCTypes.RequestDetailsLocal",
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -61,15 +164,56 @@
       "accountID": "Types.AccountID",
       "show?": "boolean",
     },
+    "refreshPayments": {
+      "_description": "In response to a notification, resync payment info",
+      "accountID": "Types.AccountID",
+    },
+    "sendPayment": {
+      "_description": "Perform sending a payment",
+    },
+    "sentPayment": {
+      "_description": "Successfully sent a payment",
+      "kbTxID": "HiddenString",
+    },
+    "setBuildingAmount": {
+      "_description": "Set building amount",
+      "amount": "string",
+    },
+    "setBuildingCurrency": {
+      "_description": "Set building currency",
+      "currency": "string",
+    },
+    "setBuildingFrom": {
+      "_description": "Set building from",
+      "from": "string",
+    },
+    "setBuildingPublicMemo": {
+      "_description": "Set building public memo",
+      "publicMemo": "HiddenString",
+    },
+    "setBuildingRecipientType": {
+      "_description": "Set building recipient type",
+      "recipientType": "Types.CounterpartyType",
+    },
+    "setBuildingSecretNote": {
+      "_description": "Set building secret note",
+      "secretNote": "HiddenString",
+    },
+    "setBuildingTo": {
+      "_description": "Set building to -- depends on recipientType",
+      "to": "string",
+    },
     "linkExistingAccount": {
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString",
+      "showOnCreation?": "boolean",
     },
     "linkedExistingAccount": {
       "_description":
         "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",

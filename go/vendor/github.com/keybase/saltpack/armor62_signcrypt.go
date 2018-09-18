@@ -9,6 +9,12 @@ import (
 	"io/ioutil"
 )
 
+var (
+	// Signcryption has the same frame as encryption
+	armor62SigncryptionHeaderChecker = armor62EncryptionHeaderChecker
+	armor62SigncryptionFrameChecker  = armor62EncryptionFrameChecker
+)
+
 func newSigncryptArmor62SealStream(ciphertext io.Writer, sender SigningSecretKey, receiverBoxKeys []BoxPublicKey, receiverSymmetricKeys []ReceiverSymmetricKey, ephemeralKeyCreator EphemeralKeyCreator, rng signcryptRNG, brand string) (plaintext io.WriteCloser, err error) {
 	// Note: same "BEGIN SALTPACK ENCRYPTED" visible message type.
 	enc, err := NewArmor62EncoderStream(ciphertext, MessageTypeEncryption, brand)
@@ -68,17 +74,23 @@ func SigncryptArmor62Seal(plaintext []byte, ephemeralKeyCreator EphemeralKeyCrea
 
 // NewDearmor62SigncryptOpenStream makes a new stream that dearmors and decrypts the given
 // Reader stream. Pass it a keyring so that it can lookup private and public keys
-// as necessary
-func NewDearmor62SigncryptOpenStream(ciphertext io.Reader, keyring SigncryptKeyring, resolver SymmetricKeyResolver) (SigningPublicKey, io.Reader, Frame, error) {
-	dearmored, frame, err := NewArmor62DecoderStream(ciphertext)
+// as necessary. Returns the MessageKeyInfo recovered during header
+// processing, an io.Reader stream from which you can read the plaintext, the armor branding, and
+// maybe an error if there was a failure.
+func NewDearmor62SigncryptOpenStream(ciphertext io.Reader, keyring SigncryptKeyring, resolver SymmetricKeyResolver) (SigningPublicKey, io.Reader, string, error) {
+	dearmored, frame, err := NewArmor62DecoderStream(ciphertext, armor62SigncryptionHeaderChecker, armor62SigncryptionFrameChecker)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, "", err
+	}
+	brand, err := frame.GetBrand()
+	if err != nil {
+		return nil, nil, "", err
 	}
 	mki, r, err := NewSigncryptOpenStream(dearmored, keyring, resolver)
 	if err != nil {
-		return mki, nil, nil, err
+		return mki, nil, "", err
 	}
-	return mki, r, frame, nil
+	return mki, r, brand, nil
 }
 
 // Dearmor62SigncryptOpen takes an armor62'ed, encrypted ciphertext and attempts to
@@ -88,17 +100,13 @@ func NewDearmor62SigncryptOpenStream(ciphertext io.Reader, keyring SigncryptKeyr
 // maybe an error if there was a failure.
 func Dearmor62SigncryptOpen(ciphertext string, keyring SigncryptKeyring, resolver SymmetricKeyResolver) (SigningPublicKey, []byte, string, error) {
 	buf := bytes.NewBufferString(ciphertext)
-	mki, s, frame, err := NewDearmor62SigncryptOpenStream(buf, keyring, resolver)
+	mki, s, brand, err := NewDearmor62SigncryptOpenStream(buf, keyring, resolver)
 	if err != nil {
 		return mki, nil, "", err
 	}
 	out, err := ioutil.ReadAll(s)
 	if err != nil {
 		return mki, nil, "", err
-	}
-	var brand string
-	if brand, err = CheckArmor62Frame(frame, MessageTypeEncryption); err != nil {
-		return mki, nil, brand, err
 	}
 	return mki, out, brand, nil
 }

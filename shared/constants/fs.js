@@ -2,13 +2,14 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
-import {isMobile} from './platform'
+import * as FsGen from '../actions/fs-gen'
+import {type TypedState} from '../util/container'
+import {isLinux, isWindows, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
 import type {IconType} from '../common-adapters'
-import {FolderTypeToString} from '../constants/rpc'
 import {tlfToPreferredOrder} from '../util/kbfs'
 import {memoize, findKey} from 'lodash-es'
 
@@ -34,7 +35,6 @@ const pathItemMetadataDefault = {
   lastModifiedTimestamp: 0,
   size: 0,
   lastWriter: {uid: '', username: ''},
-  progress: 'pending',
   badgeCount: 0,
   writable: false,
   tlfMeta: undefined,
@@ -43,9 +43,7 @@ const pathItemMetadataDefault = {
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   ...pathItemMetadataDefault,
   children: I.Set(),
-  favoriteChildren: I.Set(),
-  resetParticipants: [],
-  teamID: undefined,
+  progress: 'pending',
   type: 'folder',
 })
 
@@ -68,12 +66,17 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 
 export const unknownPathItem = makeUnknownPathItem()
 
-export const makeFavoriteItem: I.RecordFactory<Types._FavoriteItem> = I.Record({
-  name: 'unknown',
-  badgeCount: 0,
-  favoriteChildren: I.Set(),
-  tlfMeta: undefined,
+export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
+  tlfType: 'private',
+  name: '',
+  isFavorite: false,
+  isIgnored: false,
+  isNew: false,
+  needsRekey: false,
+  resetParticipants: I.List(),
   teamId: '',
+  waitingForParticipantUnlock: I.List(),
+  youCanUnlock: I.List(),
 })
 
 export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
@@ -131,16 +134,47 @@ export const makeUploads: I.RecordFactory<Types._Uploads> = I.Record({
   syncingPaths: I.Set(),
 })
 
+export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
+  private: I.Map(),
+  public: I.Map(),
+  team: I.Map(),
+})
+
+const placeholderAction = FsGen.createPlaceholderAction()
+
+const _makeError: I.RecordFactory<Types._FsError> = I.Record({
+  time: 0,
+  error: 'unknown error',
+  erroredAction: placeholderAction,
+  retriableAction: undefined,
+})
+
+// Populate `time` with Date.now() if not provided.
+export const makeError = (
+  record?: $Rest<Types._FsError, {time: number, error: string}> & {time?: number, error: any}
+): I.RecordOf<Types._FsError> => {
+  let {time, error, erroredAction, retriableAction} = record || {}
+  return _makeError({
+    time: time || Date.now(),
+    error: !error ? 'unknown error' : JSON.stringify(error),
+    erroredAction,
+    retriableAction,
+  })
+}
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   flags: makeFlags(),
   fuseStatus: null,
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  tlfs: makeTlfs(),
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   loadingPaths: I.Set(),
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
+  errors: I.Map(),
+  tlfUpdates: I.List(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -169,7 +203,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
 const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.darkBlue
+const privateTextColor = globalColors.black_75
 const publicIconColor = globalColors.yellowGreen
 const publicTextColor = globalColors.yellowGreen2
 const unknownTextColor = globalColors.grey
@@ -219,12 +253,16 @@ const itemStylesKeybase = {
 }
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
-  if (usernames.length === 1) {
-    return makeAvatarPathItemIconSpec(usernames[0])
-  } else if (usernames.length > 1) {
-    return makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
-  }
-  return makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+  return usernames.length === 0
+    ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+    : usernames.length === 1
+      ? makeAvatarPathItemIconSpec(usernames[0])
+      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+}
+export const getIconSpecFromUsernamesAndTeamname = (usernames: ?Array<string>, teamname: ?string, me?: ?string) => {
+  return teamname && teamname.length > 0
+    ? makeTeamAvatarPathItemIconSpec(teamname)
+    : getIconSpecFromUsernames(usernames || [], me)
 }
 const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -317,10 +355,15 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-export const makeDownloadKey = (path: Types.Path, localPath: string) =>
-  `download:${Types.pathToString(path)}:${localPath}`
-export const makeUploadKey = (localPath: string, path: Types.Path) =>
-  `upload:${Types.pathToString(path)}:${localPath}`
+const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
+export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
+  path,
+  key: makeDownloadKey(path),
+})
+export const getDownloadIntentFromAction = (
+  action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
+): Types.DownloadIntent =>
+  action.type === FsGen.download ? 'none' : action.type === FsGen.shareNative ? 'share' : 'camera-roll'
 
 export const downloadFilePathFromPath = (p: Types.Path): Promise<Types.LocalPath> =>
   downloadFilePath(Types.getPathName(p))
@@ -394,90 +437,125 @@ const _fillMetadataInFavoritesResult = (
   ]
 }
 
-export const folderToFavoriteItems = (
+export const createFavoritesLoadedFromJSONResults = (
   txt: string = '',
   username: string,
   loggedIn: boolean
-): I.Map<Types.Path, Types.FavoriteItem> => {
-  let favoritesResult: FavoritesListResult
-  let badges = {
-    '/keybase/private': 0,
-    '/keybase/public': 0,
-    '/keybase/team': 0,
-  }
-  let favoriteChildren = {
-    '/keybase/private': new Set(),
-    '/keybase/public': new Set(),
-    '/keybase/team': new Set(),
-  }
-  try {
-    favoritesResult = JSON.parse(txt)
-  } catch (err) {
-    logger.warn('Invalid json from getFavorites: ', err)
-    return I.Map()
-  }
+): ?FsGen.FavoritesLoadedPayload => {
+  const favoritesResult = ((txt: string): ?FavoritesListResult => {
+    try {
+      return JSON.parse(txt)
+    } catch (err) {
+      logger.warn('Invalid json from getFavorites: ', err)
+      return null
+    }
+  })(txt)
 
-  const myKID = findKey(favoritesResult.users, name => name === username)
+  if (!favoritesResult) {
+    return null
+  }
 
   // figure out who can solve the rekey
+  const myKID = findKey(favoritesResult.users, name => name === username)
   const folders: Array<Types.FolderRPCWithMeta> = _fillMetadataInFavoritesResult(favoritesResult, myKID)
-  const favoriteFolders = folders.map(
-    ({
-      name,
-      folderType,
-      isIgnored,
-      isNew,
-      needsRekey,
-      waitingForParticipantUnlock,
-      youCanUnlock,
-      team_id,
-      reset_members,
-    }) => {
-      const folderTypeString = FolderTypeToString(folderType)
-      const folderParent = `/keybase/${folderTypeString}`
-      const preferredName = tlfToPreferredOrder(name, username)
-      const folderPathString = `${folderParent}/${preferredName}`
-      const folderPath = Types.stringToPath(folderPathString)
-      favoriteChildren[folderParent].add(preferredName)
-      if (isNew) {
-        badges[folderParent] += 1
-      }
-      return [
-        // key
-        folderPath,
-        // value
-        makeFavoriteItem({
-          badgeCount: 0,
-          name: preferredName,
-          tlfMeta: {
-            folderType,
-            isIgnored,
-            isNew,
-            needsRekey,
-            waitingForParticipantUnlock,
-            youCanUnlock,
-            teamId: team_id || '',
-            resetParticipants: reset_members || [],
-          },
-        }),
-      ]
-    }
-  )
-  return I.Map(
-    favoriteFolders.concat(
-      Object.keys(badges).map(badgeKey => {
-        const badgePath = Types.stringToPath(badgeKey)
-        return [
-          badgePath,
-          makeFavoriteItem({
-            badgeCount: badges[badgeKey],
-            name: Types.getPathName(badgePath),
-            favoriteChildren: I.Set(favoriteChildren[badgeKey]),
-          }),
-        ]
+
+  const tlfs: {
+    private: {[string]: Types.Tlf},
+    public: {[string]: Types.Tlf},
+    team: {[string]: Types.Tlf},
+  } = folders.reduce(
+    (tlfs, folder) => {
+      const {
+        name,
+        folderType,
+        isIgnored,
+        isNew,
+        needsRekey,
+        waitingForParticipantUnlock,
+        youCanUnlock,
+        team_id,
+        reset_members,
+      } = folder
+      const tlf = makeTlf({
+        name: tlfToPreferredOrder(name, username),
+        isFavorite: true,
+        isIgnored,
+        isNew,
+        needsRekey,
+        resetParticipants: I.List(reset_members || []),
+        teamId: team_id || '',
+        waitingForParticipantUnlock: I.List(waitingForParticipantUnlock || []),
+        youCanUnlock: I.List(youCanUnlock || []),
       })
-    )
+      if (folderType === RPCTypes.favoriteFolderType.private) {
+        tlfs.private[tlf.name] = tlf
+      } else if (folderType === RPCTypes.favoriteFolderType.public) {
+        tlfs.public[tlf.name] = tlf
+      } else if (folderType === RPCTypes.favoriteFolderType.team) {
+        tlfs.team[tlf.name] = tlf
+      }
+      return tlfs
+    },
+    {private: {}, public: {}, team: {}}
   )
+
+  return FsGen.createFavoritesLoaded({
+    private: I.Map(tlfs.private),
+    public: I.Map(tlfs.public),
+    team: I.Map(tlfs.team),
+  })
+}
+
+export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
+  path: Types.stringToPath(''),
+  writer: '',
+  serverTime: 0,
+  history: I.List(),
+})
+
+export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  filename: '',
+  serverTime: 0,
+  editType: 'unknown',
+})
+
+const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
+  switch (fsNotificationType) {
+    case RPCTypes.kbfsCommonFSNotificationType.fileCreated:
+      return 'created'
+    case RPCTypes.kbfsCommonFSNotificationType.fileModified:
+      return 'modified'
+    case RPCTypes.kbfsCommonFSNotificationType.fileDeleted:
+      return 'deleted'
+    case RPCTypes.kbfsCommonFSNotificationType.fileRenamed:
+      return 'renamed'
+    default:
+      return 'unknown'
+  }
+}
+
+export const userTlfHistoryRPCToState = (history: Array<RPCTypes.FSFolderEditHistory>): Types.UserTlfUpdates => {
+  let updates = []
+  history.forEach(folder => {
+    const updateServerTime = folder.serverTime
+    const path = pathFromFolderRPC(folder.folder)
+    const tlfUpdates = folder.history
+      ? folder.history.map(({writerName, edits}) => makeTlfUpdate({
+          path,
+          serverTime: updateServerTime,
+          writer: writerName,
+          history: I.List(edits
+            ? edits.map(({filename, notificationType, serverTime}) => makeTlfEdit({
+                filename,
+                serverTime,
+                editType: fsNotificationTypeToEditType(notificationType),
+              }))
+            : []),
+        }))
+      : []
+    updates = updates.concat(tlfUpdates)
+  })
+  return I.List(updates)
 }
 
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
@@ -512,7 +590,6 @@ export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._L
     /%2F/g,
     '/'
   )
-  console.log(encoded)
 
   return `http://${address}/files/${encoded}?token=${token}`
 }
@@ -539,10 +616,19 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   }
 }
 
-export const showIgnoreFolder = (path: Types.Path, pathItem: Types.PathItem, username?: string): boolean =>
-  !!pathItem.tlfMeta &&
-  ['public', 'private'].includes(Types.getPathVisibility(path)) &&
-  Types.getPathName(path) !== username
+export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
+  const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return Types.stringToPath('')
+  return Types.stringToPath(`/keybase/${visibility}/${folder.name}`)
+}
+
+export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {
+  const elems = Types.getPathElements(path)
+  if (elems.length !== 3) {
+    return false
+  }
+  return ['public', 'private'].includes(elems[1]) && elems[2] !== username
+}
 
 export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect =>
   isMobile ? null : evt ? (evt.target: window.HTMLElement).getBoundingClientRect() : null
@@ -564,5 +650,129 @@ export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types
 }
 
 export const invalidTokenError = new Error('invalid token')
+export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
+
+export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => {
+  switch (tlfType) {
+    case 'private':
+      return tlfs.private
+    case 'public':
+      return tlfs.public
+    case 'team':
+      return tlfs.team
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
+      */
+      return I.Map()
+  }
+}
+
+export const getTlfListAndTypeFromPath = (
+  tlfs: Types.Tlfs,
+  path: Types.Path
+): {
+  tlfList: Types.TlfList,
+  tlfType: Types.TlfType,
+} => {
+  const visibility = Types.getPathVisibility(path)
+  switch (visibility) {
+    case 'private':
+    case 'public':
+    case 'team':
+      const tlfType: Types.TlfType = visibility
+      return {tlfList: getTlfListFromType(tlfs, tlfType), tlfType}
+    default:
+      return {tlfList: I.Map(), tlfType: 'private'}
+  }
+}
+
+export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
+  const elems = Types.getPathElements(path)
+  if (elems.length !== 3) {
+    return makeTlf()
+  }
+  const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
+  return tlfList.get(elems[2], makeTlf())
+}
+
+export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
+  switch (tlfType) {
+    case 'private':
+      return tlfs.private.get(name, makeTlf())
+    case 'public':
+      return tlfs.public.get(name, makeTlf())
+    case 'team':
+      return tlfs.team.get(name, makeTlf())
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
+      */
+      return makeTlf()
+  }
+}
+
+export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Types.Path =>
+  Types.stringToPath(`/keybase/${tlfType}/${name}`)
+
+export const kbfsEnabled = (state: TypedState) =>
+  !isMobile &&
+  (isLinux ||
+    (state.fs.fuseStatus &&
+      state.fs.fuseStatus.kextStarted &&
+      // on Windows, check that the driver is up to date too
+      !(isWindows && state.fs.fuseStatus.installAction === 2)))
+
+export const kbfsOutdated = (state: TypedState) =>
+  isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
+
+export const kbfsUninstallString = (state: TypedState) => {
+  if (state.fs.fuseStatus &&
+    state.fs.fuseStatus.status &&
+    state.fs.fuseStatus.status.fields) {
+      const field = state.fs.fuseStatus.status.fields.find((element) => {
+        return element.key === 'uninstallString'
+      })
+      if (field) {
+        return field.value
+      }
+    }
+    return ''
+  }
+
+export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
+  download.meta.path === path && download.meta.intent === intent && !download.state.isDone
+
+export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
+  Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
+
+export const erroredActionToMessage = (action: FsGen.Actions): string => {
+  switch (action.type) {
+    case FsGen.favoritesLoad:
+      return 'Failed to load TLF lists.'
+    case FsGen.filePreviewLoad:
+      return `Failed to load file metadata: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.folderListLoad:
+      return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.download:
+      return `Failed to download for ${getDownloadIntentFromAction(action)}: ${Types.getPathName(
+        action.payload.path
+      )}.`
+    case FsGen.upload:
+      return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
+    case FsGen.notifySyncActivity:
+      return `Failed to gather information about KBFS uploading activities.`
+    case FsGen.refreshLocalHTTPServerInfo:
+      return 'Failed to get information about internal HTTP server.'
+    case FsGen.mimeTypeLoad:
+      return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.favoriteIgnore:
+      return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
+    default:
+      return 'An unexplainable error has occurred.'
+  }
+}

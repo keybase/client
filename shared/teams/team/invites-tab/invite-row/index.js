@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, ClickableBox, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {Avatar, Box, ClickableBox, Text, ConnectedUsernames, WaitingButton} from '../../../../common-adapters'
 import {globalStyles, globalMargins, isMobile} from '../../../../styles'
 import {typeToLabel} from '../../../../constants/teams'
 import {type TeamRoleType} from '../../../../constants/types/teams'
 
 export type Props = {
   label: string, // email, sbs, or seitan
-  onCancelInvite: () => void,
+  onCancelInvite: ?() => void,
   role: TeamRoleType,
 }
 
@@ -55,11 +55,12 @@ export const TeamInviteRow = (props: Props) => {
         </Box>
       </Box>
       <Box style={{...globalStyles.flexBoxRow, marginLeft: globalMargins.xtiny}}>
-        <Button
+        <WaitingButton
           small={true}
           label={isMobile ? 'Cancel' : 'Cancel invite'}
           onClick={onCancelInvite}
           type="Secondary"
+          waitingKey={null}
         />
       </Box>
     </ClickableBox>

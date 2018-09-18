@@ -14,10 +14,12 @@ export type Props = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  delta: 'increase' | 'decrease',
+  delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
+  onBack: () => void,
+  title: string,
   onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
@@ -78,9 +80,9 @@ const Counterparty = (props: CounterpartyProps) => {
 const colorForStatus = (status: Types.StatusSimplified) => {
   switch (status) {
     case 'completed':
-      return globalColors.green2
+      return globalColors.green
     case 'pending':
-      return globalColors.blue5
+      return globalColors.black_75
     case 'error':
       return globalColors.red
     default:
@@ -88,11 +90,11 @@ const colorForStatus = (status: Types.StatusSimplified) => {
   }
 }
 
-const descriptionForStatus = (status: Types.StatusSimplified) =>
-  status === 'completed' ? 'Sent' : capitalize(status)
+const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Role) =>
+  status === 'completed' ? (yourRole === 'receiver' ? 'Received' : 'Sent') : capitalize(status)
 
-export default class extends React.Component<Props> {
-  componentWillMount() {
+class TransactionDetails extends React.Component<Props> {
+  componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
 
@@ -159,7 +161,7 @@ export default class extends React.Component<Props> {
               ])}
               type="Body"
             >
-              {descriptionForStatus(this.props.status)}
+              {descriptionForStatus(this.props.status, this.props.yourRole)}
             </Text>
           </Box2>
           {this.props.status !== 'error' && (
@@ -191,13 +193,15 @@ export default class extends React.Component<Props> {
   }
 }
 
+export default TransactionDetails
+
 const styles = styleSheetCreate({
   container: {
     padding: globalMargins.small,
   },
   counterPartyText: {
     justifyContent: 'center',
-    marginLeft: globalMargins.small,
+    marginLeft: globalMargins.tiny,
   },
   rightContainer: {
     flex: 1,

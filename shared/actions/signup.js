@@ -1,7 +1,6 @@
 // @flow
 import logger from '../logger'
 import * as Constants from '../constants/signup'
-import * as LoginGen from './login-gen'
 import * as SignupGen from './signup-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -24,28 +23,29 @@ const noErrors = (state: TypedState) =>
   !state.signup.signupError.stringValue()
 
 // Navigation side effects ///////////////////////////////////////////////////////////
-const resetNav = () => Saga.put(LoginGen.createNavBasedOnLoginAndInitialState())
 // When going back we clear all errors so we can fix things and move forward
 const goBackAndClearErrors = () => Saga.put(navigateUp())
 
 const showUserEmailOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+  noErrors(state) && Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
 
-const showInviteScreen = () => navigateTo([loginTab, 'signup', 'inviteCode'])
+const showInviteScreen = () => navigateAppend(['inviteCode'], [loginTab])
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
-  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
+  noErrors(state) && navigateAppend(['requestInviteSuccess'], [loginTab])
+
+const goToLoginRoot = () => Saga.put(navigateTo([], [loginTab]))
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab, 'signup']))
+  noErrors(state) && Saga.put(navigateAppend(['deviceName'], [loginTab]))
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)
     ? Saga.put(SignupGen.createRestartSignup())
-    : Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
+    : Saga.put(navigateAppend(['signupError'], [loginTab]))
 
 // Validation side effects ///////////////////////////////////////////////////////////
 const checkInviteCode = (state: TypedState) =>
@@ -138,11 +138,13 @@ const reallySignupOnNoErrors = (state: TypedState) => {
   return Saga.call(function*() {
     try {
       yield RPCTypes.signupSignupRpcSaga({
-        incomingCallMap: {
+        customResponseIncomingCallMap: {
           // Do not add a gpg key for now
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, response, state) => {
+          'keybase.1.gpgUi.wantToAddGPGKey': (_, response) => {
             response.result(false)
           },
+        },
+        incomingCallMap: {
           // We dont show the paperkey anymore
           'keybase.1.loginUi.displayPrimaryPaperKey': () => {},
         },
@@ -176,7 +178,7 @@ const signupSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(SignupGen.checkDevicename, checkDevicename)
 
   // move to next screen actions
-  yield Saga.actionToAction(SignupGen.restartSignup, resetNav)
+  yield Saga.actionToAction(SignupGen.restartSignup, goToLoginRoot)
   yield Saga.actionToAction(SignupGen.requestedInvite, showInviteSuccessOnNoErrors)
   yield Saga.actionToAction(SignupGen.checkedUsernameEmail, showPassphraseOnNoErrors)
   yield Saga.actionToAction(SignupGen.requestedAutoInvite, showInviteScreen)
@@ -200,7 +202,6 @@ export const _testing = {
   reallySignupOnNoErrors,
   requestAutoInvite,
   requestInvite,
-  resetNav,
   showDeviceScreenOnNoErrors,
   showErrorOrCleanupAfterSignup,
   showInviteScreen,

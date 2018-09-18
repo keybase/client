@@ -40,7 +40,7 @@ const Header = (props: Props) => (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       justifyContent: 'center',
-      borderBottomColor: globalColors.black_05,
+      borderBottomColor: globalColors.black_10,
       borderBottomWidth: 1,
       height: 48,
       position: 'relative',

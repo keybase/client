@@ -122,7 +122,7 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	if err != nil {
 		return metadata, err
 	}
-	signingKey, err := team.SigningKey()
+	signingKey, err := team.SigningKey(ctx)
 	if err != nil {
 		return metadata, err
 	}
@@ -329,7 +329,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
-	teamSigningKey, err := team.SigningKey()
+	teamSigningKey, err := team.SigningKey(ctx)
 	if err != nil {
 		return nil, latestGeneration, false, err
 	}
@@ -342,7 +342,7 @@ func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID 
 		if err != nil {
 			return nil, latestGeneration, false, err
 		}
-		teamSigningKey, err = team.SigningKey()
+		teamSigningKey, err = team.SigningKey(ctx)
 		if err != nil {
 			return nil, latestGeneration, false, err
 		}

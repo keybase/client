@@ -23,8 +23,10 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 
+import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
 import io.keybase.ossifrage.util.DNSNSFetcher;
+import io.keybase.ossifrage.util.VideoHelper;
 import keybase.Keybase;
 
 import static keybase.Keybase.initOnce;
@@ -48,7 +50,7 @@ public class MainActivity extends ReactActivity {
                 Log.d(TAG, "dummy.txt exists");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in createDummyFile", e);
         }
     }
 
@@ -58,12 +60,12 @@ public class MainActivity extends ReactActivity {
         try {
             Keybase.setGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            NativeLogger.error("Exception in MainActivity.onCreate", e);
         }
 
         createDummyFile();
-        initOnce(this.getFilesDir().getPath(), this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
-                new DNSNSFetcher());
+        initOnce(this.getFilesDir().getPath(), "", this.getFileStreamPath("service.log").getAbsolutePath(), "prod", false,
+                new DNSNSFetcher(), new VideoHelper());
 
         super.onCreate(savedInstanceState);
 

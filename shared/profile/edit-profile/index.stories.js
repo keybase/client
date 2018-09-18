@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box} from '../../common-adapters'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import EditProfile from '.'
 
 const props = {
@@ -9,22 +10,25 @@ const props = {
   bioLengthLeft: 200,
   fullname: 'Chris Coyne',
   location: 'NYC & Maine',
-  onBack: () => action('onBack'),
-  onBioChange: () => action('onBioChange'),
-  onCancel: () => action('onCancel'),
-  onEditAvatarClick: () => action('onEditAvatarClick'),
-  onEditProfile: () => action('onEditProfile'),
-  onFullnameChange: () => action('onFullnameChange'),
-  onLocationChange: () => action('onLocationChange'),
-  onSubmit: () => action('onSubmit'),
+  onBack: () => Sb.action('onBack'),
+  onBioChange: () => Sb.action('onBioChange'),
+  onCancel: () => Sb.action('onCancel'),
+  onEditAvatarClick: () => Sb.action('onEditAvatarClick'),
+  onEditProfile: () => Sb.action('onEditProfile'),
+  onFullnameChange: () => Sb.action('onFullnameChange'),
+  onLocationChange: () => Sb.action('onLocationChange'),
+  onSubmit: () => Sb.action('onSubmit'),
   title: 'Edit profile',
 }
 
-const Wrapper = ({children}) => <Box style={{display: 'flex', height: 580, minWidth: 640}}>{children}</Box>
+const Wrapper = ({children}) => (
+  <Kb.Box style={{display: 'flex', height: 580, minWidth: Styles.isMobile ? undefined : 640}}>
+    {children}
+  </Kb.Box>
+)
 
 const load = () => {
-  storiesOf('Profile/EditProfile', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Profile/EditProfile', module)
     .add('Normal', () => (
       <Wrapper>
         <EditProfile {...props} />

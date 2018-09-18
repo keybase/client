@@ -1,11 +1,10 @@
 // @flow
 import net from 'net'
+import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
-import logger from '../logger'
-import {execFile} from 'child_process'
-import path from 'path'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {printRPCBytes} from '../local-debug'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -19,6 +18,26 @@ class NativeTransport extends TransportShared {
     // $FlowIssue
     super._connect_critical_section(cb)
     windowsHack()
+  }
+
+  // Override Transport._raw_write -- see transport.iced in
+  // framed-msgpack-rpc.
+  _raw_write(msg, encoding) {
+    if (printRPCBytes) {
+      const b = Buffer.from(msg, encoding)
+      logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
+    }
+    // $FlowIssue Deliberately overriding private method.
+    super._raw_write(msg, encoding)
+  }
+
+  // Override Packetizer.packetize_data -- see packetizer.iced in
+  // framed-msgpack-rpc.
+  packetize_data(m: Buffer) {
+    if (printRPCBytes) {
+      logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
+    }
+    super.packetize_data(m)
   }
 }
 
@@ -40,34 +59,6 @@ function windowsHack() {
   fake.on('error', function() {})
 }
 
-function checkRPCOwnership(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    if (!isWindows) {
-      return resolve()
-    }
-    logger.info('Checking RPC ownership')
-
-    const localAppData = String(process.env.LOCALAPPDATA)
-    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-    const args = ['pipeowner', socketPath]
-    execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
-      if (error) {
-        logger.info(`pipeowner check result: ${stdout.toString()}`)
-        // error will be logged in bootstrap check
-        reject(error)
-        return
-      }
-      const result = JSON.parse(stdout.toString())
-      if (result.isOwner) {
-        resolve()
-        return
-      }
-      logger.info(`pipeowner check result: ${stdout.toString()}`)
-      reject(new Error(`pipeowner check failed`))
-    })
-  })
-}
-
 function createClient(
   incomingRPCCallback: incomingRPCCallbackType,
   connectCallback: connectDisconnectCB,
@@ -80,4 +71,4 @@ function resetClient(client: createClientType) {
   client.transport.reset()
 }
 
-export {resetClient, createClient, rpcLog, checkRPCOwnership}
+export {resetClient, createClient, rpcLog}

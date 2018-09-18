@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {Props} from './oriented-image.types'
-import {Image} from '../common-adapters'
+import Image from '../common-adapters/image'
 
 // OrientedImage will render a NativeImage.
 // However, Oriented image is never rendered from a native component as mobile

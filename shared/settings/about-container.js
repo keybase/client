@@ -1,13 +1,11 @@
 // @flow
+import * as Container from '../util/container'
 import About from './about'
 import {HeaderHoc} from '../common-adapters'
-import {connect} from 'react-redux'
 import {version} from '../constants/platform'
-import {defaultProps, compose} from 'recompose'
 
-import type {Dispatch} from '../constants/types/flux'
-
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) => ({
+const mapStateToProps = () => ({version})
+const mapDispatchToProps = (dispatch: Container.Dispatch, {navigateUp, navigateAppend}) => ({
   onBack: () => dispatch(navigateUp()),
   onShowPrivacyPolicy: () =>
     dispatch(
@@ -27,8 +25,9 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}) =>
   title: 'About',
 })
 
-const connectedHeaderHoc = compose(connect(null, mapDispatchToProps), HeaderHoc, defaultProps({version}))(
-  About
-)
+const connectedHeaderHoc = Container.compose(
+  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  HeaderHoc
+)(About)
 
 export default connectedHeaderHoc

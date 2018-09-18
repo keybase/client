@@ -1,5 +1,5 @@
 // @flow
-import {compose, shallowEqual, withHandlers, withPropsOnChange} from 'recompose'
+import {compose, withHandlers, withPropsOnChange} from 'recompose'
 import * as Types from '../constants/types/search'
 import {debounce} from 'lodash-es'
 
@@ -57,6 +57,7 @@ const onChangeSelectedSearchResultHoc = compose(
       onUpdateSelectedSearchResult(nextSelectedSearchId)
     },
   }),
+  // $FlowIssue TODO fix up thie type for real
   withPropsOnChange(['search'], ({search}: OwnProps) => ({
     _searchDebounced: debounce(search, debounceTimeout),
   })),
@@ -93,41 +94,8 @@ const onChangeSelectedSearchResultHoc = compose(
   })
 )
 
-// Adapted from Recompose.js.
-const pick = (obj: Object, keys: Array<string>) => {
-  const result = {}
-  for (let i = 0; i < keys.length; i++) {
-    const key = keys[i]
-    if (obj.hasOwnProperty(key)) {
-      result[key] = obj[key]
-    }
-  }
-  return result
-}
-
-// If showServiceFilter is already set, don't do anything.
-const showServiceLogicHoc = withPropsOnChange(
-  (props, nextProps) => {
-    if (nextProps.showServiceFilter !== undefined) {
-      return false
-    }
-
-    const keys = ['addNewParticipant', 'searchText', 'userItems']
-    return !shallowEqual(pick(props, keys), pick(nextProps, keys))
-  },
-  ({addNewParticipant, searchText, userItems, showServiceFilter}) => {
-    if (showServiceFilter !== undefined) {
-      return {showServiceFilter}
-    }
-
-    return {
-      showServiceFilter: !!searchText || userItems.length === 0 || addNewParticipant,
-    }
-  }
-)
-
 const placeholderServiceHoc = withPropsOnChange(['selectedService'], ({selectedService}) => ({
   placeholder: `Search ${selectedService}`,
 }))
 
-export {clearSearchHoc, onChangeSelectedSearchResultHoc, placeholderServiceHoc, showServiceLogicHoc}
+export {clearSearchHoc, onChangeSelectedSearchResultHoc, placeholderServiceHoc}

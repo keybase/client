@@ -19,12 +19,17 @@ type Props = {
   selected?: React.Node,
   items: Array<React.Node>,
   style?: StylesCrossPlatform,
+  disabled: boolean,
 }
 type State = {
   expanded: boolean,
 }
 class Dropdown extends React.Component<Props, State> {
   state = {expanded: false}
+
+  static defaultProps = {
+    disabled: false,
+  }
 
   _toggleOpen = () => {
     this.setState(prevProps => ({
@@ -40,7 +45,7 @@ class Dropdown extends React.Component<Props, State> {
   render() {
     return (
       <Box style={collapseStyles([{width: isMobile ? '100%' : 270}, this.props.style])}>
-        <ButtonBox onClick={this._toggleOpen}>
+        <ButtonBox onClick={!this.props.disabled ? this._toggleOpen : null} disabled={this.props.disabled}>
           {this.state.expanded && (
             <PopupDialog
               onClose={this._toggleOpen}
@@ -76,10 +81,15 @@ class Dropdown extends React.Component<Props, State> {
               </Box>
             </PopupDialog>
           )}
-          <Box style={{...globalStyles.flexBoxCenter, minHeight: 40, width: '100%'}}>
+          <Box style={{...globalStyles.flexBoxCenter, minHeight: isMobile ? 48 : 32, width: '100%'}}>
             {this.props.selected}
           </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={11} />
+          <Icon
+            type="iconfont-caret-down"
+            inheritColor={true}
+            fontSize={isMobile ? 12 : 8}
+            style={{marginTop: isMobile ? 4 : -8}}
+          />
         </ButtonBox>
       </Box>
     )
@@ -92,34 +102,30 @@ const ItemBox = glamorous(Box)({
     ? {}
     : {
         ':hover': {
-          backgroundColor: globalColors.blue3_40,
+          backgroundColor: globalColors.blue4,
         },
       }),
   borderBottomWidth: 1,
-  borderColor: globalColors.lightGrey2,
+  borderColor: globalColors.black_10,
   borderStyle: 'solid',
-  minHeight: 40,
+  minHeight: 32,
   width: '100%',
 })
 
-const ButtonBox = glamorous(Box)({
+const ButtonBox = glamorous(Box)(props => ({
   ...globalStyles.flexBoxRow,
-  ...(isMobile
-    ? {}
-    : {
-        ':hover': {
-          border: `solid 1px ${globalColors.blue2}`,
-          color: globalColors.blue2,
-        },
-      }),
+  ...(!props.disabled && !isMobile
+    ? {':hover': {border: `solid 1px ${globalColors.blue}`, color: globalColors.blue}, cursor: 'pointer'}
+    : {}),
+  ...(props.disabled ? {opacity: 0.3} : {}),
   alignItems: 'center',
-  borderColor: globalColors.lightGrey2,
+  borderColor: globalColors.black_10,
   borderRadius: 100,
   borderStyle: 'solid',
   borderWidth: 1,
-  color: globalColors.lightGrey2,
-  paddingRight: isMobile ? globalMargins.medium : globalMargins.small,
+  color: globalColors.black_40,
+  paddingRight: isMobile ? globalMargins.large : globalMargins.small,
   width: '100%',
-})
+}))
 
 export default Dropdown

@@ -9,7 +9,6 @@ import {
   withStateHandlers,
   withHandlers,
   type TypedState,
-  type Dispatch,
 } from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
@@ -21,7 +20,7 @@ const mapStateToProps = (state: TypedState) => ({
   successTeamName: state.teams.teamJoinSuccessTeamName,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
   _onJoinTeam: (teamname: string) => {
     dispatch(TeamsGen.createJoinTeam({teamname}))
   },
@@ -35,7 +34,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   withStateHandlers(({name}) => ({name: name || ''}), {
     onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
   }),

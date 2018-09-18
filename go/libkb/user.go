@@ -343,7 +343,6 @@ func (u *User) Store(m MetaContext) error {
 }
 
 func (u *User) StoreTopLevel(m MetaContext) error {
-	m.CDebugf("+ StoreTopLevel")
 
 	jw := jsonw.NewDictionary()
 	jw.SetKey("id", UIDWrapper(u.id))
@@ -356,7 +355,9 @@ func (u *User) StoreTopLevel(m MetaContext) error {
 		[]DbKey{{Typ: DBLookupUsername, Key: u.name}},
 		jw,
 	)
-	m.CDebugf("- StoreTopLevel -> %s", ErrToOk(err))
+	if err != nil {
+		m.CDebugf("StoreTopLevel -> %s", ErrToOk(err))
+	}
 	return err
 }
 

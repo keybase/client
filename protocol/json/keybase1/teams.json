@@ -415,7 +415,8 @@
             "values": "PerTeamKeySeedItem",
             "keys": "PerTeamKeyGeneration"
           },
-          "name": "perTeamKeySeeds"
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
         },
         {
           "type": {
@@ -447,6 +448,276 @@
             "keys": "TeamApplication"
           },
           "name": "tlfCryptKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamData",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "FastTeamSigChainState",
+          "name": "chain"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsUnverified",
+          "mpackkey": "perTeamKeySeeds"
+        },
+        {
+          "type": "PerTeamKeyGeneration",
+          "name": "latestKeyGeneration"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "map",
+              "values": "MaskB64",
+              "keys": "PerTeamKeyGeneration"
+            },
+            "keys": "TeamApplication"
+          },
+          "name": "readerKeyMasks"
+        },
+        {
+          "type": "Seqno",
+          "name": "latestSeqnoHint"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "loadedLatest"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LinkTriple",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "seqno"
+        },
+        {
+          "type": "SeqType",
+          "name": "seqType"
+        },
+        {
+          "type": "LinkID",
+          "name": "linkID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpPointer",
+      "fields": [
+        {
+          "type": "Seqno",
+          "name": "ourSeqno"
+        },
+        {
+          "type": "TeamID",
+          "name": "parentID"
+        },
+        {
+          "type": "Seqno",
+          "name": "parentSeqno"
+        },
+        {
+          "type": "boolean",
+          "name": "deletion"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DownPointer",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "nameComponent"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleted"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamSigChainState",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "TeamName",
+          "name": "rootAncestor"
+        },
+        {
+          "type": "int",
+          "name": "nameDepth"
+        },
+        {
+          "type": [
+            null,
+            "LinkTriple"
+          ],
+          "name": "last"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKey",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeys"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PerTeamKeySeed",
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "perTeamKeySeedsVerified"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "DownPointer",
+            "keys": "Seqno"
+          },
+          "name": "downPointers"
+        },
+        {
+          "type": [
+            null,
+            "UpPointer"
+          ],
+          "name": "lastUpPointer"
+        },
+        {
+          "type": "UnixTime",
+          "name": "perTeamKeyCTime"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Audit",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxChainSeqno"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleProbe"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Probe",
+      "fields": [
+        {
+          "type": "int",
+          "name": "index",
+          "mpackkey": "i"
+        },
+        {
+          "type": "Seqno",
+          "name": "teamSeqno",
+          "mpackkey": "s"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AuditHistory",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "Seqno",
+          "name": "priorMerkleSeqno"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Audit"
+          },
+          "name": "audits"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "preProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "postProbes"
         }
       ]
     },
@@ -688,6 +959,14 @@
           "name": "lastLinkID"
         },
         {
+          "type": "Seqno",
+          "name": "lastHighSeqno"
+        },
+        {
+          "type": "LinkID",
+          "name": "lastHighLinkID"
+        },
+        {
           "type": [
             null,
             "TeamID"
@@ -779,6 +1058,13 @@
             "keys": "TeamApplication"
           },
           "name": "tlfLegacyUpgrade"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "headMerkle"
         }
       ]
     },
@@ -978,6 +1264,20 @@
         {
           "type": "TeamID",
           "name": "id"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamNewlyAddedRow",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "id"
+        },
+        {
+          "type": "string",
+          "name": "name"
         }
       ]
     },
@@ -1272,6 +1572,17 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerations"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },
@@ -1332,6 +1643,67 @@
         {
           "type": "boolean",
           "name": "allowNameLookupBurstCache"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadArg",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": [
+            null,
+            "TeamName"
+          ],
+          "name": "assertTeamName"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplication"
+          },
+          "name": "applications"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PerTeamKeyGeneration"
+          },
+          "name": "keyGenerationsNeeded"
+        },
+        {
+          "type": "boolean",
+          "name": "needLatestKey"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRefresh"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FastTeamLoadRes",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TeamApplicationKey"
+          },
+          "name": "applicationKeys"
         }
       ]
     },
@@ -2702,6 +3074,15 @@
       ],
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "ftl": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "FastTeamLoadArg"
+        }
+      ],
+      "response": "FastTeamLoadRes"
     }
   },
   "namespace": "keybase.1"

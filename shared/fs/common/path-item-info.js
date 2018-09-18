@@ -4,9 +4,13 @@ import {globalStyles, globalColors, isMobile, platformStyles} from '../../styles
 import {Box, Meta, Text, ConnectedUsernames} from '../../common-adapters'
 import {formatTimeForFS} from '../../util/timestamp'
 
+// TODO: this thing should probably get its own container, so we don't have to
+// derive lastModifiedTimestamp, lastWriter, resetParticipants, isUserReset
+// everwhere.
+
 type Props = {
-  lastModifiedTimestamp: number,
-  lastWriter: string,
+  lastModifiedTimestamp?: number,
+  lastWriter?: string,
   wrap?: boolean,
   startWithLastModified?: boolean,
   resetParticipants?: Array<string>,
@@ -32,7 +36,7 @@ const PathItemInfo = (props: Props) => (
     {!!props.resetParticipants && props.resetParticipants.length > 0 ? (
       <Box style={resetInfoBoxStyle}>
         {props.isUserReset ? (
-          <Text type="BodyError">Participants have to let you back in.</Text>
+          <Text type="BodySmallError">Participants have to let you back in.</Text>
         ) : (
           <Box style={globalStyles.flexBoxRow}>
             <Meta title="reset" backgroundColor={globalColors.red} style={resetMetaStyle} />
@@ -61,7 +65,7 @@ const PathItemInfo = (props: Props) => (
           type="BodySmallSecondaryLink"
           usernames={[props.lastWriter]}
           inline={true}
-          clickable={true}
+          onUsernameClicked="profile"
           underline={true}
         />
       </Text>

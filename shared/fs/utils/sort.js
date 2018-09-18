@@ -1,10 +1,18 @@
 // @flow
 import * as Types from '../../constants/types/fs'
-import {memoize} from 'lodash'
+import {memoize} from 'lodash-es'
+
+export type SortableTlfTypeRowItem = Types.TlfTypeRowItem & {
+  type: 'folder',
+}
+
+export type SortableTlfRowItem = Types.TlfRowItem & {
+  type: 'folder',
+  isNew: boolean,
+}
 
 export type SortableStillRowItem = Types.StillRowItem & {
   type: Types.PathType,
-  tlfMeta?: Types.FavoriteMetadata,
   lastModifiedTimestamp: number,
 }
 export type SortableEditingRowItem = Types.EditingRowItem & {
@@ -16,7 +24,12 @@ export type SortableUploadingRowItem = Types.UploadingRowItem & {
   rowType: 'uploading',
   type: Types.PathType,
 }
-export type SortableRowItem = SortableStillRowItem | SortableEditingRowItem | SortableUploadingRowItem
+export type SortableRowItem =
+  | SortableStillRowItem
+  | SortableEditingRowItem
+  | SortableUploadingRowItem
+  | SortableTlfTypeRowItem
+  | SortableTlfRowItem
 
 type PathItemComparer = (a: SortableRowItem, b: SortableRowItem) => number
 
@@ -44,15 +57,8 @@ const getCommonComparer = memoize(
       return 1
     }
 
-    if (
-      a.rowType === 'still' &&
-      b.rowType === 'still' &&
-      a.type === 'folder' &&
-      b.type === 'folder' &&
-      a.tlfMeta &&
-      b.tlfMeta
-    ) {
-      // Both are folders that are in a TLF list.
+    if (a.rowType === 'tlf' && b.rowType === 'tlf') {
+      // Both are TLFs.
 
       // First, if meUsername is set (i.e. user logged in), try to put user's
       // own TLF at first.
@@ -69,12 +75,10 @@ const getCommonComparer = memoize(
 
       // Then, inspect if any of them has isNew set. This only applies to TLF
       // lists.
-      const aIsNew = a.tlfMeta.isNew
-      const bIsNew = b.tlfMeta.isNew
-      if (aIsNew && !bIsNew) {
+      if (a.isNew && !b.isNew) {
         return -1
       }
-      if (!aIsNew && bIsNew) {
+      if (!a.isNew && b.isNew) {
         return 1
       }
     }

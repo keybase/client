@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
-import * as Constants from '../../constants/chat2'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
@@ -23,6 +22,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
   messageMap: I.Map(),
@@ -31,8 +31,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
     [pendingConversationIDKey, makeConversationMeta({conversationIDKey: noConversationIDKey})],
   ]),
   moreToLoadMap: I.Map(),
-  lastReadMessageMap: I.Map(),
+  orangeLineMap: I.Map(),
   pendingMode: 'none',
+  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
@@ -48,8 +49,8 @@ export const getResolvedPendingConversationIDKey = (state: TypedState) =>
 export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
   counter: 0,
   ordinal: Types.numberToOrdinal(0),
-  sourceConversationIDKey: Constants.noConversationIDKey,
-  targetConversationIDKey: Constants.noConversationIDKey,
+  sourceConversationIDKey: noConversationIDKey,
+  targetConversationIDKey: noConversationIDKey,
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
@@ -60,6 +61,8 @@ export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKe
   state.chat2.messageOrdinals.get(id, I.SortedSet())
 export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
   state.chat2.messageMap.getIn([id, ordinal])
+export const getMessageKey = (message: Types.Message) =>
+  `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.badgeMap.get(id, 0) > 0
 export const getHasUnread = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -118,6 +121,10 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
+}
+export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
+  const meta = getMeta(state, getSelectedConversation(state))
+  return meta.teamname === teamname
 }
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
@@ -184,6 +191,26 @@ export const makeInboxQuery = (
   }
 }
 
+export const anyToConversationMembersType = (a: any): ?RPCChatTypes.ConversationMembersType => {
+  const membersTypeNumber: number = typeof a === 'string' ? parseInt(a, 10) : a || -1
+  switch (membersTypeNumber) {
+    case RPCChatTypes.commonConversationMembersType.kbfs:
+      return RPCChatTypes.commonConversationMembersType.kbfs
+    case RPCChatTypes.commonConversationMembersType.team:
+      return RPCChatTypes.commonConversationMembersType.team
+    case RPCChatTypes.commonConversationMembersType.impteamnative:
+      return RPCChatTypes.commonConversationMembersType.impteamnative
+    case RPCChatTypes.commonConversationMembersType.impteamupgrade:
+      return RPCChatTypes.commonConversationMembersType.impteamupgrade
+    default:
+      return null
+  }
+}
+
+export const threadRoute = isMobile
+  ? [chatTab, 'conversation']
+  : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
+
 const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
@@ -202,10 +229,15 @@ export {
 
 export {
   allMessageTypes,
+  authorIsCollapsible,
+  decoratedMessageTypes,
+  enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
   isSpecialMention,
+  isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
@@ -216,10 +248,14 @@ export {
   nextFractionalOrdinal,
   pathToAttachmentType,
   previewSpecs,
+  reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
+  showAuthorMessageTypes,
   uiMessageEditToMessage,
   uiMessageToMessage,
+  uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
 } from './message'
 

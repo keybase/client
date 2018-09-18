@@ -20,9 +20,18 @@ type OwnProps = RouteProps<
   {}
 >
 
+type WrapperProps = {|
+  onAddReaction: (emoji: string) => void,
+  onCancel: () => void,
+|}
+type WrapperState = {|
+  filter: string,
+  width: number,
+|}
+
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => {
   const conversationIDKey = ownProps.routeProps.get('conversationIDKey')
   const ordinal = ownProps.routeProps.get('ordinal')
   return {
@@ -34,14 +43,10 @@ const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => {
   }
 }
 
-type WrapperProps = {
-  onAddReaction: (emoji: string) => void,
-  onCancel: () => void,
-}
-type WrapperState = {
-  filter: string,
-  width: number,
-}
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  ...dispatchProps,
+})
+
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
   state = {filter: '', width: 0}
 
@@ -90,11 +95,11 @@ const styles = styleSheetCreate({
   },
   input: {
     borderBottomWidth: 1,
-    borderColor: globalColors.black_05,
+    borderColor: globalColors.black_10,
     borderRadius: 0,
     borderWidth: 0,
     padding: globalMargins.small,
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(Wrapper)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)

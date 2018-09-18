@@ -1,13 +1,13 @@
 // @flow
 import React from 'react'
-import {action, storiesOf} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import ExportSecretKey from '.'
 
 const load = () => {
-  storiesOf('Wallets', module).add('Export secret key', () => (
+  Sb.storiesOf('Wallets', module).add('Export secret key', () => (
     <ExportSecretKey
-      onClose={action('onClose')}
-      onLoadSecretKey={action('onLoadSecretKey')}
+      onClose={Sb.action('onClose')}
+      onLoadSecretKey={Sb.action('onLoadSecretKey')}
       secretKey="SETECASTRONOMY"
       username="cecileb"
     />

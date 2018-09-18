@@ -17,13 +17,14 @@ RCT_REMAP_METHOD(logSend,
                  sendLogs:(BOOL)sendLogs
                  logPath:(NSString*)logPath
                  traceDir:(NSString*)traceDir
+                 cpuProfileDir:(NSString*)cpuProfileDir
                  resolver:(RCTPromiseResolveBlock)resolve
                  rejecter:(RCTPromiseRejectBlock)reject)
 {
 
   NSString *logId = nil;
   NSError *err = nil;
-  logId = KeybaseLogSend(status, feedback, sendLogs, logPath, traceDir, &err);
+  logId = KeybaseLogSend(status, feedback, sendLogs, logPath, traceDir, cpuProfileDir, &err);
   if (err == nil) {
     resolve(logId);
   } else {

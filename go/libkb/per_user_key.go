@@ -66,7 +66,7 @@ func NewPerUserKeyBox(contents PerUserKeySeed, receiverKey NaclDHKeyPair, sender
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}
-	boxStr, err := PacketArmoredEncode(encInfo)
+	boxStr, err := EncodePacketToArmoredString(encInfo)
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}
@@ -447,7 +447,7 @@ func (s *PerUserKeyring) syncAsConfiguredDevice(m MetaContext, upak *keybase1.Us
 }
 
 // `m.LoginContext` and `upak` are optional
-func (s *PerUserKeyring) SyncAsPaperKey(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
+func (s *PerUserKeyring) SyncAsProvisioningKey(m MetaContext, upak *keybase1.UserPlusAllKeys, deviceID keybase1.DeviceID, decryptionKey GenericKey) (err error) {
 	if deviceID.IsNil() {
 		return fmt.Errorf("missing deviceID")
 	}

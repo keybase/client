@@ -1,7 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
-import {compose, connect, type Dispatch, type TypedState} from '../util/container'
+import {compose, connect, type TypedState} from '../util/container'
 import * as FsGen from '../actions/fs-gen'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => ({
   syncingPaths: state.fs.uploads.syncingPaths,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeProps}) => {
+const mapDispatchToProps = (dispatch, {routeProps}) => {
   const path = routeProps.get('path', Constants.defaultPath)
   return {
     loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'main'})),
@@ -39,17 +39,23 @@ type FilesLoadingHocProps = {
 
 const FilesLoadingHoc = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<FilesLoadingHocProps> {
-    componentDidMount() {
+    _load = () => {
+      const pathLevel = Types.getPathLevel(this.props.path)
+      if (pathLevel < 2) {
+        return
+      }
+      pathLevel === 2 && this.props.loadFavorites()
+      // This is needed not only inside in a tlf, but also in tlf list, to get
+      // `writable` for tlf root.
       this.props.loadFolderList()
-      this.props.loadFavorites()
+    }
+    componentDidMount() {
+      this._load()
     }
     componentDidUpdate(prevProps) {
       // This gets called on route changes too, e.g. when user clicks the
       // action menu. So only load folder list when path changes.
-      if (this.props.path !== prevProps.path) {
-        this.props.loadFolderList()
-        Types.getPathLevel(this.props.path) === 2 && this.props.loadFavorites()
-      }
+      this.props.path !== prevProps.path && this._load()
     }
     render() {
       return <ComposedComponent {...this.props} />

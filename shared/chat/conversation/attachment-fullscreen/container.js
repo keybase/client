@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as KBFSGen from '../../../actions/kbfs-gen'
 import Fullscreen from './'
-import {compose, withStateHandlers, connect, type TypedState, type Dispatch} from '../../../util/container'
+import {compose, withStateHandlers, connect, type TypedState} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey, ordinal: Types.Ordinal}, {}>
@@ -20,7 +20,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) => ({
   _onDownloadAttachment: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentDownload({

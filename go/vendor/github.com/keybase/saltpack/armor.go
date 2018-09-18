@@ -132,10 +132,12 @@ func armorSeal(plaintext []byte, header string, footer string, params armorParam
 
 // Frame is a way to read the frame out of a Decoder stream.
 type Frame interface {
-	// GetHeader() returns the frame associated with this stream, or an error
+	// GetHeader() returns the header of the frame associated with this stream, or an error
 	GetHeader() (string, error)
-	// GetFooter() returns the frame associated with this stream, or an error
+	// GetFooter() returns the footer of the frame associated with this stream, or an error
 	GetFooter() (string, error)
+	// GetBrand() returns the brand contained in this frame's header, or an error
+	GetBrand() (string, error)
 }
 
 type fdsState int
@@ -147,27 +149,59 @@ const (
 	fdsEndOfStream
 )
 
+// HeaderChecker is a function intended to check that an header (the initial part of an armor
+// before and not including the first punctuation) is valid. Optionally, it can return some
+// information about such frame (tipycally the brand). If the frame is invalid, a non nil
+// error should be returned.
+type HeaderChecker func(header string) (string, error)
+
+// FrameChecker is a function intended to check the frame of the armor is valid. Optionally,
+// it can return some information about such frame (tipycally the brand). If the frame is invalid,
+// a non nil error should be returned.
+type FrameChecker func(header, footer string) (string, error)
+
 type framedDecoderStream struct {
-	header []byte
-	footer []byte
-	state  fdsState
-	params armorParams
-	r      *punctuatedReader
+	header        []byte
+	footer        []byte
+	frameBrand    string
+	state         fdsState
+	params        armorParams
+	r             *punctuatedReader
+	headerChecker HeaderChecker
+	frameChecker  FrameChecker
+	frameLim      int // The largest frame we'll accept before we show an overflow.
+}
+
+func (s *framedDecoderStream) loadHeader() (err error) {
+	if s.state == fdsHeader {
+		s.header, err = s.r.ReadUntilPunctuation(s.frameLim)
+		if err != nil {
+			return err
+		}
+		if s.headerChecker != nil {
+			headerStr, err := s.toASCII(s.header)
+			if err != nil {
+				return err
+			}
+			s.frameBrand, err = s.headerChecker(headerStr)
+			if err != nil {
+				return err
+			}
+		}
+		s.state = fdsBody
+	}
+	return nil
 }
 
 // Read from a framedDeecoderStream. The frame is the "BEGIN FOO." block
-// at the footer, and the "END FOO." block at the end.
+// at the beginning, and the "END FOO." block at the end.
 func (s *framedDecoderStream) Read(p []byte) (n int, err error) {
 
-	// The largest frame we'll accept before we show an overflow.
-	frameLim := 8192
-
 	if s.state == fdsHeader {
-		s.header, err = s.r.ReadUntilPunctuation(frameLim)
+		err = s.loadHeader()
 		if err != nil {
 			return 0, err
 		}
-		s.state = fdsBody
 	}
 
 	if s.state == fdsBody {
@@ -185,9 +219,22 @@ func (s *framedDecoderStream) Read(p []byte) (n int, err error) {
 	}
 
 	if s.state == fdsFooter {
-		s.footer, err = s.r.ReadUntilPunctuation(frameLim)
+		s.footer, err = s.r.ReadUntilPunctuation(s.frameLim)
 		if err != nil {
 			return 0, err
+		}
+		if s.frameChecker != nil {
+			headerStr, err := s.toASCII(s.header)
+			if err != nil {
+				return 0, err
+			}
+			footerStr, err := s.toASCII(s.footer)
+			if err != nil {
+				return 0, err
+			}
+			if _, err = s.frameChecker(headerStr, footerStr); err != nil {
+				return 0, err
+			}
 		}
 		s.state = fdsEndOfStream
 	}
@@ -223,8 +270,7 @@ func (s *framedDecoderStream) consumeUntilEOF() error {
 }
 
 // isValidByteSequence checks if the byte sequence is valid as far as our
-// underlying encoder is concerned. This is usually quite liberal, and excludes
-// non-ASCII and ASCII control characters, but leaves everything else in.
+// underlying encoder is concerned.
 func (s *framedDecoderStream) isValidByteSequence(p []byte) bool {
 	for _, b := range p {
 		if !s.params.Encoding.IsValidByte(b) {
@@ -241,24 +287,47 @@ func (s *framedDecoderStream) toASCII(buf []byte) (string, error) {
 	return strings.TrimSpace(string(buf)), nil
 }
 
-func (s *framedDecoderStream) GetFooter() (string, error) { return s.toASCII(s.footer) }
-func (s *framedDecoderStream) GetHeader() (string, error) { return s.toASCII(s.header) }
+func (s *framedDecoderStream) GetFooter() (string, error) {
+	if s.state < fdsFooter {
+		return "", fmt.Errorf("the footer can be retrieved only after the stream has been exhausted")
+	}
+	return s.toASCII(s.footer)
+}
+
+func (s *framedDecoderStream) GetHeader() (string, error) {
+	if s.state == fdsHeader {
+		if err := s.loadHeader(); err != nil {
+			return "", err
+		}
+	}
+	return s.toASCII(s.header)
+}
+
+func (s *framedDecoderStream) GetBrand() (string, error) {
+	if s.state == fdsHeader {
+		if err := s.loadHeader(); err != nil {
+			return "", err
+		}
+	}
+	return s.frameBrand, nil
+}
 
 // newArmorDecoderStream is used to decode armored encoding. It returns a stream you
 // can read from, and also a Frame you can query to see what the open/close
-// frame markers were.
-func newArmorDecoderStream(r io.Reader, params armorParams) (io.Reader, Frame, error) {
-	fds := &framedDecoderStream{r: newPunctuatedReader(r, params.Punctuation), params: params}
+// frame markers were. Note that the footer of the Frame can be accessed only after the
+// reader has been exhausted.
+func newArmorDecoderStream(r io.Reader, params armorParams, headerChecker HeaderChecker, frameChecker FrameChecker) (io.Reader, Frame, error) {
+	fds := &framedDecoderStream{r: newPunctuatedReader(r, params.Punctuation), params: params, headerChecker: headerChecker, frameChecker: frameChecker, frameLim: 8192}
 	ret := basex.NewDecoder(params.Encoding, fds)
 	return ret, fds, nil
 }
 
 // armorOpen runs armor stream decoding, but on a string, and it outputs a string.
-func armorOpen(msg string, params armorParams) (body []byte, header string, footer string, err error) {
+func armorOpen(msg string, params armorParams, headerChecker HeaderChecker, frameChecker FrameChecker) (body []byte, brand string, header string, footer string, err error) {
 	var dec io.Reader
 	var frame Frame
 	buf := bytes.NewBufferString(msg)
-	dec, frame, err = newArmorDecoderStream(buf, params)
+	dec, frame, err = newArmorDecoderStream(buf, params, headerChecker, frameChecker)
 	if err != nil {
 		return
 	}
@@ -272,5 +341,8 @@ func armorOpen(msg string, params armorParams) (body []byte, header string, foot
 	if footer, err = frame.GetFooter(); err != nil {
 		return
 	}
-	return body, header, footer, nil
+	if brand, err = frame.GetBrand(); err != nil {
+		return
+	}
+	return body, brand, header, footer, nil
 }

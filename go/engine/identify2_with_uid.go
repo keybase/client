@@ -396,18 +396,27 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 		return false
 	}
 
-	if e.me == nil {
-		m.CDebugf("| Can use untracked fastpath since there is no logged in user")
-		statInc()
-		return true
-	}
-
 	if e.them == nil {
 		m.CDebugf("| Can't use untracked fast path since failed to load them users")
 		return false
 	}
 
 	nun := e.them.GetNormalizedName()
+
+	// check if there's a tcl in the testArgs
+	if e.testArgs != nil && e.testArgs.tcl != nil {
+		trackedUsername, err := e.testArgs.tcl.GetTrackedUsername()
+		if err == nil && trackedUsername == nun {
+			m.CDebugf("| Test track link found for %s", nun.String())
+			return false
+		}
+	}
+
+	if e.me == nil {
+		m.CDebugf("| Can use untracked fastpath since there is no logged in user")
+		statInc()
+		return true
+	}
 
 	tcl, err := e.me.trackChainLinkFor(m, nun, e.them.GetUID())
 	if err != nil {

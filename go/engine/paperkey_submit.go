@@ -56,7 +56,7 @@ func (e *PaperKeySubmit) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	m.ActiveDevice().CachePaperKey(m, e.deviceWithKeys)
+	m.ActiveDevice().CacheProvisioningKey(m, e.deviceWithKeys)
 
 	// send a notification that a paper key has been cached
 	// for rekey purposes

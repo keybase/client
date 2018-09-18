@@ -1,29 +1,29 @@
 // @flow
-import * as CommonConstants from '../constants/common'
-import {makeState} from '../constants/entities'
-import {type Actions, type State} from '../constants/types/entities'
+import * as Types from '../constants/types/entities'
+import * as Constants from '../constants/entities'
+import * as EntitiesGen from '../actions/entities-gen'
 
-const initialState: State = makeState()
+const initialState = Constants.makeState()
 
-export default function(state: State = initialState, action: Actions): State {
+export default function(state: Types.State = initialState, action: EntitiesGen.Actions): Types.State {
   switch (action.type) {
-    case CommonConstants.resetStore: {
+    case EntitiesGen.resetStore: {
       return initialState
     }
-    case 'entity:delete': {
+    case EntitiesGen.deleteEntity: {
       const {keyPath, ids} = action.payload
       // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, map => map.deleteAll(ids))
     }
-    case 'entity:merge': {
+    case EntitiesGen.mergeEntity: {
       const {keyPath, entities} = action.payload
       return state.mergeDeepIn(keyPath, entities)
     }
-    case 'entity:replace': {
+    case EntitiesGen.replaceEntity: {
       const {keyPath, entities} = action.payload
       return state.mergeIn(keyPath, entities)
     }
-    case 'entity:subtract': {
+    case EntitiesGen.subtractEntity: {
       const {keyPath, entities} = action.payload
       // $FlowIssue flow can't guarantee the keypath works for all cases
       return state.updateIn(keyPath, set => set.subtract(entities))

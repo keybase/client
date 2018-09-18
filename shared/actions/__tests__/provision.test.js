@@ -15,21 +15,35 @@ import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
 import {getPath as getRoutePath} from '../../route-tree'
 
+jest.mock('../../engine')
+jest.mock('../../engine/require')
+
 const noError = new HiddenString('')
 
 // Sets up redux and the provision manager. Starts by making an incoming call into the manager
 const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
-  const {dispatch, getState, getRoutePath} = startReduxSaga(initialStore)
+  const {dispatch, getState, getRoutePath, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
   const mockIncomingCall = callMap[method]
   if (!mockIncomingCall) {
     throw new Error('No call')
   }
   const response = {error: jest.fn(), result: jest.fn()}
-  const put: any = mockIncomingCall((payload: any), (response: any), getState())
-  if (put && put.PUT && put.PUT.action) {
-    dispatch(put.PUT.action)
+  const effect: any = mockIncomingCall((payload: any), (response: any))
+  if (effect) {
+    // Throws in the generator only, so we have to stash it
+    let thrown
+    sagaMiddleware.run(function*(): Generator<any, any, any> {
+      try {
+        yield effect
+      } catch (e) {
+        thrown = e
+      }
+    })
+    if (thrown) {
+      throw thrown
+    }
   }
   return {
     dispatch,
@@ -52,46 +66,31 @@ const startReduxSaga = (initialStore = undefined) => {
   sagaMiddleware.run(provisionSaga)
 
   dispatch(RouteTree.switchRouteDef(loginRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.loginTab, 'login']))
+  dispatch(RouteTree.navigateTo([Tabs.loginTab]))
 
   return {
     dispatch,
     getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
     getState,
+    sagaMiddleware,
   }
 }
 
 describe('provisioningManagerProvisioning', () => {
   const manager = _testing.makeProvisioningManager(false)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
 
   it('cancels are correct', () => {
     const keys = ['keybase.1.gpgUi.selectKey', 'keybase.1.loginUi.getEmailOrUsername']
     keys.forEach(k => {
       const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
+      // $FlowIssue flow is correct in complaining here
+      callMap[k]((undefined: any), response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
         code: RPCTypes.constantsStatusCode.scgeneric,
         desc: Constants.cancelDesc,
       })
-    })
-  })
-
-  it('ignores are correct', () => {
-    const keys = [
-      'keybase.1.loginUi.displayPrimaryPaperKey',
-      'keybase.1.provisionUi.ProvisioneeSuccess',
-      'keybase.1.provisionUi.ProvisionerSuccess',
-      'keybase.1.provisionUi.DisplaySecretExchanged',
-    ]
-    keys.forEach(k => {
-      const response = {error: jest.fn(), result: jest.fn()}
-      // $FlowIssue
-      callMap[k](undefined, response, undefined)
-      expect(response.result).not.toHaveBeenCalled()
-      expect(response.error).not.toHaveBeenCalled()
     })
   })
 })
@@ -117,7 +116,7 @@ describe('text code happy path', () => {
 
   it('navs to the code page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'codePage']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'codePage']))
   })
 
   it('submit text code empty throws', () => {
@@ -163,7 +162,7 @@ describe('text code error path', () => {
 
   it("doesn't nav away", () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
   })
 
   it('submit clears error and submits', () => {
@@ -212,7 +211,7 @@ describe('device name happy path', () => {
 
   it('navs to device name page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'setPublicName']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'setPublicName']))
   })
 
   it("don't allow submit dupe", () => {
@@ -260,7 +259,7 @@ describe('device name error path', () => {
 
   it("doesn't nav away", () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
   })
 
   it('update name and submit clears error and submits', () => {
@@ -300,7 +299,7 @@ describe('other device happy path', () => {
 
   it('navs to device page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'selectOtherDevice']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'selectOtherDevice']))
   })
 
   it('submit mobile', () => {
@@ -404,7 +403,7 @@ describe('choose gpg happy path', () => {
 
   it('navs to the gpg page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'gpgSign']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'gpgSign']))
   })
 
   it('no submit on error', () => {
@@ -462,7 +461,7 @@ describe('passphrase happy path', () => {
 
   it('navs to password page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'passphrase']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'passphrase']))
   })
 
   it('submit', () => {
@@ -501,7 +500,7 @@ describe('passphrase error path', () => {
 
   it("doesn't nav away", () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
   })
 
   it('submit clears error and submits', () => {
@@ -540,7 +539,7 @@ describe('paperkey happy path', () => {
 
   it('navs to paperkey page', () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'paperkey']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'paperkey']))
   })
 
   it('submit', () => {
@@ -579,7 +578,7 @@ describe('paperkey error path', () => {
 
   it("doesn't nav away", () => {
     const {getRoutePath} = init
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
   })
 
   it('submit clears error and submits', () => {
@@ -636,7 +635,7 @@ describe('start the whole process', () => {
   dispatch(ProvisionGen.createProvisionError({error}))
   dispatch(ProvisionGen.createStartProvision())
   expect(getState().provision).toEqual(Constants.makeState())
-  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'usernameOrEmail']))
+  expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'usernameOrEmail']))
 })
 
 describe('Submit user email', () => {
@@ -663,7 +662,7 @@ describe('final errors show', () => {
     const error = new RPCError('something bad happened', 1, [])
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
     expect(getState().provision.finalError).toBeTruthy()
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login', 'error']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'error']))
   })
 
   it('ignore cancel', () => {
@@ -671,7 +670,7 @@ describe('final errors show', () => {
     const error = new RPCError(Constants.cancelDesc, RPCTypes.constantsStatusCode.scgeneric)
     dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
     expect(getState().provision.finalError).toEqual(null)
-    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'login']))
+    expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
   })
 })
 

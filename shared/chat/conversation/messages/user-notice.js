@@ -68,6 +68,7 @@ const styleSmallNotice = platformStyles({
 const styleOuterBox = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  flex: 1,
   marginBottom: globalMargins.tiny,
 }
 

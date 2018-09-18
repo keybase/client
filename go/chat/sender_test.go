@@ -29,11 +29,11 @@ type chatListener struct {
 	sync.Mutex
 	libkb.NoopNotifyListener
 
-	remoteActivityOnly bool
-
 	// ChatActivity channels
-	obids          []chat1.OutboxID
-	incoming       chan int
+	obidsLocal     []chat1.OutboxID
+	obidsRemote    []chat1.OutboxID
+	incomingLocal  chan int
+	incomingRemote chan int
 	failing        chan []chat1.OutboxRecord
 	identifyUpdate chan keybase1.CanonicalTLFNameAndIDWithBreaks
 	inboxStale     chan struct{}
@@ -90,16 +90,25 @@ func (n *chatListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActi
 	if err == nil {
 		switch typ {
 		case chat1.ChatActivityType_INCOMING_MESSAGE:
-			if activity.IncomingMessage().Message.IsValid() &&
-				(!n.remoteActivityOnly || source == chat1.ChatActivitySource_REMOTE) {
+			if activity.IncomingMessage().Message.IsValid() {
 				strOutboxID := activity.IncomingMessage().Message.Valid().OutboxID
 				if strOutboxID != nil {
 					outboxID, _ := hex.DecodeString(*strOutboxID)
-					n.obids = append(n.obids, chat1.OutboxID(outboxID))
-					select {
-					case n.incoming <- len(n.obids):
-					case <-time.After(5 * time.Second):
-						panic("timeout on the incoming channel")
+					switch source {
+					case chat1.ChatActivitySource_REMOTE:
+						n.obidsRemote = append(n.obidsRemote, chat1.OutboxID(outboxID))
+						select {
+						case n.incomingRemote <- len(n.obidsRemote):
+						case <-time.After(5 * time.Second):
+							panic("timeout on the incomingRemote channel")
+						}
+					case chat1.ChatActivitySource_LOCAL:
+						n.obidsLocal = append(n.obidsLocal, chat1.OutboxID(outboxID))
+						select {
+						case n.incomingLocal <- len(n.obidsLocal):
+						case <-time.After(5 * time.Second):
+							panic("timeout on the incomingLocal channel")
+						}
 					}
 				}
 			}
@@ -135,7 +144,7 @@ func newConvTriple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext
 
 func newConvTripleWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	username string, membersType chat1.ConversationMembersType) chat1.ConversationIDTriple {
-	nameInfo, err := CtxKeyFinder(ctx, tc.Context()).Find(ctx, username, membersType, false)
+	nameInfo, err := CreateNameInfoSource(ctx, tc.Context(), membersType).LookupID(ctx, username, false)
 	require.NoError(t, err)
 	topicID, err := utils.NewChatTopicID()
 	require.NoError(t, err)
@@ -201,7 +210,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	baseSender.SetClock(world.Fc)
 	sender := NewNonblockingSender(g, baseSender)
 	listener := chatListener{
-		incoming:       make(chan int, 100),
+		incomingLocal:  make(chan int, 100),
+		incomingRemote: make(chan int, 100),
 		failing:        make(chan []chat1.OutboxRecord, 100),
 		identifyUpdate: make(chan keybase1.CanonicalTLFNameAndIDWithBreaks, 10),
 		inboxStale:     make(chan struct{}, 1),
@@ -261,6 +271,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.Searcher = searcher
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
+	g.StellarLoader = types.DummyStellarLoader{}
+
 	return ctx, world, ri, sender, baseSender, &listener
 }
 
@@ -289,13 +301,13 @@ func TestNonblockChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "event not received")
 	}
 
-	require.Equal(t, 1, len(listener.obids), "wrong length")
-	require.Equal(t, obid, listener.obids[0], "wrong obid")
+	require.Equal(t, 1, len(listener.obidsRemote), "wrong length")
+	require.Equal(t, obid, listener.obidsRemote[0], "wrong obid")
 }
 
 type sentRecord struct {
@@ -400,7 +412,7 @@ func TestNonblockTimer(t *testing.T) {
 
 	// Make we get nothing until timer is up
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -444,22 +456,22 @@ func TestNonblockTimer(t *testing.T) {
 	// Should get a blast of all 5
 
 	var olen int
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 5; i++ {
 		select {
-		case olen = <-listener.incoming:
+		case olen = <-listener.incomingRemote:
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "event not received")
 		}
 
-		t.Logf("OUTBOXID: %s", obids[i/2])
+		t.Logf("OUTBOXID: %s", obids[i])
 		require.Equal(t, i+1, olen, "wrong length")
-		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
+		require.Equal(t, listener.obidsRemote[i], obids[i], "wrong obid")
 	}
 
 	// Make sure it is really empty
 	clock.Advance(5 * time.Minute)
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -587,7 +599,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 		require.Fail(t, "no failing message")
 	}
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingRemote:
 		require.Fail(t, "no incoming message")
 	default:
 	}
@@ -598,7 +610,7 @@ func TestOutboxItemExpiration(t *testing.T) {
 	require.NoError(t, err)
 	tc.ChatG.MessageDeliverer.ForceDeliverLoop(ctx)
 	select {
-	case i := <-listener.incoming:
+	case i := <-listener.incomingRemote:
 		require.Equal(t, 1, i)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no success")
@@ -648,16 +660,14 @@ func TestDisconnectedFailure(t *testing.T) {
 	default:
 	}
 	tc.ChatG.MessageDeliverer.Connected(ctx)
-	for i := 0; i < 2; i++ {
-		select {
-		case inc := <-listener.incoming:
-			require.Equal(t, i+1, inc)
-			require.Equal(t, obid, listener.obids[0])
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no incoming message")
-		}
+	select {
+	case inc := <-listener.incomingRemote:
+		require.Equal(t, 1, inc)
+		require.Equal(t, obid, listener.obidsRemote[0])
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no incoming message")
 	}
-	listener.obids = nil
+	listener.obidsRemote = nil
 
 	tc.ChatG.MessageDeliverer.Disconnected(ctx)
 	tc.ChatG.MessageDeliverer.(*Deliverer).SetSender(FailingSender{})
@@ -719,8 +729,8 @@ func TestDisconnectedFailure(t *testing.T) {
 
 	for {
 		select {
-		case inc := <-listener.incoming:
-			if inc >= 2*len(obids) {
+		case inc := <-listener.incomingRemote:
+			if inc >= len(obids) {
 				break
 			}
 			continue
@@ -729,10 +739,8 @@ func TestDisconnectedFailure(t *testing.T) {
 		}
 		break
 	}
-	require.Equal(t, 2*len(obids), len(listener.obids), "wrong amount of successes")
-	for index, obid := range listener.obids {
-		require.Equal(t, obid, obids[index/2])
-	}
+	require.Equal(t, len(obids), len(listener.obidsRemote), "wrong amount of successes")
+	require.Equal(t, listener.obidsRemote, obids)
 }
 
 // The sender is responsible for making sure that a deletion of a single
@@ -1436,10 +1444,6 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 		chat1.GetThreadReason_GENERAL, nil, nil)
 
 	require.NoError(t, err)
-	// tlf + msg + 2 deletes of reactions and 1 valid reaction (2 deleted
-	// reactions nuked by supersedes)
-	require.Len(t, tres.Messages, 5)
-
 	texts := utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
 	require.Len(t, texts, 1)
 	txtMsg := texts[0]
@@ -1501,11 +1505,8 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 
 	// Make we get nothing until timer is up
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingLocal:
 		require.Fail(t, "action event received too soon")
-	default:
-	}
-	select {
 	case <-listener.failing:
 		require.Fail(t, "failed message")
 	default:
@@ -1515,21 +1516,19 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	// Since we canceled all of the other outbox records we should should only
 	// get one hit here.
 	var olen int
-	for i := 0; i < 2; i++ {
-		select {
-		case olen = <-listener.incoming:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "event not received")
-		}
-
-		require.Equal(t, i+1, olen, "wrong length")
-		require.Equal(t, listener.obids[i], obids[i/2], "wrong obid")
+	select {
+	case olen = <-listener.incomingLocal:
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "event not received")
 	}
+
+	require.Equal(t, 1, olen, "wrong length")
+	require.Equal(t, listener.obidsLocal[0], obids[0], "wrong obid")
 
 	// Make sure it is really empty
 	clock.Advance(5 * time.Minute)
 	select {
-	case <-listener.incoming:
+	case <-listener.incomingLocal:
 		require.Fail(t, "action event received too soon")
 	default:
 	}
@@ -1539,7 +1538,6 @@ func TestProcessDuplicateReactionMsgs(t *testing.T) {
 	require.NoError(t, err)
 
 	// we have the same number of messages as before since ultimately we just deleted a reaction
-	require.Len(t, tres.Messages, 5)
 	texts = utils.FilterByType(tres.Messages, &chat1.GetThreadQuery{MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT}}, false)
 	require.Len(t, texts, 1)
 	txtMsg = texts[0]

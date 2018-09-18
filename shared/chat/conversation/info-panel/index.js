@@ -10,8 +10,9 @@ import Participant, {AddPeople} from './participant'
 import {ParticipantCount} from './participant-count'
 import {CaptionedButton, CaptionedDangerIcon} from './channel-utils'
 import RetentionPicker from '../../../teams/team/settings-tab/retention/container'
+import MinWriterRole from './min-writer-role/container'
 
-const border = `1px solid ${globalColors.black_05}`
+const border = `1px solid ${globalColors.black_10}`
 const listStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
@@ -22,13 +23,13 @@ const listStyle = {
     : {
         backgroundColor: globalColors.white,
         borderLeft: border,
-        marginTop: -1 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
+        marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
 
 const Spacer = ({height}: {height: number}) => <Box style={{width: 1, height}} />
 
-type InfoPanelProps = {
+type InfoPanelProps = {|
   selectedConversationIDKey: Types.ConversationIDKey,
   participants: Array<{
     username: string,
@@ -52,7 +53,7 @@ type InfoPanelProps = {
   onShowNewTeamDialog: () => void,
 
   // Used for small and big teams.
-  onViewTeam: () => void,
+  canSetMinWriterRole: boolean,
   canSetRetention: boolean,
 
   // Used for big teams.
@@ -62,7 +63,8 @@ type InfoPanelProps = {
   onEditChannel: () => void,
   onLeaveConversation: () => void,
   onJoinChannel: () => void,
-} & HeaderHocProps
+  ...$Exact<HeaderHocProps>,
+|}
 
 // FYI: Don't add a property of type ConversationIDKey to one of these rows or flow will explode
 // use this.props in _renderRow instead
@@ -167,7 +169,6 @@ type SmallTeamHeaderRow = {
   isSmallTeam: boolean,
   teamname: string,
   participantCount: number,
-  onViewTeam: () => void,
 }
 
 type BigTeamHeaderRow = {
@@ -178,7 +179,6 @@ type BigTeamHeaderRow = {
   description: ?string,
   teamname: string,
   channelname: string,
-  onViewTeam: () => void,
 }
 
 type JoinChannelRow = {
@@ -194,6 +194,13 @@ type LeaveChannelRow = {
   onLeaveConversation: () => void,
 }
 
+type MinWriterRoleRow = {
+  type: 'min writer role',
+  key: 'min writer role',
+  canSetMinWriterRole: boolean,
+  isSmallTeam: boolean,
+}
+
 // All the row types that can appear in a small or big team header.
 type TeamHeaderRow =
   | DividerRow
@@ -206,6 +213,7 @@ type TeamHeaderRow =
   | BigTeamHeaderRow
   | JoinChannelRow
   | LeaveChannelRow
+  | MinWriterRoleRow
 
 type Row =
   | AddPeopleRow
@@ -266,6 +274,10 @@ const typeSizeEstimator = (row: Row): number => {
 
     case 'retention':
       return row.canSetRetention ? 84 : 49
+
+    case 'min writer role':
+      // TODO (DA)
+      return row.canSetMinWriterRole ? 84 : 35
 
     default:
       /*::
@@ -339,7 +351,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname={row.teamname}
             isSmallTeam={row.isSmallTeam}
             participantCount={row.participantCount}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -352,7 +363,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             channelname={row.channelname}
             description={row.description}
             teamname={row.teamname}
-            onClick={row.onViewTeam}
           />
         )
 
@@ -392,6 +402,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           />
         )
 
+      case 'min writer role':
+        return (
+          <MinWriterRole
+            key="min writer role"
+            conversationIDKey={this.props.selectedConversationIDKey}
+            isSmallTeam={row.isSmallTeam}
+          />
+        )
+
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -423,7 +442,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const participantCount = participants.length
 
     let rows: Array<Row>
-    const {teamname, channelname, onViewTeam} = props
+    const {teamname, channelname} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
       const smallTeamHeaderRow = {
@@ -432,7 +451,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         teamname,
         isSmallTeam: props.smallTeam,
         participantCount,
-        onViewTeam,
       }
       if (props.smallTeam) {
         // Small team.
@@ -462,20 +480,32 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             teamname: props.teamname || '',
             entityType: 'small team',
           },
+          {
+            type: 'divider',
+            key: nextKey(),
+            marginTop: 8,
+            marginBottom: 8,
+          },
+          {
+            canSetMinWriterRole: props.canSetMinWriterRole,
+            isSmallTeam: true,
+            type: 'min writer role',
+            key: 'min writer role',
+          },
           ...(props.canDeleteHistory
             ? [
-              {
-                type: 'divider',
-                marginTop: 8,
-                key: nextKey(),
-                marginBottom: globalMargins.small,
-              },
-              {
-                type: 'clear entire conversation',
-                key: 'clear entire conversation',
-                onShowClearConversationDialog: props.onShowClearConversationDialog,
-              },
-            ]
+                {
+                  type: 'divider',
+                  marginTop: 8,
+                  key: nextKey(),
+                  marginBottom: globalMargins.small,
+                },
+                {
+                  type: 'clear entire conversation',
+                  key: 'clear entire conversation',
+                  onShowClearConversationDialog: props.onShowClearConversationDialog,
+                },
+              ]
             : []),
           {
             type: 'divider',
@@ -499,7 +529,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           description: props.description,
           teamname,
           channelname,
-          onViewTeam,
         }
         const participantCountRow = {
           type: 'participant count',
@@ -582,20 +611,32 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               entityType: 'channel',
               teamname: props.teamname || '',
             },
+            {
+              type: 'divider',
+              key: nextKey(),
+              marginTop: 8,
+              marginBottom: 8,
+            },
+            {
+              canSetMinWriterRole: props.canSetMinWriterRole,
+              isSmallTeam: false,
+              type: 'min writer role',
+              key: 'min writer role',
+            },
             ...(props.canDeleteHistory
               ? [
-                {
-                  type: 'divider',
-                  marginTop: 8,
-                  key: nextKey(),
-                  marginBottom: globalMargins.small,
-                },
-                {
-                  type: 'clear entire conversation',
-                  key: 'clear entire conversation',
-                  onShowClearConversationDialog: props.onShowClearConversationDialog,
-                },
-              ]
+                  {
+                    type: 'divider',
+                    marginTop: 8,
+                    key: nextKey(),
+                    marginBottom: globalMargins.small,
+                  },
+                  {
+                    type: 'clear entire conversation',
+                    key: 'clear entire conversation',
+                    onShowClearConversationDialog: props.onShowClearConversationDialog,
+                  },
+                ]
               : []),
             {
               type: 'divider',

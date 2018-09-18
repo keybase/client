@@ -1,0 +1,71 @@
+# -----------------------------------------------------------------------------
+#
+#   REMINDER: If you edit this file, you'll most likely also want to edit
+#   .circleci/config.yml in the kbfs repository!
+#
+# -----------------------------------------------------------------------------
+version: 2
+jobs:
+  build:
+    working_directory: ~/go-path/src/github.com/keybase/client
+    parallelism: 1
+
+    docker:
+    - image: keybaseprivate/circleci-client@sha256:25df30922fbb23014fd9d72a54f28d3bb0dd806adb1655ef43ca5a99c67c35a0
+      command: /sbin/init
+
+    steps:
+    ##
+    ## Build.
+    ##
+
+    - checkout
+
+    # Install JS dependencies.
+    - run:
+        working_directory: shared
+        command: yarn install --pure-lockfile --ignore-engines --network-concurrency 1
+    - run:
+        working_directory: shared
+        command: yarn global add react-native-cli
+    - run:
+        working_directory: shared
+        command: yarn run rn-gobuild-android
+
+    - run: ls -la $GOPATH/src/github.com/keybase/client/shared/react-native/android/keybaselib/keybaselib.aar
+
+    # Build a debug version of the app
+    # Bundle JS separately because doing it in the gradle build is buggy
+    - run: mkdir -p shared/react-native/android/app/build/intermediates/{assets,res/merged}/releaseUnsigned
+    - run:
+        working_directory: shared
+        environment:
+          REACT_NATIVE_MAX_WORKERS: 1
+          BABEL_PLATFORM: ReactNative
+        command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
+
+    # Build app
+    - run:
+        working_directory: shared/react-native/android
+        environment:
+          TERM: dumb
+          # Limit memory usage of gradle
+          _JAVA_OPTIONS: -Xms512m -Xmx2048m
+          GRADLE_OPTS: -Dorg.gradle.jvmargs="-Xmx2048m -XX:+HeapDumpOnOutOfMemoryError"
+        command: ./gradlew --no-daemon --stacktrace assembleReleaseUnsigned -x bundleReleaseUnsignedJsAndAssets
+
+    # TODO: Run device tests (see old versions of this file).
+
+    # Comment out coverage for now, as we're not getting much out of it.
+    # Things to figure out before turning back on:
+    #   - Make coverage failing not fail the build.
+    #   - Make the green checkmark not wait for coverage. Coverage adds
+    #       ~3 minutes!
+    #   - How are the diff numbers calculated? They don't seem to make
+    #     sense...
+    #
+    # Only run coverage if there were changes to the shared folder
+    # - run: mkdir -p /tmp/flow-coverage
+    # - run:
+    #     working_directory: shared
+    #     command: if [ $(git rev-parse HEAD) == $(git log -1 --format=format:%H --full-diff .) ]; then yarn flow-coverage-report -t json -o /tmp/flow-coverage && bash <(curl -s https://codecov.io/bash) -f /tmp/flow-coverage/flow-coverage.json; fi

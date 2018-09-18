@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
 import Markdown from './markdown'
-import {storiesOf} from '../stories/storybook'
 
 const load = () => {
-  storiesOf('Common/Markdown', module)
+  Sb.storiesOf('Common/Markdown', module)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Normal', () => (
       <Markdown>
         {`I think we should try to use \`if else\` statements \`\`\`

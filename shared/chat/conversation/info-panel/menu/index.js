@@ -1,10 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, FloatingMenu, Text} from '../../../../common-adapters'
-import {collapseStyles, globalColors, globalMargins, globalStyles, isMobile} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 export type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
@@ -22,11 +22,15 @@ export type Props = {
 }
 
 const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: 16}}>
-    <Avatar size={isMobile ? 64 : 48} teamname={teamname} style={{marginBottom: isMobile ? 4 : 2}} />
-    <Text type="BodySemibold">{teamname}</Text>
-    <Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Text>
-  </Box>
+  <Kb.Box style={styles.headerContainer}>
+    <Kb.Avatar
+      size={Styles.isMobile ? 64 : 48}
+      teamname={teamname}
+      style={Kb.avatarCastPlatformStyles(styles.headerAvatar)}
+    />
+    <Kb.Text type="BodySemibold">{teamname}</Kb.Text>
+    <Kb.Text type="BodySmall">{`${memberCount} member${memberCount !== 1 ? 's' : ''}`}</Kb.Text>
+  </Kb.Box>
 )
 
 const InfoPanelMenu = (props: Props) => {
@@ -38,7 +42,7 @@ const InfoPanelMenu = (props: Props) => {
       style: {borderTopWidth: 0},
     },
     {
-      title: isMobile ? 'Add someone from address book' : 'Add someone by email',
+      title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
       onClick: props.onInvite,
     },
   ]
@@ -52,14 +56,12 @@ const InfoPanelMenu = (props: Props) => {
         onClick: props.onManageChannels,
         title: props.manageChannelsTitle,
         view: (
-          <Box style={globalStyles.flexBoxRow}>
-            <Text style={styleText} type={isMobile ? 'BodyBig' : 'Body'}>
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
               {props.manageChannelsTitle}
-            </Text>
-            {props.badgeSubscribe && (
-              <Box style={collapseStyles([styleBadge, !isMobile && styleBadgeDesktop])} />
-            )}
-          </Box>
+            </Kb.Text>
+            {props.badgeSubscribe && <Kb.Box style={styles.badge} />}
+          </Kb.Box>
         ),
       }
 
@@ -76,7 +78,7 @@ const InfoPanelMenu = (props: Props) => {
   }
 
   return (
-    <FloatingMenu
+    <Kb.FloatingMenu
       attachTo={props.attachTo}
       visible={props.visible}
       items={items}
@@ -88,23 +90,48 @@ const InfoPanelMenu = (props: Props) => {
   )
 }
 
-const styleBadge = {
-  backgroundColor: globalColors.blue,
-  borderRadius: 6,
-  height: 8,
-  margin: 6,
-  width: 8,
-}
-
-const styleBadgeDesktop = {
-  margin: 4,
-  marginTop: 5,
-  right: globalMargins.tiny,
-  position: 'absolute',
-}
-
-const styleText = {
-  color: isMobile ? globalColors.blue : undefined,
-}
+const styles = Styles.styleSheetCreate({
+  badge: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.blue,
+      borderRadius: 6,
+      height: 8,
+      margin: 6,
+      width: 8,
+    },
+    isElectron: {
+      margin: 4,
+      marginTop: 5,
+      right: Styles.globalMargins.tiny,
+      position: 'absolute',
+    },
+  }),
+  headerAvatar: Styles.platformStyles({
+    isElectron: {
+      marginBottom: 2,
+    },
+    isMobile: {
+      marginBottom: 4,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+    },
+    isElectron: {
+      paddingTop: 16,
+    },
+    isMobile: {paddingBottom: 24, paddingTop: 40},
+  }),
+  noTopborder: {
+    borderTopWidth: 0,
+  },
+  text: Styles.platformStyles({
+    isMobile: {
+      color: Styles.globalColors.blue,
+    },
+  }),
+})
 
 export {InfoPanelMenu}

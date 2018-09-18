@@ -3,6 +3,7 @@ import * as React from 'react'
 import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
+import {isAndroid} from '../../../../../constants/platform'
 import {chunk} from 'lodash-es'
 
 // SectionList data is mostly static, map categories here
@@ -117,28 +118,22 @@ class EmojiPicker extends React.Component<Props, State> {
         initialNumToRender={14}
         sections={this.state.sections}
         stickySectionHeadersEnabled={true}
-        renderItem={item => <EmojiRow {...item} onChoose={this.props.onChoose} />}
+        renderItem={item => <EmojiRow key={item.index} {...item} onChoose={this.props.onChoose} />}
         renderSectionHeader={HeaderRow}
       />
     ) : null
   }
 }
 
-const EmojiRow = ({
-  item,
-  onChoose,
-}: {
-  item: {emojis: Array<EmojiData>, key: string},
-  onChoose: EmojiData => void,
-}) => (
-  <Box2 key={item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={onChoose} />)}
+const EmojiRow = (props: {item: {emojis: Array<EmojiData>, key: string}, onChoose: EmojiData => void}) => (
+  <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
+    {props.item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />)}
   </Box2>
 )
 
 const EmojiRender = ({emoji, onChoose}: {emoji: EmojiData, onChoose: EmojiData => void}) => (
   <ClickableBox onClick={() => onChoose(emoji)} style={styles.emoji} key={emoji.short_name}>
-    <Emoji size={singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
+    <Emoji size={isAndroid ? singleEmojiWidth - 5 : singleEmojiWidth} emojiName={`:${emoji.short_name}:`} />
   </ClickableBox>
 )
 

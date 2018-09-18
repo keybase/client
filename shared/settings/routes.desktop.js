@@ -16,7 +16,7 @@ import InviteGenerated from './invite-generated/container'
 import DevMenu from '../dev/dev-menu'
 import Passphrase from './passphrase/container'
 import UserEmail from './email/container'
-import PlanDetails from './plan-details/container'
+// import PlanDetails from './plan-details/container'
 import SecurityPrefs from '../fs/common/security-prefs-container.desktop'
 
 const routeTree = makeRouteDefNode({
@@ -32,9 +32,9 @@ const routeTree = makeRouteDefNode({
         changeEmail: {
           component: UserEmail,
         },
-        changePlan: {
-          component: PlanDetails,
-        },
+        // changePlan: {
+        // component: PlanDetails,
+        // },
       },
     },
     [Constants.updatePaymentTab]: {

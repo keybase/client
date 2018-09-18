@@ -2,9 +2,9 @@
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
+import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
-import {connect, type TypedState, type Dispatch} from '../../../util/container'
-import {isWindows} from '../../../constants/platform'
+import {connect, type TypedState} from '../../../util/container'
 import {navigateUp} from '../../../actions/route-tree'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
@@ -36,11 +36,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onClose: dispatchProps.onClose,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
   pathToInfo: stateProps.paths.reduce((map, path) => {
-    const parts = path.split(isWindows ? '\\' : '/')
-    const filename = parts[parts.length - 1]
+    const filename = FsTypes.getLocalPathName(path)
     map[path] = {
       filename,
-      title: filename,
+      title: '',
       type: Constants.pathToAttachmentType(path),
     }
     return map

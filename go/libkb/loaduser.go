@@ -227,7 +227,7 @@ func (arg *LoadUserArg) resolveUID() (ResolveResult, error) {
 		return rres, fmt.Errorf("resolveUID: no uid or name")
 	}
 
-	if rres = arg.m.G().Resolver.ResolveWithBody(arg.name).FailOnDeleted(); rres.err != nil {
+	if rres = arg.m.G().Resolver.ResolveWithBody(arg.m, arg.name).FailOnDeleted(); rres.err != nil {
 		return rres, rres.err
 	}
 

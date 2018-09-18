@@ -8,7 +8,8 @@ import * as Types from '../constants/types/settings'
 import HiddenString from '../util/hidden-string'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of settings but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'settings:'
 export const dbNuke = 'settings:dbNuke'
 export const deleteAccountForever = 'settings:deleteAccountForever'
 export const invitesClearError = 'settings:invitesClearError'
@@ -18,14 +19,17 @@ export const invitesRefresh = 'settings:invitesRefresh'
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
+export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadRememberPassphrase = 'settings:loadRememberPassphrase'
 export const loadSettings = 'settings:loadSettings'
+export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedRememberPassphrase = 'settings:loadedRememberPassphrase'
 export const loadedSettings = 'settings:loadedSettings'
 export const notificationsRefresh = 'settings:notificationsRefresh'
 export const notificationsRefreshed = 'settings:notificationsRefreshed'
 export const notificationsSaved = 'settings:notificationsSaved'
 export const notificationsToggle = 'settings:notificationsToggle'
+export const onChangeLockdownMode = 'settings:onChangeLockdownMode'
 export const onChangeNewEmail = 'settings:onChangeNewEmail'
 export const onChangeNewPassphrase = 'settings:onChangeNewPassphrase'
 export const onChangeNewPassphraseConfirm = 'settings:onChangeNewPassphraseConfirm'
@@ -57,8 +61,10 @@ type _InvitesSendPayload = $ReadOnly<{|
 |}>
 type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
+type _LoadLockdownModePayload = void
 type _LoadRememberPassphrasePayload = void
 type _LoadSettingsPayload = void
+type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
 type _LoadedRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
 type _LoadedSettingsPayload = $ReadOnly<{|emailState: Types.EmailState|}>
 type _NotificationsRefreshPayload = void
@@ -68,6 +74,7 @@ type _NotificationsTogglePayload = $ReadOnly<{|
   group: Types.NotificationGroups,
   name?: ?string,
 |}>
+type _OnChangeLockdownModePayload = $ReadOnly<{|enabled: boolean|}>
 type _OnChangeNewEmailPayload = $ReadOnly<{|email: string|}>
 type _OnChangeNewPassphraseConfirmPayload = $ReadOnly<{|passphrase: HiddenString|}>
 type _OnChangeNewPassphrasePayload = $ReadOnly<{|passphrase: HiddenString|}>
@@ -96,14 +103,17 @@ export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload) => ({e
 export const createInvitesSend = (payload: _InvitesSendPayload) => ({error: false, payload, type: invitesSend})
 export const createInvitesSent = (payload: _InvitesSentPayload) => ({error: false, payload, type: invitesSent})
 export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({error: true, payload, type: invitesSent})
+export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({error: false, payload, type: loadLockdownMode})
 export const createLoadRememberPassphrase = (payload: _LoadRememberPassphrasePayload) => ({error: false, payload, type: loadRememberPassphrase})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({error: false, payload, type: loadSettings})
+export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({error: false, payload, type: loadedLockdownMode})
 export const createLoadedRememberPassphrase = (payload: _LoadedRememberPassphrasePayload) => ({error: false, payload, type: loadedRememberPassphrase})
 export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({error: false, payload, type: loadedSettings})
 export const createNotificationsRefresh = (payload: _NotificationsRefreshPayload) => ({error: false, payload, type: notificationsRefresh})
 export const createNotificationsRefreshed = (payload: _NotificationsRefreshedPayload) => ({error: false, payload, type: notificationsRefreshed})
 export const createNotificationsSaved = (payload: _NotificationsSavedPayload) => ({error: false, payload, type: notificationsSaved})
 export const createNotificationsToggle = (payload: _NotificationsTogglePayload) => ({error: false, payload, type: notificationsToggle})
+export const createOnChangeLockdownMode = (payload: _OnChangeLockdownModePayload) => ({error: false, payload, type: onChangeLockdownMode})
 export const createOnChangeNewEmail = (payload: _OnChangeNewEmailPayload) => ({error: false, payload, type: onChangeNewEmail})
 export const createOnChangeNewPassphrase = (payload: _OnChangeNewPassphrasePayload) => ({error: false, payload, type: onChangeNewPassphrase})
 export const createOnChangeNewPassphraseConfirm = (payload: _OnChangeNewPassphraseConfirmPayload) => ({error: false, payload, type: onChangeNewPassphraseConfirm})
@@ -132,14 +142,17 @@ export type InvitesRefreshedPayload = $Call<typeof createInvitesRefreshed, _Invi
 export type InvitesSendPayload = $Call<typeof createInvitesSend, _InvitesSendPayload>
 export type InvitesSentPayload = $Call<typeof createInvitesSent, _InvitesSentPayload>
 export type InvitesSentPayloadError = $Call<typeof createInvitesSentError, _InvitesSentPayloadError>
+export type LoadLockdownModePayload = $Call<typeof createLoadLockdownMode, _LoadLockdownModePayload>
 export type LoadRememberPassphrasePayload = $Call<typeof createLoadRememberPassphrase, _LoadRememberPassphrasePayload>
 export type LoadSettingsPayload = $Call<typeof createLoadSettings, _LoadSettingsPayload>
+export type LoadedLockdownModePayload = $Call<typeof createLoadedLockdownMode, _LoadedLockdownModePayload>
 export type LoadedRememberPassphrasePayload = $Call<typeof createLoadedRememberPassphrase, _LoadedRememberPassphrasePayload>
 export type LoadedSettingsPayload = $Call<typeof createLoadedSettings, _LoadedSettingsPayload>
 export type NotificationsRefreshPayload = $Call<typeof createNotificationsRefresh, _NotificationsRefreshPayload>
 export type NotificationsRefreshedPayload = $Call<typeof createNotificationsRefreshed, _NotificationsRefreshedPayload>
 export type NotificationsSavedPayload = $Call<typeof createNotificationsSaved, _NotificationsSavedPayload>
 export type NotificationsTogglePayload = $Call<typeof createNotificationsToggle, _NotificationsTogglePayload>
+export type OnChangeLockdownModePayload = $Call<typeof createOnChangeLockdownMode, _OnChangeLockdownModePayload>
 export type OnChangeNewEmailPayload = $Call<typeof createOnChangeNewEmail, _OnChangeNewEmailPayload>
 export type OnChangeNewPassphraseConfirmPayload = $Call<typeof createOnChangeNewPassphraseConfirm, _OnChangeNewPassphraseConfirmPayload>
 export type OnChangeNewPassphrasePayload = $Call<typeof createOnChangeNewPassphrase, _OnChangeNewPassphrasePayload>
@@ -170,14 +183,17 @@ export type Actions =
   | InvitesSendPayload
   | InvitesSentPayload
   | InvitesSentPayloadError
+  | LoadLockdownModePayload
   | LoadRememberPassphrasePayload
   | LoadSettingsPayload
+  | LoadedLockdownModePayload
   | LoadedRememberPassphrasePayload
   | LoadedSettingsPayload
   | NotificationsRefreshPayload
   | NotificationsRefreshedPayload
   | NotificationsSavedPayload
   | NotificationsTogglePayload
+  | OnChangeLockdownModePayload
   | OnChangeNewEmailPayload
   | OnChangeNewPassphraseConfirmPayload
   | OnChangeNewPassphrasePayload

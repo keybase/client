@@ -107,7 +107,7 @@ func (s SimpleFSMock) SimpleFSRemove(ctx context.Context, arg keybase1.SimpleFSR
 
 // SimpleFSStat - Get info about file
 func (s SimpleFSMock) SimpleFSStat(ctx context.Context, path keybase1.Path) (keybase1.Dirent, error) {
-	pathString := pathToString(path)
+	pathString := path.String()
 	entType := keybase1.DirentType_DIR
 	// For a quick test, assume it's a file if there is a dot and 3 chars at the end
 	if len(filepath.Ext(filepath.Base(pathString))) == 4 {
@@ -122,6 +122,20 @@ func (s SimpleFSMock) SimpleFSStat(ctx context.Context, path keybase1.Path) (key
 		}, nil
 	}
 	return keybase1.Dirent{}, errors.New(pathString + " does not exist")
+}
+
+// SimpleFSGetRevisions - Get revision info for a directory entry
+func (s SimpleFSMock) SimpleFSGetRevisions(
+	_ context.Context, _ keybase1.SimpleFSGetRevisionsArg) error {
+	return nil
+}
+
+// SimpleFSReadRevisions - Get list of revisions in progress. Can
+// indicate status of pending to get more entries.
+func (s SimpleFSMock) SimpleFSReadRevisions(
+	_ context.Context, _ keybase1.OpID) (
+	keybase1.GetRevisionsResult, error) {
+	return keybase1.GetRevisionsResult{}, nil
 }
 
 // SimpleFSMakeOpid - Convenience helper for generating new random value
@@ -166,7 +180,7 @@ func (s SimpleFSMock) SimpleFSDumpDebuggingInfo(ctx context.Context) error {
 
 // SimpleFSDumpDebuggingInfo - Instructs KBFS to dump debugging info
 // into its logs.
-func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context) (keybase1.FSSyncStatus, error) {
+func (s SimpleFSMock) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListFilter) (keybase1.FSSyncStatus, error) {
 	return keybase1.FSSyncStatus{}, nil
 }
 
@@ -186,11 +200,6 @@ func (s SimpleFSMock) SimpleFSFolderEditHistory(
 	ctx context.Context, path keybase1.Path) (
 	res keybase1.FSFolderEditHistory, err error) {
 	return keybase1.FSFolderEditHistory{}, nil
-}
-
-// SimpleFSSuppressNotifications implements the SimpleFSInterface.
-func (s SimpleFSMock) SimpleFSSuppressNotifications(_ context.Context, _ int) error {
-	return nil
 }
 
 // SimpleFSGetUserQuotaUsage implements the SimpleFSInterface.
@@ -221,7 +230,7 @@ func TestSimpleFSPathRemote(t *testing.T) {
 	require.NoError(tc.T, err)
 	pathType, err := testPath.PathType()
 	require.NoError(tc.T, err, "bad path type")
-	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local %s", pathToString(testPath))
+	assert.Equal(tc.T, keybase1.PathType_KBFS, pathType, "Expected remote path, got local %s", testPath)
 	assert.Equal(tc.T, "/private/foobar", testPath.Kbfs())
 
 	testPath, err = makeSimpleFSPath("/keybase/private/")
@@ -332,7 +341,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 	exists, err2 := libkb.FileExists(destPath.Local())
 	tc.G.Log.Debug("makeDestPath fileExists %s: %v, %v", destPath.Local(), exists, err2)
 
-	require.NoError(tc.T, err, "makeDestPath returns %s", pathToString(destPath))
+	require.NoError(tc.T, err, "makeDestPath returns %s", destPath)
 
 	isSrcDir, srcPathString, err := checkPathIsDir(context.TODO(), SimpleFSMock{remoteExists: true}, srcPath)
 	require.NoError(tc.T, err)
@@ -357,7 +366,7 @@ func TestSimpleFSRemoteSrcFile(t *testing.T) {
 		true,
 		tempdir)
 
-	require.NoError(tc.T, err, "makeDestPath returns %s", pathToString(destPath))
+	require.NoError(tc.T, err, "makeDestPath returns %s", destPath)
 
 	pathType, err = destPath.PathType()
 	require.NoError(tc.T, err, "bad path type")

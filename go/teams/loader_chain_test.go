@@ -65,11 +65,12 @@ type TestCaseLoad struct {
 	OmitBox       bool                          `json:"omit_box"`       // Send no box
 
 	// Expected result
-	Error       bool   `json:"error"`
-	ErrorSubstr string `json:"error_substr"`
-	ErrorType   string `json:"error_type"`
-	NStubbed    *int   `json:"n_stubbed"`
-	ThenGetKey  int    `json:"then_get_key"`
+	Error            bool   `json:"error"`
+	ErrorSubstr      string `json:"error_substr"`
+	ErrorType        string `json:"error_type"`
+	ErrorAfterGetKey bool   `json:"error_after_get_key"`
+	NStubbed         *int   `json:"n_stubbed"`
+	ThenGetKey       int    `json:"then_get_key"`
 }
 
 func getTeamchainJSONDir(t *testing.T) string {
@@ -156,6 +157,11 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 		tc := SetupTest(t, "team", 1)
 		defer tc.Cleanup()
 
+		// The auditor won't work in this case, since we have fake links that won't match the
+		// local database. In particular, the head merkle seqno might be off the right end
+		// of the merkle sequence in the DB.
+		tc.G.Env.Test.TeamSkipAudit = true
+
 		// Install a loader with a mock interface to the outside world.
 		t.Logf("install mock loader")
 		mock := NewMockLoaderContext(t, tc.G, unit)
@@ -193,8 +199,21 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 					}
 					if loadSpec.ThenGetKey != 0 {
 						gen := keybase1.PerTeamKeyGeneration(loadSpec.ThenGetKey)
-						_, err := team.ApplicationKeyAtGeneration(keybase1.TeamApplication_KBFS, gen)
-						require.NoError(t, err, "getting application key at gen: %v", gen)
+						_, err := team.ApplicationKeyAtGeneration(context.Background(), keybase1.TeamApplication_KBFS, gen)
+						if !loadSpec.ErrorAfterGetKey {
+							require.NoError(t, err, "getting application key at gen: %v", gen)
+						} else {
+							require.Errorf(t, err, "unexpected get key success in %v", unit.FileName)
+							errstr := err.Error()
+							if len(loadSpec.ErrorSubstr) > 0 {
+								require.Contains(t, errstr, loadSpec.ErrorSubstr)
+							}
+							if len(loadSpec.ErrorType) > 0 {
+								require.Equal(t, loadSpec.ErrorType, reflect.TypeOf(err).Name(), "unexpected error type [%T]", err)
+							}
+						}
+					} else {
+						require.False(t, loadSpec.ErrorAfterGetKey, "test does not make sense: ErrorAfterGetKey but no ThenGetKey")
 					}
 				}
 			} else {

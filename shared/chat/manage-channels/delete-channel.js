@@ -1,28 +1,18 @@
 // @flow
 import * as React from 'react'
-import {Text, Box, Icon, FloatingMenu} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../common-adapters/floating-menu'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
-    <Box
-      style={{
-        ...globalStyles.flexBoxColumn,
-        alignItems: 'center',
-        paddingLeft: globalMargins.tiny,
-        paddingRight: globalMargins.tiny,
-        paddingTop: globalMargins.small,
-        width: '100%',
-      }}
-    >
-      <Text type="BodySemibold" style={{color: globalColors.black, textAlign: 'center'}}>
+    <Kb.Box style={styles.headerContainer}>
+      <Kb.Text type="BodySemibold" style={styles.headerTextTop}>
         Are you sure you want to delete #{channelName}?
-      </Text>
-      <Text type="BodySmall" style={{color: globalColors.black_40, textAlign: 'center'}}>
+      </Kb.Text>
+      <Kb.Text type="BodySmall" style={styles.headerTextBottom}>
         All messages will be lost. This cannot be undone.
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box>
   )
 }
 
@@ -30,35 +20,13 @@ type Props = {
   channelName: string,
   disabled: boolean,
   onConfirmedDelete: () => void,
-} & FloatingMenuParentProps
+} & Kb.OverlayParentProps
 
 type State = {}
-
-const stylePopup = {
-  overflow: 'visible',
-  width: 196,
-}
 
 class _DeleteChannel extends React.Component<Props, State> {
   render() {
     const {disabled} = this.props
-
-    const boxStyle = platformStyles({
-      common: {
-        ...globalStyles.flexBoxRow,
-        opacity: disabled ? 0.5 : undefined,
-      },
-      isElectron: {
-        position: 'absolute',
-        left: 0,
-      },
-      isMobile: {
-        paddingLeft: globalMargins.large,
-        paddingRight: globalMargins.large,
-        paddingTop: globalMargins.medium,
-        paddingBottom: globalMargins.medium,
-      },
-    })
 
     const header = {
       title: 'header',
@@ -72,32 +40,72 @@ class _DeleteChannel extends React.Component<Props, State> {
     ]
 
     return (
-      <Box style={boxStyle}>
-        <Icon
+      <Kb.Box style={Styles.collapseStyles([styles.container, disabled && {opacity: 0.5}])}>
+        <Kb.Icon
           type="iconfont-trash"
-          style={{height: 14, marginRight: globalMargins.tiny}}
-          color={globalColors.red}
+          style={Kb.iconCastPlatformStyles(styles.trashIcon)}
+          color={Styles.globalColors.red}
         />
-        <FloatingMenu
+        <Kb.FloatingMenu
+          closeOnSelect={true}
           header={header}
           items={items}
-          attachTo={this.props.attachmentRef}
-          style={stylePopup}
+          attachTo={this.props.getAttachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
+          containerStyle={styles.menuContainer}
         />
-        <Text
+        <Kb.Text
           type={disabled ? 'Body' : 'BodyPrimaryLink'}
-          style={{color: globalColors.red}}
+          style={styles.colorRed}
           onClick={this.props.toggleShowingMenu}
           ref={this.props.setAttachmentRef}
         >
           Delete Channel
-        </Text>
-      </Box>
+        </Kb.Text>
+      </Kb.Box>
     )
   }
 }
 
-const DeleteChannel = FloatingMenuParentHOC(_DeleteChannel)
+const styles = Styles.styleSheetCreate({
+  colorRed: {color: Styles.globalColors.red},
+  container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+    },
+    isElectron: {
+      left: 0,
+      position: 'absolute',
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingLeft: Styles.globalMargins.large,
+      paddingRight: Styles.globalMargins.large,
+      paddingTop: Styles.globalMargins.medium,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'center',
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isElectron: {
+      paddingTop: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.large,
+    },
+  }),
+  headerTextBottom: {color: Styles.globalColors.black_40, textAlign: 'center'},
+  headerTextTop: {color: Styles.globalColors.black, textAlign: 'center'},
+  menuContainer: {width: 196},
+  trashIcon: {height: 14, marginRight: Styles.globalMargins.tiny},
+})
+
+const DeleteChannel = Kb.OverlayParentHOC(_DeleteChannel)
 export default DeleteChannel

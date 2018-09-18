@@ -1,18 +1,17 @@
 // @flow
 // Helper to deal with service calls in a saga friendly way
-import {getEngine, Engine} from '../engine'
 import * as RS from 'redux-saga'
 import * as RSE from 'redux-saga/effects'
+import {getEngine} from './require'
 import {sequentially} from '../util/saga'
 import type {CommonResponseHandler, RPCError} from './types'
-import type {TypedState} from '../constants/reducer'
 import {printOutstandingRPCs} from '../local-debug'
-import {isArray} from 'lodash'
+import {isArray} from 'lodash-es'
 
 type EmittedCall = {
   method: string,
   params: any,
-  response?: CommonResponseHandler,
+  response: ?CommonResponseHandler,
 }
 
 type EmittedFinished = {
@@ -20,9 +19,6 @@ type EmittedFinished = {
   params: any,
   error: ?RPCError,
 }
-
-type CallbackWithResponse = (any, CommonResponseHandler, TypedState) => ?RS.Effect | ?Generator<any, any, any>
-type CallbackNoResponse = (any, TypedState) => ?RS.Effect | ?Generator<any, any, any>
 
 // Wraps a response to update the waiting state
 const makeWaitingResponse = (r, waitingKey) => {
@@ -36,7 +32,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.error = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.error(...args)
     }
@@ -46,7 +42,7 @@ const makeWaitingResponse = (r, waitingKey) => {
     response.result = (...args) => {
       // Waiting on the server again
       if (waitingKey) {
-        Engine.dispatchWaitingAction(waitingKey, true)
+        getEngine().dispatchWaitingAction(waitingKey, true)
       }
       r.result(...args)
     }
@@ -59,15 +55,31 @@ const makeWaitingResponse = (r, waitingKey) => {
 function* call(p: {
   method: string,
   params: ?Object,
-  incomingCallMap: {[method: string]: any}, // this is typed by the generated helpers
+  incomingCallMap?: {[method: string]: any}, // this is typed by the generated helpers
+  customResponseIncomingCallMap?: {[method: string]: any},
   waitingKey?: string,
 }): Generator<any, any, any> {
-  const {method, params, incomingCallMap, waitingKey} = p
-  const engine = getEngine()
+  const {method, params, waitingKey} = p
+  const incomingCallMap = p.incomingCallMap || {}
+  const customResponseIncomingCallMap = p.customResponseIncomingCallMap || {}
+
+  // custom and normal incomingCallMaps
+  const bothCallMaps = [
+    ...Object.keys(incomingCallMap).map(method => ({
+      custom: false,
+      handler: incomingCallMap[method],
+      method,
+    })),
+    ...Object.keys(customResponseIncomingCallMap).map(method => ({
+      custom: true,
+      handler: customResponseIncomingCallMap[method],
+      method,
+    })),
+  ]
 
   // Waiting on the server
   if (waitingKey) {
-    Engine.dispatchWaitingAction(waitingKey, true)
+    getEngine().dispatchWaitingAction(waitingKey, true)
   }
 
   const buffer = RS.buffers.expanding(10)
@@ -75,19 +87,26 @@ function* call(p: {
   // Event channel lets you use emitter to 'put' things onto a channel in a callback compatible form
   const eventChannel: RS.Channel = yield RS.eventChannel(emitter => {
     // convert call map
-    const callMap = Object.keys(incomingCallMap).reduce((map, method) => {
+    const callMap = bothCallMaps.reduce((map, {method, custom, handler}) => {
       map[method] = (params: any, _response: CommonResponseHandler) => {
         // No longer waiting on the server
         if (waitingKey) {
-          Engine.dispatchWaitingAction(waitingKey, false)
+          getEngine().dispatchWaitingAction(waitingKey, false)
         }
 
-        const response = makeWaitingResponse(_response, waitingKey)
+        let response = makeWaitingResponse(_response, waitingKey)
 
-        // If we need a custom reply we pass it down to the action handler to deal with, otherwise by default we handle it immediately
-        const customResponseNeeded = incomingCallMap[method].length === 3
-        if (!customResponseNeeded && response) {
-          response.result()
+        if (__DEV__) {
+          if (incomingCallMap[method] && customResponseIncomingCallMap[method]) {
+            throw new Error('Invalid method in both incomingCallMap and customResponseIncomingCallMap ')
+          }
+        }
+
+        if (!custom) {
+          if (response) {
+            response.result()
+            response = null
+          }
         }
 
         // defer to process network first
@@ -95,7 +114,7 @@ function* call(p: {
           const toEmit: EmittedCall = {
             method,
             params,
-            ...(customResponseNeeded ? {response} : {}),
+            response,
           }
           emitter(toEmit)
         }, 5)
@@ -111,7 +130,7 @@ function* call(p: {
       }, 2000)
     }
 
-    engine._rpcOutgoing({
+    getEngine()._rpcOutgoing({
       callback: (error?: RPCError, params: any) => {
         if (printOutstandingRPCs) {
           clearInterval(outstandingIntervalID)
@@ -151,26 +170,25 @@ function* call(p: {
 
       if (r.method) {
         const res: EmittedCall = (r: EmittedCall)
-        // See if its handled
-        const cb = incomingCallMap[res.method]
-        if (cb) {
-          const state: TypedState = yield RSE.select()
-          let actions
+        let actions
 
-          if (res.response) {
-            const c: CallbackWithResponse = (cb: CallbackWithResponse)
-            actions = yield RSE.call(c, res.params, res.response, state)
-          } else {
-            const c: CallbackNoResponse = (cb: CallbackNoResponse)
-            actions = yield RSE.call(c, res.params, state)
+        if (res.response) {
+          const cb = customResponseIncomingCallMap[r.method]
+          if (cb) {
+            actions = yield RSE.call(cb, res.params, res.response)
           }
+        } else {
+          const cb = incomingCallMap[r.method]
+          if (cb) {
+            actions = yield RSE.call(cb, res.params)
+          }
+        }
 
-          if (actions) {
-            if (isArray(actions)) {
-              yield sequentially(actions.filter(Boolean))
-            } else {
-              yield actions
-            }
+        if (actions) {
+          if (isArray(actions)) {
+            yield sequentially(actions.filter(Boolean))
+          } else {
+            yield actions
           }
         }
       } else {
@@ -187,7 +205,7 @@ function* call(p: {
     // eventChannel will jump to finally when RS.END is emitted
     if (waitingKey) {
       // No longer waiting
-      Engine.dispatchWaitingAction(waitingKey, false)
+      getEngine().dispatchWaitingAction(waitingKey, false)
     }
 
     if (finalError) {

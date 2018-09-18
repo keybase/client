@@ -59,7 +59,7 @@ export const collapseStyles = (
 export const transition = (...properties: Array<string>) => ({})
 export const backgroundURL = (...path: Array<string>) => ({})
 
-export {isMobile, fileUIName, isIPhoneX} from '../constants/platform'
+export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous-native'
 export {default as globalColors} from './colors'

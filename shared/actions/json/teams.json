@@ -1,7 +1,8 @@
 {
   "prelude": [
     "import * as ChatTypes from '../constants/types/chat2'",
-    "import * as Types from '../constants/types/teams'"
+    "import * as Types from '../constants/types/teams'",
+    "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
     "addUserToTeams": {
@@ -85,9 +86,12 @@
       "teamname": "string"
     },
     "inviteToTeamByEmail": {
-      "teamname": "string",
+      "destSubPath": "I.List<string>",
+      "invitees": "string",
       "role": "Types.TeamRoleType",
-      "invitees": "string"
+      "rootPath": "I.List<string>",
+      "sourceSubPath": "I.List<string>",
+      "teamname": "string"
     },
     "inviteToTeamByPhone": {
       "teamname": "string",
@@ -99,7 +103,13 @@
       "teamname": "string"
     },
     "leaveTeam": {
-      "teamname": "string"
+      "teamname": "string",
+      "context": "'teams' | 'chat'"
+    },
+    "leftTeam": {
+      "_description": "We successfully left a team",
+      "teamname": "string",
+      "context": "'teams' | 'chat'"
     },
     "addToTeam": {
       "teamname": "string",
@@ -164,7 +174,7 @@
     },
     "setTeamRetentionPolicy": {
       "teamname": "string",
-      "retentionPolicy": "Types.RetentionPolicy"
+      "retentionPolicy": "RetentionPolicy"
     },
     "setTeamLoadingInvites": {
       "teamname": "string",
@@ -221,7 +231,6 @@
     },
     "setTeamSawChatBanner": {},
     "setTeamSawSubteamsBanner": {},
-    "setupTeamHandlers": {},
     "updateChannelName": {
       "teamname": "Types.Teamname",
       "conversationIDKey": "ChatTypes.ConversationIDKey",
@@ -268,7 +277,7 @@
       "_description":
         "Sets the retention policy for a team. The store will be updated automatically.",
       "teamname": "string",
-      "policy": "Types.RetentionPolicy"
+      "policy": "RetentionPolicy"
     }
   }
 }

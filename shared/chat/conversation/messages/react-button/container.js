@@ -6,9 +6,30 @@ import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as RouteTree from '../../../../actions/route-tree'
 import type {StylesCrossPlatform} from '../../../../styles'
-import ReactButton, {NewReactionButton, type Props, type NewReactionButtonProps} from '.'
+import ReactButton, {NewReactionButton} from '.'
 
-export type WrapperProps = {...Props, ...NewReactionButtonProps}
+export type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  emoji?: string,
+  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
+  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
+  onLongPress?: () => void,
+  onShowPicker?: (showing: boolean) => void,
+  ordinal: Types.Ordinal,
+  showBorder?: boolean,
+  style?: StylesCrossPlatform,
+|}
+
+export type WrapperProps = {|
+  ...OwnProps,
+  active: boolean,
+  count: number,
+  emoji: string,
+  onAddReaction: (emoji: string) => void,
+  onClick: () => void,
+  onOpenEmojiPicker: () => void,
+|}
+
 const Wrapper = (props: WrapperProps) =>
   props.emoji ? (
     <ReactButton
@@ -28,21 +49,11 @@ const Wrapper = (props: WrapperProps) =>
       onAddReaction={props.onAddReaction}
       onLongPress={props.onLongPress}
       onOpenEmojiPicker={props.onOpenEmojiPicker}
-      showBorder={props.showBorder}
+      onShowPicker={props.onShowPicker}
+      showBorder={props.showBorder || false}
       style={props.style}
     />
   )
-
-export type OwnProps = {
-  conversationIDKey: Types.ConversationIDKey,
-  emoji?: string,
-  onMouseLeave?: (evt: SyntheticEvent<Element>) => void,
-  onMouseOver?: (evt: SyntheticEvent<Element>) => void,
-  onLongPress?: () => void,
-  ordinal: Types.Ordinal,
-  showBorder?: boolean,
-  style?: StylesCrossPlatform,
-}
 
 const noEmoji = {
   active: false,
@@ -64,11 +75,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     active,
     count: reaction.size,
-    emoji: ownProps.emoji,
+    emoji: ownProps.emoji || '',
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnProps) => ({
   onAddReaction: (emoji: string) =>
     dispatch(Chat2Gen.createToggleMessageReaction({conversationIDKey, emoji, ordinal})),
   onClick: () =>
@@ -77,4 +88,24 @@ const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey, emoji, ordin
     dispatch(RouteTree.navigateAppend([{props: {conversationIDKey, ordinal}, selected: 'chooseEmoji'}])),
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps), setDisplayName('ReactButton'))(Wrapper)
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
+  active: stateProps.active,
+  conversationIDKey: ownProps.conversationIDKey,
+  count: stateProps.count,
+  emoji: stateProps.emoji,
+  onAddReaction: dispatchProps.onAddReaction,
+  onClick: dispatchProps.onClick,
+  onLongPress: ownProps.onLongPress,
+  onMouseLeave: ownProps.onMouseLeave,
+  onMouseOver: ownProps.onMouseOver,
+  onOpenEmojiPicker: dispatchProps.onOpenEmojiPicker,
+  onShowPicker: ownProps.onShowPicker,
+  ordinal: ownProps.ordinal,
+  showBorder: ownProps.showBorder,
+  style: ownProps.style,
+})
+
+export default compose(
+  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  setDisplayName('ReactButton')
+)(Wrapper)

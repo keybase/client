@@ -13,15 +13,28 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
     errorMessage: inviteError.message,
     malformedEmails: inviteError.malformed,
     name: routeProps.get('teamname'),
+    waitingKey: Constants.addToTeamByEmailWaitingKey(routeProps.get('teamname') || ''),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
-  onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
+  onClearInviteError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})), // should only be called on unmount
   onClose: () => dispatch(navigateUp()),
   onInvite: (invitees: string, role: Types.TeamRoleType) => {
-    dispatch(TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees}))
-    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+    const teamname = routeProps.get('teamname')
+    const rootPath = routePath.take(1)
+    const sourceSubPath = routePath.rest()
+    const destSubPath = sourceSubPath.butLast()
+    dispatch(
+      TeamsGen.createInviteToTeamByEmail({
+        destSubPath,
+        invitees,
+        role,
+        rootPath,
+        sourceSubPath,
+        teamname,
+      })
+    )
     dispatch(TeamsGen.createGetTeams())
   },
   onOpenRolePicker: (role: Types.TeamRoleType, onComplete: Types.TeamRoleType => void) => {
@@ -40,4 +53,6 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(InviteByEmailDesktop)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
+  InviteByEmailDesktop
+)

@@ -27,7 +27,7 @@ const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   _onAddSelf: (you: ?string) => {
     if (!you) {
       return

@@ -52,9 +52,11 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.openreq":
 		return true, r.openTeamAccessRequest(ctx, cli, item)
 	case "team.change":
-		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{})
+		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{})
+	case "team.force_repoll":
+		return true, r.gotForceRepoll(ctx, cli, item)
 	case "team.rename":
-		return true, r.changeTeam(ctx, cli, item, keybase1.TeamChangeSet{Renamed: true})
+		return true, r.changeTeam(ctx, cli, category, item, keybase1.TeamChangeSet{Renamed: true})
 	case "team.delete":
 		return true, r.deleteTeam(ctx, cli, item)
 	case "team.exit":
@@ -66,7 +68,7 @@ func (r *teamHandler) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	case "team.abandoned":
 		return true, r.abandonTeam(ctx, cli, item)
 	case "team.newly_added_to_team":
-		return true, nil
+		return true, r.newlyAddedToTeam(ctx, cli, item)
 	default:
 		if strings.HasPrefix(category, "team.") {
 			return false, fmt.Errorf("unknown teamHandler category: %q", category)
@@ -206,14 +208,20 @@ func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1
 	return nil
 }
 
-func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item, changes keybase1.TeamChangeSet) error {
+func (r *teamHandler) gotForceRepoll(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	r.G().Log.CDebugf(ctx, "teamHandler: gotForceRepoll received")
+	return teams.HandleForceRepollNotification(ctx, r.G(), item.DTime())
+}
+
+func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item, changes keybase1.TeamChangeSet) error {
 	var rows []keybase1.TeamChangeRow
 	r.G().Log.CDebugf(ctx, "teamHandler: changeTeam received")
 	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
-		r.G().Log.CDebugf(ctx, "error unmarshaling team.(change|rename) item: %s", err)
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	r.G().Log.CDebugf(ctx, "team.(change|rename) unmarshaled: %+v", rows)
+	r.G().Log.CDebugf(ctx, "%s unmarshaled: %+v", category, rows)
 	if err := teams.HandleChangeNotification(ctx, r.G(), rows, changes); err != nil {
 		return err
 	}
@@ -266,13 +274,33 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 		return err
 	}
 	r.G().Log.CDebugf(ctx, "teamHandler: team.exit unmarshaled: %+v", rows)
-	err := teams.HandleExitNotification(ctx, r.G(), rows)
-	if err != nil {
+	if err := teams.HandleExitNotification(ctx, r.G(), rows); err != nil {
 		return err
 	}
 
 	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
 	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+}
+
+func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
+	nm := "team.newly_added_to_team"
+	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: %s received", nm)
+	var rows []keybase1.TeamNewlyAddedRow
+	if err := json.Unmarshal(item.Body().Bytes(), &rows); err != nil {
+		r.G().Log.CDebugf(ctx, "error unmarshaling %s item: %s", nm, err)
+		return err
+	}
+	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: %s unmarshaled: %+v", nm, rows)
+	if err := teams.HandleNewlyAddedToTeamNotification(ctx, r.G(), rows); err != nil {
+		return err
+	}
+
+	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: locally dismissing %s", nm)
+	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+		r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
+	}
+
+	return nil
 }
 
 func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {

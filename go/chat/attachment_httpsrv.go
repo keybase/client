@@ -8,7 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
+	"time"
 
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/attachments"
@@ -16,6 +18,7 @@ import (
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
 	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -33,7 +36,7 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
-	httpSrv         *libkb.HTTPSrv
+	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
@@ -49,13 +52,13 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
-		httpSrv:         libkb.NewHTTPSrv(g.ExternalG(), libkb.NewPortRangeListenerSource(16423, 18000)),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
 		ri:              ri,
 		urlMap:          l,
 		fetcher:         fetcher,
 	}
+	r.initHTTPSrv()
 	r.startHTTPSrv()
 	g.PushShutdownHook(func() error {
 		r.httpSrv.Stop()
@@ -75,15 +78,39 @@ func (r *AttachmentHTTPSrv) monitorAppState() {
 		switch state {
 		case keybase1.AppState_FOREGROUND:
 			r.startHTTPSrv()
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
 			r.httpSrv.Stop()
 		}
 	}
 }
 
+func (r *AttachmentHTTPSrv) initHTTPSrv() {
+	startPort := r.G().GetEnv().GetAttachmentHTTPStartPort()
+	r.httpSrv = kbhttp.NewSrv(r.G().GetLog(), kbhttp.NewPortRangeListenerSource(startPort, 18000))
+}
+
 func (r *AttachmentHTTPSrv) startHTTPSrv() {
-	if err := r.httpSrv.Start(); err != nil {
-		r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %", err)
+	maxTries := 2
+	success := false
+	for i := 0; i < maxTries; i++ {
+		if err := r.httpSrv.Start(); err != nil {
+			if err == kbhttp.ErrPinnedPortInUse {
+				// If we hit this, just try again and get a different port.
+				// The advantage is that backing in and out of the thread will restore attachments,
+				// whereas if we do nothing you need to bkg/foreground.
+				r.Debug(context.TODO(),
+					"startHTTPSrv: pinned port taken error, re-initializing and trying again")
+				r.initHTTPSrv()
+				continue
+			}
+			r.Debug(context.TODO(), "startHTTPSrv: failed to start HTTP server: %s", err)
+			break
+		}
+		success = true
+		break
+	}
+	if !success {
+		r.Debug(context.TODO(), "startHTTPSrv: exhausted attempts to start HTTP server, giving up")
 		return
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
@@ -141,16 +168,16 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	strOutboxID := req.URL.Query().Get("key")
 	outboxID, err := chat1.MakeOutboxID(strOutboxID)
 	if err != nil {
-		r.makeError(ctx, w, 400, "invalid outbox ID: %s", err)
+		r.makeError(ctx, w, http.StatusBadRequest, "invalid outbox ID: %s", err)
 		return
 	}
 	pre, err := attachments.NewPendingPreviews(r.G()).Get(ctx, outboxID)
 	if err != nil {
-		r.makeError(ctx, w, 500, "error reading preview: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "error reading preview: %s", err)
 		return
 	}
 	if _, err := io.Copy(w, bytes.NewReader(pre.Preview)); err != nil {
-		r.makeError(ctx, w, 500, "failed to write resposne: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to write resposne: %s", err)
 		return
 	}
 }
@@ -159,6 +186,49 @@ func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter
 	args ...interface{}) {
 	r.Debug(ctx, "serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
 	w.WriteHeader(code)
+}
+
+func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.Asset, req *http.Request) bool {
+	noStream := "true" == req.URL.Query().Get("nostream")
+	if noStream {
+		// If we just want the bits without streaming
+		return false
+	}
+	return strings.HasPrefix(asset.MimeType, "video")
+}
+
+func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
+	contentForce := "true" == req.URL.Query().Get("contentforce")
+	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+		r.Debug(ctx, "serve: mobile client detected, showing the HTML video viewer")
+		w.Header().Set("Content-Type", "text/html")
+		if _, err := w.Write([]byte(fmt.Sprintf(`
+			<html>
+				<head>
+					<title>Keybase Video Viewer</title>
+					<script>
+						window.togglePlay = function(data) {
+							var vid = document.getElementById("vid");
+							if (data === "play") {
+								vid.play();
+								vid.setAttribute('controls', 'controls');
+							} else {
+								vid.pause();
+								vid.removeAttribute('controls');
+							}
+						  }
+					</script>
+				</head>
+				<body style="margin: 0px">
+					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				</body>
+			</html>
+		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {
+			r.Debug(ctx, "serve: failed to write HTML video player: %s", err)
+		}
+		return true
+	}
+	return false
 }
 
 func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
@@ -174,7 +244,7 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	pairInt, ok := r.urlMap.Get(key)
 	r.Unlock()
 	if !ok {
-		r.makeError(ctx, w, 404, "key not found in URL map")
+		r.makeError(ctx, w, http.StatusNotFound, "key not found in URL map")
 		return
 	}
 
@@ -182,16 +252,33 @@ func (r *AttachmentHTTPSrv) serve(w http.ResponseWriter, req *http.Request) {
 	uid := gregor1.UID(r.G().Env.GetUID().ToBytes())
 	asset, err := attachments.AssetFromMessage(ctx, r.G(), uid, pair.ConvID, pair.MsgID, preview)
 	if err != nil {
-		r.makeError(ctx, w, 500, "failed to get asset: %s", err)
+		r.makeError(ctx, w, http.StatusInternalServerError, "failed to get asset: %s", err)
 		return
 	}
 	if len(asset.Path) == 0 {
-		r.makeError(ctx, w, 404, "attachment not uploaded yet, no path")
+		r.makeError(ctx, w, http.StatusNotFound, "attachment not uploaded yet, no path")
 		return
 	}
-	if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
-		r.makeError(ctx, w, 500, "failed to fetch attachment: %s", err)
-		return
+	size := asset.Size
+	r.Debug(ctx, "serve: setting content-type: %s sz: %d", asset.MimeType, size)
+	w.Header().Set("Content-Type", asset.MimeType)
+	if r.shouldServeContent(ctx, asset, req) {
+		if r.serveVideoHostPage(ctx, w, req) {
+			// if we served the host page, just bail out
+			return
+		}
+		r.Debug(ctx, "serve: streaming: req: method: %s range: %s", req.Method, req.Header.Get("Range"))
+		rs, err := r.fetcher.StreamAttachment(ctx, pair.ConvID, asset, r.ri, r)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
+			return
+		}
+		http.ServeContent(w, req, asset.Filename, time.Time{}, rs)
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, pair.ConvID, asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
 	}
 }
 
@@ -218,6 +305,17 @@ func NewRemoteAttachmentFetcher(g *globals.Context, store attachments.Store) *Re
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "RemoteAttachmentFetcher", false),
 		store:        store,
 	}
+}
+
+func (r *RemoteAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
+	defer r.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	// Grab S3 params for the conversation
+	s3params, err := ri().GetS3Params(ctx, convID)
+	if err != nil {
+		return nil, err
+	}
+	return r.store.StreamAsset(ctx, s3params, asset, signer)
 }
 
 func (r *RemoteAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
@@ -262,19 +360,15 @@ func (r *RemoteAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename
 	return nil
 }
 
-type attachmentRemoteStore interface {
-	DecryptAsset(ctx context.Context, w io.Writer, body io.Reader, asset chat1.Asset,
-		progress types.ProgressReporter) error
-	GetAssetReader(ctx context.Context, params chat1.S3Params, asset chat1.Asset,
-		signer s3.Signer) (io.ReadCloser, error)
-	DeleteAssets(ctx context.Context, params chat1.S3Params, signer s3.Signer, assets []chat1.Asset) error
+func (r *RemoteAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
+	return false, nil
 }
 
 type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	store   attachmentRemoteStore
+	store   attachments.Store
 	diskLRU *disklru.DiskLRU
 
 	// testing
@@ -283,7 +377,7 @@ type CachingAttachmentFetcher struct {
 
 var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 
-func NewCachingAttachmentFetcher(g *globals.Context, store attachmentRemoteStore, size int) *CachingAttachmentFetcher {
+func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, size int) *CachingAttachmentFetcher {
 	return &CachingAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
@@ -336,6 +430,12 @@ func (c *CachingAttachmentFetcher) localAssetPath(ctx context.Context, asset cha
 		path = entry.Value.(string)
 	}
 	return found, path, nil
+}
+
+func (c *CachingAttachmentFetcher) StreamAttachment(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset, ri func() chat1.RemoteInterface, signer s3.Signer) (res io.ReadSeeker, err error) {
+	defer c.Trace(ctx, func() error { return err }, "StreamAttachment")()
+	return NewRemoteAttachmentFetcher(c.G(), c.store).StreamAttachment(ctx, convID, asset, ri, signer)
 }
 
 func (c *CachingAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
@@ -410,6 +510,23 @@ func (c *CachingAttachmentFetcher) putFileInLRU(ctx context.Context, filename st
 		os.Remove(path)
 	}
 	return nil
+}
+
+func (c *CachingAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (found bool, err error) {
+	defer c.Trace(ctx, func() error { return err }, "IsAssetLocal")()
+	found, path, err := c.localAssetPath(ctx, asset)
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		return false, nil
+	}
+	fileReader, err := os.Open(path)
+	defer c.closeFile(fileReader)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
 }
 
 func (c *CachingAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) (err error) {

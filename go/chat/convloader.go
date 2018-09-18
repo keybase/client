@@ -204,6 +204,7 @@ func (b *BackgroundConvLoader) Stop(ctx context.Context) chan struct{} {
 	b.Lock()
 	defer b.Unlock()
 	b.Debug(ctx, "Stop")
+	b.cancelActiveLoadsLocked()
 	ch := make(chan struct{})
 	if b.started {
 		close(b.stopCh)
@@ -230,12 +231,31 @@ func (b *BackgroundConvLoader) isConvLoaderContext(ctx context.Context) bool {
 	return false
 }
 
+func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
+	b.Debug(context.TODO(), "setTestingNameInfoSource: setting to %T", ni)
+	b.testingNameInfoSource = ni
+}
+
 func (b *BackgroundConvLoader) Queue(ctx context.Context, job types.ConvLoaderJob) error {
 	if b.isConvLoaderContext(ctx) {
 		b.Debug(ctx, "Queue: refusing to queue in background loader context: convID: %s", job)
 		return nil
 	}
 	return b.enqueue(ctx, clTask{job: job})
+}
+
+func (b *BackgroundConvLoader) cancelActiveLoadsLocked() (canceled bool) {
+	for _, activeLoad := range b.activeLoads {
+		select {
+		case <-activeLoad.Ctx.Done():
+			b.Debug(activeLoad.Ctx, "Suspend: active load already canceled")
+		default:
+			b.Debug(activeLoad.Ctx, "Suspend: canceling active load")
+			activeLoad.CancelFn()
+			canceled = true
+		}
+	}
+	return canceled
 }
 
 func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
@@ -255,17 +275,7 @@ func (b *BackgroundConvLoader) Suspend(ctx context.Context) (canceled bool) {
 		}
 	}
 	b.suspendCount++
-	for _, activeLoad := range b.activeLoads {
-		select {
-		case <-activeLoad.Ctx.Done():
-			b.Debug(activeLoad.Ctx, "Suspend: active load already canceled")
-		default:
-			b.Debug(activeLoad.Ctx, "Suspend: canceling active load")
-			activeLoad.CancelFn()
-			canceled = true
-		}
-	}
-	return canceled
+	return b.cancelActiveLoadsLocked()
 }
 
 func (b *BackgroundConvLoader) Resume(ctx context.Context) bool {
@@ -288,10 +298,6 @@ func (b *BackgroundConvLoader) enqueue(ctx context.Context, task clTask) error {
 	defer b.Unlock()
 	b.Debug(ctx, "enqueue: adding task: %s", task.job)
 	return b.queue.Push(task)
-}
-
-func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
-	b.testingNameInfoSource = ni
 }
 
 func (b *BackgroundConvLoader) loop() {
@@ -424,7 +430,8 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
 	if b.testingNameInfoSource != nil {
-		CtxKeyFinder(ctx, b.G()).SetNameInfoSourceOverride(b.testingNameInfoSource)
+		ctx = CtxAddTestingNameInfoSource(ctx, b.testingNameInfoSource)
+		b.Debug(ctx, "setting testing nameinfo source: %T", b.testingNameInfoSource)
 	}
 	defer func() {
 		b.Lock()

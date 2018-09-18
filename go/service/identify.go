@@ -153,7 +153,7 @@ func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
 
-	res := h.G().Resolver.ResolveFullExpressionNeedUsername(ctx, arg)
+	res := h.G().Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(ctx, h.G()), arg)
 	err = res.GetError()
 	if err != nil {
 		return u, err
@@ -167,7 +167,7 @@ func (h *IdentifyHandler) ResolveIdentifyImplicitTeam(ctx context.Context, arg k
 
 	h.G().Log.CDebugf(ctx, "ResolveIdentifyImplicitTeam assertions:'%v'", arg.Assertions)
 
-	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(arg.Assertions)
+	writerAssertions, readerAssertions, err := externals.ParseAssertionsWithReaders(h.G(), arg.Assertions)
 	if err != nil {
 		return res, err
 	}
@@ -333,6 +333,16 @@ func (h *IdentifyHandler) ResolveImplicitTeam(ctx context.Context, arg keybase1.
 	ctx = libkb.WithLogTag(ctx, "RIT")
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ResolveImplicitTeam(%s)", arg.Id), func() error { return err })()
 	return teams.MapImplicitTeamIDToDisplayName(ctx, h.G(), arg.Id, arg.Id.IsPublic())
+}
+
+func (h *IdentifyHandler) NormalizeSocialAssertion(ctx context.Context, assertion string) (socialAssertion keybase1.SocialAssertion, err error) {
+	ctx = libkb.WithLogTag(ctx, "NSA")
+	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#NormalizeSocialAssertion(%s)", assertion), func() error { return err })()
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(h.G().MakeAssertionContext(), assertion)
+	if !isSocialAssertion {
+		return keybase1.SocialAssertion{}, fmt.Errorf("Invalid social assertion")
+	}
+	return socialAssertion, nil
 }
 
 func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {

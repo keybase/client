@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalColors} from '../../styles'
-import rowStyles from './styles'
+import {rowStyles} from './common'
 import {Box, Icon} from '../../common-adapters'
 
 type PlaceholderProps = {

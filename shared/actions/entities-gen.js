@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/entities'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of entities but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'entities:'
 export const deleteEntity = 'entities:deleteEntity'
 export const mergeEntity = 'entities:mergeEntity'
 export const replaceEntity = 'entities:replaceEntity'

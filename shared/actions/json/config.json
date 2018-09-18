@@ -1,86 +1,91 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/config'",
+    "import * as Tabs from '../constants/tabs'",
+    "import * as ChatTypes from '../constants/types/chat2'",
     "import {RPCError} from '../util/errors'"
   ],
   "actions": {
-    "dumpLogs": {
-      "reason": ["'quitting through menu'"]
+    "setupEngineListeners": {
+      "_description": "when sagas should start creating their incoming handlers / onConnect handlers"
     },
+    "startHandshake": {
+      "_description": "internal to config. should start the handshake process"
+    },
+    "restartHandshake": {
+      "_description": "internal to config. should restart the handshake process"
+    },
+    "daemonHandshake": {
+      "_description": "starting the connect process. Things that need to happen before we see the app should call daemonHandshakeWait",
+      "firstTimeConnecting": "boolean",
+      "version": "number",
+    },
+    "daemonHandshakeWait": {
+      "_description": "subsystems that need to do things during boot need to call this to register that we should wait.",
+      "name": "string",
+      "version": "number",
+      "increment": "boolean",
+      "failedReason?": "?string",
+      "failedFatal?": "true",
+    },
+    "daemonHandshakeDone": {
+      "_description": "ready to show the app"
+    },
+    "logout": {
+      "_description": "someone wants to log out"
+    },
+    "logoutHandshake": {
+      "_description": "starting the logout process. Things that need to happen before we see the app should call logoutHandshakeWait",
+      "version": "number",
+    },
+    "logoutHandshakeWait": {
+      "_description": "subsystems that need to do things during logout need to call this to register that we should wait.",
+      "name": "string",
+      "version": "number",
+      "increment": "boolean",
+    },
+    "installerRan": {
+      "_description": "desktop only: the installer ran and we can start up"
+    },
+    "dumpLogs": { "reason": ["'quitting through menu'"] },
     "openAppSettings": {
       "_description": "mobile only: open the settings page"
     },
-    "changedFocus": {
-      "appFocused": "boolean"
-    },
-    "changedActive": {
-      "userActive": "boolean"
-    },
-    "link": {
-      "link": "string"
-    },
-    "mobileAppState": {
-      "nextAppState": ["'active'", "'background'", "'inactive'"]
-    },
+    "changedFocus": { "appFocused": "boolean" },
+    "changedActive": { "userActive": "boolean" },
+    "link": { "link": "string" },
+    "mobileAppState": { "nextAppState": ["'active'", "'background'", "'inactive'"] },
     "showMain": {},
-    "loadAvatars": {
-      "usernames": "Array<string>"
-    },
-    "loadedAvatars": {
-      "nameToUrlMap": "{[name: string]: ?Object}"
-    },
-    "loadTeamAvatars": {
-      "teamnames": "Array<string>"
-    },
+    "loadAvatars": { "usernames": "Array<string>" },
+    "loadedAvatars": { "nameToUrlMap": "{[name: string]: ?Object}" },
+    "loadTeamAvatars": { "teamnames": "Array<string>" },
     "bootstrapStatusLoaded": {
       "deviceID": "string",
       "deviceName": "string",
-      "followers?": "?Array<string>",
-      "following?": "?Array<string>",
+      "followers": "Array<string>",
+      "following": "Array<string>",
       "loggedIn": "boolean",
       "registered": "boolean",
       "uid": "string",
       "username": "string"
     },
-    "bootstrap": {
-      "isReconnect?": "boolean"
+    "daemonError": { "daemonError": "?Error" },
+    "setAccounts": {
+      "defaultUsername": "string",
+      "usernames": "Array<string>"
     },
-    "bootstrapSuccess": {},
-    "bootstrapRetry": {},
-    "bootstrapAttemptFailed": {},
-    "bootstrapFailed": {},
-    "changeKBFSPath": {
-      "kbfsPath": "string"
-    },
-    "clearRouteState": {},
-    "loadConfig": {
-      "logVersion?": "boolean"
-    },
-    "configLoaded": {
-      "config": "RPCTypes.Config"
-    },
-    "daemonError": {
-      "daemonError": "?Error"
-    },
-    "extendedConfigLoaded": {
-      "extendedConfig": "RPCTypes.ExtendedStatus"
-    },
-    "getExtendedStatus": {},
-    "globalError": {
-      "globalError": "null | Error | RPCError"
-    },
+    "globalError": { "globalError": "null | Error | RPCError" },
     "updateFollowing": {
       "username": "string",
       "isTracking": "boolean"
     },
-    "persistRouteState": {},
-    "pushLoaded": {
-      "pushLoaded": "boolean"
-    },
-    "readyForBootstrap": {},
-    "retryBootstrap": {},
-    "setInitialState": {
-      "initialState": "?Types.InitialState"
+    "pushLoaded": { "pushLoaded": "boolean" },
+    "setStartupDetails": {
+      "startupWasFromPush": "boolean",
+      "startupConversation": "?ChatTypes.ConversationIDKey",
+      "startupLink": "string",
+      "startupTab": "?Tabs.Tab",
+      "startupFollowUser": "string",
     },
     "setOpenAtLogin": {
       "open": "boolean",
@@ -90,9 +95,12 @@
       "sound": "boolean",
       "writeFile": "boolean"
     },
-    "debugDump": {
-      "items": "Array<string>"
-    },
-    "setStartedDueToPush": {}
+    "debugDump": { "items": "Array<string>" },
+    "setDeletedSelf": { "deletedUsername": "string" },
+    "loggedOut": {},
+    "loggedIn": { "causedByStartup": "boolean" },
+    "updateMenubarWindowID": { "id": "number" },
+    "copyToClipboard": {"text": "string"},
+    "_avatarQueue": {},
   }
 }

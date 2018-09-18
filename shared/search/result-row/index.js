@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../../constants/types/search'
 import * as React from 'react'
-import {Box, Icon, ClickableBox, Text} from '../../common-adapters/index'
+import {Box, Icon, ClickableBox, Divider, Text} from '../../common-adapters/index'
 import {
   globalColors,
   globalStyles,
@@ -9,11 +9,12 @@ import {
   hairlineWidth,
   isMobile,
   platformStyles,
+  styleSheetCreate,
 } from '../../styles'
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 
-const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFullname}) => {
+const Left = ({leftService, leftIcon, leftIconOpaque, leftUsername, leftFollowingState, leftFullname}) => {
   return (
     <Box
       style={{
@@ -30,6 +31,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
           username={leftUsername}
           icon={leftIcon}
           avatarSize={isMobile ? 48 : 32}
+          opacity={leftIconOpaque ? 1 : 0.3}
         />
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, marginLeft: globalMargins.small}}>
@@ -42,7 +44,7 @@ const Left = ({leftService, leftIcon, leftUsername, leftFollowingState, leftFull
   )
 }
 
-const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) => {
+const Middle = ({rightService, rightIcon, rightIconOpaque, rightUsername, rightFollowingState}) => {
   return (
     <Box
       style={{
@@ -57,6 +59,7 @@ const Middle = ({rightService, rightIcon, rightUsername, rightFollowingState}) =
           service={rightService}
           username={rightUsername}
           icon={rightIcon}
+          opacity={rightIconOpaque ? 1 : 0.3}
           fontSize={16}
           avatarSize={16}
           style={{
@@ -110,39 +113,27 @@ const RightEdge = ({showCheckmark}) => {
       type="iconfont-check"
       style={{
         marginLeft: globalMargins.small,
-        marginRight: isMobile ? globalMargins.xtiny : globalMargins.small,
+        marginRight: globalMargins.small,
       }}
       color={globalColors.blue}
     />
   ) : null
 }
 
-const Line = () => (
-  <Box
-    style={{
-      ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.black_05,
-      left: 56,
-      top: undefined,
-      maxHeight: hairlineWidth,
-      minHeight: hairlineWidth,
-    }}
-  />
-)
-
 export type Props = Types.RowProps
 
 const SearchResultRow = (props: Props) => (
   <ClickableBox
-    style={_clickableBoxStyle[(!!props.selected).toString()]}
+    style={_clickableBoxStyle[(!!props.selected && props.leftIconOpaque).toString()]}
     underlayColor={globalColors.blue4}
-    onClick={!props.userIsInTeam ? props.onClick : null}
+    onClick={props.userIsSelectable ? props.onClick : null}
     onMouseOver={props.onMouseOver}
   >
     <Box style={_rowStyle}>
       <Left
         leftFollowingState={props.leftFollowingState}
         leftIcon={props.leftIcon}
+        leftIconOpaque={props.leftIconOpaque}
         leftService={props.leftService}
         leftUsername={props.leftUsername}
         leftFullname={props.leftFullname}
@@ -150,12 +141,13 @@ const SearchResultRow = (props: Props) => (
       <Middle
         rightFollowingState={props.rightFollowingState}
         rightIcon={props.rightIcon}
+        rightIconOpaque={props.rightIconOpaque}
         rightService={props.rightService}
         rightUsername={props.rightUsername}
       />
       <Right onShowTracker={props.onShowTracker} />
-      <RightEdge showCheckmark={props.userIsInTeam} />
-      <Line />
+      <RightEdge showCheckmark={props.userAlreadySelected} />
+      <Divider style={styles.divider} />
     </Box>
   </ClickableBox>
 )
@@ -189,5 +181,15 @@ const _rowStyle = {
   justifyContent: 'flex-start',
   position: 'relative',
 }
+
+const styles = styleSheetCreate({
+  divider: {
+    ...globalStyles.fillAbsolute,
+    left: isMobile ? 68 : 56,
+    maxHeight: hairlineWidth,
+    minHeight: hairlineWidth,
+    top: undefined,
+  },
+})
 
 export default SearchResultRow

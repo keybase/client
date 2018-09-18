@@ -44,15 +44,23 @@ func Armor62Seal(plaintext []byte, typ MessageType, brand string) (string, error
 
 // NewArmor62DecoderStream is used to decode input base62-armoring format. It returns
 // a stream you can read from, and also a Frame you can query to see what the open/close
-// frame markers were.
-func NewArmor62DecoderStream(r io.Reader) (io.Reader, Frame, error) {
-	return newArmorDecoderStream(r, Armor62Params)
+// frame markers were. hc and fc are optional and can be nil.
+func NewArmor62DecoderStream(r io.Reader, hc HeaderChecker, fc FrameChecker) (io.Reader, Frame, error) {
+	return newArmorDecoderStream(r, Armor62Params, hc, fc)
 }
 
 // Armor62Open runs armor stream decoding, but on a string, and it outputs
-// a string.
+// a string. It does not do any validation on the header and footer.
+// Deprecated: user Armor62OpenWithValidation instead.
 func Armor62Open(msg string) (body []byte, header string, footer string, err error) {
-	return armorOpen(msg, Armor62Params)
+	body, _, header, footer, err = Armor62OpenWithValidation(msg, nil, nil)
+	return body, header, footer, err
+}
+
+// Armor62OpenWithValidation runs armor stream decoding, but on a string, and it outputs
+// a string. It validates header and footer with the provided checkers (which are optional and can be nil).
+func Armor62OpenWithValidation(msg string, hc HeaderChecker, fc FrameChecker) (body []byte, brand string, header string, footer string, err error) {
+	return armorOpen(msg, Armor62Params, hc, fc)
 }
 
 // CheckArmor62Frame checks that the frame matches our standard

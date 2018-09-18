@@ -9,7 +9,7 @@ import {Input as TextInput} from '../../../../common-adapters'
 //     MentionInput, with props MentionInputProps, which wraps
 //       PlatformInput, with props PlatformInputProps.
 
-type CommonProps = {
+type CommonProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isEditExploded: boolean,
   isEditing: boolean,
@@ -21,12 +21,14 @@ type CommonProps = {
   onAttach: (paths: Array<string>) => void,
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
+  onFilePickerError: (error: Error) => void,
   onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
   typing: I.Set<string>,
-}
+|}
 
-type InputProps = CommonProps & {
+type InputProps = {|
+  ...CommonProps,
   editText: string,
   quoteCounter: number,
   quoteText: string,
@@ -34,14 +36,15 @@ type InputProps = CommonProps & {
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
   sendTyping: (typing: boolean) => void,
-}
+|}
 
-type MentionInputProps = CommonProps & {
+type MentionInputProps = {|
+  ...InputProps,
   inputSetRef: (r: ?TextInput) => void,
   onChangeText: (newText: string) => void,
-}
+|}
 
-type MentionProps = {
+type MentionProps = {|
   insertMention: (u: string, options?: {notUser: boolean}) => void,
   insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
 
@@ -63,8 +66,8 @@ type MentionProps = {
   mentionFilter: string,
   mentionPopupOpen: boolean,
   setMentionPopupOpen: (setOpen: boolean) => void,
-}
+|}
 
-type PlatformInputProps = MentionInputProps & MentionProps
+type PlatformInputProps = {...MentionInputProps, ...MentionProps}
 
 export type {InputProps, MentionInputProps, PlatformInputProps}

@@ -3,7 +3,6 @@ import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStac
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
 import React, {Component} from 'react'
-import {type EmitterListener} from 'react-native'
 import TabBar from './tab-bar/container'
 import {
   Box,
@@ -14,7 +13,6 @@ import {
 } from '../common-adapters/mobile.native'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {chatTab, loginTab} from '../constants/tabs'
-import {compose} from 'recompose'
 import {connect, type TypedState} from '../util/container'
 import {globalColors, globalStyles, statusBarHeight, styleSheetCreate} from '../styles'
 import {addSizeListener} from '../styles/status-bar'
@@ -28,7 +26,7 @@ import {makeLeafTags} from '../route-tree'
 import RpcStats from './rpc-stats'
 
 type CardStackShimProps = {
-  mode: 'modal' | null,
+  mode: 'modal' | 'card',
   renderRoute: (route: RenderRouteResult, shouldRender: boolean) => any,
   onNavigateBack: () => any,
   stack: RouteRenderStack,
@@ -156,26 +154,38 @@ function renderStackRoute(route, shouldRender) {
   )
 }
 
-class MainNavStack extends Component<any, any> {
-  _listener: EmitterListener
+class MainNavStack extends Component<any, {verticalOffset: number}> {
+  _listener = null
+  _mounted = true
   state = {
     verticalOffset: 0,
   }
 
   componentDidMount() {
+    this._mounted = true
     this._listener = addSizeListener(this.statusBarListener)
   }
 
   componentWillUnmount() {
+    this._mounted = false
+    // turns out remove() doesn't guarantee that the callback doesn't happen. This comes from native
+    // so there's a race, so we need _mounted to really protect ourself. i could 100% repro statusBarListener being called AFTEr remove() is called :(
     this._listener && this._listener.remove()
   }
 
   statusBarListener = (frameData: any) => {
+    if (frameData.height === 0 && isIPhoneX) {
+      // this is a rotation event
+      return
+    }
+
     // the iPhone X has default status bar height of 45px
     // and it doesn't increase in height like earlier devices.
     // (so this should always be 0 on an iPhone X, but this should still
     // be correct if it expands)
-    this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
+    if (this._mounted) {
+      this.setState({verticalOffset: frameData.height - (isIPhoneX ? 45 : 20)})
+    }
   }
 
   _switchTab = tab => {
@@ -189,7 +199,7 @@ class MainNavStack extends Component<any, any> {
       <CardStackShim
         key={props.routeSelected}
         hidden={false}
-        mode={null}
+        mode="card"
         stack={props.routeStack}
         renderRoute={renderStackRoute}
         onNavigateBack={props.navigateUp}
@@ -355,8 +365,15 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
   hideNav: ownProps.routeSelected === loginTab,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  // MUST spread ownProps as navigateUp overrides the passed in props!!
+  ...ownProps,
+  hideNav: stateProps.hideNav,
+  navigateUp: dispatchProps.navigateUp,
 })
 
 const styles = styleSheetCreate({
@@ -390,4 +407,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps))(Nav)
+export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Nav)

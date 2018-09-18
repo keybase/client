@@ -1,27 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Box2,
-  Text,
-  Icon,
-  Checkbox,
-  ClickableBox,
-  CopyText,
-  Button,
-  Avatar,
-  Meta,
-  Usernames,
-} from '../../common-adapters'
-
-import {
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-  styleSheetCreate,
-  isMobile,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type Props = {
   canDelete: boolean,
@@ -45,8 +25,10 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
+  _onOpenChannelSelection: () => void,
 }
 
+// TODO use ListItem2
 class Row extends React.Component<Props> {
   _channelNameToString = (channelName: ?string) => {
     return channelName ? `#${channelName}` : '#general'
@@ -54,110 +36,106 @@ class Row extends React.Component<Props> {
 
   render() {
     return (
-      <Box>
-        <Box
+      <Kb.Box>
+        <Kb.Box
           style={{
             ...(this.props.expanded
               ? {
+                  backgroundColor: Styles.globalColors.blueGrey,
                   height: 6,
-                  backgroundColor: globalColors.blue5,
                 }
               : {}),
           }}
         />
-        <Box
+        <Kb.Box
           style={{
             ..._rowStyle,
             ...(this.props.expanded
               ? {
-                  backgroundColor: globalColors.white,
-                  borderBottomWidth: 1,
-                  borderColor: globalColors.black_05,
-                  borderStyle: 'solid',
-                  borderTopWidth: 1,
-                  paddingBottom: globalMargins.tiny,
-                  paddingTop: globalMargins.xtiny,
+                  backgroundColor: Styles.globalColors.white,
+                  paddingBottom: Styles.globalMargins.tiny,
+                  paddingTop: Styles.globalMargins.xtiny,
                 }
               : {}),
           }}
         >
-          <ClickableBox
+          <Kb.ClickableBox
             onClick={this.props.onToggleExpand}
             style={this.props.expanded ? _rowClickStyleExpanded : _rowClickStyle}
-            hoverColor={isMobile ? undefined : globalColors.transparent}
-            underlayColor={globalColors.transparent}
+            hoverColor={Styles.isMobile ? undefined : Styles.globalColors.transparent}
+            underlayColor={Styles.globalColors.transparent}
           >
-            <Box style={_rowTopStyle}>
-              <Icon
+            <Kb.Box style={_rowTopStyle}>
+              <Kb.Icon
                 type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={_iconCaretStyle}
-                fontSize={isMobile ? 12 : 8}
+                fontSize={Styles.isMobile ? 12 : 8}
               />
-              <Avatar
-                size={isMobile ? 48 : 32}
+              <Kb.Avatar
+                size={Styles.isMobile ? 48 : 32}
                 isTeam={!!this.props.teamname}
                 teamname={this.props.teamname}
                 username={this.props.teamname ? undefined : this.props.you}
-                style={{marginRight: globalMargins.tiny}}
+                style={{marginRight: Styles.globalMargins.tiny}}
               />
-              <Text type="BodySemibold" style={{color: globalColors.darkBlue}}>
+              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_75}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
-              </Text>
+              </Kb.Text>
               {this.props.isNew && (
-                <Meta title="new" style={_metaStyle} backgroundColor={globalColors.orange} />
+                <Kb.Meta title="new" style={_metaStyle} backgroundColor={Styles.globalColors.orange} />
               )}
-            </Box>
-          </ClickableBox>
+            </Kb.Box>
+          </Kb.ClickableBox>
           {this.props.expanded && (
-            <Box style={_rowBottomStyle}>
-              <Box
+            <Kb.Box style={_rowBottomStyle}>
+              <Kb.Box
                 style={{
-                  ...globalStyles.flexBoxRow,
+                  ...Styles.globalStyles.flexBoxRow,
                   alignItems: 'center',
                   maxWidth: '100%',
                   position: 'relative',
                 }}
               >
-                <Text type="Body">Clone:</Text>
-                <Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <CopyText text={this.props.url} />
-                </Box2>
-                {!isMobile &&
+                <Kb.Text type="Body">Clone:</Kb.Text>
+                <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
+                  <Kb.CopyText text={this.props.url} />
+                </Kb.Box2>
+                {!Styles.isMobile &&
                   this.props.canDelete && (
-                    <Button
+                    <Kb.Button
                       type="Danger"
                       small={true}
                       label="Delete repo"
                       onClick={this.props.onShowDelete}
                     />
                   )}
-              </Box>
-              <Box
+              </Kb.Box>
+              <Kb.Box
                 style={{
-                  ...globalStyles.flexBoxRow,
+                  ...Styles.globalStyles.flexBoxRow,
                   alignItems: 'center',
                   alignSelf: 'flex-start',
                   flexWrap: 'wrap',
-                  marginTop: globalMargins.tiny,
+                  marginTop: Styles.globalMargins.tiny,
                 }}
               >
-                <Text type="BodySmall">
+                <Kb.Text type="BodySmall">
                   {`Last push ${this.props.lastEditTime}${
                     !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
                   }`}
-                </Text>
+                </Kb.Text>
                 {!!this.props.teamname &&
                   !!this.props.lastEditUser && (
-                    <Avatar
+                    <Kb.Avatar
                       username={this.props.lastEditUser}
                       size={16}
-                      style={{marginLeft: isMobile ? 0 : 4}}
+                      style={{marginLeft: Styles.isMobile ? 0 : 4}}
                     />
                   )}
                 {!!this.props.teamname &&
                   !!this.props.lastEditUser && (
-                    <Box style={{marginLeft: 2}}>
-                      <Usernames
+                    <Kb.Box style={{marginLeft: 2}}>
+                      <Kb.Usernames
                         type="BodySmallSemibold"
                         underline={true}
                         colorFollowing={true}
@@ -166,106 +144,108 @@ class Row extends React.Component<Props> {
                         ]}
                         onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
                       />
-                    </Box>
+                    </Kb.Box>
                   )}
-                {isMobile && <Text type="BodySmall">. </Text>}
-                <Text type="BodySmall">
-                  <Text type="BodySmall">
-                    {isMobile ? 'Signed and encrypted using device' : ', signed and encrypted using device'}
-                  </Text>
-                  <Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
+                {Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
+                <Kb.Text type="BodySmall">
+                  <Kb.Text type="BodySmall">
+                    {Styles.isMobile
+                      ? 'Signed and encrypted using device'
+                      : ', signed and encrypted using device'}
+                  </Kb.Text>
+                  <Kb.Text type="BodySmall" style={_deviceStyle} onClick={this.props.onClickDevice}>
                     {' '}
                     {this.props.devicename}
-                  </Text>
-                  <Text type="BodySmall">.</Text>
-                </Text>
-              </Box>
+                  </Kb.Text>
+                  <Kb.Text type="BodySmall">.</Kb.Text>
+                </Kb.Text>
+              </Kb.Box>
               {!!this.props.teamname && (
-                <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+                <Kb.Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center'}}>
                   {this.props.canEdit && (
-                    <Checkbox
+                    <Kb.Checkbox
                       checked={!this.props.chatDisabled}
                       onCheck={this.props.onToggleChatEnabled}
                       label=""
                       labelComponent={
-                        <Text type="BodySmall">
+                        <Kb.Text type="BodySmall">
                           Announce pushes in{' '}
-                          <Text
+                          <Kb.Text
                             type={this.props.chatDisabled ? 'BodySmall' : 'BodySmallPrimaryLink'}
                             onClick={this.props.onChannelClick}
                           >
                             {this._channelNameToString(this.props.channelName)}
-                          </Text>
-                        </Text>
+                          </Kb.Text>
+                        </Kb.Text>
                       }
                     />
                   )}
                   {!this.props.canEdit && (
-                    <Text type="BodySmall">
+                    <Kb.Text type="BodySmall">
                       {this.props.chatDisabled
                         ? 'Pushes are not announced'
                         : `Pushes are announced in ${this.props.teamname}${this._channelNameToString(
                             this.props.channelName
                           )}`}
-                    </Text>
+                    </Kb.Text>
                   )}
-                </Box>
+                </Kb.Box>
               )}
-              {isMobile &&
+              {Styles.isMobile &&
                 this.props.canDelete && (
-                  <Button
+                  <Kb.Button
                     type="Danger"
                     small={false}
                     label="Delete repo"
                     onClick={this.props.onShowDelete}
-                    style={{marginTop: globalMargins.tiny, alignSelf: 'flex-start'}}
+                    style={{marginTop: Styles.globalMargins.tiny, alignSelf: 'flex-start'}}
                   />
                 )}
-            </Box>
+            </Kb.Box>
           )}
-        </Box>
-        <Box
+        </Kb.Box>
+        <Kb.Box
           style={{
             ...(this.props.expanded
               ? {
                   height: 6,
-                  backgroundColor: globalColors.blue5,
+                  backgroundColor: Styles.globalColors.blueGrey,
                 }
               : {}),
           }}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   copyTextContainer: {
     flexShrink: 1,
-    marginLeft: globalMargins.xtiny,
-    marginRight: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.tiny,
     maxWidth: 460,
     width: '100%',
   },
 })
 
 const _deviceStyle = {
-  ...globalStyles.fontSemibold,
-  ...globalStyles.italic,
-  color: globalColors.black_60,
+  ...Styles.globalStyles.fontSemibold,
+  ...Styles.globalStyles.italic,
+  color: Styles.globalColors.black_60,
 }
 
 const _rowBottomStyle = {
-  ...globalStyles.flexBoxColumn,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
+  ...Styles.globalStyles.flexBoxColumn,
+  paddingBottom: Styles.globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.medium,
   width: '100%',
 }
 
-const _iconCaretStyle = platformStyles({
+const _iconCaretStyle = Styles.platformStyles({
   common: {
     marginBottom: 2,
-    marginRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   isElectron: {
     display: 'inline-block',
@@ -278,24 +258,24 @@ const _metaStyle = {
 }
 
 const _rowTopStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  paddingLeft: globalMargins.tiny,
-  marginBottom: globalMargins.xtiny,
+  paddingLeft: Styles.globalMargins.tiny,
+  marginBottom: Styles.globalMargins.xtiny,
 }
 
 const _rowStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   flexShrink: 0,
-  minHeight: globalMargins.large,
+  minHeight: Styles.globalMargins.large,
   paddingLeft: 0,
   width: '100%',
 }
 const _rowClickStyle = {
-  ...globalStyles.flexBoxColumn,
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
+  ...Styles.globalStyles.flexBoxColumn,
+  paddingTop: Styles.globalMargins.tiny,
+  paddingBottom: Styles.globalMargins.tiny,
   width: '100%',
 }
 

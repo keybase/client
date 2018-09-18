@@ -1,13 +1,12 @@
 // @flow
 import * as TeamsGen from '../../actions/teams-gen'
 import EditTeamDescription from '.'
-import {connect} from 'react-redux'
 import {
+  connect,
   compose,
   withHandlers,
   withProps,
   withStateHandlers,
-  type Dispatch,
   type TypedState,
 } from '../../util/container'
 import * as Constants from '../../constants/teams'
@@ -24,7 +23,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
   _onSetDescription: (description: string) => {
     dispatch(TeamsGen.createEditTeamDescription({teamname: routeProps.get('teamname'), description}))
     dispatch(navigateUp())

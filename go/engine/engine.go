@@ -5,21 +5,14 @@ package engine
 
 import (
 	"fmt"
+	"runtime/debug"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"runtime/debug"
 )
 
-type Prereqs struct {
-	TemporarySession bool
-	Device           bool
-}
-
-type Engine2 interface {
-	Run(libkb.MetaContext) error
-	Prereqs() Prereqs
-	libkb.UIConsumer
-}
+type Prereqs = libkb.EnginePrereqs
+type Engine2 = libkb.Engine2
 
 type UIDelegateWanter interface {
 	WantDelegate(libkb.UIKind) bool

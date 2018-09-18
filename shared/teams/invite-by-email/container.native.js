@@ -3,7 +3,7 @@ import logger from '../../logger'
 import * as ConfigGen from '../../actions/config-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Constants from '../../constants/teams'
-import {Set, Map} from 'immutable'
+import * as I from 'immutable'
 import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
@@ -34,14 +34,14 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {
-    _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : Set(),
+    _pendingInvites: teamname ? Constants.getTeamInvites(state, teamname) : I.Set(),
     errorMessage: inviteError.message,
+    loadingInvites: teamname ? Constants.getTeamLoadingInvites(state, teamname) : I.Map(),
     name: teamname,
-    loadingInvites: teamname ? Constants.getTeamLoadingInvites(state, teamname) : Map(),
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
@@ -49,9 +49,20 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
   },
   onInviteEmail: ({invitee, role}) => {
+    const teamname = routeProps.get('teamname')
+    const rootPath = routePath.take(1)
+    const sourceSubPath = routePath.rest()
+    const destSubPath = sourceSubPath.butLast()
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
-      TeamsGen.createInviteToTeamByEmail({teamname: routeProps.get('teamname'), role, invitees: invitee})
+      TeamsGen.createInviteToTeamByEmail({
+        destSubPath,
+        invitees: invitee,
+        role,
+        rootPath,
+        sourceSubPath,
+        teamname,
+      })
     )
     dispatch(TeamsGen.createGetTeams())
   },
@@ -97,7 +108,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   compose(
     // basic state setters
     withStateHandlers(
@@ -206,6 +217,7 @@ export default compose(
     // If contacts or _pendingInvites changes, recalculate the props on the contact rows.
     withPropsOnChange(['contacts', 'loadingInvites', '_pendingInvites'], props => {
       // Create static contact row props here
+      const knownIDs = new Set()
       const contactRowProps = props.contacts
         .reduce((res, contact) => {
           const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
@@ -218,13 +230,18 @@ export default compose(
               thumbnailPath: contact.thumbnailPath,
               recordID: contact.recordID + (addr.email ? addr.email : addr.number),
             }
-            res.push({
-              id: contact.recordID + (addr.email ? addr.email : addr.number),
-              loading: props.isLoading(addr.email, addr.number),
-              contact: cData,
-              selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
-              onClick: () => props.onSelectContact(cData),
-            })
+
+            const id = contact.recordID + (addr.email ? addr.email : addr.number)
+            if (!knownIDs.has(id)) {
+              knownIDs.add(id)
+              res.push({
+                id,
+                loading: props.isLoading(addr.email, addr.number),
+                contact: cData,
+                selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
+                onClick: () => props.onSelectContact(cData),
+              })
+            }
           })
           return res
         }, [])

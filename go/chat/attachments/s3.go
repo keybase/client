@@ -8,12 +8,60 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"sync"
 
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/sync/errgroup"
 )
+
+const s3PipelineMaxWidth = 10
+
+type s3UploadPipeliner struct {
+	sync.Mutex
+	width   int
+	waiters []chan struct{}
+}
+
+func (s *s3UploadPipeliner) QueueForTakeoff(ctx context.Context) error {
+	s.Lock()
+	if s.width >= s3PipelineMaxWidth {
+		ch := make(chan struct{})
+		s.waiters = append(s.waiters, ch)
+		s.Unlock()
+		select {
+		case <-ch:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		s.Lock()
+		s.width++
+		s.Unlock()
+		return nil
+	}
+	s.width++
+	s.Unlock()
+	return nil
+}
+
+func (s *s3UploadPipeliner) Complete() {
+	s.Lock()
+	defer s.Unlock()
+	if len(s.waiters) > 0 {
+		close(s.waiters[0])
+		if len(s.waiters) > 1 {
+			s.waiters = s.waiters[1:]
+		} else {
+			s.waiters = nil
+		}
+	}
+	if s.width > 0 {
+		s.width--
+	}
+}
+
+var s3UploadPipeline = &s3UploadPipeliner{}
 
 const minMultiSize = 5 * 1024 * 1024 // can't use Multi API with parts less than 5MB
 const blockSize = 5 * 1024 * 1024    // 5MB is the minimum Multi part size
@@ -39,7 +87,13 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
-	if size <= minMultiSize {
+	multiPartUpload := size > minMultiSize
+	if multiPartUpload && a.env.GetAttachmentDisableMulti() {
+		a.Debug(ctx, "PutS3: multi part upload manually disabled, overriding for size: %v", size)
+		multiPartUpload = false
+	}
+
+	if !multiPartUpload {
 		if err := a.putSingle(ctx, r, size, task.S3Params, b, task.Progress); err != nil {
 			return nil, err
 		}
@@ -67,21 +121,9 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
 	b s3.BucketInt, progress types.ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
-	// In order to be able to retry the upload, need to read in the entire
-	// attachment.  But putSingle is only called for attachments <= 5MB, so
-	// this isn't horrible.
-	buf := make([]byte, size)
-	n, err := io.ReadFull(r, buf)
-	if err != nil {
-		return err
-	}
-	if int64(n) != size {
-		return fmt.Errorf("invalid read attachment size: %d (expected %d)", n, size)
-	}
-	sr := bytes.NewReader(buf)
 
 	progWriter := newProgressWriter(progress, size)
-	tee := io.TeeReader(sr, progWriter)
+	tee := io.TeeReader(r, progWriter)
 
 	if err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl),
 		s3.Options{}); err != nil {
@@ -119,6 +161,8 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 		list, err := multi.ListParts(ctx)
 		if err != nil {
 			a.Debug(ctx, "putMultiPipeline: ignoring multi.ListParts error: %s", err)
+			// dump previous since we can't check it anymore
+			previous = nil
 		} else {
 			for _, p := range list {
 				previousParts[p.N] = p
@@ -136,17 +180,22 @@ func (a *S3Store) putMultiPipeline(ctx context.Context, r io.Reader, size int64,
 		defer close(blockCh)
 		return a.makeBlockJobs(ectx, r, blockCh, task.stashKey(), previous)
 	})
-	for i := 0; i < 10; i++ {
-		eg.Go(func() error {
-			for b := range blockCh {
+	eg.Go(func() error {
+		for lb := range blockCh {
+			if err := s3UploadPipeline.QueueForTakeoff(ectx); err != nil {
+				return err
+			}
+			b := lb
+			eg.Go(func() error {
+				defer s3UploadPipeline.Complete()
 				if err := a.uploadPart(ectx, task, b, previous, previousParts, multi, retCh); err != nil {
 					return err
 				}
-			}
-			return nil
-		})
-	}
-
+				return nil
+			})
+		}
+		return nil
+	})
 	go func() {
 		eg.Wait()
 		close(retCh)

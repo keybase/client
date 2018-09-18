@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
@@ -16,8 +15,7 @@ import (
 )
 
 type teamChannelCacheItem struct {
-	dat   []chat1.ChannelNameMention
-	entry time.Time
+	dat []chat1.ChannelNameMention
 }
 
 type CachingTeamChannelSource struct {
@@ -59,19 +57,14 @@ func (c *CachingTeamChannelSource) fetchFromCache(ctx context.Context,
 	if item, ok = val.(teamChannelCacheItem); !ok {
 		return nil, false
 	}
-	// Check to see if the entry is stale, and get it out of there if so
-	if time.Now().Sub(item.entry) > time.Hour {
-		c.invalidate(ctx, teamID)
-		return nil, false
-	}
+	// c.ChannelsChanged handles cache invalidation on updates.
 	return item.dat, true
 }
 
 func (c *CachingTeamChannelSource) writeToCache(ctx context.Context,
 	teamID chat1.TLFID, topicType chat1.TopicType, names []chat1.ChannelNameMention) {
 	c.cache.Add(c.key(teamID, topicType), teamChannelCacheItem{
-		dat:   names,
-		entry: time.Now(),
+		dat: names,
 	})
 }
 
@@ -120,6 +113,10 @@ func (c *CachingTeamChannelSource) GetChannelsTopicName(ctx context.Context, uid
 		TlfID:            teamID,
 		TopicType:        topicType,
 		SummarizeMaxMsgs: false,
+		// The cached data is valid at the tlfID level, since we don't need
+		// anything user specific, this is ok to pass in. If that assumption
+		// changes we should reevaluate.
+		UseCache: true,
 	})
 	if err != nil {
 		c.Debug(ctx, "GetChannelsTopicName: failed to get TLF convos: %s", err)
@@ -204,6 +201,10 @@ func (c *CachingTeamChannelSource) ChannelsChanged(ctx context.Context, teamID c
 		c.cache.Purge()
 	} else {
 		c.invalidate(ctx, teamID)
+		// Let's prefill the cache here so we can quickly figure out channel
+		// name mentions.
+		uid := gregor1.UID(c.G().Env.GetUID().ToBytes())
+		c.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
 	}
 }
 

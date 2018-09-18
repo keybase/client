@@ -80,7 +80,7 @@ func (e *ResolveThenIdentify2) resolveUID(m libkb.MetaContext) (err error) {
 		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
 	}
 
-	rres := m.G().Resolver.ResolveFullExpressionWithBody(m.Ctx(), e.arg.UserAssertion)
+	rres := m.G().Resolver.ResolveFullExpressionWithBody(m, e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err
 	}

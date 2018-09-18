@@ -1,46 +1,31 @@
 // @flow
-import * as I from 'immutable'
-import * as Types from '../../constants/types/fs'
-import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
-import {putActionIfOnPath, navigateAppend} from '../route-tree'
+import type {TypedState} from '../../constants/reducer'
 import {showImagePicker} from 'react-native-image-picker'
 import {isIOS} from '../../constants/platform'
+import {makeRetriableErrorHandler} from './shared'
 
-const getDownloadPopupAction = (path: Types.Path, routePath?: I.List<string>) =>
-  Saga.put(
-    routePath
-      ? putActionIfOnPath(routePath, navigateAppend([{props: {path}, selected: 'downloadPopup'}]))
-      : navigateAppend([{props: {path}, selected: 'downloadPopup'}])
-  )
-
-export const shareNative = ({payload: {path, routePath}}: FsGen.ShareNativePayload) =>
-  Saga.sequentially([
-    Saga.put(FsGen.createDownload({intent: 'share', path})),
-    getDownloadPopupAction(path, routePath),
-  ])
-
-export const saveMedia = ({payload: {path, routePath}}: FsGen.SaveMediaPayload) =>
-  Saga.sequentially([
-    Saga.put(FsGen.createDownload({intent: 'camera-roll', path})),
-    getDownloadPopupAction(path, routePath),
-  ])
-
-export const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
+export const pickAndUploadToPromise = (state: TypedState, action: FsGen.PickAndUploadPayload): Promise<any> =>
   new Promise((resolve, reject) =>
     showImagePicker(
       {
-        mediaType: isIOS ? 'mixed' : 'photo', // 'mixed' is not supported on Android. TODO: find something better.
+        mediaType: action.payload.type,
         quality: 1,
         videoQuality: 'high',
       },
       response =>
-        !response.didCancel &&
-        (response.error
-          ? reject(response.error)
-          : resolve(isIOS ? response.uri.replace('file://', '') : response.path))
+        response.didCancel
+          ? resolve()
+          : response.error
+            ? reject(response.error)
+            : isIOS
+              ? response.uri
+                ? resolve(response.uri.replace('file://', ''))
+                : reject(new Error('uri field is missing from response'))
+              : response.path
+                ? resolve(response.path)
+                : reject(new Error('path field is missing from response'))
     )
   )
-
-export const pickAndUploadSuccess = (localPath: string, action: FsGen.PickAndUploadPayload) =>
-  localPath && Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+    .then(localPath => localPath && FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+    .catch(makeRetriableErrorHandler(action))

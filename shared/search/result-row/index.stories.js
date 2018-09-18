@@ -1,27 +1,31 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import ResultRow, {type Props} from '.'
 import ConnectedResultRow, {type OwnProps} from './container'
 import {type SearchResultId} from '../../constants/types/search'
 import {Box} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
-import {storiesOf, action, createPropProvider, PropProviders} from '../../stories/storybook'
 
 export type ConnectProps = $Exact<$Diff<Props, OwnProps>>
 
 const defaultConnectProps = {
+  leftFollowingState: 'NoState',
   leftFullname: null,
   leftIcon: null,
+  leftIconOpaque: true,
   leftService: 'Keybase',
   leftUsername: '',
 
+  rightFollowingState: 'NoState',
   rightIcon: null,
+  rightIconOpaque: true,
   rightService: null,
   rightUsername: null,
 
-  leftFollowingState: 'NoState',
-  rightFollowingState: 'NoState',
+  userAlreadySelected: false,
   userIsInTeam: false,
+  userIsSelectable: true,
 }
 
 export type ConnectPropsMap = {[id: SearchResultId]: ?ConnectProps}
@@ -30,16 +34,20 @@ const defaultConnectPropsMap: ConnectPropsMap = {
   jzila: {
     leftFullname: 'John Zila',
     leftIcon: null,
+    leftIconOpaque: true,
     leftService: 'Keybase',
     leftUsername: 'jzila',
 
     rightIcon: null,
+    rightIconOpaque: true,
     rightService: null,
     rightUsername: null,
 
     leftFollowingState: 'NotFollowing',
     rightFollowingState: 'NotFollowing',
+    userAlreadySelected: false,
     userIsInTeam: false,
+    userIsSelectable: true,
   },
 }
 
@@ -54,25 +62,26 @@ const mockOwnPropsToProps = (connectPropsMap: ConnectPropsMap, ownProps: OwnProp
 const defaultOwnProps: OwnProps = {
   disableIfInTeamName: '',
   id: 'jzila',
+  searchKey: 'search key',
   selected: false,
-  onClick: action('On click'),
-  onMouseOver: action('On mouse over'),
+  onClick: Sb.action('On click'),
+  onMouseOver: Sb.action('On mouse over'),
 }
 
 const defaultProps = mockOwnPropsToProps(defaultConnectPropsMap, defaultOwnProps)
 
 export const makeSelectorMap = (connectPropsMap: ConnectPropsMap = defaultConnectPropsMap) => ({
-  ...PropProviders.Common(),
   SearchResultRow: (ownProps: OwnProps): Props => mockOwnPropsToProps(connectPropsMap, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
-const onShowTracker = action('Show tracker')
+const onShowTracker = Sb.action('Show tracker')
 
 const load = () => {
-  storiesOf('Search', module)
+  Sb.storiesOf('Search', module)
     .addDecorator(provider)
+    .addDecorator(Sb.scrollViewDecorator)
     .addDecorator(story => <Box style={isMobile ? {} : {width: 480}}>{story()}</Box>)
 
     .add('Result row', () => (

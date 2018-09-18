@@ -10,12 +10,13 @@ import {
   type StylesCrossPlatform,
 } from '../../../../styles'
 import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
-import {type MenuItem} from '../../../../common-adapters/popup-menu'
-import {type RetentionPolicy} from '../../../../constants/types/teams'
+import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
+import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
-import {type RetentionEntityType} from './container'
+
+export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
 export type Props = {
   canSetPolicy: boolean,
@@ -98,6 +99,7 @@ class RetentionPicker extends React.Component<Props, State> {
     }))
 
   _setDropdownRef = ref => (this._dropdownRef = ref)
+  _getDropdownRef = () => this._dropdownRef
 
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
@@ -157,7 +159,7 @@ class RetentionPicker extends React.Component<Props, State> {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <FloatingMenu
-          attachTo={this._dropdownRef}
+          attachTo={this._getDropdownRef}
           closeOnSelect={true}
           visible={this.state.showMenu}
           onHidden={this._toggleShowMenu}

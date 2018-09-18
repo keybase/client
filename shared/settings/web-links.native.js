@@ -7,12 +7,12 @@ const mapStateToProps = (state: TypedState, {routeProps}) => ({
   title: routeProps.get('title'),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
 const WebLinks = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   defaultProps({
     dataDetectorTypes: 'none',
   }),

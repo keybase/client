@@ -12,13 +12,15 @@ import (
 )
 
 type DeviceKeygenArgs struct {
-	Me             *libkb.User
-	DeviceID       keybase1.DeviceID
-	DeviceName     string
-	DeviceType     string
-	Lks            *libkb.LKSec
-	IsEldest       bool
-	PerUserKeyring *libkb.PerUserKeyring
+	Me              *libkb.User
+	DeviceID        keybase1.DeviceID
+	DeviceName      string
+	DeviceType      string
+	Lks             *libkb.LKSec
+	IsEldest        bool
+	IsSelfProvision bool
+	PerUserKeyring  *libkb.PerUserKeyring
+	EkReboxer       *ephemeralKeyReboxer
 }
 
 // DeviceKeygenPushArgs determines how the push will run.  There are
@@ -121,7 +123,7 @@ func (e *DeviceKeygen) EncryptionKey() libkb.NaclDHKeyPair {
 
 // Push pushes the generated keys to the api server and stores the
 // local key security server half on the api server as well.
-func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) error {
+func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) (err error) {
 	var encSigner libkb.GenericKey
 	eldestKID := pargs.EldestKID
 
@@ -145,8 +147,8 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		}
 		pukBoxes = append(pukBoxes, pukBox)
 	}
-	if !e.args.IsEldest {
-		boxes, err := e.preparePerUserKeyBoxFromPaperkey(m)
+	if !e.args.IsEldest || e.args.IsSelfProvision {
+		boxes, err := e.preparePerUserKeyBoxFromProvisioningKey(m)
 		if err != nil {
 			return err
 		}
@@ -167,8 +169,15 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 
 	ds = e.appendEncKey(m, ds, encSigner, eldestKID, pargs.User)
 
-	var pukSigProducer libkb.AggSigProducer // = nil
+	var userEKReboxArg *keybase1.UserEkReboxArg
+	if e.args.IsSelfProvision {
+		userEKReboxArg, err = e.reboxUserEK(m, encSigner)
+		if err != nil {
+			return err
+		}
+	}
 
+	var pukSigProducer libkb.AggSigProducer // = nil
 	// PerUserKey does not use Delegator.
 	if e.G().Env.GetUpgradePerUserKey() && e.args.IsEldest {
 		// Sign in the new per-user-key
@@ -182,7 +191,7 @@ func (e *DeviceKeygen) Push(m libkb.MetaContext, pargs *DeviceKeygenPushArgs) er
 		}
 	}
 
-	e.pushErr = libkb.DelegatorAggregator(m, ds, pukSigProducer, pukBoxes, nil)
+	e.pushErr = libkb.DelegatorAggregator(m, ds, pukSigProducer, pukBoxes, nil, userEKReboxArg)
 
 	// push the LKS server half
 	e.pushLKS(m)
@@ -250,6 +259,19 @@ func (e *DeviceKeygen) localSave(m libkb.MetaContext) {
 	if e.runErr = e.naclEncGen.SaveLKS(m, e.args.Lks); e.runErr != nil {
 		return
 	}
+}
+
+func (e *DeviceKeygen) reboxUserEK(m libkb.MetaContext, signingKey libkb.GenericKey) (reboxArg *keybase1.UserEkReboxArg, err error) {
+	defer m.CTrace("DeviceKeygen#reboxUserEK", func() error { return err })()
+	ekKID, err := e.args.EkReboxer.getDeviceEKKID()
+	if err != nil {
+		return nil, err
+	}
+	userEKBox, err := makeUserEKBoxForProvisionee(m, ekKID)
+	if err != nil {
+		return nil, err
+	}
+	return e.args.EkReboxer.getReboxArg(m, userEKBox, e.args.DeviceID, signingKey)
 }
 
 func (e *DeviceKeygen) appendEldest(m libkb.MetaContext, ds []libkb.Delegator, pargs *DeviceKeygenPushArgs) []libkb.Delegator {
@@ -359,8 +381,8 @@ func (e *DeviceKeygen) device() *libkb.Device {
 }
 
 // Can return no boxes if there are no per-user-keys.
-func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
-	// Assuming this is a paperkey provision.
+func (e *DeviceKeygen) preparePerUserKeyBoxFromProvisioningKey(m libkb.MetaContext) ([]keybase1.PerUserKeyBox, error) {
+	// Assuming this is a paperkey or self provision.
 
 	upak := e.args.Me.ExportToUserPlusAllKeys()
 	if len(upak.Base.PerUserKeys) == 0 {
@@ -373,34 +395,34 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]
 		return nil, errors.New("missing PerUserKeyring")
 	}
 
-	paperKey := m.ActiveDevice().PaperKey(m)
-	var paperSigKey, paperEncKeyGeneric libkb.GenericKey
-	if paperKey != nil {
-		paperSigKey = paperKey.SigningKey()
-		paperEncKeyGeneric = paperKey.EncryptionKey()
+	provisioningKey := m.ActiveDevice().ProvisioningKey(m)
+	var provisioningSigKey, provisioningEncKeyGeneric libkb.GenericKey
+	if provisioningKey != nil {
+		provisioningSigKey = provisioningKey.SigningKey()
+		provisioningEncKeyGeneric = provisioningKey.EncryptionKey()
 	}
 
-	if paperSigKey == nil && paperEncKeyGeneric == nil {
+	if provisioningSigKey == nil && provisioningEncKeyGeneric == nil {
 		// GPG provisioning is not supported when the user has per-user-keys.
 		// This is the error that manifests. See CORE-4960
-		return nil, errors.New("missing paper key in login context")
+		return nil, errors.New("missing provisioning key in login context")
 	}
-	if paperSigKey == nil {
-		return nil, errors.New("missing paper sig key")
+	if provisioningSigKey == nil {
+		return nil, errors.New("missing provisioning sig key")
 	}
-	if paperEncKeyGeneric == nil {
-		return nil, errors.New("missing paper enc key")
+	if provisioningEncKeyGeneric == nil {
+		return nil, errors.New("missing provisioning enc key")
 	}
-	paperEncKey, ok := paperEncKeyGeneric.(libkb.NaclDHKeyPair)
+	provisioningEncKey, ok := provisioningEncKeyGeneric.(libkb.NaclDHKeyPair)
 	if !ok {
 		return nil, errors.New("Unexpected encryption key type")
 	}
 
-	paperDeviceID, err := upak.GetDeviceID(paperSigKey.GetKID())
+	provisioningDeviceID, err := upak.GetDeviceID(provisioningSigKey.GetKID())
 	if err != nil {
 		return nil, err
 	}
-	err = pukring.SyncAsPaperKey(m, &upak, paperDeviceID, paperEncKey)
+	err = pukring.SyncAsProvisioningKey(m, &upak, provisioningDeviceID, provisioningEncKey)
 	if err != nil {
 		return nil, err
 	}
@@ -408,8 +430,8 @@ func (e *DeviceKeygen) preparePerUserKeyBoxFromPaperkey(m libkb.MetaContext) ([]
 		return nil, nil
 	}
 	pukBox, err := pukring.PrepareBoxForNewDevice(m,
-		e.EncryptionKey(), // receiver key: provisionee enc
-		paperEncKey,       // sender key: paper key enc
+		e.EncryptionKey(),  // receiver key: provisionee enc
+		provisioningEncKey, // sender key: provisioning key enc
 	)
 	return []keybase1.PerUserKeyBox{pukBox}, err
 }

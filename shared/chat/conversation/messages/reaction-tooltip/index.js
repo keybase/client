@@ -6,7 +6,7 @@ import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate}
 import ReactButton from '../react-button/container'
 
 export type Props = {|
-  attachmentRef?: ?React.Component<any, any>,
+  attachmentRef?: ?() => ?React.ElementRef<any>,
   conversationIDKey: Types.ConversationIDKey,
   onAddReaction: () => void,
   onHidden: () => void,
@@ -36,7 +36,7 @@ export const ReactionTooltip = (props: Props) => {
       attachTo={props.attachmentRef}
       onHidden={props.onHidden}
       position="top center"
-      positionFallbacks={['bottom center']}
+      positionFallbacks={['bottom center', 'left center']}
       propagateOutsideClicks={true}
       style={styles.overlay}
     >
@@ -56,15 +56,18 @@ export const ReactionTooltip = (props: Props) => {
           </Box2>
         )}
         <SectionList
-          stickySectionHeadersEnabled={true}
+          alwaysBounceVertical={false}
+          initialNumToRender={19} // Keeps height from trashing on mobile
           sections={sections}
+          stickySectionHeadersEnabled={true}
+          style={styles.list}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
         />
         {isMobile && (
           <ClickableBox onClick={props.onAddReaction}>
             <Box2 centerChildren={true} direction="horizontal" gap="xtiny" style={styles.addReactionButton}>
-              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />{' '}
+              <Icon type="iconfont-reacji" color={globalColors.black_40} fontSize={22} />
               <Text type="BodySemibold" style={styles.addReactionButtonText}>
                 Add a reaction
               </Text>
@@ -106,6 +109,7 @@ const renderSectionHeader = ({
     direction="horizontal"
     gap="tiny"
     gapStart={true}
+    gapEnd={true}
     fullWidth={true}
     style={styles.buttonContainer}
   >
@@ -113,9 +117,8 @@ const renderSectionHeader = ({
       conversationIDKey={section.conversationIDKey}
       ordinal={section.ordinal}
       emoji={section.title}
-      tooltipEnabled={false}
     />
-    <Text type="Terminal" style={styles.emojiText}>
+    <Text type="Terminal" lineClamp={1} style={styles.emojiText}>
       {section.title}
     </Text>
   </Box2>
@@ -152,14 +155,22 @@ const styles = styleSheetCreate({
   },
   emojiText: {
     color: globalColors.black_40,
+    flex: -1,
   },
+  list: platformStyles({
+    isElectron: {
+      paddingBottom: globalMargins.small,
+    },
+  }),
   listContainer: platformStyles({
+    common: {
+      backgroundColor: globalColors.white,
+    },
     isElectron: {
       maxHeight: 320,
       width: 240,
     },
     isMobile: {
-      backgroundColor: globalColors.white,
       maxHeight: '90%',
       width: '100%',
     },

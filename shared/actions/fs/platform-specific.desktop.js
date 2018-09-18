@@ -1,6 +1,5 @@
 // @flow
 import * as FsGen from '../fs-gen'
-import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
@@ -13,10 +12,9 @@ import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
 import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
-import {spawn, execFileSync} from 'child_process'
+import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
-import {putActionIfOnPath, navigateTo, navigateAppend, navigateUp} from '../route-tree'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {navigateTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -120,19 +118,10 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .slice(2)
     .join(path.sep)
 
-  const state: TypedState = yield Saga.select()
-  let {
-    config: {kbfsPath},
-  } = state
+  const kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
   if (!kbfsPath) {
-    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-
-    if (!kbfsPath) {
-      throw new Error('No kbfsPath (RPC)')
-    }
-
-    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
+    throw new Error('No kbfsPath (RPC)')
   }
 
   const resolvedPath = path.resolve(kbfsPath, subPath)
@@ -149,7 +138,7 @@ function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: T
   const openPath = path || downloadFolder
   const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
   if (isLinux || enabled) {
-    return Saga.call(openWithCurrentMountDir, openPath)
+    return Saga.call(openPath.startsWith(Config.defaultKBFSPath) ? openWithCurrentMountDir : _open, openPath)
   } else {
     return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
   }
@@ -173,11 +162,10 @@ function waitForMount(attempt: number) {
   })
 }
 
-const installKBFSSuccess = (result: RPCTypes.InstallResult) =>
-  Saga.sequentially([
-    Saga.call(waitForMount, 0),
-    Saga.put(FsGen.createSetFlags({kbfsInstalling: false, showBanner: true})),
-  ])
+const installKBFS = () =>
+  RPCTypes.installInstallKBFSRpcPromise()
+    .then(() => waitForMount(0))
+    .then(() => FsGen.createSetFlags({kbfsInstalling: false, showBanner: true}))
 
 function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
   // If our kextStarted status changed, finish KBFS install
@@ -303,50 +291,23 @@ function installDokanSaga() {
   return Saga.call(installCachedDokan)
 }
 
-function openFinderPopup(action: FsGen.OpenFinderPopupPayload) {
-  const {targetRect, routePath} = action.payload
-  return Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([
-        {
-          props: {
-            targetRect,
-            position: 'bottom right',
-            onHidden: () => Saga.put(navigateUp()),
-            onInstall: () => Saga.put(FsGen.createInstallFuse()),
-          },
-          selected: 'finderAction',
-        },
-      ])
-    )
-  )
-}
-
-function platformSpecificIntentEffect(
-  intent: Types.DownloadIntent,
-  localPath: string,
-  mimeType: string
-): ?Saga.Effect {
-  switch (intent) {
-    case 'camera-roll':
-      return Saga.call(saveAttachmentDialog, localPath)
-    case 'share':
-      return Saga.call(showShareActionSheet, {url: localPath, mimeType})
-    case 'none':
-    case 'web-view':
-    case 'web-view-text':
-      return null
-    default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
-      return null
+const uninstallDokanPromise = (state: TypedState) => {
+  const uninstallString = Constants.kbfsUninstallString(state)
+  if (!uninstallString) {
+      return
   }
+  logger.info('Invoking dokan uninstaller')
+  return new Promise(resolve => {
+    try {
+      exec(uninstallString, {windowsHide: true}, resolve)
+    } catch (e) {
+        logger.error('uninstallDokan caught', e)
+        resolve()
+    }
+  }).then(() => FsGen.createFuseStatus())
 }
 
-const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
+const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   new Promise((resolve, reject) =>
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
@@ -354,40 +315,38 @@ const pickAndUpload = ({payload: {type}}: FsGen.PickAndUploadPayload) =>
         title: 'Select a file or folder to upload',
         properties: [
           'multiSelections',
-          ...(['file', 'both'].includes(type) ? ['openFile'] : []),
-          ...(['directory', 'both'].includes(type) ? ['openDirectory'] : []),
+          ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
+          ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
       },
-      filePaths => {
-        return resolve(filePaths)
-      }
+      filePaths => resolve(filePaths || [])
     )
   )
 
-const pickAndUploadSuccess = (localPaths, action: FsGen.PickAndUploadPayload) =>
-  localPaths &&
-  Saga.sequentially(
-    localPaths.map(localPath =>
-      Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
+  Saga.call(function*() {
+    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
+    yield Saga.all(
+      localPaths.map(localPath =>
+        Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+      )
     )
-  )
+  })
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.safeTakeEveryPure(FsGen.installKBFS, RPCTypes.installInstallKBFSRpcPromise, installKBFSSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
-  yield Saga.safeTakeEveryPure(FsGen.pickAndUpload, pickAndUpload, pickAndUploadSuccess)
+  yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
+  yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
+    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
+    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
-
-  // These are saga tasks that may use actions above.
-  yield Saga.safeTakeEveryPure(FsGen.openFinderPopup, openFinderPopup)
 }
 
-export {platformSpecificIntentEffect, platformSpecificSaga}
+export default platformSpecificSaga

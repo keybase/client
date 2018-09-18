@@ -1,32 +1,37 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import UserInput, {type UserDetails} from '.'
 import ConnectedUserInput, {type OwnProps, type Props} from './container'
 import {Box, Box2, Text} from '../../common-adapters'
 import {collapseStyles} from '../../styles'
 import {compose, withStateHandlers} from 'recompose'
 import {isMobile} from '../../constants/platform'
-import {action, storiesOf, createPropProvider, unexpected, PropProviders} from '../../stories/storybook'
 
 const defaultOwnProps: OwnProps = {
   searchKey: 'search key',
   autoFocus: false,
+  hideClearSearch: false,
   placeholder: 'Type someone',
-  onExitSearch: action('onExitSearch'),
-  onSelectUser: action('onSelectUser'),
+  onExitSearch: Sb.action('onExitSearch'),
+  onSelectUser: Sb.action('onSelectUser'),
+  onFocus: Sb.action('onFocus'),
 }
 
 const inputCommon = {
   autoFocus: false,
-  onAddSelectedUser: action('Add selected user'),
-  onCancel: action('Cancel'),
-  onChangeText: action('Change text'),
-  onClearSearch: action('Clear search'),
-  onClickAddButton: action('Add button click'),
-  onEnterEmptyText: action('onEnterEmptyText'),
-  onMoveSelectDown: action('Move select down'),
-  onMoveSelectUp: action('Move select up'),
-  onRemoveUser: action('Remove user'),
+  hideClearSearch: false,
+  hideAddButton: false,
+  onFocus: Sb.action('onFocus'),
+  onAddSelectedUser: Sb.action('Add selected user'),
+  onCancel: Sb.action('Cancel'),
+  onChangeText: Sb.action('Change text'),
+  onClearSearch: Sb.action('Clear search'),
+  onClickAddButton: Sb.action('Add button click'),
+  onEnterEmptyText: Sb.action('onEnterEmptyText'),
+  onMoveSelectDown: Sb.action('Move select down'),
+  onMoveSelectUp: Sb.action('Move select up'),
+  onRemoveUser: Sb.action('Remove user'),
   placeholder: 'Type someone',
   selectedSearchId: null,
 }
@@ -111,10 +116,10 @@ const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps):
   const props = {
     ...ownProps,
     ...inputCommon,
-    onChangeText: unexpected('search should be used instead'),
-    onClickAddButton: unexpected('search should be used instead'),
+    onChangeText: Sb.unexpected('search should be used instead'),
+    onClickAddButton: Sb.unexpected('search should be used instead'),
     usernameText: '',
-    search: action('search'),
+    search: Sb.action('search'),
 
     userItems,
   }
@@ -128,11 +133,10 @@ const mockOwnPropsToProps = (userItems: Array<UserDetails>, ownProps: OwnProps):
 }
 
 export const makeSelectorMap = (userItems: Array<UserDetails> = maxUsers) => ({
-  ...PropProviders.Common(),
-  UserInput: ownProps => mockOwnPropsToProps(userItems, ownProps),
+  UserInput: (ownProps: OwnProps) => mockOwnPropsToProps(userItems, ownProps),
 })
 
-const provider = createPropProvider(makeSelectorMap())
+const provider = Sb.createPropProviderWithCommon(makeSelectorMap())
 
 const UserInputEditable = compose(
   withStateHandlers(props => ({userItems: props.userItems, usernameText: ''}), {
@@ -158,7 +162,7 @@ const defaultBoxStyle = {
 }
 
 const load = () => {
-  storiesOf('Search/UserInput', module)
+  Sb.storiesOf('Search/UserInput', module)
     .addDecorator(provider)
     .add('Empty list', () => (
       <Box style={collapseStyles([defaultBoxStyle, {height: 500}])}>

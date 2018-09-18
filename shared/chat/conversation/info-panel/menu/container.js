@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
-import type {Component} from 'react'
+import * as React from 'react'
 import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
 import {
   compose,
@@ -15,7 +15,7 @@ import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tr
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   onHidden: () => void,
   isSmallTeam: boolean,
   teamname: string,
@@ -66,7 +66,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
@@ -100,7 +100,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {teamname}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   setDisplayName('TeamDropdownMenu'),
   lifecycle({
     componentDidMount() {

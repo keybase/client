@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 )
 
@@ -66,7 +67,6 @@ func (h *Handler) autoClaim(mctx libkb.MetaContext, cli gregor1.IncomingInterfac
 }
 
 func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
 	mctx.CDebugf("%v: %v received", h.Name(), category)
 	var msg stellar1.PaymentStatusMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
@@ -74,6 +74,14 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		return err
 	}
 	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
+
+	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.KbTxID, msg.TxID)
+	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), stellar1.PaymentID{TxID: msg.TxID})
+
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
+	}
 
 	return nil
 }
@@ -87,6 +95,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	}
 
 	h.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
+	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), msg.PaymentID)
 
 	// Note: these messages are not getting dismissed except by their
 	// expiration time (7 days).  Once frontend starts handling them,
@@ -102,14 +111,20 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 }
 
 func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInterface, category string, item gregor.Item) error {
-	defer h.G().GregorDismisser.DismissItem(mctx.Ctx(), cli, item.Metadata().MsgID())
 	mctx.CDebugf("%v: %v received", h.Name(), category)
 	var msg stellar1.RequestStatusMsg
 	if err := json.Unmarshal(item.Body().Bytes(), &msg); err != nil {
 		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
+
+	h.G().NotifyRouter.HandleWalletRequestStatusNotification(mctx.Ctx(), msg.ReqID)
+	stellar.DefaultLoader(h.G()).UpdateRequest(mctx.Ctx(), msg.ReqID)
+
+	// We will locally dismiss for now so that each client only plays them once:
+	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
+	}
 
 	return nil
 }

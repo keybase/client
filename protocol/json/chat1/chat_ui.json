@@ -12,6 +12,11 @@
       "import_as": "gregor1"
     },
     {
+      "path": "github.com/keybase/client/go/protocol/stellar1",
+      "type": "idl",
+      "import_as": "stellar1"
+    },
+    {
       "path": "common.avdl",
       "type": "idl"
     }
@@ -420,8 +425,81 @@
           "name": "fullUrl"
         },
         {
+          "type": "boolean",
+          "name": "fullUrlCached"
+        },
+        {
           "type": "string",
           "name": "mimeType"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "videoDuration"
+        },
+        {
+          "type": "boolean",
+          "name": "inlineVideoPlayable"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIPaymentInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": "string",
+          "name": "worth"
+        },
+        {
+          "type": "stellar1.BalanceDelta",
+          "name": "delta"
+        },
+        {
+          "type": "string",
+          "name": "note"
+        },
+        {
+          "type": "stellar1.PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIRequestInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "amountDescription"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.Asset"
+          ],
+          "name": "asset"
+        },
+        {
+          "type": [
+            null,
+            "stellar1.OutsideCurrencyCode"
+          ],
+          "name": "currency"
         }
       ]
     },
@@ -522,6 +600,20 @@
         {
           "type": "boolean",
           "name": "hasPairwiseMacs"
+        },
+        {
+          "type": [
+            null,
+            "UIPaymentInfo"
+          ],
+          "name": "paymentInfo"
+        },
+        {
+          "type": [
+            null,
+            "UIRequestInfo"
+          ],
+          "name": "requestInfo"
         }
       ]
     },
@@ -552,6 +644,14 @@
         {
           "type": "double",
           "name": "ordinal"
+        },
+        {
+          "type": "string",
+          "name": "filename"
+        },
+        {
+          "type": "string",
+          "name": "title"
         },
         {
           "type": [

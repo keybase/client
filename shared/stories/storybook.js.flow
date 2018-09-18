@@ -5,14 +5,16 @@ export type SelectorMap = {
   [componentDisplayName: string]: (any => any) | Object,
 }
 
-declare function storiesOf(name: string, module: any): any
-declare function action(name: string): any
-declare function createPropProvider(...maps: SelectorMap[]): (() => React.Node) => React.Node
-declare function unexpected(name: string): () => void
+declare export function storiesOf(name: string, module: any): any
+declare export function action(name: string): any
+declare export function scrollViewDecorator(): Function
+declare export function createPropProvider(...maps: SelectorMap[]): (() => React.Node) => React.Node
+declare export function createPropProviderWithCommon(...maps: SelectorMap[]): (() => React.Node) => React.Node
+declare export function unexpected(name: string): () => void
 
-declare class Rnd {
+declare export class Rnd {
   constructor(seed: number): Rnd;
   next(): number;
 }
 
-export {action, storiesOf, createPropProvider, unexpected, Rnd, PropProviders}
+export {PropProviders}

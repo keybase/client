@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/pager"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 
 	"regexp"
 
@@ -112,9 +113,9 @@ func AggRateLimits(rlimits []chat1.RateLimit) (res []chat1.RateLimit) {
 // ReorderParticipants based on the order in activeList.
 // Only allows usernames from tlfname in the output.
 // This never fails, worse comes to worst it just returns the split of tlfname.
-func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
+func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapper libkb.UIDMapper,
 	tlfname string, activeList []gregor1.UID) (writerNames []chat1.ConversationLocalParticipant, err error) {
-	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(tlfname, false)
+	srcWriterNames, _, _, err := splitAndNormalizeTLFNameCanonicalize(mctx.G(), tlfname, false)
 	if err != nil {
 		return writerNames, err
 	}
@@ -122,7 +123,7 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 	for _, a := range activeList {
 		activeKuids = append(activeKuids, keybase1.UID(a.String()))
 	}
-	packages, err := umapper.MapUIDsToUsernamePackages(ctx, g, activeKuids, time.Hour*24, 10*time.Second,
+	packages, err := umapper.MapUIDsToUsernamePackages(mctx.Ctx(), g, activeKuids, time.Hour*24, 10*time.Second,
 		true)
 	activeMap := make(map[string]chat1.ConversationLocalParticipant)
 	if err == nil {
@@ -166,10 +167,10 @@ func ReorderParticipants(ctx context.Context, g libkb.UIDMapperContext, umapper 
 }
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
-func splitAndNormalizeTLFNameCanonicalize(name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(name, public)
+func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
+	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(g, name, public)
 	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
-		return kbfs.SplitAndNormalizeTLFName(retryErr.NameToTry, public)
+		return kbfs.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -355,6 +356,8 @@ func VisibleChatMessageTypes() []chat1.MessageType {
 		chat1.MessageType_TEXT,
 		chat1.MessageType_ATTACHMENT,
 		chat1.MessageType_SYSTEM,
+		chat1.MessageType_SENDPAYMENT,
+		chat1.MessageType_REQUESTPAYMENT,
 	}
 }
 
@@ -398,6 +401,10 @@ func NewDebugLabeler(log logger.Logger, label string, verbose bool) DebugLabeler
 	}
 }
 
+func (d DebugLabeler) GetLog() logger.Logger {
+	return d.log
+}
+
 func (d DebugLabeler) showVerbose() bool {
 	return false
 }
@@ -421,7 +428,7 @@ func (d DebugLabeler) Trace(ctx context.Context, f func() error, format string, 
 		start := time.Now()
 		d.log.CDebugf(ctx, "++Chat: + %s: %s", d.label, msg)
 		return func() {
-			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s (%v)", d.label, msg,
+			d.log.CDebugf(ctx, "++Chat: - %s: %s -> %s [time=%v]", d.label, msg,
 				libkb.ErrToOk(f()), time.Since(start))
 		}
 	}
@@ -841,9 +848,29 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
 	case chat1.MessageType_ATTACHMENT:
-		return senderPrefix + msg.Valid().MessageBody.Attachment().Object.Title, decoration
+		obj := msg.Valid().MessageBody.Attachment().Object
+		title := obj.Title
+		if len(title) == 0 {
+			atyp, err := obj.Metadata.AssetType()
+			if err != nil {
+				return senderPrefix + "???", decoration
+			}
+			switch atyp {
+			case chat1.AssetMetadataType_IMAGE:
+				title = "📷 attachment"
+			case chat1.AssetMetadataType_VIDEO:
+				title = "🎞 attachment"
+			default:
+				title = obj.Filename
+			}
+		}
+		return senderPrefix + title, decoration
 	case chat1.MessageType_SYSTEM:
 		return systemMessageSnippet(msg.Valid().MessageBody.System()), decoration
+	case chat1.MessageType_REQUESTPAYMENT:
+		return "🚀 payment request", ""
+	case chat1.MessageType_SENDPAYMENT:
+		return "🚀 payment sent", ""
 	}
 	return "", ""
 }
@@ -993,6 +1020,51 @@ func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMent
 	return res
 }
 
+func formatVideoDuration(ms int) string {
+	s := ms / 1000
+	// see if we have hours
+	if s >= 3600 {
+		hours := s / 3600
+		minutes := (s % 3600) / 60
+		seconds := s - (hours*3600 + minutes*60)
+		return fmt.Sprintf("%d:%02d:%02d", hours, minutes, seconds)
+	}
+	minutes := s / 60
+	seconds := s % 60
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
+}
+
+func formatVideoSize(bytes int64) string {
+	const (
+		BYTE = 1.0 << (10 * iota)
+		KILOBYTE
+		MEGABYTE
+		GIGABYTE
+		TERABYTE
+	)
+	unit := ""
+	value := float64(bytes)
+	switch {
+	case bytes >= TERABYTE:
+		unit = "TB"
+		value = value / TERABYTE
+	case bytes >= GIGABYTE:
+		unit = "GB"
+		value = value / GIGABYTE
+	case bytes >= MEGABYTE:
+		unit = "MB"
+		value = value / MEGABYTE
+	case bytes >= KILOBYTE:
+		unit = "KB"
+		value = value / KILOBYTE
+	case bytes >= BYTE:
+		unit = "B"
+	case bytes == 0:
+		return "0"
+	}
+	return fmt.Sprintf("%.02f%s", value, unit)
+}
+
 func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxed,
 	convID chat1.ConversationID) *chat1.UIAssetUrlInfo {
 	body := msg.Valid().MessageBody
@@ -1003,28 +1075,76 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 	switch typ {
 	case chat1.MessageType_ATTACHMENT, chat1.MessageType_ATTACHMENTUPLOADED:
 		var hasFullURL, hasPreviewURL bool
+		var asset chat1.Asset
 		var info chat1.UIAssetUrlInfo
 		if typ == chat1.MessageType_ATTACHMENT {
-			info.MimeType = body.Attachment().Object.MimeType
-			hasFullURL = body.Attachment().Object.Path != ""
+			asset = body.Attachment().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = body.Attachment().Preview != nil &&
 				body.Attachment().Preview.Path != ""
 		} else {
-			info.MimeType = body.Attachmentuploaded().Object.MimeType
-			hasFullURL = body.Attachmentuploaded().Object.Path != ""
+			asset = body.Attachmentuploaded().Object
+			info.MimeType = asset.MimeType
+			hasFullURL = asset.Path != ""
 			hasPreviewURL = len(body.Attachmentuploaded().Previews) > 0 &&
 				body.Attachmentuploaded().Previews[0].Path != ""
 		}
 		if hasFullURL {
+			var cached bool
 			info.FullUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), false)
+			cached, err = g.AttachmentURLSrv.GetAttachmentFetcher().IsAssetLocal(ctx, asset)
+			if err != nil {
+				cached = false
+			}
+			info.FullUrlCached = cached
 		}
 		if hasPreviewURL {
 			info.PreviewUrl = g.AttachmentURLSrv.GetURL(ctx, convID, msg.GetMessageID(), true)
+		}
+		atyp, err := asset.Metadata.AssetType()
+		if err == nil && atyp == chat1.AssetMetadataType_VIDEO && strings.HasPrefix(info.MimeType, "video") {
+			if asset.Metadata.Video().DurationMs > 1 {
+				info.VideoDuration = new(string)
+				*info.VideoDuration = formatVideoDuration(asset.Metadata.Video().DurationMs) + ", " +
+					formatVideoSize(asset.Size)
+			}
+			info.InlineVideoPlayable = true
 		}
 		if info.FullUrl == "" && info.PreviewUrl == "" && info.MimeType == "" {
 			return nil
 		}
 		return &info
+	}
+	return nil
+}
+
+func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_SENDPAYMENT:
+		body := msg.MessageBody.Sendpayment()
+		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+	}
+	return nil
+}
+
+func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIRequestInfo {
+
+	typ, err := msg.MessageBody.MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
+	case chat1.MessageType_REQUESTPAYMENT:
+		body := msg.MessageBody.Requestpayment()
+		return g.StellarLoader.LoadRequest(ctx, convID, msgID, msg.SenderUsername, body.RequestID)
 	}
 	return nil
 }
@@ -1084,9 +1204,11 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
-		var body string
+		var body, title, filename string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
@@ -1096,6 +1218,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
 			preview = rawMsg.Outbox().Preview
+			msgBody := rawMsg.Outbox().Msg.MessageBody
+			btyp, err := msgBody.MessageType()
+			if err == nil && btyp == chat1.MessageType_ATTACHMENT {
+				title = msgBody.Attachment().Object.Title
+				filename = msgBody.Attachment().Object.Filename
+			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
 			State:       rawMsg.Outbox().State,
@@ -1105,6 +1233,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:       rawMsg.Outbox().Ctime,
 			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
 			Preview:     preview,
+			Title:       title,
+			Filename:    filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1366,4 +1496,52 @@ func ForceReloadUPAKsForUIDs(ctx context.Context, g *globals.Context, uids []key
 		return &tmp
 	}
 	return g.GetUPAKLoader().Batcher(ctx, getArg, nil, 0)
+}
+
+func CreateHiddenPlaceholder(msgID chat1.MessageID) chat1.MessageUnboxed {
+	return chat1.NewMessageUnboxedWithPlaceholder(
+		chat1.MessageUnboxedPlaceholder{
+			MessageID: msgID,
+			Hidden:    true,
+		})
+}
+
+func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
+	handler func(nist *libkb.NIST) rpc.ConnectionHandler) (conn *rpc.Connection, token gregor1.SessionToken, err error) {
+	// Get session token
+	nist, _, err := g.ActiveDevice.NISTAndUID(ctx)
+	if nist == nil {
+		log.Debug(ctx, "GetGregorConn: got a nil NIST, is the user logged out?")
+		return conn, token, libkb.LoggedInError{}
+	}
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to get logged in session: %s", err.Error())
+		return conn, token, err
+	}
+	token = gregor1.SessionToken(nist.Token().String())
+
+	// Make an ad hoc connection to gregor
+	uri, err := rpc.ParseFMPURI(g.Env.GetGregorURI())
+	if err != nil {
+		log.Debug(ctx, "GetGregorConn: failed to parse chat server UR: %s", err.Error())
+		return conn, token, err
+	}
+
+	if uri.UseTLS() {
+		rawCA := g.Env.GetBundledCA(uri.Host)
+		if len(rawCA) == 0 {
+			log.Debug(ctx, "GetGregorConn: failed to parse CAs: %s", err.Error())
+			return conn, token, err
+		}
+		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
+			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	} else {
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
+		conn = rpc.NewConnectionWithTransport(handler(nist), t,
+			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
+			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+	}
+	return conn, token, nil
 }

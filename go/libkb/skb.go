@@ -131,8 +131,8 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	return NewLKSec(pps, s.uid)
 }
 
-func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
-	return NewKeybasePacket(s, TagP3skb, KeybasePacketV1)
+func (s *SKB) GetTagAndVersion() (PacketTag, PacketVersion) {
+	return TagP3skb, KeybasePacketV1
 }
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
@@ -374,29 +374,8 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 	s.Unlock()
 }
 
-func (p KeybasePacket) ToSKB() (*SKB, error) {
-	ret, ok := p.Body.(*SKB)
-	if !ok {
-		return nil, UnmarshalError{"SKB"}
-	}
-	return ret, nil
-}
-
 func (s *SKB) ArmoredEncode() (ret string, err error) {
-	return PacketArmoredEncode(s)
-}
-
-func (p KeybasePackets) ToListOfSKBs(g *GlobalContext) ([]*SKB, error) {
-	ret := make([]*SKB, len(p))
-	for i, e := range p {
-		k, ok := e.Body.(*SKB)
-		if !ok {
-			return nil, fmt.Errorf("Bad SKB sequence; got packet of wrong type %T", e.Body)
-		}
-		k.SetGlobalContext(g)
-		ret[i] = k
-	}
-	return ret, nil
+	return EncodePacketToArmoredString(s)
 }
 
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {

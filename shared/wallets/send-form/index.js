@@ -1,37 +1,53 @@
 // @flow
 import * as React from 'react'
-import {Box2, Text} from '../../common-adapters'
-import {styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import Body from './body/container'
 import Header from './header'
 
-type Props = {
+type Props = {|
+  isRequest: boolean,
   bannerInfo?: string,
   isProcessing?: boolean,
-  onClick: Function,
-}
+  onClose: () => void,
+|}
 
-const SendForm = ({bannerInfo, isProcessing, onClick}: Props) => (
-  <Box2 direction="vertical" style={styles.container}>
-    <Header />
-    <Body bannerInfo={bannerInfo} isProcessing={isProcessing} onClick={onClick} />
-    <Text type="BodySmallSemibold" style={styles.text}>
-      Powered by{' '}
-      <Text type="BodySmallSemiboldInlineLink" isLink={true} onClickURL="https://stellar.org">
-        stellar
-      </Text>
-    </Text>
-  </Box2>
+const SendForm = (props: Props) => (
+  <Kb.MaybePopup onClose={props.onClose}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
+      <Header />
+      <Body bannerInfo={props.bannerInfo} isProcessing={props.isProcessing} isRequest={props.isRequest} />
+    </Kb.Box2>
+    <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.textContainer}>
+      <Kb.Text type="BodySmallSemibold" style={styles.textColor}>
+        Powered by{' '}
+        <Kb.Text
+          type="BodySmallSemiboldSecondaryLink"
+          isLink={true}
+          onClickURL="https://stellar.org"
+          style={styles.textColor}
+        >
+          stellar
+        </Kb.Text>
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.MaybePopup>
 )
 
-const styles = styleSheetCreate({
-  container: {
-    maxWidth: 360,
-  },
-  text: {
-    position: 'relative',
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 525,
+      width: 360,
+    },
+  }),
+  textContainer: {
+    position: 'absolute',
     textAlign: 'center',
-    top: 20,
+    bottom: -26, // TODO: tweak this number, maybe make it calculated from the text's line height and a global margin
+  },
+  textColor: {
+    color: Styles.globalColors.white_40,
   },
 })
 

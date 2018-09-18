@@ -127,8 +127,7 @@ func TestChatSrvSBS(t *testing.T) {
 					Body: "HI",
 				}), ephemeralLifetime)
 			require.NoError(t, err)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
 
 			_, err = postLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -163,17 +162,15 @@ func TestChatSrvSBS(t *testing.T) {
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "HI",
 				}), ephemeralLifetime)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 
 			mustPostLocalEphemeralForTest(t, ctc, users[1], ncres.Conv.Info,
 				chat1.NewMessageBodyWithText(chat1.MessageText{
 					Body: "HI",
 				}), ephemeralLifetime)
-			consumeNewMsg(t, listener0, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
-			consumeNewMsg(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 			verifyThread := func(user *kbtest.FakeUser) {
 				tvres, err := ctc.as(t, user).chatLocalHandler().GetThreadLocal(ctx, chat1.GetThreadLocalArg{
 					ConversationID: ncres.Conv.GetConvID(),

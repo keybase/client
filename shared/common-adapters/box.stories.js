@@ -2,11 +2,12 @@
 import * as React from 'react'
 import Box, {Box2} from './box'
 import Text from './text'
-import {storiesOf} from '../stories/storybook'
+import * as Sb from '../stories/storybook'
 import {globalMargins, globalStyles, globalColors} from '../styles'
 
 const load = () => {
-  storiesOf('Common', module)
+  Sb.storiesOf('Common', module)
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Box', () =>
       Object.keys(globalMargins).map(size => (
         <Box key={size} style={{...globalStyles.flexBoxRow, margin: 30, width: '100%'}}>

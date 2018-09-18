@@ -1,7 +1,15 @@
 // @flow
 import * as React from 'react'
-import {Box, ClickableBox, Avatar, Text, Icon, ConnectedUsernames} from '../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  Box,
+  ClickableBox,
+  Avatar,
+  Text,
+  Icon,
+  ConnectedUsernames,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../common-adapters'
 import AddPeopleHow from '../../../teams/team/header/add-people-how/container'
 import {
   globalColors,
@@ -46,7 +54,7 @@ const Participant = ({fullname, username, onShowProfile}: Props) => (
   </Box>
 )
 
-const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
+const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
   return (
     <ClickableBox
       style={{...globalStyles.flexBoxRow}}
@@ -54,7 +62,7 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
       ref={props.setAttachmentRef}
     >
       <AddPeopleHow
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
         onHidden={props.toggleShowingMenu}
@@ -82,7 +90,7 @@ const _AddPeople = (props: {teamname: string} & FloatingMenuParentProps) => {
     </ClickableBox>
   )
 }
-const AddPeople = FloatingMenuParentHOC(_AddPeople)
+const AddPeople = OverlayParentHOC(_AddPeople)
 
 const rowStyle = platformStyles({
   common: {

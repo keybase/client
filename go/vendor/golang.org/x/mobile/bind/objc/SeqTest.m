@@ -8,7 +8,7 @@
 #import <XCTest/XCTest.h>
 #import "testpkg/Testpkg.h"
 
-// Objective-C implementation of testpkg.I.
+// Objective-C implementation of testpkg.I2.
 @interface Number : NSObject <TestpkgI2> {
 }
 @property int32_t value;

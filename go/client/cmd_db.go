@@ -27,7 +27,7 @@ func (c *CmdDbNuke) ParseArgv(ctx *cli.Context) error {
 func (c *CmdDbNuke) Run() error {
 	var err error
 	if !c.force {
-		err = GlobUI.PromptForConfirmation("Really blast away your local database?")
+		err = c.G().UI.GetTerminalUI().PromptForConfirmation("Really blast away your local database?")
 	}
 	if err == nil {
 		cli, err := GetCtlClient(c.G())

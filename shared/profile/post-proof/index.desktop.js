@@ -2,34 +2,19 @@
 import * as shared from './shared'
 import * as React from 'react'
 import {Box, Button, CopyableText, Icon, PlatformIcon, Text} from '../../common-adapters'
-import LinkWithIcon from '../link-with-icon'
-import {copyToClipboard} from '../../util/clipboard'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import type {Props} from '.'
 
 const PostProof = (props: Props) => {
-  const {
-    allowProofCheck,
-    platform,
-    platformUserName,
-    descriptionText,
-    proofAction,
-    onAllowProofCheck,
-    onCancel,
-    onCancelText,
-    onComplete,
-    isOnCompleteWaiting,
-    errorMessage,
-  } = props
   const {
     descriptionView,
     noteText,
     onCompleteText,
     proofText,
     platformSubtitle,
-    proofActionIcon,
     proofActionText,
   } = shared.propsForPlatform(props)
+  const {proofAction} = props
 
   return (
     <Box
@@ -37,26 +22,26 @@ const PostProof = (props: Props) => {
       onCopyCapture={e => {
         // disallow copying the whole screen by accident
         e.preventDefault()
-        proofText && copyToClipboard(proofText)
+        proofText && props.copyToClipboard(proofText)
       }}
     >
       <Icon
         style={styleClose}
         type="iconfont-close"
         color={globalColors.black_10}
-        onClick={() => onCancel()}
+        onClick={() => props.onCancel()}
       />
-      {!!errorMessage && (
+      {!!props.errorMessage && (
         <Box style={styleErrorBanner}>
           <Text style={styleErrorBannerText} type="BodySemibold">
-            {errorMessage}
+            {props.errorMessage}
           </Text>
         </Box>
       )}
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <Box style={styleContentContainer}>
           <PlatformIcon
-            platform={platform}
+            platform={props.platform}
             overlay="icon-proof-unfinished"
             overlayColor={globalColors.grey}
           />
@@ -67,49 +52,48 @@ const PostProof = (props: Props) => {
             }}
             type="Header"
           >
-            {platformUserName}
+            {props.platformUserName}
           </Text>
           {!!platformSubtitle && (
             <Text style={stylePlatformSubtitle} type="Body">
               {platformSubtitle}
             </Text>
           )}
-          {descriptionView || (descriptionText && <Text type="Body">{descriptionText}</Text>)}
+          {descriptionView || (props.descriptionText && <Text type="Body">{props.descriptionText}</Text>)}
           {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
           {!!noteText && (
             <Text style={styleNoteText} type="Body">
               {noteText}
             </Text>
           )}
-          {!!proofAction &&
-            !!proofActionIcon && (
-              <LinkWithIcon
-                style={styleProofAction}
-                label={proofActionText || ''}
-                icon={proofActionIcon}
-                color={globalColors.blue}
-                onClick={() => {
-                  onAllowProofCheck(true)
-                  proofAction()
-                }}
-              />
-            )}
           <Box style={styleButtonsContainer}>
-            {!!onCancelText && (
+            {!!props.onCancelText && (
               <Button
                 type="Secondary"
-                onClick={() => onCancel()}
-                label={onCancelText || 'Cancel'}
+                onClick={() => props.onCancel()}
+                label={props.onCancelText || 'Cancel'}
                 style={{marginRight: globalMargins.tiny}}
               />
             )}
-            <Button
-              disabled={!allowProofCheck}
-              type="Primary"
-              onClick={() => onComplete()}
-              label={onCompleteText}
-              waiting={isOnCompleteWaiting}
-            />
+            {!!proofAction &&
+              !props.allowProofCheck && (
+                <Button
+                  type="Primary"
+                  onClick={() => {
+                    props.onAllowProofCheck(true)
+                    proofAction()
+                  }}
+                  label={proofActionText || ''}
+                />
+              )}
+            {props.allowProofCheck && (
+              <Button
+                type="Primary"
+                onClick={() => props.onComplete()}
+                label={onCompleteText || ''}
+                waiting={props.isOnCompleteWaiting}
+              />
+            )}
           </Box>
         </Box>
       </Box>
@@ -180,11 +164,6 @@ const styleProofText = {
 
 const styleNoteText = {
   marginTop: globalMargins.tiny,
-}
-
-const styleProofAction = {
-  marginTop: globalMargins.small,
-  flexShrink: 0,
 }
 
 const styleButtonsContainer = {

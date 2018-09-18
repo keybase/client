@@ -81,7 +81,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		require.Equal(t, team.IsPublic(), public)
 
 		expr := fmt.Sprintf("tid:%s", createdTeam.ID)
-		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(context.Background(), expr)
+		rres := tc.G.Resolver.ResolveFullExpressionNeedUsername(libkb.NewMetaContextForTest(tc), expr)
 		require.NoError(t, rres.GetError())
 		require.True(t, rres.GetTeamID().Exists())
 	}
@@ -187,7 +187,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 	// It will probably fail because <uid>@keybase is the wrong format.
 
 	makeAssertionContext := func() libkb.AssertionContext {
-		return libkb.MakeAssertionContext(externals.GetServices())
+		return libkb.MakeAssertionContext(externals.NewProofServices(tc.G))
 	}
 
 	for _, public := range []bool{true, false} {
@@ -453,10 +453,22 @@ func TestTeamListImplicit(t *testing.T) {
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: false})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 1)
+	// verify that we cache this call
+	var cachedList []keybase1.MemberInfo
+	cacheKey := listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, false /* includeImplicitTeams */)
+	found, err := tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListTeamsUnverified(context.Background(), tcs[0].G, keybase1.TeamListUnverifiedArg{IncludeImplicitTeams: true})
 	require.NoError(t, err)
 	require.Len(t, list.Teams, 2)
+	cacheKey = listTeamsUnverifiedCacheKey(fus[0].User.GetUID(), "" /* userAssertion */, true /* includeImplicitTeams */)
+	found, err = tcs[0].G.GetKVStore().GetInto(&cachedList, cacheKey)
+	require.NoError(t, err)
+	require.True(t, found)
+	require.Equal(t, len(list.Teams), len(cachedList))
 
 	list, err = ListAll(context.Background(), tcs[0].G, keybase1.TeamListTeammatesArg{
 		IncludeImplicitTeams: false,

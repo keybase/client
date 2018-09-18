@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import type {Tab} from '../tabs'
 
@@ -10,6 +11,7 @@ export type _State = {
   keyState: I.Map<NotificationKeys, boolean>,
   mobileAppBadgeCount: number,
   navBadges: I.Map<Tab, number>,
+  badgeVersion: number,
   widgetBadge: BadgeType,
 }
 export type State = I.RecordOf<_State>

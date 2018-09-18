@@ -1,21 +1,20 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../../stories/storybook'
 import UsernameEmail from '.'
-import {action, storiesOf, PropProviders} from '../../../stories/storybook'
 import {Box2} from '../../../common-adapters'
 
 const props = {
   email: '',
   emailError: '',
-  onBack: action('onBack'),
-  onSubmit: action('onSubmit'),
+  onBack: Sb.action('onBack'),
+  onSubmit: Sb.action('onSubmit'),
   username: '',
   usernameError: '',
 }
 
 const load = () => {
-  storiesOf('Signup/Username email', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Signup/Username email', module)
     .addDecorator(story => (
       <Box2 direction="vertical" style={{height: '100%', width: '100%'}}>
         {story()}

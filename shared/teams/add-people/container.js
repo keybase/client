@@ -5,7 +5,6 @@ import * as SearchConstants from '../../constants/search'
 import {getRole, isOwner, teamWaitingKey} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople from '.'
-import {HeaderHoc} from '../../common-adapters'
 import {navigateAppend} from '../../actions/route-tree'
 import {anyWaiting} from '../../constants/waiting'
 import {
@@ -21,7 +20,7 @@ import {
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    isEmpty: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length === 0,
+    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length,
     name: teamname,
     _yourRole: getRole(state, teamname),
     errorText: upperFirst(state.teams.teamInviteError),
@@ -29,7 +28,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routeProps}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
   _getSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'})),
   onAddPeople: (role: string, sendChatNotification: boolean) => {
     const teamname = routeProps.get('teamname')
@@ -47,7 +46,19 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       })
     )
   },
+  onClearSearch: () => {
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
+    dispatch(SearchGen.createSearchSuggestions({searchKey: 'addToTeamSearch'}))
+  },
   onClose: () => {
+    dispatch(navigateUp())
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
+  },
+  onBack: () => {
     dispatch(navigateUp())
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -63,11 +74,13 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
       navigateAppend([
         {
           props: {
+            addButtonLabel: 'Add',
             allowOwner,
+            headerTitle: 'Add them as:',
             onComplete,
             selectedRole: role,
-            sendNotificationChecked: sendNotification,
-            showNotificationCheckbox: true,
+            sendNotificationChecked: true,
+            showNotificationCheckbox: false,
           },
           selected: 'controlledRolePicker',
         },
@@ -77,7 +90,7 @@ const mapDispatchToProps = (dispatch: Dispatch, {navigateUp, routePath, routePro
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   compose(
     withStateHandlers(
       {role: 'writer', sendNotification: true},
@@ -86,9 +99,10 @@ export default compose(
         onRoleChange: () => role => ({role}),
       }
     ),
-    withPropsOnChange(['onExitSearch'], props => ({
+    withPropsOnChange(['onExitSearch', 'numberOfUsersSelected'], props => ({
+      addButtonLabel: props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add',
       onCancel: () => props.onClose(),
-      title: 'Add people',
+      title: `Add to ${props.name}`,
     })),
     lifecycle({
       componentDidMount() {
@@ -99,6 +113,7 @@ export default compose(
       onAddPeople: ({onAddPeople, role, sendNotification}) => () =>
         role && onAddPeople(role, sendNotification),
       onOpenRolePicker: ({
+        onAddPeople,
         onOpenRolePicker,
         role,
         onRoleChange,
@@ -109,9 +124,9 @@ export default compose(
         onOpenRolePicker(role, sendNotification, isOwner(_yourRole), (role, sendNotification) => {
           onRoleChange(role)
           setSendNotification(sendNotification)
+          onAddPeople(role, sendNotification)
         })
       },
-    }),
-    HeaderHoc
+    })
   )
 )(AddPeople)

@@ -1,11 +1,10 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Button, Meta, Text, Usernames} from '../../common-adapters'
+import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
-import FloatingMenu from '../../common-adapters/floating-menu'
 
 export type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   description: string,
   following: {[key: string]: true},
   memberCount: number,
@@ -33,6 +32,10 @@ const TeamInfo = (props: Props) => (
       },
       isElectron: {
         width: 220,
+      },
+      isMobile: {
+        paddingBottom: globalMargins.medium,
+        paddingTop: globalMargins.medium,
       },
     })}
   >

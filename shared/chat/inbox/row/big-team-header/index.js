@@ -1,7 +1,14 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../../../common-adapters'
-import {type FloatingMenuParentProps, FloatingMenuParentHOC} from '../../../../common-adapters/floating-menu'
+import {
+  Avatar,
+  Box,
+  ClickableBox,
+  Icon,
+  Text,
+  type OverlayParentProps,
+  OverlayParentHOC,
+} from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
 import {
   desktopStyles,
@@ -20,7 +27,7 @@ type Props = {
   memberCount: number,
   onClick: () => void,
   teamname: string,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 class _BigTeamHeader extends React.PureComponent<Props> {
   render() {
@@ -29,7 +36,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
     return (
       <Box style={styles.teamRowContainer}>
         <TeamMenu
-          attachTo={props.attachmentRef}
+          attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           teamname={props.teamname}
@@ -53,7 +60,7 @@ class _BigTeamHeader extends React.PureComponent<Props> {
   }
 }
 
-const BigTeamHeader = FloatingMenuParentHOC(_BigTeamHeader)
+const BigTeamHeader = OverlayParentHOC(_BigTeamHeader)
 const iconFontSize = isMobile ? 20 : 16
 
 const styles = styleSheetCreate({
@@ -73,7 +80,7 @@ const styles = styleSheetCreate({
   },
   team: platformStyles({
     common: {
-      color: globalColors.darkBlue,
+      color: globalColors.black_60,
       flexGrow: 1,
       marginLeft: globalMargins.tiny,
       marginRight: globalMargins.tiny,

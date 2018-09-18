@@ -2,12 +2,12 @@
 import * as React from 'react'
 import {type MessageExplodeDescription} from '../../../../constants/types/chat2'
 
-export type Props = {
-  attachTo: ?React.Component<any, any>,
+export type Props = {|
+  attachTo: () => ?React.ElementRef<any>,
   visible: boolean,
   onHidden: () => void,
   isNew: boolean,
   selected: number,
   onSelect: number => void,
   items: MessageExplodeDescription[],
-}
+|}

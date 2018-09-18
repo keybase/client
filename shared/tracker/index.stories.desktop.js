@@ -1,8 +1,8 @@
 // @noflow // The typing of these components isn't good so lets no try and fix that here
 import * as React from 'react'
 import * as Constants from '../constants/tracker'
+import * as Sb from '../stories/storybook'
 import Tracker from '.'
-import {action, storiesOf, PropProviders} from '../stories/storybook'
 
 const proofMaker = (type, id = 'id-') => ({
   humanUrl: '',
@@ -134,38 +134,38 @@ const proofsChanged = [
 ]
 
 const propsBase = {
-  _checkRequestedAccess: action('_checkRequestedAccess'),
-  _loadTeams: action('_loadTeams'),
-  _onSetTeamJoinError: action('_onSetTeamJoinError'),
-  _onSetTeamJoinSuccess: action('_onSetTeamJoinSuccess'),
+  _checkRequestedAccess: Sb.action('_checkRequestedAccess'),
+  _loadTeams: Sb.action('_loadTeams'),
+  _onSetTeamJoinError: Sb.action('_onSetTeamJoinError'),
+  _onSetTeamJoinSuccess: Sb.action('_onSetTeamJoinSuccess'),
   actionBarReady: true,
   closed: false,
   currentlyFollowing: false,
   errorMessage: null,
   headerProps: {
-    onClose: action('onClose'),
+    onClose: Sb.action('onClose'),
   },
   lastAction: null,
   loading: false,
   loggedIn: true,
   myUsername: 'bob',
-  onChat: action('onChat'),
-  onClickAvatar: action('onClickAvatar'),
-  onClickFollowers: action('onClickFollowers'),
-  onClickFollowing: action('onClickFollowing'),
-  onClose: action('onClose'),
-  onFollow: action('onFollow'),
-  onIgnore: action('onIgnore'),
-  onRefollow: action('onRefollow'),
-  onRetry: action('onRetry'),
-  onUnfollow: action('onUnfollow'),
+  onChat: Sb.action('onChat'),
+  onClickAvatar: Sb.action('onClickAvatar'),
+  onClickFollowers: Sb.action('onClickFollowers'),
+  onClickFollowing: Sb.action('onClickFollowing'),
+  onClose: Sb.action('onClose'),
+  onFollow: Sb.action('onFollow'),
+  onIgnore: Sb.action('onIgnore'),
+  onRefollow: Sb.action('onRefollow'),
+  onRetry: Sb.action('onRetry'),
+  onUnfollow: Sb.action('onUnfollow'),
   waiting: false,
 }
 
 const propsDefault = {
   ...propsBase,
   headerProps: {
-    onClose: action('onClose'),
+    onClose: Sb.action('onClose'),
   },
   nonUser: false,
   proofs: proofsDefault,
@@ -287,8 +287,7 @@ const propsFiveProof = {
 }
 
 const load = () => {
-  storiesOf('Tracker', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Tracker', module)
     .add('NonuserNoLinkPrivate', () => <Tracker {...propsNonUser} inviteLink={null} isPrivate={true} />)
     .add('NonuserLink', () => <Tracker {...propsNonUser} />)
     .add('NonuserNoLinkPublic', () => <Tracker {...propsNonUser} inviteLink={null} />)
@@ -311,8 +310,9 @@ const load = () => {
     .add('Tracker - Loading', () => <Tracker {...propsLessData} loading={true} />)
     .add('Whatevz', () => <Tracker {...propsWhatevz} />)
     .add('Tracker Error', () => (
-      <Tracker {...propsWhatevz} errorMessage={'Failed to hit API Server'} onRetry={action('onRetry')} />
+      <Tracker {...propsWhatevz} errorMessage={'Failed to hit API Server'} onRetry={Sb.action('onRetry')} />
     ))
+    .add('Yourself', () => <Tracker {...propsDefault} myUsername={propsDefault.username} reason="" />)
 }
 
 export default load

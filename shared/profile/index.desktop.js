@@ -14,17 +14,18 @@ import {
   Meta,
   PlatformIcon,
   FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
   Text,
   UserBio,
   UserProofs,
   Usernames,
   BackButton,
+  PopupHeaderText,
 } from '../common-adapters'
 import UserActions from './user-actions'
-import {PopupHeaderText} from '../common-adapters/popup-menu'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../common-adapters/floating-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
-import {collapseStyles, desktopStyles, globalColors, globalMargins, globalStyles} from '../styles'
+import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 
@@ -43,10 +44,14 @@ type State = {
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
-  <Box style={globalStyles.flexBoxRow}>
+  <Box style={Styles.globalStyles.flexBoxRow}>
     <Text type="BodySmallSemibold">Teams</Text>
     {!!isYou && (
-      <Icon style={{marginLeft: globalMargins.xtiny}} type="iconfont-edit" onClick={onClickShowcaseOffer} />
+      <Icon
+        style={{marginLeft: Styles.globalMargins.xtiny}}
+        type="iconfont-edit"
+        onClick={onClickShowcaseOffer}
+      />
     )}
   </Box>
 )
@@ -57,7 +62,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
       <Icon type="icon-team-placeholder-avatar-32" size={32} style={{borderRadius: 5}} />
     </Box>
     <Box style={styleShowcasedTeamName}>
-      <Text style={{color: globalColors.black_20}} type="BodyPrimaryLink">
+      <Text style={{color: Styles.globalColors.black_20}} type="BodyPrimaryLink">
         Publish the teams you're in
       </Text>
     </Box>
@@ -67,7 +72,7 @@ const ShowcaseTeamsOffer = ({onClickShowcaseOffer}: {onClickShowcaseOffer: () =>
 const _ShowcasedTeamRow = (
   props: {
     team: UserTeamShowcase,
-  } & FloatingMenuParentProps
+  } & OverlayParentProps
 ) => (
   <ClickableBox
     key={props.team.fqName}
@@ -76,7 +81,7 @@ const _ShowcasedTeamRow = (
     style={styleShowcasedTeamContainer}
   >
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
@@ -85,14 +90,14 @@ const _ShowcasedTeamRow = (
       <Avatar teamname={props.team.fqName} size={32} />
     </Box>
     <Box style={styleShowcasedTeamName}>
-      <Text style={{color: globalColors.black_75}} type="BodySemiboldLink">
+      <Text style={{color: Styles.globalColors.black_75}} type="BodySemiboldLink">
         {props.team.fqName}
       </Text>
-      {props.team.open && <Meta style={styleMeta} backgroundColor={globalColors.green} title="open" />}
+      {props.team.open && <Meta style={styleMeta} backgroundColor={Styles.globalColors.green} title="open" />}
     </Box>
   </ClickableBox>
 )
-const ShowcasedTeamRow = FloatingMenuParentHOC(_ShowcasedTeamRow)
+const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
 class ProfileRender extends PureComponent<Props, State> {
   state: State = {
@@ -114,7 +119,7 @@ class ProfileRender extends PureComponent<Props, State> {
         header: {
           title: 'header',
           view: (
-            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.red}>
+            <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
               Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
             </PopupHeaderText>
           ),
@@ -141,7 +146,7 @@ class ProfileRender extends PureComponent<Props, State> {
         header: {
           title: 'header',
           view: pendingMessage ? (
-            <PopupHeaderText color={globalColors.white} backgroundColor={globalColors.blue}>
+            <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
               {pendingMessage}
             </PopupHeaderText>
           ) : null,
@@ -162,19 +167,19 @@ class ProfileRender extends PureComponent<Props, State> {
             <Box
               onClick={() => this.props.onViewProof(proof)}
               style={{
-                ...globalStyles.flexBoxColumn,
-                padding: globalMargins.small,
+                ...Styles.globalStyles.flexBoxColumn,
+                padding: Styles.globalMargins.small,
                 alignItems: 'center',
-                borderBottom: `1px solid ${globalColors.black_05}`,
+                borderBottom: `1px solid ${Styles.globalColors.black_10}`,
               }}
             >
               <PlatformIcon
                 platform={proof.type}
                 overlay="icon-proof-success"
-                overlayColor={globalColors.blue}
+                overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Text type="BodySmall" style={{textAlign: 'center', color: globalColors.black_40}}>
+                <Text type="BodySmall" style={{textAlign: 'center', color: Styles.globalColors.black_40}}>
                   Posted on<br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
                 </Text>
@@ -246,7 +251,7 @@ class ProfileRender extends PureComponent<Props, State> {
 
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-        <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
+        <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
           <Icon
             style={styleFolderIcon}
             type={shared.folderIconType(folder)}
@@ -259,7 +264,7 @@ class ProfileRender extends PureComponent<Props, State> {
             users={folder.users}
             type="Body"
             style={{color: 'inherit'}}
-            containerStyle={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}
+            containerStyle={{...Styles.globalStyles.flexBoxRow, flexWrap: 'wrap'}}
             prefix={folder.isPublic ? 'public/' : 'private/'}
           />
         </Text>
@@ -274,10 +279,10 @@ class ProfileRender extends PureComponent<Props, State> {
           style={{...styleFolderLine, alignItems: 'center'}}
           onClick={() => this.setState({foldersExpanded: true})}
         >
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
+          <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', width: 24, height: 24}}>
             <Icon type="iconfont-ellipsis" style={styleFolderIcon} textAlign="center" />
           </Box>
-          <Text type="BodySmall" style={{color: globalColors.black_60, marginBottom: 2}}>
+          <Text type="BodySmall" style={{color: Styles.globalColors.black_60, marginBottom: 2}}>
             + {this.props.tlfs.length - folders.length} more
           </Text>
         </Box>
@@ -303,10 +308,10 @@ class ProfileRender extends PureComponent<Props, State> {
         {!!this.props.addUserToTeamsResults && (
           <Box2
             direction="horizontal"
-            style={collapseStyles([
+            style={Styles.collapseStyles([
               styleScrollHeaderBg,
               {
-                backgroundColor: globalColors.green,
+                backgroundColor: Styles.globalColors.green,
                 minHeight: 40,
                 zIndex: ADD_TO_TEAM_ZINDEX,
               },
@@ -314,7 +319,7 @@ class ProfileRender extends PureComponent<Props, State> {
           >
             <Box2 direction="vertical" style={{flexGrow: 1}}>
               <Text
-                style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
@@ -323,9 +328,9 @@ class ProfileRender extends PureComponent<Props, State> {
             </Box2>
             <Box2 direction="vertical" style={{justifyContent: 'center', flexShrink: 1}}>
               <Icon
-                color={globalColors.black_40}
+                color={Styles.globalColors.black_40}
                 onClick={this.props.onClearAddUserToTeamsResults}
-                style={{padding: globalMargins.tiny}}
+                style={{padding: Styles.globalMargins.tiny}}
                 type="iconfont-close"
               />
             </Box2>
@@ -333,13 +338,13 @@ class ProfileRender extends PureComponent<Props, State> {
         )}
         <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        <Box style={globalStyles.flexBoxColumn}>
+        <Box style={Styles.globalStyles.flexBoxColumn}>
           {this.props.onBack && (
             <BackButton
               onClick={this.props.onBack}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
-              textStyle={{color: globalColors.white}}
-              iconColor={globalColors.white}
+              textStyle={{color: Styles.globalColors.white}}
+              iconColor={Styles.globalColors.white}
             />
           )}
           <Box
@@ -356,7 +361,7 @@ class ProfileRender extends PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Icon style={styleSearch} type="iconfont-search" color={globalColors.white_75} />
+            <Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
             <Text style={styleSearchText} type="Body">
               Search people
             </Text>
@@ -370,7 +375,7 @@ class ProfileRender extends PureComponent<Props, State> {
           style={styleContainer}
         >
           <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
-          <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
+          <Box style={{...Styles.globalStyles.flexBoxRow, minHeight: 300}}>
             <Box style={styleBioColumn}>
               <UserBio
                 type="Profile"
@@ -397,6 +402,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onRefresh={this.props.refresh}
+                    onSendOrRequestLumens={this.props.onSendOrRequestLumens}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}
@@ -406,14 +412,16 @@ class ProfileRender extends PureComponent<Props, State> {
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
                 {proofNotice && (
-                  <Text type="BodySemibold" style={{color: globalColors.white}}>
+                  <Text type="BodySemibold" style={{color: Styles.globalColors.white}}>
                     {proofNotice}
                   </Text>
                 )}
               </Box>
               <Box style={styleProofs}>
                 {!loading && (
-                  <Box style={{...globalStyles.flexBoxColumn, paddingBottom: globalMargins.small}}>
+                  <Box
+                    style={{...Styles.globalStyles.flexBoxColumn, paddingBottom: Styles.globalMargins.small}}
+                  >
                     {showEdit && (
                       <EditControl
                         isYou={this.props.isYou}
@@ -453,10 +461,12 @@ class ProfileRender extends PureComponent<Props, State> {
                   )}
                 {proofMenuContent && (
                   <FloatingMenu
+                    closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={this.state.selectedProofMenuRowRef}
+                    attachTo={() => this.state.selectedProofMenuRowRef}
                     position="bottom right"
+                    containerStyle={styles.floatingMenu}
                     {...proofMenuContent}
                   />
                 )}
@@ -524,24 +534,24 @@ const styleScrollHeaderCover = {
 }
 
 const styleBioColumn = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   width: '50%',
 }
 
 const styleActions = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
 }
 
 const styleProofColumn = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   width: 320,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
+  paddingLeft: Styles.globalMargins.medium,
+  paddingRight: Styles.globalMargins.medium,
 }
 
 const styleProofNoticeBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   height: HEADER_SIZE,
   alignItems: 'center',
   justifyContent: 'center',
@@ -550,18 +560,18 @@ const styleProofNoticeBox = {
 }
 
 // header + small space from top of header + tiny space to pad top of first item
-const userProofsTopPadding = globalMargins.small + globalMargins.tiny
+const userProofsTopPadding = Styles.globalMargins.small + Styles.globalMargins.tiny
 
 const styleProofs = {
   marginTop: userProofsTopPadding,
 }
 
 const styleFolderLine = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
+  ...Styles.globalStyles.flexBoxRow,
+  ...Styles.desktopStyles.clickable,
   alignItems: 'flex-start',
   minHeight: 24,
-  color: globalColors.black_60,
+  color: Styles.globalColors.black_60,
 }
 
 const styleFolderIcon = {
@@ -571,20 +581,20 @@ const styleFolderIcon = {
 
 const styleMeta = {
   alignSelf: 'center',
-  marginLeft: globalMargins.xtiny,
+  marginLeft: Styles.globalMargins.xtiny,
   marginTop: 2,
 }
 
 const styleFriendships = {
-  marginTop: globalMargins.large,
+  marginTop: Styles.globalMargins.large,
 }
 
 const styleSearchContainer = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
+  ...Styles.globalStyles.flexBoxRow,
+  ...Styles.desktopStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.black_10,
+  backgroundColor: Styles.globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   minHeight: 24,
@@ -600,21 +610,21 @@ const styleSearch = {
 
 const styleSearchText = {
   ...styleSearch,
-  color: globalColors.white_75,
+  color: Styles.globalColors.white_75,
   position: 'relative',
   top: -1,
 }
 
 const styleShowcasedTeamContainer = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   minHeight: 32,
-  marginTop: globalMargins.xtiny,
+  marginTop: Styles.globalMargins.xtiny,
 }
 
 const styleShowcasedTeamAvatar = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'center',
   height: 32,
@@ -624,11 +634,18 @@ const styleShowcasedTeamAvatar = {
 }
 
 const styleShowcasedTeamName = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   justifyContent: 'center',
   alignSelf: 'center',
-  paddingLeft: globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.tiny,
 }
+
+const styles = Styles.styleSheetCreate({
+  floatingMenu: {
+    minWidth: 196,
+    maxWidth: 240,
+  },
+})
 
 export default ProfileRender

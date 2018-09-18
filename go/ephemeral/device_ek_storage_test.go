@@ -78,9 +78,9 @@ func TestDeviceEKStorage(t *testing.T) {
 	}
 
 	// Test Get nonexistent
-	deviceEK, err := s.Get(context.Background(), 5)
+	nonexistent, err := s.Get(context.Background(), keybase1.EkGeneration(len(testKeys)+1))
 	require.Error(t, err)
-	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
+	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
 
 	s.ClearCache()
 	// Test GetAll
@@ -97,7 +97,7 @@ func TestDeviceEKStorage(t *testing.T) {
 	// Test Delete
 	require.NoError(t, s.Delete(context.Background(), 2))
 
-	deviceEK, err = s.Get(context.Background(), 2)
+	deviceEK, err := s.Get(context.Background(), 2)
 	require.Error(t, err)
 	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 
@@ -147,6 +147,20 @@ func TestDeviceEKStorage(t *testing.T) {
 	err = erasableStorage.Get(context.Background(), badEldestSeqnoKey, &badEldestSeqnoDeviceEK)
 	require.Error(t, err)
 	require.Equal(t, badEldestSeqnoDeviceEK, keybase1.DeviceEk{})
+
+	// Verify we store failures in the cache
+	t.Logf("cache failures")
+	nonexistent, err = s.Get(context.Background(), maxGeneration+1)
+	require.Error(t, err)
+	require.Equal(t, keybase1.DeviceEk{}, nonexistent)
+
+	cache, err := s.getCache(context.Background())
+	require.NoError(t, err)
+	require.Len(t, cache, 1)
+
+	cacheItem, ok := cache[maxGeneration+1]
+	require.True(t, ok)
+	require.Error(t, cacheItem.Err)
 }
 
 // If we change the key format intentionally, we have to introduce some form of

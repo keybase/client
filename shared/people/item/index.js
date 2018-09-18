@@ -40,7 +40,7 @@ export default (props: Props) => (
     style={{
       ...containerStyle,
       backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
-      borderBottomColor: props.badged ? globalColors.white : globalColors.black_05,
+      borderBottomColor: props.badged ? globalColors.white : globalColors.black_10,
     }}
   >
     <Box style={iconContainerStyle}>{props.icon}</Box>

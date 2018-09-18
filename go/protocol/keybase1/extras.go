@@ -409,6 +409,10 @@ func (l LinkID) Eq(l2 LinkID) bool {
 	return l == l2
 }
 
+func (l LinkID) IsNil() bool {
+	return len(l) == 0
+}
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
@@ -494,6 +498,18 @@ func TeamIDFromString(s string) (TeamID, error) {
 	}
 	return "", fmt.Errorf("Bad TeamID '%s': must end in one of [0x%x, 0x%x, 0x%x, 0x%x]",
 		s, TEAMID_PRIVATE_SUFFIX_HEX, TEAMID_PUBLIC_SUFFIX_HEX, SUB_TEAMID_PRIVATE_SUFFIX, SUB_TEAMID_PUBLIC_SUFFIX)
+}
+
+func UserOrTeamIDFromString(s string) (UserOrTeamID, error) {
+	UID, errUser := UIDFromString(s)
+	if errUser == nil {
+		return UID.AsUserOrTeam(), nil
+	}
+	teamID, errTeam := TeamIDFromString(s)
+	if errTeam == nil {
+		return teamID.AsUserOrTeam(), nil
+	}
+	return "", fmt.Errorf("Bad UserOrTeamID: could not parse %s as a UID (err = %v) or team id (err = %v)", s, errUser, errTeam)
 }
 
 // Used by unit tests.
@@ -857,6 +873,15 @@ func (u *UID) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (u *UserOrTeamID) UnmarshalJSON(b []byte) error {
+	utid, err := UserOrTeamIDFromString(Unquote(b))
+	if err != nil {
+		return err
+	}
+	*u = utid
+	return nil
+}
+
 // Size implements the cache.Measurable interface.
 func (u UID) Size() int {
 	return len(u) + ptrSize
@@ -867,6 +892,10 @@ func (k *KID) MarshalJSON() ([]byte, error) {
 }
 
 func (u *UID) MarshalJSON() ([]byte, error) {
+	return Quote(u.String()), nil
+}
+
+func (u *UserOrTeamID) MarshalJSON() ([]byte, error) {
 	return Quote(u.String()), nil
 }
 
@@ -2000,10 +2029,21 @@ func TeamNameFromString(s string) (TeamName, error) {
 	return TeamName{Parts: tmp}, nil
 }
 
+func (t TeamName) AssertEqString(s string) error {
+	tmp, err := TeamNameFromString(s)
+	if err != nil {
+		return err
+	}
+	if !t.Eq(tmp) {
+		return fmt.Errorf("Team equality check failed: %s != %s", t.String(), s)
+	}
+	return nil
+}
+
 func (t TeamName) String() string {
 	tmp := make([]string, len(t.Parts))
 	for i, p := range t.Parts {
-		tmp[i] = string(p)
+		tmp[i] = strings.ToLower(string(p))
 	}
 	return strings.Join(tmp, ".")
 }
@@ -2537,5 +2577,22 @@ func (i Identify2ResUPK2) ExportToV1() Identify2Res {
 		Upk:          UPAKFromUPKV2AI(i.Upk).Base,
 		IdentifiedAt: i.IdentifiedAt,
 		TrackBreaks:  i.TrackBreaks,
+	}
+}
+
+func (path Path) String() string {
+	pathType, err := path.PathType()
+	if err != nil {
+		return ""
+	}
+	switch pathType {
+	case PathType_KBFS:
+		return path.Kbfs()
+	case PathType_KBFS_ARCHIVED:
+		return path.KbfsArchived().Path
+	case PathType_LOCAL:
+		return path.Local()
+	default:
+		return ""
 	}
 }

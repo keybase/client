@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -32,13 +33,15 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
-	Lookup(ctx context.Context, name string, public bool) (*NameInfo, error)
-	EncryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (*NameInfo, error)
-	DecryptionKeys(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
+	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (*NameInfo, error)
+	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
+	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
+		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
+	DecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool,
-		keyGeneration int, kbfsEncrypted bool) (*NameInfo, error)
+		keyGeneration int, kbfsEncrypted bool) (CryptKey, error)
 	EphemeralEncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -152,6 +155,7 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
+	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
@@ -244,10 +248,12 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
-	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
-		convs []chat1.InboxUIItem)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SubteamRename(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
 	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
@@ -282,7 +288,10 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) error
 	FetchAttachment(ctx context.Context, w io.Writer, convID chat1.ConversationID, asset chat1.Asset,
 		ri func() chat1.RemoteInterface, signer s3.Signer, progress ProgressReporter) error
+	StreamAttachment(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset,
+		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
+	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
 }
 
 type AttachmentURLSrv interface {
@@ -303,11 +312,25 @@ type EphemeralPurger interface {
 	Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error
 }
 
+type AttachmentUploaderResultCb interface {
+	Wait() chan AttachmentUploadResult
+}
+
 type AttachmentUploader interface {
 	Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		outboxID chat1.OutboxID, title, filename string, metadata []byte,
-		callerPreview *chat1.MakePreviewRes) (chan AttachmentUploadResult, error)
+		callerPreview *chat1.MakePreviewRes) (AttachmentUploaderResultCb, error)
 	Status(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderTaskStatus, AttachmentUploadResult, error)
-	Retry(ctx context.Context, outboxID chat1.OutboxID) (chan AttachmentUploadResult, error)
+	Retry(ctx context.Context, outboxID chat1.OutboxID) (AttachmentUploaderResultCb, error)
+	Cancel(ctx context.Context, outboxID chat1.OutboxID) error
 	Complete(ctx context.Context, outboxID chat1.OutboxID)
+}
+
+type NativeVideoHelper interface {
+	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
+}
+
+type StellarLoader interface {
+	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }

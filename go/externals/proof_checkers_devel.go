@@ -5,4 +5,12 @@
 
 package externals
 
+import libkb "github.com/keybase/client/go/libkb"
+
 const useDevelProofCheckers = true
+
+func getBuildSpecificStaticProofServices() []libkb.ServiceType {
+	return []libkb.ServiceType{
+		RooterServiceType{},
+	}
+}

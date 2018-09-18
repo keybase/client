@@ -27,6 +27,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -108,9 +109,9 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	return chat1.NewMessageUnboxedWithError(e)
 }
 
-func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) UnboxingError {
-	// Banned folders are only detectable by the error string currently, hopefully
-	// we can do something better in the future.
+func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
+	// Banned folders are only detectable by the error string currently,
+	// hopefully we can do something better in the future.
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
 		return NewPermanentUnboxingError(err)
 	}
@@ -136,8 +137,14 @@ func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) Unboxi
 			err.Msg = fmt.Sprintf("user deleted in chat '%v'", tlfName)
 		}
 		return NewPermanentUnboxingError(err)
-	case teams.TeamDoesNotExistError:
+	case teams.TeamDoesNotExistError,
+		DecryptionKeyNotFoundError,
+		NotAuthenticatedForThisDeviceError,
+		InvalidMACError:
 		return NewPermanentUnboxingError(err)
+	case ephemeral.EphemeralKeyError:
+		// Normalize error message with EphemeralUnboxingError
+		return NewPermanentUnboxingError(NewEphemeralUnboxingError(err))
 	}
 
 	// Check for no space left on device errors
@@ -263,6 +270,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
+	// Check to see if the context has been cancelled
+	select {
+	case <-ctx.Done():
+		return m, NewTransientUnboxingError(ctx.Err())
+	default:
+	}
+
 	// If we don't have an rtime, add one.
 	if boxed.ServerHeader.Rtime == nil {
 		now := gregor1.ToTime(b.clock.Now())
@@ -275,36 +289,35 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 				boxed.ClientHeader.TlfPublic))), nil
 	}
 	keyMembersType := b.getEffectiveMembersType(ctx, boxed, conv.GetMembersType())
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
+	encryptionKey, err := CtxKeyFinder(ctx, b.G()).FindForDecryption(ctx,
 		tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(),
 		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
-		// Check to see if this is a permanent error from the server
-		return chat1.MessageUnboxed{}, b.detectKBFSPermanentServerError(err, tlfName)
-	}
-	var encryptionKey types.CryptKey
-	keys := nameInfo.CryptKeys[keyMembersType]
-	for _, key := range keys {
-		if key.Generation() == boxed.KeyGeneration {
-			encryptionKey = key
-			break
+		// Post-process error from this
+		uberr = b.detectPermanentError(err, tlfName)
+		if uberr.IsPermanent() {
+			return b.makeErrorMessage(ctx, boxed, uberr), nil
 		}
-	}
-
-	if encryptionKey == nil {
-		err := fmt.Errorf("no key found for generation %d (%d keys checked)", boxed.KeyGeneration, len(keys))
-		return chat1.MessageUnboxed{}, NewTransientUnboxingError(err)
+		return chat1.MessageUnboxed{}, uberr
 	}
 
 	// If the message is exploding, load the ephemeral key.
 	var ephemeralSeed *keybase1.TeamEk
 	if boxed.IsEphemeral() {
-		ek, ekErr := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+		// Don't bother if the message is already expired.
+		if boxed.IsEphemeralExpired(b.clock.Now()) {
+			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralAlreadyExpiredError())), nil
+		}
+		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
-		if ekErr != nil {
-			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError(ekErr))), nil
+		if err != nil {
+			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
+			uberr = b.detectPermanentError(err, tlfName)
+			if uberr.IsPermanent() {
+				return b.makeErrorMessage(ctx, boxed, uberr), nil
+			}
+			return chat1.MessageUnboxed{}, uberr
 		}
 		ephemeralSeed = &ek
 	}
@@ -748,7 +761,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
 		if err != nil {
-			return nil, NewPermanentUnboxingError(err)
+			// Return a transient error if possible
+			return nil, b.detectPermanentError(err, boxed.ClientHeader.TlfName)
 		}
 	} else if bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 		// Note that this can happen if the server is stripping MACs for some
@@ -1182,7 +1196,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, c
 	}
 
 	boxCh := make(chan chat1.MessageBoxed)
-	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
+	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		defer close(boxCh)
 		for _, msg := range boxed {
@@ -1260,8 +1274,6 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 	signingKeyPair libkb.NaclSigningKeyPair) (res *chat1.MessageBoxed, err error) {
 	defer b.Trace(ctx, func() error { return err }, "BoxMessage")()
 	tlfName := msg.ClientHeader.TlfName
-	var encryptionKey types.CryptKey
-
 	if len(tlfName) == 0 {
 		return nil, NewBoxingError("blank TLF name given", true)
 	}
@@ -1275,28 +1287,18 @@ func (b *Boxer) BoxMessage(ctx context.Context, msg chat1.MessagePlaintext,
 		return nil, fmt.Errorf("cannot use exploding messages with V1")
 	}
 
-	nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
+	encryptionKey, nameInfo, err := CtxKeyFinder(ctx, b.G()).FindForEncryption(ctx,
 		tlfName, msg.ClientHeader.Conv.Tlfid, membersType,
 		msg.ClientHeader.TlfPublic)
-
 	if err != nil {
 		return nil, NewBoxingCryptKeysError(err)
 	}
+	// Make sure the ID we get back matches what has been put on the message
+	if !nameInfo.ID.Eq(msg.ClientHeader.Conv.Tlfid) {
+		return nil, NewBoxingError(fmt.Sprintf("invalid TLFID for name in header, %s != %s", nameInfo.ID,
+			msg.ClientHeader.Conv.Tlfid), true)
+	}
 	msg.ClientHeader.TlfName = nameInfo.CanonicalName
-	if msg.ClientHeader.TlfPublic {
-		encryptionKey = &publicCryptKey
-	} else {
-		for _, key := range nameInfo.CryptKeys[membersType] {
-			if encryptionKey == nil || key.Generation() > encryptionKey.Generation() {
-				encryptionKey = key
-			}
-		}
-	}
-
-	if encryptionKey == nil {
-		msg := fmt.Sprintf("no key found for tlf %q (public: %v)", tlfName, msg.ClientHeader.TlfPublic)
-		return nil, NewBoxingError(msg, false)
-	}
 
 	// If the message is exploding, load the ephemeral key, and tweak the
 	// version. Make sure we're not using MessageBoxedVersion_V1, since that
@@ -2008,9 +2010,10 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 }
 
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
-	conv chat1.Conversation, tlfPublic bool) (bool, error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
-		nameInfo, err := CtxKeyFinder(ctx, b.G()).Find(ctx, tlfName, conv.GetMembersType(), tlfPublic)
+		nameInfo, err := CreateNameInfoSource(ctx, b.G(), membersType).LookupID(ctx, tlfName,
+			tlfPublic)
 		if err != nil {
 			return "", err
 		}

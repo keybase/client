@@ -11,7 +11,9 @@
     },
     "favoritesLoad": {},
     "favoritesLoaded": {
-      "folders": "I.Map<Types.Path, Types.FavoriteItem>"
+      "private": "I.Map<string, Types.Tlf>",
+      "public": "I.Map<string, Types.Tlf>",
+      "team": "I.Map<string, Types.Tlf>"
     },
     "filePreviewLoad": {
       "path": "Types.Path"
@@ -33,9 +35,16 @@
       "sortSetting": "Types.SortSetting"
     },
     "download": {
-      "intent": "Types.DownloadIntent",
       "path": "Types.Path",
-      "localPath?": "string"
+      "key": "string"
+    },
+    "shareNative": {
+      "path": "Types.Path",
+      "key": "string"
+    },
+    "saveMedia": {
+      "path": "Types.Path",
+      "key": "string"
     },
     "downloadStarted": {
       "entryType?": "Types.PathType",
@@ -45,9 +54,9 @@
       "intent": "Types.DownloadIntent",
       "opID": "RPCTypes.OpID"
     },
-    "downloadFinished": {
+    "downloadSuccess": {
       "key": "string",
-      "error?": "string"
+      "mimeType": "string"
     },
     "downloadProgress": {
       "key": "string",
@@ -67,9 +76,8 @@
     "uploadStarted": {
       "path": "Types.Path"
     },
-    "uploadWritingFinished": {
-      "path": "Types.Path",
-      "error?": "string"
+    "uploadWritingSuccess": {
+      "path": "Types.Path"
     },
     "journalUpdate": {
       "syncingPaths": "Array<Types.Path>",
@@ -99,7 +107,10 @@
     },
     "installKBFS": {},
     "uninstallKBFSConfirm": {},
-    "fsActivity": {},
+    "notifyTlfUpdate": {
+      "tlfPath": "Types.Path"
+    },
+    "notifySyncActivity": {},
     "openSecurityPreferences": {},
     "refreshLocalHTTPServerInfo": {},
     "localHTTPServerInfo": {
@@ -111,7 +122,7 @@
     },
     "favoriteIgnoreError": {
       "path": "Types.Path",
-      "errorText": "string"
+      "error": "Types.FsError"
     },
     "newFolderRow": {
       "parentPath": "Types.Path"
@@ -124,40 +135,43 @@
       "editID": "Types.EditID"
     },
     "editSuccess": {
-      "editID": "Types.EditID"
-    },
-    "editFailed": {
-      "editID": "Types.EditID"
+      "editID": "Types.EditID",
+      "parentPath": "Types.Path"
     },
     "discardEdit": {
       "editID": "Types.EditID"
     },
+    "fsError": {
+      "error": "Types.FsError"
+    },
+    "dismissFsError": {
+      "key": "string"
+    },
 
-    "shareNative": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
-    "saveMedia": {
-      "path": "Types.Path",
-      "routePath?": "I.List<string>"
-    },
-    "openFinderPopup": {
-      "targetRect": "?ClientRect",
-      "routePath": "I.List<string>"
-    },
     "openPathItem": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
+    },
+    "openFilesFromWidget": {
+      "path?": "Types.Path"
     },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
     },
-    "pickAndUpload": {
+    "openAndUpload": {
       "type": "Types.OpenDialogType",
       "parentPath": "Types.Path"
     },
+    "pickAndUpload": {
+      "type": "Types.MobilePickType",
+      "parentPath": "Types.Path"
+    },
+    "userFileEditsLoad": {},
+    "userFileEditsLoaded": {
+      "tlfUpdates": "Types.UserTlfUpdates"
+    },
 
-    "setupFSHandlers": {}
+    "placeholderAction": {}
   }
 }

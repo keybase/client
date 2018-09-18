@@ -30,7 +30,7 @@ class FoldersRender extends Component<Props> {
   _makeItem(folderType: FolderType, isSelected: boolean) {
     let isPublic = folderType === 'public'
     const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
-    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
+    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.black_75
     const iconStyle = isPublic
       ? {color: globalColors.yellowGreen2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
       : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
@@ -48,7 +48,7 @@ class FoldersRender extends Component<Props> {
         styleBadgeContainer={{position: 'absolute', right: -1 * globalMargins.tiny}}
         styleIcon={{...styleIcon, ...iconStyle}}
         styleLabel={{
-          color: isPublic ? globalColors.yellowGreen2 : globalColors.darkBlue,
+          color: isPublic ? globalColors.yellowGreen2 : globalColors.black_75,
           opacity: isSelected ? 1 : 0.6,
           fontSize: 12,
         }}

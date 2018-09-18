@@ -13,7 +13,7 @@ import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
-import Divider from './row/divider/container'
+import TeamsDivider from './row/teams-divider/container'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
@@ -54,7 +54,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const row = item
     if (row.type === 'divider') {
       return (
-        <Divider
+        <TeamsDivider
           key="divider"
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}

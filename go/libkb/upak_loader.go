@@ -21,7 +21,7 @@ type UPAKLoader interface {
 	LoadV2(arg LoadUserArg) (ret *keybase1.UserPlusKeysV2AllIncarnations, user *User, err error)
 	CheckKIDForUID(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool, err error)
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID, pollForKID keybase1.KID) (keybase1.UserPlusKeys, error)
-	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.PublicKeyV2NaCl, map[keybase1.Seqno]keybase1.LinkID, error)
+	LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error)
 	Invalidate(ctx context.Context, uid keybase1.UID)
 	LoadDeviceKey(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (upak *keybase1.UserPlusAllKeys, deviceKey *keybase1.PublicKey, revoked *keybase1.RevokedKey, err error)
 	LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error)
@@ -266,6 +266,7 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 
 	// Shorthands
 	m := arg.MetaContext()
+	m, tbs := arg.m.WithTimeBuckets()
 	g := m.G()
 	ctx := m.Ctx()
 
@@ -308,8 +309,10 @@ func (u *CachedUPAKLoader) loadWithInfo(arg LoadUserArg, info *CachedUserLoadInf
 			return nil, user, err
 		}
 		if needCopy {
+			fin := tbs.Record("CachedUPAKLoader.DeepCopy")
 			tmp := upak.DeepCopy()
 			upak = &tmp
+			fin()
 		}
 		return upak, user, nil
 	}
@@ -446,6 +449,9 @@ func (u *CachedUPAKLoader) Load(arg LoadUserArg) (*keybase1.UserPlusAllKeys, *Us
 // non-nil, nor never both nil. If we had to do a full LoadUser as part of the
 // request, it's returned too.
 func (u *CachedUPAKLoader) LoadV2(arg LoadUserArg) (*keybase1.UserPlusKeysV2AllIncarnations, *User, error) {
+	m, tbs := arg.m.WithTimeBuckets()
+	arg.m = m
+	defer tbs.Record("CachedUPAKLoader.LoadV2")()
 	return u.loadWithInfo(arg, nil, nil, true)
 }
 
@@ -503,7 +509,8 @@ func (u *CachedUPAKLoader) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 // LoadKeyV2 looks through all incarnations for the user and returns the incarnation with the given
 // KID, as well as the Key data associated with that KID. It picks the latest such
 // incarnation if there are multiple.
-func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2, key *keybase1.PublicKeyV2NaCl, linkMap map[keybase1.Seqno]keybase1.LinkID, err error) {
+func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (ret *keybase1.UserPlusKeysV2,
+	upak *keybase1.UserPlusKeysV2AllIncarnations, key *keybase1.PublicKeyV2NaCl, err error) {
 	ctx = WithLogTag(ctx, "LK") // Load key
 	defer u.G().CVTraceTimed(ctx, VLog0, fmt.Sprintf("LoadKeyV2 uid:%s,kid:%s", uid, kid), func() error { return err })()
 	ctx, tbs := u.G().CTimeBuckets(ctx)
@@ -524,9 +531,11 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 		argBase.WithForceReload(),
 	}
 
-	for _, arg := range attempts {
+	for i, arg := range attempts {
 
-		u.G().VDL.CLogf(ctx, VLog0, "| reloading with arg: %s", arg.String())
+		if i > 0 {
+			u.G().VDL.CLogf(ctx, VLog0, "| reloading with arg: %s", arg.String())
+		}
 
 		upak, _, err := u.LoadV2(arg)
 		if err != nil {
@@ -536,16 +545,14 @@ func (u *CachedUPAKLoader) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid 
 			return nil, nil, nil, fmt.Errorf("Nil user, nil error from LoadUser")
 		}
 
-		linkMap = upak.SeqnoLinkIDs
-		ret, key = upak.FindKID(kid)
+		ret, key := upak.FindKID(kid)
 		if key != nil {
-			u.G().VDL.CLogf(ctx, VLog0, "- found kid in UPAK: %v", ret.Uid)
-			return ret, key, linkMap, nil
+			u.G().VDL.CLogf(ctx, VLog1, "- found kid in UPAK: %v", ret.Uid)
+			return ret, upak, key, nil
 		}
-		ret = nil
 	}
 
-	return nil, nil, nil, NotFoundError{Msg: "Not found: User"}
+	return nil, nil, nil, NotFoundError{Msg: "Not found: Key for user"}
 }
 
 func (u *CachedUPAKLoader) Invalidate(ctx context.Context, uid keybase1.UID) {
@@ -659,7 +666,8 @@ func (u *CachedUPAKLoader) LookupUsernameUPAK(ctx context.Context, uid keybase1.
 // LookupUID is a verified map of username -> UID. IT calls into the resolver, which gives un untrusted
 // UID, but verifies with the UPAK loader that the mapping UID -> username is correct.
 func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername) (keybase1.UID, error) {
-	rres := u.G().Resolver.Resolve(un.String())
+	m := NewMetaContext(ctx, u.G())
+	rres := u.G().Resolver.Resolve(m, un.String())
 	if err := rres.GetError(); err != nil {
 		return keybase1.UID(""), err
 	}
@@ -668,7 +676,7 @@ func (u *CachedUPAKLoader) LookupUID(ctx context.Context, un NormalizedUsername)
 		return keybase1.UID(""), err
 	}
 	if !un.Eq(un2) {
-		u.G().Log.CWarningf(ctx, "Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
+		m.CWarningf("Unexpected mismatched usernames (uid=%s): %s != %s", rres.GetUID(), un.String(), un2.String())
 		return keybase1.UID(""), NewBadUsernameError(un.String())
 	}
 	return rres.GetUID(), nil

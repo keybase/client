@@ -32,6 +32,7 @@ class Passphrase extends React.Component<Props, State> {
           type="password"
           errorText={this.props.passphrase === this.state.pass1 ? this.props.error : ''}
           onChangeText={pass1 => this.setState({pass1})}
+          uncontrolled={true}
         />
         <Input
           hintText="Confirm passphrase"
@@ -39,6 +40,7 @@ class Passphrase extends React.Component<Props, State> {
           type="password"
           onEnterKeyDown={this._onSubmit}
           onChangeText={pass2 => this.setState({pass2})}
+          uncontrolled={true}
         />
         <ContinueButton disabled={!this.state.pass1 || !this.state.pass2} onClick={this._onSubmit} />
       </Wrapper>

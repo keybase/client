@@ -55,10 +55,10 @@ protocol teams {
 
   @lint("ignore")
   record PerTeamKey {
-      PerTeamKeyGeneration gen;
-      Seqno seqno;
-      KID sigKID;
-      KID encKID;
+    PerTeamKeyGeneration gen;
+    Seqno seqno;
+    KID sigKID;
+    KID encKID;
   }
 
   fixed PerTeamKeySeed(32);
@@ -127,16 +127,16 @@ protocol teams {
   }
 
   record TeamPlusApplicationKeys {
-      TeamID id;
-      string name;
-      boolean implicit;
-      boolean public;
-      TeamApplication application;
+    TeamID id;
+    string name;
+    boolean implicit;
+    boolean public;
+    TeamApplication application;
 
-      array<UserVersion> writers;
-      array<UserVersion> onlyReaders;
+    array<UserVersion> writers;
+    array<UserVersion> onlyReaders;
 
-      array<TeamApplicationKey> applicationKeys;
+    array<TeamApplicationKey> applicationKeys;
   }
 
   // Snapshot of a loaded team.
@@ -153,10 +153,12 @@ protocol teams {
     TeamName name;
     TeamSigChainState chain;
 
+    // These secrets may not match the team chain, always verify before use.
     // These secrets may be behind or missing if this is a public team.
     // generation -> seed
     // generations _must_ start from 1 with no gaps
-    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeeds;
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeedItem> perTeamKeySeedsUnverified;
     // application -> generation -> mask
     // in each slot generations _must_ start from 1 with no gaps
     map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
@@ -171,6 +173,140 @@ protocol teams {
 
     // Associated TLF crypt keys
     map<TeamApplication, array<CryptKey>> tlfCryptKeys;
+  }
+
+  // Snapshot of a fast-loaded team.
+  record FastTeamData {
+
+    // Name of the team. This is tricky.
+    // The root ancestor, final part, and the depth are always correct.
+    // But the middle parts (b in a.b.c) do not track the sigchain.
+    // They are kept fairly up to date by TeamLoader, but the guarantees are fuzzy.
+    TeamName name;
+
+    // Data derived from our (limited) replay of the team chain.
+    FastTeamSigChainState chain;
+
+    // These secrets may not match the team chain, always verify before use.
+    // These secrets may be behind or missing if this is a public team.
+    // generation -> seed
+    // generations _must_ start from 1 with no gaps
+    @mpackkey("perTeamKeySeeds")
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsUnverified;
+
+    PerTeamKeyGeneration latestKeyGeneration;
+
+    // application -> generation -> mask
+    // in each slot generations _must_ start from 1 with no gaps
+    map<TeamApplication,map<PerTeamKeyGeneration,MaskB64>> readerKeyMasks;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    // The latest seqno of the remote team. Given by the server out of band.
+    // Used for caching.
+    Seqno latestSeqnoHint;
+
+    // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
+    Time cachedAt;
+
+    // True if we've ever loaded this team for the "latest" version; sometimes
+    // we don't, depending on the access patterns
+    boolean loadedLatest;
+  }
+
+  record LinkTriple {
+    Seqno seqno;
+    SeqType seqType;
+    LinkID linkID;
+  }
+
+  record UpPointer {
+    Seqno ourSeqno;
+    TeamID parentID;
+    Seqno parentSeqno;
+    boolean deletion;
+  }
+
+  record DownPointer {
+    TeamID id;
+    string nameComponent;
+    boolean isDeleted;
+  }
+
+  // FastTeamSigChainState is the state computed by doing a fast reply of the
+  // team's sigchain, ignoring all but the key rotation links.
+  record FastTeamSigChainState {
+
+    @lint("ignore")
+    TeamID ID;
+
+    // Whether this is a public team.
+    boolean public;
+
+    // Name of the root ancestor. For A.B.C this is 'A'.
+    TeamName rootAncestor;
+    // Depth of the name.
+    int nameDepth;
+
+    union { null, LinkTriple } last;
+
+    // Keyed by per-team-key generation
+    map<PerTeamKeyGeneration, PerTeamKey> perTeamKeys;
+
+    // Once we derive and check these seeds, we enter them here (as a cache of work).
+    map<PerTeamKeyGeneration,PerTeamKeySeed> perTeamKeySeedsVerified;
+
+    // Down pointers will be filled in too, on the team, as they are needed to
+    // construct the name of subteams.
+    map<Seqno, DownPointer> downPointers;
+
+    // The LastUpPointer we received, either a deleted pointer, or a rename pointer.
+    // Or nil if a root team. If lastUpPointer is non-nil and deleted is true, then
+    // this team is deleted.
+    union { null, UpPointer } lastUpPointer;
+
+    // Creation time of latest PerTeamKey, based on CTime from the
+    // link key appeared in.
+    UnixTime perTeamKeyCTime;
+
+    // This is filled up to lastSeqno.
+    map<Seqno, LinkID> linkIDs;
+
+    // For any link where we have it, fill in merkle sequence information.
+    map<Seqno, MerkleRootV2> merkleInfo;
+  }
+
+  record Audit {
+    Time time;
+    // The Maximum Merkle Seqno known globally at the time of the audit.
+    Seqno maxMerkleSeqno;
+    // The maximum Seqno in the chain at the time of the audit.
+    Seqno maxChainSeqno;
+    // The maximum merkle Seqno probed in this audit.
+    Seqno maxMerkleProbe;
+  }
+
+  record Probe {
+    @mpackkey("i")
+    int index;
+    @mpackkey("s")
+    Seqno teamSeqno;
+  }
+
+  record AuditHistory {
+    @lint("ignore")
+    TeamID ID;
+    // Whether this is a public team.
+    boolean public;
+    // The Merkle sequence number signed into the head link of the team chain.
+    Seqno priorMerkleSeqno;
+
+    // When the last audit(s) happened
+    array<Audit> audits;
+    // Probes of before the team was created. The value in the map is the index
+    // of the audit (each audit has a value in the audits array above).
+    map<Seqno,Probe> preProbes;
+    // Probes of after the team was created
+    map<Seqno,Probe> postProbes;
   }
 
   enum TeamInviteCategory {
@@ -262,9 +398,13 @@ protocol teams {
     // Log of the last part of the team name.
     array<TeamNameLogPoint> nameLog;
 
-    // The last link procesed
+    // The last link processed
     Seqno lastSeqno;
     LinkID lastLinkID;
+
+    // The last high link processed
+    Seqno lastHighSeqno;
+    LinkID lastHighLinkID;
 
     // Present if a subteam
     union { null, TeamID } parentID;
@@ -312,6 +452,12 @@ protocol teams {
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
     map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
+
+    // The head merkle object is the merkle root signed into the head of the team
+    // It was rolled out in 2018-09, so isn't available for all stored copies
+    // of TeamSigChainState. Thus, if you need it, you should check if it's there,
+    // and if not, fetch the chainlink from the server and check against linksIDs[1].
+    union { null, MerkleRootV2 } headMerkle;
   }
 
   // The team got this name at this point in time.
@@ -401,6 +547,11 @@ protocol teams {
 
   record TeamExitRow {
     TeamID id;
+  }
+
+  record TeamNewlyAddedRow {
+    TeamID id;
+    string name;
   }
 
   record TeamInvitee {
@@ -516,6 +667,9 @@ protocol teams {
   record TeamRefreshers {
     // Load at least up to the keygen. Returns an error if the keygen is not loaded.
     PerTeamKeyGeneration needKeyGeneration;
+    // Load the reader key mask for the given applications and the given
+    // generations. Returns an error if any of the RKMs are not loaded.
+    map<PerTeamKeyGeneration,array<TeamApplication>> needApplicationsAtGenerations;
     // Refresh if the cached version does not have these members at the minimum role `wantMembersRole`.
     // Does not guarantee these members will be present in the returned team. This is especially
     // relevant in the case of deleted users, who won't be there after the refresh.
@@ -559,6 +713,31 @@ protocol teams {
     boolean forceRepoll;               // Force a sync with merkle.
     boolean staleOK;                   // If a very stale cache hit is OK.
     boolean allowNameLookupBurstCache; // If it's ok to hit the nameLookup burst cache
+  }
+
+  record FastTeamLoadArg {
+    @lint("ignore")
+    TeamID ID;
+    boolean public;
+
+    union { null, TeamName } assertTeamName;
+
+    // All (applications X keyGenerationsNeeded) should be loaded
+    array<TeamApplication> applications;
+    array<PerTeamKeyGeneration> keyGenerationsNeeded;
+
+    // Specify this flag if you need the latest generation, which will maybe
+    // trigger a poll of the team.
+    boolean needLatestKey;
+
+    // Specify this flag if you want to force past the time-based cache,
+    // currently set to one hour.
+    boolean forceRefresh;
+  }
+
+  record FastTeamLoadRes {
+    TeamName name;
+    array<TeamApplicationKey> applicationKeys;
   }
 
   record ImplicitRole {
@@ -885,4 +1064,6 @@ protocol teams {
    current user can't read the team.
    */
   TeamID getTeamID(string teamName);
+
+  FastTeamLoadRes ftl(FastTeamLoadArg arg);
 }

@@ -226,6 +226,7 @@
       "type": "enum",
       "name": "SeqType",
       "symbols": [
+        "NONE_0",
         "PUBLIC_1",
         "PRIVATE_2",
         "SEMIPRIVATE_3"

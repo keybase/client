@@ -395,10 +395,15 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error during verify")
 	}
-	badSenderError, ok := err.(*FakeBadSenderError)
+	verificationError, ok := err.(libkb.VerificationError)
+	if !ok {
+		t.Fatal("expected VerificationError during verify")
+	}
+	badSenderError, ok := verificationError.Cause.(*FakeBadSenderError)
 	if !ok {
 		t.Fatal("expected FakeBadSenderError during verify")
 	}
+
 	if badSenderError.senderType != keybase1.SaltpackSenderType_REVOKED {
 		t.Fatalf("expected keybase1.SaltpackSenderType_REVOKED, got %s", badSenderError.senderType.String())
 	}

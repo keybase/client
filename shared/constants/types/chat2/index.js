@@ -1,5 +1,6 @@
-// @flow
+// @flow strict
 import * as RPCChatTypes from '../rpc-chat-gen'
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as Common from './common'
 import * as Meta from './meta'
@@ -12,8 +13,7 @@ export type PendingMode =
   | 'startingFromAReset' // fixedSet but our intention is to restart a reset conversation
 
 export type PendingStatus =
-  | 'none' // no pending
-  | 'waiting' // attempting to create conversation
+  | 'none' // no special status
   | 'failed' // creating conversation failed
 
 export type _QuoteInfo = {
@@ -35,12 +35,13 @@ export type _State = {
   badgeMap: I.Map<Common.ConversationIDKey, number>, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
+  inboxHasLoaded: boolean, // if we've ever loaded
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: I.Map<Common.ConversationIDKey, Meta.ConversationMeta>, // metadata about a thread, There is a special node for the pending conversation
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
-  lastReadMessageMap: I.Map<Common.ConversationIDKey, number>, // last message we've seen
+  orangeLineMap: I.Map<Common.ConversationIDKey, number>, // last message we've seen
   explodingModeLocks: I.Map<Common.ConversationIDKey, number>, // locks set on exploding mode while user is inputting text
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
@@ -50,6 +51,7 @@ export type _State = {
   unreadMap: I.Map<Common.ConversationIDKey, number>, // how many unread messages there are
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
+  pendingStatus: PendingStatus, // the status of creating a new conversation
 }
 
 export type State = I.RecordOf<_State>
@@ -69,6 +71,9 @@ export const outboxIDToRpcOutboxID = (outboxID: Message.OutboxID): RPCChatTypes.
 export type {ConversationMeta, MetaTrustedState, NotificationsType} from './meta'
 export type {
   AttachmentType,
+  ChatPaymentInfo,
+  ChatRequestInfo,
+  DecoratedMessage,
   MentionsAt,
   MentionsChannel,
   MentionsChannelName,
@@ -76,6 +81,8 @@ export type {
   MessageAttachment,
   MessageExplodeDescription,
   MessageID,
+  MessageRequestPayment,
+  MessageSendPayment,
   MessageSystemAddedToTeam,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,

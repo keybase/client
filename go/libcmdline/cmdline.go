@@ -66,6 +66,9 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+func (p CommandLine) GetMobileSharedHome() string {
+	return p.GetGString("mobile-shared-home")
+}
 func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
@@ -185,6 +188,9 @@ func (p CommandLine) GetPinentry() string {
 }
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
+}
+func (p CommandLine) IsMobileExtension() (bool, bool) {
+	return false, false
 }
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
@@ -356,6 +362,18 @@ func (p CommandLine) GetMountDir() string {
 
 func (p CommandLine) GetRememberPassphrase() (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
+}
+
+func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
+	return p.GetBool("attachment-disable-multi", true)
+}
+
+func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
+	ret := p.GetGInt("attachment-httpsrv-port")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {

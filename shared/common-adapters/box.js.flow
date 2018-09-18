@@ -3,7 +3,7 @@ import * as React from 'react'
 import {type StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
-export type Box2Props = {
+export type Box2Props = {|
   children?: React.Node,
   centerChildren?: boolean,
   className?: ?string,
@@ -17,7 +17,7 @@ export type Box2Props = {
   gap?: $Keys<typeof globalMargins>,
   gapStart?: boolean,
   gapEnd?: boolean,
-}
+|}
 
 declare export class Box extends React.Component<Props> {}
 declare export class Box2 extends React.Component<Box2Props> {}

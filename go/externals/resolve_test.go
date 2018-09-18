@@ -1,6 +1,7 @@
 package externals
 
 import (
+	"context"
 	"strings"
 	"testing"
 	"time"
@@ -8,14 +9,13 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
-	"golang.org/x/net/context"
 )
 
 func newTestResolverCache(g *libkb.GlobalContext) (*libkb.ResolverImpl, clockwork.FakeClock) {
 	clock := clockwork.NewFakeClockAt(time.Now())
 	g.SetClock(clock)
-	res := libkb.NewResolverImpl(g)
-	res.EnableCaching()
+	res := libkb.NewResolverImpl()
+	res.EnableCaching(libkb.NewMetaContextBackground(g))
 	return res, clock
 }
 
@@ -23,11 +23,12 @@ var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 
 func TestResolveSimple(t *testing.T) {
 	tc := libkb.SetupTest(t, "resolveSimple", 1)
-	tc.G.Services = GetServices()
+	tc.G.SetProofServices(NewProofServices(tc.G))
 	r, clock := newTestResolverCache(tc.G)
+	m := libkb.NewMetaContextForTest(tc)
 
 	goodResolve := func(s string) {
-		res := r.Resolve(s)
+		res := r.Resolve(m, s)
 		if err := res.GetError(); err != nil {
 			t.Fatal(err)
 		}
@@ -66,7 +67,7 @@ func TestResolveSimple(t *testing.T) {
 	if !r.Stats.Eq(2, 1, 1, 0, 2) {
 		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
 	}
-	res := r.Resolve("tacovontaco@twitter")
+	res := r.Resolve(m, "tacovontaco@twitter")
 	if err := res.GetError(); err == nil {
 		t.Fatal("Expected an ambiguous error on taconvontaco")
 	} else if terr, ok := err.(libkb.ResolutionError); !ok {
@@ -79,11 +80,11 @@ func TestResolveSimple(t *testing.T) {
 func TestResolveNeedUsername(t *testing.T) {
 	ctx := context.Background()
 	tc := libkb.SetupTest(t, "resolveSimple", 1)
-	tc.G.Services = GetServices()
+	tc.G.SetProofServices(NewProofServices(tc.G))
 	r, clock := newTestResolverCache(tc.G)
 	goodResolve := func(s string) {
 		lctx := libkb.WithLogTag(ctx, "RSLV")
-		res := r.ResolveFullExpressionNeedUsername(lctx, s)
+		res := r.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(lctx, tc.G), s)
 		if err := res.GetError(); err != nil {
 			t.Fatal(err)
 		}

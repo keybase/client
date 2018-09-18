@@ -1,11 +1,12 @@
 // @flow
+import logger from '../../logger'
 import * as Saga from '../../util/saga'
-import * as Types from '../../constants/types/fs'
 import * as FsGen from '../fs-gen'
-import RNFetchBlob from 'react-native-fetch-blob'
+import {type TypedState} from '../../util/container'
+import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
-import {shareNative, saveMedia, pickAndUpload, pickAndUploadSuccess} from './common.native'
+import {pickAndUploadToPromise} from './common.native'
 import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
 
 function copyToDownloadDir(path: string, mimeType: string) {
@@ -38,21 +39,30 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
 }
 
-function platformSpecificIntentEffect(
-  intent: Types.DownloadIntent,
-  localPath: string,
-  mimeType: string
-): ?Saga.Effect {
+const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
+  const {key, mimeType} = action.payload
+  const download = state.fs.downloads.get(key)
+  if (!download) {
+    logger.warn('missing download key', key)
+    return null
+  }
+  const {intent, localPath} = download.meta
   switch (intent) {
-    case 'none':
-      return Saga.call(copyToDownloadDir, localPath, mimeType)
     case 'camera-roll':
-      return Saga.call(saveAttachmentDialog, localPath)
+      return Saga.sequentially([
+        Saga.call(saveAttachmentDialog, localPath),
+        Saga.put(FsGen.createDismissDownload({key})),
+      ])
     case 'share':
-      return Saga.call(showShareActionSheet, {url: localPath, mimeType})
-    case 'web-view':
-    case 'web-view-text':
-      return null
+      return Saga.sequentially([
+        Saga.call(showShareActionSheet, {url: localPath, mimeType}),
+        Saga.put(FsGen.createDismissDownload({key})),
+      ])
+    case 'none':
+      return Saga.sequentially([
+        Saga.call(copyToDownloadDir, localPath, mimeType),
+        // TODO: dismiss download when we get rid of download cards on mobile
+      ])
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
@@ -63,9 +73,8 @@ function platformSpecificIntentEffect(
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(FsGen.shareNative, shareNative)
-  yield Saga.safeTakeEveryPure(FsGen.saveMedia, saveMedia)
-  yield Saga.safeTakeEveryPure(FsGen.pickAndUpload, pickAndUpload, pickAndUploadSuccess)
+  yield Saga.actionToPromise(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield Saga.actionToAction(FsGen.downloadSuccess, downloadSuccessToAction)
 }
 
-export {platformSpecificIntentEffect, platformSpecificSaga}
+export default platformSpecificSaga

@@ -3,24 +3,43 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as ProfileGen from '../../../../../actions/profile-gen'
 import * as TrackerGen from '../../../../../actions/tracker-gen'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Constants from '../../../../../constants/chat2/message'
-import {WrapperAuthor} from '../'
+import * as Constants from '../../../../../constants/chat2'
+import * as MessageConstants from '../../../../../constants/chat2/message'
+import WrapperAuthor from '.'
 import {setDisplayName, compose, connect, type TypedState} from '../../../../../util/container'
 import {isMobile} from '../../../../../constants/platform'
 
-const mapStateToProps = (state: TypedState, {message, previous, innerClass, isEditing}) => {
+type OwnProps = {|
+  isEditing: boolean,
+  measure: null | (() => void),
+  message: Types.DecoratedMessage,
+  previous: ?Types.Message,
+  toggleMessageMenu: () => void,
+|}
+
+const mapStateToProps = (state: TypedState, {message, previous, isEditing}: OwnProps) => {
   const isYou = state.config.username === message.author
   const isFollowing = state.config.following.has(message.author)
   const isBroken = state.users.infoMap.getIn([message.author, 'broken'], false)
-  const lastReadMessageID = state.chat2.lastReadMessageMap.get(message.conversationIDKey)
-  const lastPositionExists = !!previous && lastReadMessageID === previous.id
-  const messageSent = !message.submitState
-  const messageFailed = message.submitState === 'failed'
-  const messagePending = message.submitState === 'pending'
-  const isExplodingUnreadable = message.explodingUnreadable
+  const orangeLineMessageID = state.chat2.orangeLineMap.get(message.conversationIDKey)
+  const lastPositionExists = orangeLineMessageID === message.id
+
+  // text and attachment messages have a bunch of info about the status.
+  // payments don't.
+  let messageSent, messageFailed, messagePending, isExplodingUnreadable
+  if (message.type === 'text' || message.type === 'attachment') {
+    messageSent = !message.submitState
+    messageFailed = message.submitState === 'failed'
+    messagePending = message.submitState === 'pending'
+    isExplodingUnreadable = message.explodingUnreadable
+  } else {
+    messageSent = true
+    messageFailed = false
+    messagePending = false
+    isExplodingUnreadable = false
+  }
 
   return {
-    innerClass,
     isBroken,
     isEditing,
     isExplodingUnreadable,
@@ -48,48 +67,61 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(Chat2Gen.createMessageRetry({conversationIDKey, outboxID})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {measure}) => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message, previous} = stateProps
 
   const sequentialUserMessages =
     previous &&
     previous.author === message.author &&
-    (previous.type === 'text' || previous.type === 'deleted' || previous.type === 'attachment')
+    Constants.authorIsCollapsible(message) &&
+    Constants.authorIsCollapsible(previous)
 
-  const showAuthor = Constants.enoughTimeBetweenMessages(message, previous)
+  const showAuthor = MessageConstants.enoughTimeBetweenMessages(message, previous)
 
   const timestamp = stateProps.lastPositionExists || !previous || showAuthor ? message.timestamp : null
 
   const includeHeader = !previous || !sequentialUserMessages || !!timestamp
 
-  let failureDescription = null
+  let failureDescription = ''
   if ((message.type === 'text' || message.type === 'attachment') && message.errorReason) {
     failureDescription = stateProps.isYou ? `Failed to send: ${message.errorReason}` : message.errorReason
+  }
+
+  // Properties that are different between request/payment and text/attachment
+  let exploded = false
+  let explodedBy = ''
+  let explodesAt = 0
+  let exploding = false
+  let isEdited = false
+  if (message.type === 'text' || message.type === 'attachment') {
+    exploded = message.exploded
+    explodedBy = message.explodedBy
+    explodesAt = message.explodingTime
+    exploding = message.exploding
+    isEdited = message.hasBeenEdited
   }
 
   return {
     author: message.author,
     conversationIDKey: message.conversationIDKey,
-    exploded: message.exploded,
-    explodedBy: message.explodedBy,
-    explodesAt: message.explodingTime,
-    exploding: message.exploding,
+    exploded,
+    explodedBy,
+    explodesAt,
+    exploding,
     failureDescription,
     includeHeader,
-    innerClass: stateProps.innerClass,
     isBroken: stateProps.isBroken,
-    isEdited: message.hasBeenEdited,
+    isEdited,
     isEditing: stateProps.isEditing,
     isExplodingUnreadable: stateProps.isExplodingUnreadable,
     isFollowing: stateProps.isFollowing,
-    isRevoked: !!message.deviceRevokedAt,
     isYou: stateProps.isYou,
-    measure,
+    measure: ownProps.measure,
     message,
     messageFailed: stateProps.messageFailed,
     // `messageKey` should be unique for the message as long
     // as threads aren't switched
-    messageKey: `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`,
+    messageKey: Constants.getMessageKey(message),
     messagePending: stateProps.messagePending,
     messageSent: stateProps.messageSent,
     onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
@@ -98,10 +130,13 @@ const mergeProps = (stateProps, dispatchProps, {measure}) => {
       : null,
     onEdit: stateProps.isYou ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry: stateProps.isYou
-      ? () => message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+      ? () => {
+          message.outboxID && dispatchProps._onRetry(message.conversationIDKey, message.outboxID)
+        }
       : null,
     ordinal: message.ordinal,
     timestamp: message.timestamp,
+    toggleMessageMenu: ownProps.toggleMessageMenu,
   }
 }
 

@@ -3,6 +3,7 @@
 protocol local {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/keybase1" as keybase1;
+  import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "chat_ui.avdl";
 
@@ -172,11 +173,11 @@ protocol local {
   }
 
   record MessageSendPayment {
-    string kbTxID;
+    stellar1.PaymentID paymentID;
   }
 
   record MessageRequestPayment {
-    string requestID;
+    stellar1.KeybaseRequestID requestID;
     string note;
   }
 
@@ -574,6 +575,7 @@ protocol local {
     boolean markAsRead;
     array<MessageType> messageTypes;
     boolean disableResolveSupersedes;
+    boolean enableDeletePlaceholders;
 
     union { null, gregor1.Time } before;
     union { null, gregor1.Time } after;
@@ -778,7 +780,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
   void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record DownloadAttachmentLocalRes {
@@ -798,16 +800,19 @@ protocol local {
 
   enum PreviewLocationTyp {
     URL_0,
-    FILE_1
+    FILE_1,
+    BYTES_2
   }
 
   variant PreviewLocation switch (PreviewLocationTyp ltyp) {
     case URL: string;
     case FILE: string;
+    case BYTES: bytes;
   }
 
   record MakePreviewRes {
     string mimeType;        // this will always be populated
+    union {null, string} previewMimeType ; // this will be populated if we made a preview
     union {null, PreviewLocation} location;    // will exist if service is able to make a preview
     union {null, AssetMetadata} metadata; // will exist if service is able to make a preview
     union {null, AssetMetadata} baseMetadata; // will exist if service is able to get base metadata

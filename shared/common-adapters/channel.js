@@ -2,11 +2,12 @@
 import React from 'react'
 import Text from './text'
 import {type ConversationIDKey} from '../constants/types/chat2'
+import type {StylesCrossPlatform} from '../styles'
 
 export type Props = {
   name: string,
   convID: ConversationIDKey,
-  style: any,
+  style: StylesCrossPlatform,
   allowFontScaling?: ?boolean,
   onClick: () => void,
 }

@@ -93,7 +93,7 @@ func (c *Crypto) Unbox(ctx context.Context, teamSpec keybase1.TeamIDWithVisibili
 
 	key := publicCryptKey
 	if !public {
-		key, err = team.ApplicationKeyAtGeneration(keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
+		key, err = team.ApplicationKeyAtGeneration(ctx, keybase1.TeamApplication_GIT_METADATA, metadata.Gen)
 		if err != nil {
 			return nil, err
 		}
@@ -116,7 +116,9 @@ func (c *Crypto) loadTeam(ctx context.Context, teamSpec keybase1.TeamIDWithVisib
 		Public: public,
 	}
 	if needKeyGeneration != 0 {
-		arg.Refreshers.NeedKeyGeneration = needKeyGeneration
+		arg.Refreshers.NeedApplicationsAtGenerations = map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+			needKeyGeneration: []keybase1.TeamApplication{keybase1.TeamApplication_GIT_METADATA},
+		}
 	}
 	team, err := teams.Load(ctx, c.G(), arg)
 	if err != nil {

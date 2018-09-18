@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
-	"golang.org/x/net/context"
 )
 
 func TestAccountDelete(t *testing.T) {
@@ -30,7 +29,7 @@ func TestAccountDelete(t *testing.T) {
 	err := RunEngine2(m, eng)
 	require.NoError(t, err)
 
-	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
+	_, res, err := tc.G.Resolver.ResolveUser(m, fu.Username)
 	require.NoError(t, err)
 
 	err = res.GetError()
@@ -67,7 +66,7 @@ func TestAccountDeleteBadPassphrase(t *testing.T) {
 	err := RunEngine2(m, eng)
 	require.Error(t, err)
 
-	_, res, err := tc.G.Resolver.ResolveUser(context.TODO(), fu.Username)
+	_, res, err := tc.G.Resolver.ResolveUser(m, fu.Username)
 	require.NoError(t, err)
 	err = res.GetError()
 	require.NoError(t, err)
@@ -95,7 +94,7 @@ func TestAccountDeleteIdentify(t *testing.T) {
 	require.NoError(t, err)
 
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.Services = i
+	tc.G.SetProofServices(i)
 	arg := &keybase1.Identify2Arg{
 		Uid:              u.GetUID(),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,

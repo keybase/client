@@ -15,6 +15,7 @@ import (
 // CORE-8119: But they don't yet.
 type BuildPaymentCache interface {
 	OwnsAccount(libkb.MetaContext, stellar1.AccountID) (bool, error)
+	PrimaryAccount(libkb.MetaContext) (stellar1.AccountID, error)
 	// AccountSeqno should be cached _but_ it should also be busted asap.
 	// Because it is used to prevent users from sending payments twice in a row.
 	AccountSeqno(libkb.MetaContext, stellar1.AccountID) (string, error)
@@ -46,6 +47,10 @@ func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
 	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
 }
 
+func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
+	return GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+}
+
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
 	accountID stellar1.AccountID) (string, error) {
 	seqno, err := c.remoter.AccountSeqno(mctx.Ctx(), accountID)
@@ -61,7 +66,7 @@ func (c *buildPaymentCache) LookupRecipient(mctx libkb.MetaContext,
 	to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
 	// CORE-8119: Will delegating to stellar.LookupRecipient be too slow?
 	// CORE-8119: Will it do identifies?
-	return LookupRecipient(mctx, to)
+	return LookupRecipient(mctx, to, false /* isCLI */)
 }
 
 func (c *buildPaymentCache) GetOutsideExchangeRate(mctx libkb.MetaContext,

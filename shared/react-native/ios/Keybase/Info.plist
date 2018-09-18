@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>2.4.0</string>
+	<string>2.7.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -41,6 +41,8 @@
 	<string>Saving images from chat messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Attaching images to chat messages</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recording audio when taking a video</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>OpenSans_bold.ttf</string>

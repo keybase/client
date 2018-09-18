@@ -9,7 +9,6 @@ type Props = {|
   onSelect: (name: string) => void,
   onResetAccount: () => void,
   onBack: () => void,
-  waiting: boolean,
 |}
 
 class SelectOtherDevice extends React.Component<Props> {

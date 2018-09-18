@@ -33,6 +33,7 @@ import (
 type configGetter interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetAppType() AppType
+	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
@@ -54,6 +55,7 @@ type configGetter interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorURI() string
 	GetHome() string
+	GetMobileSharedHome() string
 	GetLinkCacheSize() (int, bool)
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
@@ -89,6 +91,8 @@ type configGetter interface {
 	GetChatInboxSourceLocalizeThreads() (int, bool)
 	GetPayloadCacheSize() (int, bool)
 	GetRememberPassphrase() (bool, bool)
+	GetAttachmentHTTPStartPort() (int, bool)
+	GetAttachmentDisableMulti() (bool, bool)
 }
 
 type CommandLine interface {
@@ -189,6 +193,7 @@ type UpdaterConfigReader interface {
 
 type ConfigWriterTransacter interface {
 	Commit() error
+	Rollback() error
 	Abort() error
 }
 
@@ -408,7 +413,6 @@ type TerminalUI interface {
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
-	Tablify(headings []string, rowfunc func() []string)
 	TerminalSize() (width int, height int)
 }
 
@@ -574,7 +578,7 @@ type ServiceType interface {
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
-	ListProofCheckers(mode RunMode) []string
+	ListProofCheckers() []string
 }
 
 type PvlSource interface {
@@ -613,9 +617,22 @@ type TeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
+	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
+}
+
+type FastTeamLoader interface {
+	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
+	// Untrusted hint of what a team's latest seqno is
+	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	OnLogout()
+}
+
+type TeamAuditor interface {
+	AuditTeam(m MetaContext, id keybase1.TeamID, isPublic bool, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) (err error)
+	OnLogout(m MetaContext)
 }
 
 type Stellar interface {
@@ -653,6 +670,8 @@ type TeamEKBoxStorage interface {
 	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
 	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
+	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
+	Delete(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) error
 	ClearCache()
 }
 
@@ -660,7 +679,8 @@ type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
-	PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
+	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
 	DeriveDeviceDHKey(seed keybase1.Bytes32) *NaclDHKeyPair
 	SignedDeviceEKStatementFromSeed(ctx context.Context, generation keybase1.EkGeneration, seed keybase1.Bytes32, signingKey GenericKey) (keybase1.DeviceEkStatement, string, error)
@@ -668,6 +688,7 @@ type EKLib interface {
 	PrepareNewUserEK(ctx context.Context, merkleRoot MerkleRoot, pukSeed PerUserKeySeed) (string, []keybase1.UserEkBoxMetadata, keybase1.UserEkMetadata, *keybase1.UserEkBoxed, error)
 	BoxLatestTeamEK(ctx context.Context, teamID keybase1.TeamID, uids []keybase1.UID) (*[]keybase1.TeamEkBoxMetadata, error)
 	PrepareNewTeamEK(ctx context.Context, teamID keybase1.TeamID, signingKey NaclSigningKeyPair, uids []keybase1.UID) (string, *[]keybase1.TeamEkBoxMetadata, keybase1.TeamEkMetadata, *keybase1.TeamEkBoxed, error)
+	ClearCaches()
 	// For testing
 	NewTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID) (bool, error)
 }
@@ -782,21 +803,51 @@ type ChatHelper interface {
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
-	UnboxMobilePushNotification(ctx context.Context, uid gregor1.UID,
-		convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (string, error)
-	AckMobileNotificationSuccess(ctx context.Context, pushIDs []string)
 }
 
 // Resolver resolves human-readable usernames (joe) and user asssertions (joe+joe@github)
 // into UIDs. It is based on sever-trust. All results are unverified. So you should check
 // its answer if used in a security-sensitive setting. (See engine.ResolveAndCheck)
 type Resolver interface {
-	EnableCaching()
-	Shutdown()
-	ResolveFullExpression(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionNeedUsername(ctx context.Context, input string) (res ResolveResult)
-	ResolveFullExpressionWithBody(ctx context.Context, input string) (res ResolveResult)
-	ResolveUser(ctx context.Context, assertion string) (u keybase1.User, res ResolveResult, err error)
-	ResolveWithBody(input string) ResolveResult
-	Resolve(input string) ResolveResult
+	EnableCaching(m MetaContext)
+	Shutdown(m MetaContext)
+	ResolveFullExpression(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionNeedUsername(m MetaContext, input string) (res ResolveResult)
+	ResolveFullExpressionWithBody(m MetaContext, input string) (res ResolveResult)
+	ResolveUser(m MetaContext, assertion string) (u keybase1.User, res ResolveResult, err error)
+	ResolveWithBody(m MetaContext, input string) ResolveResult
+	Resolve(m MetaContext, input string) ResolveResult
+	PurgeResolveCache(m MetaContext, input string) error
+}
+
+type EnginePrereqs struct {
+	TemporarySession bool
+	Device           bool
+}
+
+type Engine2 interface {
+	Run(MetaContext) error
+	Prereqs() EnginePrereqs
+	UIConsumer
+}
+
+type SaltpackRecipientKeyfinderEngineInterface interface {
+	Engine2
+	GetPublicKIDs() []keybase1.KID
+	GetSymmetricKeys() []SaltpackReceiverSymmetricKey
+}
+
+type SaltpackRecipientKeyfinderArg struct {
+	Recipients        []string // usernames or user assertions
+	TeamRecipients    []string // team names
+	NoSelfEncrypt     bool
+	UseEntityKeys     bool // Both per user and per team keys (and implicit teams for non existing users)
+	UsePaperKeys      bool
+	UseDeviceKeys     bool // Does not include Paper Keys
+	UseRepudiableAuth bool // This is needed as team keys (implicit or not) are not compatible with repudiable authentication, so we can error out.
+}
+
+type SaltpackReceiverSymmetricKey struct {
+	Key        [32]byte
+	Identifier []byte
 }

@@ -5,7 +5,12 @@ type payloadType = {
   response: ?Object,
 }
 
-export type invokeType = (method: string, param: ?Object, cb: (err: any, data: any) => void) => void
+export type SendArg = [number, number, mixed, mixed]
+
+// Client.invoke in client.iced in framed-msgpack-rpc ostensibly takes
+// a list of arguments, but it expects exactly one element with keyed
+// arguments.
+export type invokeType = (method: string, args: [Object], cb: (err: any, data: any) => void) => void
 export type createClientType = {
   transport: {
     needsConnect: boolean,
@@ -25,6 +30,5 @@ declare function createClient(
 ): createClientType
 declare function resetClient(client: createClientType): void
 declare function rpcLog({method: string, reason?: string, extra?: Object, type: string}): void
-declare export function checkRPCOwnership(): Promise<void>
 
-export {createClient, resetClient, rpcLog, checkRPCOwnership}
+export {createClient, resetClient, rpcLog}

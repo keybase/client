@@ -82,7 +82,7 @@ func Load(kextID string, paths []string) error {
 		if err != nil {
 			return err
 		}
-		cfURL := C.CFURLCreateWithFileSystemPath(nil, C.CFStringRef(cfPath), 0, 1)
+		cfURL := C.CFURLCreateWithFileSystemPath(C.kCFAllocatorDefault, C.CFStringRef(cfPath), 0, 1)
 		if cfURL != 0 {
 			defer Release(C.CFTypeRef(C.CFURLRef(cfURL)))
 		}

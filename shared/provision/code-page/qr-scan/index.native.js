@@ -35,6 +35,7 @@ const styles = styleSheetCreate({
     alignSelf: 'stretch',
     backgroundColor: globalColors.black,
     height: 200,
+    overflow: 'hidden',
     position: 'relative',
   },
   waiting: {

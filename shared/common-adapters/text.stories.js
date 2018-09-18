@@ -1,9 +1,9 @@
 // @flow
-import Box from './box'
 import * as React from 'react'
+import * as Sb from '../stories/storybook'
+import Box from './box'
 import Text from './text'
 import {globalColors, globalStyles, isMobile, platformStyles} from '../styles'
-import {storiesOf, action} from '../stories/storybook'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
 const LargeGap = () => <Box style={{minHeight: 36}} />
@@ -72,8 +72,6 @@ const groups = [
     {label: 'Body extrabold Body extrabold', type: 'BodyExtrabold'},
     {action: true, label: 'Body primary link', type: 'BodyPrimaryLink'},
     {action: true, label: 'Body secondary link', normalOnly: true, type: 'BodySecondaryLink'},
-    {label: 'Body error Body error', normalOnly: true, type: 'BodyError'},
-    {label: 'Body success Body success', normalOnly: true, type: 'BodySuccess'},
   ],
   [
     {label: 'Body small Body small', type: 'BodySmall'},
@@ -103,7 +101,7 @@ const mapText = (secondary: boolean) => {
       const item = key => (
         <Text
           type={types.type}
-          onClick={types.action ? action(`${types.type} clicked`) : undefined}
+          onClick={types.action ? Sb.action(`${types.type} clicked`) : undefined}
           key={key}
           {...{
             ...displayBlock,
@@ -125,15 +123,17 @@ const mapText = (secondary: boolean) => {
 }
 
 const load = () => {
-  storiesOf('Common', module).add('Text', () => (
-    <Box style={outerStyle}>
-      <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
-      <Container backgroundColor={globalColors.darkBlue3}>
-        <SecondaryColorBox />
-        {mapText(true)}
-      </Container>
-    </Box>
-  ))
+  Sb.storiesOf('Common', module)
+    .addDecorator(Sb.scrollViewDecorator)
+    .add('Text', () => (
+      <Box style={outerStyle}>
+        <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
+        <Container backgroundColor={globalColors.darkBlue3}>
+          <SecondaryColorBox />
+          {mapText(true)}
+        </Container>
+      </Box>
+    ))
 }
 
 const outerStyle = isMobile

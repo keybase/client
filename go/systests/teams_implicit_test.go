@@ -42,7 +42,7 @@ func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
 	before, err := GetTeamForTestByID(context.TODO(), alice.tc.G, team, public)
 	require.NoError(t, err)
 	require.Equal(t, keybase1.PerTeamKeyGeneration(1), before.Generation())
-	secretBefore := before.Data.PerTeamKeySeeds[before.Generation()].Seed.ToBytes()
+	secretBefore := before.Data.PerTeamKeySeedsUnverified[before.Generation()].Seed.ToBytes()
 
 	bob.revokePaperKey()
 	alice.waitForRotateByID(team, keybase1.Seqno(2))
@@ -52,7 +52,7 @@ func testImplicitTeamRotateOnRevoke(t *testing.T, public bool) {
 	require.NoError(t, err)
 	require.Equal(t, keybase1.PerTeamKeyGeneration(2), after.Generation(), "generation after rotate")
 
-	secretAfter := after.Data.PerTeamKeySeeds[after.Generation()].Seed.ToBytes()
+	secretAfter := after.Data.PerTeamKeySeedsUnverified[after.Generation()].Seed.ToBytes()
 	if libkb.SecureByteArrayEq(secretAfter, secretBefore) {
 		t.Fatal("team secret did not change when rotated")
 	}

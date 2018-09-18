@@ -1,8 +1,17 @@
 // @flow
 /* eslint-env browser */
-import {showImagePicker} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {Component} from 'react'
-import {Box, Box2, Icon, Input, Text, iconCastPlatformStyles} from '../../../../common-adapters'
+import {
+  Box,
+  Box2,
+  Icon,
+  Input,
+  Text,
+  iconCastPlatformStyles,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../../common-adapters'
 import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
@@ -13,18 +22,21 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../../common-adapters/floating-menu'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
+import FilePickerPopup from '../filepicker-popup'
+
+type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentProps, State> {
+class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
   _input: ?Input
+  _whichMenu: menuType
 
-  constructor(props: PlatformInputProps & FloatingMenuParentProps) {
+  constructor(props: PlatformInputProps & OverlayParentProps) {
     super(props)
     this.state = {
       hasText: false,
@@ -37,17 +49,58 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
   }
 
   _openFilePicker = () => {
-    showImagePicker({mediaType: 'photo'}, response => {
+    this._toggleShowingMenu('filepickerpopup')
+  }
+
+  _launchNativeImagePicker = (mediaType: string, location: string) => {
+    let title = 'Select a Photo'
+    let takePhotoButtonTitle = 'Take Photo...'
+    let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
+    switch (mediaType) {
+      case 'photo':
+        break
+      case 'mixed':
+        title = 'Select a Photo or Video'
+        takePhotoButtonTitle = 'Take Photo or Video...'
+        // 'mixed' never happens on Android, which is when the
+        // permissions denied dialog box is shown, but fill it out
+        // anyway.
+        permDeniedText = 'Allow Keybase to take photos/video and choose images/videos from your library?'
+        break
+      case 'video':
+        title = 'Select a Video'
+        takePhotoButtonTitle = 'Take Video...'
+        permDeniedText = 'Allow Keybase to take video and choose videos from your library?'
+        break
+    }
+    const permissionDenied = {
+      title: 'Permissions needed',
+      text: permDeniedText,
+      reTryTitle: 'allow in settings',
+      okTitle: 'deny',
+    }
+    const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
         return
       }
       if (response.error) {
-        console.error(response.error)
-        throw new Error(response.error)
+        this.props.onFilePickerError(new Error(response.error))
+        return
       }
       const filename = isIOS ? response.uri.replace('file://', '') : response.path
-      this.props.onAttach([filename])
-    })
+      if (filename) {
+        this.props.onAttach([filename])
+      }
+    }
+
+    switch (location) {
+      case 'camera':
+        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+      case 'library':
+        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        break
+    }
   }
 
   _getText = () => {
@@ -66,9 +119,10 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
     }
   }
 
-  _toggleShowingMenu = () => {
+  _toggleShowingMenu = (menu: menuType) => {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
+    this._whichMenu = menu
     this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
@@ -105,9 +159,16 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             filter={this.props.channelMentionFilter}
           />
         )}
-        {this.props.showingMenu && (
+        {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
+          <FilePickerPopup
+            attachTo={this.props.getAttachmentRef}
+            visible={this.props.showingMenu}
+            onHidden={this.props.toggleShowingMenu}
+            onSelect={this._launchNativeImagePicker}
+          />
+        ) : (
           <SetExplodingMessagePicker
-            attachTo={this.props.attachmentRef}
+            attachTo={this.props.getAttachmentRef}
             conversationIDKey={this.props.conversationIDKey}
             onHidden={this.props.toggleShowingMenu}
             visible={this.props.showingMenu}
@@ -147,7 +208,7 @@ class PlatformInput extends Component<PlatformInputProps & FloatingMenuParentPro
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
-            openExplodingPicker={this._toggleShowingMenu}
+            openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this.props.insertMentionMarker}
             isExploding={this.props.isExploding}
@@ -248,7 +309,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
   </NativeTouchableWithoutFeedback>
 )
 
-const containerPadding = 6
+const containerPadding = 8
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -274,9 +335,9 @@ const styles = styleSheetCreate({
   },
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_05,
+    borderTopColor: globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
@@ -293,8 +354,7 @@ const styles = styleSheetCreate({
   },
   input: {
     marginLeft: globalMargins.tiny,
-    paddingBottom: 12,
-    paddingTop: 12,
+    marginRight: globalMargins.tiny,
     ...(isIOS
       ? {}
       : {
@@ -332,4 +392,4 @@ const explodingIconContainer = platformStyles({
   },
 })
 
-export default FloatingMenuParentHOC(PlatformInput)
+export default OverlayParentHOC(PlatformInput)

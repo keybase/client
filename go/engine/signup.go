@@ -230,6 +230,9 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	if err := RunEngine2(m, eng); err != nil {
 		return err
 	}
+	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
+		return err
+	}
 	s.signingKey = eng.SigningKey()
 	s.encryptionKey = eng.EncryptionKey()
 	did := eng.DeviceID()
@@ -239,9 +242,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 		m.CWarningf("error saving session file: %s", err)
 	}
 
-	if err := s.storeSecret(m); err != nil {
-		return err
-	}
+	s.storeSecret(m)
 
 	m.CDebugf("registered new device: %s", m.G().Env.GetDeviceID())
 	m.CDebugf("eldest kid: %s", s.me.GetEldestKID())
@@ -249,21 +250,20 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	return nil
 }
 
-func (s *SignupEngine) storeSecret(m libkb.MetaContext) (err error) {
-	defer m.CTrace("SignupEngine#storeSecret", func() error { return err })()
+func (s *SignupEngine) storeSecret(m libkb.MetaContext) {
+	defer m.CTrace("SignupEngine#storeSecret", func() error { return nil })()
 
 	// Create the secret store as late as possible here, as the username may
 	// change during the signup process.
 	if !s.arg.StoreSecret {
 		m.CDebugf("not storing secret; disabled")
-		return nil
+		return
 	}
 
 	w := libkb.StoreSecretAfterLoginWithLKS(m, s.me.GetNormalizedName(), s.lks)
 	if w != nil {
 		m.CWarningf("StoreSecret error: %s", w)
 	}
-	return nil
 }
 
 func (s *SignupEngine) genPaperKeys(m libkb.MetaContext) error {

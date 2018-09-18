@@ -3,8 +3,18 @@ import * as React from 'react'
 import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import AddPeopleHow from './add-people-how/container'
-import {iconCastPlatformStyles, Box, Button, ButtonBar, Icon, Meta, Text} from '../../../common-adapters'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../../common-adapters/floating-menu'
+import {
+  iconCastPlatformStyles,
+  Box,
+  Button,
+  ButtonBar,
+  Icon,
+  InfoNote,
+  Meta,
+  Text,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../../common-adapters'
 import type {Response} from 'react-native-image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import {
@@ -30,12 +40,11 @@ export type Props = {
   role: Types.MaybeTeamRoleType,
   showingMenu: boolean,
   teamname: Types.Teamname,
-  onAddPeople: (target?: any) => void,
   onAddSelf: () => void,
   onChat: () => void,
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
-} & FloatingMenuParentProps
+} & OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
   <Box style={styles.container}>
@@ -118,7 +127,7 @@ const _TeamHeader = (props: Props) => (
 
       {/* Add people how dropdown */}
       <AddPeopleHow
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
         onHidden={props.toggleShowingMenu}
@@ -126,29 +135,18 @@ const _TeamHeader = (props: Props) => (
 
       {/* CLI hint */}
       {!isMobile && (
-        <Box style={styles.cliContainer}>
-          <Box style={styles.cliIconWrapper}>
-            <Box style={styles.cliIconLine} />
-            <Icon
-              style={iconCastPlatformStyles(styles.cliIcon)}
-              color={globalColors.black_10}
-              type="iconfont-info"
-            />
-            <Box style={styles.cliIconLine} />
-          </Box>
-          <Text type="BodySmall" style={styles.cliInstructionText}>
-            You can also manage teams from the terminal:
-          </Text>
+        <InfoNote>
+          <Text type="BodySmall">You can also manage teams from the terminal:</Text>
           <Text type="TerminalInline" selectable={true} style={styles.cliTerminalText}>
             keybase team --help
           </Text>
-        </Box>
+        </InfoNote>
       )}
     </Box>
   </Box>
 )
 
-const TeamHeader = FloatingMenuParentHOC(_TeamHeader)
+const TeamHeader = OverlayParentHOC(_TeamHeader)
 
 const getTeamSubtitle = (memberCount: number, role: Types.MaybeTeamRoleType): string => {
   let res = `${memberCount} member`
@@ -188,28 +186,6 @@ const styles = styleSheetCreate({
   chatIcon: {
     marginRight: 8,
   },
-  cliContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    margin: 20,
-  },
-  cliIcon: {
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  cliIconLine: {
-    backgroundColor: globalColors.black_05,
-    height: 1,
-    width: 24,
-  },
-  cliIconWrapper: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    marginBottom: globalMargins.xtiny,
-  },
-  cliInstructionText: {
-    textAlign: 'center',
-  },
   cliTerminalText: {
     marginLeft: globalMargins.xtiny,
     marginTop: globalMargins.xtiny,
@@ -225,6 +201,7 @@ const styles = styleSheetCreate({
   description: {
     maxWidth: 560,
     paddingTop: globalMargins.tiny,
+    textAlign: 'center',
   },
   meta: {
     alignSelf: 'center',

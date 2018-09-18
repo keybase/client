@@ -9,16 +9,16 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func NewStubbedError(l *chainLinkUnpacked) StubbedError {
+func NewStubbedError(l *ChainLinkUnpacked) StubbedError {
 	return StubbedError{l: l, note: nil}
 }
 
-func NewStubbedErrorWithNote(l *chainLinkUnpacked, note string) StubbedError {
+func NewStubbedErrorWithNote(l *ChainLinkUnpacked, note string) StubbedError {
 	return StubbedError{l: l, note: &note}
 }
 
 type StubbedError struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note *string
 }
 
@@ -31,7 +31,7 @@ func (e StubbedError) Error() string {
 }
 
 type InvalidLink struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note string
 }
 
@@ -39,13 +39,13 @@ func (e InvalidLink) Error() string {
 	return fmt.Sprintf("invalid link (seqno %d): %s", e.l.Seqno(), e.note)
 }
 
-func NewInvalidLink(l *chainLinkUnpacked, format string, args ...interface{}) InvalidLink {
+func NewInvalidLink(l *ChainLinkUnpacked, format string, args ...interface{}) InvalidLink {
 	return InvalidLink{l, fmt.Sprintf(format, args...)}
 }
 
 type AppendLinkError struct {
 	prevSeqno keybase1.Seqno
-	l         *chainLinkUnpacked
+	l         *ChainLinkUnpacked
 	inner     error
 }
 
@@ -53,12 +53,12 @@ func (e AppendLinkError) Error() string {
 	return fmt.Sprintf("appending %v->%v: %v", e.prevSeqno, e.l.Seqno(), e.inner)
 }
 
-func NewAppendLinkError(l *chainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
+func NewAppendLinkError(l *ChainLinkUnpacked, prevSeqno keybase1.Seqno, inner error) AppendLinkError {
 	return AppendLinkError{prevSeqno, l, inner}
 }
 
 type InflateError struct {
-	l    *chainLinkUnpacked
+	l    *ChainLinkUnpacked
 	note *string
 }
 
@@ -70,11 +70,11 @@ func (e InflateError) Error() string {
 		int(e.l.outerLink.Seqno), *e.note)
 }
 
-func NewInflateError(l *chainLinkUnpacked) InflateError {
+func NewInflateError(l *ChainLinkUnpacked) InflateError {
 	return InflateError{l: l, note: nil}
 }
 
-func NewInflateErrorWithNote(l *chainLinkUnpacked, note string) InflateError {
+func NewInflateErrorWithNote(l *ChainLinkUnpacked, note string) InflateError {
 	return InflateError{l: l, note: &note}
 }
 
@@ -235,6 +235,10 @@ func IsTeamReadError(err error) bool {
 	return false
 }
 
+func FixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
+	return fixupTeamGetError(ctx, g, e, teamDescriptor, publicTeam)
+}
+
 func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, teamDescriptor string, publicTeam bool) error {
 	if e == nil {
 		return nil
@@ -245,9 +249,10 @@ func fixupTeamGetError(ctx context.Context, g *libkb.GlobalContext, e error, tea
 		case keybase1.StatusCode_SCTeamReadError:
 			g.Log.CDebugf(ctx, "replacing error: %v", e)
 			e.Desc = fmt.Sprintf("You are not a member of team %q; try `keybase team request-access %s` for access", teamDescriptor, teamDescriptor)
+			return e
 		case keybase1.StatusCode_SCTeamNotFound:
+			g.Log.CDebugf(ctx, "replacing error: %v", e)
 			return NewTeamDoesNotExistError(publicTeam, teamDescriptor)
-		default:
 		}
 	case TeamDoesNotExistError:
 		// Replace the not found error so that it has a name instead of team ID.
@@ -266,6 +271,14 @@ func NewKeyMaskNotFoundErrorForApplication(a keybase1.TeamApplication) libkb.Key
 
 func NewKeyMaskNotFoundErrorForApplicationAndGeneration(a keybase1.TeamApplication, g keybase1.PerTeamKeyGeneration) libkb.KeyMaskNotFoundError {
 	return libkb.KeyMaskNotFoundError{App: a, Gen: g}
+}
+
+type AdminPermissionRequiredError struct{}
+
+func NewAdminPermissionRequiredError() error { return &AdminPermissionRequiredError{} }
+
+func (e AdminPermissionRequiredError) Error() string {
+	return "Only admins can perform this operation."
 }
 
 type ImplicitAdminCannotLeaveError struct{}
@@ -378,4 +391,53 @@ func NewAddMembersError(a string, e error) AddMembersError {
 
 func (a AddMembersError) Error() string {
 	return fmt.Sprintf("Error adding user '%v': %v", a.Assertion, a.Err)
+}
+
+type BadNameError struct {
+	Msg string
+}
+
+func (b BadNameError) Error() string {
+	return fmt.Sprintf("bad name error: %s", b.Msg)
+}
+
+func NewBadNameError(s string) BadNameError {
+	return BadNameError{Msg: s}
+}
+
+type FastLoadError struct {
+	Msg string
+}
+
+func (f FastLoadError) Error() string {
+	return fmt.Sprintf("fast load error: %s", f.Msg)
+}
+
+func NewFastLoadError(format string, args ...interface{}) error {
+	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
+}
+
+type BadPublicError struct {
+	id       keybase1.TeamID
+	isPublic bool
+}
+
+func NewBadPublicError(id keybase1.TeamID, isPublic bool) error {
+	return BadPublicError{id, isPublic}
+}
+
+func (e BadPublicError) Error() string {
+	return fmt.Sprintf("Public bit for team %s is wrong (%v)", e.id, e.isPublic)
+}
+
+type AuditError struct {
+	Msg string
+}
+
+func NewAuditError(format string, args ...interface{}) error {
+	return AuditError{Msg: fmt.Sprintf(format, args...)}
+}
+
+func (e AuditError) Error() string {
+	return fmt.Sprintf("Audit error: %s", e.Msg)
 }

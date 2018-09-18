@@ -4,18 +4,22 @@ import Text from './text'
 import {StyleSheet} from 'react-native'
 import BackButton from './back-button'
 import Box from './box'
-import {collapseStyles, globalStyles, globalColors, globalMargins, statusBarHeight} from '../styles'
+import * as Styles from '../styles'
 import type {Props} from './header-hoc.types'
 
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
+  hideBackLabel,
   title,
   onCancel,
+  customCancelText,
   onBack,
+  onRightAction,
+  rightActionLabel,
   theme = 'light',
 }: Props) => (
-  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
     {!!title && (
       <Box style={_titleStyle}>
@@ -24,11 +28,27 @@ export const HeaderHocHeader = ({
     )}
     {onCancel && (
       <Text type="BodyBigLink" style={_buttonStyle} onClick={onCancel}>
-        Cancel
+        {customCancelText || 'Cancel'}
       </Text>
     )}
     {onBack && (
-      <BackButton iconColor={_backButtonIconColorThemed[theme]} style={_buttonStyle} onClick={onBack} />
+      <BackButton
+        hideBackLabel={hideBackLabel}
+        iconColor={_backButtonIconColorThemed[theme]}
+        style={_buttonStyle}
+        onClick={onBack}
+      />
+    )}
+    {!!rightActionLabel && (
+      <Box style={_rightActionStyle}>
+        <Text
+          type="BodyBigLink"
+          style={Styles.collapseStyles([_buttonStyle, {opacity: onRightAction ? 1 : 0.3}])}
+          onClick={onRightAction}
+        >
+          {rightActionLabel}
+        </Text>
+      </Box>
     )}
   </Box>
 )
@@ -49,19 +69,19 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
 }
 
 const _backButtonIconColorThemed = {
-  dark: globalColors.white,
-  light: globalColors.black_40,
+  dark: Styles.globalColors.white,
+  light: Styles.globalColors.black_40,
 }
 
 const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   position: 'relative',
   height: '100%',
   width: '100%',
 }
 
 const _wrapper2Style = {
-  ...globalStyles.fillAbsolute,
+  ...Styles.globalStyles.fillAbsolute,
 }
 
 const _wrapperStyle = {
@@ -70,33 +90,44 @@ const _wrapperStyle = {
 
 const _buttonStyle = {
   paddingBottom: 8,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
   paddingTop: 8,
 }
 
 const _headerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  borderBottomColor: globalColors.black_05,
+  borderBottomColor: Styles.globalColors.black_10,
   borderBottomWidth: StyleSheet.hairlineWidth,
   justifyContent: 'flex-start',
-  minHeight: globalMargins.xlarge - statusBarHeight,
-  paddingRight: globalMargins.small,
+  minHeight: Styles.globalMargins.xlarge - Styles.statusBarHeight,
+  paddingRight: Styles.globalMargins.small,
   position: 'relative',
 }
 
 const _headerStyleThemed = {
   dark: {
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: Styles.globalColors.darkBlue3,
   },
   light: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
 }
 
+const _rightActionStyle = {
+  ...Styles.globalStyles.flexBoxRow,
+  alignItems: 'flex-end',
+  bottom: 0,
+  flex: 1,
+  justifyContent: 'flex-end',
+  position: 'absolute', // This is always right-aligned
+  right: 0,
+  top: 0,
+}
+
 const _titleStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   bottom: 0,
   flex: 1,

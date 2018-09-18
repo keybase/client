@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/search'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of search but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'search:'
 export const addResultsToUserInput = 'search:addResultsToUserInput'
 export const clearSearchResults = 'search:clearSearchResults'
 export const finishedSearch = 'search:finishedSearch'

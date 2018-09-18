@@ -2,31 +2,22 @@
 import * as React from 'react'
 import {Image} from '../../common-adapters'
 import QRCodeGen from 'qrcode-generator'
-import {styleSheetCreate} from '../../styles'
 
 type Props = {
   code: string,
-  cellSize: number,
+  cellSize: 8 | 10, // we ONLY allow even numbers else you'll get fractional pixels and it looks blurry
 }
 
 class QrImage extends React.PureComponent<Props> {
-  static defaultProps = {cellSize: 4} // this creates a 132x132 (so we can use retina) image
+  static defaultProps = {cellSize: 8}
   render() {
     const qr = QRCodeGen(4, 'L')
     qr.addData(this.props.code)
     qr.make()
-
+    const size = qr.getModuleCount() * (this.props.cellSize / 2) // retina
     const url = qr.createDataURL(this.props.cellSize, 0)
-    return <Image src={url} style={styles.image} />
+    return <Image src={url} style={{height: size, width: size}} />
   }
 }
-
-const styles = styleSheetCreate({
-  image: {
-    // actual qr size so it doesn't stretch
-    height: 66,
-    width: 66,
-  },
-})
 
 export default QrImage

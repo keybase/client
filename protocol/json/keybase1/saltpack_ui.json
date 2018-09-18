@@ -48,6 +48,10 @@
           "type": "int"
         },
         {
+          "name": "signingKID",
+          "type": "KID"
+        },
+        {
           "name": "sender",
           "type": "SaltpackSender"
         },

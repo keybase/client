@@ -1,8 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Constants from '../../constants/settings'
-import flags from '../../util/feature-flags'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
 
@@ -10,7 +9,7 @@ import type {Props} from './index'
 
 function SettingsNav(props: Props) {
   return (
-    <Box style={styleNavBox}>
+    <Box style={styles.container}>
       <SettingsItem
         text="Your account"
         selected={props.selectedTab === Constants.landingTab}
@@ -31,13 +30,11 @@ function SettingsNav(props: Props) {
         selected={props.selectedTab === Constants.advancedTab}
         onClick={() => props.onTabChange(Constants.advancedTab)}
       />
-      {flags.fsEnabled && (
-        <SettingsItem
-          text="Files"
-          selected={props.selectedTab === Constants.fsTab}
-          onClick={() => props.onTabChange(Constants.fsTab)}
-        />
-      )}
+      <SettingsItem
+        text="Files"
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
+      />
       <SettingsItem
         text="Delete me"
         selected={props.selectedTab === Constants.deleteMeTab}
@@ -54,12 +51,19 @@ function SettingsNav(props: Props) {
     </Box>
   )
 }
-const styleNavBox = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  borderRight: '1px solid ' + globalColors.black_05,
-  paddingTop: globalMargins.small,
-  width: 160,
-}
+
+const styles = styleSheetCreate({
+  container: platformStyles({
+    common: {
+      ...globalStyles.flexBoxColumn,
+      backgroundColor: globalColors.white,
+      paddingTop: globalMargins.small,
+      width: 160,
+    },
+    isElectron: {
+      borderRight: `1px solid ${globalColors.black_10}`,
+    },
+  }),
+})
 
 export default SettingsNav

@@ -1,15 +1,14 @@
 // @flow
 import * as React from 'react'
-import {storiesOf, action, createPropProvider, PropProviders} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import FollowSuggestions, {type Props} from '.'
 
-const provider = createPropProvider(
-  PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
-  PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
+const provider = Sb.createPropProviderWithCommon(
+  Sb.PropProviders.Usernames(['max', 'cnojima', 'cdixon'], 'ayoubd'),
+  Sb.PropProviders.Avatar(['max', 'cnojima', 'cdixon'], [])
 )
 
 const props1: Props = {
-  onClickUser: action('onClickUser'),
   suggestions: [
     {
       username: 'ayoubd',
@@ -21,7 +20,6 @@ const props1: Props = {
 }
 
 const props2: Props = {
-  onClickUser: action('onClickUser'),
   suggestions: [
     {
       username: 'ayoubd',
@@ -69,14 +67,13 @@ const props2: Props = {
 }
 
 const props3: Props = {
-  onClickUser: action('onClickUser'),
   suggestions: props2.suggestions.concat(
     props2.suggestions.map(suggestion => ({...suggestion, username: suggestion.username + '1'}))
   ),
 }
 
 const load = () => {
-  storiesOf('People/Follow Suggestions', module)
+  Sb.storiesOf('People/Follow Suggestions', module)
     .addDecorator(provider)
     .add('One', () => <FollowSuggestions {...props1} />)
     .add('Several', () => <FollowSuggestions {...props2} />)

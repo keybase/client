@@ -1,12 +1,13 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import {Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import Progress from '../common/progress'
 import {memoize} from 'lodash-es'
 
 export type DownloadProps = {
-  error?: string,
+  error?: Types.FsError,
   filename: string,
   completePortion: number,
   progressText: string,

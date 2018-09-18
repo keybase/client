@@ -65,6 +65,16 @@ func (pl *Pool) ref(s string) PoolRef {
 	return PoolRef(len(pl.strings) - 1)
 }
 
+// RefByName returns the PoolRef of s, or error if not exists.
+func (pl *Pool) RefByName(s string) (PoolRef, error) {
+	for i, x := range pl.strings {
+		if s == x {
+			return PoolRef(i), nil
+		}
+	}
+	return 0, fmt.Errorf("PoolRef by name %q does not exist", s)
+}
+
 func (pl *Pool) IsSorted() bool { return pl.flags&SortedFlag == SortedFlag }
 func (pl *Pool) IsUTF8() bool   { return pl.flags&UTF8Flag == UTF8Flag }
 

@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"encoding/hex"
 	"testing"
 
 	"golang.org/x/net/context"
@@ -114,7 +115,7 @@ func TestLoaderKeyGen(t *testing.T) {
 	// Require that a team is at this key generation
 	requireGen := func(team *keybase1.TeamData, generation int) {
 		require.NotNil(t, team)
-		require.Len(t, team.PerTeamKeySeeds, generation)
+		require.Len(t, team.PerTeamKeySeedsUnverified, generation)
 		require.Len(t, team.Chain.PerTeamKeys, generation)
 	}
 
@@ -873,4 +874,141 @@ func TestLoaderCORE_7201(t *testing.T) {
 		ForceRepoll: true,
 	})
 	require.NoError(t, err)
+}
+
+// TestLoaderCORE_8445 tests a case that came up.
+// A user had trouble loading A.B because the cached object was stuck as without RKMs.
+// U1 is an   ADMIN in A
+// U1 is only IMP implicitly in A.B
+// U1 is loads A.B caching the secret but not the RKMs
+// U1 is a    WRITER A.B
+func TestLoaderCORE_8445(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 to A")
+	_, err := AddMember(context.TODO(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add member")
+
+	t.Logf("U0 creates A.B")
+	subBName, subBID := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("U1 loads and caches A.B")
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          subBID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	t.Logf("U0 adds U1 to A.B")
+	_, err = AddMember(context.TODO(), tcs[0].G, subBName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err, "add member")
+	t.Logf("setup complete")
+
+	t.Logf("U1 loads A.B without refreshing")
+	subBStale, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: subBID,
+	})
+	// We're missing RKM data
+	require.NoError(t, err)
+	require.NotNil(t, subBStale.Data)
+	require.False(t, subBStale.Data.Secretless)
+	require.NotNil(t, subBStale.Data.PerTeamKeySeedsUnverified)
+	_, ok := subBStale.Data.PerTeamKeySeedsUnverified[1]
+	require.True(t, ok)
+	require.NotNil(t, subBStale.Data.ReaderKeyMasks)
+	require.Len(t, subBStale.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 0, "missing rkms")
+
+	t.Logf("U1 loads A.B with refreshing")
+	subB, err := Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID: subBID,
+		Refreshers: keybase1.TeamRefreshers{
+			NeedApplicationsAtGenerations: map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(1): []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			},
+		},
+	})
+	require.NoError(t, err)
+	require.NotNil(t, subB.Data)
+	require.False(t, subB.Data.Secretless)
+	require.NotNil(t, subB.Data.PerTeamKeySeedsUnverified)
+	_, ok = subB.Data.PerTeamKeySeedsUnverified[1]
+	require.True(t, ok)
+	require.NotNil(t, subB.Data.ReaderKeyMasks)
+	require.Len(t, subB.Data.ReaderKeyMasks[keybase1.TeamApplication_CHAT], 1, "number of chat rkms")
+}
+
+// Earlier versions of the app didn't store the merkle head in the TeamChainState, but
+// we need it to perform an audit. This code tests the path that refetches that data
+// from the server.
+func TestLoaderUpgradeMerkleHead(t *testing.T) {
+	tc := SetupTest(t, "team", 1)
+	defer tc.Cleanup()
+	tc.G.Env.Test.TeamNoHeadMerkleStore = true
+
+	_, err := kbtest.CreateAndSignupFakeUser("team", tc.G)
+	require.NoError(t, err)
+
+	t.Logf("create a team")
+	teamName, teamID := createTeam2(tc)
+
+	t.Logf("load the team")
+	team, err := tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+
+	t.Logf("load the team again")
+	team, err = tc.G.GetTeamLoader().Load(context.TODO(), keybase1.LoadTeamArg{
+		ID: teamID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, teamID, team.Chain.Id)
+	require.True(t, teamName.Eq(team.Name))
+}
+
+// Load a team where a writer wrote a kbfs link.
+func TestLoaderKBFSWriter(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("U0 creates A")
+	rootName, rootID := createTeam2(*tcs[0])
+
+	t.Logf("U0 adds U1 as a writer")
+	_, err := AddMember(context.Background(), tcs[0].G, rootName.String(), fus[1].Username, keybase1.TeamRole_WRITER)
+	require.NoError(t, err)
+
+	t.Logf("U1 associates a tlf ID")
+	err = CreateTLF(context.Background(), tcs[1].G, keybase1.CreateTLFArg{
+		TeamID: rootID,
+		TlfID:  randomTlfID(t),
+	})
+	require.NoError(t, err)
+
+	t.Logf("users can still load the team")
+
+	_, err = Load(context.TODO(), tcs[0].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+
+	_, err = Load(context.TODO(), tcs[1].G, keybase1.LoadTeamArg{
+		ID:          rootID,
+		ForceRepoll: true,
+	})
+	require.NoError(t, err)
+}
+
+func randomTlfID(t *testing.T) keybase1.TLFID {
+	suffix := byte(0x29)
+	idBytes, err := libkb.RandBytesWithSuffix(16, suffix)
+	require.NoError(t, err)
+	return keybase1.TLFID(hex.EncodeToString(idBytes))
 }

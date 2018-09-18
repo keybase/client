@@ -15,7 +15,7 @@ protocol common {
   }
 
   record Asset {
-    string type;
+    string type; // 'native' | 'alphanum4' | 'alphanum12'
     string code;
     string issuer;
   }

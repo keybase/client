@@ -3,24 +3,17 @@
 import * as Types from '../../constants/types/signup'
 import * as Constants from '../../constants/signup'
 import * as SignupGen from '../signup-gen'
-import * as LoginGen from '../login-gen'
 import * as Saga from '../../util/saga'
 import type {TypedState} from '../../constants/reducer'
 import {loginTab} from '../../constants/tabs'
 import HiddenString from '../../util/hidden-string'
-import {navigateUp, navigateTo, navigateAppend} from '../route-tree'
+import {navigateUp, navigateAppend} from '../route-tree'
 import {_testing} from '../signup'
 import reducer from '../../reducers/signup'
 
 jest.unmock('immutable')
 
 const makeTypedState = (signupState: Types.State): TypedState => ({signup: signupState}: any)
-
-describe('resetNav works', () => {
-  it('nav based on login', () => {
-    expect(_testing.resetNav()).toEqual(Saga.put(LoginGen.createNavBasedOnLoginAndInitialState()))
-  })
-})
 
 describe('goBackAndClearErrors', () => {
   it('errors get cleaned and we go back a level', () => {
@@ -59,14 +52,14 @@ describe('requestAutoInvite', () => {
     const action = SignupGen.createRequestedAutoInvite({inviteCode: 'hello world'})
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.inviteCode).toEqual(action.payload.inviteCode)
-    expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
+    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
   })
 
   it('goes to invite page on error', () => {
     const action = SignupGen.createRequestedAutoInviteError()
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState).toEqual(makeTypedState(state))
-    expect(_testing.showInviteScreen()).toEqual(navigateTo([loginTab, 'signup', 'inviteCode']))
+    expect(_testing.showInviteScreen()).toEqual(navigateAppend(['inviteCode'], [loginTab]))
   })
 })
 
@@ -85,7 +78,7 @@ describe('requestInvite', () => {
     expect(nextState.signup.email).toEqual(action.payload.email)
     expect(nextState.signup.name).toEqual(action.payload.name)
     expect(_testing.showInviteSuccessOnNoErrors(nextState)).toEqual(
-      navigateAppend(['requestInviteSuccess'], [loginTab, 'signup'])
+      navigateAppend(['requestInviteSuccess'], [loginTab])
     )
   })
 
@@ -135,7 +128,7 @@ describe('checkInviteCode', () => {
     // leaves state alone
     expect(nextState).toEqual(makeTypedState(state))
     expect(_testing.showUserEmailOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateTo([loginTab, 'signup', 'usernameAndEmail']))
+      Saga.put(navigateAppend(['usernameAndEmail'], [loginTab]))
     )
   })
   it("shows error on fail: must match invite code. doesn't go to next screen", () => {
@@ -237,7 +230,7 @@ describe('checkedUsernameEmail', () => {
     const nextState = makeTypedState(reducer(state, action))
     // doesn't update
     expect(_testing.showPassphraseOnNoErrors(nextState)).toEqual(
-      Saga.put(navigateAppend(['passphraseSignup'], [loginTab, 'signup']))
+      Saga.put(navigateAppend(['passphraseSignup'], [loginTab]))
     )
   })
 })
@@ -369,7 +362,7 @@ describe('actually sign up', () => {
     const nextState = makeTypedState(reducer(state, action))
     expect(nextState.signup.signupError.stringValue()).toEqual(action.payload.error.stringValue())
     expect(_testing.showErrorOrCleanupAfterSignup(nextState)).toEqual(
-      Saga.put(navigateAppend(['signupError'], [loginTab, 'signup']))
+      Saga.put(navigateAppend(['signupError'], [loginTab]))
     )
   })
 

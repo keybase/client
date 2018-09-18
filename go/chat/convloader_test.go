@@ -42,10 +42,10 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 }
 
 func TestConvLoader(t *testing.T) {
-	_, tc, world, _, _, listener, res := setupLoaderTest(t)
+	ctx, tc, world, _, _, listener, res := setupLoaderTest(t)
 	defer world.Cleanup()
 
-	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
+	require.NoError(t, tc.Context().ConvLoader.Queue(ctx,
 		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
 	select {
 	case convID := <-listener.bgConvLoads:

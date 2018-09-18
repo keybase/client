@@ -1,18 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../../stories/storybook'
 import InviteCode from '.'
-import {action, storiesOf, PropProviders} from '../../../stories/storybook'
 
 const props = {
   error: undefined,
-  onBack: action('onBack'),
-  onRequestInvite: action('onRequestInvite'),
-  onSubmit: action('onInviteCodeSubmit'),
+  onBack: Sb.action('onBack'),
+  onRequestInvite: Sb.action('onRequestInvite'),
+  onSubmit: Sb.action('onInviteCodeSubmit'),
 }
 
 const load = () => {
-  storiesOf('Signup/Invite Code', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Signup/Invite Code', module)
     .add('Start', () => <InviteCode {...props} />)
     .add('Code', () => <InviteCode {...props} />)
     .add('Error', () => <InviteCode {...props} error="This is an error" />)

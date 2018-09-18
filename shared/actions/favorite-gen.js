@@ -8,7 +8,8 @@ import * as Types from '../constants/types/favorite'
 import * as Folders from '../constants/types/folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of favorite but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of favorite but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'favorite:'
 export const favoriteAdd = 'favorite:favoriteAdd'
 export const favoriteAdded = 'favorite:favoriteAdded'
 export const favoriteIgnore = 'favorite:favoriteIgnore'

@@ -1,14 +1,14 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../../../stories/storybook'
 import {Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
-import {action, storiesOf, PropProviders} from '../../../../stories/storybook'
 import Input, {type Props as InputProps} from '.'
 import {isMobile} from '../../../../constants/platform'
 import {stringToConversationIDKey} from '../../../../constants/types/chat2'
 
-const provider = PropProviders.createPropProviderWithCommon({
+const provider = Sb.createPropProviderWithCommon({
   ChannelMentionHud: ownProps => {
     const channels = ['foo', 'bar']
     return {
@@ -29,9 +29,9 @@ const provider = PropProviders.createPropProviderWithCommon({
       {text: '30 seconds days', seconds: 0},
       {text: 'Never (turn off)', seconds: 0},
     ],
-    onAfterSelect: action('onAfterSelect'),
+    onAfterSelect: Sb.action('onAfterSelect'),
     onHidden: ownProps.onHidden,
-    onSelect: action('onSelect'),
+    onSelect: Sb.action('onSelect'),
     selected: 0,
     visible: ownProps.visible,
   }),
@@ -80,20 +80,19 @@ const InputContainer = (props: Props) => {
     isExplodingNew: props.isExplodingNew,
     explodingModeSeconds: props.explodingModeSeconds,
     focusInputCounter: 0,
-    clearInboxFilter: action('clearInboxFilter'),
+    clearInboxFilter: Sb.action('clearInboxFilter'),
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
-      action('onAttach').apply(null, paths)
+      Sb.action('onAttach').apply(null, paths)
     },
-    onEditLastMessage: action('onEditLastMessage'),
-    onCancelEditing: action('onCancelEditing'),
-    onCancelQuoting: action('onCancelQuoting'),
-    onSeenExplodingMessages: action('onSeenExplodingMessages'),
+    onEditLastMessage: Sb.action('onEditLastMessage'),
+    onCancelEditing: Sb.action('onCancelEditing'),
+    onFilePickerError: Sb.action('onFilePickerError'),
+    onSeenExplodingMessages: Sb.action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
-      action('onSubmit')(text)
+      Sb.action('onSubmit')(text)
     },
-    pendingWaiting: props.pendingWaiting,
     typing: props.typing,
 
     editText: '',
@@ -101,13 +100,12 @@ const InputContainer = (props: Props) => {
     quoteText: '',
 
     getUnsentText: () => {
-      action('getUnsentText')()
+      Sb.action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
 
-    selectExplodingMode: action('selectExplodingMode'),
-    sendTyping: action('sendTyping'),
-    setUnsentText: action('setUnsentText'),
+    sendTyping: Sb.action('sendTyping'),
+    setUnsentText: Sb.action('setUnsentText'),
   }
 
   return (
@@ -118,7 +116,7 @@ const InputContainer = (props: Props) => {
 }
 
 const load = () => {
-  storiesOf('Chat/Conversation/Input', module)
+  Sb.storiesOf('Chat/Conversation/Input', module)
     .addDecorator(provider)
     .add('Normal', () => (
       <InputContainer

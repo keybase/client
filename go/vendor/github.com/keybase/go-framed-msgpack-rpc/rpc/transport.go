@@ -97,7 +97,7 @@ func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
 	ret.enc = enc
 	ret.dispatcher = newDispatch(enc, ret.calls, log)
 	ret.receiver = newReceiveHandler(enc, ret.protocols, log)
-	ret.packetizer = newPacketHandler(cdec.Reader, ret.protocols, ret.calls)
+	ret.packetizer = newPacketHandler(cdec.Reader, ret.protocols, ret.calls, log)
 	return ret
 }
 

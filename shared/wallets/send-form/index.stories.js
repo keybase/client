@@ -1,39 +1,53 @@
 // @flow
-import React from 'react'
-import {action, createPropProvider, storiesOf} from '../../stories/storybook'
+import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
-import banner from './banner/index.stories'
 import footers from './footer/index.stories'
+import noteAndMemo from './note-and-memo/index.stories'
+import participants, {participantProviderProperties} from './participants/index.stories'
+
 import SendForm from '.'
 
 // TODO some of the state of these child components
 // may be held completely by the parent form. Figure out a
 // good level of connected granularity while implementing
 // TODO fill these out
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   AssetInput: props => assetInputProps,
   Available: props => ({}),
   Banner: props => ({}),
-  Body: props => ({}),
-  Footer: props => ({}),
+  Body: props => ({
+    bannerInfo: props.bannerInfo,
+    isProcessing: props.isProcessing,
+    isRequest: props.isRequest,
+  }),
+  Footer: props => ({
+    isRequest: props.isRequest,
+    onClickRequest: props.isRequest ? Sb.action('onClickRequest') : undefined,
+    onClickSend: Sb.action('onClickSend'),
+  }),
   Header: props => ({}),
-  Memo: props => ({}),
-  Note: props => ({}),
-  Participants: props => ({}),
+  NoteAndMemo: props => ({}),
+  Participants: props => ({
+    onShowProfile: Sb.action('onShowProfile'),
+  }),
+  ...participantProviderProperties,
 })
 
 const load = () => {
   // dumb component stories
   assetInput()
-  banner()
   chooseAsset()
   footers()
+  noteAndMemo()
+  participants()
   // full component
-  storiesOf('Wallets/SendForm', module)
+  Sb.storiesOf('Wallets/SendForm', module)
     .addDecorator(provider)
-    .add('Send', () => <SendForm onClick={action('onClick')} />)
+    .add('Send', () => <SendForm isRequest={false} onClose={Sb.action('onClose')} />)
+    .add('Request', () => <SendForm isRequest={true} onClose={Sb.action('onClose')} />)
 }
 
 export default load

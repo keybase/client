@@ -12,7 +12,6 @@ import {
 } from '../../../../styles'
 
 type Props = {
-  loaded: boolean,
   onBuildTeam: () => void,
   showBuildATeam: boolean,
 }
@@ -29,7 +28,7 @@ const DividerBox = glamorous(Box)({
       }),
   alignItems: 'center',
   borderStyle: 'solid',
-  borderTopColor: globalColors.black_05,
+  borderTopColor: globalColors.black_10,
   borderTopWidth: 1,
   height: '100%',
   justifyContent: 'flex-start',
@@ -40,7 +39,7 @@ const DividerBox = glamorous(Box)({
 })
 
 const BuildTeam = ({loaded, showBuildATeam, onBuildTeam}: Props) =>
-  loaded && showBuildATeam ? (
+  showBuildATeam ? (
     <ClickableBox title="Make a new team" onClick={onBuildTeam} style={styles.container}>
       <DividerBox>
         <Box style={styles.text}>
@@ -54,7 +53,7 @@ const styles = styleSheetCreate({
   container: platformStyles({
     isElectron: {
       ...globalStyles.fillAbsolute,
-      backgroundColor: globalColors.blue5,
+      backgroundColor: globalColors.blueGrey,
       flexShrink: 0,
       height: 32,
       top: undefined,

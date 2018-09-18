@@ -2,8 +2,8 @@
 import Banner from './index'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import {connect, compose, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
-import * as StateMappers from '../../utils/state-mappers'
 import {isMobile} from '../../../constants/platform'
 
 type OwnProps = {
@@ -11,12 +11,15 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state: TypedState) => {
-  const kbfsEnabled = StateMappers.mapStateToKBFSEnabled(state)
+  const kbfsEnabled = Constants.kbfsEnabled(state)
+  const kbfsOutdated = Constants.kbfsOutdated(state)
   return {
     kbfsEnabled,
+    kbfsOutdated,
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
     inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
+    dokanUninstallString: Constants.kbfsUninstallString(state),
   }
 }
 
@@ -38,6 +41,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onUninstall: dispatchProps.onUninstall,
   openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
   path,
+  dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })
 
 const ConnectedBanner = isMobile

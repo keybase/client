@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
 import Transaction from '.'
 
 const now = new Date()
@@ -43,7 +43,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
               ...r,
               ...s,
               ...t,
-              onSelectTransaction: action('onSelectTransaction'),
+              onSelectTransaction: Sb.action('onSelectTransaction'),
             })
           )
         })
@@ -54,13 +54,11 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 }
 
 const load = () => {
-  const stories = storiesOf('Wallets/Transaction', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
-    .addDecorator(story => (
-      <Box2 direction="vertical" style={{maxWidth: 520}}>
-        {story()}
-      </Box2>
-    ))
+  const stories = Sb.storiesOf('Wallets/Transaction', module).addDecorator(story => (
+    <Box2 direction="vertical" style={{maxWidth: 520}}>
+      {story()}
+    </Box2>
+  ))
 
   addConfigs(stories, 'Keybase User', config => (
     <Transaction
@@ -87,7 +85,7 @@ const load = () => {
   addConfigs(stories, 'Account', config => (
     <Transaction
       counterparty="Second account"
-      counterpartyType="account"
+      counterpartyType="otherAccount"
       amountUser="$100"
       amountXLM="545.2562704 XLM"
       status="completed"
@@ -125,8 +123,8 @@ const load = () => {
       amountXLM="53.1688643 XLM"
       status="error"
       statusDetail="Horizon error"
-      onCancelPayment={action('onCancelPayment')}
-      onRetryPayment={action('onRetryPayment')}
+      onCancelPayment={Sb.action('onCancelPayment')}
+      onRetryPayment={Sb.action('onRetryPayment')}
       {...config}
     />
   ))

@@ -1,0 +1,27 @@
+{
+  "protocol": "selfprovision",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "selfProvision": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "deviceName",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Performs self provision. If the current device is clone, this function\n    will provision it as a new device."
+    }
+  },
+  "namespace": "keybase.1"
+}

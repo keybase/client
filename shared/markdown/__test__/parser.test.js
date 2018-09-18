@@ -120,6 +120,12 @@ describe('Markdown parser', () => {
     check('isnot*bolded* *also*isnotbolded')
   })
 
+  it('parses emoji aliases correctly', () => {
+    const hankey = emojiIndexByName[':hankey:']
+    ;['poop', 'shit'].forEach(name => {
+      expect(emojiIndexByName[`:${name}:`]).toBe(hankey)
+    })
+  })
   it('parses native emoji correctly', () => {
     check('hello there 🌸😎👍🏿!')
   })

@@ -11,7 +11,7 @@ func HandleNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 	defer g.CTrace(ctx, "HandleNewTeamEK", func() error { return err })()
 
 	if ekLib := g.GetEKLib(); ekLib != nil {
-		ekLib.PurgeTeamEKGenCache(teamID, generation)
+		ekLib.PurgeCachesForTeamIDAndGeneration(ctx, teamID, generation)
 	}
 	g.NotifyRouter.HandleNewTeamEK(ctx, teamID, generation)
 	return nil

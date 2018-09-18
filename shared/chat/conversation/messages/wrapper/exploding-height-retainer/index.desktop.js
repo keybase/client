@@ -59,6 +59,12 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       }
       return
     }
+
+    if (__STORYSHOT__) {
+      // Storyshots with react 16.5 can't find the domNode and fails
+      return
+    }
+
     const node = ReactDOM.findDOMNode(this)
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
@@ -100,13 +106,13 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const AshBox = glamorous.div(props => ({
+const AshBox = glamorous.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
     width: '100%',
   },
-  backgroundColor: globalColors.white,
+  backgroundColor: globalColors.white, // exploded messages don't have hover effects and we need to cover the message
   backgroundImage: explodedIllustrationUrl,
   backgroundRepeat: 'repeat',
   backgroundSize: '400px 68px',
@@ -117,7 +123,7 @@ const AshBox = glamorous.div(props => ({
   top: 0,
   transition: `width 0s`,
   width: 0,
-}))
+})
 const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?string, height: number}) => {
   let explodedTag = null
   if (props.doneExploding) {
@@ -126,7 +132,7 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
         EXPLODED BY{' '}
         <ConnectedUsernames
           type="BodySmallSemibold"
-          clickable={true}
+          onUsernameClicked="profile"
           usernames={[props.explodedBy]}
           inline={true}
           colorFollowing={true}

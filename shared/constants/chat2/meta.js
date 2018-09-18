@@ -4,13 +4,13 @@ import * as I from 'immutable'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
 import * as Types from '../types/chat2'
+import * as TeamConstants from '../teams'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
 import {isIOS, isAndroid} from '../platform'
 import {toByteArray} from 'base64-js'
-import {makeRetentionPolicy, serviceRetentionPolicyToRetentionPolicy} from '../teams'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
@@ -69,6 +69,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     participants,
+    maxMsgID: i.maxMsgID,
     readMsgID: i.readMsgID,
     resetParticipants,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
@@ -210,16 +211,26 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   // default inherit for teams, retain for ad-hoc
   // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
-  let retentionPolicy = isTeam ? makeRetentionPolicy({type: 'inherit'}) : makeRetentionPolicy()
+  let retentionPolicy = isTeam
+    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
+    : TeamConstants.makeRetentionPolicy()
   if (i.convRetention) {
     // it has been set for this conversation
-    retentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
   }
 
   // default for team-wide policy is 'retain'
-  let teamRetentionPolicy = makeRetentionPolicy()
+  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
   if (i.teamRetention) {
-    teamRetentionPolicy = serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+
+  const minWriterRoleEnum =
+    i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.role
+  let minWriterRole = minWriterRoleEnum ? TeamConstants.teamRoleByEnum[minWriterRoleEnum] : 'reader'
+  if (minWriterRole === 'none') {
+    // means nothing. set it to reader.
+    minWriterRole = 'reader'
   }
 
   return makeConversationMeta({
@@ -229,10 +240,12 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    minWriterRole,
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participants: I.List(i.participants || []),
+    maxMsgID: i.maxMsgID,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -257,20 +270,22 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   inboxVersion: -1,
   isMuted: false,
   membershipType: 'active',
+  minWriterRole: 'reader',
   notificationsDesktop: 'never',
   notificationsGlobalIgnoreMentions: false,
   notificationsMobile: 'never',
   offline: false,
   participants: I.List(),
+  maxMsgID: -1,
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
-  retentionPolicy: makeRetentionPolicy(),
+  retentionPolicy: TeamConstants.makeRetentionPolicy(),
   snippet: '',
   snippetDecoration: '',
   supersededBy: noConversationIDKey,
   supersedes: noConversationIDKey,
-  teamRetentionPolicy: makeRetentionPolicy(),
+  teamRetentionPolicy: TeamConstants.makeRetentionPolicy(),
   teamType: 'adhoc',
   teamname: '',
   timestamp: 0,
@@ -283,7 +298,7 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blue5
+const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blueGrey
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
@@ -295,7 +310,7 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
       : hasUnread
         ? globalColors.black_75
         : globalColors.black_40
-  const usernameColor = isSelected ? globalColors.white : globalColors.darkBlue
+  const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 
   return {

@@ -16,42 +16,30 @@ const DeviceRow = (props: Props) => {
   let icon
   switch (props.type) {
     case 'backup':
-      icon = Styles.isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32'
+      icon = 'icon-paper-key-32'
       break
     case 'desktop':
-      icon = props.isCurrentDevice
-        ? Styles.isMobile
-          ? 'icon-computer-success-48'
-          : 'icon-computer-success-32'
-        : Styles.isMobile
-          ? 'icon-computer-48'
-          : 'icon-computer-32'
+      icon = props.isCurrentDevice ? 'icon-computer-success-32' : 'icon-computer-32'
       break
     case 'mobile':
-      icon = props.isCurrentDevice
-        ? Styles.isMobile
-          ? 'icon-phone-success-48'
-          : 'icon-phone-success-32'
-        : Styles.isMobile
-          ? 'icon-phone-48'
-          : 'icon-phone-32'
+      icon = props.isCurrentDevice ? 'icon-phone-success-32' : 'icon-phone-32'
       break
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.type);
+      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(props.type)
       */
-      icon = Styles.isMobile ? 'icon-paper-key-48' : 'icon-paper-key-32'
+      icon = 'icon-paper-key-48'
   }
 
   return (
     <Kb.ListItem2
-      type="Large"
+      type="Small"
       firstItem={props.firstItem}
       onClick={props.showExistingDevicePage}
       icon={<Kb.Icon type={icon} style={Kb.iconCastPlatformStyles(props.isRevoked ? styles.icon : null)} />}
       body={
-        <Kb.Box2 direction="vertical">
+        <Kb.Box2 direction="vertical" style={{justifyContent: 'center', minHeight: 48}}>
           <Kb.Text style={props.isRevoked ? styles.text : null} type="BodySemiboldItalic">
             {props.name}
           </Kb.Text>

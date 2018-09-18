@@ -7,8 +7,8 @@ import {Avatar, Banner, Box, Button, Divider, Icon, Input, Text} from '../../com
 import {globalColors, globalMargins, globalStyles, desktopStyles} from '../../styles'
 import {stateColors} from '../../util/tracker'
 import SubHeading from '../subheading'
-
-import type {Props, PendingInvite, AcceptedInvite} from './index'
+import * as Types from '../../constants/types/settings'
+import type {Props} from './index'
 
 type State = {
   inviteEmail: string,
@@ -116,7 +116,7 @@ class Invites extends Component<Props, State> {
 }
 
 function intersperseDividers(arr) {
-  return intersperseFn(i => <Divider key={i} style={{backgroundColor: globalColors.black_05}} />, arr)
+  return intersperseFn(i => <Divider key={i} />, arr)
 }
 
 function PendingInviteItem({
@@ -124,9 +124,9 @@ function PendingInviteItem({
   onReclaimInvitation,
   onSelectPendingInvite,
 }: {
-  invite: PendingInvite,
+  invite: Types.PendingInvite,
   onReclaimInvitation: (id: string) => void,
-  onSelectPendingInvite: (invite: PendingInvite) => void,
+  onSelectPendingInvite: (invite: Types.PendingInvite) => void,
 }) {
   return (
     <Box style={styleInviteItem}>
@@ -151,8 +151,8 @@ function PendingEmailContent({
   invite,
   onSelectPendingInvite,
 }: {
-  invite: PendingInvite,
-  onSelectPendingInvite: (invite: PendingInvite) => void,
+  invite: Types.PendingInvite,
+  onSelectPendingInvite: (invite: Types.PendingInvite) => void,
 }) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
@@ -167,7 +167,7 @@ function PendingEmailContent({
   )
 }
 
-function PendingURLContent({invite}: {invite: PendingInvite}) {
+function PendingURLContent({invite}: {invite: Types.PendingInvite}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
       <Icon
@@ -190,7 +190,7 @@ function AcceptedInviteItem({
   invite,
   onClick,
 }: {
-  invite: AcceptedInvite,
+  invite: Types.AcceptedInvite,
   onClick: (username: string) => void,
 }) {
   const nameColor = stateColors(invite.currentlyFollowing, invite.trackerState, globalColors.blue).username

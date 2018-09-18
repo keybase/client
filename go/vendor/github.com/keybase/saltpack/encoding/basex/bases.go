@@ -30,5 +30,5 @@ const base62EncodeStd = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrs
 var Base62StdEncodingStrict = NewEncoding(base62EncodeStd, 32, "")
 
 // Base62StdEncoding is the standard 62-encoding, with a 32-byte input block and, a
-// 43-byte output block. Foreign chracters are ignored
+// 43-byte output block.
 var Base62StdEncoding = NewEncoding(base62EncodeStd, 32, "\t\n\r >")

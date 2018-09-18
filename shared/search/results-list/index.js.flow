@@ -10,6 +10,7 @@ export type Props = {
   onClick: (id: SearchResultId) => void,
   onMouseOver?: (id: SearchResultId) => void,
   onShowTracker?: (id: SearchResultId) => void,
+  searchKey: string,
   selectedId: ?SearchResultId,
   showSearchSuggestions: boolean,
   disableIfInTeamName: ?string,

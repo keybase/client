@@ -9,7 +9,10 @@ import './app/globals.native'
 
 // Load storybook or the app
 if (__STORYBOOK__) {
-  const {load} = require('./stories/setup-app.native.js')
+  // MUST happen first
+  const {inject} = require('./stories/mock-react-redux')
+  inject()
+  const load = require('./storybook/index.native').default
   load()
 } else {
   const {load} = require('./app/index.native')

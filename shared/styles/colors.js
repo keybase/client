@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
 import {isAndroid} from '../constants/platform'
 
@@ -28,6 +28,8 @@ const colors = {
   blue3_60_on_white: 'rgb(203, 224, 255)',
   blue4: '#EBF2FC',
   blue5: '#F7F9FC',
+  blueGrey: '#F2F4F7',
+  blueGrey2: '#E0E8F6',
   blue_30: 'rgba(51, 160, 255, 0.3)',
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',

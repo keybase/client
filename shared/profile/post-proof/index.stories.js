@@ -2,6 +2,7 @@
 import * as React from 'react'
 import {Box} from '../../common-adapters'
 import {action, storiesOf} from '../../stories/storybook'
+import * as Styles from '../../styles'
 import Render from '.'
 
 const props = {
@@ -11,6 +12,7 @@ const props = {
   onCancelText: 'Cancel',
   onComplete: action('onComplete'),
   platformUserName: 'awendland',
+  copyToClipboard: action('copyToClipboard'),
 }
 
 const propsTwitter = {
@@ -23,7 +25,7 @@ const propsTwitter = {
 }
 
 const PostProof = props => (
-  <Box style={{display: 'flex', height: 580, minWidth: 640}}>
+  <Box style={{display: 'flex', height: 580, minWidth: Styles.isMobile ? undefined : 640}}>
     <Render {...props} />
   </Box>
 )

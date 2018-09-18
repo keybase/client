@@ -70,7 +70,7 @@ const DeviceRevoke = (props: Props) => {
       gapEnd={true}
       style={styles.container}
     >
-      <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} />
+      <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} size="small" />
       <Kb.Text type="Header" style={styles.centerText}>
         Are you sure you want to revoke{' '}
         {props.device.currentDevice ? (
@@ -113,7 +113,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignContent: 'center',
-      borderColor: Styles.globalColors.black_05,
+      borderColor: Styles.globalColors.black_10,
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,

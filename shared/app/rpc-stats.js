@@ -15,9 +15,11 @@ type State = {
   // mark* means to make it bold for a single render cause it changed
   markIn: boolean,
   markOut: boolean,
+  markEOF: boolean,
   // counts
-  smallInCount: number,
-  smallOutCount: number,
+  inCount: number,
+  outCount: number,
+  eofCount: number,
   // clicking hides it
   visible: boolean,
 }
@@ -52,11 +54,14 @@ class RpcStats extends React.Component<Props, State> {
   state = {
     markIn: false,
     markOut: false,
-    smallInCount: 0,
-    smallOutCount: 0,
+    markEOF: false,
+    inCount: 0,
+    outCount: 0,
+    eofCount: 0,
     visible: false,
   }
 
+  _mounted = true
   _intervalID: ?IntervalID
 
   _cleanup = () => {
@@ -74,34 +79,43 @@ class RpcStats extends React.Component<Props, State> {
     if (userChanged && this.props.username) {
       if (printRPCStats || whitelist.indexOf(this.props.username) !== -1) {
         visible = true
-        this.setState(p => (p.visible !== visible ? {visible} : undefined))
+        this._mounted && this.setState(p => (p.visible !== visible ? {visible} : undefined))
       }
       whitelist = []
     }
 
     if (visible) {
       this._intervalID = setInterval(() => {
-        this.setState(p => {
-          const smallInCount = this._iterateStats(['in'], s => s.count)
-          const smallOutCount = this._iterateStats(['out'], s => s.count)
+        this._mounted &&
+          this.setState(p => {
+            const inCount = this._iterateStats(['in'], s => s.count)
+            const outCount = this._iterateStats(['out'], s => s.count)
+            const eofCount = Stats.getStats()['eof']
 
-          const inDiff = p.smallInCount !== smallInCount
-          const outDiff = p.smallOutCount !== smallOutCount
-          const markDiff = p.markIn || p.markOut
-          if (inDiff || outDiff || markDiff) {
-            return {
-              markIn: inDiff,
-              markOut: outDiff,
-              smallInCount,
-              smallOutCount,
+            const inDiff = p.inCount !== inCount
+            const outDiff = p.outCount !== outCount
+            const eofDiff = p.eofCount !== eofCount
+            const markDiff = p.markIn || p.markOut || p.markEOF
+            if (inDiff || outDiff || eofDiff || markDiff) {
+              return {
+                markIn: inDiff,
+                markOut: outDiff,
+                markEOF: eofDiff,
+                inCount,
+                outCount,
+                eofCount,
+              }
             }
-          }
-        })
+          })
       }, 2000)
     }
   }
 
+  componentWillUnmount() {
+    this._mounted = false
+  }
   componentDidMount() {
+    this._mounted = true
     this._maybeStart(true)
   }
 
@@ -121,15 +135,16 @@ class RpcStats extends React.Component<Props, State> {
   }
 
   _onClick = () => {
-    this.setState(p => ({
-      visible: !p.visible,
-    }))
+    this._mounted &&
+      this.setState(p => ({
+        visible: !p.visible,
+      }))
   }
 
   render() {
     if (!this.state.visible) return null
 
-    const showIcon = this.state.smallInCount < 100 && this.state.smallOutCount < 100
+    const showIcon = this.state.inCount < 100 && this.state.outCount < 100
 
     return (
       <ClickableBox onClick={this._onClick} style={styles.clickableBox}>
@@ -144,7 +159,7 @@ class RpcStats extends React.Component<Props, State> {
                 ⤵️{' '}
               </Text>
             )}
-            {this.state.smallInCount}
+            {this.state.inCount}
           </Text>
           <Text
             type={this.state.markOut ? 'BodySmallExtrabold' : 'BodySmall'}
@@ -156,8 +171,22 @@ class RpcStats extends React.Component<Props, State> {
                 ↗️{' '}
               </Text>
             )}
-            {this.state.smallOutCount}
+            {this.state.outCount}
           </Text>
+          {this.state.eofCount > 0 && (
+            <Text
+              type={this.state.markEOF ? 'BodySmallExtrabold' : 'BodySmall'}
+              style={styles.text}
+              title="EOF errors"
+            >
+              {showIcon && (
+                <Text type="BodySmall" style={styles.emoji}>
+                  🔚️{' '}
+                </Text>
+              )}
+              {this.state.eofCount}
+            </Text>
+          )}
         </Box2>
       </ClickableBox>
     )
@@ -209,4 +238,4 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
-export default connect(mapStateToProps)(RpcStats)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RpcStats)

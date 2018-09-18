@@ -48,11 +48,11 @@ func (f *JSONFile) GetWrapper() *jsonw.Wrapper {
 func (f *JSONFile) Exists() bool { return f.exists }
 
 func (f *JSONFile) Load(warnOnNotFound bool) error {
-	f.G().Log.Debug("+ loading %s file: %s", f.which, f.filename)
+	f.G().Log.Debug("+ loading %q file: %s", f.which, f.filename)
 	file, err := os.Open(f.filename)
 	if err != nil {
 		if os.IsNotExist(err) {
-			msg := fmt.Sprintf("No %s file found; tried %s", f.which, f.filename)
+			msg := fmt.Sprintf("No %q file found; tried %s", f.which, f.filename)
 			if warnOnNotFound {
 				f.G().Log.Warning(msg)
 			} else {
@@ -81,16 +81,6 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	}
 	f.jw = jsonw.NewWrapper(obj)
 
-	if runtime.GOOS == "android" {
-		// marshal it into json without indents to make it one line
-		out, err := json.Marshal(obj)
-		if err != nil {
-			f.G().Log.Debug("JSONFile.Load: error marshaling decoded config obj: %s", err)
-		} else {
-			f.G().Log.Debug("JSONFile.Load: %s contents (marshaled): %s", f.filename, string(out))
-		}
-	}
-
 	f.G().Log.Debug("- successfully loaded %s file", f.which)
 	return nil
 }
@@ -107,8 +97,7 @@ func (f *JSONFile) BeginTransaction() (ConfigWriterTransacter, error) {
 	if err != nil {
 		return nil, err
 	}
-	err = f.setTx(tx)
-	if err != nil {
+	if err = f.setTx(tx); err != nil {
 		return nil, err
 	}
 	return tx, nil
@@ -314,6 +303,23 @@ func (f *jsonFileTransaction) Abort() error {
 	err := os.Remove(f.tmpname)
 	f.f.setTx(nil)
 	f.f.G().Log.Debug("- Abort -> %s\n", ErrToOk(err))
+	return err
+}
+
+// Rollback reloads config from unchanged config file, bringing its
+// state back to from before the transaction changes. Note that it
+// only works for changes that do not affect UserConfig, which caches
+// values, and has to be reloaded manually.
+func (f *jsonFileTransaction) Rollback() error {
+	f.f.G().Log.Debug("+ Rolling back %s to state from %s", f.f.which, f.f.filename)
+	err := f.f.Load(false)
+	if !f.f.exists {
+		// Before transaction there was no file, so set in-memory
+		// wrapper to clean state as well.
+		f.f.jw = jsonw.NewDictionary()
+		f.f.G().Log.Debug("+ Rolling back to clean state because f.exists is false")
+	}
+	f.f.G().Log.Debug("- Rollback -> %s", ErrToOk(err))
 	return err
 }
 

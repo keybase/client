@@ -279,7 +279,7 @@ func (g *gregorHandler) monitorAppState() {
 					g.chatLog.Debug(context.Background(), "error reconnecting: %s", err)
 				}
 			}
-		case keybase1.AppState_BACKGROUND:
+		case keybase1.AppState_BACKGROUND, keybase1.AppState_INACTIVE:
 			g.chatLog.Debug(context.Background(), "backgrounded, shutting down connection")
 			g.Shutdown()
 		}
@@ -696,8 +696,8 @@ func (g *gregorHandler) authParams(ctx context.Context) (uid gregor1.UID, token 
 
 func (g *gregorHandler) inboxParams(ctx context.Context, uid gregor1.UID) chat1.InboxVers {
 	// Grab current on disk version
-	ibox := chatstorage.NewInbox(g.G(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := chatstorage.NewInbox(g.G())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		g.chatLog.Debug(ctx, "inboxParams: failed to get current inbox version (using 0): %s",
 			err.Error())

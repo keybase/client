@@ -26,6 +26,10 @@
         {
           "type": "string",
           "name": "balanceDescription"
+        },
+        {
+          "type": "string",
+          "name": "seqno"
         }
       ]
     },
@@ -415,6 +419,10 @@
           "name": "readyToSend"
         },
         {
+          "type": "AccountID",
+          "name": "from"
+        },
+        {
           "type": "string",
           "name": "toErrMsg"
         },
@@ -528,22 +536,6 @@
         {
           "type": "string",
           "name": "amountDescription"
-        },
-        {
-          "type": "string",
-          "name": "amountStellar"
-        },
-        {
-          "type": "string",
-          "name": "amountStellarDescription"
-        },
-        {
-          "type": "boolean",
-          "name": "completed"
-        },
-        {
-          "type": "KeybaseTransactionID",
-          "name": "fundingKbTxID"
         },
         {
           "type": "RequestStatus",
@@ -700,6 +692,23 @@
           "name": "exchangeRate"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "LookupResultCLILocal",
+      "fields": [
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "username"
+        }
+      ]
     }
   ],
   "messages": {
@@ -775,7 +784,10 @@
         },
         {
           "name": "accountID",
-          "type": "AccountID"
+          "type": [
+            null,
+            "AccountID"
+          ]
         },
         {
           "name": "id",
@@ -1017,6 +1029,10 @@
           "type": "AccountID"
         },
         {
+          "name": "fromPrimaryAccount",
+          "type": "boolean"
+        },
+        {
           "name": "fromSeqno",
           "type": "string"
         },
@@ -1116,6 +1132,10 @@
     "getRequestDetailsLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
@@ -1125,11 +1145,50 @@
     "cancelRequestLocal": {
       "request": [
         {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
           "name": "reqID",
           "type": "KeybaseRequestID"
         }
       ],
       "response": null
+    },
+    "makeRequestLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "recipient",
+          "type": "string"
+        },
+        {
+          "name": "asset",
+          "type": [
+            null,
+            "Asset"
+          ]
+        },
+        {
+          "name": "currency",
+          "type": [
+            null,
+            "OutsideCurrencyCode"
+          ]
+        },
+        {
+          "name": "amount",
+          "type": "string"
+        },
+        {
+          "name": "note",
+          "type": "string"
+        }
+      ],
+      "response": "KeybaseRequestID"
     },
     "balancesLocal": {
       "request": [
@@ -1343,6 +1402,15 @@
         }
       ],
       "response": "KeybaseRequestID"
+    },
+    "lookupCLILocal": {
+      "request": [
+        {
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "response": "LookupResultCLILocal"
     }
   },
   "namespace": "stellar.1"

@@ -156,3 +156,18 @@ func TestSystemMessageMentions(t *testing.T) {
 	require.Zero(t, len(atMentions))
 	require.Equal(t, chat1.ChannelMention_ALL, chanMention)
 }
+
+func TestFormatVideoDuration(t *testing.T) {
+	testCase := func(ms int, expected string) {
+		require.Equal(t, expected, formatVideoDuration(ms))
+	}
+	testCase(1000, "0:01")
+	testCase(10000, "0:10")
+	testCase(60000, "1:00")
+	testCase(60001, "1:00")
+	testCase(72000, "1:12")
+	testCase(3600000, "1:00:00")
+	testCase(4500000, "1:15:00")
+	testCase(4536000, "1:15:36")
+	testCase(3906000, "1:05:06")
+}

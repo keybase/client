@@ -2,10 +2,10 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/devices'
 import * as Constants from '../../constants/devices'
-import {action, storiesOf, createPropProvider} from '../../stories/storybook'
+import * as Sb from '../../stories/storybook'
 import DevicePage from './container'
 
-const provider = createPropProvider({
+const provider = Sb.createPropProviderWithCommon({
   DevicePage: ({revoked, type, current, lastUsed = true, revokedAt = true}) => ({
     device: Constants.makeDevice({
       created: new Date('2002-10-09T01:23:45'),
@@ -16,13 +16,13 @@ const provider = createPropProvider({
       revokedAt: revokedAt && revoked ? new Date('2002-10-11T01:23:45') : null,
       type,
     }),
-    onBack: action('onback'),
-    showRevokeDevicePage: revoked ? null : action('showRevokeDevicePage'),
+    onBack: Sb.action('onback'),
+    showRevokeDevicePage: revoked ? null : Sb.action('showRevokeDevicePage'),
   }),
 })
 
 const load = () => {
-  storiesOf('Devices/Device', module)
+  Sb.storiesOf('Devices/Device', module)
     .addDecorator(provider)
     .add('Desktop', () => <DevicePage type="desktop" />)
     .add('Desktop no last used', () => <DevicePage type="desktop" lastUsed={false} />)

@@ -26,7 +26,9 @@ protocol home {
     TEAM_7,
     FOLDER_8,
     GIT_REPO_9,
-    TEAM_SHOWCASE_10
+    TEAM_SHOWCASE_10,
+    AVATAR_USER_11,
+    AVATAR_TEAM_12
   }
 
   variant HomeScreenTodo switch (HomeScreenTodoType t) {

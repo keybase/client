@@ -708,7 +708,7 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 	// Clear the paper key because we don't want it hanging around to
 	// solve the problems we're trying to induce.
 	m := libkb.NewMetaContextBackground(dev2.tctx.G)
-	m.ActiveDevice().ClearPaperKey(m)
+	m.ActiveDevice().ClearProvisioningKey(m)
 
 	return dev2
 }

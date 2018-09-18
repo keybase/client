@@ -1,4 +1,4 @@
-// @flow
+// @flow strict
 export type Color = null | string
 type Dimension = string | number
 
@@ -175,7 +175,7 @@ export type _StylesDesktop = {|
   borderTopLeftRadius?: string,
   borderTopRightRadius?: string,
   borderTopStyle?: string,
-  borderTopWidth?: string,
+  borderTopWidth?: Dimension,
   borderWidth?: Dimension,
   bottom?: Dimension,
   boxDecorationBreak?: string,

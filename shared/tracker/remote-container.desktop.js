@@ -9,16 +9,15 @@ import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
 import {
   branch,
-  connect,
+  remoteConnect,
   compose,
   lifecycle,
   renderNothing,
   withStateHandlers,
-  type Dispatch,
 } from '../util/container'
 
 // Props are handled by remote-proxy.desktop.js
-const mapDispatchToProps = (dispatch: Dispatch, {teamname}) => ({
+const mapDispatchToProps = (dispatch, {teamname}) => ({
   _checkRequestedAccess: (teamname: string) => dispatch(TeamsGen.createCheckRequestedAccess({teamname})),
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   _onChat: (username: string) => {
@@ -65,8 +64,8 @@ export default compose(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  connect(s => s, mapDispatchToProps, mergeProps),
-  branch(props => !props.username, renderNothing),
+  remoteConnect(s => s, mapDispatchToProps, mergeProps),
+  branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {
       this.props._onSetTeamJoinError('')

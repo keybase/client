@@ -2,9 +2,9 @@
 import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
+import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import Session, {type CancelHandlerType} from '../engine/session'
 import {get} from 'lodash-es'
 import engine from '../engine'
 import openUrl from '../util/open-url'
@@ -12,6 +12,7 @@ import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
 import {type TypedState} from '../constants/reducer'
 import type {FriendshipUserInfo} from '../constants/types/profile'
+import type {Dispatch} from '../util/container'
 
 // Send a heartbeat while trackers are still open
 function* _trackerTimer(): Generator<any, void, any> {
@@ -48,8 +49,8 @@ function _getProfile(action: TrackerGen.GetProfilePayload, state: TypedState) {
 
   return Saga.all([
     Saga.put(TrackerGen.createUpdateUsername({username})),
-    Saga.put(triggerIdentify('', username, forceDisplay)),
-    Saga.put(_fillFolders(username)),
+    Saga.call(triggerIdentify('', username, forceDisplay)),
+    Saga.call(_fillFolders(username)),
   ])
 }
 
@@ -61,37 +62,41 @@ function _getMyProfile(action: TrackerGen.GetMyProfilePayload, state: TypedState
   }
 }
 
-const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisplay: boolean = false) => (
-  dispatch: Dispatch,
-  getState: () => TypedState
-) =>
-  new Promise((resolve, reject) => {
-    dispatch(TrackerGen.createIdentifyStarted({username: uid || userAssertion}))
-    RPCTypes.identifyIdentify2RpcPromise({
-      allowEmptySelfID: true,
-      alwaysBlock: false,
-      forceDisplay,
-      forceRemoteCheck: false,
-      needProofSet: true,
-      noErrorOnTrackFailure: true,
-      noSkipSelf: true,
-      reason: {
-        reason: Constants.profileFromUI,
-        resource: '',
-        type: RPCTypes.identifyCommonIdentifyReasonType.id,
-      },
-      uid,
-      useDelegateUI: true,
-      userAssertion,
-    })
-      .then(response => {
-        dispatch(TrackerGen.createIdentifyFinished({username: uid || userAssertion}))
-        resolve()
-      })
-      .catch(error => {
-        dispatch(TrackerGen.createIdentifyFinishedError({error: error.desc, username: uid || userAssertion}))
-      })
-  })
+const triggerIdentify = (uid: string = '', userAssertion: string = '', forceDisplay: boolean = false) =>
+  function*() {
+    yield Saga.put(TrackerGen.createIdentifyStarted({username: uid || userAssertion}))
+    const action = yield Saga.call(
+      () =>
+        new Promise((resolve, reject) => {
+          RPCTypes.identifyIdentify2RpcPromise({
+            allowEmptySelfID: true,
+            alwaysBlock: false,
+            forceDisplay,
+            forceRemoteCheck: false,
+            needProofSet: true,
+            noErrorOnTrackFailure: true,
+            noSkipSelf: true,
+            reason: {
+              reason: Constants.profileFromUI,
+              resource: '',
+              type: RPCTypes.identifyCommonIdentifyReasonType.id,
+            },
+            uid,
+            useDelegateUI: true,
+            userAssertion,
+          })
+            .then(response => {
+              resolve(TrackerGen.createIdentifyFinished({username: uid || userAssertion}))
+            })
+            .catch(error => {
+              resolve(
+                TrackerGen.createIdentifyFinishedError({error: error.desc, username: uid || userAssertion})
+              )
+            })
+        })
+    )
+    yield Saga.put(action)
+  }
 
 function* _refollow(action: TrackerGen.RefollowPayload) {
   const {username} = action.payload
@@ -312,7 +317,7 @@ function _serverCallMap(
               folderName: args.folderName,
               inviteLink: args.inviteLink,
               isPrivate: args.isPrivate,
-              socialAssertion: args.socialAssertion,
+              service: args.socialAssertion.service,
               throttled: args.throttled,
             },
             username: args.assertion,
@@ -519,24 +524,20 @@ const _listTrackersOrTracking = (
       })
   })
 
-const _fillFolders = (username: string) => (dispatch: Dispatch, getState: () => TypedState) => {
-  const state = getState()
-  const root = state.favorite
-  const pubIg = get(root, 'public.ignored', [])
-  const pubTlf = get(root, 'public.tlfs', [])
-  const privIg = get(root, 'private.ignored', [])
-  const privTlf = get(root, 'private.tlfs', [])
+const _fillFolders = (username: string) =>
+  function*() {
+    const state = yield Saga.select()
+    const root = state.favorite
+    const pubIg = get(root, 'public.ignored', [])
+    const pubTlf = get(root, 'public.tlfs', [])
+    const privIg = get(root, 'private.ignored', [])
+    const privTlf = get(root, 'private.tlfs', [])
 
-  const tlfs = []
-    .concat(pubIg, pubTlf, privIg, privTlf)
-    .filter(f => f.users.filter(u => u.username === username).length)
-  dispatch(
-    TrackerGen.createUpdateFolders({
-      tlfs,
-      username,
-    })
-  )
-}
+    const tlfs = []
+      .concat(pubIg, pubTlf, privIg, privTlf)
+      .filter(f => f.users.filter(u => u.username === username).length)
+    yield Saga.put(TrackerGen.createUpdateFolders({tlfs, username}))
+  }
 
 function* _updateTrackers(action: TrackerGen.UpdateTrackersPayload) {
   const {username} = action.payload
@@ -567,12 +568,12 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
   return Saga.all(actions)
 }
 
-function _setupTrackerHandlers() {
-  engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
-    return [{payload: {uid}, type: 'tracker:_userChanged'}]
-  })
+const setupEngineListeners = () => {
+  // TODO remove this
+  const dispatch = engine().deprecatedGetDispatch()
+  const getState = engine().deprecatedGetGetState()
 
-  engine().listenOnConnect('registerIdentifyUi', () => {
+  engine().actionOnConnect('registerIdentifyUi', () => {
     RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
       .then(response => {
         logger.info('Registered identify ui')
@@ -582,10 +583,8 @@ function _setupTrackerHandlers() {
       })
   })
 
-  // TODO get rid of getState here
-  engine().setIncomingActionCreators(
-    'keybase.1.identifyUi.delegateIdentifyUI',
-    (param: any, response: ?Object, dispatch: Dispatch, getState: () => TypedState) => {
+  engine().setCustomResponseIncomingCallMap({
+    'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
       let trackerTimeoutError = null
@@ -605,7 +604,7 @@ function _setupTrackerHandlers() {
         trackerTimeoutError && clearTimeout(trackerTimeoutError)
       }
 
-      const cancelHandler: CancelHandlerType = session => {
+      const cancelHandler = session => {
         const username = sessionIDToUsername[session.getId()]
 
         if (username) {
@@ -618,14 +617,18 @@ function _setupTrackerHandlers() {
         }
       }
 
-      const session: Session = engine().createSession({
+      const session = engine().createSession({
         cancelHandler,
         incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
       })
 
       response && response.result(session.getId())
-    }
-  )
+    },
+  })
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
+      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
+  })
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
@@ -638,13 +641,14 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(TrackerGen.getProfile, _getProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.getMyProfile, _getMyProfile)
   yield Saga.safeTakeEveryPure(TrackerGen.openProofUrl, _openProofUrl)
-  yield Saga.safeTakeEveryPure(TrackerGen.setupTrackerHandlers, _setupTrackerHandlers)
   yield Saga.safeTakeEveryPure('tracker:_userChanged', _userChanged)
 
   // We don't have open trackers in mobile
   if (!isMobile) {
     yield Saga.fork(_trackerTimer)
   }
+
+  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 }
 
 export default trackerSaga

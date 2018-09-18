@@ -2,6 +2,7 @@
 import logger from '../logger'
 import * as ConfigGen from './config-gen'
 import * as KBFSGen from './kbfs-gen'
+import * as FsGen from './fs-gen'
 import * as Constants from '../constants/config'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -231,19 +232,10 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
     .slice(2)
     .join(path.sep)
 
-  const state: TypedState = yield Saga.select()
-  let {
-    config: {kbfsPath},
-  } = state
+  const kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
 
   if (!kbfsPath) {
-    kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-
-    if (!kbfsPath) {
-      throw new Error('No kbfsPath (RPC)')
-    }
-
-    yield Saga.put(ConfigGen.createChangeKBFSPath({kbfsPath}))
+    throw new Error('No kbfsPath (RPC)')
   }
 
   const resolvedPath = path.resolve(kbfsPath, subPath)
@@ -279,6 +271,30 @@ function openInFileUISaga({payload: {path}}: KBFSGen.OpenInFileUIPayload, state:
   }
 }
 
+function* waitForKBFS(action: ConfigGen.DaemonHandshakePayload) {
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'kbfs.waitingForDaemon',
+      version: action.payload.version,
+    })
+  )
+  const connected = yield Saga.call(RPCTypes.configWaitForClientRpcPromise, {
+    clientType: RPCTypes.commonClientType.kbfs,
+    timeout: 10.0,
+  })
+  yield Saga.put(KBFSGen.createFuseStatus())
+  yield Saga.put(FsGen.createFuseStatus())
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      failedReason: connected ? null : Constants.noKBFSFailReason,
+      increment: false,
+      name: 'kbfs.waitingForDaemon',
+      version: action.payload.version,
+    })
+  )
+}
+
 function* kbfsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(KBFSGen.open, openSaga)
   yield Saga.safeTakeEveryPure(KBFSGen.openInFileUI, openInFileUISaga)
@@ -291,6 +307,7 @@ function* kbfsSaga(): Saga.SagaGenerator<any, any> {
   }
   yield Saga.safeTakeLatest(KBFSGen.installKBFS, installKBFSSaga)
   yield Saga.safeTakeLatestPure(KBFSGen.uninstallKBFS, uninstallKBFSSaga, uninstallKBFSSagaSuccess)
+  yield Saga.safeTakeEveryPure(ConfigGen.daemonHandshake, waitForKBFS)
 }
 
 export default kbfsSaga

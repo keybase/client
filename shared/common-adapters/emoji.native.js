@@ -10,12 +10,11 @@ const EmojiWrapper = (props: Props) => {
   const emojiVariantSuffix = '\ufe0f' // see http://mts.io/2015/04/21/unicode-symbol-render-text-emoji/
   return (
     <Text
-      lineClamp={1}
       type="Body"
       style={{fontSize: size, lineHeight: undefined}}
       allowFontScaling={props.allowFontScaling}
     >
-      {(!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix) || emojiName}
+      {!!emojiIndexByName[emojiName] && emojiIndexByName[emojiName] + emojiVariantSuffix}
     </Text>
   )
 }

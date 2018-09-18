@@ -91,9 +91,7 @@ func getMetadataInner(ctx context.Context, g *libkb.GlobalContext, folder *keyba
 		Endpoint:    "kbfs/git/team/get",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
-		Args:        libkb.HTTPArgs{
-			// a limit parameter exists, default 100, and we don't currently set it
-		},
+		Args:        libkb.HTTPArgs{}, // a limit parameter exists, default 100, and we don't currently set it
 	}
 
 	// The team_id parameter is optional. Add it in if the caller supplied it.
@@ -232,15 +230,19 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	// Load UPAKs to get the last writer username and device name.
-	lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithUID(responseRepo.LastModifyingUID))
+	lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithContext(ctx, g).
+		WithUID(responseRepo.LastModifyingUID).
+		WithPublicKeyOptional())
 	if err != nil {
 		return nil, false, err
 	}
 	var deviceName string
-	for _, deviceKey := range lastWriterUPAK.Current.DeviceKeys {
-		if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
-			deviceName = deviceKey.DeviceDescription
-			break
+	for _, upk := range append([]keybase1.UserPlusKeysV2{lastWriterUPAK.Current}, lastWriterUPAK.PastIncarnations...) {
+		for _, deviceKey := range upk.DeviceKeys {
+			if deviceKey.DeviceID.Eq(responseRepo.LastModifyingDeviceID) {
+				deviceName = deviceKey.DeviceDescription
+				break
+			}
 		}
 	}
 	if deviceName == "" {
@@ -255,7 +257,10 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return nil, false, err
 	}
-	selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithSelf(true).WithUID(g.GetMyUID()))
+	selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithContext(ctx, g).
+		WithSelf(true).
+		WithUID(g.GetMyUID()).
+		WithPublicKeyOptional())
 	if err != nil {
 		return nil, false, err
 	}

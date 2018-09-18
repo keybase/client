@@ -1,13 +1,10 @@
 // @flow
 import * as Types from '../constants/types/devices'
 import * as React from 'react'
-import * as Common from '../common-adapters'
-import FloatingMenu, {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../common-adapters/floating-menu'
+import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
+import {compose} from '../util/container'
 
 type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
@@ -26,9 +23,11 @@ type Props = {|
   onBack: () => void,
   revokedItems: Array<Item>,
   waiting: boolean,
+  title: string,
+  ...$Exact<Kb.OverlayParentProps>,
 |}
 
-class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State> {
+class Devices extends React.PureComponent<Props, State> {
   static defaultProps = {_stateOverride: null}
   state = {revokedExpanded: this.props._stateOverride ? this.props._stateOverride.revokedExpanded : false}
 
@@ -63,25 +62,27 @@ class Devices extends React.PureComponent<Props & FloatingMenuParentProps, State
     ]
 
     return (
-      <Common.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <DeviceHeader
           setAttachmentRef={this.props.setAttachmentRef}
           onAddNew={this.props.toggleShowingMenu}
           waiting={this.props.waiting}
         />
-        {this.props.waiting && <Common.ProgressIndicator style={styles.progress} />}
-        <Common.List items={items} renderItem={this._renderRow} />
-        <FloatingMenu
-          attachTo={this.props.attachmentRef}
+        {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
+        <Kb.List items={items} renderItem={this._renderRow} />
+        <Kb.FloatingMenu
+          closeOnSelect={true}
+          attachTo={this.props.getAttachmentRef}
           visible={this.props.showingMenu}
           onHidden={this.props.toggleShowingMenu}
           items={menuItems}
           position="bottom center"
         />
-      </Common.Box2>
+      </Kb.Box2>
     )
   }
 }
+
 const styles = Styles.styleSheetCreate({
   container: {
     position: 'relative',
@@ -95,8 +96,8 @@ const styles = Styles.styleSheetCreate({
 })
 
 const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
-  <Common.ClickableBox onClick={onAddNew}>
-    <Common.Box2
+  <Kb.ClickableBox onClick={onAddNew}>
+    <Kb.Box2
       direction="horizontal"
       ref={setAttachmentRef}
       gap="xtiny"
@@ -104,41 +105,41 @@ const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
       fullWidth={true}
       centerChildren={true}
     >
-      <Common.Icon type="iconfont-new" color={Styles.globalColors.blue} />
-      <Common.Text type="BodyBigLink">Add new...</Common.Text>
-    </Common.Box2>
-  </Common.ClickableBox>
+      <Kb.Icon type="iconfont-new" color={Styles.globalColors.blue} />
+      <Kb.Text type="BodyBigLink">Add new...</Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 const headerStyles = Styles.styleSheetCreate({
   container: {height: Styles.isMobile ? 64 : 48},
 })
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
-  <Common.ClickableBox onClick={onToggleExpanded}>
-    <Common.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Common.Box2
+  <Kb.ClickableBox onClick={onToggleExpanded}>
+    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+      <Kb.Box2
         direction="horizontal"
         fullWidth={true}
         gap="xtiny"
         gapStart={true}
         style={revokedHeaderStyles.textContainer}
       >
-        <Common.Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
+        <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
           Revoked devices
-        </Common.Text>
-        <Common.Icon
+        </Kb.Text>
+        <Kb.Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
           color={Styles.globalColors.black_60}
           fontSize={10}
         />
-      </Common.Box2>
+      </Kb.Box2>
       {expanded && (
-        <Common.Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
+        <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
           Revoked devices will no longer be able to access your Keybase account.
-        </Common.Text>
+        </Kb.Text>
       )}
-    </Common.Box2>
-  </Common.ClickableBox>
+    </Kb.Box2>
+  </Kb.ClickableBox>
 )
 const revokedHeaderStyles = Styles.styleSheetCreate({
   desc: {
@@ -148,7 +149,10 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     textAlign: 'center',
   },
   text: {color: Styles.globalColors.black_60},
-  textContainer: {alignItems: 'center'},
+  textContainer: {
+    alignItems: 'center',
+    minHeight: Styles.isMobile ? 32 : 24,
+  },
 })
 
-export default Common.HeaderOnMobile(FloatingMenuParentHOC(Devices))
+export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)

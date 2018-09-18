@@ -3,18 +3,14 @@ import {forceImmediateLogging} from '../local-debug'
 import {isMobile, isAndroid} from '../constants/platform'
 import {runAfterInteractions} from './interaction-manager'
 
-function immediateCallback(
-  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
-  deadlineOpts?: {timeout: number}
-): number {
+type TimeoutInfo = {didTimeout: boolean, timeRemaining: () => number}
+
+function immediateCallback(cb: (info: TimeoutInfo) => void, deadlineOpts?: {timeout: number}): number {
   cb({didTimeout: true, timeRemaining: () => 0})
   return 0
 }
 
-function timeoutFallback(
-  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
-  deadlineOpts?: {timeout: number}
-): TimeoutID {
+function timeoutFallback(cb: (info: TimeoutInfo) => void, deadlineOpts?: {timeout: number}): TimeoutID {
   return setTimeout(function() {
     cb({
       didTimeout: true,
@@ -26,7 +22,7 @@ function timeoutFallback(
 }
 
 function runAfterInteractionsFallback(
-  cb: (info: {didTimeout: boolean, timeRemaining: () => number}) => void,
+  cb: (info: TimeoutInfo) => void,
   deadlineOpts?: {timeout: number}
 ): {cancel: () => void} {
   return runAfterInteractions(function() {
@@ -62,7 +58,7 @@ const cancelIdleCallback = useFallback
     : cancelIdleCallbackFallback
   : window.cancelIdleCallback.bind(window)
 
-const onIdlePromise = (timeout: number = 100) =>
+const onIdlePromise = (timeout: number = 100): Promise<TimeoutInfo> =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))
 
 export {requestIdleCallback, cancelIdleCallback, onIdlePromise}

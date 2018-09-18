@@ -1280,7 +1280,8 @@
         "NONE_0",
         "RETAIN_1",
         "EXPIRE_2",
-        "INHERIT_3"
+        "INHERIT_3",
+        "EPHEMERAL_4"
       ]
     },
     {
@@ -1311,6 +1312,13 @@
             "def": false
           },
           "body": "RpInherit"
+        },
+        {
+          "label": {
+            "name": "EPHEMERAL",
+            "def": false
+          },
+          "body": "RpEphemeral"
         }
       ]
     },
@@ -1333,6 +1341,16 @@
       "type": "record",
       "name": "RpInherit",
       "fields": []
+    },
+    {
+      "type": "record",
+      "name": "RpEphemeral",
+      "fields": [
+        {
+          "type": "gregor1.DurationSec",
+          "name": "age"
+        }
+      ]
     },
     {
       "type": "enum",

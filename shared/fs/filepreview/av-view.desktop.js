@@ -6,7 +6,12 @@ import {Box, WebView, type WebViewInjections} from '../../common-adapters'
 
 const AVView = (props: AVViewProps) => (
   <Box style={stylesContainer}>
-    <WebView style={stylesWebview} url="about:blank" injections={injections(props.url)} />
+    <WebView
+      style={stylesWebview}
+      url="about:blank"
+      injections={injections(props.url)}
+      onLoadingStateChange={props.onLoadingStateChange}
+    />
   </Box>
 )
 

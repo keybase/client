@@ -145,10 +145,15 @@ function messageCreateComponent(type, key, children, options) {
         </Text>
       )
     case 'text-block':
-    case 'phone':
       return (
         <Text type="Body" key={key} style={textBlockStyle}>
           {children && children.length ? children : '\u200b'}
+        </Text>
+      )
+    case 'phone':
+      return (
+        <Text type="Body" key={key} style={wrapStyle}>
+          {children}
         </Text>
       )
     case 'bold':

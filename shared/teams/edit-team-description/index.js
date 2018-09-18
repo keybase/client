@@ -6,7 +6,7 @@ import {globalStyles, globalMargins} from '../../styles'
 export type Props = {
   description: string,
   onChangeDescription: (description: string) => void,
-  onSetDescription: ?(event: SyntheticEvent<>) => void,
+  onSetDescription: () => void,
   onClose: () => void,
   origDescription: string,
   teamname: string,

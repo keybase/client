@@ -6,7 +6,6 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sort"
 
 	"golang.org/x/net/context"
@@ -91,20 +90,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// transaction around config file
-	tx, err := m.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
-	// From this point on, if there's an error, we abort the
-	// transaction.
-	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
-	}()
-
+	var err error
 	e.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), e.arg.User.GetUID())
 	if err != nil {
 		return err
@@ -112,7 +98,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
-	// through the provisioning options
+	// through the provisioning options.
 	if err := e.route(m); err != nil {
 		// cleanup state because there was an error:
 		e.cleanup(m)
@@ -126,23 +112,16 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
-		return err
-	}
+	// e.route is point of no return. If it succeeds, it means that
+	// config has already been written and there is no way to roll
+	// back.
 
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
-
-	if err := e.displaySuccess(m); err != nil {
-		return err
-	}
+	e.displaySuccess(m)
 
 	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
-	e.verifyLocalStorage(m)
+	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
 	// initialize a stellar wallet for the user if they don't already have one.
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "loginProvision")
@@ -199,7 +178,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 		m.CDebugf("Failed to get salt")
 		return err
 	}
-	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), salt)
+	provisionee := NewKex2Provisionee(m.G(), device, secret.Secret(), e.arg.User.GetUID(), salt)
 
 	var canceler func()
 
@@ -315,7 +294,7 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err e
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m = m.WithProvisioningKeyActiveDevice(keys, uv)
 	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
@@ -333,9 +312,9 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err e
 	m = m.WithGlobalActiveDevice()
 
 	// Cache the paper keys globally now that we're logged in. Note we must call
-	// thie after the m.WithGlobalActiveDevice() above, since we want to cache
+	// this after the m.WithGlobalActiveDevice() above, since we want to cache
 	// the paper key on the global and not thread-local active device.
-	m.ActiveDevice().CachePaperKey(m, keys)
+	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
 	e.saveToSecretStore(m)
 	return nil
@@ -553,6 +532,11 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(m.G(), args)
 	if err := RunEngine2(m, eng); err != nil {
+		return err
+	}
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
 
@@ -1061,50 +1045,6 @@ func (e *loginProvision) cleanup(m libkb.MetaContext) {
 	// the best way to cleanup is to logout...
 	m.G().Log.Debug("an error occurred during provisioning, logging out")
 	m.G().Logout()
-}
-
-func (e *loginProvision) verifyLocalStorage(m libkb.MetaContext) {
-	m.CDebugf("loginProvision: verifying local storage")
-	defer m.CDebugf("loginProvision: done verifying local storage")
-	normUsername := libkb.NewNormalizedUsername(e.username)
-
-	// check config.json looks ok
-	e.verifyRegularFile(m, "config", m.G().Env.GetConfigFilename())
-	cr := m.G().Env.GetConfig()
-	if cr.GetUsername() != normUsername {
-		m.CDebugf("loginProvision(verify): config username %q doesn't match engine username %q", cr.GetUsername(), normUsername)
-	}
-	if cr.GetUID().NotEqual(e.arg.User.GetUID()) {
-		m.CDebugf("loginProvision(verify): config uid %q doesn't match engine uid %q", cr.GetUID(), e.arg.User.GetUID())
-	}
-
-	// check session.json is valid
-	e.verifyRegularFile(m, "session", m.G().Env.GetSessionFilename())
-
-	// check keys in secretkeys.mpack
-	e.verifyRegularFile(m, "secretkeys", m.G().SKBFilenameForUser(normUsername))
-
-	// check secret stored
-	secret, err := m.G().SecretStore().RetrieveSecret(m, normUsername)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): failed to retrieve secret for %s: %s", e.username, err)
-	}
-	if secret.IsNil() || len(secret.Bytes()) == 0 {
-		m.CDebugf("loginProvision(verify): retrieved nil/empty secret for %s", e.username)
-	}
-}
-
-func (e *loginProvision) verifyRegularFile(m libkb.MetaContext, name, filename string) {
-	info, err := os.Stat(filename)
-	if err != nil {
-		m.CDebugf("loginProvision(verify): stat %s file %q error: %s", name, filename, err)
-		return
-	}
-
-	m.CDebugf("loginProvision(verify): %s file %q size: %d", name, filename, info.Size())
-	if !info.Mode().IsRegular() {
-		m.CDebugf("loginProvision(verify): %s file %q not regular: %s", name, filename, info.Mode())
-	}
 }
 
 var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}

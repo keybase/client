@@ -7,7 +7,8 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Constants from '../constants/unlock-folders'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of unlock-folders but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'unlock-folders:'
 export const checkPaperKey = 'unlock-folders:checkPaperKey'
 export const checkPaperKeyDone = 'unlock-folders:checkPaperKeyDone'
 export const closeDone = 'unlock-folders:closeDone'
@@ -16,7 +17,6 @@ export const finish = 'unlock-folders:finish'
 export const newRekeyPopup = 'unlock-folders:newRekeyPopup'
 export const onBackFromPaperKey = 'unlock-folders:onBackFromPaperKey'
 export const openPopup = 'unlock-folders:openPopup'
-export const registerRekeyListener = 'unlock-folders:registerRekeyListener'
 export const toPaperKeyInput = 'unlock-folders:toPaperKeyInput'
 export const waiting = 'unlock-folders:waiting'
 
@@ -34,7 +34,6 @@ type _NewRekeyPopupPayload = $ReadOnly<{|
 |}>
 type _OnBackFromPaperKeyPayload = void
 type _OpenPopupPayload = void
-type _RegisterRekeyListenerPayload = void
 type _ToPaperKeyInputPayload = void
 type _WaitingPayload = $ReadOnly<{|waiting: boolean|}>
 
@@ -48,7 +47,6 @@ export const createFinish = (payload: _FinishPayload) => ({error: false, payload
 export const createNewRekeyPopup = (payload: _NewRekeyPopupPayload) => ({error: false, payload, type: newRekeyPopup})
 export const createOnBackFromPaperKey = (payload: _OnBackFromPaperKeyPayload) => ({error: false, payload, type: onBackFromPaperKey})
 export const createOpenPopup = (payload: _OpenPopupPayload) => ({error: false, payload, type: openPopup})
-export const createRegisterRekeyListener = (payload: _RegisterRekeyListenerPayload) => ({error: false, payload, type: registerRekeyListener})
 export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload) => ({error: false, payload, type: toPaperKeyInput})
 export const createWaiting = (payload: _WaitingPayload) => ({error: false, payload, type: waiting})
 
@@ -62,7 +60,6 @@ export type FinishPayload = $Call<typeof createFinish, _FinishPayload>
 export type NewRekeyPopupPayload = $Call<typeof createNewRekeyPopup, _NewRekeyPopupPayload>
 export type OnBackFromPaperKeyPayload = $Call<typeof createOnBackFromPaperKey, _OnBackFromPaperKeyPayload>
 export type OpenPopupPayload = $Call<typeof createOpenPopup, _OpenPopupPayload>
-export type RegisterRekeyListenerPayload = $Call<typeof createRegisterRekeyListener, _RegisterRekeyListenerPayload>
 export type ToPaperKeyInputPayload = $Call<typeof createToPaperKeyInput, _ToPaperKeyInputPayload>
 export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
 
@@ -78,7 +75,6 @@ export type Actions =
   | NewRekeyPopupPayload
   | OnBackFromPaperKeyPayload
   | OpenPopupPayload
-  | RegisterRekeyListenerPayload
   | ToPaperKeyInputPayload
   | WaitingPayload
   | {type: 'common:resetStore', payload: void}

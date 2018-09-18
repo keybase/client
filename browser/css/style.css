@@ -250,6 +250,9 @@ a.keybase-chat {
   line-height: 28px;
   border-radius: 28px;
 }
+#fbProfileCover a.keybase-chat {
+  vertical-align: bottom;
+}
 a.keybase-chat img {
   vertical-align: unset;
   height: 16px;
@@ -260,7 +263,6 @@ a.keybase-chat img {
 a.keybase-chat:focus img {
   border: 0;
 }
-
 a.keybase-chat:hover {
   text-decoration: none !important;
   background-color: #73A6FF;

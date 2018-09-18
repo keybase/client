@@ -253,6 +253,20 @@ func (b *Bucket) GetReader(ctx context.Context, path string) (rc io.ReadCloser, 
 	return nil, err
 }
 
+// GetReaderWithRange retrieves an object from an S3 bucket using the specified range,
+// returning the body of the HTTP response.
+// It is the caller's responsibility to call Close on rc when
+// finished reading.
+func (b *Bucket) GetReaderWithRange(ctx context.Context, path string, begin, end int64) (rc io.ReadCloser, err error) {
+	header := make(http.Header)
+	header.Add("Range", fmt.Sprintf("bytes=%d-%d", begin, end-1))
+	resp, err := b.GetResponseWithHeaders(ctx, path, header)
+	if resp != nil {
+		return resp.Body, err
+	}
+	return nil, err
+}
+
 // GetResponse retrieves an object from an S3 bucket,
 // returning the HTTP response.
 // It is the caller's responsibility to call Close on rc when

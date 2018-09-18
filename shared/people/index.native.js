@@ -4,18 +4,18 @@ import {
   Avatar,
   NativeSafeAreaView,
   NativeRefreshControl,
-  NativeStyleSheet,
   ScrollView,
+  avatarCastPlatformStyles,
 } from '../common-adapters/mobile.native'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
-import {globalColors, globalStyles} from '../styles'
+import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
 
 const People = (props: Props) => (
   <NativeSafeAreaView>
     <ScrollView
-      style={{...globalStyles.fullHeight}}
+      style={styles.scrollView}
       refreshControl={
         // TODO set refreshing to the actual prop once the bug in RN gets fixed
         // see https://github.com/facebook/react-native/issues/5839
@@ -24,26 +24,41 @@ const People = (props: Props) => (
     >
       <PeoplePageSearchBar
         {...props}
-        styleRowContainer={{left: 0}}
-        styleSearchContainer={searchContainerStyle}
-        styleSearchText={{fontSize: 16}}
+        styleRowContainer={styles.searchRow}
+        styleSearchContainer={styles.searchContainer}
+        styleSearchText={styles.searchText}
       />
       <Avatar
         username={props.myUsername}
         onClick={() => props.onClickUser(props.myUsername)}
         size={32}
-        style={{position: 'absolute', top: 8, right: 16, zIndex: 2}}
+        style={avatarCastPlatformStyles(styles.avatar)}
       />
       <PeoplePageList {...props} />
     </ScrollView>
   </NativeSafeAreaView>
 )
 
-const searchContainerStyle = {
-  borderColor: globalColors.black_05,
-  borderWidth: NativeStyleSheet.hairlineWidth,
-  minHeight: 33,
-  width: 200,
-}
+const styles = styleSheetCreate({
+  avatar: {
+    position: 'absolute',
+    right: 16,
+    top: 8,
+    zIndex: 2,
+  },
+  scrollView: {
+    ...globalStyles.fullHeight,
+  },
+  searchContainer: {
+    minHeight: 32,
+    width: 200,
+  },
+  searchRow: {
+    left: 0,
+  },
+  searchText: {
+    fontSize: 16,
+  },
+})
 
 export default People

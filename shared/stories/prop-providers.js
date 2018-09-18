@@ -1,9 +1,14 @@
 // @flow
-import {action, createPropProvider} from './storybook'
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
+import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
+import * as _CopyText from '../common-adapters/copy-text'
+import type {NameWithIconProps} from '../common-adapters/name-with-icon'
+import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
+import {createPropProvider, action} from './storybook.shared'
+import {isMobile} from '../constants/platform'
 
 /*
  * Some common prop factory creators.
@@ -18,33 +23,42 @@ const defaultYou = 'ayoubd'
 const defaultFollowing = ['max', 'cnojima', 'cdixon']
 const defaultFollowers = ['max', 'akalin']
 
-const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
-  Usernames: (ownProps: _Usernames.ConnectedProps): _Usernames.Props => {
-    const {usernames} = ownProps
+export const Usernames = (following: string[] = defaultFollowing, you: string = defaultYou) => ({
+  Usernames: (ownProps: _UsernamesConnectedProps): _Usernames.Props => {
+    const {usernames, onUsernameClicked, skipSelf, ...props} = ownProps
     const users = (usernames || [])
       .map(username => ({username, following: following.includes(username), you: username === you}))
-      .filter(u => !ownProps.skipSelf || !u.you)
+      .filter(u => !skipSelf || !u.you)
+
+    let mockedOnUsernameClick
+    if (onUsernameClicked === 'tracker') {
+      mockedOnUsernameClick = action('onUsernameClicked (Tracker)')
+    } else if (onUsernameClicked === 'profile') {
+      mockedOnUsernameClick = action('onUsernameClicked (Profile)')
+    } else if (onUsernameClicked) {
+      mockedOnUsernameClick = onUsernameClicked
+    }
 
     return {
-      ...ownProps,
+      ...props,
+      onUsernameClicked: mockedOnUsernameClick,
       users,
-      onUsernameClicked: action('onUsernameClicked'),
     }
   },
 })
 
-const WaitingButton = () => ({
+export const WaitingButton = () => ({
   WaitingButton: (ownProps: _WaitingButton.OwnProps): _WaitingButton.Props => ({
     ...ownProps,
     storeWaiting: false,
   }),
 })
 
-const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
+export const Avatar = (following: string[] = defaultFollowing, followers: string[] = defaultFollowers) => ({
   Avatar: (ownProps: _Avatar.Props) => _Avatar.mockOwnToViewProps(ownProps, following, followers, action),
 })
 
-const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
+export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
   TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
     _loadOperations: action('_loadOperations'),
     attachTo: ownProps.attachTo,
@@ -65,16 +79,41 @@ const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: strin
   }),
 })
 
-const Common = () => ({
+const CopyText = () => ({
+  CopyText: (p: _CopyText.Props) => ({...p, copyToClipboard: action('copyToClipboard')}),
+})
+
+export const NameWithIcon = () => ({
+  NameWithIcon: (ownProps: ConnectedNameWithIconProps): NameWithIconProps => {
+    const {onClick, ...props} = ownProps
+
+    let functionOnClick
+    let clickType
+    if (!isMobile && onClick === 'tracker') {
+      functionOnClick = action('onNameWithIconClicked (tracker)')
+      clickType = 'tracker'
+    } else if (onClick === 'profile' || (isMobile && onClick === 'tracker')) {
+      if (ownProps.username) {
+        functionOnClick = action('onNameWithIconClicked (user profile)')
+      } else if (ownProps.teamname) {
+        functionOnClick = action('onNameWithIconClicked (team profile)')
+      }
+      clickType = 'profile'
+    }
+    return {...props, clickType, onClick: functionOnClick}
+  },
+})
+
+export const Common = () => ({
   ...Usernames(),
   ...Avatar(),
   ...WaitingButton(),
+  ...CopyText(),
+  ...NameWithIcon(),
 })
 
-const createPropProviderWithCommon = (custom: ?Object) =>
+export const createPropProviderWithCommon = (custom: ?Object) =>
   createPropProvider({
     ...Common(),
     ...(custom || {}),
   })
-
-export {Avatar, Common, createPropProviderWithCommon, TeamDropdownMenu, Usernames}

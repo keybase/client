@@ -158,7 +158,7 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 	if err != nil {
 		return err
 	}
-	secretboxes, err := m.SharedSecretBoxes(ctx, deviceEncryptionKey, secretboxRecipients)
+	secretboxes, err := m.SharedSecretBoxes(libkb.NewMetaContext(ctx, g), deviceEncryptionKey, secretboxRecipients)
 	if err != nil {
 		return err
 	}
@@ -339,7 +339,7 @@ func CreateSubteam(ctx context.Context, g *libkb.GlobalContext, subteamBasename 
 		return nil, err
 	}
 
-	admin, err := parentTeam.getAdminPermission(ctx, true)
+	admin, err := parentTeam.getAdminPermission(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -508,7 +508,7 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return nil, nil, err
 	}
-	boxes, err = m.SharedSecretBoxes(ctx, deviceEncryptionKey, memSet.recipients)
+	boxes, err = m.SharedSecretBoxes(libkb.NewMetaContext(ctx, g), deviceEncryptionKey, memSet.recipients)
 	if err != nil {
 		return nil, nil, err
 	}

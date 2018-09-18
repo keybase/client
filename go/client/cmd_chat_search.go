@@ -5,10 +5,12 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -58,7 +60,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
-				Usage: "Specify the maximum number of search hits to get.",
+				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", chat.MaxAllowedSearchHits),
 			},
 			cli.StringFlag{
 				Name:  "sent-by",
@@ -68,7 +70,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: "Specify the maximum number of messages to search.",
+				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", chat.MaxAllowedSearchMessages),
 			},
 			cli.IntFlag{
 				Name:  "B, before-context",
@@ -169,7 +171,13 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 	c.query = ctx.Args().Get(1)
 	c.sentBy = ctx.String("sent-by")
 	c.maxHits = ctx.Int("max-hits")
+	if c.maxHits > chat.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
+	}
 	c.maxMessages = ctx.Int("max-messages")
+	if c.maxMessages > chat.MaxAllowedSearchMessages {
+		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
+	}
 
 	c.afterContext = ctx.Int("after-context")
 	c.beforeContext = ctx.Int("before-context")

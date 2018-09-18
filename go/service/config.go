@@ -117,6 +117,38 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	return libkb.GetExtendedStatus(libkb.NewMetaContext(ctx, h.G()))
 }
 
+func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
+	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
+	if err != nil {
+		return res, err
+	}
+
+	// If the default is missing, fill it in from the first provisioned.
+	if defaultUsername.IsNil() && len(all) > 0 {
+		defaultUsername = all[0]
+	}
+	hasProvisionedUser := !defaultUsername.IsNil()
+
+	// Callers expect ProvisionedUsernames to contain the DefaultUsername, so
+	// we ensure it is here as a final sanity check before returning.
+	hasDefaultUsername := false
+	provisionedUsernames := []string{}
+	for _, username := range all {
+		provisionedUsernames = append(provisionedUsernames, username.String())
+		hasDefaultUsername = hasDefaultUsername || username.Eq(defaultUsername)
+	}
+
+	if !hasDefaultUsername && hasProvisionedUser {
+		provisionedUsernames = append(provisionedUsernames, defaultUsername.String())
+	}
+
+	return keybase1.AllProvisionedUsernames{
+		DefaultUsername:      defaultUsername.String(),
+		ProvisionedUsernames: provisionedUsernames,
+		HasProvisionedUser:   hasProvisionedUser,
+	}, nil
+}
+
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
 	var c keybase1.Config
 

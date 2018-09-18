@@ -36,6 +36,13 @@
     "loadedSettings": {
       "emailState": "Types.EmailState"
     },
+    "loadLockdownMode": {},
+    "loadedLockdownMode": {
+      "status": "?boolean"
+    },
+    "onChangeLockdownMode": {
+      "enabled": "boolean"
+    },
     "notificationsRefresh": {},
     "notificationsRefreshed": {
       "notifications": "Types.NotificationsState"

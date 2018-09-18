@@ -2,6 +2,7 @@ package attachments
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -32,6 +33,46 @@ type uploaderStatus struct {
 	Result types.AttachmentUploadResult
 }
 
+type uploaderResult struct {
+	sync.Mutex
+	subs []chan types.AttachmentUploadResult
+	res  *types.AttachmentUploadResult
+}
+
+var _ types.AttachmentUploaderResultCb = (*uploaderResult)(nil)
+
+func newUploaderResult() *uploaderResult {
+	return &uploaderResult{}
+}
+
+func (r *uploaderResult) Wait() (ch chan types.AttachmentUploadResult) {
+	r.Lock()
+	defer r.Unlock()
+	ch = make(chan types.AttachmentUploadResult, 1)
+	if r.res != nil {
+		// If we already have received a result and something waits, just return it right away
+		ch <- *r.res
+		return ch
+	}
+	r.subs = append(r.subs, ch)
+	return ch
+}
+
+func (r *uploaderResult) trigger(res types.AttachmentUploadResult) {
+	r.Lock()
+	defer r.Unlock()
+	r.res = &res
+	for _, sub := range r.subs {
+		sub <- res
+	}
+}
+
+type activeUpload struct {
+	uploadCtx      context.Context
+	uploadCancelFn context.CancelFunc
+	uploadResult   *uploaderResult
+}
+
 type Uploader struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -40,7 +81,7 @@ type Uploader struct {
 	store    Store
 	ri       func() chat1.RemoteInterface
 	s3signer s3.Signer
-	uploads  map[string]chan types.AttachmentUploadResult
+	uploads  map[string]*activeUpload
 
 	// testing
 	tempDir string
@@ -55,7 +96,7 @@ func NewUploader(g *globals.Context, store Store, s3signer s3.Signer, ri func() 
 		store:        store,
 		ri:           ri,
 		s3signer:     s3signer,
-		uploads:      make(map[string]chan types.AttachmentUploadResult),
+		uploads:      make(map[string]*activeUpload),
 	}
 }
 
@@ -97,7 +138,7 @@ func (u *Uploader) Complete(ctx context.Context, outboxID chat1.OutboxID) {
 	NewPendingPreviews(u.G()).Remove(ctx, outboxID)
 }
 
-func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res chan types.AttachmentUploadResult, err error) {
+func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res types.AttachmentUploaderResultCb, err error) {
 	defer u.Trace(ctx, func() error { return err }, "Retry(%s)", outboxID)()
 	ustatus, err := u.getStatus(ctx, outboxID)
 	if err != nil {
@@ -112,11 +153,33 @@ func (u *Uploader) Retry(ctx context.Context, outboxID chat1.OutboxID) (res chan
 		return u.upload(ctx, task.UID, task.ConvID, task.OutboxID, task.Title, task.Filename, task.Metadata,
 			task.CallerPreview)
 	case types.AttachmentUploaderTaskStatusSuccess:
-		ch := make(chan types.AttachmentUploadResult, 1)
-		ch <- ustatus.Result
-		return ch, nil
+		ur := newUploaderResult()
+		ur.trigger(ustatus.Result)
+		return ur, nil
 	}
 	return nil, fmt.Errorf("unknown retry status: %v", ustatus.Status)
+}
+
+func (u *Uploader) Cancel(ctx context.Context, outboxID chat1.OutboxID) (err error) {
+	defer u.Trace(ctx, func() error { return err }, "Cancel(%s)", outboxID)()
+	// check if we are actively uploading the outbox ID and cancel it
+	u.Lock()
+	var ch chan types.AttachmentUploadResult
+	existing := u.uploads[outboxID.String()]
+	if existing != nil {
+		existing.uploadCancelFn()
+		ch = existing.uploadResult.Wait()
+	}
+	u.Unlock()
+
+	// Wait for the uploader to cancel
+	if ch != nil {
+		<-ch
+	}
+
+	// Take the whole record out of commission
+	u.Complete(ctx, outboxID)
+	return nil
 }
 
 func (u *Uploader) Status(ctx context.Context, outboxID chat1.OutboxID) (status types.AttachmentUploaderTaskStatus, res types.AttachmentUploadResult, err error) {
@@ -176,7 +239,7 @@ func (u *Uploader) saveTask(ctx context.Context, uid gregor1.UID, convID chat1.C
 }
 
 func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res types.AttachmentUploaderResultCb, err error) {
 	defer u.Trace(ctx, func() error { return err }, "Register(%s)", outboxID)()
 	// Write down the task information
 	if err := u.saveTask(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview); err != nil {
@@ -191,41 +254,80 @@ func (u *Uploader) Register(ctx context.Context, uid gregor1.UID, convID chat1.C
 	return u.upload(ctx, uid, convID, outboxID, title, filename, metadata, callerPreview)
 }
 
-func (u *Uploader) checkAndSetUploading(outboxID chat1.OutboxID, res chan types.AttachmentUploadResult) (existing chan types.AttachmentUploadResult) {
+func (u *Uploader) checkAndSetUploading(uploadCtx context.Context, outboxID chat1.OutboxID,
+	uploadCancelFn context.CancelFunc) (upload *activeUpload, inprogress bool) {
 	u.Lock()
 	defer u.Unlock()
-	if existing = u.uploads[outboxID.String()]; existing != nil {
-		return existing
+	if upload = u.uploads[outboxID.String()]; upload != nil {
+		return upload, true
 	}
-	u.uploads[outboxID.String()] = res
-	return nil
+	upload = &activeUpload{
+		uploadCtx:      uploadCtx,
+		uploadCancelFn: uploadCancelFn,
+		uploadResult:   newUploaderResult(),
+	}
+	u.uploads[outboxID.String()] = upload
+	return upload, false
 }
 
 func (u *Uploader) doneUploading(outboxID chat1.OutboxID) {
 	u.Lock()
 	defer u.Unlock()
+	if existing := u.uploads[outboxID.String()]; existing != nil {
+		existing.uploadCancelFn()
+	}
 	delete(u.uploads, outboxID.String())
 }
 
-func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
+func (u *Uploader) uploadFile(ctx context.Context, dirname, prefix string) (f *os.File, err error) {
 	baseDir := u.G().GetCacheDir()
 	if u.tempDir != "" {
 		baseDir = u.tempDir
 	}
-	dir := filepath.Join(baseDir, "uploadedpreviews")
+	dir := filepath.Join(baseDir, dirname)
 	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 		return nil, err
 	}
-	return ioutil.TempFile(dir, "up")
+	return ioutil.TempFile(dir, prefix)
+}
+
+func (u *Uploader) uploadPreviewFile(ctx context.Context) (f *os.File, err error) {
+	return u.uploadFile(ctx, "uploadedpreviews", "up")
+}
+
+func (u *Uploader) uploadFullFile(ctx context.Context, md chat1.AssetMetadata) (f *os.File, err error) {
+	// make sure we want to stash this full asset in our local cache
+	typ, err := md.AssetType()
+	if err != nil {
+		return nil, err
+	}
+	switch typ {
+	case chat1.AssetMetadataType_IMAGE:
+		// we will stash these guys
+	default:
+		return nil, fmt.Errorf("not storing full of type: %v", typ)
+	}
+	return u.uploadFile(ctx, "uploadedfulls", "fl")
 }
 
 func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res chan types.AttachmentUploadResult, err error) {
+	outboxID chat1.OutboxID, title, filename string, metadata []byte, callerPreview *chat1.MakePreviewRes) (res types.AttachmentUploaderResultCb, err error) {
+
+	// Create the errgroup first so we can register the context in the upload map
+	var g *errgroup.Group
+	var cancelFn context.CancelFunc
+	bgctx := libkb.CopyTagsToBackground(ctx)
+	g, bgctx = errgroup.WithContext(bgctx)
+	if os.Getenv("CHAT_S3_FAKE") == "1" {
+		bgctx = s3.NewFakeS3Context(bgctx)
+	}
+	bgctx, cancelFn = context.WithCancel(bgctx)
+
 	// Check to see if we are already uploading this message and set upload status if not
-	res = make(chan types.AttachmentUploadResult, 1)
-	if existing := u.checkAndSetUploading(outboxID, res); existing != nil {
+	upload, inprogress := u.checkAndSetUploading(bgctx, outboxID, cancelFn)
+	if inprogress {
 		u.Debug(ctx, "upload: already uploading: %s, returning early", outboxID)
-		return existing, nil
+		return upload.uploadResult, nil
 	}
 	defer func() {
 		if err != nil {
@@ -251,7 +353,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	// preprocess asset (get content type, create preview if possible)
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.DebugLabeler, filename, callerPreview)
+	pre, err := PreprocessAsset(ctx, u.G(), u.DebugLabeler, filename, callerPreview)
 	if err != nil {
 		return res, err
 	}
@@ -263,14 +365,8 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		}
 	}
 
-	var g *errgroup.Group
 	var s3params chat1.S3Params
 	paramsCh := make(chan struct{})
-	bgctx := libkb.CopyTagsToBackground(ctx)
-	g, bgctx = errgroup.WithContext(bgctx)
-	if os.Getenv("CHAT_S3_FAKE") == "1" {
-		bgctx = s3.NewFakeS3Context(bgctx)
-	}
 	g.Go(func() (err error) {
 		u.Debug(bgctx, "upload: fetching s3 params")
 		u.G().ActivityNotifier.AttachmentUploadStart(bgctx, uid, convID, outboxID)
@@ -280,7 +376,6 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		close(paramsCh)
 		return nil
 	})
-
 	// upload attachment and (optional) preview concurrently
 	g.Go(func() (err error) {
 		select {
@@ -288,29 +383,49 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		case <-bgctx.Done():
 			return bgctx.Err()
 		}
+
+		// set up file to write out encrypted preview to
+		var encryptedOut io.Writer
+		uf, err := u.uploadFullFile(ctx, pre.BaseMetadata())
+		if err != nil {
+			u.Debug(bgctx, "upload: failed to create uploaded full file: %s", err)
+			encryptedOut = ioutil.Discard
+			uf = nil
+		} else {
+			defer uf.Close()
+			encryptedOut = uf
+		}
+
 		u.Debug(bgctx, "upload: uploading assets")
 		task := UploadTask{
 			S3Params:       s3params,
 			Filename:       filename,
-			FileSize:       int(finfo.Size()),
+			FileSize:       finfo.Size(),
 			Plaintext:      src,
 			S3Signer:       u.s3signer,
 			ConversationID: convID,
 			UserID:         uid,
+			OutboxID:       outboxID,
+			Preview:        false,
 			Progress:       progress,
 		}
-		ures.Object, err = u.store.UploadAsset(bgctx, &task, nil)
+		ures.Object, err = u.store.UploadAsset(bgctx, &task, encryptedOut)
 		if err != nil {
 			u.Debug(bgctx, "upload: error uploading primary asset to s3: %s", err)
 		} else {
 			ures.Object.Title = title
 			ures.Object.MimeType = pre.ContentType
 			ures.Object.Metadata = pre.BaseMetadata()
+			if uf != nil {
+				if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
+					uf.Name(), ures.Object); err != nil {
+					u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
+				}
+			}
 		}
 		u.Debug(bgctx, "upload: asset upload complete")
 		return err
 	})
-
 	if pre.Preview != nil {
 		g.Go(func() error {
 			select {
@@ -322,12 +437,15 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			previewParams := s3params
 
 			// set up file to write out encrypted preview to
-			encryptedOut, err := u.uploadPreviewFile(ctx)
+			var encryptedOut io.Writer
+			up, err := u.uploadPreviewFile(ctx)
 			if err != nil {
 				u.Debug(bgctx, "upload: failed to create uploaded preview file: %s", err)
-				encryptedOut = nil
+				encryptedOut = ioutil.Discard
+				up = nil
 			} else {
-				defer encryptedOut.Close()
+				defer up.Close()
+				encryptedOut = up
 			}
 
 			// add preview suffix to object key (P in hex)
@@ -336,22 +454,24 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			task := UploadTask{
 				S3Params:       previewParams,
 				Filename:       filename,
-				FileSize:       len(pre.Preview),
+				FileSize:       int64(len(pre.Preview)),
 				Plaintext:      newBufReadResetter(pre.Preview),
 				S3Signer:       u.s3signer,
 				ConversationID: convID,
 				UserID:         uid,
+				OutboxID:       outboxID,
+				Preview:        true,
 			}
 			preview, err := u.store.UploadAsset(bgctx, &task, encryptedOut)
 			if err == nil {
 				ures.Preview = &preview
-				ures.Preview.MimeType = pre.ContentType
+				ures.Preview.MimeType = pre.PreviewContentType
 				ures.Preview.Metadata = pre.PreviewMetadata()
 				ures.Preview.Tag = chat1.AssetTag_PRIMARY
-				if encryptedOut != nil {
+				if up != nil {
 					if err := u.G().AttachmentURLSrv.GetAttachmentFetcher().PutUploadedAsset(ctx,
-						encryptedOut.Name(), preview); err != nil {
-						u.Debug(bgctx, "upload: failed to put uploaded asset into fetcher: %s", err)
+						up.Name(), preview); err != nil {
+						u.Debug(bgctx, "upload: failed to put uploaded preview asset into fetcher: %s", err)
 					}
 				}
 			} else {
@@ -379,8 +499,8 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 		u.Debug(bgctx, "upload: upload complete: status: %v err: %s", status, errStr)
 		// Ping Deliverer to notify that some of the message in the outbox might be read to send
 		u.G().MessageDeliverer.ForceDeliverLoop(bgctx)
-		res <- ures
+		upload.uploadResult.trigger(ures)
 		u.doneUploading(outboxID)
 	}()
-	return res, nil
+	return upload.uploadResult, nil
 }

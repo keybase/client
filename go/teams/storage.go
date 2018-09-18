@@ -60,7 +60,7 @@ func (s *Storage) Get(ctx context.Context, teamID keybase1.TeamID, public bool) 
 		return res
 	}
 	if err != nil {
-		s.G().Log.Debug("teams.Storage#Get disk err: %v", err)
+		s.G().Log.CDebugf(ctx, "teams.Storage#Get disk err: %v", err)
 	}
 
 	return nil

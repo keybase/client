@@ -3,10 +3,9 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/types/chat2'
-import * as PropProviders from '../../stories/prop-providers'
+import * as Sb from '../../stories/storybook'
 
 import {isDarwin} from '../../constants/platform'
-import {storiesOf, action, createPropProvider} from '../../stories/storybook'
 import {isMobile, globalColors, globalMargins} from '../../styles'
 
 import Inbox from '.'
@@ -43,7 +42,7 @@ const commonSmallTeam = {
   isMuted: false,
   isSelected: false,
   isFinalized: false,
-  onSelectConversation: action('onSelectConversation'),
+  onSelectConversation: Sb.action('onSelectConversation'),
   participants: ['chris'],
   participantNeedToRekey: false,
   rekeyInfo: null,
@@ -54,7 +53,7 @@ const commonSmallTeam = {
   teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
-  usernameColor: globalColors.darkBlue,
+  usernameColor: globalColors.black_75,
   youAreReset: false,
   youNeedToRekey: false,
 }
@@ -64,11 +63,11 @@ const commonSmallFilter = {
   isLocked: false,
   isMuted: false,
   isSelected: false,
-  onSelectConversation: action('onSelectConversation'),
+  onSelectConversation: Sb.action('onSelectConversation'),
   participants: ['chris', 'mikem'],
   showBold: false,
   teamname: '',
-  usernameColor: globalColors.darkBlue,
+  usernameColor: globalColors.black_75,
 }
 
 const commonBigChannel = {
@@ -77,13 +76,13 @@ const commonBigChannel = {
   isError: false,
   isMuted: false,
   isSelected: false,
-  onSelectConversation: action('onSelectConversation'),
+  onSelectConversation: Sb.action('onSelectConversation'),
   showBold: false,
 }
 
 const commonBigFilter = {
   isSelected: false,
-  onSelectConversation: action('onSelectConversation'),
+  onSelectConversation: Sb.action('onSelectConversation'),
   teamname: 'stripe',
   isTeam: true,
 }
@@ -344,10 +343,10 @@ const propsInboxCommon = {
   filterFocusCount: 0,
   isLoading: false,
   nowOverride: 0, // just for dumb rendering
-  onBuildTeam: action('onBuildTeam'),
-  onHotkey: action('onHotkey'),
-  onNewChat: action('onNewChat'),
-  onUntrustedInboxVisible: action('onUntrustedInboxVisible'),
+  onBuildTeam: Sb.action('onBuildTeam'),
+  onHotkey: Sb.action('onHotkey'),
+  onNewChat: Sb.action('onNewChat'),
+  onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   rows: [],
   showBuildATeam: false,
   showNewChat: false,
@@ -355,7 +354,7 @@ const propsInboxCommon = {
   showSmallTeamsExpandDivider: false,
   smallIDsHidden: [],
   smallTeamsExpanded: false,
-  toggleSmallTeamsExpanded: action('toggleSmallTeamsExpanded'),
+  toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
 
 const propsInboxEmpty = {
@@ -489,62 +488,59 @@ const teamMemberCounts = {
  */
 let teamsEmpty = false
 
-const provider = createPropProvider(
-  PropProviders.Common(),
-  PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
-  {
-    ChatInboxHeaderContainer: p => {
-      const showNewChat = !(p.rows.length || p.filter)
-      return {
-        focusFilter: () => {},
-        filterFocusCount: p.filterFocusCount,
-        onNewChat: action('onNewChat'),
-        rows: p.rows,
-        showNewChat,
-      }
-    },
-    ChatFilterRow: p => ({
+const provider = Sb.createPropProviderWithCommon({
+  ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
+  ChatInboxHeaderContainer: p => {
+    const showNewChat = !(p.rows.length || p.filter)
+    return {
       focusFilter: () => {},
-      fitler: p.filter,
       filterFocusCount: p.filterFocusCount,
-      isLoading: false,
-      hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
-      onHotkey: action('onHotkey'),
-      onNewChat: action('onNewChat'),
-      onSelectDown: action('onSelectDown'),
-      onSelectUp: action('onSelectUp'),
-      onSetFilter: action('onSetFilter'),
+      onNewChat: Sb.action('onNewChat'),
       rows: p.rows,
-    }),
-    BuildTeam: p => ({
-      onBuildTeam: action('onBuildTeam'),
-      showBuildATeam: teamsEmpty,
-      loaded: true,
-    }),
-    NewChooser: p => ({
-      isSelected: false,
-      onCancel: action('onCancel'),
-      onClick: action('onClick'),
-      shouldShow: false,
-      users: I.OrderedSet(['']),
-    }),
-    Divider: p => ({
-      badgeCount: 2,
-      showButton: p.showButton,
-      hiddenCount: p.smallIDsHidden.length,
-      style: {marginBottom: globalMargins.tiny},
-      toggle: action('onToggle'),
-    }),
-    // BigTeamHeader is wrapped by FloatingMenuParent
-    FloatingMenuParent: getPropProviderProps,
-    SmallTeam: getPropProviderProps,
-    BigTeamHeader: getPropProviderProps,
-    BigTeamsDivider: ownProps => ({badgeCount: 5}),
-    BigTeamChannel: getPropProviderProps,
-    FilterSmallTeam: getPropProviderProps,
-    FilterBigTeamChannel: getPropProviderProps,
-  }
-)
+      showNewChat,
+    }
+  },
+  ChatFilterRow: p => ({
+    focusFilter: () => {},
+    fitler: p.filter,
+    filterFocusCount: p.filterFocusCount,
+    isLoading: false,
+    hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+    onHotkey: Sb.action('onHotkey'),
+    onNewChat: Sb.action('onNewChat'),
+    onSelectDown: Sb.action('onSelectDown'),
+    onSelectUp: Sb.action('onSelectUp'),
+    onSetFilter: Sb.action('onSetFilter'),
+    rows: p.rows,
+  }),
+  BuildTeam: p => ({
+    onBuildTeam: Sb.action('onBuildTeam'),
+    showBuildATeam: teamsEmpty,
+    loaded: true,
+  }),
+  NewChooser: p => ({
+    isSelected: false,
+    onCancel: Sb.action('onCancel'),
+    onClick: Sb.action('onClick'),
+    shouldShow: false,
+    users: I.OrderedSet(['']),
+  }),
+  TeamsDivider: p => ({
+    badgeCount: 2,
+    showButton: p.showButton,
+    hiddenCount: p.smallIDsHidden.length,
+    style: {marginBottom: globalMargins.tiny},
+    toggle: Sb.action('onToggle'),
+  }),
+  // BigTeamHeader is wrapped by OverlayParent
+  OverlayParent: getPropProviderProps,
+  SmallTeam: getPropProviderProps,
+  BigTeamHeader: getPropProviderProps,
+  BigTeamsDivider: ownProps => ({badgeCount: 5}),
+  BigTeamChannel: getPropProviderProps,
+  FilterSmallTeam: getPropProviderProps,
+  FilterBigTeamChannel: getPropProviderProps,
+})
 
 class Wrapper extends React.Component<any, any> {
   state = {
@@ -565,7 +561,7 @@ class Wrapper extends React.Component<any, any> {
 }
 
 const load = () => {
-  storiesOf('Chat/Inbox', module)
+  Sb.storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
     .add('Empty', () => {
       teamsEmpty = true

@@ -1,7 +1,7 @@
-// @flow
+// @flow strict
 import * as RPCTypes from './rpc-gen'
 import type {Folder} from './folders'
-import type {FriendshipUserInfo} from '../../constants/types/profile'
+import type {FriendshipUserInfo} from './profile'
 import type {PlatformsExpandedType} from './more'
 
 // Simple state of the overall proof result

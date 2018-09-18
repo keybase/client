@@ -70,7 +70,7 @@ function* _generatePgpSaga(): Saga.SagaGenerator<any, any> {
     username: pgpInfo.fullName || '',
   }))
 
-  const generatePgpKeyChanMap = RPCTypes.pgpPgpKeyGenDefaultRpcChannelMap(
+  const generatePgpKeyChanMap: any = RPCTypes.pgpPgpKeyGenDefaultRpcChannelMap(
     [
       'keybase.1.pgpUi.keyGenerated',
       'keybase.1.pgpUi.shouldPushPrivate',

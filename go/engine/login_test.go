@@ -85,18 +85,12 @@ func TestLoginActiveDevice(t *testing.T) {
 	u1.LoginOrBust(tc)
 
 	assertDeviceKeysCached(tc)
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
-	}
+	require.Equal(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
 
 	simulateServiceRestart(t, tc, u1)
 
 	assertDeviceKeysCached(tc)
-
-	if tc.G.ActiveDevice.Name() != defaultDeviceName {
-		t.Errorf("after restart, active device name: %q, expected %q", tc.G.ActiveDevice.Name(), defaultDeviceName)
-	}
+	require.Equal(t, tc.G.ActiveDevice.Name(), defaultDeviceName)
 }
 
 func TestCreateFakeUserNoKeys(t *testing.T) {
@@ -126,35 +120,21 @@ func TestCreateFakeUserNoKeys(t *testing.T) {
 
 func testUserHasDeviceKey(tc libkb.TestContext) {
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(tc.G))
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(tc.T, err)
 
 	kf := me.GetKeyFamily()
-	if kf == nil {
-		tc.T.Fatal("user has a nil key family")
-	}
-	if me.GetEldestKID().IsNil() {
-		tc.T.Fatal("user has no eldest key")
-	}
+	require.NotNil(tc.T, kf)
+	require.False(tc.T, me.GetEldestKID().IsNil())
 
 	ckf := me.GetComputedKeyFamily()
-	if ckf == nil {
-		tc.T.Fatalf("user has no computed key family")
-	}
+	require.NotNil(tc.T, ckf)
 
 	active := ckf.HasActiveKey()
-	if !active {
-		tc.T.Errorf("user has no active key")
-	}
+	require.True(tc.T, active)
 
 	subkey, err := me.GetDeviceSubkey()
-	if err != nil {
-		tc.T.Fatal(err)
-	}
-	if subkey == nil {
-		tc.T.Fatal("nil subkey")
-	}
+	require.NoError(tc.T, err)
+	require.NotNil(tc.T, subkey)
 }
 
 func TestUserEmails(t *testing.T) {
@@ -189,9 +169,6 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	t.Logf("setup X")
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	if sigVersion == libkb.KeybaseNullSigVersion {
-		sigVersion = libkb.GetDefaultSigVersion(tcX.G)
-	}
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
@@ -282,36 +259,14 @@ func testProvisionDesktop(t *testing.T, upgradePerUserKey bool, sigVersion libkb
 	// after provisioning, the secret should be stored
 	assertSecretStored(tcY, userX.Username)
 
-	testTrack := func(whom string) {
-
-		// make sure that the provisioned device can use
-		// the passphrase stream cache (use an empty secret ui)
-		arg := &TrackEngineArg{
-			UserAssertion: whom,
-			Options:       keybase1.TrackOptions{BypassConfirm: true},
-			SigVersion:    sigVersion,
-		}
-		uis := libkb.UIs{
-			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
-			SecretUI:   &libkb.TestSecretUI{},
-		}
-
-		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		teng := NewTrackEngine(tcY.G, arg)
-		if err := RunEngine2(m, teng); err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	t.Logf("test tracks")
-	testTrack("t_alice")
+	testTrack(t, tcY, sigVersion, "t_alice")
 
 	// Make sure that we can still track without a passphrase
 	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
-	testTrack("t_bob")
+	testTrack(t, tcY, sigVersion, "t_bob")
 }
 
 func TestProvisionMobile(t *testing.T) {
@@ -872,6 +827,79 @@ func TestProvisionGPGWithPUK(t *testing.T) {
 	}
 }
 
+// Test provisioning where we use one username, but suddenly we are
+// key-exchanging with someone else.
+func TestProvisionWithUnexpectedX(t *testing.T) {
+	t.Logf("Setting contexts and users")
+
+	// We want to provision as this user:
+	tcV := SetupEngineTest(t, "kex2provision")
+	defer tcV.Cleanup()
+	wantedUser := CreateAndSignupFakeUserPaper(tcV, "usr1")
+
+	// But actually this one will respond:
+	tcF := SetupEngineTest(t, "unexpected")
+	defer tcF.Cleanup()
+	actualUser := CreateAndSignupFakeUserPaper(tcF, "usr2")
+	var secretX kex2.Secret
+	_, err := rand.Read(secretX[:])
+	require.NoError(t, err)
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	t.Logf("provisionee login")
+	uis := libkb.UIs{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: wantedUser.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	t.Logf("start provisionee")
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		m := NewMetaContextForTest(tcY).WithUIs(uis)
+		err := RunEngine2(m, eng)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "different user")
+	}()
+
+	// start provisioner
+	t.Logf("start provisioner")
+	provisioner := NewKex2Provisioner(tcF.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		uis := libkb.UIs{
+			SecretUI:    actualUser.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		m := NewMetaContextForTest(tcF).WithUIs(uis)
+		err := RunEngine2(m, provisioner)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "different user")
+	}()
+
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	t.Logf("wait")
+	wg.Wait()
+}
+
 func testSign(t *testing.T, tc libkb.TestContext) {
 	// should be able to sign something with new device keys without
 	// entering a passphrase
@@ -894,10 +922,33 @@ func testSign(t *testing.T, tc libkb.TestContext) {
 	}
 }
 
+func testTrack(t *testing.T, tc libkb.TestContext, sigVersion libkb.SigVersion, whom string) {
+
+	if sigVersion == libkb.KeybaseNullSigVersion {
+		sigVersion = libkb.GetDefaultSigVersion(tc.G)
+	}
+	// should be able to track someone (no passphrase prompt)
+	targ := &TrackEngineArg{
+		UserAssertion: whom,
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+		SigVersion:    sigVersion,
+	}
+	uis := libkb.UIs{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(tc.G, targ)
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	err := RunEngine2(m, teng)
+	require.NoError(t, err)
+}
+
 func TestProvisionPaperOnly(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tc.G)
+
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
 	arg.SkipPaper = false
@@ -967,7 +1018,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 		ch <- struct{}{}
 	}
 
-	wrapper := m2.ActiveDevice().PaperKeyWrapper(m2)
+	wrapper := m2.ActiveDevice().ProvisioningKeyWrapper(m2)
 	if wrapper != nil {
 		device = wrapper.DeviceWithKeys()
 		wrapper.SetTestPostCleanHook(pch)
@@ -977,44 +1028,23 @@ func TestProvisionPaperOnly(t *testing.T) {
 		t.Errorf("Got a null paper encryption key")
 	}
 
-	fakeClock.Advance(libkb.PaperKeyMemoryTimeout + 1*time.Minute)
+	fakeClock.Advance(libkb.ProvisioningKeyMemoryTimeout + 1*time.Minute)
 	<-ch
 
-	device = m2.ActiveDevice().PaperKey(m2)
+	device = m2.ActiveDevice().ProvisioningKey(m2)
 	if device != nil {
 		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
 
 	testSign(t, tc2)
 
-	testTrack := func(whom string) {
-
-		// should be able to track someone (no passphrase prompt)
-		targ := &TrackEngineArg{
-			UserAssertion: whom,
-			Options:       keybase1.TrackOptions{BypassConfirm: true},
-			SigVersion:    sigVersion,
-		}
-		uis := libkb.UIs{
-			LogUI:      tc2.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
-			SecretUI:   &libkb.TestSecretUI{},
-		}
-
-		teng := NewTrackEngine(tc2.G, targ)
-		m := NewMetaContextForTest(tc2).WithUIs(uis)
-		if err := RunEngine2(m, teng); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	testTrack("t_alice")
+	testTrack(t, tc2, libkb.KeybaseNullSigVersion, "t_alice")
 
 	simulateServiceRestart(t, tc2, fu)
 
 	// should be able to sign and to track someone (no passphrase prompt)
 	testSign(t, tc2)
-	testTrack("t_bob")
+	testTrack(t, tc2, libkb.KeybaseNullSigVersion, "t_bob")
 }
 
 func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
@@ -1034,9 +1064,7 @@ func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {
 	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	m := NewMetaContextForTest(tc).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 }
 
 func TestProvisionPaperCommandLine(t *testing.T) {
@@ -1054,19 +1082,16 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	}
 	s := NewSignupEngine(tc.G, &arg)
 	err := RunEngine2(NewMetaContextForTest(tc).WithUIs(uis), s)
-	if err != nil {
-		tc.T.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	assertNumDevicesAndKeys(tc, fu, 2, 4)
 
 	Logout(tc)
 
-	if len(loginUI.PaperPhrase) == 0 {
-		t.Fatal("login ui has no paper key phrase")
-	}
+	require.True(t, len(loginUI.PaperPhrase) > 0)
 
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	// redo SetupEngineTest to get a new home directory...should look like a
+	// new device.
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
 
@@ -1083,25 +1108,146 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 
 	m := NewMetaContextForTest(tc2).WithUIs(uis)
 	eng := NewPaperProvisionEngine(tc2.G, fu.Username, "fakedevice", loginUI.PaperPhrase)
-	if err := RunEngine2(m, eng); err != nil {
-		t.Fatal(err)
-	}
+	err = RunEngine2(m, eng)
+	require.NoError(t, err)
 
 	testUserHasDeviceKey(tc2)
 
 	assertNumDevicesAndKeys(tc, fu, 3, 6)
+	err = AssertProvisioned(tc2)
+	require.NoError(t, err)
 
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
+	require.Equal(t, provUI.calledChooseDeviceType, 0)
+	require.Equal(t, provLoginUI.CalledGetEmailOrUsername, 0)
+}
+
+func TestSelfProvision(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "clone")
+	secUI := user.NewSecretUI()
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	uis := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
 	}
 
-	if provUI.calledChooseDeviceType != 0 {
-		t.Errorf("expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
-	}
-	if provLoginUI.CalledGetEmailOrUsername != 0 {
-		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
-	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	// Test the happy case of successfully self provisioning.
+	assertValidSelfProvision(t, tc, m, user)
+}
 
+func assertValidSelfProvision(t *testing.T, tc libkb.TestContext, m libkb.MetaContext, user *FakeUser) {
+	libkb.CreateClonedDevice(tc, m)
+	newName := tc.G.ActiveDevice.Name() + "uncloneme"
+	eng := NewSelfProvisionEngine(tc.G, newName)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	testUserHasDeviceKey(tc)
+	assertNumDevicesAndKeys(tc, user, 2, 4)
+	err = AssertProvisioned(tc)
+	require.NoError(t, err)
+	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+
+	assertDeviceKeysCached(tc)
+	assertPassphraseStreamCache(tc)
+	assertSecretStored(tc, user.Username)
+
+	// GetBootstrapStatus should return without error and with LoggedIn set to
+	// true.
+	beng := NewBootstrap(tc.G)
+	err = RunEngine2(m, beng)
+	require.NoError(t, err)
+	status := beng.Status()
+	require.True(t, status.LoggedIn)
+	require.True(t, status.Registered)
+
+	t.Logf("test tracks")
+	testTrack(t, tc, libkb.KeybaseNullSigVersion, "t_alice")
+	testSign(t, tc)
+
+	// Make sure that we can still track without a passphrase
+	// after a simulated service restart.  In other words, that
+	// the full LKSec secret was written to the secret store.
+	simulateServiceRestart(t, tc, user)
+	testSign(t, tc)
+	testTrack(t, tc, libkb.KeybaseNullSigVersion, "t_bob")
+	assertDeviceKeysCached(tc)
+	require.Equal(t, tc.G.ActiveDevice.Name(), newName)
+
+	Logout(tc)
+	user.LoginOrBust(tc)
+}
+
+func TestSelfProvisionFailNoClone(t *testing.T) {
+	// If we don't have a clone, we can't run this engine
+	testFailSelfProvision(t, func(tc libkb.TestContext, m libkb.MetaContext) string {
+		return "new"
+	})
+}
+
+func TestSelfProvisionFailDuplicateName(t *testing.T) {
+	testFailSelfProvision(t, func(tc libkb.TestContext, m libkb.MetaContext) string {
+		libkb.CreateClonedDevice(tc, m)
+		// Use the default name so we get an error when provisioning.
+		return ""
+	})
+}
+
+func testFailSelfProvision(t *testing.T, fn func(tc libkb.TestContext, m libkb.MetaContext) string) {
+
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	user := CreateAndSignupFakeUser(tc, "clone")
+
+	secUI := user.NewSecretUI()
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: user.Username}
+	uis := libkb.UIs{
+		ProvisionUI: provUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+
+	suffix := fn(tc, m)
+	oldName := tc.G.ActiveDevice.Name()
+	newName := oldName + suffix
+
+	t.Logf("self provision running %v %v", oldName, newName)
+	eng := NewSelfProvisionEngine(tc.G, newName)
+	err := RunEngine2(m, eng)
+	require.Error(t, err)
+	t.Logf("self provision failed successfully %v %v", oldName, newName)
+
+	testUserHasDeviceKey(tc)
+	// Since provisioning failed, we still just have a single device.
+	assertNumDevicesAndKeys(tc, user, 1, 2)
+	require.Equal(t, tc.G.ActiveDevice.Name(), oldName)
+
+	// GetBootstrapStatus should return without error and with LoggedIn set
+	// to true.
+	beng := NewBootstrap(tc.G)
+	err = RunEngine2(m, beng)
+	require.NoError(t, err)
+	status := beng.Status()
+	require.True(t, status.LoggedIn)
+	require.True(t, status.Registered)
+
+	Logout(tc)
+	user.LoginOrBust(tc)
+
+	// Make sure we can successfully self provision after we've failed.
+	assertValidSelfProvision(t, tc, m, user)
 }
 
 // Provision device using a private GPG key (not synced to keybase
@@ -2011,7 +2157,6 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTestRealTriplesec(t, "kex2provision")
 	defer tcX.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTestRealTriplesec(t, "template")
@@ -2078,24 +2223,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	t.Logf("provisioned")
 	t.Logf(strings.Repeat("*", 100))
 
-	// make sure that the provisioned device can use
-	// the passphrase stream cache (use an empty secret ui)
-	arg := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-		SigVersion:    sigVersion,
-	}
-	uis = libkb.UIs{
-		LogUI:      tcY.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
-	}
-
-	teng := NewTrackEngine(tcY.G, arg)
-	m := NewMetaContextForTest(tcY).WithUIs(uis)
-	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
-	}
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_alice")
 
 	// tsec isn't cached on device Y, so this should fail since the
 	// secret ui doesn't know the passphrase:
@@ -2382,7 +2510,6 @@ func TestResetAccountPaper(t *testing.T) {
 func TestResetAccountKexProvision(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	u := CreateAndSignupFakeUser(tc, "login")
 
@@ -2451,28 +2578,9 @@ func TestResetAccountKexProvision(t *testing.T) {
 
 	wg.Wait()
 
-	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
-	}
-
-	// make sure that the provisioned device can use
-	// the passphrase stream cache (use an empty secret ui)
-	arg := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-		SigVersion:    sigVersion,
-	}
-	uis = libkb.UIs{
-		LogUI:      tcY.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
-	}
-
-	teng := NewTrackEngine(tcY.G, arg)
-	m := NewMetaContextForTest(tcY).WithUIs(uis)
-	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
-	}
+	err := AssertProvisioned(tcY)
+	require.NoError(t, err)
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_alice")
 }
 
 // Try to replicate @nistur sigchain.
@@ -2549,7 +2657,6 @@ func TestResetThenPGPOnlyThenProvision(t *testing.T) {
 func TestResetAccountLikeNistur(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 
 	// user with synced pgp key
 	u := createFakeUserWithPGPOnly(t, tc)
@@ -2643,28 +2750,9 @@ func TestResetAccountLikeNistur(t *testing.T) {
 
 	wg.Wait()
 
-	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
-	}
-
-	// make sure that the provisioned device can use
-	// the passphrase stream cache (use an empty secret ui)
-	arg := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-		SigVersion:    sigVersion,
-	}
-	uis = libkb.UIs{
-		LogUI:      tcY.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
-	}
-
-	teng := NewTrackEngine(tcY.G, arg)
-	m = NewMetaContextForTest(tcY).WithUIs(uis)
-	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
-	}
+	err := AssertProvisioned(tcY)
+	require.NoError(t, err)
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_alice")
 }
 
 // Establish two devices.  Reset on one of them, login on the other.
@@ -2767,7 +2855,6 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
@@ -2850,28 +2937,9 @@ func TestProvisionWithBadConfig(t *testing.T) {
 		t.Error("y device id matches x device id, they should be different")
 	}
 
-	if err := AssertProvisioned(tcY); err != nil {
-		t.Fatal(err)
-	}
-
-	// make sure that the provisioned device can use
-	// the passphrase stream cache (use an empty secret ui)
-	arg := &TrackEngineArg{
-		UserAssertion: "t_alice",
-		Options:       keybase1.TrackOptions{BypassConfirm: true},
-		SigVersion:    sigVersion,
-	}
-	uis = libkb.UIs{
-		LogUI:      tcY.G.UI.GetLogUI(),
-		IdentifyUI: &FakeIdentifyUI{},
-		SecretUI:   &libkb.TestSecretUI{},
-	}
-
-	teng := NewTrackEngine(tcY.G, arg)
-	m := NewMetaContextForTest(tcY).WithUIs(uis)
-	if err := RunEngine2(m, teng); err != nil {
-		t.Fatal(err)
-	}
+	err = AssertProvisioned(tcY)
+	require.NoError(t, err)
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_alice")
 }
 
 // If the provisioner has their secret stored, they should not be
@@ -3023,7 +3091,6 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 	tcX.Tp.DisableUpgradePerUserKey = !upgradePerUserKey
 
 	// device Y (provisionee) context:
@@ -3123,33 +3190,11 @@ func testProvisionEnsureNoPaperKey(t *testing.T, upgradePerUserKey bool) {
 	// after provisioning, the device keys should be cached
 	assertDeviceKeysCached(tcY)
 
-	testTrack := func(whom string) {
-
-		// make sure that the provisioned device can use
-		// the passphrase stream cache (use an empty secret ui)
-		arg := &TrackEngineArg{
-			UserAssertion: whom,
-			Options:       keybase1.TrackOptions{BypassConfirm: true},
-			SigVersion:    sigVersion,
-		}
-		uis := libkb.UIs{
-			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
-			SecretUI:   &libkb.TestSecretUI{},
-		}
-
-		teng := NewTrackEngine(tcY.G, arg)
-		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, teng); err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Make sure that we can still track without a passphrase
 	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
-	testTrack("t_bob")
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_bob")
 
 	t.Logf("check for no paper key")
 	hasZeroPaperDev(tcY, userX)
@@ -3165,7 +3210,6 @@ func TestProvisionAndRevoke(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
-	sigVersion := libkb.GetDefaultSigVersion(tcX.G)
 
 	// device Y (provisionee) context:
 	tcY := SetupEngineTest(t, "template")
@@ -3264,32 +3308,11 @@ func TestProvisionAndRevoke(t *testing.T) {
 
 	t.Logf("revoke finished")
 
-	testTrack := func(whom string) {
-
-		// make sure that the provisioned device can use
-		// the passphrase stream cache (use an empty secret ui)
-		arg := &TrackEngineArg{
-			UserAssertion: whom,
-			Options:       keybase1.TrackOptions{BypassConfirm: true},
-			SigVersion:    sigVersion,
-		}
-		uis := libkb.UIs{
-			LogUI:      tcY.G.UI.GetLogUI(),
-			IdentifyUI: &FakeIdentifyUI{},
-			SecretUI:   &libkb.TestSecretUI{},
-		}
-		teng := NewTrackEngine(tcY.G, arg)
-		m := NewMetaContextForTest(tcY).WithUIs(uis)
-		if err := RunEngine2(m, teng); err != nil {
-			t.Fatal(err)
-		}
-	}
-
 	// Make sure that we can still track without a passphrase
 	// after a simulated service restart.  In other words, that
 	// the full LKSec secret was written to the secret store.
 	simulateServiceRestart(t, tcY, userX)
-	testTrack("t_bob")
+	testTrack(t, tcY, libkb.KeybaseNullSigVersion, "t_bob")
 
 	t.Logf("check for paper key")
 	hasOnePaperDev(tcY, userX)
@@ -3369,7 +3392,8 @@ func TestBootstrapAfterGPGSign(t *testing.T) {
 			t.Fatalf("LoginOffline failed after gpg sign + svc restart: %s", oerr)
 		}
 
-		// GetBootstrapStatus should return without error and with LoggedIn set to true.
+		// GetBootstrapStatus should return without error and with LoggedIn set
+		// to true.
 		beng := NewBootstrap(tc2.G)
 		m = NewMetaContextForTest(tc2)
 		if err := RunEngine2(m, beng); err != nil {

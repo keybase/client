@@ -1,7 +1,7 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import CodePage2 from '.'
-import {compose, connect, type TypedState, type Dispatch, isMobile, safeSubmit} from '../../util/container'
+import {compose, connect, type TypedState, isMobile, safeSubmit} from '../../util/container'
 import HiddenString from '../../util/hidden-string'
 import {type RouteProps} from '../../route-tree/render-route'
 
@@ -12,7 +12,8 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     currentDeviceAlreadyProvisioned,
     // we either have a name for real or we asked on a previous screen
-    currentDeviceName: currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName,
+    currentDeviceName:
+      (currentDeviceAlreadyProvisioned ? state.config.deviceName : state.provision.deviceName) || '',
     currentDeviceType: isMobile ? 'mobile' : 'desktop',
     error: state.provision.error.stringValue(),
     otherDeviceName: state.provision.codePageOtherDeviceName,
@@ -21,7 +22,7 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, ownProps: OwnProps) => ({
+const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
   onSubmitTextCode: (code: string) =>
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString(code)})),

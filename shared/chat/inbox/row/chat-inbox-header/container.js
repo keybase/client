@@ -1,5 +1,5 @@
 // @flow
-import * as Inbox from '../..'
+import type {RowItem} from '../../index.types'
 import {connect, compose, setDisplayName} from '../../../../util/container'
 import type {TypedState, Dispatch} from '../../../../util/container'
 import ChatInboxHeader from '.'
@@ -8,7 +8,7 @@ type OwnProps = {
   onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  rows: Array<Inbox.RowItem>,
+  rows: Array<RowItem>,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({

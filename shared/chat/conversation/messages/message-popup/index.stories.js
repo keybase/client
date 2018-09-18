@@ -1,9 +1,10 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
+import * as Sb from '../../../../stories/storybook'
 import {makeMessageAttachment, makeMessageText} from '../../../../constants/chat2'
-import {storiesOf, action, PropProviders} from '../../../../stories/storybook'
 import TextPopupMenu from './text/index'
 import AttachmentPopupMenu from './attachment/index'
+import paymentPopupStories from './payment/index.stories'
 import ExplodingPopupMenu, {type OwnProps as ExplodingOwnProps} from './exploding/container'
 import HiddenString from '../../../../util/hidden-string'
 
@@ -22,12 +23,12 @@ const attachmentMessage = makeMessageAttachment({
 })
 
 const defaultProps = {
-  attachTo: null,
-  onHidden: action('onHidden'),
-  toggleChannelWide: action('onToggleChannelwide'),
-  toggleMuted: action('toggleMuted'),
-  updateDesktop: action('updateDesktop'),
-  updateMobile: action('updateMobile'),
+  attachTo: () => null,
+  onHidden: Sb.action('onHidden'),
+  toggleChannelWide: Sb.action('onToggleChannelwide'),
+  toggleMuted: Sb.action('toggleMuted'),
+  updateDesktop: Sb.action('updateDesktop'),
+  updateMobile: Sb.action('updateMobile'),
   visible: true,
   yourMessage: true,
 }
@@ -51,25 +52,28 @@ const explodingSoonAttachment = makeMessageAttachment({
 })
 
 const commonExplodingProps = {
-  attachTo: null,
-  onHidden: action('onHidden'),
+  attachTo: () => null,
+  onHidden: Sb.action('onHidden'),
   position: 'top center',
   visible: true,
 }
 
-const provider = PropProviders.createPropProviderWithCommon({
+const provider = Sb.createPropProviderWithCommon({
   ExplodingPopup: (props: ExplodingOwnProps) => ({
-    attachTo: null,
+    attachTo: () => null,
     author: props.message.author,
     deviceName: props.message.deviceName,
     deviceRevokedAt: props.message.deviceRevokedAt,
     deviceType: props.message.deviceType,
     explodesAt: props.message.explodingTime,
     items: [
-      {danger: true, onClick: action('onExplodeNow'), title: 'Explode now'},
+      {danger: true, onClick: Sb.action('onExplodeNow'), title: 'Explode now'},
       ...(props.message.type === 'attachment'
-        ? [{onClick: action('onDownload'), title: 'Download'}]
-        : [{onClick: action('onEdit'), title: 'Edit'}, {onClick: action('onCopy'), title: 'Copy text'}]),
+        ? [{onClick: Sb.action('onDownload'), title: 'Download'}]
+        : [
+            {onClick: Sb.action('onEdit'), title: 'Edit'},
+            {onClick: Sb.action('onCopy'), title: 'Copy text'},
+          ]),
     ],
     onHidden: props.onHidden,
     position: props.position,
@@ -80,19 +84,19 @@ const provider = PropProviders.createPropProviderWithCommon({
 })
 
 const load = () => {
-  storiesOf('Chat/Conversation/Message popup', module)
+  Sb.storiesOf('Chat/Conversation/Message popup', module)
     .addDecorator(provider)
     .add('Text', () => (
       <TextPopupMenu
         {...defaultProps}
         {...textMessage.toJS()}
-        onCopy={action('onCopy')}
-        onDelete={action('onDelete')}
-        onDeleteMessageHistory={action('onDeleteMessageHistory')}
-        onEdit={action('onEdit')}
-        onQuote={action('onQuote')}
-        onReplyPrivately={action('onReplyPrivately')}
-        onViewProfile={action('onViewProfile')}
+        onCopy={Sb.action('onCopy')}
+        onDelete={Sb.action('onDelete')}
+        onDeleteMessageHistory={Sb.action('onDeleteMessageHistory')}
+        onEdit={Sb.action('onEdit')}
+        onQuote={Sb.action('onQuote')}
+        onReplyPrivately={Sb.action('onReplyPrivately')}
+        onViewProfile={Sb.action('onViewProfile')}
         position={'top left'}
         showDivider={true}
       />
@@ -101,12 +105,12 @@ const load = () => {
       <AttachmentPopupMenu
         {...defaultProps}
         {...attachmentMessage.toJS()}
-        onDelete={action('onDelete')}
-        onDeleteMessageHistory={action('onDeleteMessageHistory')}
-        onDownload={action('onDownload')}
-        onShowInFinder={action('onShowInFinder')}
-        onSaveAttachment={action('onSaveAttachment')}
-        onShareAttachment={action('onShareAttachment')}
+        onDelete={Sb.action('onDelete')}
+        onDeleteMessageHistory={Sb.action('onDeleteMessageHistory')}
+        onDownload={Sb.action('onDownload')}
+        onShowInFinder={Sb.action('onShowInFinder')}
+        onSaveAttachment={Sb.action('onSaveAttachment')}
+        onShareAttachment={Sb.action('onShareAttachment')}
         position={'top left'}
       />
     ))
@@ -117,6 +121,9 @@ const load = () => {
     .add('Exploding attachment', () => (
       <ExplodingPopupMenu {...commonExplodingProps} message={explodingSoonAttachment} />
     ))
+
+  // Externally defined stories
+  paymentPopupStories()
 }
 
 export default load

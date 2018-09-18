@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {globalMargins} from '../../styles'
 import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapters'
-import HiddenString from '../../util/hidden-string'
 
 type Props = {
   error?: ?Error,
@@ -10,14 +9,14 @@ type Props = {
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,
   onBack: () => void,
-  onSave: (passphrase: HiddenString, passphraseConfirm: HiddenString) => void,
+  onSave: (passphrase: string, passphraseConfirm: string) => void,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
 }
 
 type State = {
-  passphrase: HiddenString,
-  passphraseConfirm: HiddenString,
+  passphrase: string,
+  passphraseConfirm: string,
   showTyping: boolean,
   canSave: boolean,
 }
@@ -28,36 +27,30 @@ class UpdatePassphrase extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      passphrase: new HiddenString(''),
-      passphraseConfirm: new HiddenString(''),
+      passphrase: '',
+      passphraseConfirm: '',
       showTyping: false,
       canSave: false,
     }
   }
 
   _handlePassphraseChange(passphrase: string) {
-    const nextPassphrase = new HiddenString(passphrase)
     this.setState({
-      passphrase: nextPassphrase,
-      canSave: this._canSave(nextPassphrase, this.state.passphraseConfirm),
+      canSave: this._canSave(passphrase, this.state.passphraseConfirm),
+      passphrase,
     })
   }
 
   _handlePassphraseConfirmChange(passphraseConfirm: string) {
-    const nextPassphraseConfirm = new HiddenString(passphraseConfirm)
     this.setState({
-      passphraseConfirm: nextPassphraseConfirm,
-      canSave: this._canSave(this.state.passphrase, nextPassphraseConfirm),
+      canSave: this._canSave(this.state.passphrase, passphraseConfirm),
+      passphraseConfirm,
     })
   }
 
-  _canSave(passphrase: HiddenString, passphraseConfirm: HiddenString): boolean {
+  _canSave(passphrase: string, passphraseConfirm: string): boolean {
     const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
-    return (
-      downloadedPGPState &&
-      passphrase.stringValue() === passphraseConfirm.stringValue() &&
-      this.state.passphrase.stringValue().length >= 6
-    )
+    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 6
   }
 
   render() {
@@ -75,10 +68,11 @@ class UpdatePassphrase extends Component<Props, State> {
       <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
         <Input
           hintText="New passphrase"
-          value={this.state.passphrase.stringValue()}
           type={inputType}
           errorText={this.props.newPassphraseError}
+          value={this.state.passphrase}
           onChangeText={passphrase => this._handlePassphraseChange(passphrase)}
+          uncontrolled={false}
           style={styleInput}
         />
         {!this.props.newPassphraseError && (
@@ -88,10 +82,11 @@ class UpdatePassphrase extends Component<Props, State> {
         )}
         <Input
           hintText="Confirm new passphrase"
-          value={this.state.passphraseConfirm.stringValue()}
           type={inputType}
+          value={this.state.passphraseConfirm}
           errorText={this.props.newPassphraseConfirmError}
           onChangeText={passphrase => this._handlePassphraseConfirmChange(passphrase)}
+          uncontrolled={false}
           style={styleInput}
         />
         <Checkbox

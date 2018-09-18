@@ -52,4 +52,4 @@ const mapStateToProps = (state: TypedState) => ({
   show: state.unlockFolders.popupOpen,
 })
 
-export default connect(mapStateToProps, () => ({}))(UnlockFolders)
+export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(UnlockFolders)

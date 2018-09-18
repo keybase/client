@@ -68,6 +68,7 @@ class UserInput extends Component<Props, State> {
   }
 
   _onFocus = () => {
+    this.props.onFocus && this.props.onFocus()
     this.setState({isFocused: true})
   }
 
@@ -115,6 +116,7 @@ class UserInput extends Component<Props, State> {
   render() {
     const {
       autoFocus,
+      hideAddButton,
       onChangeText,
       onClearSearch,
       onClickAddButton,
@@ -125,9 +127,10 @@ class UserInput extends Component<Props, State> {
     } = this.props
     const {isFocused} = this.state
 
-    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton
+    const showAddButton = !!userItems.length && !usernameText.length && onClickAddButton && !hideAddButton
     const inputLeftPadding =
       !!userItems.length && (!!usernameText.length || isFocused) ? globalMargins.xtiny : 0
+
     return (
       <Box
         style={{
@@ -176,13 +179,14 @@ class UserInput extends Component<Props, State> {
               )}
           </Box>
         </Box>
-        {onClearSearch && (
-          <Icon
-            type="iconfont-remove"
-            style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
-            onClick={onClearSearch}
-          />
-        )}
+        {onClearSearch &&
+          !this.props.hideClearSearch && (
+            <Icon
+              type="iconfont-remove"
+              style={{height: 16, width: 16, marginRight: globalMargins.tiny}}
+              onClick={onClearSearch}
+            />
+          )}
       </Box>
     )
   }

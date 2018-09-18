@@ -1,5 +1,5 @@
 // @flow
-import {connect, compose, lifecycle, type TypedState, type Dispatch} from '../../util/container'
+import {connect, compose, lifecycle, type TypedState} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
 import InstallSecurityPrefs from './security-prefs.desktop'
 import {navigateUp} from '../../actions/route-tree'
@@ -20,7 +20,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   lifecycle({
     componentDidUpdate(prevProps) {
       if (this.props.appFocusedCount !== prevProps.appFocusedCount) {

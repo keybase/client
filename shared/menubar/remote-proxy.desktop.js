@@ -6,6 +6,8 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
+import GetNewestConvMetas from '../chat/inbox/container/remote'
+import GetFileRows from '../fs/remote-container'
 
 const windowOpts = {}
 
@@ -49,12 +51,15 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 }
 
 const mapStateToProps = (state: TypedState) => ({
+  broken: state.tracker.userTrackers,
+  _following: state.config.following,
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  folderProps: state.favorite.folderState,
   isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
+  conversations: GetNewestConvMetas(state),
+  _tlfUpdates: state.fs.tlfUpdates,
 })
 
 const mergeProps = stateProps => ({
@@ -62,10 +67,13 @@ const mergeProps = stateProps => ({
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  folderProps: stateProps.folderProps,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
   username: stateProps.username,
+  fileRows: GetFileRows(stateProps._tlfUpdates),
+  conversations: stateProps.conversations,
+  broken: stateProps.broken,
+  following: stateProps._following.toArray(),
   windowComponent: 'menubar',
   windowOpts,
   windowParam: '',
@@ -75,6 +83,8 @@ const mergeProps = stateProps => ({
 // Actions are handled by remote-container
 export default compose(
   connect(mapStateToProps, () => ({}), mergeProps),
+  // flow correctly complains this shouldn't be true. We really want this to never be null before it hits RemoteMenubarWindow but we can't do that with branch. TODO use a wrapper to fix this
+  // $FlowIssue
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,

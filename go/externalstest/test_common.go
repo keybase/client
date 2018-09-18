@@ -12,11 +12,13 @@ import (
 	"github.com/keybase/client/go/uidmap"
 )
 
-func SetupTest(tb libkb.TestingTB, name string, depth int) (tc libkb.TestContext) {
-	ret := libkb.SetupTest(tb, name, depth+1)
+// SetupTest ignores the third argument.
+func SetupTest(tb libkb.TestingTB, name string, depthIgnored int) (tc libkb.TestContext) {
+	// libkb.SetupTest ignores the third argument (depth).
+	tc = libkb.SetupTest(tb, name, depthIgnored)
 
-	ret.G.SetServices(externals.GetServices())
-	ret.G.SetUIDMapper(uidmap.NewUIDMap(10000))
-	pvlsource.NewPvlSourceAndInstall(ret.G)
-	return ret
+	tc.G.SetProofServices(externals.NewProofServices(tc.G))
+	tc.G.SetUIDMapper(uidmap.NewUIDMap(10000))
+	pvlsource.NewPvlSourceAndInstall(tc.G)
+	return tc
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -184,17 +185,36 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
+	change.Misc = row.Misc
+	m := libkb.NewMetaContext(ctx, g)
 
-	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
+	defer m.CTrace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno)
-	if err != nil {
-		g.Log.CWarningf(ctx, "error in HintLatestSeqno: %v", err)
+	if err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno); err != nil {
+		m.CWarningf("error in HintLatestSeqno: %v", err)
 		return nil
 	}
-	// Send teamID and teamName in two separate notifications. It is server-trust that they are the same team.
+
+	if err = g.GetFastTeamLoader().HintLatestSeqno(m, row.Id, row.LatestSeqno); err != nil {
+		m.CWarningf("error in FastTeamLoader#HintLatestSeqno: %v", err)
+		err = nil // non-fatal
+	}
+
+	// If we're handling a rename we should also purge the resolver cache
+	if change.Renamed {
+		PurgeResolverTeamID(ctx, g, row.Id)
+	}
+	// Send teamID and teamName in two separate notifications. It is
+	// server-trust that they are the same team.
 	g.NotifyRouter.HandleTeamChangedByBothKeys(ctx, row.Id, row.Name, row.LatestSeqno, row.ImplicitTeam, change)
 
+	if change.Renamed || change.MembershipChanged || change.Misc {
+		// this notification is specifically for the UI
+		g.NotifyRouter.HandleTeamListUnverifiedChanged(ctx, row.Name)
+	}
+	if change.MembershipChanged {
+		g.NotifyRouter.HandleCanUserPerformChanged(ctx, row.Name)
+	}
 	return nil
 }
 
@@ -228,11 +248,25 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 
 	for _, row := range rows {
 		g.Log.CDebugf(ctx, "team.HandleExitNotification: (%+v)", row)
-		err := g.GetTeamLoader().Delete(ctx, row.Id)
-		if err != nil {
+		if err := g.GetTeamLoader().Delete(ctx, row.Id); err != nil {
 			g.Log.CDebugf(ctx, "team.HandleExitNotification: error deleting team cache: %v", err)
 		}
+		if ekLib := g.GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		}
 		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+	}
+	return nil
+}
+
+func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalContext, rows []keybase1.TeamNewlyAddedRow) (err error) {
+	defer g.CTrace(ctx, fmt.Sprintf("team.HandleNewlyAddedToTeamNotification(%v)", len(rows)), func() error { return err })()
+	for _, row := range rows {
+		g.Log.CDebugf(ctx, "team.HandleNewlyAddedToTeamNotification: (%+v)", row)
+		if ekLib := g.GetEKLib(); ekLib != nil {
+			ekLib.PurgeCachesForTeamID(ctx, row.Id)
+		}
+		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
 	}
 	return nil
 }
@@ -607,4 +641,8 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	}
 
 	return nil
+}
+
+func HandleForceRepollNotification(ctx context.Context, g *libkb.GlobalContext, dtime gregor.TimeOrOffset) error {
+	return g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
 }

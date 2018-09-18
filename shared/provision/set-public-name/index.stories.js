@@ -1,19 +1,18 @@
 // @flow
 import * as React from 'react'
+import * as Sb from '../../stories/storybook'
 import SetPublicName from '.'
-import {action, storiesOf, PropProviders} from '../../stories/storybook'
 
 const props = {
   deviceName: '',
   error: '',
-  onBack: action('onBack'),
-  onChange: action('onChange'),
-  onSubmit: action('onSubmit'),
+  onBack: Sb.action('onBack'),
+  onChange: Sb.action('onChange'),
+  onSubmit: Sb.action('onSubmit'),
 }
 
 const load = () => {
-  storiesOf('Provision/SetPublicName', module)
-    .addDecorator(PropProviders.createPropProviderWithCommon())
+  Sb.storiesOf('Provision/SetPublicName', module)
     .add('Normal', () => <SetPublicName {...props} />)
     .add('Error', () => <SetPublicName {...props} error={'Name taken'} />)
 }

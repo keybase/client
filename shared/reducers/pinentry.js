@@ -31,7 +31,6 @@ export default function(state: Types.State = initialState, action: PinentryGen.A
     case PinentryGen.newPinentry:
     case PinentryGen.onCancel:
     case PinentryGen.onSubmit:
-    case PinentryGen.registerPinentryListener:
       return state
     default:
       /*::

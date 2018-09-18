@@ -1,18 +1,18 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as KBFSGen from '../../../../../actions/kbfs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
 import {getCanPerform} from '../../../../../constants/teams'
-import {connect, type TypedState, type Dispatch} from '../../../../../util/container'
+import {connect, type TypedState} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Attachment from '.'
 
 type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   message: Types.MessageAttachment,
   onHidden: () => void,
   position: Position,
@@ -94,6 +94,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onDelete: yourMessage ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
     onHidden: () => ownProps.onHidden(),
+    // We only show the share/save options for video if we have the file stored locally from a download
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,

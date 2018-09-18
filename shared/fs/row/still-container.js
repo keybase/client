@@ -1,66 +1,39 @@
 // @flow
-import * as FsGen from '../../actions/fs-gen'
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../util/container'
+import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import OpenHOC from '../common/open-hoc'
 import Still from './still'
-import * as StateMappers from '../utils/state-mappers'
 
-const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  const _username = state.config.username || undefined
-  const _downloads = state.fs.downloads
-  return {
-    _username,
-    _downloads,
-    path,
-    kbfsEnabled: StateMappers.mapStateToKBFSEnabled(state),
-    pathItem,
-  }
+type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
+  routePath: I.List<string>,
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routePath}) => ({
-  _onOpen: (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
-  _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
-  _openFinderPopup: (evt?: SyntheticEvent<>) =>
-    dispatch(FsGen.createOpenFinderPopup({targetRect: Constants.syntheticEventToTargetRect(evt), routePath})),
+const mapStateToProps = (state: TypedState, {path}: OwnProps) => ({
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _username: state.config.username,
+  _downloads: state.fs.downloads,
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const resetParticipants =
-    stateProps.pathItem.type === 'folder' &&
-    !!stateProps.pathItem.tlfMeta &&
-    stateProps.pathItem.tlfMeta.resetParticipants.length > 0
-      ? stateProps.pathItem.tlfMeta.resetParticipants.map(i => i.username)
-      : []
+const mergeProps = (stateProps, dispatchProps, {name, path, routePath}: OwnProps) => {
+  const {_downloads, _pathItem, _username} = stateProps
+  const {type, lastModifiedTimestamp, lastWriter} = _pathItem
   return {
-    path: stateProps.path,
-    name: stateProps.pathItem.name,
-    type: stateProps.pathItem.type,
-    badgeCount: stateProps.pathItem.badgeCount,
-    isDownloading: !!stateProps._downloads.find(t => t.meta.path === stateProps.path && !t.state.isDone),
-    tlfMeta: stateProps.pathItem.tlfMeta,
-    isUserReset: resetParticipants.includes(stateProps._username),
-    isEmpty:
-      stateProps.pathItem.type === 'folder' &&
-      stateProps.pathItem.progress === 'loaded' &&
-      stateProps.pathItem.children.isEmpty(),
-    resetParticipants,
-    lastModifiedTimestamp: stateProps.pathItem.lastModifiedTimestamp,
-    lastWriter: stateProps.pathItem.lastWriter.username,
-    onOpen: () => dispatchProps._onOpen(stateProps.path),
-    openInFileUI: stateProps.kbfsEnabled
-      ? () => dispatchProps._openInFileUI(stateProps.path)
-      : dispatchProps._openFinderPopup,
-    itemStyles: Constants.getItemStyles(
-      Types.getPathElements(stateProps.path),
-      stateProps.pathItem.type,
-      stateProps._username
-    ),
+    isDownloading: !!_downloads.find(t => t.meta.path === path && !t.state.isDone),
+    isEmpty: _pathItem.type === 'folder' && _pathItem.progress === 'loaded' && _pathItem.children.isEmpty(),
+    itemStyles: Constants.getItemStyles(Types.getPathElements(path), type, _username),
+    lastModifiedTimestamp,
+    lastWriter: lastWriter.username,
+    name,
+    path,
+    routePath,
+    type,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedStillRow')
+  connect(mapStateToProps, () => ({}), mergeProps),
+  setDisplayName('ConnectedStillRow'),
+  OpenHOC
 )(Still)

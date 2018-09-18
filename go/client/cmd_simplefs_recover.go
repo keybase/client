@@ -69,8 +69,7 @@ func (c *CmdSimpleFSRecover) Run() error {
 
 	for _, src := range srcPaths {
 		dest := keybase1.NewPathWithKbfs(src.KbfsArchived().Path)
-		c.G().Log.Debug("SimpleFSRecover %s -> %s",
-			pathToString(src), pathToString(dest))
+		c.G().Log.Debug("SimpleFSRecover %s -> %s", src, dest)
 
 		// Don't spawn new jobs if we've been cancelled.  TODO: This
 		// is still a race condition, if we get cancelled immediately

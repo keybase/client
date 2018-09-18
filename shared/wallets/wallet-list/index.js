@@ -1,8 +1,16 @@
 // @flow
 import * as React from 'react'
-import {Box2, ClickableBox, Icon, List, Text, FloatingMenu} from '../../common-adapters'
+import {
+  Box2,
+  ClickableBox,
+  Icon,
+  List,
+  Text,
+  FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../common-adapters'
 import {styleSheetCreate, globalMargins, globalColors, isMobile, type StylesCrossPlatform} from '../../styles'
-import {FloatingMenuParentHOC, type FloatingMenuParentProps} from '../../common-adapters/floating-menu'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -17,16 +25,16 @@ const styles = styleSheetCreate({
   addContainerBox: {height: rowHeight, paddingTop: globalMargins.small},
 })
 
-const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
+const _AddWallet = (props: AddProps & OverlayParentProps) => {
   const menuItems = [
     {
       onClick: () => props.onAddNew(),
-      title: 'Create a new wallet',
+      title: 'Create a new account',
     },
     {
       disabled: isMobile,
       onClick: () => props.onLinkExisting(),
-      title: 'Link an existing Stellar wallet',
+      title: 'Link an existing Stellar account',
     },
   ]
 
@@ -44,7 +52,7 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
         <Text type="BodyBigLink">Add an account</Text>
       </Box2>
       <FloatingMenu
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         closeOnSelect={true}
         items={menuItems}
         onHidden={props.toggleShowingMenu}
@@ -55,7 +63,7 @@ const _AddWallet = (props: AddProps & FloatingMenuParentProps) => {
   )
 }
 
-const AddWallet = FloatingMenuParentHOC(_AddWallet)
+const AddWallet = OverlayParentHOC(_AddWallet)
 
 type Props = {
   accountIDs: Array<AccountID>,
@@ -72,7 +80,13 @@ class WalletList extends React.Component<Props> {
       case 'wallet':
         return <WalletRow key={row.accountID} accountID={row.accountID} />
       case 'add wallet':
-        return <AddWallet key={row.type} onAddNew={this.props.onAddNew} onLinkExisting={this.props.onLinkExisting} />
+        return (
+          <AddWallet
+            key={row.type}
+            onAddNew={this.props.onAddNew}
+            onLinkExisting={this.props.onLinkExisting}
+          />
+        )
       default:
         /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any

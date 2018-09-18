@@ -12,7 +12,7 @@ import {
   withStateHandlers,
   isMobile,
 } from '../../../util/container'
-import type {TypedState, Dispatch} from '../../../util/container'
+import type {TypedState} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 
@@ -21,17 +21,18 @@ const mapStateToProps = (state: TypedState, {routeState}) => {
   const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
   const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
   const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const neverLoaded = !state.chat2.inboxHasLoaded
 
   return {
     ...rowMetadata,
     _selectedConversationIDKey,
     filter,
     isLoading: Constants.anyChatWaitingKeys(state),
-    neverLoaded: state.chat2.metaMap.isEmpty(),
+    neverLoaded,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {routeState, setRouteState, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),

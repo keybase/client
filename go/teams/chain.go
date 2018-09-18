@@ -71,6 +71,14 @@ func (t TeamSigChainState) GetLatestLinkID() keybase1.LinkID {
 	return t.inner.LastLinkID
 }
 
+func (t TeamSigChainState) GetLatestHighSeqno() keybase1.Seqno {
+	return t.inner.LastHighSeqno
+}
+
+func (t TeamSigChainState) GetLatestHighLinkID() keybase1.LinkID {
+	return t.inner.LastHighLinkID
+}
+
 func (t TeamSigChainState) GetLatestLibkbLinkID() (libkb.LinkID, error) {
 	return libkb.ImportLinkID(t.GetLatestLinkID())
 }
@@ -568,7 +576,7 @@ func (t *TeamSigChainState) FindActiveKeybaseInvite(uid keybase1.UID) (keybase1.
 // If `state` is nil this is the first link of the chain.
 // `signer` may be nil iff link is stubbed.
 func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state *TeamSigChainState,
-	link *chainLinkUnpacked, signer *signerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer *SignerX) (res TeamSigChainState, err error) {
 	t := &teamSigchainPlayer{
 		Contextified: libkb.NewContextified(g),
 		reader:       reader,
@@ -587,7 +595,7 @@ func AppendChainLink(ctx context.Context, g *libkb.GlobalContext, reader keybase
 // InflateLink adds the full inner link for a link that has already been added in stubbed form.
 // `state` is moved into this function. There must exist no live references into it from now on.
 func InflateLink(ctx context.Context, g *libkb.GlobalContext, reader keybase1.UserVersion, state TeamSigChainState,
-	link *chainLinkUnpacked, signer signerX) (res TeamSigChainState, err error) {
+	link *ChainLinkUnpacked, signer SignerX) (res TeamSigChainState, err error) {
 	if link.isStubbed() {
 		return TeamSigChainState{}, NewStubbedError(link)
 	}
@@ -637,7 +645,7 @@ type teamSigchainPlayer struct {
 // `signer` may be nil iff link is stubbed.
 // If `prevState` is nil this is the first chain link.
 func (t *teamSigchainPlayer) appendChainLinkHelper(
-	ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked, signer *signerX) (
+	ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked, signer *SignerX) (
 	res TeamSigChainState, err error) {
 
 	err = t.checkOuterLink(ctx, prevState, link)
@@ -671,10 +679,18 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		newState.inner.StubbedLinks[link.Seqno()] = true
 	}
 
+	// Store the head merkle sequence to the DB, for use in the audit mechanism.
+	// For the purposes of testing, we disable this feature, so we can check
+	// the lazy-repopulation scheme for old stored teams (without a full cache bust).
+	if link.Seqno() == keybase1.Seqno(1) && !link.isStubbed() && !t.G().Env.Test.TeamNoHeadMerkleStore {
+		tmp := link.inner.Body.MerkleRoot.ToMerkleRootV2()
+		newState.inner.HeadMerkle = &tmp
+	}
+
 	return *newState, nil
 }
 
-func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *chainLinkUnpacked) (err error) {
+func (t *teamSigchainPlayer) checkOuterLink(ctx context.Context, prevState *TeamSigChainState, link *ChainLinkUnpacked) (err error) {
 	if prevState == nil {
 		if link.Seqno() != 1 {
 			return NewUnexpectedSeqnoError(keybase1.Seqno(1), link.Seqno())
@@ -710,7 +726,7 @@ type checkInnerLinkResult struct {
 // `isInflate` is false if this is a new link and true if it is a link which has already been added as stubbed.
 // Does not modify `prevState` but returns a new state.
 func (t *teamSigchainPlayer) addInnerLink(
-	prevState *TeamSigChainState, link *chainLinkUnpacked, signer signerX,
+	prevState *TeamSigChainState, link *ChainLinkUnpacked, signer SignerX,
 	isInflate bool) (
 	res checkInnerLinkResult, err error) {
 
@@ -867,9 +883,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 		res.newState = *prevState
 		prevState = nil
 	}
+	isHighLink := false
 
 	switch libkb.LinkType(payload.Body.Type) {
 	case libkb.LinkTypeTeamRoot:
+		isHighLink = true
 		err = enforce(LinkRules{
 			Name:                TristateRequire,
 			Members:             TristateRequire,
@@ -979,8 +997,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 				return res, err
 			}
 		}
-
-		return res, nil
 	case libkb.LinkTypeChangeMembership:
 		err = enforce(LinkRules{
 			Members:             TristateRequire,
@@ -1116,6 +1132,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 			}
 		}
 
+		isHighLink, err = t.roleUpdateChangedHighSet(prevState, roleUpdates)
+		if err != nil {
+			return res, fmt.Errorf("could not determine if high user set changed")
+		}
+
 		moveState()
 		t.updateMembership(&res.newState, roleUpdates, payload.SignatureMetadata())
 		t.completeInvites(&res.newState, team.CompletedInvites)
@@ -1135,8 +1156,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 			res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 			res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
 		}
-
-		return res, nil
 	case libkb.LinkTypeRotateKey:
 		err = enforce(LinkRules{
 			PerTeamKey:          TristateRequire,
@@ -1173,8 +1192,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		moveState()
 		res.newState.inner.PerTeamKeys[newKey.Gen] = newKey
 		res.newState.inner.PerTeamKeyCTime = keybase1.UnixTime(payload.Ctime)
-
-		return res, nil
 	case libkb.LinkTypeLeave:
 		err = enforce(LinkRules{ /* Just about everything is restricted. */ })
 		if err != nil {
@@ -1200,8 +1217,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 		moveState()
 		res.newState.inform(signer.signer, keybase1.TeamRole_NONE, payload.SignatureMetadata())
-
-		return res, nil
 	case libkb.LinkTypeNewSubteam:
 		err = enforce(LinkRules{
 			Subteam:      TristateRequire,
@@ -1237,9 +1252,9 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if err != nil {
 			return res, fmt.Errorf("adding new subteam: %v", err)
 		}
-
-		return res, nil
 	case libkb.LinkTypeSubteamHead:
+		isHighLink = true
+
 		err = enforce(LinkRules{
 			Name:         TristateRequire,
 			Members:      TristateRequire,
@@ -1328,8 +1343,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 				return res, err
 			}
 		}
-
-		return res, nil
 	case libkb.LinkTypeRenameSubteam:
 		err = enforce(LinkRules{
 			Subteam:      TristateRequire,
@@ -1365,8 +1378,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if err != nil {
 			return res, fmt.Errorf("adding new subteam: %v", err)
 		}
-
-		return res, nil
 	case libkb.LinkTypeRenameUpPointer:
 		err = enforce(LinkRules{
 			Name:   TristateRequire,
@@ -1416,8 +1427,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 			LastPart: newName.LastPart(),
 			Seqno:    link.Seqno(),
 		})
-
-		return res, nil
 	case libkb.LinkTypeDeleteSubteam:
 		err = enforce(LinkRules{
 			Subteam:      TristateRequire,
@@ -1451,8 +1460,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 		if err != nil {
 			return res, fmt.Errorf("error deleting subteam: %v", err)
 		}
-
-		return res, nil
 	case libkb.LinkTypeInvite:
 		err = enforce(LinkRules{
 			Admin:               TristateOptional,
@@ -1540,7 +1547,6 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 		moveState()
 		t.updateInvites(&res.newState, additions, cancelations)
-		return res, nil
 	case libkb.LinkTypeSettings:
 		err = enforce(LinkRules{
 			Admin:    TristateOptional,
@@ -1560,7 +1566,9 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 		moveState()
 		err = t.parseTeamSettings(team.Settings, &res.newState)
-		return res, err
+		if err != nil {
+			return res, err
+		}
 	case libkb.LinkTypeDeleteRoot:
 		return res, NewTeamDeletedError()
 	case libkb.LinkTypeDeleteUpPointer:
@@ -1582,17 +1590,45 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 		moveState()
 		err = t.parseKBFSTLFUpgrade(team.KBFS, &res.newState)
-		return res, err
+		if err != nil {
+			return res, err
+		}
 	case "":
 		return res, errors.New("empty body type")
 	default:
 		if link.outerLink.IgnoreIfUnsupported {
 			moveState()
-			return res, nil
+		} else {
+			return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
+		}
+	}
+	if isHighLink {
+		res.newState.inner.LastHighLinkID = link.LinkID().Export()
+		res.newState.inner.LastHighSeqno = link.Seqno()
+	}
+	return res, nil
+}
+
+func (t *teamSigchainPlayer) roleUpdateChangedHighSet(prevState *TeamSigChainState, roleUpdates chainRoleUpdates) (bool, error) {
+	// The high set of users can be changed by promotion to Admin/Owner or
+	// demotion from Admin/Owner or any movement between those two roles.
+	for newRole, uvs := range roleUpdates {
+		if newRole.IsAdminOrAbove() {
+			return true, nil
+		}
+		// were any of these users previously an admin or above
+		for _, uv := range uvs {
+			prevRole, err := prevState.GetUserRole(uv)
+			if err != nil {
+				return false, err
+			}
+			if prevRole.IsAdminOrAbove() {
+				return true, nil
+			}
 		}
 
-		return res, fmt.Errorf("unsupported link type: %s", payload.Body.Type)
 	}
+	return false, nil
 }
 
 func (t *teamSigchainPlayer) checkSeqnoToAdd(prevState *TeamSigChainState, linkSeqno keybase1.Seqno, isInflate bool) error {

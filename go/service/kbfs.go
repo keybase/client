@@ -33,6 +33,7 @@ func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.Chat
 }
 
 func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) error {
+
 	h.G().NotifyRouter.HandleFSActivity(arg)
 
 	h.checkConversationRekey(arg)

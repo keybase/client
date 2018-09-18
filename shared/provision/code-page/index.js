@@ -189,7 +189,7 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
 const Qr = (props: Props) =>
   props.currentDeviceType === 'desktop' ? (
     <Box2 direction="vertical" style={styles.qrOnlyContainer}>
-      <QRImage code={props.textCode} cellSize={5} />
+      <QRImage code={props.textCode} cellSize={10} />
     </Box2>
   ) : (
     <Box2

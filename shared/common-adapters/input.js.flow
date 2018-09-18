@@ -32,6 +32,7 @@ export type Props = {
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
   hideUnderline?: boolean,
   hintText?: ?string,
+  key?: string,
   inputStyle?: StylesCrossPlatform,
   multiline?: boolean,
   onBlur?: () => void,

@@ -155,4 +155,9 @@ protocol gregor {
         TopicType topicType;
     }
 
+    record SubteamRenameUpdate {
+        array<ConversationID> convIDs;
+        InboxVers inboxVers;
+    }
+
 }

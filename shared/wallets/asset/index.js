@@ -13,14 +13,14 @@ export type Props = {
   issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
-  reserves: Types.Reserve[], // non-empty only if native currency
+  reserves: Array<Types.Reserve>, // non-empty only if native currency
 }
 
 type State = {
   expanded: boolean,
 }
 
-export default class extends React.Component<Props, State> {
+export default class Asset extends React.Component<Props, State> {
   state = {expanded: false}
 
   _toggleExpanded = () => {
@@ -49,10 +49,21 @@ export default class extends React.Component<Props, State> {
               </Box2>
             </Box2>
             <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-              <Text type="BodyExtrabold" lineClamp={1} style={{color: globalColors.purple2}}>
+              <Text
+                type="BodyExtrabold"
+                lineClamp={1}
+                onClick={event => event.stopPropagation()}
+                selectable={true}
+                style={{color: globalColors.purple2}}
+              >
                 {this.props.balance} {this.props.code}
               </Text>
-              <Text type="BodySmall" lineClamp={1}>
+              <Text
+                type="BodySmall"
+                lineClamp={1}
+                onClick={event => event.stopPropagation()}
+                selectable={true}
+              >
                 {this.props.equivBalance}
               </Text>
             </Box2>
@@ -79,7 +90,7 @@ export default class extends React.Component<Props, State> {
 type BalanceSummaryProps = {
   availableToSend: string,
   equivAvailableToSend: string,
-  reserves: Types.Reserve[],
+  reserves: Array<Types.Reserve>,
   total: string,
 }
 
@@ -113,7 +124,9 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
         <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
           {props.availableToSend}
         </Text>
-        <Text type="BodySmall">{props.equivAvailableToSend}</Text>
+        <Text type="BodySmall" selectable={true}>
+          {props.equivAvailableToSend}
+        </Text>
       </Box2>
     </Box2>
   </Box2>

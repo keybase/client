@@ -26,6 +26,10 @@ func TestStellarSimplifyAmount(t *testing.T) {
 		{"1.0010000", "1.001"},
 		{"1.0000000", "1"},
 		{"aaa", "aaa"},
+		{"1,231.0010000", "1,231.001"},
+		{"1,231.5000000", "1,231.50"},
+		{"1,231.0000000", "1,231.00"},
+		{"1,231", "1,231"},
 	}
 	for i, u := range units {
 		require.Equal(t, u.b, StellarSimplifyAmount(u.a), "units[%v]", i)

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
@@ -18,9 +19,12 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
+	stellarAddress "github.com/stellar/go/address"
 	"github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
+
+const AccountNameMaxRunes = 24
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
@@ -114,7 +118,6 @@ func CreateWalletSoft(ctx context.Context, g *libkb.GlobalContext) {
 		return
 	}
 	_, _, err = CreateWalletGated(ctx, g)
-	return
 }
 
 // Upkeep makes sure the bundle is encrypted for the user's latest PUK.
@@ -230,10 +233,13 @@ func LookupSender(ctx context.Context, g *libkb.GlobalContext, accountID stellar
 	return entry, nil
 }
 
-func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res stellarcommon.Recipient, err error) {
+func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
 	res = stellarcommon.Recipient{
 		Input: to,
+	}
+	if len(to) == 0 {
+		return res, fmt.Errorf("empty recipient parameter")
 	}
 
 	storeAddress := func(address string) error {
@@ -247,6 +253,40 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		}
 		res.AccountID = &accountID
 		return nil
+	}
+
+	if strings.Contains(string(to), stellarAddress.Separator) {
+		name, domain, err := stellarAddress.Split(string(to))
+		if err != nil {
+			return res, err
+		}
+
+		if domain == "keybase.io" {
+			// Keybase.io federation address. Fall through to identify
+			// path.
+			m.CDebugf("Got federation address %q but it's under keybase.io domain!", to)
+			m.CDebugf("Instead going to lookup Keybase assertion: %q", name)
+			to = stellarcommon.RecipientInput(name)
+		} else {
+			// Actual federation address that is not under keybase.io
+			// domain. Use federation client.
+			fedCli := getGlobal(m.G()).federationClient
+			nameResponse, err := fedCli.LookupByAddress(string(to))
+			if err != nil {
+				errStr := err.Error()
+				m.CDebugf("federation.LookupByAddress returned error: %s", errStr)
+				if strings.Contains(errStr, "lookup federation server failed") {
+					return res, fmt.Errorf("Server at url %q does not respond to federation requests", domain)
+				} else if strings.Contains(errStr, "get federation failed") {
+					return res, fmt.Errorf("Federation server %q did not find record %q", domain, name)
+				}
+				return res, err
+			}
+			// We got an address! Fall through to the "Stellar
+			// address" path.
+			m.CDebugf("federation.LookupByAddress returned: %+v", nameResponse)
+			to = stellarcommon.RecipientInput(nameResponse.AccountID)
+		}
 	}
 
 	// A Stellar address
@@ -266,24 +306,24 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput) (res 
 		case libkb.NotFoundError:
 			// common case
 		default:
-			m.CDebugf("identifyRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
+			m.CDebugf("LookupRecipient: lookup accountID->user accountID:%v err:%v", res.AccountID, err)
 			// log and ignore
 		}
 		return res, nil
 	}
 
-	idRes, err := identifyRecipient(m, string(to))
+	idRes, err := identifyRecipient(m, string(to), isCLI)
 	if err != nil {
 		return res, err
 	}
-	m.CDebugf("identifyRecipient: identify result for %s: %+v", to, idRes)
+	m.CDebugf("LookupRecipient: identify result for %s: %+v", to, idRes)
 	if idRes.Breaks != nil {
-		m.CDebugf("identifyRecipient: TrackBreaks = %+v", idRes.Breaks)
+		m.CDebugf("LookupRecipient: TrackBreaks = %+v", idRes.Breaks)
 		return res, libkb.TrackingBrokeError{}
 	}
 
 	if idRes.User.Username == "" {
-		expr, err := externals.AssertionParse(string(to))
+		expr, err := externals.AssertionParse(m.G(), string(to))
 		if err != nil {
 			m.CDebugf("error parsing assertion: %s", err)
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
@@ -353,13 +393,23 @@ type SendPaymentResult struct {
 	RelayTeamID *keybase1.TeamID
 }
 
-// SendPayment sends XLM.
+// SendPaymentCLI sends XLM from CLI.
+func SendPaymentCLI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, remoter, sendArg, true)
+}
+
+// SendPaymentGUI sends XLM from GUI.
+func SendPaymentGUI(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+	return sendPayment(m, remoter, sendArg, false)
+}
+
+// sendPayment sends XLM.
 // Recipient:
 // Stellar address        : Standard payment
 // User with wallet ready : Standard payment
 // User without a wallet  : Relay payment
 // Unresolved assertion   : Relay payment
-func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg) (res SendPaymentResult, err error) {
+func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymentArg, isCLI bool) (res SendPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendPayment", func() error { return err })()
 
 	// look up sender account
@@ -370,7 +420,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 	senderSeed := senderEntry.Signers[0]
 
 	// look up recipient
-	recipient, err := LookupRecipient(m, sendArg.To)
+	recipient, err := LookupRecipient(m, sendArg.To, isCLI)
 	if err != nil {
 		return res, err
 	}
@@ -450,7 +500,7 @@ func SendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -510,7 +560,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.KeybaseID); err != nil {
+	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -792,13 +842,17 @@ func localizePayment(ctx context.Context, g *libkb.GlobalContext, p stellar1.Pay
 	}
 }
 
-func identifyRecipient(m libkb.MetaContext, assertion string) (keybase1.TLFIdentifyFailure, error) {
+func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keybase1.TLFIdentifyFailure, error) {
 	reason := fmt.Sprintf("Find transaction recipient for %s", assertion)
+	// gui will use RESOLVE_AND_CHECK behavior
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    assertion,
 		UseDelegateUI:    true,
 		Reason:           keybase1.IdentifyReason{Reason: reason},
-		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI, // XXX needs adjusting?
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
+	}
+	if isCLI {
+		arg.IdentifyBehavior = keybase1.TLFIdentifyBehavior_CLI
 	}
 
 	eng := engine.NewResolveThenIdentify2(m.G(), &arg)
@@ -884,13 +938,19 @@ func FormatPaymentAmountXLM(amount string, delta stellar1.BalanceDelta) (string,
 
 // Example: "157.5000000 XLM"
 func FormatAmountXLM(amount string) (string, error) {
-	return FormatAmountWithSuffix(amount, false, "XLM")
+	// Do not simplify XLM amounts, all zeroes are important because
+	// that's the exact number of digits that Stellar protocol
+	// supports.
+	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, "XLM")
 }
 
-func FormatAmountWithSuffix(amount string, precisionTwo bool, suffix string) (string, error) {
+func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
 	formatted, err := FormatAmount(amount, precisionTwo)
 	if err != nil {
 		return "", err
+	}
+	if simplify {
+		formatted = libkb.StellarSimplifyAmount(formatted)
 	}
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
@@ -912,25 +972,34 @@ func FormatAmount(amount string, precisionTwo bool) (string, error) {
 	if len(parts) != 2 {
 		return "", fmt.Errorf("unable to parse amount %s", amount)
 	}
-	if parts[1] == "0000000" {
-		// get rid of all zeros after point if default precision
-		parts = parts[:1]
-	}
+	var hasComma bool
 	head := parts[0]
-	if len(head) <= 3 {
-		return strings.Join(parts, "."), nil
-	}
-	sinceComma := 0
-	var b bytes.Buffer
-	for i := len(head) - 1; i >= 0; i-- {
-		if sinceComma == 3 && head[i] != '-' {
-			b.WriteByte(',')
-			sinceComma = 0
+	if len(head) > 0 {
+		sinceComma := 0
+		var b bytes.Buffer
+		for i := len(head) - 1; i >= 0; i-- {
+			if sinceComma == 3 && head[i] != '-' {
+				b.WriteByte(',')
+				sinceComma = 0
+				hasComma = true
+			}
+			b.WriteByte(head[i])
+			sinceComma++
 		}
-		b.WriteByte(head[i])
-		sinceComma++
+		parts[0] = reverse(b.String())
 	}
-	parts[0] = reverse(b.String())
+	if parts[1] == "0000000" {
+		// Remove decimal part if it's all zeroes in 7-digit precision.
+		if hasComma {
+			// With the exception of big numbers where we inserted
+			// thousands separator - leave fractional part with two
+			// digits so we can have decimal point, but not all the
+			// distracting 7 zeroes.
+			parts[1] = "00"
+		} else {
+			parts = parts[:1]
+		}
+	}
 
 	return strings.Join(parts, "."), nil
 }
@@ -943,7 +1012,16 @@ func reverse(s string) string {
 	return string(r)
 }
 
+// ChangeAccountName changes the name of an account.
+// Make sure to keep this in sync with ValidateAccountNameLocal.
+// An empty name is always acceptable.
+// Renaming an account to an already used name is blocked.
+// Maximum length of AccountNameMaxRunes runes.
 func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	runes := utf8.RuneCountInString(newName)
+	if runes > AccountNameMaxRunes {
+		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)
+	}
 	prevBundle, _, err := remote.Fetch(m.Ctx(), m.G())
 	if err != nil {
 		return err
@@ -955,7 +1033,8 @@ func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newNam
 			// Change Name in place to modify Account struct.
 			nextBundle.Accounts[i].Name = newName
 			found = true
-			break
+		} else if acc.Name == newName {
+			return fmt.Errorf("you already have an account with that name")
 		}
 	}
 	if !found {
@@ -1058,7 +1137,7 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, kbTxID stellar1.KeybaseTransactionID) error {
+func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
 	if recipient.User == nil {
 		// only send if recipient is keybase username
 		return nil
@@ -1072,7 +1151,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		KbTxID: kbTxID.String(),
+		PaymentID: stellar1.PaymentID{TxID: txID},
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
@@ -1089,7 +1168,15 @@ type MakeRequestArg struct {
 	Note     string
 }
 
-func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+func MakeRequestGUI(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	return makeRequest(m, remoter, arg, false /* isCLI */)
+}
+
+func MakeRequestCLI(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg) (ret stellar1.KeybaseRequestID, err error) {
+	return makeRequest(m, remoter, arg, true /* isCLI */)
+}
+
+func makeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg, isCLI bool) (ret stellar1.KeybaseRequestID, err error) {
 	defer m.CTraceTimed("Stellar.MakeRequest", func() error { return err })()
 
 	if arg.Asset == nil && arg.Currency == nil {
@@ -1100,6 +1187,16 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 
 	if arg.Asset != nil && !arg.Asset.IsNativeXLM() {
 		return ret, fmt.Errorf("requesting non-XLM assets is not supported")
+	}
+
+	if arg.Asset != nil {
+		a, err := amount.ParseInt64(arg.Amount)
+		if err != nil {
+			return ret, err
+		}
+		if a <= 0 {
+			return ret, fmt.Errorf("must request positive amount of XLM")
+		}
 	}
 
 	if arg.Currency != nil {
@@ -1121,7 +1218,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 		return ret, errors.New("cannot send RequestPayment message: chat helper is nil")
 	}
 
-	recipient, err := LookupRecipient(m, arg.To)
+	recipient, err := LookupRecipient(m, arg.To, isCLI)
 	if err != nil {
 		return ret, err
 	}
@@ -1147,7 +1244,7 @@ func MakeRequest(m libkb.MetaContext, remoter remote.Remoter, arg MakeRequestArg
 	}
 
 	body := chat1.NewMessageBodyWithRequestpayment(chat1.MessageRequestPayment{
-		RequestID: requestID.String(),
+		RequestID: requestID,
 		Note:      arg.Note,
 	})
 

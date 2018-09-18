@@ -37,15 +37,23 @@ func TestPutAndGet(t *testing.T) {
 	tc := SetupTest(t, "team", 1)
 	defer tc.Cleanup()
 
+	tc2 := SetupTest(t, "team", 1)
+	defer tc2.Cleanup()
+
 	// Note that the length limit for a team name, with the additional suffix
 	// below, is 16 characters. We have 5 to play with, including the implicit
 	// underscore after the prefix.
 	u, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
 	require.NoError(t, err)
 
+	u2, err := kbtest.CreateAndSignupFakeUser("t", tc2.G)
+	require.NoError(t, err)
+
 	// Create two teams, so that we can test filtering by TeamID.
 	teamName1 := u.Username + "t1"
 	_, err = teams.CreateRootTeam(context.Background(), tc.G, teamName1, keybase1.TeamSettings{})
+	require.NoError(t, err)
+	_, err = teams.AddMember(context.Background(), tc.G, teamName1, u2.Username, keybase1.TeamRole_READER)
 	require.NoError(t, err)
 	team1, err := tc.G.GetTeamLoader().Load(context.Background(), keybase1.LoadTeamArg{Name: teamName1})
 	require.NoError(t, err)
@@ -100,6 +108,32 @@ func TestPutAndGet(t *testing.T) {
 	require.Equal(t, msgs[1].MsgType, chat1.MessageType_SYSTEM)
 	require.Equal(t, msgs[0].Body.System().Gitpush().RepoName, "repoNameFirst")
 	require.Equal(t, msgs[1].Body.System().Gitpush().RepoName, "repoNameSecond")
+
+	t.Logf("reset first user")
+	ResetAccountAndLogout(tc, u)
+
+	t.Logf("we can still read metadata last posted by reset user")
+	oneRepoList, err = GetMetadata(context.Background(), tc2.G, keybase1.Folder{
+		Name:       teamName1,
+		Private:    true,
+		FolderType: keybase1.FolderType_TEAM,
+	})
+	require.NoError(t, err)
+	require.Equal(t, 1, len(oneRepoList), "expected to get only one repo back, found: %d", len(oneRepoList))
+	oneRepo, err = oneRepoList[0].GetIfOk()
+	require.NoError(t, err)
+	require.Equal(t, "repoNameFirst", string(oneRepo.LocalMetadata.RepoName))
+	require.Equal(t, kbtest.DefaultDeviceName, oneRepo.ServerMetadata.LastModifyingDeviceName)
+	require.Equal(t, string(team1.Chain.Id+"_abc123"), oneRepo.GlobalUniqueID)
+	require.Equal(t, "keybase://team/"+teamName1+"/repoNameFirst", oneRepo.RepoUrl)
+	require.Equal(t, oneRepo.CanDelete, false)
+}
+
+func ResetAccountAndLogout(tc libkb.TestContext, u *kbtest.FakeUser) {
+	err := libkb.ResetAccount(libkb.NewMetaContextForTest(tc), u.NormalizedUsername(), u.Passphrase)
+	require.NoError(tc.T, err)
+	err = tc.G.Logout()
+	require.NoError(tc.T, err)
 }
 
 func TestDeleteRepo(t *testing.T) {
@@ -197,7 +231,7 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 
 	t.Logf("second repo")
 	repoName2 := keybase1.GitRepoName(fmt.Sprintf("two person %s repo", publicnessStr))
-	normalizedTLFName, err := kbfs.NormalizeNamesInTLF([]string{u1.Username, u2.Username}, nil, "")
+	normalizedTLFName, err := kbfs.NormalizeNamesInTLF(tc.G, []string{u1.Username, u2.Username}, nil, "")
 	require.NoError(t, err)
 	testFolder2 := keybase1.Folder{
 		Name:       normalizedTLFName,

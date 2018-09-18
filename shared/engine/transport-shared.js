@@ -1,9 +1,9 @@
 // @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
-import {localLog} from '../util/forward-logs'
-import {printRPC} from '../local-debug'
+import {printRPC, printRPCWaitingSession} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
+import * as LocalConsole from '../util/local-console'
 import * as Stats from './stats'
 
 const RobustTransport = rpc.transport.RobustTransport
@@ -13,9 +13,9 @@ const RpcClient = rpc.client.Client
 function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
   handler: F,
   type: string,
-  method?: string | ((...Array<any>) => string),
-  reason?: string,
-  extra?: Object | ((...Array<any>) => Object),
+  method: string | ((...Array<any>) => string),
+  reason: string,
+  extra: Object | ((...Array<any>) => Object),
   // we only want to enfoce a single callback on some wrapped things
   enforceOnlyOnce: boolean,
 |}): F {
@@ -47,33 +47,38 @@ function _wrap<A1, A2, A3, A4, A5, F: (A1, A2, A3, A4, A5) => void>(options: {|
 }
 
 // Logging for rpcs
-function rpcLog(info: {method: string, reason?: string, extra?: Object, type: string}): void {
+function rpcLog(info: {method: string, reason: string, extra?: Object, type: string}): void {
   if (!printRPC) {
     return
   }
 
+  if (!printRPCWaitingSession && info.type === 'engineInternal') {
+    return
+  }
+
   const prefix = {
-    engineInternal: '🏎 ℹ️',
-    engineToServer: '🏎 ↗️',
-    serverToEngine: '🏎 ⤵️',
+    engineInternal: '=',
+    engineToServer: '<< OUT',
+    serverToEngine: 'IN >>',
   }[info.type]
 
   requestIdleCallback(
     () => {
       const params = [info.reason, info.method, info.extra].filter(Boolean)
-      localLog(prefix, ...params)
+      LocalConsole.green(prefix, info.method, info.reason, ...params)
     },
     {timeout: 1e3}
   )
 }
+
+type InvokeArgs = {|program: string, method: string, args: [Object], notify: boolean|}
 
 class TransportShared extends RobustTransport {
   constructor(
     opts: Object,
     connectCallback: () => void,
     disconnectCallback: () => void,
-    incomingRPCCallback: (a: any) => void,
-    writeCallback: any
+    incomingRPCCallback: (a: any) => void
   ) {
     super(opts)
 
@@ -87,9 +92,6 @@ class TransportShared extends RobustTransport {
       },
     }
 
-    if (writeCallback) {
-      this.writeCallback = writeCallback
-    }
     if (incomingRPCCallback) {
       // delay the call back to us
       const handler = payload => {
@@ -155,17 +157,12 @@ class TransportShared extends RobustTransport {
     }
   }
 
-  invoke(arg: Object, cb: any) {
-    // args needs to be wrapped as an array for some reason so let's just do that here
-    const wrappedArgs = {
-      ...arg,
-      args: [arg.args || {}],
-    }
-
+  // Override RobustTransport.invoke.
+  invoke(arg: InvokeArgs, cb: any) {
     const wrappedInvoke = _wrap({
       enforceOnlyOnce: true,
-      extra: arg.args,
-      handler: args => {
+      extra: arg.args[0],
+      handler: (args: InvokeArgs) => {
         super.invoke(
           args,
           _wrap({
@@ -185,7 +182,7 @@ class TransportShared extends RobustTransport {
       type: 'engineToServer',
     })
 
-    wrappedInvoke(wrappedArgs)
+    wrappedInvoke(arg)
   }
 }
 

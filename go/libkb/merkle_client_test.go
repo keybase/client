@@ -2,7 +2,10 @@ package libkb
 
 import (
 	"encoding/json"
+	"reflect"
 	"testing"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestMerkleRootPayloadUnmarshalWithSkips(t *testing.T) {
@@ -59,6 +62,68 @@ func TestMerkleSkipVectors(t *testing.T) {
 		}
 		if me.t != v.e {
 			t.Fatalf("Got wrong error type in test %s: %v != %v", v.name, me.t, v.e)
+		}
+	}
+}
+
+func TestComputeSetBitsBigEndian(t *testing.T) {
+	tests := []struct {
+		x        uint
+		expected []uint
+	}{
+		{0, nil},
+		{1, []uint{1}},
+		{10, []uint{2, 8}},
+		{500, []uint{4, 16, 32, 64, 128, 256}},
+		{1023, []uint{1, 2, 4, 8, 16, 32, 64, 128, 256, 512}},
+		{1024, []uint{1024}},
+		{1025, []uint{1, 1024}},
+		{20000, []uint{32, 512, 1024, 2048, 16384}},
+	}
+	for _, test := range tests {
+		got := computeSetBitsBigEndian(uint(test.x))
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input %d, expected %v, got %v.", test.x, test.expected, got)
+		}
+	}
+}
+
+func TestComputeLogPatternMerkleSkips(t *testing.T) {
+	tests := []struct {
+		start    int
+		end      int
+		expected []uint
+	}{
+		{100, 2033, []uint{1009, 497, 241, 113, 105, 101}},
+		{100, 102, nil},
+		{100, 103, []uint{101}},
+	}
+	for _, test := range tests {
+		got := computeLogPatternMerkleSkips(keybase1.Seqno(test.start), keybase1.Seqno(test.end))
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input (%d, %d), expected %v, got %v.", test.start, test.end, test.expected, got)
+		}
+	}
+}
+
+func TestComputeExpectedRootSkips(t *testing.T) {
+	tests := []struct {
+		root     int
+		expected []uint
+	}{
+		{0, nil},
+		{1, nil},
+		{100, []uint{99, 98, 96, 92, 84, 68, 36}},
+		{255, []uint{254, 253, 251, 247, 239, 223, 191, 127}},
+		{256, []uint{255, 254, 252, 248, 240, 224, 192, 128}},
+		{257, []uint{256, 255, 253, 249, 241, 225, 193, 129, 1}},
+		{1000, []uint{999, 998, 996, 992, 984, 968, 936, 872, 744, 488}},
+		{2048, []uint{2047, 2046, 2044, 2040, 2032, 2016, 1984, 1920, 1792, 1536, 1024}},
+	}
+	for _, test := range tests {
+		got := computeExpectedRootSkips(uint(test.root))
+		if !reflect.DeepEqual(got, test.expected) {
+			t.Fatalf("Failed on input (%d), expected %v, got %v.", test.root, test.expected, got)
 		}
 	}
 }

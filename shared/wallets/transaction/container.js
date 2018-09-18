@@ -2,25 +2,30 @@
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: string,
+  paymentID: StellarRPCTypes.PaymentID,
+  status: Types.StatusSimplified,
 }
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _transaction:
+    ownProps.status === 'pending'
+      ? Constants.getPendingPayment(state, ownProps.accountID, ownProps.paymentID)
+      : Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID) =>
+  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
     dispatch(
       navigateAppend([
         {
-          props: {accountID, paymentID},
+          props: {accountID, paymentID, status},
           selected: 'transactionDetails',
         },
       ])
@@ -38,15 +43,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     delta: tx.delta,
     large: counterpartyType !== 'wallet',
-    memo: tx.note,
+    memo: tx.note.stringValue(),
     // TODO -- waiting on CORE integration for these two
     onCancelPayment: undefined,
     onRetryPayment: undefined,
-    // $FlowIssue undefined is incompatible with function
-    onSelectTransaction: () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    onSelectTransaction: () =>
+      dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
-    timestamp: tx.time,
+    timestamp: tx.time ? new Date(tx.time) : null,
     yourRole,
   }
 }

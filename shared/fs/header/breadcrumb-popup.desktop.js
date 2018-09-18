@@ -1,20 +1,24 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {ClickableBox, Icon, Box, Text} from '../../common-adapters'
+import {
+  ClickableBox,
+  Icon,
+  Box,
+  Text,
+  FloatingMenu,
+  OverlayParentHOC,
+  type OverlayParentProps,
+} from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 import PathItemIcon from '../common/path-item-icon'
-import FloatingMenu, {
-  FloatingMenuParentHOC,
-  type FloatingMenuParentProps,
-} from '../../common-adapters/floating-menu'
 
 type Props = {
   items: Array<Types.PathBreadcrumbItem>,
 }
 
-const BreadcrumbPopup = (props: Props & FloatingMenuParentProps) => (
+const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
   <Box>
     <ClickableBox
       style={stylesBreadcrumbDropdownIconBox}
@@ -25,7 +29,7 @@ const BreadcrumbPopup = (props: Props & FloatingMenuParentProps) => (
     </ClickableBox>
     <FloatingMenu
       containerStyle={stylePopup}
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
       items={props.items.reverse().map(({onClick, name, iconSpec}) => ({
@@ -69,4 +73,4 @@ const styleBreadcrumbDropdownIcon = {
   marginRight: globalMargins.xtiny,
 }
 
-export default FloatingMenuParentHOC(BreadcrumbPopup)
+export default OverlayParentHOC(BreadcrumbPopup)

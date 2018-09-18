@@ -1,6 +1,8 @@
 package teams
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -21,10 +23,12 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsUnverified", true)
 	defer tracer.Finish()
 
+	m := libkb.NewMetaContext(ctx, g)
+
 	tracer.Stage("Resolve QueryUID")
 	var queryUID keybase1.UID
 	if arg.UserAssertion != "" {
-		res := g.Resolver.ResolveFullExpression(ctx, arg.UserAssertion)
+		res := g.Resolver.ResolveFullExpression(m, arg.UserAssertion)
 		if res.GetError() != nil {
 			return nil, res.GetError()
 		}
@@ -37,19 +41,26 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	tracer.Stage("Server")
+
+	// We have a very simple cache in case we error out on this call. In the
+	// case of a network error we try to serve old cached data if we have some.
+	// The cache is updated on successful requests but otherwise unmaintained
+	// so should only be used if we are trying to return a best-effort result.
+	cacheKey := listTeamsUnverifiedCacheKey(meUID, queryUID, arg.IncludeImplicitTeams)
 	teams, err := getTeamsListFromServer(ctx, g, queryUID,
 		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams)
-	if err != nil {
-		return nil, err
-	}
-
-	if arg.UserAssertion == "" {
-		queryUID = meUID
-	}
-
-	tracer.Stage("LookupQueryUsername")
-	queryUsername, queryFullName, err := getUsernameAndFullName(context.Background(), g, queryUID)
-	if err != nil {
+	switch err.(type) {
+	case nil:
+		if err = g.GetKVStore().PutObj(cacheKey, nil, teams); err != nil {
+			m.CDebugf("| ListTeamsUnverified unable to put cache item: %v", err)
+		}
+	case libkb.APINetError:
+		if found, cerr := g.GetKVStore().GetInto(&teams, cacheKey); cerr != nil || !found {
+			// Nothing we can do here.
+			m.CDebugf("| ListTeamsUnverified unable to get cache item: %v, found: %v", cerr, found)
+			return nil, err
+		}
+	default:
 		return nil, err
 	}
 
@@ -62,9 +73,19 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		return res, nil
 	}
 
+	if arg.UserAssertion == "" {
+		queryUID = meUID
+	}
+
+	tracer.Stage("LookupQueryUsername")
+	queryUsername, queryFullName, err := getUsernameAndFullName(context.Background(), g, queryUID)
+	if err != nil {
+		return nil, err
+	}
+
 	for _, memberInfo := range teams {
 		if memberInfo.IsImplicitTeam && !arg.IncludeImplicitTeams {
-			g.Log.CDebugf(ctx, "| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
+			m.CDebugf("| ListTeamsUnverified skipping implicit team: server-team:%v server-uid:%v", memberInfo.TeamID, memberInfo.UserID)
 			continue
 		}
 
@@ -88,4 +109,11 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	}
 
 	return res, nil
+}
+
+func listTeamsUnverifiedCacheKey(meUID, queryUID keybase1.UID, includeImplicitTeams bool) libkb.DbKey {
+	return libkb.DbKey{
+		Typ: libkb.DBTeamList,
+		Key: fmt.Sprintf("%v-%v-%v", meUID, queryUID, includeImplicitTeams),
+	}
 }

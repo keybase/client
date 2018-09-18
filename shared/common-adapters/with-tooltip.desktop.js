@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalColors, styleSheetCreate} from '../styles'
+import * as Styles from '../styles'
 import Toast from './toast.desktop'
 import Text from './text'
 import {type Props} from './with-tooltip'
@@ -8,7 +8,7 @@ import {type Props} from './with-tooltip'
 type State = {
   mouseIn: boolean,
   visible: boolean,
-  attachmentRef: any,
+  attachmentRef: ?React.ElementRef<any>,
 }
 
 class WithTooltip extends React.Component<Props, State> {
@@ -46,7 +46,7 @@ class WithTooltip extends React.Component<Props, State> {
           <Toast
             containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
             visible={this.state.visible}
-            attachTo={this.state.attachmentRef}
+            attachTo={() => this.state.attachmentRef}
             position={this.props.position || 'top center'}
           >
             <Text type="BodySmall" style={styles.text}>
@@ -59,7 +59,7 @@ class WithTooltip extends React.Component<Props, State> {
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
     borderRadius: 20,
   },
@@ -69,9 +69,12 @@ const styles = styleSheetCreate({
     minWidth: 320,
     maxWidth: 320,
   },
-  text: {
-    color: globalColors.white,
-  },
+  text: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.white,
+      wordBreak: 'break-all',
+    },
+  }),
 })
 
 export default WithTooltip

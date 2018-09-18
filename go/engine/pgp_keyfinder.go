@@ -89,8 +89,8 @@ func (e *PGPKeyfinder) loadKeys(m libkb.MetaContext) {
 		keys := x.User.GetActivePGPKeys(true)
 		if len(keys) == 0 {
 			e.runerr = libkb.NoPGPEncryptionKeyError{
-				User:         x.User.GetName(),
-				HasDeviceKey: x.User.HasEncryptionSubkey(),
+				User: x.User.GetName(),
+				HasKeybaseEncryptionKey: x.User.HasEncryptionSubkey() || (x.User.GetComputedKeyFamily().GetLatestPerUserKey() != nil),
 			}
 			return
 		}

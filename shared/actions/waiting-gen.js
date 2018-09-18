@@ -6,7 +6,8 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of waiting but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'waiting:'
 export const changeWaiting = 'waiting:changeWaiting'
 export const clearWaiting = 'waiting:clearWaiting'
 export const decrementWaiting = 'waiting:decrementWaiting'

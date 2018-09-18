@@ -24,7 +24,6 @@ func NewPaperProvisionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *Paper
 }
 
 func (h *PaperProvisionHandler) PaperProvision(ctx context.Context, arg keybase1.PaperProvisionArg) error {
-
 	uis := libkb.UIs{
 		LogUI:       h.getLogUI(arg.SessionID),
 		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
@@ -34,9 +33,5 @@ func (h *PaperProvisionHandler) PaperProvision(ctx context.Context, arg keybase1
 	}
 	eng := engine.NewPaperProvisionEngine(h.G(), arg.Username, arg.DeviceName, arg.PaperKey)
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
-	err := engine.RunEngine2(m, eng)
-	if err != nil {
-		return err
-	}
-	return nil
+	return engine.RunEngine2(m, eng)
 }

@@ -31,13 +31,10 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
   }
 
   render() {
-    const {style, children, underlayColor, hoverColor, onClick, ...otherProps} = this.props
+    const {style, children, underlayColor, hoverColor, onClick, onDoubleClick, ...otherProps} = this.props
 
-    // div on desktop doesn't support onLongPress, but we allow the common
-    // ClickableBox component to pass one down for mobile, so strip it out here.
-    if (otherProps.onLongPress) {
-      delete otherProps.onLongPress
-    }
+    // filter out native-only calls
+    const {onPress, onLongPress, onPressIn, onPressOut, ...passThroughProps} = otherProps
 
     let underlay
 
@@ -63,13 +60,14 @@ class ClickableBox extends React.Component<Props & {children: any}, {mouseDown: 
 
     return (
       <div
-        {...otherProps}
+        {...passThroughProps}
         onMouseDown={this._onMouseDown}
         // Set onMouseEnter/Leave only if needed, so that any hover
         // properties of children elements work.
         onMouseEnter={needMouseEnterLeaveHandlers(this.props) ? this._onMouseEnter : undefined}
         onMouseLeave={needMouseEnterLeaveHandlers(this.props) ? this._onMouseLeave : undefined}
         onMouseUp={this._onMouseUp}
+        onDoubleClick={onDoubleClick}
         onClick={onClick}
         style={collapseStyles([_containerStyle, onClick ? desktopStyles.clickable : null, style])}
       >

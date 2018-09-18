@@ -1,9 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {WrapperTimestampProps, WrapperAuthorProps} from './index.types'
-
-class WrapperTimestamp extends React.PureComponent<WrapperTimestampProps> {}
-class WrapperAuthor extends React.PureComponent<WrapperAuthorProps> {}
-
-declare export {WrapperTimestamp}
-declare export {WrapperAuthor}

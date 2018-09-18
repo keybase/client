@@ -25,7 +25,7 @@ export const PeoplePageSearchBar = (
     styleSearchText?: any,
   }
 ) => (
-  <Box style={{...styleRowContainer, ...props.styleRowContainer}}>
+  <Box style={collapseStyles([styleRowContainer, props.styleRowContainer])}>
     <ClickableBox
       onClick={props.onSearch}
       style={collapseStyles([styleSearchContainer, props.styleSearchContainer])}
@@ -57,7 +57,7 @@ const styleRowContainer = {
 export const PeoplePageList = (props: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
     {props.newItems.map(item => itemToComponent(item, props))}
-    <FollowSuggestions suggestions={props.followSuggestions} onClickUser={props.onClickUser} />
+    <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
   </Box>
 )
@@ -67,7 +67,7 @@ const styleSearchContainer = {
   ...desktopStyles.clickable,
   alignItems: 'center',
   alignSelf: 'center',
-  backgroundColor: globalColors.black_05,
+  backgroundColor: globalColors.black_10,
   borderRadius: 100,
   justifyContent: 'center',
   zIndex: 20,

@@ -1,4 +1,5 @@
-// @flow
+// @flow strict
+// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 
 export type _GitInfo = {
@@ -17,6 +18,7 @@ export type _GitInfo = {
 export type GitInfo = I.RecordOf<_GitInfo>
 export type _State = {
   error: ?Error,
+  lastLoad: ?number,
   idToInfo: I.Map<string, GitInfo>,
   isNew: I.Set<string>,
 }

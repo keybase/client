@@ -118,7 +118,13 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Recipient:    bob.username,
 		Amount:       "50",
 	}
-	require.NoError(t, cmd.Run())
+	for i := 0; i < retryCount; i++ {
+		err = cmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
 
 	t.Logf("alice sends a second relay payment to bob P2")
 	cmd = client.CmdWalletSend{
@@ -126,7 +132,13 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Recipient:    bob.username,
 		Amount:       "30",
 	}
-	require.NoError(t, cmd.Run())
+	for i := 0; i < retryCount; i++ {
+		err = cmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
 
 	t.Logf("get the impteam seqno to wait on later")
 	team, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, alice.username+","+bob.username, false)
@@ -185,7 +197,13 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 		Amount:       "10",
 		ForceRelay:   true,
 	}
-	require.NoError(t, cmd.Run())
+	for i := 0; i < retryCount; i++ {
+		err = cmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
 
 	pollFor(t, "final claim to complete", pollTime, bob.tc.G, func(i int) bool {
 		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)

@@ -3,10 +3,10 @@ import * as Types from '../../../../constants/types/chat2'
 import TextMessage from '.'
 import {mapProps} from '../../../../util/container'
 
-type Props = {
+type Props = {|
   isEditing: boolean,
   message: Types.MessageText,
-}
+|}
 export default mapProps((props: Props) => ({
   isEditing: props.isEditing,
   mentionsAt: props.message.mentionsAt,

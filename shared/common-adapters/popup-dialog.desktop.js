@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon} from './'
+import Box from './box'
+import Icon from './icon'
 import EscapeHandler from '../util/escape-handler'
 import {globalColors, globalMargins, globalStyles, collapseStyles} from '../styles'
 
@@ -64,6 +65,7 @@ const coverStyle = {
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
+  zIndex: 30, // Put the popup on top of any sticky section headers.
 }
 
 const containerStyle = {

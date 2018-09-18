@@ -38,16 +38,16 @@ export default function(state: Types.State = initialState, action: UnlockFolders
           })
         )
       )
-      return state
-        .set('popupOpen', !!devices.count())
-        .set('devices', devices)
-        .set('sessionID', action.payload.sessionID)
+      return state.merge({
+        devices: devices,
+        popupOpen: !!devices.count(),
+        sessionID: action.payload.sessionID,
+      })
     }
     // Saga only actions
     case UnlockFoldersGen.checkPaperKey:
     case UnlockFoldersGen.closePopup:
     case UnlockFoldersGen.openPopup:
-    case UnlockFoldersGen.registerRekeyListener:
       return state
     default:
       /*::

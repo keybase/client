@@ -24,7 +24,7 @@ const Header = (props: HeaderProps) => (
           E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>
         <Text
-          type="BodySmallSemiboldInlineLink"
+          type="BodySmallSemiboldSecondaryLink"
           backgroundMode="Announcements"
           className="underline"
           onClickURL="https://keybase.io/blog/keybase-exploding-messages"
@@ -104,12 +104,16 @@ const SetExplodePopup = (props: Props) => {
   return (
     <FloatingMenu
       attachTo={props.attachTo}
-      position="top center"
+      position="top left"
       visible={props.visible}
       header={{title: 'announcement-header', view: <Header isNew={props.isNew} />}}
       closeOnSelect={true}
       onHidden={props.onHidden}
       items={listItems}
+      containerStyle={{
+        bottom: 3,
+        position: 'relative',
+      }}
     />
   )
 }

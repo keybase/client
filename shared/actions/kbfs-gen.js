@@ -6,7 +6,8 @@ import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of kbfs but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of kbfs but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'kbfs:'
 export const clearFuseInstall = 'kbfs:clearFuseInstall'
 export const fuseStatus = 'kbfs:fuseStatus'
 export const fuseStatusUpdate = 'kbfs:fuseStatusUpdate'

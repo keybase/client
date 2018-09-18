@@ -4,7 +4,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
-import {collapseStyles, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   conversationIDKey: Types.ConversationIDKey,
@@ -62,7 +62,7 @@ class ReactionsRow extends React.Component<Props, State> {
               style={styles.button}
             />
             <ReactionTooltip
-              attachmentRef={this._attachmentRefs[emoji]}
+              attachmentRef={() => this._attachmentRefs[emoji]}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
               onHidden={() => {}}
@@ -78,7 +78,8 @@ class ReactionsRow extends React.Component<Props, State> {
           showBorder={true}
           style={collapseStyles([
             styles.button,
-            !this.state.showAddReaction && !isMobile && styles.displayNone,
+            // Important to the animation for this to be `visibility: hidden`
+            !this.state.showAddReaction && !isMobile && styles.visibilityHidden,
           ])}
         />
         <ReactionTooltip
@@ -97,10 +98,11 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    marginLeft: 56,
-    paddingRight: 50,
+    // refer to `WrapperAuthor` styles
+    marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
+    paddingRight: 66,
   },
-  displayNone: {display: 'none'},
+  visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })
 
 export default ReactionsRow

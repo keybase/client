@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/pager"
@@ -24,6 +25,7 @@ type ResultCollector interface {
 	Result() []chat1.MessageUnboxed
 	Error(err Error) Error
 	Name() string
+	SetTarget(num int)
 
 	String() string
 }
@@ -115,8 +117,8 @@ func decode(data []byte, res interface{}) error {
 
 // SimpleResultCollector aggregates all results in a basic way. It is not thread safe.
 type SimpleResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
 }
 
 var _ ResultCollector = (*SimpleResultCollector)(nil)
@@ -126,13 +128,14 @@ func (s *SimpleResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() {
 		s.cur++
 	}
+	s.curScan++
 }
 
 func (s *SimpleResultCollector) Done() bool {
 	if s.target < 0 {
 		return false
 	}
-	return s.cur >= s.target
+	return s.cur >= s.target || s.curScan >= maxFetchNum
 }
 
 func (s *SimpleResultCollector) Result() []chat1.MessageUnboxed {
@@ -159,6 +162,10 @@ func (s *SimpleResultCollector) Error(err Error) Error {
 
 func (s *SimpleResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	return false
+}
+
+func (s *SimpleResultCollector) SetTarget(num int) {
+	s.target = num
 }
 
 func NewSimpleResultCollector(num int) *SimpleResultCollector {
@@ -203,6 +210,8 @@ func (s *InsatiableResultCollector) Error(err Error) Error {
 	return err
 }
 
+func (s *InsatiableResultCollector) SetTarget(num int) {}
+
 func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 	// Missing messages are a-ok
 	return true
@@ -210,9 +219,9 @@ func (s *InsatiableResultCollector) PushPlaceholder(chat1.MessageID) bool {
 
 // TypedResultCollector aggregates results with a type constraints. It is not thread safe.
 type TypedResultCollector struct {
-	res         []chat1.MessageUnboxed
-	target, cur int
-	typmap      map[chat1.MessageType]bool
+	res                  []chat1.MessageUnboxed
+	target, cur, curScan int
+	typmap               map[chat1.MessageType]bool
 }
 
 var _ ResultCollector = (*TypedResultCollector)(nil)
@@ -233,13 +242,14 @@ func (t *TypedResultCollector) Push(msg chat1.MessageUnboxed) {
 	if !msg.IsValidDeleted() && t.typmap[msg.GetMessageType()] {
 		t.cur++
 	}
+	t.curScan++
 }
 
 func (t *TypedResultCollector) Done() bool {
 	if t.target < 0 {
 		return false
 	}
-	return t.cur >= t.target
+	return t.cur >= t.target || t.curScan >= maxFetchNum
 }
 
 func (t *TypedResultCollector) Result() []chat1.MessageUnboxed {
@@ -266,6 +276,10 @@ func (t *TypedResultCollector) Error(err Error) Error {
 
 func (t *TypedResultCollector) PushPlaceholder(msgID chat1.MessageID) bool {
 	return false
+}
+
+func (t *TypedResultCollector) SetTarget(num int) {
+	t.target = num
 }
 
 type HoleyResultCollector struct {
@@ -335,7 +349,7 @@ func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, 
 type MergeResult struct {
 	Expunged        *chat1.Expunge
 	Exploded        []chat1.MessageUnboxed
-	ReactionDeletes []chat1.ReactionDelete
+	ReactionTargets []chat1.MessageUnboxed
 }
 
 type FetchResult struct {
@@ -387,11 +401,11 @@ func (s *Storage) MergeHelper(ctx context.Context,
 	}
 
 	// Update supersededBy pointers
-	reactionDeletes, err := s.updateAllSupersededBy(ctx, convID, uid, msgs)
+	reactionTargets, err := s.updateAllSupersededBy(ctx, convID, uid, msgs)
 	if err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
 	}
-	res.ReactionDeletes = reactionDeletes
+	res.ReactionTargets = reactionTargets
 
 	if err = s.updateMinDeletableMessage(ctx, convID, uid, msgs); err != nil {
 		return res, s.MaybeNuke(ctx, false, err, convID, uid)
@@ -421,16 +435,24 @@ func (s *Storage) MergeHelper(ctx context.Context,
 }
 
 func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, msgs []chat1.MessageUnboxed) ([]chat1.ReactionDelete, Error) {
-	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(msgs))
+	uid gregor1.UID, inMsgs []chat1.MessageUnboxed) ([]chat1.MessageUnboxed, Error) {
+	s.Debug(ctx, "updateSupersededBy: num msgs: %d", len(inMsgs))
 	// Do a pass over all the messages and update supersededBy pointers
 	var allAssets []chat1.Asset
-	var reactionDeletes []chat1.ReactionDelete
+	// We return a set of reaction targets that have been updated
+	updatedReactionTargets := map[chat1.MessageID]chat1.MessageUnboxed{}
 
+	// Sort in reverse order so this playback works as it would have if we received these
+	// in real-time
+	msgs := make([]chat1.MessageUnboxed, len(inMsgs))
+	copy(msgs, inMsgs)
+	sort.Slice(msgs, func(i, j int) bool {
+		return msgs[i].GetMessageID() < msgs[j].GetMessageID()
+	})
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as error: %d", msgid)
+			s.Debug(ctx, "updateSupersededBy: skipping potential superseder marked as not valid: %v", msg.DebugString())
 			continue
 		}
 
@@ -463,40 +485,43 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 				s.Debug(ctx, "updateSupersededBy: writing: id: %d superseded: %d", msgid, supersededID)
 				mvalid := superMsg.Valid()
 
-				// reactions don't update SupersededBy, instead they rely on
-				// ReactionIDs
-				if msg.GetMessageType() == chat1.MessageType_REACTION {
-					mvalid.ServerHeader.ReactionIDs = s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
-				} else {
+				newMsgs := []chat1.MessageUnboxed{}
+				switch msg.GetMessageType() {
+				case chat1.MessageType_REACTION:
+					// If we haven't modified any reaction data, we don't want
+					// to send it up for a notification.
+					reactionUpdate := false
+					// reactions don't update SupersededBy, instead they rely
+					// on ReactionIDs
+					mvalid.ServerHeader.ReactionIDs, reactionUpdate = s.updateReactionIDs(mvalid.ServerHeader.ReactionIDs, msgid)
+					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsgs = append(newMsgs, newMsg)
+					if reactionUpdate {
+						updatedReactionTargets[superMsg.GetMessageID()] = newMsg
+					}
+				case chat1.MessageType_DELETE:
 					mvalid.ServerHeader.SupersededBy = msgid
-				}
-
-				var newMsgs []chat1.MessageUnboxed
-				if msg.GetMessageType() == chat1.MessageType_DELETE {
 					// We have to find the message we are reacting to and
 					// update it's ReactionIDs as well.
 					if superMsg.GetMessageType() == chat1.MessageType_REACTION {
-						newTargetMsg, err := s.updateReactionTargetOnDelete(ctx, convID, uid, superMsg)
+						newTargetMsg, reactionUpdate, err := s.updateReactionTargetOnDelete(ctx, convID, uid, superMsg)
 						if err != nil {
 							return nil, err
 						} else if newTargetMsg != nil {
-							// Package this up so we can notify the frontend of
-							// this change.
-							reactionDeletes = append(reactionDeletes, chat1.ReactionDelete{
-								ReactionKey:   superMsg.Valid().MessageBody.Reaction().Body,
-								ReactionMsgID: superMsg.GetMessageID(),
-								TargetMsgID:   newTargetMsg.GetMessageID(),
-							})
+							if reactionUpdate {
+								updatedReactionTargets[newTargetMsg.GetMessageID()] = *newTargetMsg
+							}
 							newMsgs = append(newMsgs, *newTargetMsg)
 						}
 					}
 					msgPurged, assets := s.purgeMessage(mvalid)
 					allAssets = append(allAssets, assets...)
 					newMsgs = append(newMsgs, msgPurged)
-				} else {
-					newMsgs = append(newMsgs, chat1.NewMessageUnboxedWithValid(mvalid))
+				default:
+					mvalid.ServerHeader.SupersededBy = msgid
+					newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
+					newMsgs = append(newMsgs, newMsg)
 				}
-
 				if err = s.engine.WriteMessages(ctx, convID, uid, newMsgs); err != nil {
 					return nil, err
 				}
@@ -509,7 +534,14 @@ func (s *Storage) updateAllSupersededBy(ctx context.Context, convID chat1.Conver
 
 	// queue asset deletions in the background
 	s.assetDeleter.DeleteAssets(ctx, uid, convID, allAssets)
-	return reactionDeletes, nil
+	// Send back the ids of messages that were updated with reactions so we can
+	// send to the UI.
+	reactionTargets := []chat1.MessageUnboxed{}
+	for _, msg := range updatedReactionTargets {
+		reactionTargets = append(reactionTargets, msg)
+	}
+
+	return reactionTargets, nil
 }
 
 func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.ConversationID,
@@ -524,7 +556,7 @@ func (s *Storage) updateMinDeletableMessage(ctx context.Context, convID chat1.Co
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if !chat1.IsDeletableByDeleteHistory(msg.GetMessageType()) {
@@ -579,7 +611,7 @@ func (s *Storage) handleDeleteHistory(ctx context.Context, convID chat1.Conversa
 	for _, msg := range msgs {
 		msgid := msg.GetMessageID()
 		if !msg.IsValid() {
-			de("skipping message marked as error: %d", msgid)
+			de("skipping message marked as not valid: %v", msg.DebugString())
 			continue
 		}
 		if msg.GetMessageType() != chat1.MessageType_DELETEHISTORY {
@@ -681,7 +713,7 @@ func (s *Storage) applyExpunge(ctx context.Context, convID chat1.ConversationID,
 			continue
 		}
 		if !msg.IsValid() {
-			de("skipping invalid msg: %v", msg.GetMessageID())
+			de("skipping invalid msg: %v", msg.DebugString())
 			continue
 		}
 		mvalid := msg.Valid()
@@ -911,6 +943,8 @@ func (s *Storage) Fetch(ctx context.Context, conv chat1.Conversation,
 
 func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msgIDs []chat1.MessageID) (res []*chat1.MessageUnboxed, err Error) {
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
 	defer s.Trace(ctx, func() error { return err }, "FetchMessages")()
 	if err = isAbortedRequest(ctx); err != nil {
 		return res, err
@@ -976,29 +1010,29 @@ func (s *Storage) getMessage(ctx context.Context, convID chat1.ConversationID, u
 
 // updateReactionIDs appends `msgid` to `reactionIDs` if it is not already
 // present.
-func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.MessageID) []chat1.MessageID {
+func (s *Storage) updateReactionIDs(reactionIDs []chat1.MessageID, msgid chat1.MessageID) ([]chat1.MessageID, bool) {
 	for _, reactionID := range reactionIDs {
 		if reactionID == msgid {
-			return reactionIDs
+			return reactionIDs, false
 		}
 	}
-	return append(reactionIDs, msgid)
+	return append(reactionIDs, msgid), true
 }
 
 // updateReactionTargetOnDelete modifies the reaction's target message when the
 // reaction itself is deleted
 func (s *Storage) updateReactionTargetOnDelete(ctx context.Context, convID chat1.ConversationID,
-	uid gregor1.UID, reactionMsg *chat1.MessageUnboxed) (*chat1.MessageUnboxed, Error) {
+	uid gregor1.UID, reactionMsg *chat1.MessageUnboxed) (*chat1.MessageUnboxed, bool, Error) {
 	s.Debug(ctx, "updateReactionTargetOnDelete: reationMsg: %v", reactionMsg)
 
 	if reactionMsg.Valid().MessageBody.IsNil() {
-		return nil, nil
+		return nil, false, nil
 	}
 
 	targetMsgID := reactionMsg.Valid().MessageBody.Reaction().MessageID
 	targetMsg, err := s.getMessage(ctx, convID, uid, targetMsgID)
 	if err != nil || targetMsg == nil {
-		return nil, err
+		return nil, false, err
 	}
 	if targetMsg.IsValid() {
 		mvalid := targetMsg.Valid()
@@ -1008,11 +1042,12 @@ func (s *Storage) updateReactionTargetOnDelete(ctx context.Context, convID chat1
 				reactionIDs = append(reactionIDs, msgID)
 			}
 		}
+		updated := len(mvalid.ServerHeader.ReactionIDs) != len(reactionIDs)
 		mvalid.ServerHeader.ReactionIDs = reactionIDs
 		newMsg := chat1.NewMessageUnboxedWithValid(mvalid)
-		return &newMsg, nil
+		return &newMsg, updated, nil
 	}
-	return nil, nil
+	return nil, false, nil
 }
 
 // Clears the body of a message and returns any assets to be deleted.

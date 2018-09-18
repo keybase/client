@@ -1,7 +1,6 @@
 // @flow
 import logger from '../logger'
 import rootReducer from '../reducers'
-import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
 import {convertToError} from '../util/errors'
 import {createLogger} from 'redux-logger'
@@ -11,6 +10,7 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import {run as runSagas, create as createSagaMiddleware} from './configure-sagas'
+import * as LocalConsole from '../util/local-console'
 
 let theStore: Store
 
@@ -32,12 +32,14 @@ const crashHandler = error => {
 let loggerMiddleware: any
 
 if (enableStoreLogging) {
+  // we don't print the state twice, lets just do it once per action
+  let logStateOk = false
   loggerMiddleware = createLogger({
     actionTransformer: (...args) => {
       if (filterActionLogs) {
         args[0].type.match(filterActionLogs) && logger.info('Action:', ...args)
       } else if (args[0] && args[0].type) {
-        logger.info('Action:', ...args)
+        LocalConsole.gray('Action:', args[0].type, '', args[0])
       }
       return null
     },
@@ -52,8 +54,13 @@ if (enableStoreLogging) {
       warn: () => {},
     },
     stateTransformer: (...args) => {
-      // This is noisy, so let's not show it while filtering action logs
-      !filterActionLogs && console.log('State:', ...args) // DON'T use the logger here, we never want this in the logs
+      if (logStateOk) {
+        // This is noisy, so let's not show it while filtering action logs
+        !filterActionLogs && LocalConsole.purpleObject('State:', ...args) // DON'T use the logger here, we never want this in the logs
+        logStateOk = false
+      } else {
+        logStateOk = true
+      }
       return null
     },
     titleFormatter: () => null,
@@ -80,10 +87,11 @@ const errorCatching = store => next => action => {
   }
 }
 
+export const sagaMiddleware = createSagaMiddleware(crashHandler)
+
 const middlewares = [
   errorCatching,
-  createSagaMiddleware(crashHandler),
-  thunkMiddleware,
+  sagaMiddleware,
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
 ]

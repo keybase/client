@@ -167,6 +167,28 @@
     },
     {
       "type": "record",
+      "name": "DirentWithRevision",
+      "fields": [
+        {
+          "type": "Dirent",
+          "name": "entry"
+        },
+        {
+          "type": "KBFSRevision",
+          "name": "revision"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "RevisionSpanType",
+      "symbols": [
+        "DEFAULT_0",
+        "LAST_FIVE_1"
+      ]
+    },
+    {
+      "type": "record",
       "name": "ErrorNum",
       "fields": [],
       "typedef": "int"
@@ -231,7 +253,8 @@
         "COPY_4",
         "MOVE_5",
         "REMOVE_6",
-        "LIST_RECURSIVE_TO_DEPTH_7"
+        "LIST_RECURSIVE_TO_DEPTH_7",
+        "GET_REVISIONS_8"
       ]
     },
     {
@@ -373,6 +396,24 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetRevisionsArgs",
+      "fields": [
+        {
+          "type": "OpID",
+          "name": "opID"
+        },
+        {
+          "type": "Path",
+          "name": "path"
+        },
+        {
+          "type": "RevisionSpanType",
+          "name": "spanType"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "OpDescription",
       "switch": {
@@ -435,6 +476,30 @@
             "def": false
           },
           "body": "RemoveArgs"
+        },
+        {
+          "label": {
+            "name": "GET_REVISIONS",
+            "def": false
+          },
+          "body": "GetRevisionsArgs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetRevisionsResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "DirentWithRevision"
+          },
+          "name": "revisions"
+        },
+        {
+          "type": "Progress",
+          "name": "progress"
         }
       ]
     },
@@ -767,6 +832,34 @@
       "response": "Dirent",
       "doc": "Get info about file"
     },
+    "simpleFSGetRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        },
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "spanType",
+          "type": "RevisionSpanType"
+        }
+      ],
+      "response": null,
+      "doc": "Get revision info for a directory entry"
+    },
+    "simpleFSReadRevisions": {
+      "request": [
+        {
+          "name": "opID",
+          "type": "OpID"
+        }
+      ],
+      "response": "GetRevisionsResult",
+      "doc": "Get list of revisions in progress. Can indicate status of pending\n   to get more revisions."
+    },
     "simpleFSMakeOpid": {
       "request": [],
       "response": "OpID",
@@ -826,7 +919,12 @@
       "doc": "Instructs KBFS to dump debugging info into its logs."
     },
     "simpleFSSyncStatus": {
-      "request": [],
+      "request": [
+        {
+          "name": "filter",
+          "type": "ListFilter"
+        }
+      ],
       "response": "FSSyncStatus",
       "doc": "Get sync status."
     },
@@ -853,15 +951,6 @@
       ],
       "response": "FSFolderEditHistory",
       "doc": "simpleFSFolderEditHistory returns the edit history for the TLF\n   described by `path`, for the most recent writers of that TLF.\n   The writers are in descending order by the modification time (as\n   recorded by the server) of their most recent edit."
-    },
-    "simpleFSSuppressNotifications": {
-      "request": [
-        {
-          "name": "suppressDurationSec",
-          "type": "int"
-        }
-      ],
-      "response": null
     },
     "simpleFSGetUserQuotaUsage": {
       "request": [],

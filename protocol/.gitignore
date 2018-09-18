@@ -3,3 +3,4 @@ node_modules/
 objc-build-stamp
 swift-build-stamp
 go-build-stamp
+js/

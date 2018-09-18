@@ -5,13 +5,16 @@
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Types from '../constants/types/notifications'
+import * as Tabs from '../constants/tabs'
 
 // Constants
-export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer
+export const resetStore = 'common:resetStore' // not a part of notifications but is handled by every reducer. NEVER dispatch this
+export const typePrefix = 'notifications:'
 export const badgeApp = 'notifications:badgeApp'
 export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
 export const listenForNotifications = 'notifications:listenForNotifications'
 export const receivedBadgeState = 'notifications:receivedBadgeState'
+export const setAppBadgeState = 'notifications:setAppBadgeState'
 
 // Payload Types
 type _BadgeAppPayload = $ReadOnly<{|
@@ -22,18 +25,25 @@ type _BadgeAppPayload = $ReadOnly<{|
 type _ListenForKBFSNotificationsPayload = void
 type _ListenForNotificationsPayload = void
 type _ReceivedBadgeStatePayload = $ReadOnly<{|badgeState: RPCTypes.BadgeState|}>
+type _SetAppBadgeStatePayload = $ReadOnly<{|
+  desktopAppBadgeCount: number,
+  mobileAppBadgeCount: number,
+  navBadges: I.Map<Tabs.Tab, number>,
+|}>
 
 // Action Creators
 export const createBadgeApp = (payload: _BadgeAppPayload) => ({error: false, payload, type: badgeApp})
 export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({error: false, payload, type: listenForKBFSNotifications})
 export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({error: false, payload, type: listenForNotifications})
 export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({error: false, payload, type: receivedBadgeState})
+export const createSetAppBadgeState = (payload: _SetAppBadgeStatePayload) => ({error: false, payload, type: setAppBadgeState})
 
 // Action Payloads
 export type BadgeAppPayload = $Call<typeof createBadgeApp, _BadgeAppPayload>
 export type ListenForKBFSNotificationsPayload = $Call<typeof createListenForKBFSNotifications, _ListenForKBFSNotificationsPayload>
 export type ListenForNotificationsPayload = $Call<typeof createListenForNotifications, _ListenForNotificationsPayload>
 export type ReceivedBadgeStatePayload = $Call<typeof createReceivedBadgeState, _ReceivedBadgeStatePayload>
+export type SetAppBadgeStatePayload = $Call<typeof createSetAppBadgeState, _SetAppBadgeStatePayload>
 
 // All Actions
 // prettier-ignore
@@ -42,4 +52,5 @@ export type Actions =
   | ListenForKBFSNotificationsPayload
   | ListenForNotificationsPayload
   | ReceivedBadgeStatePayload
+  | SetAppBadgeStatePayload
   | {type: 'common:resetStore', payload: void}

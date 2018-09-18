@@ -4,7 +4,7 @@ import ReactList from 'react-list'
 import Box from './box'
 import ScrollView from './scroll-view'
 import type {Props} from './section-list'
-import {platformStyles, styleSheetCreate} from '../styles'
+import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
 
 // NOTE: this ReactList is of type `simple` (by default)
 // setting it to `variable` or something more complex
@@ -57,6 +57,10 @@ class SectionList extends React.Component<Props, State> {
 
   _itemRenderer = (index, key) => {
     const item = this.state.items[index]
+    if (!item) {
+      // data is switching out from under us. let things settle
+      return null
+    }
     const section = this.props.sections[item.sectionIndex]
     if (!section) {
       // data is switching out from under us. let things settle
@@ -64,7 +68,7 @@ class SectionList extends React.Component<Props, State> {
     }
     const indexWithinSection = section.data.indexOf(item.item)
     return item.type === 'header' ? (
-      <Box key={item.key || key} style={styles.sectionHeader}>
+      <Box key={item.key || key} style={this.props.stickySectionHeadersEnabled && styles.stickySectionHeader}>
         {this.props.renderSectionHeader({section})}
       </Box>
     ) : (
@@ -74,7 +78,7 @@ class SectionList extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView style={styles.fullHeight}>
+      <ScrollView style={collapseStyles([styles.fullHeight, this.props.style])}>
         <ReactList itemRenderer={this._itemRenderer} length={this.state.items.length} />
       </ScrollView>
     )
@@ -85,7 +89,7 @@ const styles = styleSheetCreate({
   fullHeight: {
     height: '100%',
   },
-  sectionHeader: platformStyles({
+  stickySectionHeader: platformStyles({
     isElectron: {
       position: 'sticky',
       top: 0,

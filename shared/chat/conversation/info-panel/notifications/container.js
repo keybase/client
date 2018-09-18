@@ -10,7 +10,6 @@ import {
   setDisplayName,
   withStateHandlers,
   type TypedState,
-  type Dispatch,
 } from '../../../../util/container'
 
 type OwnProps = {
@@ -29,7 +28,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {conversationIDKey}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
   _onMuteConversation: (muted: boolean) =>
     dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted})),
   _updateNotifications: (

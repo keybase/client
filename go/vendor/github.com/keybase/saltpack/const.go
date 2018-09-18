@@ -12,6 +12,12 @@ type MessageType int
 // In general, the former is one more than the latter.
 type packetSeqno uint64
 
+// MessageTypeUnknown is used by the decoding functions
+// to indicate an unknown message type or a decoding error.
+// This is NOT a constant in the saltpack spec, and is specific
+// to this library implementation.
+const MessageTypeUnknown MessageType = -1
+
 // MessageTypeEncryption is a packet type to describe an
 // encryption message.
 const MessageTypeEncryption MessageType = 0

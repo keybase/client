@@ -1,23 +1,55 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Icon, Text, Box, iconCastPlatformStyles} from '../../../../../common-adapters'
-import {type FloatingMenuParentProps} from '../../../../../common-adapters/floating-menu'
+import * as Types from '../../../../../constants/types/chat2'
+import {Avatar, Text, Box} from '../../../../../common-adapters'
 import {
+  desktopStyles,
   globalStyles,
   globalMargins,
   globalColors,
-  isMobile,
   platformStyles,
   styleSheetCreate,
   collapseStyles,
 } from '../../../../../styles'
+import TextMessage from '../../text/container'
+import AttachmentMessage from '../../attachment/container'
+import PaymentMessage from '../../account-payment/container'
 import SendIndicator from '../chat-send'
-import MessagePopup from '../../message-popup'
 import ExplodingHeightRetainer from '../exploding-height-retainer'
-import ExplodingMeta from '../exploding-meta'
-import ReactButton from '../../react-button/container'
 
-import type {WrapperAuthorProps} from '../index.types'
+export type Props = {|
+  author: string,
+  conversationIDKey: Types.ConversationIDKey,
+  exploded: boolean,
+  explodedBy: string,
+  explodesAt: number,
+  exploding: boolean,
+  failureDescription: string,
+  includeHeader: boolean,
+  isBroken: boolean,
+  isEdited: boolean,
+  isEditing: boolean,
+  isExplodingUnreadable: boolean,
+  isFollowing: boolean,
+  isYou: boolean,
+  measure: null | (() => void),
+  message:
+    | Types.MessageText
+    | Types.MessageAttachment
+    | Types.MessageSendPayment
+    | Types.MessageRequestPayment,
+  messageFailed: boolean,
+  messageKey: string,
+  messagePending: boolean,
+  messageSent: boolean,
+  onRetry: null | (() => void),
+  onEdit: null | (() => void),
+  onCancel: null | (() => void),
+  onAuthorClick: () => void,
+  ordinal: Types.Ordinal,
+  timestamp: number,
+  toggleMessageMenu: () => void,
+|}
 
 const colorForAuthor = (user: string, isYou: boolean, isFollowing: boolean, isBroken: boolean) => {
   if (isYou) {
@@ -38,35 +70,23 @@ const UserAvatar = ({author, onAuthorClick}) => (
 
 const Username = ({username, isYou, isFollowing, isBroken, onClick}) => {
   const style = collapseStyles([
+    desktopStyles.clickable,
     styles.username,
     isYou && styles.usernameYou,
     {color: colorForAuthor(username, isYou, isFollowing, isBroken)},
   ])
   return (
-    <Text type="BodySmallSemibold" onClick={onClick} className="hover-underline" style={style}>
+    <Text
+      type="BodySmallSemibold"
+      onClick={onClick}
+      className="hover-underline"
+      selectable={true}
+      style={style}
+    >
       {username}
     </Text>
   )
 }
-
-const MenuButtons = ({conversationIDKey, onClick, ordinal, setRef}) => (
-  <Box className="menu-button" style={styles.menuButtons}>
-    <ReactButton
-      conversationIDKey={conversationIDKey}
-      ordinal={ordinal}
-      showBorder={false}
-      tooltipEnabled={false}
-    />
-    <Box ref={setRef}>
-      <Icon
-        type="iconfont-ellipsis"
-        style={iconCastPlatformStyles(styles.ellipsis)}
-        onClick={onClick}
-        fontSize={16}
-      />
-    </Box>
-  </Box>
-)
 
 const EditedMark = () => (
   <Text type="BodyTiny" style={styles.edited}>
@@ -108,8 +128,6 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
   )
 }
 
-const sendIndicatorWidth = 32
-
 const LeftSide = props => (
   <Box style={styles.leftSide}>
     {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
@@ -142,37 +160,17 @@ const RightSide = props => (
           style={styles.flexOneColumn}
           retainHeight={props.exploded || props.isExplodingUnreadable}
         >
-          <props.innerClass
-            message={props.message}
-            isEditing={props.isEditing}
-            toggleShowingMenu={props.toggleShowingMenu}
-          />
+          {props.message.type === 'text' && (
+            <TextMessage message={props.message} isEditing={props.isEditing} />
+          )}
+          {props.message.type === 'attachment' && (
+            <AttachmentMessage message={props.message} toggleMessageMenu={props.toggleMessageMenu} />
+          )}
+          {(props.message.type === 'sendPayment' || props.message.type === 'requestPayment') && (
+            <PaymentMessage message={props.message} />
+          )}
           {props.isEdited && <EditedMark />}
         </ExplodingHeightRetainer>
-        {!isMobile &&
-          !props.exploded && (
-            <MenuButtons
-              conversationIDKey={props.conversationIDKey}
-              ordinal={props.ordinal}
-              setRef={props.setAttachmentRef}
-              onClick={props.toggleShowingMenu}
-            />
-          )}
-        <MessagePopup
-          attachTo={props.attachmentRef}
-          message={props.message}
-          onHidden={props.toggleShowingMenu}
-          position="top center"
-          visible={props.showingMenu}
-        />
-        {props.isRevoked && (
-          <Icon
-            type="iconfont-exclamation"
-            style={iconCastPlatformStyles(styles.exclamation)}
-            color={globalColors.blue}
-            fontSize={14}
-          />
-        )}
       </Box>
       {!!props.failureDescription &&
         !props.exploded && (
@@ -184,31 +182,21 @@ const RightSide = props => (
             onCancel={props.onCancel}
           />
         )}
-      <Box style={styles.sendIndicatorContainer}>
+      <Box style={styles.sendIndicator}>
         {props.isYou && (
           <SendIndicator
             sent={props.messageSent || props.exploded}
             failed={props.messageFailed}
-            style={{marginBottom: 2}}
             id={props.timestamp}
           />
         )}
       </Box>
     </Box>
-    {props.exploding && (
-      <ExplodingMeta
-        exploded={props.exploded}
-        explodesAt={props.explodesAt}
-        messageKey={props.messageKey}
-        pending={props.messagePending || props.messageFailed}
-        onClick={props.exploded ? null : props.toggleShowingMenu}
-      />
-    )}
   </Box>
 )
 
-class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMenuParentProps> {
-  componentDidUpdate(prevProps: WrapperAuthorProps) {
+class WrapperAuthor extends React.PureComponent<Props> {
+  componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (this.props.includeHeader !== prevProps.includeHeader) {
         this.props.measure()
@@ -219,13 +207,7 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMen
   render() {
     const props = this.props
     return (
-      <Box
-        style={collapseStyles([
-          styles.leftRightContainer,
-          props.showingMenu && styles.selected,
-          props.includeHeader && styles.hasHeader,
-        ])}
-      >
+      <Box style={collapseStyles([styles.flexOneRow, props.includeHeader && styles.hasHeader])}>
         <LeftSide {...props} />
         <RightSide {...props} />
       </Box>
@@ -234,18 +216,12 @@ class WrapperAuthor extends React.PureComponent<WrapperAuthorProps & FloatingMen
 }
 
 const styles = styleSheetCreate({
-  edited: {backgroundColor: globalColors.white, color: globalColors.black_20_on_white},
-  ellipsis: {marginRight: globalMargins.xtiny},
-  exclamation: {
-    paddingBottom: globalMargins.xtiny,
-    paddingTop: globalMargins.xtiny,
-  },
+  edited: {color: globalColors.black_20},
   fail: {color: globalColors.red},
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
   hasHeader: {paddingTop: 6},
-  leftRightContainer: {...globalStyles.flexBoxRow, width: '100%'},
   leftSide: platformStyles({
     common: {
       flexShrink: 0,
@@ -260,13 +236,6 @@ const styles = styleSheetCreate({
       marginLeft: globalMargins.tiny,
     },
   }),
-  menuButtons: {
-    ...globalStyles.flexBoxRow,
-    alignSelf: 'flex-start',
-    alignItems: 'center',
-    position: 'relative',
-    top: 1,
-  },
   rightSide: {
     ...globalStyles.flexBoxColumn,
     flex: 1,
@@ -279,21 +248,23 @@ const styles = styleSheetCreate({
     paddingBottom: 2,
     paddingRight: globalMargins.tiny,
   },
-  selected: {backgroundColor: globalColors.black_05},
-  sendIndicator: {marginBottom: 2},
-  sendIndicatorContainer: platformStyles({
+  sendIndicator: platformStyles({
     common: {
-      alignItems: 'flex-start',
-      bottom: -2,
+      ...globalStyles.flexBoxRow,
+      alignItems: 'center',
       height: 21,
       justifyContent: 'center',
       position: 'absolute',
-      right: 0,
-      width: sendIndicatorWidth,
+      top: 2,
     },
-    isElectron: {pointerEvents: 'none'},
+    isElectron: {
+      pointerEvents: 'none',
+      right: 0,
+      top: -1,
+    },
     isMobile: {
       right: -14,
+      top: 2,
     },
   }),
   textContainer: {
@@ -308,7 +279,6 @@ const styles = styleSheetCreate({
   },
   username: {
     alignSelf: 'flex-start',
-    backgroundColor: globalColors.fastBlank,
     marginBottom: 0,
   },
   usernameYou: {

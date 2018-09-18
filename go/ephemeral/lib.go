@@ -109,48 +109,49 @@ func (e *EKLib) NewMetaContext(ctx context.Context) libkb.MetaContext {
 	return libkb.NewMetaContext(ctx, e.G())
 }
 
-func (e *EKLib) checkLoginAndPUK(ctx context.Context) (loggedIn bool, err error) {
+func (e *EKLib) checkLoginAndPUK(ctx context.Context) error {
 	m := e.NewMetaContext(ctx)
-	if oneshot, err := e.G().IsOneshot(ctx); err != nil || oneshot {
-		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK error: %s, isOneshot: %v", err, oneshot)
-		return false, err
+	if isOneshot, err := e.G().IsOneshot(ctx); err != nil {
+		e.G().Log.CDebugf(ctx, "EKLib#checkLoginAndPUK unable to check IsOneshot %v", err)
+		return err
+	} else if isOneshot {
+		return fmt.Errorf("Aborting ephemeral key generation, using oneshot session!")
 	}
 
-	if loggedIn, _, err = libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
-		return loggedIn, err
+	if loggedIn, _, err := libkb.BootstrapActiveDeviceWithMetaContext(m); err != nil {
+		return err
 	} else if !loggedIn {
-		return loggedIn, fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
+		return fmt.Errorf("Aborting ephemeral key generation, user is not logged in!")
 	}
 
 	pukring, err := e.G().GetPerUserKeyring()
 	if err != nil {
-		return loggedIn, err
+		return err
 	}
 	if err := pukring.Sync(m); err != nil {
-		return loggedIn, err
+		return err
 	}
 	if !pukring.HasAnyKeys() {
-		return loggedIn, fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
+		return fmt.Errorf("A PUK is needed to generate ephemeral keys. Aborting.")
 	}
-	return loggedIn, nil
+	return nil
 }
 
 func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	e.Lock()
 	defer e.Unlock()
-	var loggedIn bool
 	var merkleRoot libkb.MerkleRoot
 	// Always try to delete keys if we are logged in even if we get an error
 	// when checking our PUK or fetching the merkleRoot. `keygenIfNeeded` this
 	// also tries best effort to delete with errors, but try here in case we
 	// error before reaching that call.
 	defer func() {
-		if err != nil && loggedIn {
+		if err != nil {
 			e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot)
 		}
 	}()
 
-	if loggedIn, err = e.checkLoginAndPUK(ctx); err != nil {
+	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return err
 	}
 
@@ -304,7 +305,7 @@ func (e *EKLib) newUserEKNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot
 	ek, err := s.Get(ctx, statement.CurrentUserEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			return true, nil
 		default:
@@ -351,7 +352,7 @@ func (e *EKLib) newTeamEKNeeded(ctx context.Context, teamID keybase1.TeamID, mer
 	ek, err := s.Get(ctx, teamID, statement.CurrentTeamEkMetadata.Generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			return true, false, latestGeneration, nil
 		default:
@@ -392,14 +393,25 @@ func (e *EKLib) isEntryExpired(val interface{}) (*teamEKGenCacheEntry, bool) {
 	return cacheEntry, e.clock.Now().Sub(cacheEntry.Ctime.Time()) >= cacheEntryLifetime
 }
 
-func (e *EKLib) PurgeTeamEKGenCache(teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+func (e *EKLib) PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID) {
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamID: teamID: %v", teamID)
+	e.teamEKGenCache.Remove(e.cacheKey(teamID))
+	if err := e.G().GetTeamEKBoxStorage().PurgeCacheForTeamID(ctx, teamID); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamID: %v", err)
+	}
+}
 
+func (e *EKLib) PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) {
+	e.G().Log.CDebugf(ctx, "PurgeCachesForTeamIDAndGeneration: teamID: %v, generation: %v", teamID, generation)
 	cacheKey := e.cacheKey(teamID)
 	val, ok := e.teamEKGenCache.Get(cacheKey)
 	if ok {
 		if cacheEntry, _ := e.isEntryExpired(val); cacheEntry != nil && cacheEntry.Generation != generation {
 			e.teamEKGenCache.Remove(cacheKey)
 		}
+	}
+	if err := e.G().GetTeamEKBoxStorage().Delete(ctx, teamID, generation); err != nil {
+		e.G().Log.CDebugf(ctx, "unable to PurgeCacheForTeamIDAndGeneration: %v", err)
 	}
 }
 
@@ -418,7 +430,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	e.Lock()
 	defer e.Unlock()
 
-	if _, err = e.checkLoginAndPUK(ctx); err != nil {
+	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return teamEK, err
 	}
 
@@ -512,7 +524,7 @@ func (e *EKLib) GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generatio
 	teamEK, err = e.G().GetTeamEKBoxStorage().Get(ctx, teamID, generation)
 	if err != nil {
 		switch err.(type) {
-		case EKUnboxErr, EKMissingBoxErr:
+		case EphemeralKeyError:
 			e.G().Log.Debug(err.Error())
 			if _, cerr := e.GetOrCreateLatestTeamEK(ctx, teamID); cerr != nil {
 				e.G().Log.CDebugf(ctx, "Unable to GetOrCreateLatestTeamEK: %v", cerr)
@@ -655,7 +667,10 @@ func (e *EKLib) OnLogin() error {
 	return nil
 }
 
-func (e *EKLib) OnLogout() error {
+func (e *EKLib) ClearCaches() {
+	e.Lock()
+	defer e.Unlock()
+
 	e.teamEKGenCache.Purge()
 	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		deviceEKStorage.ClearCache()
@@ -666,5 +681,9 @@ func (e *EKLib) OnLogout() error {
 	if teamEKBoxStorage := e.G().GetTeamEKBoxStorage(); teamEKBoxStorage != nil {
 		teamEKBoxStorage.ClearCache()
 	}
+}
+
+func (e *EKLib) OnLogout() error {
+	e.ClearCaches()
 	return nil
 }

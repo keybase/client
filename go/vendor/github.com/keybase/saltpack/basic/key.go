@@ -85,6 +85,16 @@ func (k SecretKey) GetPublicKey() saltpack.BoxPublicKey {
 	return k.pub
 }
 
+// GetRawPublicKey returns the raw public key that corresponds to this secret key.
+func (k SecretKey) GetRawPublicKey() *[32]byte {
+	return (*[32]byte)(&k.pub.RawBoxKey)
+}
+
+// GetRawSecretKey returns the raw secret key.
+func (k SecretKey) GetRawSecretKey() *[32]byte {
+	return (*[32]byte)(&k.sec)
+}
+
 // Precompute computes a shared key with the passed public key.
 func (k SecretKey) Precompute(peer saltpack.BoxPublicKey) saltpack.BoxPrecomputedSharedKey {
 	var res PrecomputedSharedKey
@@ -256,6 +266,16 @@ func (k SigningPublicKey) ToKID() []byte {
 // secret signing key
 func (k SigningSecretKey) GetPublicKey() saltpack.SigningPublicKey {
 	return k.pub
+}
+
+// GetRawPublicKey returns the raw public key that corresponds to this secret key.
+func (k SigningSecretKey) GetRawPublicKey() *[ed25519.PublicKeySize]byte {
+	return (*[ed25519.PublicKeySize]byte)(&k.pub)
+}
+
+// GetRawSecretKey returns the raw secret key.
+func (k SigningSecretKey) GetRawSecretKey() *[ed25519.PrivateKeySize]byte {
+	return (*[ed25519.PrivateKeySize]byte)(&k.sec)
 }
 
 // Verify runs the NaCl verification routine on the given msg / sig

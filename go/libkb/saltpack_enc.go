@@ -27,7 +27,7 @@ type SaltpackEncryptArg struct {
 // SaltpackEncrypt reads from the given source, encrypts it for the given
 // receivers from the given sender, and writes it to sink.  If
 // Binary is false, the data written to sink will be armored.
-func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
+func SaltpackEncrypt(m MetaContext, arg *SaltpackEncryptArg) error {
 	var receiverBoxKeys []saltpack.BoxPublicKey
 	for _, k := range arg.Receivers {
 		// Since signcryption became the default, we never use visible
@@ -54,7 +54,7 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	var err error
 	if !arg.EncryptionOnlyMode {
 		if arg.SaltpackVersion.Major == 1 {
-			return errors.New("specifying the saltpack version 1 requires --current-devices-only")
+			return errors.New("specifying saltpack version 1 requires repudiable authentication")
 		}
 		var signer saltpack.SigningSecretKey
 		if !arg.SenderSigning.IsNil() {
@@ -81,7 +81,7 @@ func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 		return err
 	}
 
-	g.Log.Debug("Encrypt: wrote %d bytes", n)
+	m.CDebugf("Encrypt: wrote %d bytes", n)
 
 	if err := plainsink.Close(); err != nil {
 		return err

@@ -136,7 +136,7 @@ func (e *UntrackEngine) loadThem(m libkb.MetaContext) (them *libkb.User, remoteL
 	}
 
 	if uid.IsNil() {
-		res := e.G().Resolver.Resolve(e.arg.Username.String())
+		res := e.G().Resolver.Resolve(m, e.arg.Username.String())
 		if err = res.GetError(); err != nil {
 			return
 		}

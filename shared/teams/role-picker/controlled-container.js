@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
 import {RoleOptions} from '.'
-import {connect} from 'react-redux'
-import {compose, withHandlers, withStateHandlers} from '../../util/container'
+import {connect, compose, withHandlers, withStateHandlers} from '../../util/container'
 import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
 import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/types/teams'
@@ -17,8 +16,10 @@ import {type TeamRoleType} from '../../constants/types/teams'
 export type ControlledRolePickerProps = {
   onComplete: (role: TeamRoleType, sendNotification: boolean) => void,
   selectedRole?: TeamRoleType,
+  addButtonLabel?: string,
   allowOwner?: boolean,
   allowAdmin?: boolean,
+  headerTitle?: string,
   pluralizeRoleName?: boolean,
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
@@ -28,19 +29,23 @@ export type ControlledRolePickerProps = {
 const mapStateToProps = (state: TypedState, {routeProps}) => {
   const currentType = routeProps.get('selectedRole')
   const _onComplete = routeProps.get('onComplete')
+  const addButtonLabel = routeProps.get('addButtonLabel')
   const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
+  const headerTitle = routeProps.get('headerTitle')
   const pluralizeRoleName = routeProps.get('pluralizeRoleName')
   const sendNotificationChecked = routeProps.get('sendNotificationChecked')
   const showSendNotification = routeProps.get('showNotificationCheckbox')
   const styleCover = routeProps.get('styleCover')
   return {
     _onComplete,
+    addButtonLabel,
     allowAdmin,
     allowOwner,
     confirm: false,
     controlled: true,
     currentType,
+    headerTitle,
     pluralizeRoleName,
     sendNotificationChecked,
     showSendNotification,
@@ -49,7 +54,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
 })
 
@@ -60,7 +65,7 @@ const ControlledRolePicker = props => (
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

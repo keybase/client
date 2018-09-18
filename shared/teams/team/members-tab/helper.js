@@ -11,7 +11,30 @@ export type OwnProps = {|
   teamname: string,
 |}
 
-const order = {admin: 1, owner: 0, reader: 3, writer: 2}
+// Weights for sorting team members
+// 2 is neutral
+// lower values come earlier
+
+const order = {admin: 3, owner: 2, reader: 5, writer: 4}
+
+const getWeights = (manageMembers: boolean) => {
+  // only weigh actionable statuses higher if we can effect them
+  const statusWeights = manageMembers
+    ? {
+        active: 2,
+        deleted: 0,
+        reset: 1,
+      }
+    : {
+        active: 2,
+        deleted: 2,
+        reset: 2,
+      }
+  return {
+    ...order,
+    ...statusWeights,
+  }
+}
 
 const getOrderedMemberArray = (
   memberInfo: I.Map<string, Types.MemberInfo>,
@@ -22,55 +45,18 @@ const getOrderedMemberArray = (
     .valueSeq()
     .toArray()
     .sort((a, b) => {
-      // If admin list deleted users, then reset, then rest
-      if (yourOperations.manageMembers) {
-        if (a.status === 'deleted') {
-          if (b.status === 'deleted') {
-            // both are inactive, compare usernames
-            return a.username.localeCompare(b.username)
-          }
-          // b is reset or active, should go later
-          return -1
-        } else if (b.status === 'deleted') {
-          // b is deleted, should come first
-          return 1
-        }
-
-        if (a.status === 'reset') {
-          if (b.status === 'deleted') {
-            // deleted should come first
-            return 1
-          } else if (b.status === 'reset') {
-            // both reset, compare usernames
-            return a.username.localeCompare(b.username)
-          }
-          // b is active, a goes first
-          return -1
-        }
-      }
-      if (yourOperations.listFirst && you) {
-        if (a.username === you) {
-          return -1
-        } else if (b.username === you) {
-          return 1
-        }
-      }
-      if (!a.type) {
-        if (!b.type) {
-          // both have no type, compare usernames
-          return a.username.localeCompare(b.username)
-        }
-        // b has a type, should go first
-        return 1
-      } else if (!b.type) {
-        // a has a type, should go first
+      // Get listFirst out of the way
+      if (yourOperations.listFirst && a.username === you) {
         return -1
-      } else if (a.type === b.type) {
-        // they have equal types, compare usernames
-        return a.username.localeCompare(b.username)
+      } else if (yourOperations.listFirst && b.username === you) {
+        return 1
       }
-      // they have different types, higher goes first
-      return order[a.type] - order[b.type]
+
+      const weights = getWeights(yourOperations.manageMembers)
+      // Diff the statuses then types. If they're both the same sort alphabetically
+      const diff1 = weights[a.status] - weights[b.status]
+      const diff2 = weights[a.type] - weights[b.type]
+      return diff1 || diff2 || a.username.localeCompare(b.username)
     })
 
   return returnArray

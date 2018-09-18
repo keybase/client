@@ -26,7 +26,7 @@ class AvatarUpload extends React.Component<Props> {
     if (this._z) {
       crop = this._getCropCoordinates()
     }
-    this.props.onSave(filename, crop, this.props.teamname, this.props.sendChatNotification)
+    this.props.onSave(filename, crop)
   }
 
   _getCropCoordinates = () => {

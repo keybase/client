@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 )
 
@@ -18,6 +19,8 @@ type PaperProvisionEngine struct {
 	lks            *libkb.LKSec
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
+
+	deviceWrapEng *DeviceWrap
 }
 
 func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName,
@@ -53,20 +56,11 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	// clear out any existing session:
 	e.G().Logout()
 
-	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
 	m = m.WithNewProvisionalLoginContext()
 
 	// From this point on, if there's an error, we abort the
 	// transaction.
 	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
 		if err == nil {
 			m = m.CommitProvisionalLogin()
 		}
@@ -116,19 +110,15 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	}
 
 	// Make new device keys and sign them with this paper key
-	err = e.paper(m, keys)
-	if err != nil {
+	if err = e.paper(m, keys); err != nil {
 		return err
 	}
 
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := e.deviceWrapEng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	e.sendNotification()
 	return nil
@@ -146,7 +136,7 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 	// Set the active device to be a special paper key active device, which keeps
 	// a cached copy around for DeviceKeyGen, which requires it to be in memory.
 	// It also will establish a NIST so that API calls can proceed on behalf of the user.
-	m = m.WithPaperKeyActiveDevice(keys, uv)
+	m = m.WithProvisioningKeyActiveDevice(keys, uv)
 	m.LoginContext().SetUsernameUserVersion(nn, uv)
 
 	// need lksec to store device keys locally
@@ -160,7 +150,7 @@ func (e *PaperProvisionEngine) paper(m libkb.MetaContext, keys *libkb.DeviceWith
 
 	// Cache the paper keys globally now that we're logged in
 	m = m.WithGlobalActiveDevice()
-	m.ActiveDevice().CachePaperKey(m, keys)
+	m.ActiveDevice().CacheProvisioningKey(m, keys)
 
 	return nil
 }
@@ -222,11 +212,11 @@ func (e *PaperProvisionEngine) makeDeviceWrapArgs(m libkb.MetaContext) (*DeviceW
 	}, nil
 }
 
-// copied from loginProvision
-// makeDeviceKeys uses DeviceWrap to generate device keys.
+// Copied from loginProvision. makeDeviceKeys uses DeviceWrap to
+// generate device keys and sets active device.
 func (e *PaperProvisionEngine) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
-	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
+	e.deviceWrapEng = NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, e.deviceWrapEng)
 }
 
 // copied from loginProvision

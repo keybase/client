@@ -48,6 +48,13 @@ func (t *TimeBuckets) Log(ctx context.Context, bucketName string) {
 	t.log.CDebugf(ctx, "TimeBucket %s [time=%s]", bucketName, t.Get(bucketName))
 }
 
+func (t *TimeBuckets) LogIfNonZero(ctx context.Context, bucketName string) {
+	d := t.Get(bucketName)
+	if d != 0 {
+		t.log.CDebugf(ctx, "TimeBucket %s [time=%s]", bucketName, d)
+	}
+}
+
 type FinFn func()
 
 func WithTimeBuckets(ctx context.Context, clock clockwork.Clock, log logger.Logger) (context.Context, *TimeBuckets) {

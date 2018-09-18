@@ -1,6 +1,0 @@
-// @flow
-
-import type {Dispatch} from '../constants/types/flux'
-function nativeReachabilityEvents(dispatch: Dispatch): void {}
-
-export {nativeReachabilityEvents}

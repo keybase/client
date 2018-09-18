@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import {globalStyles, globalColors, globalMargins, platformStyles, isMobile, glamorous} from '../../styles'
-import rowStyles from './styles'
+import * as Styles from '../../styles'
+import {rowStyles} from './common'
 import {Icon, ClickableBox, Input, Box, Button, Text} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 
@@ -17,14 +17,14 @@ type EditingProps = {
   onCancel: () => void,
 }
 
-const HoverClickableBox = isMobile
+const HoverClickableBox = Styles.isMobile
   ? ClickableBox
-  : glamorous(ClickableBox)({
+  : Styles.glamorous(ClickableBox)({
       '& .fs-path-item-editing-trash-icon': {
-        color: globalColors.black_40,
+        color: Styles.globalColors.black_40,
       },
       '& .fs-path-item-editing-trash-icon:hover': {
-        color: globalColors.black_60,
+        color: Styles.globalColors.black_60,
       },
     })
 
@@ -45,7 +45,7 @@ const Editing = (props: EditingProps) => (
       />
     </Box>
     <Box key="right" style={rowStyles.rightBox}>
-      {props.status === 'failed' && <Text type="BodyError">Failed</Text>}
+      {props.status === 'failed' && <Text type="BodySmallError">Failed</Text>}
       <Button
         key="create"
         style={stylesButton}
@@ -63,13 +63,13 @@ const Editing = (props: EditingProps) => (
 )
 
 const stylesCancelBox = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
 }
 
-const stylesIconCancel = platformStyles({
+const stylesIconCancel = Styles.platformStyles({
   common: {
-    padding: globalMargins.tiny,
+    padding: Styles.globalMargins.tiny,
     paddingRight: 0,
   },
   isMobile: {
@@ -77,9 +77,9 @@ const stylesIconCancel = platformStyles({
   },
 })
 
-const stylesText = platformStyles({
+const stylesText = Styles.platformStyles({
   common: {
-    ...globalStyles.fontSemibold,
+    ...Styles.globalStyles.fontSemibold,
     maxWidth: '100%',
   },
   isMobile: {
@@ -88,7 +88,7 @@ const stylesText = platformStyles({
 })
 
 const stylesButton = {
-  marginLeft: globalMargins.tiny,
+  marginLeft: Styles.globalMargins.tiny,
 }
 
 export default Editing

@@ -1,4 +1,4 @@
-// @flow
+// @noflow
 import logger from '../../logger'
 import * as SettingsGen from '../../actions/settings-gen'
 import Bootstrapable from '../../util/bootstrapable'
@@ -20,25 +20,25 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
     }
   }
 
-  const {
-    planBilling: {availablePlans, usage, plan, paymentInfo},
-  } = state
-  let planProps
-  if (plan && usage) {
-    const freeSpaceGB = plan.gigabytes - usage.gigabytes
-    const freeSpacePercentage = freeSpaceGB / plan.gigabytes
-    planProps = {
-      onUpgrade: () => logger.debug('todo'),
-      onDowngrade: () => logger.debug('todo'),
-      onInfo: () => logger.debug('todo'),
-      selectedLevel: plan.planLevel,
-      freeSpace: freeSpaceGB + 'GB',
-      freeSpacePercentage,
-      lowSpaceWarning: false,
-      paymentInfo,
-      onChangePaymentInfo: () => logger.debug('todo'),
-    }
-  }
+  // const {
+  // planBilling: {availablePlans, usage, plan, paymentInfo},
+  // } = state
+  // let planProps
+  // if (plan && usage) {
+  // const freeSpaceGB = plan.gigabytes - usage.gigabytes
+  // const freeSpacePercentage = freeSpaceGB / plan.gigabytes
+  // planProps = {
+  // onUpgrade: () => logger.debug('todo'),
+  // onDowngrade: () => logger.debug('todo'),
+  // onInfo: () => logger.debug('todo'),
+  // selectedLevel: plan.planLevel,
+  // freeSpace: freeSpaceGB + 'GB',
+  // freeSpacePercentage,
+  // lowSpaceWarning: false,
+  // paymentInfo,
+  // onChangePaymentInfo: () => logger.debug('todo'),
+  // }
+  // }
 
   // When enabling planProps, we should check both for bootstrapDone:
   // let bootstrapDone = accountProps && planProps
@@ -48,8 +48,8 @@ const mapStateToProps = (state: TypedState, ownProps: {}) => {
     bootstrapDone: bootstrapDone,
     originalProps: {
       account: accountProps,
-      plan: planProps,
-      plans: availablePlans,
+      // plan: planProps,
+      // plans: availablePlans,
     },
   }
 }

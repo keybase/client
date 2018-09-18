@@ -37,8 +37,8 @@ const getIcon = invertColors => {
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
     index: getRendererHTML('menubar'),
-    width: 320,
-    height: 350,
+    width: 360,
+    height: 480,
     resizable: false,
     hasShadow: true,
     transparent: true,

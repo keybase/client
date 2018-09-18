@@ -21,6 +21,30 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "paymentStatusNotification": {
+      "request": [
+        {
+          "name": "kbTxID",
+          "type": "KeybaseTransactionID"
+        },
+        {
+          "name": "txID",
+          "type": "TransactionID"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "requestStatusNotification": {
+      "request": [
+        {
+          "name": "reqID",
+          "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null,
+      "notify": ""
     }
   },
   "namespace": "stellar.1"

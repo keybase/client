@@ -146,6 +146,7 @@ func (e *BackgroundTask) loop(m libkb.MetaContext) error {
 	var i int
 	for {
 		i++
+		m := m.WithLogTag("BGT") // Background Task
 		e.log(m, "round(%v) start", i)
 		err := e.round(m)
 		if err != nil {

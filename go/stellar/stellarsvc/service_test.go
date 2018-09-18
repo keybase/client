@@ -36,6 +36,8 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 
+	tc.G.SetService()
+
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 
 	return tc
@@ -369,7 +371,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	arg := stellar1.SendCLILocalArg{
 		Recipient: strings.ToUpper(tcs[1].Fu.Username),
 		Amount:    "100",
-		Asset:     stellar1.Asset{Type: "native"},
+		Asset:     stellar1.AssetNative(),
 	}
 	_, err = srvSender.SendCLILocal(context.Background(), arg)
 	require.NoError(t, err)
@@ -467,11 +469,8 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Logf("create relay transfer")
-	uis := libkb.UIs{
-		IdentifyUI: tcs[0].Srv.uiSource.IdentifyUI(tcs[0].G, 0),
-	}
-	m := libkb.NewMetaContextBackground(tcs[0].G).WithUIs(uis)
-	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()))
+	m := libkb.NewMetaContextBackground(tcs[0].G)
+	recipient, err := stellar.LookupRecipient(m, stellarcommon.RecipientInput(u1.GetNormalizedName()), false)
 	require.NoError(t, err)
 	appKey, teamID, err := relays.GetKey(context.Background(), tcs[0].G, recipient)
 	require.NoError(t, err)
@@ -701,7 +700,7 @@ func TestRequestPayment(t *testing.T) {
 	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
 		Recipient: tcs[1].Fu.Username,
 		Asset:     &xlm,
-		Amount:    "10",
+		Amount:    "5.23",
 		Note:      "hello world",
 	})
 	require.NoError(t, err)
@@ -710,12 +709,43 @@ func TestRequestPayment(t *testing.T) {
 	require.Len(t, senderMsgs, 1)
 	require.Equal(t, senderMsgs[0].MsgType, chat1.MessageType_REQUESTPAYMENT)
 
-	err = tcs[0].Srv.CancelRequestLocal(context.Background(), reqID)
+	err = tcs[0].Srv.CancelRequestLocal(context.Background(), stellar1.CancelRequestLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), reqID)
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), stellar1.GetRequestDetailsLocalArg{
+		ReqID: reqID,
+	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.RequestStatus_CANCELED, details.Status)
+	require.Equal(t, "5.23", details.Amount)
+	require.Nil(t, details.Currency)
+	require.NotNil(t, details.Asset)
+	require.Equal(t, stellar1.AssetNative(), *details.Asset)
+	require.Equal(t, "5.23 XLM", details.AmountDescription)
+}
+
+func TestRequestPaymentOutsideCurrency(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+	reqID, err := tcs[0].Srv.MakeRequestCLILocal(context.Background(), stellar1.MakeRequestCLILocalArg{
+		Recipient: tcs[1].Fu.Username,
+		Currency:  &usd,
+		Amount:    "8.196",
+		Note:      "got 10 bucks (minus tax)?",
+	})
+	require.NoError(t, err)
+	details, err := tcs[0].Srv.GetRequestDetailsLocal(context.Background(), stellar1.GetRequestDetailsLocalArg{
+		ReqID: reqID,
+	})
+	require.NoError(t, err)
+	require.Equal(t, stellar1.RequestStatus_OK, details.Status)
+	require.Equal(t, "8.196", details.Amount)
+	require.Nil(t, details.Asset)
+	require.NotNil(t, details.Currency)
+	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), *details.Currency)
+	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
 type TestContext struct {
@@ -770,6 +800,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
 		tc2.Srv = New(tc.G, newTestUISource(), rcm)
+		stellar.ServiceInit(tc.G, rcm)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

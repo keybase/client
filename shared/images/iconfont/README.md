@@ -1,43 +1,65 @@
 ## How to build the font icon
 
-## Phase 1: Update svgs
-1. Delete all svg files from this folder
-1. Go to the Icon font [zeplin sheet](https://app.zeplin.io/project/56a15d74e1e098dd3116d10b/screen/5a2876af3f178f005f0f6409)
-1. Export all the icons to this folder
-    1. On the right panel you can click the assets tab and download all SVGs into this folder.
-    1. Delete all non-icon font svgs from that folder (anything that's not 'kb-iconfont-.*')
-        * hint: `find . -type f ! -name 'kb-iconfont-*' -name '*.svg' -delete`
+### Dependencies
 
-## Phase 2: Get svg paths
-1. Go to https://icomoon.io
-1. Create a new empty project [Main Menu -> Manage projects -> New Project]
-1. Import all the svgs from phase 1 [Import icons]
-1. Download JSON [Right hamburger menu => Download JSON] and save as kb-icomoon-project-app.json
+[webfont-generator](https://github.com/sunflowerdeath/webfonts-generator)
 
-## Phase 3: Generate fonts
-1. run `yarn run generate-font-project` (this updates our Icon constants for you)
-1. On icomoon.io import the generated project [menu -> Projects -> Import Project -> kb-icomoon-project-generated.json]
-1. Click Load on the new project row (it should select all the icons)
-1. Generate font, replace 'icomoon' with 'kb' in [gear icon > Font Name], and download
-1. Unzip kb.zip into `./kb/` in `shared/images/iconfont`.
-1. run `yarn run apply-new-fonts`
+[fontforge](https://fontforge.github.io/en-US/downloadsj)
+- Mac: `brew install fontforge`
+- Window: Install the GUI application and the executable should be available via
+  the command line.
 
-## Phase 4: Fix Vertical Metrics
+### Instructions
 
-Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
+1. Delete all icons from this folder
+2. Download iconfont svgs from this [zeplin sheet](https://zpl.io/29y4w5w)
+3. Optionally if there are PNG assets to update, download from this [zeplin sheet](https://zpl.io/VQoMDq4)
+    - Note: **Make sure you scroll all the way to the bottom of the Zeplin screen before exporting the assets, otherwise they might not load.**
+4. Move assets to the appropriate directory
+    - svg iconfonts: `client/shared/images/iconfont`
+    - png assets: `client/shared/images/icons`
+5. Generate the iconfont and update constants on both apps
+    - `yarn updated-fonts` Will generate a font file and update the constants
+      - font: `client/shared/fonts/kb.ttf`
+      - constants: `client/shared/common-adapters/icon.constants`
+    - `yarn update-constants` will only update the constants
 
-1. choose expert
-1. upload `kb.ttf`
-1. only select trueType in the formats
-1. truetype hinting = keep existing
-1. turn off fix missing glyphs
-1. turn off subsetting
-1. remove the ‘-webfont’ as the suffix
-1. check the agree then download
-1. replace `shared/fonts/kb.ttf` with the file of the same name from the downloaded zip file
 
-## Phase 5: Update the flowtype and fonts on both apps
+### Notes on SVG output
 
-1. Delete `shared/images/iconfont/kb/`
-1. Go to `shared/`
-1. Run ```yarn run updated-fonts``` (it's okay if this doesn't do anything)
+The SVG export flow looks like this
+
+Sketch Assets → Zeplin → Export to SVG → Optimized with SVGO → Download
+
+It's important to note that the original Sketch assets determine the final SVG
+output after running through SVGO. Pay attention for strange overlapping/masking
+paths in the final SVGs or inverted colors. This is usually caused by something
+happening in Sketch.
+
+The naming convention of the SVG files is very important.
+
+`{counter}-kb-inconfont-{name-with-dashes}-{size}.svg`
+
+The counter is used to generate the unicode values for the characters in the
+iconfont. It is okay to have gaps in the counters.
+
+For instructions on adding/modifying icons look at the instructions in this
+[zeplin sheet](https://zpl.io/29y4w5w).
+
+### Notes on Icon Generation
+
+[NOTES.md](NOTES.md)
+
+### Debugging
+
+- If flow complains with the following error, it's likely because the svg file
+  is missing one of the values in the naming convention above ({counter}
+  {name-with-dashes} or {size}).
+
+```
+Error ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ provision/code-page/index.js:181:19
+
+Cannot create Icon element because:
+ • property iconfont-qr-code is missing in typeof iconMeta_ [1] in property type.
+ • property iconfont-text-code is missing in typeof iconMeta_ [1] in property type.
+```

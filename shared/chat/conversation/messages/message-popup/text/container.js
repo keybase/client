@@ -1,5 +1,6 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
+import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
@@ -7,12 +8,11 @@ import * as Route from '../../../../../actions/route-tree'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import {copyToClipboard} from '../../../../../util/clipboard'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Text from '.'
 
 type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   message: Types.MessageText,
   onHidden: () => void,
   position: Position,
@@ -24,8 +24,10 @@ const mapStateToProps = (state: Container.TypedState, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, message.conversationIDKey)
   const yourOperations = getCanPerform(state, meta.teamname)
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
+  const _participantsCount = meta.participants.count()
   return {
     _canDeleteHistory,
+    _participantsCount,
     _you: state.config.username,
   }
 }
@@ -43,7 +45,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   _onCopy: (message: Types.Message) => {
     if (message.type === 'text') {
-      copyToClipboard(message.text.stringValue())
+      dispatch(ConfigGen.createCopyToClipboard({text: message.text.stringValue()}))
     }
   },
   _onDelete: (message: Types.Message) =>
@@ -112,7 +114,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onHidden: () => ownProps.onHidden(),
     onQuote: message.type === 'text' && !yourMessage ? () => dispatchProps._onQuote(message) : null,
     onReplyPrivately:
-      message.type === 'text' && !yourMessage ? () => dispatchProps._onReplyPrivately(message) : null,
+      message.type === 'text' && !yourMessage && stateProps._participantsCount > 2
+        ? () => dispatchProps._onReplyPrivately(message)
+        : null,
     onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,

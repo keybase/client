@@ -13,4 +13,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onSubmit: (devicename: string) => dispatch(SignupGen.createCheckDevicename({devicename})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps)(DeviceName)
+export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(DeviceName)

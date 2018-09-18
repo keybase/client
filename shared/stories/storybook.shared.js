@@ -1,11 +1,15 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
-import {type SelectorMap} from './storybook'
-import {Text, Box} from '../common-adapters'
-import {platformStyles, globalColors, globalStyles} from '../styles'
+import {action} from '@storybook/addon-actions'
+
+type SelectorMap = {
+  [componentDisplayName: string]: (any => any) | Object,
+}
 
 const unexpected = (name: string) => () => {
   throw new Error(`unexpected ${name}`)
@@ -13,18 +17,18 @@ const unexpected = (name: string) => () => {
 
 // On mobile the GatewayDest wrapper needs to fill the entire screen, so we set fillAbsolute
 // However on desktop, if the wrapper takes the full screen it will cover the other components
-const styleDestBox = platformStyles({
+const styleDestBox = Styles.platformStyles({
   isElectron: {
     position: 'absolute',
   },
   isMobile: {
-    ...globalStyles.fillAbsolute,
+    ...Styles.globalStyles.fillAbsolute,
   },
 })
 
 // we set pointerEvents to 'box-none' so that the wrapping box will not catch
 // touch events and they will be passed down to the child (popup)
-const DestBox = props => <Box pointerEvents="box-none" style={styleDestBox} {...props} />
+const DestBox = props => <Kb.Box pointerEvents="box-none" style={styleDestBox} {...props} />
 
 /**
  * Creates a provider using a faux store of closures that compute derived viewProps
@@ -48,7 +52,11 @@ const createPropProvider = (...maps: SelectorMap[]) => {
    * children to GatewayProvider which only takes one child
    */
   return (story: () => React.Node) => (
-    <Provider key={`provider:${uniqueProviderKey++}`} store={createStore(state => state, merged)}>
+    <Provider
+      key={`provider:${uniqueProviderKey++}`}
+      store={createStore(state => state, merged)}
+      merged={merged}
+    >
       <GatewayProvider>
         <React.Fragment>
           <StorybookErrorBoundary children={story()} />
@@ -83,33 +91,33 @@ class StorybookErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <Box
+        <Kb.Box
           style={{
-            ...globalStyles.flexBoxColumn,
+            ...Styles.globalStyles.flexBoxColumn,
             padding: 10,
             borderWidth: 2,
-            borderColor: globalColors.red_75,
+            borderColor: Styles.globalColors.red_75,
             borderStyle: 'solid',
           }}
         >
-          <Text type="Terminal" style={{color: globalColors.black, marginBottom: 8}}>
+          <Kb.Text type="Terminal" style={{color: Styles.globalColors.black, marginBottom: 8}}>
             🛑 An error occurred in a connected child component. Did you supply all props the child expects?
-          </Text>
-          <Box
+          </Kb.Text>
+          <Kb.Box
             style={{
-              ...globalStyles.flexBoxColumn,
-              backgroundColor: globalColors.darkBlue3,
+              ...Styles.globalStyles.flexBoxColumn,
+              backgroundColor: Styles.globalColors.darkBlue3,
               borderRadius: 4,
               padding: 10,
               whiteSpace: 'pre-line',
             }}
           >
-            <Text type="Terminal" backgroundMode="Terminal" selectable={true}>
+            <Kb.Text type="Terminal" backgroundMode="Terminal" selectable={true}>
               {this.state.error && this.state.error.toString()}
               {this.state.info && this.state.info.componentStack}
-            </Text>
-          </Box>
-        </Box>
+            </Kb.Text>
+          </Kb.Box>
+        </Kb.Box>
       )
     }
     return this.props.children
@@ -132,4 +140,8 @@ class Rnd {
   }
 }
 
-export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd}
+const scrollViewDecorator = (story: any) => (
+  <Kb.ScrollView style={{height: '100%', width: '100%'}}>{story()}</Kb.ScrollView>
+)
+
+export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd, scrollViewDecorator, action}

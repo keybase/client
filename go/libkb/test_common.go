@@ -24,6 +24,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/require"
 )
 
 // TestConfig tracks libkb config during a test
@@ -514,4 +515,23 @@ func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {
 	return NewMetaContextForTest(tc).WithUIs(UIs{
 		LogUI: tc.G.UI.GetLogUI(),
 	})
+}
+
+func CreateClonedDevice(tc TestContext, m MetaContext) {
+	runAndGetDeviceCloneState := func() DeviceCloneState {
+		_, _, err := UpdateDeviceCloneState(m)
+		require.NoError(tc.T, err)
+		d, err := GetDeviceCloneState(m)
+		require.NoError(tc.T, err)
+		return d
+	}
+	// setup: perform two runs, and then manually persist the earlier
+	// prior token to simulate a subsequent run by a cloned device
+	d0 := runAndGetDeviceCloneState()
+	runAndGetDeviceCloneState()
+	err := SetDeviceCloneState(m, d0)
+	require.NoError(tc.T, err)
+
+	d := runAndGetDeviceCloneState()
+	require.True(tc.T, d.IsClone())
 }

@@ -95,7 +95,7 @@ func TestClassifyTestVectors(t *testing.T) {
 			msg: "QkVHSU4gS0VZQkFTRSBTQUxUUEFDSyBTSUdORUQgTUVTU0FHRS4ga1lNNWgxcGc2cXo5VU1uIGo2RzdLQjJPVWZ1MFdJaSAxWmZ5amRjWVZ3dUwwOWsgZTMzZWpnbWFObWZWckdQIDNLMlZSbTFaSUtNY1pRMCBPQjFyd1VqRjNPZnVSSkQgOVBMSmtDcFU4RnFvZFlQIHV4UlFwdjZ3aG1LUVRnTiBqbkEyYkFrNzRHYjJDTzYgdmNXbkFoTTdSUGlBYzFYIGFrMGx6RDVxMlNOT2diNyBreUphOEwwSThwSndHR1ggemdFS1QyNXlWcEZqanhiIGZ5MUc4anFaYTdpUDZqTSBrb3RMb2taZDJoYzBsdWQgQWROb2w0bGRIQ2VSR20wIFZpOXpFOTA5Vk5RS3Z1QSA0dWFsUnhTRmlyUWhqUzMgQXdEU21kU09mTHJuOThEIFpVTmNsVTMwMnlzeUJsNSBnMDAuIEVORCBLRVlCQVNFIFNBTFRQQUNLIFNJR05FRCBNRVNTQUdFLgo=",
 			sc: StreamClassification{
 				Format:  CryptoMessageFormatSaltpack,
-				Type:    CryptoMessageTypeSignature,
+				Type:    CryptoMessageTypeAttachedSignature,
 				Armored: true,
 			},
 		}, {

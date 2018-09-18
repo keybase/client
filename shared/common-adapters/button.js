@@ -17,11 +17,11 @@ import {
 
 export type Props = {
   children?: React.Node,
-  onClick?: ?(event: SyntheticEvent<>) => void,
+  onClick?: null | ((event: SyntheticEvent<>) => void),
   onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
-  label?: ?string,
+  label?: string,
   style?: StylesCrossPlatform,
   labelStyle?: StylesCrossPlatform,
   type:
@@ -34,8 +34,8 @@ export type Props = {
     | 'PrimaryGreenActive'
     | 'PrimaryColoredBackground'
     | 'SecondaryColoredBackground',
-  disabled?: ?boolean,
-  waiting?: ?boolean,
+  disabled?: boolean,
+  waiting?: boolean,
   small?: boolean,
   fullWidth?: boolean,
   backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',

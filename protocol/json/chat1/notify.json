@@ -31,7 +31,7 @@
         "TEAMTYPE_8",
         "EXPUNGE_9",
         "EPHEMERAL_PURGE_10",
-        "REACTION_DELETE_11"
+        "REACTION_UPDATE_11"
       ]
     },
     {
@@ -259,15 +259,11 @@
     },
     {
       "type": "record",
-      "name": "ReactionDelete",
+      "name": "ReactionUpdate",
       "fields": [
         {
-          "type": "string",
-          "name": "reactionKey"
-        },
-        {
-          "type": "MessageID",
-          "name": "reactionMsgID"
+          "type": "ReactionMap",
+          "name": "reactions"
         },
         {
           "type": "MessageID",
@@ -277,7 +273,7 @@
     },
     {
       "type": "record",
-      "name": "ReactionDeleteNotif",
+      "name": "ReactionUpdateNotif",
       "fields": [
         {
           "type": "ConversationID",
@@ -286,9 +282,9 @@
         {
           "type": {
             "type": "array",
-            "items": "ReactionDelete"
+            "items": "ReactionUpdate"
           },
-          "name": "reactionDeletes"
+          "name": "reactionUpdates"
         }
       ]
     },
@@ -372,10 +368,10 @@
         },
         {
           "label": {
-            "name": "REACTION_DELETE",
+            "name": "REACTION_UPDATE",
             "def": false
           },
-          "body": "ReactionDeleteNotif"
+          "body": "ReactionUpdateNotif"
         }
       ]
     },
@@ -752,6 +748,24 @@
       "notify": "",
       "lint": "ignore"
     },
+    "ChatSubteamRename": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convs",
+          "type": {
+            "type": "array",
+            "items": "InboxUIItem"
+          }
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
     "ChatKBFSToImpteamUpgrade": {
       "request": [
         {
@@ -807,6 +821,52 @@
         {
           "name": "bytesTotal",
           "type": "long"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatPaymentInfo": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "info",
+          "type": "UIPaymentInfo"
+        }
+      ],
+      "response": null,
+      "notify": "",
+      "lint": "ignore"
+    },
+    "ChatRequestInfo": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "keybase1.UID"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "info",
+          "type": "UIRequestInfo"
         }
       ],
       "response": null,

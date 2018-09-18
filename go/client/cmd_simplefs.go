@@ -151,23 +151,6 @@ func stringToOpID(arg string) (keybase1.OpID, error) {
 	return opid, nil
 }
 
-func pathToString(path keybase1.Path) string {
-	pathType, err := path.PathType()
-	if err != nil {
-		return ""
-	}
-	switch pathType {
-	case keybase1.PathType_KBFS:
-		return path.Kbfs()
-	case keybase1.PathType_KBFS_ARCHIVED:
-		return path.KbfsArchived().Path
-	case keybase1.PathType_LOCAL:
-		return path.Local()
-	default:
-		return ""
-	}
-}
-
 // Check whether the given path is a directory and return its string
 func checkPathIsDir(ctx context.Context, cli keybase1.SimpleFSInterface, path keybase1.Path) (bool, string, error) {
 	var isDir bool
@@ -248,7 +231,7 @@ func makeDestPath(
 	// TODO: this error should really be checked, but when I added
 	// code to check it, tests broke and it wasn't clear how to fix.
 
-	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", pathToString(src), isSrcDir)
+	g.Log.Debug("makeDestPath: srcPathString: %s isSrcDir: %v", src, isSrcDir)
 
 	if isDestPath {
 		// Source file and dest dir is an append case
@@ -266,7 +249,7 @@ func makeDestPath(
 			destType, _ := dest.PathType()
 			// In this case, we must append the destination filename
 			dest = joinSimpleFSPaths(destType, destPathString, srcPathString)
-			g.Log.Debug("makeDestPath: new path with file: %s", pathToString(dest))
+			g.Log.Debug("makeDestPath: new path with file: %s", dest)
 		}
 	}
 
@@ -367,7 +350,7 @@ func newPathWithSameType(
 func doSimpleFSRemoteGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.SimpleFSInterface, path keybase1.Path) ([]keybase1.Path, error) {
 
 	var returnPaths []keybase1.Path
-	pathString := pathToString(path)
+	pathString := path.String()
 	directory := filepath.ToSlash(filepath.Dir(pathString))
 	base := filepath.Base(pathString)
 
@@ -436,7 +419,7 @@ func doSimpleFSGlob(ctx context.Context, g *libkb.GlobalContext, cli keybase1.Si
 			return returnPaths, err
 		}
 
-		pathString := pathToString(path)
+		pathString := path.String()
 		if strings.ContainsAny(filepath.Base(pathString), "?*[]") == false {
 			returnPaths = append(returnPaths, path)
 			continue

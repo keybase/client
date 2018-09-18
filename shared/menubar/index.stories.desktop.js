@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {storiesOf, action} from '../stories/storybook'
+import * as Storybook from '../stories/storybook'
 import Menubar from './index.desktop'
 
 const props = {
@@ -19,23 +19,39 @@ const props = {
   },
   folderProps: null,
   isAsyncWriteHappening: false,
-  logIn: action('logIn'),
+  logIn: Storybook.action('logIn'),
   loggedIn: true,
-  onFolderClick: action('onFolderClick'),
-  onRekey: action('onRekey'),
-  openApp: action('openApp'),
-  quit: action('quit'),
-  refresh: action('refresh'),
-  showBug: action('showBug'),
-  showHelp: action('showHelp'),
-  showUser: action('showUser'),
+  onFolderClick: Storybook.action('onFolderClick'),
+  onRekey: Storybook.action('onRekey'),
+  openApp: Storybook.action('openApp'),
+  quit: Storybook.action('quit'),
+  refresh: Storybook.action('refresh'),
+  showBug: Storybook.action('showBug'),
+  showHelp: Storybook.action('showHelp'),
+  showUser: Storybook.action('showUser'),
   username: 'nathunsmitty',
   windowComponent: 'menubar',
   windowParam: '',
+  onSelectConversation: () => {},
+  conversations: [
+    // TODO: fill in a few.
+  ],
 }
 
+const providers = Storybook.createPropProviderWithCommon({
+  ChatPreview: () => ({
+    convRows: [],
+    onViewAll: () => {},
+  }),
+  FilesPreview: () => ({
+    tlfRows: [],
+    onViewAll: () => {},
+  }),
+})
+
 const load = () => {
-  storiesOf('Menubar', module)
+  Storybook.storiesOf('Menubar', module)
+    .addDecorator(providers)
     .add('Normal', () => <Menubar {...props} />)
     .add('Not logged in', () => <Menubar {...props} loggedIn={false} />)
     .add('With a file notification', () => (

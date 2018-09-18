@@ -1,16 +1,16 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
-import {partition} from 'lodash-es'
 import Wallet from '.'
 
 const mapStateToProps = (state: TypedState) => ({
   accountID: Constants.getSelectedAccount(state),
   assets: Constants.getAssets(state),
   payments: Constants.getPayments(state),
+  pending: Constants.getPendingPayments(state),
 })
 
-const mapDispatchToProps = (dispatch: Dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   navigateAppend,
 })
 
@@ -22,12 +22,18 @@ const mergeProps = (stateProps, dispatchProps) => {
   // 3. transactions header and transactions
   // Formatted in a SectionList
   sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
-  const payments = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+  const completed = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+  const pending = stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
 
-  const [completed, pending] = partition(payments, {status: 'completed'})
+  if (pending.length > 0) {
+    sections.push({data: pending, title: 'Pending'})
+  }
 
-  sections.push({data: pending, title: 'Pending'})
-  sections.push({data: completed, title: 'History'})
+  if (completed.length === 0) {
+    sections.push({data: ['historyPlaceholder'], title: 'History'})
+  } else {
+    sections.push({data: completed, title: 'History'})
+  }
 
   return {
     accountID: stateProps.accountID,

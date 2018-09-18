@@ -1,16 +1,17 @@
 // @flow
 import {BigTeamsDivider} from '.'
-import {createSelector, connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const getMetaMap = (state: TypedState) => state.chat2.metaMap
-const getBadges = (state: TypedState) => state.chat2.badgeMap
-
-const dividerSelector = createSelector([getBadges, getMetaMap], (badgeMap, metaMap) => {
-  const badgeCount = metaMap
-    .filter(meta => meta.teamType === 'big')
-    .reduce((total, map, id) => total + badgeMap.get(id, 0), 0)
-
-  return {badgeCount}
+const mapStateToProps = state => ({
+  _badges: state.chat2.badgeMap,
+  _metaMap: state.chat2.metaMap,
 })
 
-export default connect(dividerSelector)(BigTeamsDivider)
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  badgeCount: stateProps._metaMap
+    .filter(meta => meta.teamType === 'big')
+    .reduce((total, map, id) => total + stateProps._badges.get(id, 0), 0),
+  toggle: ownProps.toggle,
+})
+
+export default connect(mapStateToProps, () => ({}), mergeProps)(BigTeamsDivider)

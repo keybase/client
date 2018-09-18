@@ -76,9 +76,9 @@ func (c *cmdWalletBalances) runForUser(cli stellar1.LocalClient) error {
 		if acc.Name != "" {
 			var isPrimary string
 			if acc.IsPrimary {
-				isPrimary = ", primary"
+				isPrimary = " (Primary)"
 			}
-			accountName = fmt.Sprintf("%s (%s%s)", acc.Name, acc.AccountID.String(), isPrimary)
+			accountName = fmt.Sprintf("'%s' (%s)%s", acc.Name, acc.AccountID.String(), isPrimary)
 		} else {
 			accountName = acc.AccountID.String()
 			if acc.IsPrimary {
