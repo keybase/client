@@ -146,6 +146,16 @@ func DeletableMessageTypesByDelete() []MessageType {
 	return deletableMessageTypesByDelete
 }
 
+func VisibleChatMessageTypes() []MessageType {
+	return []MessageType{
+		MessageType_TEXT,
+		MessageType_ATTACHMENT,
+		MessageType_SYSTEM,
+		MessageType_SENDPAYMENT,
+		MessageType_REQUESTPAYMENT,
+	}
+}
+
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
 	banned := make(map[MessageType]bool)
 	for _, mt := range nonDeletableMessageTypesByDeleteHistory {
