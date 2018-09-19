@@ -21,7 +21,10 @@ const mergeProps = (stateProps, dispatchProps) => {
   // 2. assets header and list of assets
   // 3. transactions header and transactions
   // Formatted in a SectionList
-  sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
+  const assets = stateProps.assets.count()
+    ? stateProps.assets.map((a, index) => index).toArray()
+    : ['pending']
+  sections.push({data: assets, title: 'Your assets'})
   const completed = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
   const pending = stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
 
