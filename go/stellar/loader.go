@@ -259,7 +259,7 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 	info.Delta = stellar1.BalanceDelta_NONE
 
 	// Calculate the payment delta
-	if summary.FromType == stellar1.ParticipantType_OWNACCOUNT {
+	if summary.FromType == stellar1.ParticipantType_OWNACCOUNT && summary.ToType == stellar1.ParticipantType_OWNACCOUNT {
 		// This is a transfer between the user's own accounts.
 		info.Delta = stellar1.BalanceDelta_NONE
 	} else {
