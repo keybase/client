@@ -134,15 +134,16 @@ function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any
   yield Saga.call(_open, resolvedPath)
 }
 
-function openInFileUISaga({payload: {path}}: FsGen.OpenInFileUIPayload, state: TypedState) {
-  const openPath = path || downloadFolder
-  const enabled = state.fs.fuseStatus && state.fs.fuseStatus.kextStarted
-  if (isLinux || enabled) {
-    return Saga.call(openPath.startsWith(Config.defaultKBFSPath) ? openWithCurrentMountDir : _open, openPath)
-  } else {
-    return Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(openPath)}, selected: 'folder'}]))
-  }
-}
+// openInFileUI tries to open a path as following:
+// 1) If it's a KBFS path, open with system file manager if FUSE is enabled,
+//    and go to Files tab if FUSE is disabled.
+// 2) If it's not a KBFS path, just open it with system file manager.
+const openInFileUI = (state: TypedState, {payload: {path}}: FsGen.OpenInFileUIPayload) =>
+  path && path.startsWith(Config.defaultKBFSPath)
+    ? isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+      ? Saga.call(openWithCurrentMountDir, path)
+      : Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
+    : Saga.call(_open, path || downloadFolder)
 
 function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
@@ -294,15 +295,15 @@ function installDokanSaga() {
 const uninstallDokanPromise = (state: TypedState) => {
   const uninstallString = Constants.kbfsUninstallString(state)
   if (!uninstallString) {
-      return
+    return
   }
   logger.info('Invoking dokan uninstaller')
   return new Promise(resolve => {
     try {
       exec(uninstallString, {windowsHide: true}, resolve)
     } catch (e) {
-        logger.error('uninstallDokan caught', e)
-        resolve()
+      logger.error('uninstallDokan caught', e)
+      resolve()
     }
   }).then(() => FsGen.createFuseStatus())
 }
@@ -334,7 +335,7 @@ const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
   })
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
+  yield Saga.actionToAction(FsGen.openInFileUI, openInFileUI)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
@@ -344,7 +345,11 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
   } else {
     yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
-    yield Saga.safeTakeEveryPure(FsGen.uninstallKBFSConfirm, uninstallKBFSConfirm, uninstallKBFSConfirmSuccess)
+    yield Saga.safeTakeEveryPure(
+      FsGen.uninstallKBFSConfirm,
+      uninstallKBFSConfirm,
+      uninstallKBFSConfirmSuccess
+    )
   }
   yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
 }
