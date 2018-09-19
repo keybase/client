@@ -12,6 +12,7 @@ protocol local {
     string name;                // the user-given name for the account
     string balanceDescription;  // example: "56.0227002 XLM + more"
     string seqno;               // the stellar sequence number for this account 
+    boolean mobileOnly;         // true if account secrets only allowed on mobile devices
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -326,6 +327,8 @@ protocol local {
   void cancelRequestLocal(int sessionID, KeybaseRequestID reqID);
   KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset, 
     union { null, OutsideCurrencyCode } currency, string amount, string note);
+
+  void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
 
   // -------------------------------------------------------
   // CLI protocol

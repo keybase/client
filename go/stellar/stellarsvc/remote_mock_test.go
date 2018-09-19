@@ -470,6 +470,10 @@ func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.Accou
 	return r.Backend.MarkAsRead(ctx, r.Tc, acctID, mostRecentID)
 }
 
+func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) error {
+	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.
@@ -966,6 +970,10 @@ func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, reques
 
 func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return nil
+}
+
+func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
+	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
 }
 
 // Friendbot sends someone XLM

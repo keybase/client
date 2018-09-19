@@ -749,7 +749,24 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 }
 
 func TestSetMobileOnly(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
 
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accountID := getPrimaryAccountID(tcs[0])
+
+	account, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), stellar1.GetWalletAccountLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.False(t, account.MobileOnly)
+
+	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	account, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), stellar1.GetWalletAccountLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.True(t, account.MobileOnly)
 }
 
 type TestContext struct {

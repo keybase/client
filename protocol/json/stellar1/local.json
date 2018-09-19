@@ -30,6 +30,10 @@
         {
           "type": "string",
           "name": "seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "mobileOnly"
         }
       ]
     },
@@ -1183,6 +1187,19 @@
         }
       ],
       "response": "KeybaseRequestID"
+    },
+    "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
     },
     "balancesLocal": {
       "request": [

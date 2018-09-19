@@ -89,3 +89,7 @@ func (r *RemoteNet) CancelRequest(ctx context.Context, requestID stellar1.Keybas
 func (r *RemoteNet) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return MarkAsRead(ctx, r.G(), accountID, mostRecentID)
 }
+
+func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error {
+	return SetAccountMobileOnly(ctx, r.G(), accountID)
+}

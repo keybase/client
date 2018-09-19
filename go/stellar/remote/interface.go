@@ -29,4 +29,5 @@ type Remoter interface {
 	RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error)
 	CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error
 	MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error
+	SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error
 }

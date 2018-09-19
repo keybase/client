@@ -623,6 +623,19 @@ func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	return g.API.PostDecode(apiArg, &res)
 }
 
+func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	payload := make(libkb.JSONPayload)
+	payload["account_id"] = accountID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/setmobileonly",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	return g.API.PostDecode(apiArg, &res)
+}
+
 type lookupUnverifiedResult struct {
 	libkb.AppStatusEmbed
 	Users []struct {
