@@ -265,6 +265,10 @@ def runNixTest(prefix) {
             sh 'git diff --exit-code'
         }
     }
+    tests[prefix+'prod_build'] = {
+        // Avoid build specific errors by compiling for production.
+        sh 'go build --tags=production ./...'
+    }
     parallel (tests)
     // Dependencies
     dir('test') {
