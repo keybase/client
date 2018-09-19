@@ -11,6 +11,8 @@ if (debugSerializer) {
 }
 
 type Props = {
+  // increment to kill cache
+  clearCacheTrigger: number,
   windowParam: ?string,
   windowComponent: string,
   remoteWindow: ?SafeElectron.BrowserWindowType,
@@ -98,6 +100,11 @@ function SyncPropsFactory(serializer: Serializer) {
       }
       componentWillUnmount() {
         SafeElectron.getIpcRenderer().removeListener('remoteWindowWantsProps', this._onNeedProps)
+      }
+      componentDidUpdate(prevProps: Props) {
+        if (this.props.clearCacheTrigger !== prevProps.clearCacheTrigger) {
+          this._lastProps = null
+        }
       }
 
       render() {

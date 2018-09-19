@@ -18,7 +18,6 @@ class RemoteStore {
   getStore = () => this._store
 
   _onPropsUpdated = propsStr => {
-    console.log('aaa', propsStr.length, propsStr)
     // setImmediate since this can be a side effect of the reducer which redux doesn't like
     setImmediate(() => {
       this._store.dispatch({

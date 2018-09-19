@@ -74,25 +74,33 @@ const getBrokenSubset = memoize(userTrackers =>
   }, {})
 )
 
-const mergeProps = stateProps => ({
-  badgeKeys: stateProps._badgeInfo,
-  badgeMap: stateProps._badgeInfo,
-  broken: stateProps.broken,
-  conversationIDs: stateProps.conversationsToSend,
-  conversationMap: stateProps.conversationsToSend,
-  externalRemoteWindow: stateProps._externalRemoteWindowID
-    ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
-    : null,
-  fileRows: GetFileRows(stateProps._tlfUpdates),
-  following: stateProps._following,
-  isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
-  loggedIn: stateProps.loggedIn,
-  username: stateProps.username,
-  windowComponent: 'menubar',
-  windowOpts,
-  windowParam: '',
-  windowTitle: '',
-})
+let _lastUsername
+let _lastClearCacheTrigger = 0
+const mergeProps = stateProps => {
+  if (_lastUsername !== stateProps.username) {
+    _lastClearCacheTrigger++
+  }
+  return {
+    badgeKeys: stateProps._badgeInfo,
+    badgeMap: stateProps._badgeInfo,
+    broken: stateProps.broken,
+    clearCacheTrigger: _lastClearCacheTrigger,
+    conversationIDs: stateProps.conversationsToSend,
+    conversationMap: stateProps.conversationsToSend,
+    externalRemoteWindow: stateProps._externalRemoteWindowID
+      ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
+      : null,
+    fileRows: GetFileRows(stateProps._tlfUpdates),
+    following: stateProps._following,
+    isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
+    loggedIn: stateProps.loggedIn,
+    username: stateProps.username,
+    windowComponent: 'menubar',
+    windowOpts,
+    windowParam: '',
+    windowTitle: '',
+  }
+}
 
 // Actions are handled by remote-container
 export default compose(

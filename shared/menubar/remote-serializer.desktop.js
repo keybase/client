@@ -16,6 +16,7 @@ export const serialize = {
         return map
       }, {}),
   broken: v => v,
+  clearCacheTrigger: v => undefined,
   conversationIDs: v => v.map(v => v.conversationIDKey),
   conversationMap: (v, o) =>
     v.reduce((map, toSend) => {
