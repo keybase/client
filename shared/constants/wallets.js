@@ -270,6 +270,7 @@ const sendPaymentWaitingKey = 'wallets:stellarSend'
 const requestPaymentWaitingKey = 'wallets:requestPayment'
 const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 const deleteAccountWaitingKey = 'wallets:deleteAccount'
+const searchKey = 'walletSearch'
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -370,5 +371,6 @@ export {
   sendReceiveFormRouteKey,
   sendReceiveFormRoutes,
   setAccountAsDefaultWaitingKey,
+  searchKey,
   statusSimplifiedToString,
 }
