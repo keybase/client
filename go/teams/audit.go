@@ -237,7 +237,8 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		if !ok {
 			// This might happen if leveldb was corrupted, or if we had a bug of some sort.
 			// But it makes sense not error out of the audit process.
-			m.CWarningf("previous audit pointed to a bogus probe (seqno=%d); starting from scratch", lastMaxMerkleProbe)
+			m.CWarningf("previous audit pointed to a bogus probe (seqno=%d); starting from scratch at head Merkle seqno=%d", lastMaxMerkleProbe, headMerkleSeqno)
+			low = headMerkleSeqno
 		} else {
 			prev = &probeTuple{
 				merkle: lastMaxMerkleProbe,
