@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
-import {isMobile} from '../constants/platform'
+import {isMobile} from '../../constants/platform'
 
 export type OverlayParentProps = {
-  getAttachmentRef: () => ?React.ElementRef<any>,
+  getAttachmentRef: () => ?React.Component<any>,
   showingMenu: boolean,
-  setAttachmentRef: (?React.ElementRef<any>) => void,
+  setAttachmentRef: (?React.Component<any>) => void,
   setShowingMenu: boolean => void,
   toggleShowingMenu: () => void,
 }
@@ -19,12 +19,12 @@ const OverlayParentHOC = <T: OverlayParentProps>(
 ): React.ComponentType<$Diff<T, OverlayParentProps>> => {
   class OverlayParent extends React.Component<$Diff<T, OverlayParentProps>, OverlayParentState> {
     state = {showingMenu: false}
-    _ref: ?React.Component<any, any> = null
+    _ref: ?React.Component<any> = null
     setShowingMenu = (showingMenu: boolean) => this.setState({showingMenu})
     toggleShowingMenu = () => this.setState(oldState => ({showingMenu: !oldState.showingMenu}))
     setAttachmentRef = isMobile
       ? () => {}
-      : (attachmentRef: ?React.ElementRef<any>) => {
+      : (attachmentRef: ?React.Component<any>) => {
           this._ref = attachmentRef
         }
     getAttachmentRef = () => this._ref

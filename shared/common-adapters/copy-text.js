@@ -12,7 +12,7 @@ import * as Styles from '../styles'
 import {compose, connect, setDisplayName} from '../util/container'
 
 type TProps = PropsWithTimer<{
-  getAttachmentRef: () => ?React.ElementRef<any>,
+  getAttachmentRef: () => ?React.Component<any>,
 }>
 type TState = {
   showingToast: boolean,
