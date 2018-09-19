@@ -147,11 +147,13 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   publicMemo: new HiddenString(''),
   publicMemoType: '',
   source: '',
+  sourceAccountID: '',
   sourceType: '',
   statusDescription: '',
   statusDetail: '',
   statusSimplified: 'none',
   target: '',
+  targetAccountID: '',
   targetType: '',
   time: 0,
   txID: '',
@@ -166,6 +168,19 @@ const makeCurrency: I.RecordFactory<Types._LocalCurrency> = I.Record({
   name: '',
 })
 
+const partyToDescription = (type, username, assertion, name, id): string => {
+  switch (type) {
+    case 'keybase':
+      return username
+    case 'sbs':
+      return assertion
+    case 'ownaccount':
+      return name
+    default:
+      return id
+  }
+}
+
 const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w) {
     return makePayment({error: 'No payments returned'})
@@ -174,6 +189,16 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     return makePayment({error: w.err})
   }
   const p = w.payment
+  const sourceType = partyTypeToString[p.fromType]
+  const targetType = partyTypeToString[p.toType]
+  const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
+  const target = partyToDescription(
+    targetType,
+    p.toUsername,
+    p.toAssertion,
+    p.toAccountName,
+    p.toAccountID || ''
+  )
   return makePayment({
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
@@ -181,13 +206,15 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     id: p.id,
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
-    source: p.fromUsername || p.fromAccountID,
-    sourceType: partyTypeToString[p.fromType],
+    source,
+    sourceAccountID: p.fromAccountID,
+    sourceType,
     statusDescription: p.statusDescription,
     statusDetail: p.statusDetail,
     statusSimplified: statusSimplifiedToString[p.statusSimplified],
-    target: p.toUsername || p.toAccountID || p.toAccountName,
-    targetType: partyTypeToString[p.toType],
+    target,
+    targetAccountID: p.toAccountID,
+    targetType,
     time: p.time,
     worth: p.worth,
     worthCurrency: p.worthCurrency,
@@ -245,16 +272,15 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
 const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
   let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
   switch (partyType) {
+    case 'ownaccount':
+      return 'otherAccount'
     case 'sbs':
     case 'keybase':
-      if (p.source === p.target) {
-        return 'otherAccount'
-      }
       return 'keybaseUser'
     case 'stellar':
+    default:
       return 'stellarPublicKey'
   }
-  return 'stellarPublicKey'
 }
 
 const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
