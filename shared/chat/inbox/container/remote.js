@@ -23,7 +23,30 @@ const valuesCached = memoize((...vals) => vals.map(v => v))
 const metaMapToFirstValues = memoize(metaMap =>
   metaMap
     .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
-    .filter((_, id) => Constants.isValidConversationIDKey(id))
+    .filter((meta, id) => {
+      if (Constants.isValidConversationIDKey(id)) {
+        if (meta.teamType === 'adhoc') {
+          // DM's
+          return !meta.isMuted ? true : false
+        } else if (meta.teamType === 'big') {
+          // channels
+          if (!meta.notificationsGlobalIgnoreMentions) {
+            // @here and @mention not ignored
+            if (meta.notificationsDesktop === 'onAnyActivity') {
+              return true
+            } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
+              // check if user has been mentioned in the message
+              let snippet = meta.snippet.toLowerCase()
+              return snippet.indexOf(`@${_username}`) === 0 || snippet.indexOf('you') === 0
+            }
+            return false
+          }
+          return false
+        }
+        return false
+      }
+      return false
+    })
     .valueSeq()
     .toArray()
 )
