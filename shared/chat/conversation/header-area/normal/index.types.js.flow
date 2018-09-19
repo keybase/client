@@ -13,4 +13,5 @@ export type Props = {|
   teamName: ?string,
   participants: Array<string>,
   smallTeam: boolean,
+  muteConversation: null | (() => void),
 |}

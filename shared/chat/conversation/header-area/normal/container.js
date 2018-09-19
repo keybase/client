@@ -37,6 +37,8 @@ const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) =>
   onBack: () => dispatch(RouteTree.navigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
+  _onMuteConversation: () =>
+    dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -58,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   participants: stateProps._participants.toArray(),
   smallTeam: stateProps.smallTeam,
   teamName: stateProps.teamName,
+  muteConversation: dispatchProps._onMuteConversation,
 })
 
 export default compose(
