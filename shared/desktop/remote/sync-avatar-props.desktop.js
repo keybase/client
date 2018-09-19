@@ -22,15 +22,10 @@ type Props = {
 export const serialize = {
   avatars: (v: any, o: any) => {
     if (!v) return undefined
-    return v.toJS()
-    // TODO do diff
-    const toSend = Object.keys(v).reduce((map, k) => {
-      if (!o || v[k] !== o[k]) {
-        map[k] = v[k]
-      }
-      return map
-    }, {})
-    return Object.keys(toSend).length ? toSend : undefined
+    const toSend = v.filter((sizes, name) => {
+      return !o || sizes !== o.get(name)
+    })
+    return toSend.isEmpty() ? undefined : toSend.toJS()
   },
   followers: (v: any) => v.toArray(),
   following: (v: any) => v.toArray(),
