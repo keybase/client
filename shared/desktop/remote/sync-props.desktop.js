@@ -5,7 +5,8 @@
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 
-const debugSerializer = __DEV__ && true
+// set this to true to see details of the serialization process
+const debugSerializer = __DEV__ && false
 if (debugSerializer) {
   console.log('\n\n\n\n\n\nDEBUGGING REMOTE SERIALIZER')
 }
