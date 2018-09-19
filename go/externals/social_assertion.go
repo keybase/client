@@ -18,20 +18,20 @@ func IsSocialAssertion(g *libkb.GlobalContext, s string) bool {
 	return kbname.IsSocialAssertion(MakeAssertionContext(g), s)
 }
 
-func AssertionParseAndOnly(g *libkb.GlobalContext, s string) (libkb.AssertionExpression, error) {
+func AssertionParseAndOnly(g *libkb.GlobalContext, s string) (kbname.AssertionExpression, error) {
 	return kbname.AssertionParseAndOnly(MakeAssertionContext(g), s)
 }
 
-func AssertionParse(g *libkb.GlobalContext, s string) (libkb.AssertionExpression, error) {
+func AssertionParse(g *libkb.GlobalContext, s string) (kbname.AssertionExpression, error) {
 	return kbname.AssertionParse(MakeAssertionContext(g), s)
 }
 
-func ParseAssertionsWithReaders(g *libkb.GlobalContext, s string) (writers, readers []libkb.AssertionExpression, err error) {
+func ParseAssertionsWithReaders(g *libkb.GlobalContext, s string) (writers, readers []kbname.AssertionExpression, err error) {
 	return kbname.ParseAssertionsWithReaders(MakeAssertionContext(g), s)
 }
 
 func ParseAssertionList(g *libkb.GlobalContext, s string) ([]kbname.AssertionExpression, error) {
-	return libkb.ParseAssertionList(MakeAssertionContext(g), s)
+	return kbname.ParseAssertionList(MakeAssertionContext(g), s)
 }
 
 // NOTE the static methods should only be used in tests or as a basic sanity
@@ -43,9 +43,9 @@ func makeStaticAssertionContext() kbname.AssertionContext {
 }
 
 func NormalizeSocialAssertionStatic(s string) (keybase1.SocialAssertion, bool) {
-	return libkb.NormalizeSocialAssertion(makeStaticAssertionContext(), s)
+	return kbname.NormalizeSocialAssertion(makeStaticAssertionContext(), s)
 }
 
 func AssertionParseAndOnlyStatic(s string) (kbname.AssertionExpression, error) {
-	return libkb.AssertionParseAndOnly(makeStaticAssertionContext(), s)
+	return kbname.AssertionParseAndOnly(makeStaticAssertionContext(), s)
 }
