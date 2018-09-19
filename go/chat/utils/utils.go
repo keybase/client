@@ -351,18 +351,8 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-func VisibleChatMessageTypes() []chat1.MessageType {
-	return []chat1.MessageType{
-		chat1.MessageType_TEXT,
-		chat1.MessageType_ATTACHMENT,
-		chat1.MessageType_SYSTEM,
-		chat1.MessageType_SENDPAYMENT,
-		chat1.MessageType_REQUESTPAYMENT,
-	}
-}
-
 func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	for _, mt := range VisibleChatMessageTypes() {
+	for _, mt := range chat1.VisibleChatMessageTypes() {
 		if messageType == mt {
 			return true
 		}
@@ -728,7 +718,7 @@ func CreateTopicNameState(cmp chat1.ConversationIDMessageIDPairs) (chat1.TopicNa
 
 func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	var summaries []chat1.MessageSummary
-	for _, typ := range VisibleChatMessageTypes() {
+	for _, typ := range chat1.VisibleChatMessageTypes() {
 		summary, err := conv.GetMaxMessage(typ)
 		if err == nil {
 			summaries = append(summaries, summary)
@@ -759,7 +749,7 @@ func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.Message
 }
 
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
@@ -767,7 +757,7 @@ func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	msg, err := PickLatestMessageUnboxed(conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return "", ""
 	}
@@ -880,7 +870,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	if conv == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv, VisibleChatMessageTypes())
+	msg, err := PickLatestMessageUnboxed(*conv, chat1.VisibleChatMessageTypes())
 	if err != nil || !msg.IsValid() {
 		return ""
 	}

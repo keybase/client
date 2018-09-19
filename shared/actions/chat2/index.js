@@ -4,7 +4,7 @@ import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
-import * as KBFSGen from '../kbfs-gen'
+import * as FsGen from '../fs-gen'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
@@ -1608,7 +1608,7 @@ const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
     meta.teamType !== 'adhoc'
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
-  return Saga.put(KBFSGen.createOpen({path}))
+  return Saga.put(FsGen.createOpenInFileUI({path}))
 }
 
 const getRecommendations = (
@@ -2448,7 +2448,10 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
-const openChatFromWidget = (state: TypedState, {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload) =>
+const openChatFromWidget = (
+  state: TypedState,
+  {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
+) =>
   Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
     Saga.put(switchTo([chatTab])),

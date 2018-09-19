@@ -14,6 +14,7 @@ protocol local {
     string seqno;               // the stellar sequence number for this account 
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+  WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
@@ -79,6 +80,8 @@ protocol local {
 
     string note;                    // secret note
     string noteErr;
+
+    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
   }
 
   record PaymentOrErrorLocal {
@@ -89,10 +92,15 @@ protocol local {
   record PaymentsPageLocal {
     array<PaymentOrErrorLocal> payments;
     union { null, PageCursor } cursor;
+    union { null, PaymentID } oldestUnread;  // draw orange line underneath this payment
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
+
+  // markAsReadLocal will mark as "read" all the payments created at or before the time 
+  // of the payment referenced by `mostRecentID`.
+  void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.

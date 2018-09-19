@@ -7,7 +7,7 @@ import * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
 
 type OwnProps = {
-  attachTo: () => ?React.ElementRef<any>,
+  attachTo: () => ?React.Component<any>,
   conversationIDKey: Types.ConversationIDKey,
   /* Called after action selecting new explode time is dispatched */
   onAfterSelect?: (s: number) => void,

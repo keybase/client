@@ -9,6 +9,6 @@ import (
 	"github.com/keybase/client/go/pvl"
 )
 
-func CheckProofPvl(m libkb.MetaContext, proofType keybase1.ProofType, proof libkb.RemoteProofChainLink, hint libkb.SigHint, pvlU libkb.PvlUnparsed) libkb.ProofError {
-	return pvl.CheckProof(m, string(pvlU.Pvl), proofType, pvl.NewProofInfo(proof, hint))
+func CheckProofPvl(m libkb.MetaContext, proofType keybase1.ProofType, proof libkb.RemoteProofChainLink, hint libkb.SigHint, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
+	return pvl.CheckProof(m, string(pvlU.Entry), proofType, pvl.NewProofInfo(proof, hint))
 }
