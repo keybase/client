@@ -257,7 +257,7 @@ func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression,
 	parser := Parser{
 		lexer:   lexer,
 		err:     nil,
-		andOnly: false,
+		andOnly: true,
 	}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
