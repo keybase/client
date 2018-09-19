@@ -178,15 +178,16 @@ type AmountXLMProps = {|
 |}
 
 const AmountXLM = (props: AmountXLMProps) => {
-  let color = globalColors.black_20
-  if (!props.pending) {
-    if (props.delta === 'decrease') {
-      color = globalColors.red
-    } else if (props.delta === 'increase') {
-      color = globalColors.green
-    }
+  let color = globalColors.black
+  if (props.pending) {
+    color = globalColors.black_20
+  } else if (props.delta === 'decrease') {
+    color = globalColors.red
+  } else if (props.delta === 'increase') {
+    color = globalColors.green
   }
-  let amount = '0'
+
+  let amount = '0 XLM'
   if (props.delta === 'decrease') {
     amount = `- ${props.amountXLM}`
   } else if (props.delta === 'increase') {
