@@ -138,8 +138,8 @@ func (a *Auditor) getFromDisk(m libkb.MetaContext, id keybase1.TeamID) (*keybase
 	if !found {
 		return nil, nil
 	}
-	if ret.Version < AuditCurrentVersion {
-		m.CDebugf("Discarding old audit at version %d", ret.Version)
+	if ret.Version != AuditCurrentVersion {
+		m.CDebugf("Discarding audit at version %d (we are supporting %d)", ret.Version, AuditCurrentVersion)
 		return nil, nil
 	}
 	return &ret, nil
