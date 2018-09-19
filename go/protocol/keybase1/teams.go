@@ -854,10 +854,37 @@ func (o Probe) DeepCopy() Probe {
 	}
 }
 
+type AuditVersion int
+
+const (
+	AuditVersion_V0 AuditVersion = 0
+	AuditVersion_V1 AuditVersion = 1
+)
+
+func (o AuditVersion) DeepCopy() AuditVersion { return o }
+
+var AuditVersionMap = map[string]AuditVersion{
+	"V0": 0,
+	"V1": 1,
+}
+
+var AuditVersionRevMap = map[AuditVersion]string{
+	0: "V0",
+	1: "V1",
+}
+
+func (e AuditVersion) String() string {
+	if v, ok := AuditVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type AuditHistory struct {
 	ID               TeamID          `codec:"ID" json:"ID"`
 	Public           bool            `codec:"public" json:"public"`
 	PriorMerkleSeqno Seqno           `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Version          AuditVersion    `codec:"version" json:"version"`
 	Audits           []Audit         `codec:"audits" json:"audits"`
 	PreProbes        map[Seqno]Probe `codec:"preProbes" json:"preProbes"`
 	PostProbes       map[Seqno]Probe `codec:"postProbes" json:"postProbes"`
@@ -868,6 +895,7 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 		ID:               o.ID.DeepCopy(),
 		Public:           o.Public,
 		PriorMerkleSeqno: o.PriorMerkleSeqno.DeepCopy(),
+		Version:          o.Version.DeepCopy(),
 		Audits: (func(x []Audit) []Audit {
 			if x == nil {
 				return nil

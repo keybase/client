@@ -680,6 +680,14 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "AuditVersion",
+      "symbols": [
+        "V0_0",
+        "V1_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "AuditHistory",
       "fields": [
@@ -695,6 +703,10 @@
         {
           "type": "Seqno",
           "name": "priorMerkleSeqno"
+        },
+        {
+          "type": "AuditVersion",
+          "name": "version"
         },
         {
           "type": {
