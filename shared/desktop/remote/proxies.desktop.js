@@ -9,9 +9,8 @@ const RemoteProxies = () => (
   <div style={style}>
     <RemoteMenubar />
     <RemoteTracker />
-    {/*
     <RemotePinentry />
-    <RemoteUnlockFolders /> */}
+    <RemoteUnlockFolders />
   </div>
 )
 
