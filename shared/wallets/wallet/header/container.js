@@ -15,8 +15,6 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const nyi = () => console.log('Not yet implemented')
-
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onGoToSendReceive: (from: string, recipientType: Types.CounterpartyType) => {
     dispatch(WalletsGen.createClearBuildingPayment())
