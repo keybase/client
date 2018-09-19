@@ -623,6 +623,17 @@
       "doc": "getUPAK returns a UPAK. Used mainly for debugging.",
       "lint": "ignore"
     },
+    "getUPAKLite": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": "UpkLiteV1AllIncarnations",
+      "doc": "getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.",
+      "lint": "ignore"
+    },
     "uploadUserAvatar": {
       "request": [
         {

@@ -351,6 +351,72 @@
         }
       ],
       "doc": "* What we're storing for each user. At first it was UPAKs, as defined\n   * in common.avdl. But going forward, we're going to use UserPlusKeysV2AllIncarnations."
+    },
+    {
+      "type": "enum",
+      "name": "UpkLiteMinorVersion",
+      "symbols": [
+        "V0_0"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpkLiteV1",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "Seqno",
+          "name": "eldestSeqno"
+        },
+        {
+          "type": "StatusCode",
+          "name": "status"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "PublicKeyV2NaCl",
+            "keys": "KID"
+          },
+          "name": "deviceKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpkLiteV1AllIncarnations",
+      "fields": [
+        {
+          "type": "UpkLiteV1",
+          "name": "current"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UpkLiteV1"
+          },
+          "name": "pastIncarnations"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "seqnoLinkIDs"
+        },
+        {
+          "type": "UpkLiteMinorVersion",
+          "name": "minorVersion"
+        }
+      ]
     }
   ],
   "messages": {},

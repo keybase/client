@@ -150,6 +150,12 @@ protocol user {
   @lint("ignore")
   UPAKVersioned getUPAK(UID uid);
 
+  /**
+   getUPAKLite returns a UpkLiteV1AllIncarnations. Used mainly for debugging.
+  */
+  @lint("ignore")
+  UpkLiteV1AllIncarnations getUPAKLite(UID uid);
+
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
   record NextMerkleRootRes {

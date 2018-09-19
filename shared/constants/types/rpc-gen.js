@@ -765,6 +765,10 @@ export const uPKUPK2MinorVersion = {
   v6: 6,
 }
 
+export const uPKUpkLiteMinorVersion = {
+  v0: 0,
+}
+
 export const uiPromptDefault = {
   none: 0,
   yes: 1,

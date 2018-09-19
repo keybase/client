@@ -111,4 +111,26 @@ protocol UPK {
       case V1: UserPlusAllKeys;
       case V2: UserPlusKeysV2AllIncarnations;
   }
+
+  enum UpkLiteMinorVersion {
+      V0_0
+  }
+
+  // only latest incarnation
+  record UpkLiteV1 {
+      UID uid;
+      string username;
+      Seqno eldestSeqno;
+      StatusCode status;
+      // Sorted by generation ascending
+      map<KID, PublicKeyV2NaCl> deviceKeys;
+  }
+
+  record UpkLiteV1AllIncarnations {
+      UpkLiteV1 current;
+      array<UpkLiteV1> pastIncarnations;
+      map<Seqno, LinkID> seqnoLinkIDs;
+      UpkLiteMinorVersion minorVersion;
+  }
+
 }

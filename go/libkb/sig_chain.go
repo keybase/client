@@ -40,6 +40,10 @@ type ChainLinks []*ChainLink
 //    consuming client can safely ignore those details.
 //
 
+type BaseSigChain interface {
+	VerifyChain(m MetaContext) (err error)
+	GetComputedKeyInfos() (cki *ComputedKeyInfos)
+}
 type SigChain struct {
 	Contextified
 
@@ -287,6 +291,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 
 	numEntries := 0
 
+	// TODO: some of this logic can be extracted to a pure function and reused
 	jsonparserw.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
@@ -642,8 +647,7 @@ func (sc *SigChain) Dump(w io.Writer) {
 // verifySubchain verifies the given subchain and outputs a yes/no answer
 // on whether or not it's well-formed, and also yields ComputedKeyInfos for
 // all keys found in the process, including those that are now retired.
-func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
-	un := sc.username
+func verifySubchain(m MetaContext, un NormalizedUsername, kf KeyFamily, links ChainLinks) (cached bool, cki *ComputedKeyInfos, err error) {
 
 	m.CDebugf("+ verifySubchain")
 	defer func() {
@@ -666,8 +670,8 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		}
 	}
 
-	cki = NewComputedKeyInfos(sc.G())
-	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: sc.Contextified}
+	cki = NewComputedKeyInfos(m.G())
+	ckf := ComputedKeyFamily{kf: &kf, cki: cki, Contextified: NewContextified(m.G())}
 
 	first := true
 	seenInflatedWalletStellarLink := false
@@ -698,17 +702,16 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 				// So that the server can't roll back someone's active wallet address.
 				return cached, cki, SigchainV2StubbedDisallowed{}
 			}
-			sc.G().VDL.Log(VLog1, "| Skipping over stubbed-out link: %s", link.id)
+			m.VLogf(VLog1, "| Skipping over stubbed-out link: %s", link.id)
 			continue
 		}
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
-			w.Warn(sc.G())
+			w.Warn(m.G())
 		}
 
-		sc.G().VDL.Log(VLog1, "| Verify link: %s %v %v", link.id, link.chainVerified, link.hashVerified)
-
+		m.VLogf(VLog1, "| Verify link: %s %v %v", link.id, link.chainVerified, link.hashVerified)
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
 				return cached, cki, err
@@ -725,7 +728,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		isModifyingKeys := isDelegating || tcl.Type() == string(DelegationTypePGPUpdate)
 		isFinalLink := (linkIndex == len(links)-1)
 		hasRevocations := link.HasRevocations()
-		sc.G().VDL.Log(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
+		m.VLogf(VLog1, "| isDelegating: %v, isModifyingKeys: %v, isFinalLink: %v, hasRevocations: %v",
 			isDelegating, isModifyingKeys, isFinalLink, hasRevocations)
 
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
@@ -848,7 +851,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 		return cached, 0, err
 	}
 
-	if cached, ckf.cki, err = sc.verifySubchain(m, *ckf.kf, links); err != nil {
+	if cached, ckf.cki, err = verifySubchain(m, sc.username, *ckf.kf, links); err != nil {
 		return cached, len(links), err
 	}
 
@@ -930,7 +933,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 			break
 		}
 
-		cached, _, err = sc.verifySubchain(m, kf, links)
+		cached, _, err = verifySubchain(m, sc.username, kf, links)
 		if err != nil {
 			m.CInfof("Error verifying subchain from %d: %s", seqno, err)
 			break
@@ -994,6 +997,11 @@ var PublicChain = &ChainType{
 
 //========================================================================
 
+type BaseSigChainLoader interface {
+	Load() (ret *BaseSigChain, err error)
+	LoadFromServer() (err error)
+	VerifySigsAndComputeKeys() (err error)
+}
 type SigChainLoader struct {
 	MetaContextified
 	user                 *User
