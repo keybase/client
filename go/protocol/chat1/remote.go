@@ -967,13 +967,15 @@ type UpgradeKBFSToImpteamArg struct {
 }
 
 type RegisterSharePostArg struct {
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	OutboxID OutboxID       `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
+	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
 }
 
 type FailSharePostArg struct {
-	ConvID   ConversationID `codec:"convID" json:"convID"`
-	OutboxID OutboxID       `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID   `codec:"convID" json:"convID"`
+	DeviceID gregor1.DeviceID `codec:"deviceID" json:"deviceID"`
+	OutboxID OutboxID         `codec:"outboxID" json:"outboxID"`
 }
 
 type RemoteInterface interface {
