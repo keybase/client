@@ -60,8 +60,8 @@ class ToField extends React.Component<ToFieldProps> {
 
     // There are a few different ways the participants form can look:
     // Case 1: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a stellar address or searched user, not another account.
-    if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
+    // We can only get this case when the recipient is a searched user, not another account.
+    if (this.props.recipientUsername && this.props.recipientType === 'keybaseUser') {
       component = (
         <React.Fragment>
           <Kb.ConnectedNameWithIcon
