@@ -248,6 +248,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
       }
     }
 
+    // TODO/songgao: is it intended that this prop is still here? The prop is
+    // not provided in the container at all.
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
