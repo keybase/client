@@ -1122,6 +1122,15 @@
         }
       ],
       "response": null
+    },
+    "registerSharePost": {
+      "request": [
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -966,6 +966,10 @@ type UpgradeKBFSToImpteamArg struct {
 	TlfID TLFID `codec:"tlfID" json:"tlfID"`
 }
 
+type RegisterSharePostArg struct {
+	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1001,6 +1005,7 @@ type RemoteInterface interface {
 	SetConvMinWriterRole(context.Context, SetConvMinWriterRoleArg) (SetConvMinWriterRoleRes, error)
 	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
+	RegisterSharePost(context.Context, OutboxID) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1546,6 +1551,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"registerSharePost": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterSharePostArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RegisterSharePostArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RegisterSharePostArg)(nil), args)
+						return
+					}
+					err = i.RegisterSharePost(ctx, (*typedArgs)[0].OutboxID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -1734,5 +1755,11 @@ func (c RemoteClient) RetentionSweepConv(ctx context.Context, convID Conversatio
 func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, tlfID TLFID) (err error) {
 	__arg := UpgradeKBFSToImpteamArg{TlfID: tlfID}
 	err = c.Cli.Call(ctx, "chat.1.remote.upgradeKBFSToImpteam", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) RegisterSharePost(ctx context.Context, outboxID OutboxID) (err error) {
+	__arg := RegisterSharePostArg{OutboxID: outboxID}
+	err = c.Cli.Call(ctx, "chat.1.remote.registerSharePost", []interface{}{__arg}, nil)
 	return
 }
