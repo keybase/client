@@ -35,15 +35,20 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 
 // shouldFallbackToSlowLoadAfterFTLError returns trues if the given error should result
 // in a retry via slow loading. Right now, it only happens if the server tells us
-// that our FTL is outdated.
+// that our FTL is outdated, or FTL is feature-flagged off on the server.
 func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool {
 	if err == nil {
 		return false
 	}
-	switch err.(type) {
+	switch tErr := err.(type) {
 	case libkb.TeamFTLOutdatedError:
 		m.CDebugf("Our FTL implementation is too old; falling back to slow loader (%v)", err)
 		return true
+	case libkb.FeatureFlagError:
+		if tErr.Feature() == libkb.FeatureFTL {
+			m.CDebugf("FTL feature-flagged off on the server, falling back to regular loader")
+			return true
+		}
 	}
 	return false
 }

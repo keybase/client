@@ -56,7 +56,8 @@ protocol local {
     NONE_0,
     KEYBASE_1,
     STELLAR_2,
-    SBS_3
+    SBS_3,
+    OWNACCOUNT_4
   }
 
   // Summary of a payment.
@@ -73,10 +74,19 @@ protocol local {
     string worth;                   // "$123.23"
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;
@@ -117,10 +127,19 @@ protocol local {
     string worth;                   // "$123.23", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;

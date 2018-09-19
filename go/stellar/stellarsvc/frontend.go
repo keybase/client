@@ -325,6 +325,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
@@ -332,7 +333,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	m := libkb.NewMetaContext(ctx, s.G())
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p)
+		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -359,6 +360,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
 	if err != nil {
 		return nil, err
@@ -367,7 +369,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 	m := libkb.NewMetaContext(ctx, s.G())
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p)
+		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -390,6 +392,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
@@ -402,7 +405,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		acctID = *arg.AccountID
 	}
 	m := libkb.NewMetaContext(ctx, s.G())
-	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary)
+	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
@@ -418,10 +421,15 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		Delta:             summary.Delta,
 		Worth:             summary.Worth,
 		WorthCurrency:     summary.WorthCurrency,
-		Source:            summary.Source,
-		SourceType:        summary.SourceType,
-		Target:            summary.Target,
-		TargetType:        summary.TargetType,
+		FromType:          summary.FromType,
+		ToType:            summary.ToType,
+		FromAccountID:     summary.FromAccountID,
+		FromAccountName:   summary.FromAccountName,
+		FromUsername:      summary.FromUsername,
+		ToAccountID:       summary.ToAccountID,
+		ToAccountName:     summary.ToAccountName,
+		ToUsername:        summary.ToUsername,
+		ToAssertion:       summary.ToAssertion,
 		Note:              summary.Note,
 		NoteErr:           summary.NoteErr,
 		PublicNote:        details.Memo,
