@@ -17,7 +17,7 @@ type Props = {
 }
 
 // Before sending we need to get a small diff to serialize. Do NOT send immutable over the wire. You pass an object
-// for each matching prop which converts to a serializable format. Do smart diffing w/ the old value
+// for each matching prop which converts to a serializable format. Do smart diffing w/ the old value to minimize traffic
 type Serializer = {[key: string]: (value: any, oldValue: any) => ?Object}
 
 function SyncPropsFactory(serializer: Serializer) {

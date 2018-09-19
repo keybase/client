@@ -1,6 +1,5 @@
 // @flow
 import * as I from 'immutable'
-import * as Constants from '../../constants/config'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'

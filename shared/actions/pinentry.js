@@ -21,7 +21,7 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingCallMap({
+  engine().setCustomResponseIncomingCallMap({
     'keybase.1.secretUi.getPassphrase': (param, response) => {
       logger.info('Asked for passphrase')
       const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry

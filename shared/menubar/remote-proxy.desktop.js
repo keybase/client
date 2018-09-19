@@ -7,8 +7,9 @@ import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
-// import GetFileRows from '../fs/remote-container'
+import GetFileRows from '../fs/remote-container'
 import {serialize} from './remote-serializer.desktop'
+import memoize from 'memoize-one'
 
 const windowOpts = {}
 
@@ -63,7 +64,15 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
-const TEMPTEMP = []
+// TODO we should just send a Set like structure over, for now just extract trackerState
+const getBrokenSubset = memoize(userTrackers =>
+  Object.keys(userTrackers).reduce((map, name) => {
+    map[name] = {
+      trackerState: userTrackers[name].trackerState,
+    }
+    return map
+  }, {})
+)
 
 const mergeProps = stateProps => ({
   badgeKeys: stateProps._badgeInfo,
@@ -74,7 +83,7 @@ const mergeProps = stateProps => ({
   externalRemoteWindow: stateProps._externalRemoteWindowID
     ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
     : null,
-  fileRows: TEMPTEMP, // TEMP GetFileRows(stateProps._tlfUpdates),
+  fileRows: GetFileRows(stateProps._tlfUpdates),
   following: stateProps._following,
   isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
   loggedIn: stateProps.loggedIn,
