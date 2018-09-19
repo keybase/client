@@ -145,7 +145,10 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 			break
 		} else if thread.Pagination.Last && !reachedLast {
 			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v). Nuking local storage and retrying.", len(thread.Messages))
-			s.G().ConvSource.ClearLocalCache(ctx, conv.GetConvID(), msg.ClientHeader.Sender)
+			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender); err != nil {
+				s.Debug(ctx, "Unable to clear conversation: %v, %v", conv.GetConvID(), err)
+				break
+			}
 			attempt = 0
 			pagination.Next = nil
 			// Make sure we only reset `attempt` once

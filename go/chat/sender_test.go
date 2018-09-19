@@ -1085,7 +1085,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		}
 
 		// Nuke the body cache
-		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNukeLocked(context.TODO(), true, nil, conv.GetConvID(), uid))
+		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).ClearAll(context.TODO(), conv.GetConvID(), uid))
 
 		// Fetch a subset into the cache
 		_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
