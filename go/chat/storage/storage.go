@@ -313,6 +313,12 @@ func (h *HoleyResultCollector) Holes() int {
 	return h.holes
 }
 
+func (s *Storage) Nuke(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) Error {
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	return s.maybeNukeLocked(ctx, true /* force */, nil /* error */, convID, uid)
+}
+
 func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, convID chat1.ConversationID,
 	uid gregor1.UID) Error {
 	// Clear index
