@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
 import {downloadFolder} from '../../util/file.desktop'
@@ -15,6 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {navigateTo} from '../route-tree'
+import {makeRetriableErrorHandler} from './shared'
 
 type pathType = 'file' | 'directory'
 
@@ -333,12 +335,34 @@ const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
     )
   })
 
+const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
+  try {
+    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
+      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+        if (i < 2) return acc
+        const path = Types.getPathFromElements(a.slice(0, i + 1))
+        if (!state.fs.pathItems.get(path))
+          return acc.add(path)
+        return acc
+      }, acc), I.Set()).toArray()
+    yield Saga.sequentially([
+      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
+      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+    ])
+  } catch (ex) {
+    yield makeRetriableErrorHandler(action)
+  }
+})
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEveryPure(FsGen.openInFileUI, openInFileUISaga)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
+  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
     yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
