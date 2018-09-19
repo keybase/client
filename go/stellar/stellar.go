@@ -10,6 +10,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -334,7 +335,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 		social, err := expr.ToSocialAssertion()
 		if err != nil {
 			m.CDebugf("not a social assertion: %s (%s)", to, expr)
-			if _, ok := expr.(libkb.AssertionKeybase); ok {
+			if _, ok := expr.(kbname.AssertionKeybase); ok {
 				return res, libkb.NotFoundError{Msg: fmt.Sprintf("user not found: %q", to)}
 			}
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)

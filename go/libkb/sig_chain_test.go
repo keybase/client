@@ -162,7 +162,7 @@ func doChainTest(t *testing.T, tc TestContext, testCase TestCase) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	uid, err := UIDFromHex(input.UID)
+	uid, err := keybase1.UIDFromString(input.UID)
 	if err != nil {
 		t.Fatal(err)
 	}

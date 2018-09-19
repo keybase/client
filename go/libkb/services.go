@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -139,7 +140,7 @@ type assertionContext struct {
 	esc ExternalServicesCollector
 }
 
-func MakeAssertionContext(s ExternalServicesCollector) AssertionContext {
+func MakeAssertionContext(s ExternalServicesCollector) kbname.AssertionContext {
 	return assertionContext{esc: s}
 }
 
@@ -161,7 +162,7 @@ type staticAssertionContext struct {
 	esc ExternalServicesCollector
 }
 
-func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
+func MakeStaticAssertionContext(s ExternalServicesCollector) kbname.AssertionContext {
 	return staticAssertionContext{esc: s}
 }
 

@@ -486,7 +486,7 @@ func (tmp *ChainLinkUnpacked) unpackPayloadJSON(g *GlobalContext, payload []byte
 	if err != nil {
 		return err
 	}
-	if tmp.uid, err = UIDFromHex(suid); err != nil {
+	if tmp.uid, err = keybase1.UIDFromString(suid); err != nil {
 		return err
 	}
 

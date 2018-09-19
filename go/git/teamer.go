@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -78,7 +79,7 @@ func (t *TeamerImpl) lookupOrCreateImplicitTeam(ctx context.Context, folder keyb
 		visibility = keybase1.TLFVisibility_PUBLIC
 	}
 
-	impName, err := libkb.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(), "/keybase/"+folder.ToString())
+	impName, err := kbname.ParseImplicitTeamTLFName(t.G().MakeAssertionContext(), "/keybase/"+folder.ToString())
 	if err != nil {
 		return res, err
 	}

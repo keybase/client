@@ -5,20 +5,21 @@ package libkb
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // BaseProofSet creates a basic proof set for a user with their
 // keybase and uid proofs and any pgp fingerprint proofs.
-func BaseProofSet(u *keybase1.UserPlusKeysV2AllIncarnations) *ProofSet {
-	proofs := []Proof{
+func BaseProofSet(u *keybase1.UserPlusKeysV2AllIncarnations) *kbname.ProofSet {
+	proofs := []kbname.Proof{
 		{Key: "keybase", Value: u.GetName()},
 		{Key: "uid", Value: u.GetUID().String()},
 	}
 	for _, key := range u.Current.PGPKeys {
-		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: key.Fingerprint.String()})
+		proofs = append(proofs, kbname.Proof{Key: kbname.PGPAssertionKey, Value: key.Fingerprint.String()})
 	}
-	return NewProofSet(proofs)
+	return kbname.NewProofSet(proofs)
 }
 
 // checkKIDPGP checks that the user has the given PGP KID valid *now*. Note that it doesn't

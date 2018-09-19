@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -142,7 +143,7 @@ func XapiError(err error, u string) *ProofAPIError {
 
 type FailedAssertionError struct {
 	user string
-	bad  []AssertionURL
+	bad  []kbname.AssertionURL
 }
 
 func (u FailedAssertionError) Error() string {
@@ -156,22 +157,6 @@ func (u FailedAssertionError) Error() string {
 
 //=============================================================================
 
-type AssertionParseError struct {
-	err string
-}
-
-func (e AssertionParseError) Error() string {
-	return e.err
-}
-
-func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
-	return AssertionParseError{
-		err: fmt.Sprintf(s, a...),
-	}
-}
-
-//=============================================================================
-
 type NeedInputError struct {
 	err string
 }
@@ -180,8 +165,8 @@ func (e NeedInputError) Error() string {
 	return e.err
 }
 
-func NewNeedInputError(s string, a ...interface{}) AssertionParseError {
-	return AssertionParseError{
+func NewNeedInputError(s string, a ...interface{}) NeedInputError {
+	return NeedInputError{
 		err: fmt.Sprintf(s, a...),
 	}
 }
@@ -2256,18 +2241,6 @@ func (e RevokeLastDevicePGPError) Error() string {
 }
 
 //=============================================================================
-
-type ImplicitTeamDisplayNameError struct {
-	msg string
-}
-
-func (e ImplicitTeamDisplayNameError) Error() string {
-	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
-}
-
-func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
-	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
-}
 
 type TeamVisibilityError struct {
 	wantedPublic bool

@@ -1,7 +1,7 @@
 // Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package kbun
+package kbname
 
 import (
 	"regexp"
@@ -16,6 +16,9 @@ var usernameRE = regexp.MustCompile(`^([a-zA-Z0-9]+_?)+$`)
 func CheckUsername(s string) bool {
 	return len(s) >= 2 && len(s) <= 16 && usernameRE.MatchString(s)
 }
+
+// CheckUsernameHint is a hint to display when CheckUsername fails.
+const CheckUsernameHint = "between 2 and 16 characters long"
 
 // NormalizedUsername is a Keybase username that has been normalized
 // (toLowered) and therefore will compare correctly against other

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	gregor "github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbname"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -82,7 +83,7 @@ func (i *identifyUser) GetNormalizedName() libkb.NormalizedUsername {
 	return libkb.NewNormalizedUsername(i.GetName())
 }
 
-func (i *identifyUser) BaseProofSet() *libkb.ProofSet {
+func (i *identifyUser) BaseProofSet() *kbname.ProofSet {
 	if i.thin != nil {
 		return libkb.BaseProofSet(i.thin)
 	}
@@ -244,9 +245,9 @@ type Identify2WithUID struct {
 	me   *identifyUser
 	them *identifyUser
 
-	themAssertion   libkb.AssertionExpression
-	remoteAssertion libkb.AssertionAnd
-	localAssertion  libkb.AssertionAnd
+	themAssertion   kbname.AssertionExpression
+	remoteAssertion kbname.AssertionAnd
+	localAssertion  kbname.AssertionAnd
 
 	state        libkb.IdentifyState
 	useTracking  bool
@@ -257,7 +258,7 @@ type Identify2WithUID struct {
 	// For eagerly checking remote Assertions as they come in, these
 	// member variables maintain state, protected by the remotesMutex.
 	remotesMutex     sync.Mutex
-	remotesReceived  *libkb.ProofSet
+	remotesReceived  *kbname.ProofSet
 	remotesError     error
 	remotesCompleted bool
 
@@ -690,7 +691,7 @@ func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState)
 	if e.them.isDeleted {
 		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: true}
 	}
-	ps := libkb.NewProofSet(nil)
+	ps := kbname.NewProofSet(nil)
 	e.state.Result().AddProofsToSet(ps, okStates)
 	if !e.remoteAssertion.MatchSet(*ps) {
 		return libkb.UnmetAssertionError{User: e.them.GetName(), Remote: true}
@@ -702,9 +703,9 @@ func (e *Identify2WithUID) loadAssertion() (err error) {
 	if len(e.arg.UserAssertion) == 0 {
 		return nil
 	}
-	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
+	e.themAssertion, err = kbname.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
 	if err == nil {
-		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
+		e.remoteAssertion, e.localAssertion = kbname.CollectAssertions(e.themAssertion)
 	}
 	return err
 }
@@ -1153,7 +1154,7 @@ func (e *Identify2WithUID) Result() (*keybase1.Identify2ResUPK2, error) {
 	return res, nil
 }
 
-func (e *Identify2WithUID) GetProofSet() *libkb.ProofSet {
+func (e *Identify2WithUID) GetProofSet() *kbname.ProofSet {
 	return e.remotesReceived
 }
 

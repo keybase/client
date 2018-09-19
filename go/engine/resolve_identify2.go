@@ -5,7 +5,9 @@ package engine
 
 import (
 	"errors"
+
 	gregor "github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -166,7 +168,7 @@ func (e *ResolveThenIdentify2) ConfirmResult() keybase1.ConfirmResult {
 	return e.i2eng.ConfirmResult()
 }
 
-func (e *ResolveThenIdentify2) GetProofSet() *libkb.ProofSet {
+func (e *ResolveThenIdentify2) GetProofSet() *kbname.ProofSet {
 	if e.i2eng == nil {
 		return nil
 	}

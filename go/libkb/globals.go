@@ -25,6 +25,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbname"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
@@ -1023,7 +1024,7 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 	return nil
 }
 
-func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+func (g *GlobalContext) MakeAssertionContext() kbname.AssertionContext {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	if g.proofServices == nil {

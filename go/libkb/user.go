@@ -10,6 +10,7 @@ import (
 	"io"
 	"regexp"
 
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -593,16 +594,16 @@ func (u *User) remoteTrackChainLinkFor(username NormalizedUsername, uid keybase1
 
 // BaseProofSet creates a basic proof set for a user with their
 // keybase and uid proofs and any pgp fingerprint proofs.
-func (u *User) BaseProofSet() *ProofSet {
-	proofs := []Proof{
+func (u *User) BaseProofSet() *kbname.ProofSet {
+	proofs := []kbname.Proof{
 		{Key: "keybase", Value: u.name},
 		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePGPFingerprints(true) {
-		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: fp.String()})
+		proofs = append(proofs, kbname.Proof{Key: kbname.PGPAssertionKey, Value: fp.String()})
 	}
 
-	return NewProofSet(proofs)
+	return kbname.NewProofSet(proofs)
 }
 
 // localDelegateKey takes the given GenericKey and provisions it locally so that

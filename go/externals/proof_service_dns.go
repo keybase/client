@@ -6,6 +6,7 @@ package externals
 import (
 	"strings"
 
+	"github.com/keybase/client/go/kbname"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -43,7 +44,7 @@ type DNSServiceType struct{ libkb.BaseServiceType }
 func (t DNSServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
-	if !libkb.IsValidHostname(s) {
+	if !kbname.IsValidHostname(s) {
 		return "", libkb.NewInvalidHostnameError(s)
 	}
 	return strings.ToLower(s), nil
@@ -52,7 +53,7 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 func (t DNSServiceType) NormalizeRemoteName(_ libkb.MetaContext, s string) (string, error) {
 	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
-	if !libkb.IsValidHostname(s) {
+	if !kbname.IsValidHostname(s) {
 		return "", libkb.NewInvalidHostnameError(s)
 	}
 	return s, nil

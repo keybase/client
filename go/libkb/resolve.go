@@ -9,6 +9,7 @@ import (
 
 	"runtime/debug"
 
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 	"stathat.com/c/ramcache"
@@ -129,8 +130,8 @@ func (r *ResolverImpl) Resolve(m MetaContext, input string) ResolveResult {
 func (r *ResolverImpl) resolve(m MetaContext, input string, withBody bool) (res ResolveResult) {
 	defer m.CTraceTimed(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
 
-	var au AssertionURL
-	if au, res.err = ParseAssertionURL(m.G().MakeAssertionContext(), input, false); res.err != nil {
+	var au kbname.AssertionURL
+	if au, res.err = kbname.ParseAssertionURL(m.G().MakeAssertionContext(), input, false); res.err != nil {
 		return res
 	}
 	res = r.resolveURL(m, au, input, withBody, false)
@@ -165,12 +166,12 @@ func (r *ResolverImpl) ResolveUser(m MetaContext, assertion string) (u keybase1.
 func (r *ResolverImpl) resolveFullExpression(m MetaContext, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveFullExpression(%q)", input), func() error { return res.err })()
 
-	var expr AssertionExpression
-	expr, res.err = AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
+	var expr kbname.AssertionExpression
+	expr, res.err = kbname.AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
 	if res.err != nil {
 		return res
 	}
-	u := FindBestIdentifyComponentURL(expr)
+	u := kbname.FindBestIdentifyComponentURL(expr)
 	if u == nil {
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
@@ -180,13 +181,13 @@ func (r *ResolverImpl) resolveFullExpression(m MetaContext, input string, withBo
 	return ret
 }
 
-func (res *ResolveResult) addKeybaseNameIfKnown(au AssertionURL) {
+func (res *ResolveResult) addKeybaseNameIfKnown(au kbname.AssertionURL) {
 	if au.IsKeybase() && len(res.resolvedKbUsername) == 0 {
 		res.resolvedKbUsername = au.GetValue()
 	}
 }
 
-func (r *ResolverImpl) getFromDiskCache(m MetaContext, key string, au AssertionURL) (ret *ResolveResult) {
+func (r *ResolverImpl) getFromDiskCache(m MetaContext, key string, au kbname.AssertionURL) (ret *ResolveResult) {
 	defer m.CVTraceOK(VLog1, fmt.Sprintf("Resolver#getFromDiskCache(%q)", key), func() bool { return ret != nil })()
 	var uid keybase1.UID
 	found, err := m.G().LocalDb.GetInto(&uid, resolveDbKey(key))
@@ -207,7 +208,7 @@ func (r *ResolverImpl) getFromDiskCache(m MetaContext, key string, au AssertionU
 	return &ResolveResult{uid: uid}
 }
 
-func isMutable(au AssertionURL) bool {
+func isMutable(au kbname.AssertionURL) bool {
 	return !(au.IsUID() || au.IsKeybase())
 }
 
@@ -219,7 +220,7 @@ func (r *ResolverImpl) getFromUPAKLoader(m MetaContext, uid keybase1.UID) (ret *
 	return &ResolveResult{uid: uid, queriedByUID: true, resolvedKbUsername: nun.String(), mutable: false}
 }
 
-func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
+func (r *ResolverImpl) resolveURL(m MetaContext, au kbname.AssertionURL, input string, withBody bool, needUsername bool) (res ResolveResult) {
 	ck := au.CacheKey()
 
 	lock := r.locktab.AcquireOnName(m.Ctx(), m.G(), ck)
@@ -278,7 +279,7 @@ func (r *ResolverImpl) resolveURL(m MetaContext, au AssertionURL, input string, 
 	return res
 }
 
-func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au AssertionURL, input string, withBody bool) (res ResolveResult) {
+func (r *ResolverImpl) resolveURLViaServerLookup(m MetaContext, au kbname.AssertionURL, input string, withBody bool) (res ResolveResult) {
 	defer m.CVTrace(VLog1, fmt.Sprintf("Resolver#resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	if au.IsTeamID() || au.IsTeamName() {
@@ -377,7 +378,7 @@ func (t *teamLookup) GetAppStatus() *AppStatus {
 	return &t.Status
 }
 
-func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au AssertionURL) (res ResolveResult) {
+func (r *ResolverImpl) resolveTeamViaServerLookup(m MetaContext, au kbname.AssertionURL) (res ResolveResult) {
 	m.CDebugf("resolveTeamViaServerLookup")
 
 	res.queriedByTeamID = au.IsTeamID()
@@ -454,7 +455,7 @@ func (r *ResolverImpl) Shutdown(m MetaContext) {
 	r.cache.Shutdown()
 }
 
-func (r *ResolverImpl) getFromMemCache(m MetaContext, key string, au AssertionURL) (ret *ResolveResult) {
+func (r *ResolverImpl) getFromMemCache(m MetaContext, key string, au kbname.AssertionURL) (ret *ResolveResult) {
 	defer m.CVTraceOK(VLog1, fmt.Sprintf("Resolver#getFromMemCache(%q)", key), func() bool { return ret != nil })()
 	if r.cache == nil {
 		return nil
@@ -548,11 +549,11 @@ func (r *ResolverImpl) putToMemCache(m MetaContext, key string, res ResolveResul
 
 func (r *ResolverImpl) PurgeResolveCache(m MetaContext, input string) (err error) {
 	defer m.CTrace(fmt.Sprintf("Resolver#PurgeResolveCache(input = %q)", input), func() error { return err })()
-	expr, err := AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
+	expr, err := kbname.AssertionParseAndOnly(m.G().MakeAssertionContext(), input)
 	if err != nil {
 		return err
 	}
-	u := FindBestIdentifyComponentURL(expr)
+	u := kbname.FindBestIdentifyComponentURL(expr)
 	if u == nil {
 		return ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 	}

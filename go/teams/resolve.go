@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -75,13 +76,13 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 		IsPublic: public,
 	}
 	if len(suffix) > 0 {
-		res.ConflictInfo, err = libkb.ParseImplicitTeamDisplayNameSuffix(suffix)
+		res.ConflictInfo, err = kbname.ParseImplicitTeamDisplayNameSuffix(suffix)
 		if err != nil {
 			return res, err
 		}
 	}
 
-	var resolvedAssertions []libkb.ResolvedAssertion
+	var resolvedAssertions []ResolvedAssertion
 
 	err = ResolveImplicitTeamSetUntrusted(ctx, g, writerAssertions, &res.Writers, &resolvedAssertions)
 	if err != nil {
@@ -110,13 +111,19 @@ func ResolveImplicitTeamDisplayName(ctx context.Context, g *libkb.GlobalContext,
 	return res, err
 }
 
+type ResolvedAssertion struct {
+	UID           keybase1.UID
+	Assertion     kbname.AssertionExpression
+	ResolveResult libkb.ResolveResult
+}
+
 // Try to resolve implicit team members.
 // Modifies the arguments `resSet` and appends to `resolvedAssertions`.
 // For each assertion in `sourceAssertions`, try to resolve them.
 //   If they resolve, add the username to `resSet` and the assertion to `resolvedAssertions`.
 //   If they don't resolve, add the SocialAssertion to `resSet`, but nothing to `resolvedAssertions`.
 func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext,
-	sourceAssertions []libkb.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]libkb.ResolvedAssertion) error {
+	sourceAssertions []kbname.AssertionExpression, resSet *keybase1.ImplicitTeamUserSet, resolvedAssertions *[]ResolvedAssertion) error {
 
 	m := libkb.NewMetaContext(ctx, g)
 
@@ -137,7 +144,7 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 			// Resolution succeeded
 			resSet.KeybaseUsers = append(resSet.KeybaseUsers, u.Username)
 			// Append the resolvee and assertion to resolvedAssertions, in case we identify later.
-			*resolvedAssertions = append(*resolvedAssertions, libkb.ResolvedAssertion{
+			*resolvedAssertions = append(*resolvedAssertions, ResolvedAssertion{
 				UID:           u.Uid,
 				Assertion:     expr,
 				ResolveResult: resolveRes,
@@ -148,7 +155,7 @@ func ResolveImplicitTeamSetUntrusted(ctx context.Context, g *libkb.GlobalContext
 }
 
 // Verify using Identify that a UID matches an assertion.
-func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion libkb.ResolvedAssertion) (err error) {
+func verifyResolveResult(ctx context.Context, g *libkb.GlobalContext, resolvedAssertion ResolvedAssertion) (err error) {
 
 	defer g.CTrace(ctx, fmt.Sprintf("verifyResolveResult ID user [%s] %s", resolvedAssertion.UID, resolvedAssertion.Assertion.String()),
 		func() error { return err })()

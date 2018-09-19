@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbname"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -56,7 +57,7 @@ func (i *IdentifyOutcome) ActiveProofs() []RemoteProofChainLink {
 	return i.remoteProofLinks().Active()
 }
 
-func (i *IdentifyOutcome) AddProofsToSet(existing *ProofSet, okStates []keybase1.ProofState) {
+func (i *IdentifyOutcome) AddProofsToSet(existing *kbname.ProofSet, okStates []keybase1.ProofState) {
 	i.remoteProofLinks().AddProofsToSet(existing, okStates)
 }
 

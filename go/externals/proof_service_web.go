@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/kbname"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -59,7 +60,7 @@ func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", 
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the (lowercased) hostname.
-	if !libkb.IsValidHostname(s) {
+	if !kbname.IsValidHostname(s) {
 		return "", libkb.NewInvalidHostnameError(s)
 	}
 	return strings.ToLower(s), nil
@@ -71,7 +72,7 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 		s = v[3]
 		prot = v[1]
 	}
-	if !libkb.IsValidHostname(s) {
+	if !kbname.IsValidHostname(s) {
 		err = libkb.NewInvalidHostnameError(s)
 	} else {
 		hostname = s

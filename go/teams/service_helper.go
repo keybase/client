@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -177,7 +178,7 @@ func SetRoleReader(ctx context.Context, g *libkb.GlobalContext, teamname, userna
 	return ChangeRoles(ctx, g, teamname, keybase1.TeamChangeReq{Readers: []keybase1.UserVersion{uv}})
 }
 
-func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*libkb.ProofSet, *libkb.IdentifyOutcome, error) {
+func getUserProofsNoTracking(ctx context.Context, g *libkb.GlobalContext, username string) (*kbname.ProofSet, *libkb.IdentifyOutcome, error) {
 	arg := keybase1.Identify2Arg{
 		UserAssertion:    username,
 		UseDelegateUI:    false,
@@ -997,7 +998,7 @@ func identifyLiteByName(ctx context.Context, g *libkb.GlobalContext, name keybas
 	return makeIdentifyLiteRes(id, name), nil
 }
 
-func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.IdentifyLiteArg, au libkb.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
+func IdentifyLite(ctx context.Context, g *libkb.GlobalContext, arg keybase1.IdentifyLiteArg, au kbname.AssertionURL) (res keybase1.IdentifyLiteRes, err error) {
 
 	if arg.Id.Exists() || au.IsTeamID() {
 		return identifyLiteByID(ctx, g, arg.Id, au.ToTeamID())

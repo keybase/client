@@ -521,10 +521,6 @@ type DNSContext interface {
 	GetDNSNameServerFetcher() DNSNameServerFetcher
 }
 
-type AssertionContext interface {
-	NormalizeSocialName(service string, username string) (string, error)
-}
-
 // ProofChecker is an interface for performing a remote check for a proof
 
 type ProofCheckerMode int

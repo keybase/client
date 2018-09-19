@@ -3,6 +3,7 @@ package teams
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -135,7 +136,7 @@ func loadUPAK2(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, fo
 }
 
 func parseSocialAssertion(m libkb.MetaContext, username string) (typ string, name string, err error) {
-	assertion, err := libkb.ParseAssertionURL(m.G().MakeAssertionContext(), username, false)
+	assertion, err := kbname.ParseAssertionURL(m.G().MakeAssertionContext(), username, false)
 	if err != nil {
 		return "", "", err
 	}

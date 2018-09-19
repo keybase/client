@@ -1,7 +1,7 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package kbname
 
 import (
 	"fmt"
@@ -19,6 +19,20 @@ const (
 	EOF
 	ERROR
 )
+
+type AssertionParseError struct {
+	err string
+}
+
+func (e AssertionParseError) Error() string {
+	return e.err
+}
+
+func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
+	return AssertionParseError{
+		err: fmt.Sprintf(s, a...),
+	}
+}
 
 type Token struct {
 	Typ   int

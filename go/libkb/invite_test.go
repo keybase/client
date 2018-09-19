@@ -4,10 +4,18 @@
 package libkb
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbname"
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+type testAssertionContext struct{}
+
+func (t testAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	return strings.ToLower(username), nil
+}
 
 func TestInvitationArgs(t *testing.T) {
 	tc := SetupTest(t, "invite", 1)
@@ -46,7 +54,7 @@ func TestInvitationArgs(t *testing.T) {
 
 	rec.Reset()
 
-	assertion, ok := NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
+	assertion, ok := kbname.NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
 	if !ok {
 		t.Fatal("invalid social assertion")
 	}

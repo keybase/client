@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package kbname
 
 import (
 	"encoding/hex"
@@ -330,8 +330,8 @@ func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error
 
 func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
-	if !CheckUsername.F(a.Value) {
-		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
+	if !CheckUsername(a.Value) {
+		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsernameHint)
 	}
 	return a, nil
 }
@@ -378,6 +378,9 @@ func (a AssertionHTTPS) ToLookup() (key, value string, err error) {
 func (a AssertionDNS) ToLookup() (key, value string, err error) {
 	return "dns", a.Value, nil
 }
+
+const PGPFingerprintHexLen = 40
+
 func (a AssertionFingerprint) ToLookup() (key, value string, err error) {
 	cmp := len(a.Value) - PGPFingerprintHexLen
 	value = a.Value
@@ -434,7 +437,7 @@ func (a AssertionDNS) IsRemote() bool              { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
-		if tmp, err := UIDFromHex(a.Value); err == nil {
+		if tmp, err := keybase1.UIDFromString(a.Value); err == nil {
 			a.uid = tmp
 		}
 	}
@@ -469,7 +472,7 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 
 func (a AssertionUID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	var err error
-	a.uid, err = UIDFromHex(a.Value)
+	a.uid, err = keybase1.UIDFromString(a.Value)
 	a.Value = strings.ToLower(a.Value)
 	return a, err
 }
@@ -657,7 +660,7 @@ func parseImplicitTeamPart(ctx AssertionContext, s string) (typ string, name str
 		return "", "", fmt.Errorf("Invalid implicit team part, can have at most one ':' xor '@': %v", s)
 	}
 	if nDelimiters == 0 {
-		if CheckUsername.F(s) {
+		if CheckUsername(s) {
 			return "keybase", strings.ToLower(s), nil
 		}
 
@@ -674,6 +677,18 @@ func FormatImplicitTeamDisplayNameSuffix(conflict keybase1.ImplicitTeamConflictI
 	return fmt.Sprintf("(conflicted copy %v #%v)",
 		conflict.Time.Time().UTC().Format("2006-01-02"),
 		conflict.Generation)
+}
+
+type ImplicitTeamDisplayNameError struct {
+	msg string
+}
+
+func (e ImplicitTeamDisplayNameError) Error() string {
+	return fmt.Sprintf("Error parsing implicit team name: %s", e.msg)
+}
+
+func NewImplicitTeamDisplayNameError(format string, args ...interface{}) ImplicitTeamDisplayNameError {
+	return ImplicitTeamDisplayNameError{fmt.Sprintf(format, args...)}
 }
 
 // Parse a name like "mlsteele,malgorithms@twitter#bot (conflicted copy 2017-03-04 #2)"
@@ -811,10 +826,4 @@ func ParseTeamPrivateKBFSPath(s string) (ret keybase1.TeamName, err error) {
 		return ret, fmt.Errorf("Invalid team TLF name")
 	}
 	return keybase1.TeamNameFromString(parts[3])
-}
-
-type ResolvedAssertion struct {
-	UID           keybase1.UID
-	Assertion     AssertionExpression
-	ResolveResult ResolveResult
 }

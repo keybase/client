@@ -5,9 +5,11 @@ package engine
 
 import (
 	"fmt"
+	"time"
+
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"time"
 )
 
 type PGPPullEngineArg struct {
@@ -47,26 +49,26 @@ func (e *PGPPullEngine) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{e.listTrackingEngine}
 }
 
-func proofSetFromUserSummary(summary keybase1.UserSummary) *libkb.ProofSet {
-	proofs := []libkb.Proof{
+func proofSetFromUserSummary(summary keybase1.UserSummary) *kbname.ProofSet {
+	proofs := []kbname.Proof{
 		{Key: "keybase", Value: summary.Username},
 		{Key: "uid", Value: summary.Uid.String()},
 	}
 	for _, socialProof := range summary.Proofs.Social {
-		proofs = append(proofs, libkb.Proof{
+		proofs = append(proofs, kbname.Proof{
 			Key:   socialProof.ProofType,
 			Value: socialProof.ProofName,
 		})
 	}
 	for _, webProof := range summary.Proofs.Web {
 		for _, protocol := range webProof.Protocols {
-			proofs = append(proofs, libkb.Proof{
+			proofs = append(proofs, kbname.Proof{
 				Key:   protocol,
 				Value: webProof.Hostname,
 			})
 		}
 	}
-	return libkb.NewProofSet(proofs)
+	return kbname.NewProofSet(proofs)
 }
 
 func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1.UserSummary, []string, error) {
@@ -87,9 +89,9 @@ func (e *PGPPullEngine) getTrackedUserSummaries(m libkb.MetaContext) ([]keybase1
 	// assertions match the same user, that's fine.
 
 	// First parse all the assertion expressions.
-	parsedAsserts := make(map[string]libkb.AssertionExpression)
+	parsedAsserts := make(map[string]kbname.AssertionExpression)
 	for _, assertString := range e.userAsserts {
-		assertExpr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertString)
+		assertExpr, err := kbname.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertString)
 		if err != nil {
 			return nil, nil, err
 		}

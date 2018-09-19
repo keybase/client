@@ -11,6 +11,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbname"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -186,7 +187,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 	// TODO test this with keybase assertions (puk-less users).
 	// It will probably fail because <uid>@keybase is the wrong format.
 
-	makeAssertionContext := func() libkb.AssertionContext {
+	makeAssertionContext := func() kbname.AssertionContext {
 		return libkb.MakeAssertionContext(externals.NewProofServices(tc.G))
 	}
 
@@ -222,7 +223,7 @@ func TestImplicitDisplayTeamNameParse(t *testing.T) {
 			str1, err := FormatImplicitTeamDisplayName(context.Background(), tc.G, obj1)
 			t.Logf("str1 '%v'", str1)
 			require.NoError(t, err)
-			obj2, err := libkb.ParseImplicitTeamDisplayName(makeAssertionContext(), str1, obj1.IsPublic)
+			obj2, err := kbname.ParseImplicitTeamDisplayName(makeAssertionContext(), str1, obj1.IsPublic)
 			require.NoError(t, err)
 			require.Equal(t, obj2.IsPublic, public)
 			require.Len(t, obj2.Writers.KeybaseUsers, 2)
