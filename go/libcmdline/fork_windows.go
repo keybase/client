@@ -6,12 +6,13 @@
 package libcmdline
 
 import (
-	"fmt"
 	"os"
 	"syscall"
 
 	"github.com/keybase/client/go/logger"
 )
+
+const flagCreateNewConsole = 0x00000010
 
 // SpawnDetachedProcess spawns a background process and detech from the calling
 // process.
@@ -51,16 +52,6 @@ func SpawnDetachedProcess(
 		},
 	}
 
-	cmd, args, err = makeServerCommandLine(g, cl, forkType)
-	if err != nil {
-		return
-	}
-
 	pid, _, err = syscall.StartProcess(cmd, args, &attr)
-	if err != nil {
-		err = fmt.Errorf("Error in StartProcess: %s", err)
-	} else {
-		g.Log.Info("Starting background server with pid=%d", pid)
-	}
-	return
+	return pid, err
 }
