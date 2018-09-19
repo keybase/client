@@ -70,7 +70,7 @@ const ChannelHeader = (props: Props) => (
       >
         &nbsp;{props.teamName}
       </Text>
-      {props.smallTeam && props.muted && <ShhIcon onClick={props.muteConversation} />}
+      {props.smallTeam && props.muted && <ShhIcon onClick={props.onMuteConversation} />}
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
