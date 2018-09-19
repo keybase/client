@@ -77,7 +77,7 @@ const ChannelHeader = (props: Props) => (
         <Text type="BodyBig" style={styles.channelName}>
           #{props.channelName}
         </Text>
-        {props.muted && <ShhIcon onClick={props.muteConversation} />}
+        {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
       </Box2>
     )}
   </Wrapper>
@@ -96,7 +96,7 @@ const UsernameHeader = (props: Props) => (
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1}
       />
-      {props.muted && <ShhIcon onClick={props.muteConversation} />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box2>
   </Wrapper>
 )

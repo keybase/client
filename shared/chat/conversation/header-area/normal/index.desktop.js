@@ -32,7 +32,7 @@ const ChannelHeader = (props: Props) => (
           #{props.channelName}
         </Text>
       )}
-      {props.muted && <ShhIcon onClick={props.muteConversation} />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
@@ -59,7 +59,7 @@ const UsernameHeader = (props: Props) => (
         onUsernameClicked={props.onShowProfile}
         skipSelf={props.participants.length > 1 /* length ===1 means just you so show yourself */}
       />
-      {props.muted && <ShhIcon onClick={props.muteConversation} />}
+      {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box>
     {props.onOpenFolder && (
       <Icon type="iconfont-folder-private" style={styleLeft} onClick={props.onOpenFolder} />
