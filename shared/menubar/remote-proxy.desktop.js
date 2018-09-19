@@ -83,7 +83,7 @@ const mergeProps = stateProps => {
   return {
     badgeKeys: stateProps._badgeInfo,
     badgeMap: stateProps._badgeInfo,
-    broken: stateProps.broken,
+    broken: getBrokenSubset(stateProps.broken),
     clearCacheTrigger: _lastClearCacheTrigger,
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
