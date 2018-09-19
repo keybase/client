@@ -292,6 +292,11 @@ protocol teams {
     Seqno teamSeqno;
   }
 
+  enum AuditVersion {
+    V0_0,
+    V1_1
+  }
+
   record AuditHistory {
     @lint("ignore")
     TeamID ID;
@@ -299,6 +304,9 @@ protocol teams {
     boolean public;
     // The Merkle sequence number signed into the head link of the team chain.
     Seqno priorMerkleSeqno;
+
+    // Version #, or 0 if not specified
+    AuditVersion version;
 
     // When the last audit(s) happened
     array<Audit> audits;

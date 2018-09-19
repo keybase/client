@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     _username,
     _path: path,
-    fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+    fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
     pathItem,
   }
 }

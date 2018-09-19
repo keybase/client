@@ -15,12 +15,12 @@ import {walletsTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 
-const buildPayment = (state: TypedState) =>
+const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
-    fromPrimaryAccount: false,
-    from: state.wallets.selectedAccount,
+    fromPrimaryAccount: !state.wallets.buildingPayment.from,
+    from: state.wallets.buildingPayment.from,
     fromSeqno: '',
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),

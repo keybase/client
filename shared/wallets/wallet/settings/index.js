@@ -21,9 +21,11 @@ export type SettingsProps = {|
   refresh: () => void,
 |}
 
+const headerKey = '_header'
+
 const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
-    <Kb.Box2 centerChildren={true} direction="vertical" key="_header">
+    <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
       <Kb.Text type="BodySmall" style={styles.dropdownHeader}>
         Past transactions won't be affected by this change.
       </Kb.Text>
@@ -98,7 +100,7 @@ const AccountSettings = (props: SettingsProps) => {
             onChanged={(node: React.Node) => {
               // $ForceType doesn't understand key will be string
               const selectedCode: Types.CurrencyCode = node.key
-              if (selectedCode !== props.currency.code) {
+              if (selectedCode !== props.currency.code && selectedCode !== headerKey) {
                 props.onCurrencyChange(selectedCode)
               }
             }}

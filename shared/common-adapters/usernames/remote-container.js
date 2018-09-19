@@ -15,13 +15,12 @@ const mapDispatchToProps = (dispatch) => ({
   _onUsernameClicked: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  return Container.connectedPropsToProps(
+const mergeProps = (stateProps, dispatchProps, ownProps) =>
+  Container.connectedPropsToProps(
     {...stateProps, _following: new Set(stateProps._following)},
     {},
     {...ownProps, onUsernameClicked: dispatchProps._onUsernameClicked}
   )
-}
 
 export default compose(
   remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps)

@@ -455,16 +455,20 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
-func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error) {
 	return r.Backend.SubmitRequest(ctx, r.Tc, post)
 }
 
-func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
 	return r.Backend.RequestDetails(ctx, r.Tc, requestID)
 }
 
-func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) (err error) {
+func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error {
 	return r.Backend.CancelRequest(ctx, r.Tc, requestID)
+}
+
+func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
+	return r.Backend.MarkAsRead(ctx, r.Tc, acctID, mostRecentID)
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -958,6 +962,10 @@ func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, reques
 	}
 
 	details.Status = stellar1.RequestStatus_CANCELED
+	return nil
+}
+
+func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return nil
 }
 

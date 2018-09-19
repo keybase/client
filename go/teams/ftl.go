@@ -39,7 +39,7 @@ type FastTeamChainLoader struct {
 	lruMutex sync.RWMutex
 	lru      *lru.Cache
 
-	// Feature-flagging is power by the server. If we get feature flagged off, we
+	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
 	featureFlagGate *libkb.FeatureFlagGate
 }
@@ -50,7 +50,7 @@ const FTLVersion = 1
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
-		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, time.Hour),
+		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
 	}
 	ret.newLRU()
 	return ret
@@ -1179,6 +1179,7 @@ func (f *FastTeamChainLoader) getLRU() *lru.Cache {
 // OnLogout is called when the user logs out, which pruges the LRU.
 func (f *FastTeamChainLoader) OnLogout() {
 	f.newLRU()
+	f.featureFlagGate.Clear()
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {

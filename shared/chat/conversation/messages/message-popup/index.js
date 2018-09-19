@@ -8,7 +8,7 @@ import PaymentMessage from './payment/container'
 import type {Position} from '../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: () => ?React.ElementRef<any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.DecoratedMessage,
   onHidden: () => void,
   position: Position,

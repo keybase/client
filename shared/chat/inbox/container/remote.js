@@ -6,8 +6,9 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 
-const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
 export const maxShownConversations = 7
+
+const getMetaMap = (state: Container.TypedState) => [state.chat2.metaMap, state]
 
 const createShallowEqualSelector = Container.createSelectorCreator(Container.defaultMemoize, shallowEqual)
 
@@ -51,7 +52,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         isSelected: false,
         // excluding onSelectConversation
         participantNeedToRekey,
-        participants: Constants.getRowParticipants(m, _username).toArray(),
+        participants: m.teamname ? [] : Constants.getRowParticipants(m, _username).toArray(),
         showBold: styles.showBold,
         snippet: m.snippet,
         snippetDecoration: m.snippetDecoration,
@@ -62,8 +63,7 @@ const getSortedConvMetas = Container.createSelector([getMetas], ([map, state]) =
         youAreReset: m.membershipType === 'youAreReset',
         youNeedToRekey,
       }
-    })
-    .toJS()
+    }).toArray()
 )
 
 // Just to cache the sorted values

@@ -30,11 +30,11 @@ import (
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/merklestore"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/pvlsource"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
@@ -321,7 +321,7 @@ func (d *Service) setupStellar() error {
 }
 
 func (d *Service) setupPVL() error {
-	pvlsource.NewPvlSourceAndInstall(d.G())
+	merklestore.NewPvlSourceAndInstall(d.G())
 	return nil
 }
 

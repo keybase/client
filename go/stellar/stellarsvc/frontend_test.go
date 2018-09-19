@@ -50,6 +50,21 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "", accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	require.NotEmpty(t, accts[1].Seqno)
+
+	// test the singular version as well
+	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
+	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.True(t, details.IsDefault)
+	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
+	require.NotEmpty(t, details.Seqno)
+
+	argDetails.AccountID = accts[1].AccountID
+	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.False(t, details.IsDefault)
+	require.Equal(t, "0 XLM", details.BalanceDescription)
+	require.NotEmpty(t, details.Seqno)
 }
 
 func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
@@ -859,7 +874,6 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	p := senderPayments[0].Payment
 	require.NotNil(t, p)
-
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
 	require.Equal(t, accountIDSender, p.FromAccountID)
 	require.Equal(t, "office lunch money", p.FromAccountName)
@@ -869,6 +883,24 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, "", p.ToAccountName)
 	require.Equal(t, "", p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
+
+	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
+	require.NoError(t, err)
+	recipPayments = recipPaymentsPage.Payments
+	require.Len(t, recipPayments, 1)
+	t.Logf("recipPayments: %+v", recipPayments)
+	p = recipPayments[0].Payment
+	require.NotNil(t, p)
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
+	require.Equal(t, accountIDSender, p.FromAccountID)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, "", p.FromAccountName)
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.ToType)
+	require.Equal(t, accountIDRecip2, *p.ToAccountID)
+	require.Equal(t, accountIDRecip2.String(), p.ToAccountName)
+	require.Equal(t, "", p.ToUsername)
+	require.Equal(t, "", p.ToAssertion)
+	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
 }
 
 func TestSendToSelf(t *testing.T) {

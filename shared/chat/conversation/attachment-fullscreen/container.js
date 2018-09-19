@@ -2,7 +2,7 @@
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as FsGen from '../../../actions/fs-gen'
 import Fullscreen from './'
 import {compose, withStateHandlers, connect, type TypedState} from '../../../util/container'
 import {type RouteProps} from '../../../route-tree/render-route'
@@ -30,7 +30,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}: OwnProps) =>
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath && dispatch(FsGen.createOpenInFileUI({path: message.downloadPath}))
   },
   onClose: () => {
     dispatch(navigateUp())
