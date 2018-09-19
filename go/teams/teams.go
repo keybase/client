@@ -1823,7 +1823,9 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 // bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
 func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 	changes.KeyRotated = changes.KeyRotated || t.rotated
+	m := libkb.NewMetaContext(ctx, t.G())
 	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().GetFastTeamLoader().HintLatestSeqno(m, t.ID, t.NextSeqno())
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
 

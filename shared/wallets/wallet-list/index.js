@@ -52,7 +52,7 @@ const _AddWallet = (props: AddProps & OverlayParentProps) => {
         <Text type="BodyBigLink">Add an account</Text>
       </Box2>
       <FloatingMenu
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         closeOnSelect={true}
         items={menuItems}
         onHidden={props.toggleShowingMenu}

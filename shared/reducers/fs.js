@@ -229,6 +229,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         default:
           return nextState
       }
+    case FsGen.userFileEditsLoaded:
+      return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.placeholderAction:
@@ -252,6 +254,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
+    case FsGen.openFilesFromWidget:
+    case FsGen.userFileEditsLoad:
       return state
     default:
       /*::

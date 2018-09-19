@@ -36,12 +36,17 @@ const props = {
     // TODO: fill in a few.
   ],
   files: 0,
+  fileName: null,
   totalSyncingBytes: 0,
 }
 
 const providers = Storybook.createPropProviderWithCommon({
-  ChatRow: () => ({
+  ChatPreview: () => ({
     convRows: [],
+    onViewAll: () => {},
+  }),
+  FilesPreview: () => ({
+    tlfRows: [],
     onViewAll: () => {},
   }),
 })

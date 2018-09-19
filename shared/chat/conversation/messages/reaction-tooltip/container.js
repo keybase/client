@@ -14,7 +14,7 @@ import {ReactionTooltip} from '.'
  */
 
 export type OwnProps = {|
-  attachmentRef?: ?React.Component<any, any>,
+  attachmentRef?: ?() => ?React.Component<any, any>,
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
   onHidden: () => void,

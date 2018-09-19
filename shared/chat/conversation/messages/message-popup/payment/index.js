@@ -30,7 +30,7 @@ type HeaderProps = {|
 
 type Props = {|
   ...HeaderProps,
-  attachTo?: ?React.Component<any, any>,
+  attachTo?: () => ?React.ElementRef<any>,
   onCancel: ?() => void, // if falsy tx is not cancelable
   onHidden: () => void,
   position: Position,
@@ -68,7 +68,7 @@ const Header = (props: HeaderProps) =>
           <Kb.Text type="BodyTiny">{upperFirst(props.txVerb)} by</Kb.Text>
           <Kb.Avatar size={16} username={props.sender} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             inline={true}

@@ -5,14 +5,16 @@ import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Saga from '../../util/saga'
+import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
 import * as Types from '../../constants/types/fs'
+import logger from '../../logger'
 import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {putActionIfOnPath, navigateAppend} from '../route-tree'
+import {switchTo, putActionIfOnPath, navigateAppend} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -72,6 +74,31 @@ const filePreview = (state: TypedState, action) =>
       })
     )
     .catch(makeRetriableErrorHandler(action))
+
+const loadUserFileEdits = (state: TypedState, action) =>
+  Saga.call(function*() {
+    try {
+      const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+      const updateSet = tlfUpdates
+        .reduce(
+          (acc: I.Set<Types.Path>, u) =>
+            Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+              if (i < 2) return acc
+              const path = Types.getPathFromElements(a.slice(0, i + 1))
+              return acc.add(path)
+            }, acc),
+          I.Set()
+        )
+        .toArray()
+      yield Saga.sequentially([
+        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
+        Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+      ])
+    } catch (ex) {
+      yield makeRetriableErrorHandler(action)
+    }
+  })
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -413,14 +440,13 @@ const onTlfUpdate = (state: TypedState, action: FsGen.NotifyTlfUpdatePayload) =>
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSSyncActivity', () =>
-    FsGen.createNotifySyncActivity()
-  )
-  engine().setIncomingActionCreators('keybase.1.NotifyFS.FSPathUpdated', ({path}) =>
-    // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
-    // now.
-    FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})
-  )
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyFS.FSSyncActivity': () => Saga.put(FsGen.createNotifySyncActivity()),
+    'keybase.1.NotifyFS.FSPathUpdated': ({path}) =>
+      // FSPathUpdate just subscribes on TLF level and sends over TLF path as of
+      // now.
+      Saga.put(FsGen.createNotifyTlfUpdate({tlfPath: Types.stringToPath(path)})),
+  })
 }
 
 function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGenerator<any, any> {
@@ -509,9 +535,9 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
   const state = yield Saga.select()
   let localHTTPServerInfo: Types._LocalHTTPServer =
     state.fs.localHTTPServerInfo || Constants.makeLocalHTTPServer()
-  // This should finish within 2 iterations most. But just in case we bound it
-  // at 4.
-  for (let i = 0; i < 4; ++i) {
+  // This should finish within 2 iterations at most. But just in case we bound
+  // it at 3.
+  for (let i = 0; i < 3; ++i) {
     if (localHTTPServerInfo.address === '' || localHTTPServerInfo.token === '') {
       localHTTPServerInfo = yield Saga.call(RPCTypes.SimpleFSSimpleFSGetHTTPAddressAndTokenRpcPromise)
       yield Saga.put(FsGen.createLocalHTTPServerInfo(localHTTPServerInfo))
@@ -532,7 +558,13 @@ function* _loadMimeType(path: Types.Path, refreshTag?: Types.RefreshTag) {
         // but the path has been removed since then.
         return
       }
-      throw err
+      // It's still possible we have a critical error, but if it's just the
+      // server port number that's changed, it's hard to detect. So just treat
+      // all other errors as this case. If this is actually a critical error,
+      // we end up doing this 3 times for nothing, which isn't the end of the
+      // world.
+      logger.info(`_loadMimeType i=${i} error:`, err)
+      localHTTPServerInfo.address = ''
     }
   }
   throw new Error('exceeded max retries')
@@ -615,6 +647,27 @@ function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<an
   )
 }
 
+const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
+  const pathItem = path ? state.fs.pathItems.get(path) : undefined
+  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
+  return Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([Tabs.fsTab])),
+    ...(path
+      ? [
+          Saga.put(
+            navigateAppend([
+              {
+                props: {path},
+                selected,
+              },
+            ])
+          ),
+        ]
+      : []),
+  ])
+}
+
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
 
@@ -628,6 +681,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
+  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
@@ -635,6 +689,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)

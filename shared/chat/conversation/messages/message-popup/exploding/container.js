@@ -1,5 +1,5 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as Constants from '../../../../../constants/chat2'
 import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
@@ -14,7 +14,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,

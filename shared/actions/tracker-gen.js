@@ -121,7 +121,7 @@ type _SetUpdateTrackersPayload = $ReadOnly<{|
 |}>
 type _ShowNonUserPayload = $ReadOnly<{|
   username: string,
-  nonUser: RPCTypes.IdentifyUiDisplayTLFCreateWithInviteRpcParam,
+  nonUser: {throttled: boolean, inviteLink: string, isPrivate: boolean, assertion: string, folderName: string, service: string},
 |}>
 type _ShowTrackerPayload = $ReadOnly<{|username: string|}>
 type _UnfollowPayload = $ReadOnly<{|username: string|}>

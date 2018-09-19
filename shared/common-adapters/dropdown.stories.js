@@ -55,6 +55,26 @@ const load = () => {
         selected={<Text type="BodyBig">Pick a value</Text>}
         style={{marginTop: 100}}
       />
+      <Dropdown
+        items={[
+          <Text type="BodyBig" key="pick">
+            Pick a value
+          </Text>,
+          <Text type="BodyBig" key="one">
+            One
+          </Text>,
+          <Text type="BodyBig" key="two">
+            Two
+          </Text>,
+          <Text type="BodyBig" key="trhee">
+            Three
+          </Text>,
+        ]}
+        onChanged={action('onChanged')}
+        selected={<Text type="BodyBig">Pick a value</Text>}
+        style={{marginTop: 100}}
+        disabled={true}
+      />
     </Box>
   ))
 }

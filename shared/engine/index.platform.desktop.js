@@ -1,8 +1,10 @@
 // @flow
 import net from 'net'
+import logger from '../logger'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {isWindows, socketPath} from '../constants/platform.desktop'
 import type {createClientType, incomingRPCCallbackType, connectDisconnectCB} from './index.platform'
+import {printRPCBytes} from '../local-debug'
 
 class NativeTransport extends TransportShared {
   constructor(incomingRPCCallback, connectCallback, disconnectCallback) {
@@ -16,6 +18,26 @@ class NativeTransport extends TransportShared {
     // $FlowIssue
     super._connect_critical_section(cb)
     windowsHack()
+  }
+
+  // Override Transport._raw_write -- see transport.iced in
+  // framed-msgpack-rpc.
+  _raw_write(msg, encoding) {
+    if (printRPCBytes) {
+      const b = Buffer.from(msg, encoding)
+      logger.debug('[RPC] Writing', b.length, 'bytes:', b.toString('hex'))
+    }
+    // $FlowIssue Deliberately overriding private method.
+    super._raw_write(msg, encoding)
+  }
+
+  // Override Packetizer.packetize_data -- see packetizer.iced in
+  // framed-msgpack-rpc.
+  packetize_data(m: Buffer) {
+    if (printRPCBytes) {
+      logger.debug('[RPC] Read', m.length, 'bytes:', m.toString('hex'))
+    }
+    super.packetize_data(m)
   }
 }
 

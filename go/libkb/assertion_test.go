@@ -6,6 +6,8 @@ package libkb
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 type testAssertionContext struct{}
@@ -22,15 +24,12 @@ func TestSuccess1(t *testing.T) {
 		{"reddit", "maxtaco"},
 		{"twitter", "maxtaco"},
 	})
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else if !expr.MatchSet(*proofs) {
-		t.Errorf("Should have matched")
-	}
+	require.NoError(t, err)
+	require.True(t, expr.MatchSet(*proofs))
 }
 
 func TestAssertions1(t *testing.T) {
-	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || pgp://aabbcc)"
+	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || pgp://aabbcc) && (keybear@octodon.social || mastodon.social:keybear)"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "maxk.org"},
@@ -38,21 +37,25 @@ func TestAssertions1(t *testing.T) {
 			{"twitter", "bb"},
 			{"github", "xxx"},
 			{"keybase", "yyy"},
+			{"mastodon.social", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"https", "foo.com"},
 			{"keybase", "max"},
+			{"octodon.social", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
 			{"pgp", "00aabbcc"},
+			{"mastodon.social", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
 			{"twitter", "bb"},
+			{"octodon.social", "keybear"},
 		}),
 	}
 
@@ -63,16 +66,19 @@ func TestAssertions1(t *testing.T) {
 			{"twitter", "bb"},
 			{"github", "xxx"},
 			{"keybase", "yyy"},
+			{"mastodon", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"http", "foo.com"},
 			{"keybase", "maxi"},
+			{"mastodon.social", "keybase"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"http", "foo.com"},
 			{"pgp", "00aabbcc"},
+			{"octodon.social", "keybase"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
@@ -82,52 +88,44 @@ func TestAssertions1(t *testing.T) {
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
 			{"pgp", "00aabbcce"},
+			{"pentagon.social", "keybear"},
 		}),
 	}
 	expr, err := AssertionParse(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
-		for i, proofset := range badProofsets {
-			if expr.MatchSet(proofset) {
-				t.Errorf("proofset %d should not have matched", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
+	}
+	for _, proofset := range badProofsets {
+		require.False(t, expr.MatchSet(proofset))
 	}
 }
 
 func TestAssertions2(t *testing.T) {
 	// Coyne-style grammar
-	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com"
+	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+mastodon.social:max"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"keybase", "max"},
+			{"mastodon.social", "max"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "nutflex.com"},
 			{"pgp", "2233aabbcc"},
 			{"keybase", "malgorithms"},
+			{"mastodon.social", "max"},
 		}),
 		*NewProofSet([]Proof{
 			{"keybase", "samwise"},
 			{"dns", "match.com"},
+			{"mastodon.social", "max"},
 		}),
 	}
 	expr, err := AssertionParse(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
 	}
 }
 
@@ -140,18 +138,13 @@ func TestAssertions3(t *testing.T) {
 		}),
 	}
 	expr, err := AssertionParseAndOnly(testAssertionContext{}, a)
-	if err != nil {
-		t.Errorf("Error parsing %s: %s", a, err)
-	} else {
-		for i, proofset := range goodProofsets {
-			if !expr.MatchSet(proofset) {
-				t.Errorf("proofset %d failed to match", i)
-			}
-		}
+	require.NoError(t, err)
+	for _, proofset := range goodProofsets {
+		require.True(t, expr.MatchSet(proofset))
 	}
 }
 
-func TestNeedsParans(t *testing.T) {
+func TestNeedsParens(t *testing.T) {
 	tests := []struct {
 		expr        string
 		needsParens bool
@@ -166,11 +159,8 @@ func TestNeedsParans(t *testing.T) {
 
 	for _, test := range tests {
 		expr, err := AssertionParse(testAssertionContext{}, test.expr)
-		if err != nil {
-			t.Errorf("Error parsing %s: %s", test.expr, err)
-		} else if expr.NeedsParens() != test.needsParens {
-			t.Errorf("On expresssion %s: didn't agree on needing parens", test.expr)
-		}
+		require.NoError(t, err)
+		require.Equal(t, expr.NeedsParens(), test.needsParens)
 	}
 
 }

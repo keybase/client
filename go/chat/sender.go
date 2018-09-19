@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
@@ -150,8 +150,7 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 
 	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
-			err = s.checkConvID(ctx, conv, msg, msg2)
-			if err != nil {
+			if err = s.checkConvID(ctx, conv, msg, msg2); err != nil {
 				return resMsg, err
 			}
 			break

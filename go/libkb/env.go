@@ -104,6 +104,8 @@ func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { re
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
+func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
+func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
 }
@@ -191,6 +193,20 @@ type TestParameters struct {
 	// If we need to use the real clock for NIST generation (as in really
 	// whacky tests liks TestRekey).
 	UseTimeClockForNISTs bool
+
+	// TeamNoHeadMerkleStore is used for testing to emulate older clients
+	// that didn't store the head merkle sequence to team chain state. We
+	// have an upgrade path in the code that we'd like to test.
+	TeamNoHeadMerkleStore bool
+
+	// TeamSkipAudit is on because some team chains are "canned" and therefore
+	// might point off of the merkle sequence in the database. So it's just
+	// easiest to skip the audit in those cases.
+	TeamSkipAudit bool
+
+	// TeamAuditParams can be customized if we want to control the behavior
+	// of audits deep in a test
+	TeamAuditParams *TeamAuditParams
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -736,6 +752,22 @@ func (e *Env) GetChatDelivererInterval() time.Duration {
 	)
 }
 
+func (e *Env) GetAttachmentHTTPStartPort() int {
+	return e.GetInt(16423,
+		e.cmd.GetAttachmentHTTPStartPort,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_ATTACHMENT_HTTP_START") },
+		e.GetConfig().GetAttachmentHTTPStartPort,
+	)
+}
+
+func (e *Env) GetAttachmentDisableMulti() bool {
+	return e.GetBool(false,
+		e.cmd.GetAttachmentDisableMulti,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ATTACHMENT_DISABLE_MULTI") },
+		e.GetConfig().GetAttachmentDisableMulti,
+	)
+}
+
 func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
@@ -1276,6 +1308,12 @@ type AppConfig struct {
 	SecurityAccessGroupOverride    bool
 	ChatInboxSourceLocalizeThreads int
 	MobileExtension                bool
+	AttachmentHTTPStartPort        int
+	AttachmentDisableMulti         bool
+	LinkCacheSize                  int
+	UPAKCacheSize                  int
+	PayloadCacheSize               int
+	ProofCacheSize                 int
 }
 
 var _ CommandLine = AppConfig{}
@@ -1338,9 +1376,43 @@ func (c AppConfig) GetLevelDBNumFiles() (int, bool) {
 	return 50, true
 }
 
-// Default is 4000. Turning down on mobile to reduce memory usage.
+func (c AppConfig) GetAttachmentHTTPStartPort() (int, bool) {
+	if c.AttachmentHTTPStartPort != 0 {
+		return c.AttachmentHTTPStartPort, true
+	}
+	return 0, false
+}
+
 func (c AppConfig) GetLinkCacheSize() (int, bool) {
-	return 1000, true
+	if c.LinkCacheSize != 0 {
+		return c.LinkCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetUPAKCacheSize() (int, bool) {
+	if c.UPAKCacheSize != 0 {
+		return c.UPAKCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetPayloadCacheSize() (int, bool) {
+	if c.PayloadCacheSize != 0 {
+		return c.PayloadCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetProofCacheSize() (int, bool) {
+	if c.ProofCacheSize != 0 {
+		return c.ProofCacheSize, true
+	}
+	return 0, false
+}
+
+func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
+	return c.AttachmentDisableMulti, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

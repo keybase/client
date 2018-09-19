@@ -130,12 +130,9 @@ function handleIncomingGregor(_, action: GregorGen.PushOOBMPayload) {
 }
 
 const navToGit = (_, action: GitGen.NavToGitPayload) => {
-  const {switchTab, routeState} = action.payload
+  const {routeState} = action.payload
   const path = isMobile ? [Tabs.settingsTab, SettingsConstants.gitTab] : [Tabs.gitTab]
   const parentPath = []
-  if (!switchTab) {
-    parentPath.push(path.pop())
-  }
   const actions = [Saga.put(RouteTreeGen.createNavigateTo({path, parentPath}))]
   if (routeState) {
     actions.push(Saga.put(RouteTreeGen.createSetRouteState({path, partialState: routeState})))

@@ -7,9 +7,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-var GlobUI *UI
-
 func InitUI(g *libkb.GlobalContext) {
-	GlobUI = &UI{Contextified: libkb.NewContextified(g)}
-	g.SetUI(GlobUI)
+	ui := &UI{Contextified: libkb.NewContextified(g)}
+	g.SetUI(ui)
 }

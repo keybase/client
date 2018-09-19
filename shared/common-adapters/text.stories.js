@@ -72,8 +72,6 @@ const groups = [
     {label: 'Body extrabold Body extrabold', type: 'BodyExtrabold'},
     {action: true, label: 'Body primary link', type: 'BodyPrimaryLink'},
     {action: true, label: 'Body secondary link', normalOnly: true, type: 'BodySecondaryLink'},
-    {label: 'Body error Body error', normalOnly: true, type: 'BodyError'},
-    {label: 'Body success Body success', normalOnly: true, type: 'BodySuccess'},
   ],
   [
     {label: 'Body small Body small', type: 'BodySmall'},

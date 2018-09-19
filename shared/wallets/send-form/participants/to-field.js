@@ -18,6 +18,7 @@ type ToFieldProps = {|
   onRemoveProfile?: () => void,
   // Used for sending to a stellar address.
   incorrect?: string,
+  toFieldInput: string,
   // Used for sending from account to account
   // We need the users' name, list of accounts, currently selected account, and callbacks to link and create new accounts.
   user: string,
@@ -63,11 +64,12 @@ class ToField extends React.Component<ToFieldProps> {
     if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
       component = (
         <React.Fragment>
-          <Kb.NameWithIcon
+          <Kb.ConnectedNameWithIcon
             colorFollowing={true}
             horizontal={true}
             username={this.props.recipientUsername}
             avatarStyle={styles.avatar}
+            onClick="tracker"
           />
           <Kb.Icon
             type="iconfont-remove"
@@ -125,7 +127,11 @@ class ToField extends React.Component<ToFieldProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
             <Kb.Icon
-              type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+              type={
+                this.props.incorrect || this.props.toFieldInput.length === 0
+                  ? 'icon-stellar-logo-grey-16'
+                  : 'icon-stellar-logo-16'
+              }
               style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
             />
             <Kb.NewInput

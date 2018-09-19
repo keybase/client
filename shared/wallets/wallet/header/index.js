@@ -13,7 +13,7 @@ type Props = {
   onSettings: () => void,
   onShowSecretKey: () => void,
   keybaseUser?: string,
-  walletName: string,
+  walletName: ?string,
 }
 
 const Header = (props: Props) => (
@@ -28,9 +28,13 @@ const Header = (props: Props) => (
     <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
         {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
-        <Kb.Text selectable={true} type="BodyBig">
-          {props.walletName}
-        </Kb.Text>
+        {props.walletName ? (
+          <Kb.Text selectable={true} type="BodyBig">
+            {props.walletName}
+          </Kb.Text>
+        ) : (
+          <Kb.ProgressIndicator style={styles.spinner} type="Small" />
+        )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
         {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
@@ -41,22 +45,25 @@ const Header = (props: Props) => (
         onSendToKeybaseUser={props.onSendToKeybaseUser}
         onSendToStellarAddress={props.onSendToStellarAddress}
         onSendToAnotherAccount={props.onSendToAnotherAccount}
+        disabled={!props.walletName}
       />
-      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" />
+      <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
       <DropdownButton
         onDeposit={props.onDeposit}
         onSettings={props.onSettings}
         onShowSecretKey={props.onShowSecretKey}
+        disabled={!props.walletName}
       />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-type SendProps = {
+type SendProps = {|
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSendToAnotherAccount: () => void,
-}
+  disabled: boolean,
+|}
 
 class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps> {
   _menuItems = [
@@ -76,12 +83,15 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
 
   render() {
     return (
-      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+      <Kb.ClickableBox
+        onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
+        ref={this.props.setAttachmentRef}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Wallet" label="Send" />
+          <Kb.Button onClick={null} type="Wallet" label="Send" disabled={this.props.disabled} />
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
@@ -93,11 +103,12 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
   }
 }
 
-type DropdownProps = {
+type DropdownProps = {|
   onDeposit: () => void,
   onShowSecretKey: () => void,
   onSettings: () => void,
-}
+  disabled: boolean,
+|}
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
   _menuItems = [
@@ -117,9 +128,17 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 
   render() {
     return (
-      <Kb.ClickableBox onClick={this.props.toggleShowingMenu} ref={this.props.setAttachmentRef}>
+      <Kb.ClickableBox
+        onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
+        ref={this.props.setAttachmentRef}
+      >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-          <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
+          <Kb.Button
+            onClick={null}
+            type="Secondary"
+            style={styles.dropdownButton}
+            disabled={this.props.disabled}
+          >
             <Kb.Icon
               fontSize={Styles.isMobile ? 22 : 16}
               type="iconfont-ellipsis"
@@ -128,7 +147,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}
@@ -141,7 +160,6 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
 }
 
 const styles = Styles.styleSheetCreate({
-  noShrink: {flexShrink: 0},
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -152,6 +170,11 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.xsmall,
     },
   }),
+  noShrink: {flexShrink: 0},
+  spinner: {
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
+  },
 })
 
 const SendButton = Kb.OverlayParentHOC(_SendButton)

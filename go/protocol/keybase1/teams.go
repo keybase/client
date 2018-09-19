@@ -634,6 +634,7 @@ type FastTeamData struct {
 	ReaderKeyMasks            map[TeamApplication]map[PerTeamKeyGeneration]MaskB64 `codec:"readerKeyMasks" json:"readerKeyMasks"`
 	LatestSeqnoHint           Seqno                                                `codec:"latestSeqnoHint" json:"latestSeqnoHint"`
 	CachedAt                  Time                                                 `codec:"cachedAt" json:"cachedAt"`
+	LoadedLatest              bool                                                 `codec:"loadedLatest" json:"loadedLatest"`
 }
 
 func (o FastTeamData) DeepCopy() FastTeamData {
@@ -678,6 +679,7 @@ func (o FastTeamData) DeepCopy() FastTeamData {
 		})(o.ReaderKeyMasks),
 		LatestSeqnoHint: o.LatestSeqnoHint.DeepCopy(),
 		CachedAt:        o.CachedAt.DeepCopy(),
+		LoadedLatest:    o.LoadedLatest,
 	}
 }
 
@@ -1167,6 +1169,7 @@ type TeamSigChainState struct {
 	OpenTeamJoinAs   TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
 	TlfID            TLFID                                             `codec:"tlfID" json:"tlfID"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
+	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
 }
 
 func (o TeamSigChainState) DeepCopy() TeamSigChainState {
@@ -1319,6 +1322,13 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 			}
 			return ret
 		})(o.TlfLegacyUpgrade),
+		HeadMerkle: (func(x *MerkleRootV2) *MerkleRootV2 {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.HeadMerkle),
 	}
 }
 
@@ -1949,15 +1959,24 @@ func (o LoadTeamArg) DeepCopy() LoadTeamArg {
 type FastTeamLoadArg struct {
 	ID                   TeamID                 `codec:"ID" json:"ID"`
 	Public               bool                   `codec:"public" json:"public"`
+	AssertTeamName       *TeamName              `codec:"assertTeamName,omitempty" json:"assertTeamName,omitempty"`
 	Applications         []TeamApplication      `codec:"applications" json:"applications"`
 	KeyGenerationsNeeded []PerTeamKeyGeneration `codec:"keyGenerationsNeeded" json:"keyGenerationsNeeded"`
 	NeedLatestKey        bool                   `codec:"needLatestKey" json:"needLatestKey"`
+	ForceRefresh         bool                   `codec:"forceRefresh" json:"forceRefresh"`
 }
 
 func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
 	return FastTeamLoadArg{
 		ID:     o.ID.DeepCopy(),
 		Public: o.Public,
+		AssertTeamName: (func(x *TeamName) *TeamName {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.AssertTeamName),
 		Applications: (func(x []TeamApplication) []TeamApplication {
 			if x == nil {
 				return nil
@@ -1981,6 +2000,7 @@ func (o FastTeamLoadArg) DeepCopy() FastTeamLoadArg {
 			return ret
 		})(o.KeyGenerationsNeeded),
 		NeedLatestKey: o.NeedLatestKey,
+		ForceRefresh:  o.ForceRefresh,
 	}
 }
 
@@ -2775,6 +2795,10 @@ type GetTeamIDArg struct {
 	TeamName string `codec:"teamName" json:"teamName"`
 }
 
+type FtlArg struct {
+	Arg FastTeamLoadArg `codec:"arg" json:"arg"`
+}
+
 type TeamsInterface interface {
 	TeamCreate(context.Context, TeamCreateArg) (TeamCreateResult, error)
 	TeamCreateWithSettings(context.Context, TeamCreateWithSettingsArg) (TeamCreateResult, error)
@@ -2837,6 +2861,7 @@ type TeamsInterface interface {
 	// Gets a TeamID from a team name string. Returns an error if the
 	// current user can't read the team.
 	GetTeamID(context.Context, string) (TeamID, error)
+	Ftl(context.Context, FastTeamLoadArg) (FastTeamLoadRes, error)
 }
 
 func TeamsProtocol(i TeamsInterface) rpc.Protocol {
@@ -3595,6 +3620,22 @@ func TeamsProtocol(i TeamsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ftl": {
+				MakeArg: func() interface{} {
+					ret := make([]FtlArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FtlArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FtlArg)(nil), args)
+						return
+					}
+					ret, err = i.Ftl(ctx, (*typedArgs)[0].Arg)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3858,5 +3899,11 @@ func (c TeamsClient) ProfileTeamLoad(ctx context.Context, arg LoadTeamArg) (res 
 func (c TeamsClient) GetTeamID(ctx context.Context, teamName string) (res TeamID, err error) {
 	__arg := GetTeamIDArg{TeamName: teamName}
 	err = c.Cli.Call(ctx, "keybase.1.teams.getTeamID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c TeamsClient) Ftl(ctx context.Context, arg FastTeamLoadArg) (res FastTeamLoadRes, err error) {
+	__arg := FtlArg{Arg: arg}
+	err = c.Cli.Call(ctx, "keybase.1.teams.ftl", []interface{}{__arg}, &res)
 	return
 }

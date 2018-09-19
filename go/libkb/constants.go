@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -94,9 +95,9 @@ const (
 
 	// How old the merkle root must be to ask for a refresh.
 	// Measures time since the root was fetched, not time since published.
-	PvlSourceShouldRefresh time.Duration = 1 * time.Hour
+	MerkleStoreShouldRefresh time.Duration = 1 * time.Hour
 	// An older merkle root than this is too old to use. All identifies will fail.
-	PvlSourceRequireRefresh time.Duration = 24 * time.Hour
+	MerkleStoreRequireRefresh time.Duration = 24 * time.Hour
 
 	Identify2CacheLongTimeout   = 6 * time.Hour
 	Identify2CacheBrokenTimeout = 1 * time.Hour
@@ -204,6 +205,7 @@ const (
 	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
 	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)
 	SCMissingResult                    = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound                      = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyCorrupted                     = int(keybase1.StatusCode_SCKeyCorrupted)
@@ -459,6 +461,19 @@ const (
 	TagEncryption PacketTag = 515
 )
 
+func (t PacketTag) String() string {
+	switch t {
+	case TagP3skb:
+		return "PacketTag(P3skb)"
+	case TagSignature:
+		return "PacketTag(Signature)"
+	case TagEncryption:
+		return "PacketTag(Encryption)"
+	default:
+		return fmt.Sprintf("PacketTag(%d)", uint(t))
+	}
+}
+
 const (
 	KIDPGPBase    AlgoType = 0x00
 	KIDPGPRsa     AlgoType = 0x1
@@ -659,20 +674,6 @@ func StringToAppType(s string) AppType {
 
 // UID of t_alice
 const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
-
-// Pvl kit hash, pegged to merkle tree.
-type PvlKitHash string
-
-// String containing a pvl kit.
-type PvlKitString string
-
-// String containing a pvl chunk.
-type PvlString string
-
-type PvlUnparsed struct {
-	Hash PvlKitHash
-	Pvl  PvlString
-}
 
 const SharedTeamKeyBoxVersion1 = 1
 

@@ -27,6 +27,7 @@ const (
 	gitDefaultMaxLooseRefs         = 50
 	gitDefaultPruneMinLooseObjects = 50
 	gitDefaultPruneExpireAge       = 14 * 24 * time.Hour
+	gitDefaultMaxObjectPacks       = 50
 )
 
 func NewGitHandler(xp rpc.Transporter, g *libkb.GlobalContext) *GitHandler {
@@ -268,6 +269,7 @@ func (h *GitHandler) GcPersonalRepo(ctx context.Context, arg keybase1.GcPersonal
 	options := keybase1.GcOptions{}
 	if !arg.Force {
 		options.MaxLooseRefs = gitDefaultMaxLooseRefs
+		options.MaxObjectPacks = gitDefaultMaxObjectPacks
 	}
 	gcarg := keybase1.GcArg{
 		Folder:  folder,

@@ -65,6 +65,9 @@ yarn run rn-gobuild-ios
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
+# Start React Native packager (do NOT use the one spawned by xcode)
+yarn rn-start ios
+
 # Open workspace (not xcodeproj)
 open react-native/ios/Keybase.xcworkspace
 ```
@@ -152,19 +155,6 @@ KERNEL=="kvm", NAME="%k", GROUP="kvm", MODE="0660"
 ```
 3. Reload rules with `udevadm control --reload-rules && udevadm trigger`
 
-Follow instructions at
-https://developer.android.com/ndk/guides/index.html to install and
-configure the Android NDK.
-
-Don't install Revision 16, though. Instead, go to
-https://developer.android.com/ndk/downloads/older_releases.html and
-download Revision 15c. Then unzip it, and do:
-
-```sh
-mv $ANDROID_HOME/ndk-bundle{,.r16} # if needed
-mv /path/to/android-ndk-r15c/ $ANDROID_HOME/ndk-bundle
-```
-
 Then select "Open an existing Android Studio Project" and point it to
 `shared/react-native/android`. Not necessary to register the `client`
 dir as a VCS-controlled dir with Android studio, but may as well.
@@ -189,7 +179,7 @@ yarn rn-gobuild-android
 # 'Path' in SDK 'iphoneos'" you might have a partial xcode install. try
 xcode-select --switch /Applications/Xcode.app/Contents/Developer
 
-# Start the react native publisher (unlike on iOS, have to do this manually).
+# Start the react native packager
 yarn rn-start android
 ```
 
@@ -437,19 +427,6 @@ If you get this error message on trying to open the inspector:
 
 It might be because you're importing a library that attaches itself as a renderer, such as `react-dom`. If that's the case, you should make sure not to import any such module outside of a `.desktop.js` file, and if you have to, it should be predicated on `!isMobile` and use `require` to access the library.
 
-### Dependency forks
-
-We have some custom forks of dependencies. This is usually a temporary fix and is something we want to avoid long term.
-
-- react-navigation:
-  - Keep queued transitions, fixes races with dragging and touches
-  - Increase interactivity threshold so you can click while things are still animating
-- electron-download
-  - Add a force-use-cache option so we don't download all the time
-- react-native-push-notification
-  - 1 liner to add RN 0.47 support
-
-
 ### Updating `react-native`
 
 Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains branches for every version of react native. For example, this URL
@@ -457,3 +434,8 @@ Take a look at [this repo](https://github.com/ncuillery/rn-diff), which contains
  `https://github.com/ncuillery/rn-diff/compare/rn-0.51.0...rn-0.53.0`
 
  generates the diff between RN versions in a bare RN app. Use this to figure out if any configuration changes are needed. If the target version isn't in `rn-diff` yet, there'll usually be a fork that has it.
+
+
+### Updating `electron`
+
+We host the electron binaries used for our build process in keybase.pub. If you update versions copy files from https://github.com/electron/electron/releases/ to https://keybase.pub/kbelectron/electron-download/v{version}. Make sure to get the SHASUM256.txt file also. This only affects the build machines

@@ -5,7 +5,6 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import Session, {type CancelHandlerType} from '../engine/session'
 import {get} from 'lodash-es'
 import engine from '../engine'
 import openUrl from '../util/open-url'
@@ -318,7 +317,7 @@ function _serverCallMap(
               folderName: args.folderName,
               inviteLink: args.inviteLink,
               isPrivate: args.isPrivate,
-              socialAssertion: args.socialAssertion,
+              service: args.socialAssertion.service,
               throttled: args.throttled,
             },
             username: args.assertion,
@@ -570,10 +569,9 @@ function _userChanged(action: {payload: {uid: string}}, state: TypedState) {
 }
 
 const setupEngineListeners = () => {
-  engine().setIncomingActionCreators('keybase.1.NotifyUsers.userChanged', ({uid}) => {
-    // $FlowIssue we don't allow non generated actions anymore, plus how this works needs to change
-    return {error: false, payload: {uid}, type: 'tracker:_userChanged'}
-  })
+  // TODO remove this
+  const dispatch = engine().deprecatedGetDispatch()
+  const getState = engine().deprecatedGetGetState()
 
   engine().actionOnConnect('registerIdentifyUi', () => {
     RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
@@ -585,10 +583,8 @@ const setupEngineListeners = () => {
       })
   })
 
-  // TODO get rid of getState here
-  engine().setIncomingActionCreators(
-    'keybase.1.identifyUi.delegateIdentifyUI',
-    (param: any, response: ?Object, dispatch: Dispatch, getState: () => TypedState) => {
+  engine().setCustomResponseIncomingCallMap({
+    'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
       // If we don't finish the session by our timeout, we'll display an error
       const trackerTimeout = 1e3 * 60 * 5
       let trackerTimeoutError = null
@@ -608,7 +604,7 @@ const setupEngineListeners = () => {
         trackerTimeoutError && clearTimeout(trackerTimeoutError)
       }
 
-      const cancelHandler: CancelHandlerType = session => {
+      const cancelHandler = session => {
         const username = sessionIDToUsername[session.getId()]
 
         if (username) {
@@ -621,14 +617,18 @@ const setupEngineListeners = () => {
         }
       }
 
-      const session: Session = engine().createSession({
+      const session = engine().createSession({
         cancelHandler,
         incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
       })
 
       response && response.result(session.getId())
-    }
-  )
+    },
+  })
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyUsers.userChanged': ({uid}) =>
+      Saga.put({error: false, payload: {uid}, type: 'tracker:_userChanged'}),
+  })
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {

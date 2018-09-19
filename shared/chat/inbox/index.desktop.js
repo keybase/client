@@ -12,6 +12,7 @@ import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import NewConversation from './new-conversation/container'
 import type {Props, RowItem, RowItemSmall, RowItemBig, RouteState} from './index.types'
+import {inboxWidth} from './row/sizes'
 
 type State = {
   showFloating: boolean,
@@ -170,8 +171,8 @@ const _containerStyle = {
   backgroundColor: globalColors.blueGrey,
   contain: 'strict',
   height: '100%',
-  maxWidth: 260,
-  minWidth: 260,
+  maxWidth: inboxWidth,
+  minWidth: inboxWidth,
   position: 'relative',
 }
 

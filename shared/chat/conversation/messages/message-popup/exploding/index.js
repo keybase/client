@@ -21,7 +21,7 @@ import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   author: string,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -94,7 +94,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Avatar username={author} size={16} clickToProfile="tracker" />
             <ConnectedUsernames
-              clickable={true}
+              onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
               usernames={[author]}

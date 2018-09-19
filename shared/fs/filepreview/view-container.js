@@ -82,7 +82,7 @@ const Renderer = props => {
       // Security risks to links in PDF viewing. See DESKTOP-6888.
       return <DefaultView path={path} routePath={routePath} />
     default:
-      return <Text type="BodyError">This shouldn't happen</Text>
+      return <Text type="BodySmallError">This shouldn't happen</Text>
   }
 }
 

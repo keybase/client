@@ -29,7 +29,7 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
       const text = `You are currently using Apple Pay. Please use your iPhone/iPad to switch plans.`
       return (
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="BodyError" style={{textAlign: 'center', marginBottom: globalMargins.large}}>
+          <Text type="BodySmallError" style={{textAlign: 'center', marginBottom: globalMargins.large}}>
             {text}
           </Text>
           <Button

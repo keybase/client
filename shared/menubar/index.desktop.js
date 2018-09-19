@@ -5,6 +5,7 @@ import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
+import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
@@ -80,7 +81,7 @@ class MenubarRender extends React.Component<Props, State> {
           <Kb.FloatingMenu
             closeOnSelect={true}
             visible={this.state.showingMenu}
-            attachTo={this.attachmentRef.current}
+            attachTo={this._getAttachmentRef}
             items={this._menuItems(this.props.badgeInfo || {})}
             onHidden={() => this.setState({showingMenu: false})}
           />
@@ -165,6 +166,8 @@ class MenubarRender extends React.Component<Props, State> {
     this.props.refresh()
   }
 
+  _getAttachmentRef = () => this.attachmentRef.current
+
   _renderLoggedIn() {
     const badgeTypesInHeader: Array<Tabs.Tab> = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.teamsTab]
     const badgesInMenu = [
@@ -220,14 +223,22 @@ class MenubarRender extends React.Component<Props, State> {
                 showingMenu: false,
               })
             }
-            attachTo={this.attachmentRef.current}
+            attachTo={this._getAttachmentRef}
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer />
+        {Flags.fileWidgetEnabled ? (
+          <Kb.ScrollView>
+            <ChatContainer convLimit={3} />
+            <FilesPreview />
+          </Kb.ScrollView>
+        ) : (
+          <ChatContainer />
+        )}
         <UploadWithCountdown
           endEstimate={this.props.endEstimate}
           files={this.props.files}
+          fileName={this.props.fileName}
           totalSyncingBytes={this.props.totalSyncingBytes}
         />
       </Kb.Box>

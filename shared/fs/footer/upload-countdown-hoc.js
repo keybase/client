@@ -8,6 +8,7 @@ import {type UploadProps} from './upload'
 export type UploadCountdownHOCProps = {
   endEstimate?: number,
   files: number,
+  fileName: ?string,
   totalSyncingBytes: number,
   debugToggleShow?: () => void,
 }
@@ -156,12 +157,13 @@ const UploadCountdownHOC = (Upload: React.ComponentType<UploadProps>) =>
     }
 
     render() {
-      const {files, totalSyncingBytes, debugToggleShow} = this.props
+      const {files, fileName, totalSyncingBytes, debugToggleShow} = this.props
       const {displayDuration, mode} = this.state
       return (
         <Upload
           showing={mode !== 'hidden'}
           files={files}
+          fileName={fileName}
           totalSyncingBytes={totalSyncingBytes}
           timeLeft={formatDuration(displayDuration)}
           debugToggleShow={debugToggleShow}

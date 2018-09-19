@@ -82,7 +82,7 @@ type GlobalContext struct {
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        PvlSource        // a cache and fetcher for pvl
+	pvlSource        MerkleStore      // a cache and fetcher for pvl
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -103,7 +103,7 @@ type GlobalContext struct {
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
 	UIRouter           UIRouter                  // How to route UIs
-	Services           ExternalServicesCollector // All known external services
+	proofServices      ExternalServicesCollector // All known external services
 	UIDMapper          UIDMapper                 // maps from UID to Usernames
 	ExitCode           keybase1.ExitCode         // Value to return to OS on Exit()
 	RateLimits         *RateLimits               // tracks the last time certain actions were taken
@@ -159,6 +159,7 @@ func (g *GlobalContext) GetDNSNameServerFetcher() DNSNameServerFetcher { return 
 func (g *GlobalContext) GetKVStore() KVStorer                          { return g.LocalDb }
 func (g *GlobalContext) GetClock() clockwork.Clock                     { return g.Clock() }
 func (g *GlobalContext) GetEKLib() EKLib                               { return g.ekLib }
+func (g *GlobalContext) GetProofServices() ExternalServicesCollector   { return g.proofServices }
 
 type LogGetter func() logger.Logger
 
@@ -269,11 +270,14 @@ func (g *GlobalContext) Logout() error {
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 
+	ctx := context.Background()
+	mctx := NewMetaContext(ctx, g)
+
 	username := g.Env.GetUsername()
 
 	g.ActiveDevice.Clear()
 
-	g.LocalSigchainGuard().Clear(context.TODO(), "Logout")
+	g.LocalSigchainGuard().Clear(ctx, "Logout")
 
 	g.CallLogoutHooks()
 
@@ -295,7 +299,7 @@ func (g *GlobalContext) Logout() error {
 
 	auditor := g.teamAuditor
 	if auditor != nil {
-		auditor.OnLogout()
+		auditor.OnLogout(mctx)
 	}
 
 	st := g.stellar
@@ -306,7 +310,7 @@ func (g *GlobalContext) Logout() error {
 	// remove stored secret
 	g.secretStoreMu.Lock()
 	if g.secretStore != nil {
-		if err := g.secretStore.ClearSecret(NewMetaContextBackground(g), username); err != nil {
+		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 			g.Log.Debug("clear stored secret error: %s", err)
 		}
 	}
@@ -593,7 +597,7 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 }
 
 // to implement ProofContext
-func (g *GlobalContext) GetPvlSource() PvlSource {
+func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
 }
 
@@ -1020,17 +1024,23 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 }
 
 func (g *GlobalContext) MakeAssertionContext() AssertionContext {
-	if g.Services == nil {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	if g.proofServices == nil {
 		return nil
 	}
-	return MakeAssertionContext(g.Services)
+	return MakeAssertionContext(g.proofServices)
 }
 
-func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
-	g.Services = s
+func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.proofServices = s
 }
 
-func (g *GlobalContext) SetPvlSource(s PvlSource) {
+func (g *GlobalContext) SetPvlSource(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
 	g.pvlSource = s
 }
 

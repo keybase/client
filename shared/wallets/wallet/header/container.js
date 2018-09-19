@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState) => {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
-    walletName: selectedAccount.name || Types.accountIDToString(selectedAccount.accountID),
+    walletName: Constants.getAccountName(selectedAccount),
   }
 }
 

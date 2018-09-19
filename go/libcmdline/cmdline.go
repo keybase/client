@@ -364,6 +364,18 @@ func (p CommandLine) GetRememberPassphrase() (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }
 
+func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
+	return p.GetBool("attachment-disable-multi", true)
+}
+
+func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
+	ret := p.GetGInt("attachment-httpsrv-port")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

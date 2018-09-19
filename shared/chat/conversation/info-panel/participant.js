@@ -62,7 +62,7 @@ const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
       ref={props.setAttachmentRef}
     >
       <AddPeopleHow
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
         onHidden={props.toggleShowingMenu}

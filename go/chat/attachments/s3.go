@@ -87,7 +87,13 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 	region := a.regionFromParams(task.S3Params)
 	b := a.s3Conn(task.S3Signer, region, task.S3Params.AccessKey).Bucket(task.S3Params.Bucket)
 
-	if size <= minMultiSize {
+	multiPartUpload := size > minMultiSize
+	if multiPartUpload && a.env.GetAttachmentDisableMulti() {
+		a.Debug(ctx, "PutS3: multi part upload manually disabled, overriding for size: %v", size)
+		multiPartUpload = false
+	}
+
+	if !multiPartUpload {
 		if err := a.putSingle(ctx, r, size, task.S3Params, b, task.Progress); err != nil {
 			return nil, err
 		}
@@ -115,21 +121,9 @@ func (a *S3Store) PutS3(ctx context.Context, r io.Reader, size int64, task *Uplo
 func (a *S3Store) putSingle(ctx context.Context, r io.Reader, size int64, params chat1.S3Params,
 	b s3.BucketInt, progress types.ProgressReporter) (err error) {
 	defer a.Trace(ctx, func() error { return err }, fmt.Sprintf("putSingle(size=%d)", size))()
-	// In order to be able to retry the upload, need to read in the entire
-	// attachment.  But putSingle is only called for attachments <= 5MB, so
-	// this isn't horrible.
-	buf := make([]byte, size)
-	n, err := io.ReadFull(r, buf)
-	if err != nil {
-		return err
-	}
-	if int64(n) != size {
-		return fmt.Errorf("invalid read attachment size: %d (expected %d)", n, size)
-	}
-	sr := bytes.NewReader(buf)
 
 	progWriter := newProgressWriter(progress, size)
-	tee := io.TeeReader(sr, progWriter)
+	tee := io.TeeReader(r, progWriter)
 
 	if err := b.PutReader(ctx, params.ObjectKey, tee, size, "application/octet-stream", s3.ACL(params.Acl),
 		s3.Options{}); err != nil {

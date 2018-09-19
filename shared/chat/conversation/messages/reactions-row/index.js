@@ -62,7 +62,7 @@ class ReactionsRow extends React.Component<Props, State> {
               style={styles.button}
             />
             <ReactionTooltip
-              attachmentRef={this._attachmentRefs[emoji]}
+              attachmentRef={() => this._attachmentRefs[emoji]}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
               onHidden={() => {}}

@@ -12,6 +12,7 @@ type GcOptions struct {
 	MaxLooseRefs         int  `codec:"maxLooseRefs" json:"maxLooseRefs"`
 	PruneMinLooseObjects int  `codec:"pruneMinLooseObjects" json:"pruneMinLooseObjects"`
 	PruneExpireTime      Time `codec:"pruneExpireTime" json:"pruneExpireTime"`
+	MaxObjectPacks       int  `codec:"maxObjectPacks" json:"maxObjectPacks"`
 }
 
 func (o GcOptions) DeepCopy() GcOptions {
@@ -19,6 +20,7 @@ func (o GcOptions) DeepCopy() GcOptions {
 		MaxLooseRefs:         o.MaxLooseRefs,
 		PruneMinLooseObjects: o.PruneMinLooseObjects,
 		PruneExpireTime:      o.PruneExpireTime.DeepCopy(),
+		MaxObjectPacks:       o.MaxObjectPacks,
 	}
 }
 

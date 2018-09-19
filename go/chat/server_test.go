@@ -362,6 +362,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 	g.ActivityNotifier = NewNotifyRouterActivityRouter(g)
 
+	g.StellarLoader = types.DummyStellarLoader{}
+
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
 	tuc := &chatTestUserContext{
@@ -3286,7 +3288,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		t.Logf("testing untrusted inbox load failure")
 		ttype := chat1.TopicType_CHAT
-		require.NoError(t, storage.NewInbox(g, uid).Clear(context.TODO()))
+		require.NoError(t, storage.NewInbox(g).Clear(context.TODO(), uid))
 		g.InboxSource.SetRemoteInterface(func() chat1.RemoteInterface {
 			return chat1.RemoteClient{Cli: errorClient{}}
 		})
@@ -3313,7 +3315,7 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 
 		rquery, _, err := g.InboxSource.GetInboxQueryLocalToRemote(context.TODO(), query)
 		require.NoError(t, err)
-		_, lconvs, _, err := storage.NewInbox(g, uid).Read(context.TODO(), rquery, p)
+		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, rquery, p)
 		require.NoError(t, err)
 		require.Equal(t, 1, len(lconvs))
 		require.Equal(t, lconvs[0].GetConvID(), conv.Id)

@@ -679,6 +679,14 @@ func (t *teamSigchainPlayer) appendChainLinkHelper(
 		newState.inner.StubbedLinks[link.Seqno()] = true
 	}
 
+	// Store the head merkle sequence to the DB, for use in the audit mechanism.
+	// For the purposes of testing, we disable this feature, so we can check
+	// the lazy-repopulation scheme for old stored teams (without a full cache bust).
+	if link.Seqno() == keybase1.Seqno(1) && !link.isStubbed() && !t.G().Env.Test.TeamNoHeadMerkleStore {
+		tmp := link.inner.Body.MerkleRoot.ToMerkleRootV2()
+		newState.inner.HeadMerkle = &tmp
+	}
+
 	return *newState, nil
 }
 

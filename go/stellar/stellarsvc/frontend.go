@@ -37,23 +37,11 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	for _, account := range bundle.Accounts {
-		acct := stellar1.WalletAccountLocal{
-			AccountID: account.AccountID,
-			IsDefault: account.IsPrimary,
-			Name:      account.Name,
-		}
-
-		details, err := s.remoter.Details(ctx, acct.AccountID)
-		if err != nil {
-			s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", acct.AccountID, err)
-			return nil, err
-		}
-		acct.BalanceDescription, err = balanceList(details.Balances).balanceDescription()
+	for _, entry := range bundle.Accounts {
+		acct, err := s.accountLocal(ctx, entry)
 		if err != nil {
 			return nil, err
 		}
-		acct.Seqno = details.Seqno
 
 		accts = append(accts, acct)
 	}
@@ -73,6 +61,54 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 	})
 
 	return accts, nil
+}
+
+func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (acct stellar1.WalletAccountLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetWalletAccountLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return acct, err
+	}
+
+	bundle, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return acct, err
+	}
+
+	entry, err := bundle.Lookup(arg.AccountID)
+	if err != nil {
+		return acct, err
+	}
+
+	return s.accountLocal(ctx, entry)
+}
+
+func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+	var empty stellar1.WalletAccountLocal
+	details, err := s.remoter.Details(ctx, entry.AccountID)
+	if err != nil {
+		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", entry.AccountID, err)
+		return empty, err
+	}
+	balance, err := balanceList(details.Balances).balanceDescription()
+	if err != nil {
+		return empty, err
+	}
+
+	acct := stellar1.WalletAccountLocal{
+		AccountID:          entry.AccountID,
+		IsDefault:          entry.IsPrimary,
+		Name:               entry.Name,
+		BalanceDescription: balance,
+		Seqno:              details.Seqno,
+	}
+
+	return acct, nil
+
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
@@ -304,6 +340,10 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		}
 	}
 	page.Cursor = srvPayments.Cursor
+
+	if srvPayments.OldestUnread != nil {
+		page.OldestUnread = &stellar1.PaymentID{TxID: *srvPayments.OldestUnread}
+	}
 
 	return page, nil
 }
@@ -708,16 +748,37 @@ func (s *Server) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymen
 		available bool
 		from      stellar1.AccountID
 	}{}
-	owns, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
-	if err != nil || !owns {
-		log("UserOwnsAccount -> owns:%v err:%v", owns, err)
-		res.Banners = append(res.Banners, stellar1.SendBannerLocal{
-			Level:   "error",
-			Message: "Could not find source account.",
-		})
+	if arg.FromPrimaryAccount != arg.From.IsNil() {
+		// Exactly one of `from` and `fromPrimaryAccount` must be set.
+		return res, fmt.Errorf("invalid build payment parameters")
+	}
+	if arg.FromPrimaryAccount {
+		primaryAccountID, err := bpc.PrimaryAccount(s.mctx(ctx))
+		if err != nil {
+			log("PrimaryAccount -> err:%v", err)
+			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+				Level:   "error",
+				Message: "Could not find primary account.",
+			})
+		} else {
+			fromInfo.from = primaryAccountID
+			fromInfo.available = true
+		}
 	} else {
-		fromInfo.from = arg.From
-		fromInfo.available = true
+		owns, err := bpc.OwnsAccount(s.mctx(ctx), arg.From)
+		if err != nil || !owns {
+			log("OwnsAccount -> owns:%v err:%v", owns, err)
+			res.Banners = append(res.Banners, stellar1.SendBannerLocal{
+				Level:   "error",
+				Message: "Could not find source account.",
+			})
+		} else {
+			fromInfo.from = arg.From
+			fromInfo.available = true
+		}
+	}
+	if fromInfo.available {
+		res.From = fromInfo.from
 		if arg.FromSeqno == "" {
 			readyChecklist.from = true
 		} else {
@@ -1183,6 +1244,20 @@ func (s *Server) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequ
 	}
 
 	return s.remoter.CancelRequest(ctx, arg.ReqID)
+}
+
+func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "MarkAsReadLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID.TxID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

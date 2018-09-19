@@ -5,6 +5,7 @@ import * as Styles from '../styles'
 import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
+import {action} from '@storybook/addon-actions'
 
 type SelectorMap = {
   [componentDisplayName: string]: (any => any) | Object,
@@ -143,4 +144,4 @@ const scrollViewDecorator = (story: any) => (
   <Kb.ScrollView style={{height: '100%', width: '100%'}}>{story()}</Kb.ScrollView>
 )
 
-export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd, scrollViewDecorator}
+export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd, scrollViewDecorator, action}

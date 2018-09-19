@@ -16,10 +16,10 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
+  printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
   reduxSagaLogger: false, // Print saga debug info
@@ -100,12 +100,12 @@ export const {
   forceImmediateLogging,
   ignoreDisconnectOverlay,
   isDevApplePushToken,
-  printBridgeB64,
   immediateStateLogging,
   isTesting,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
+  printRPCBytes,
   printRPCWaitingSession,
   printRPCStats,
   reduxSagaLogger,

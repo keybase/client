@@ -180,6 +180,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -220,6 +224,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -370,6 +381,10 @@
         {
           "type": "boolean",
           "name": "readyToSend"
+        },
+        {
+          "type": "AccountID",
+          "name": "from"
         },
         {
           "type": "string",
@@ -673,6 +688,19 @@
         "items": "WalletAccountLocal"
       }
     },
+    "getWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "WalletAccountLocal"
+    },
     "getAccountAssetsLocal": {
       "request": [
         {
@@ -724,6 +752,23 @@
         "type": "array",
         "items": "PaymentOrErrorLocal"
       }
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
     },
     "getPaymentDetailsLocal": {
       "request": [
@@ -976,6 +1021,10 @@
         {
           "name": "from",
           "type": "AccountID"
+        },
+        {
+          "name": "fromPrimaryAccount",
+          "type": "boolean"
         },
         {
           "name": "fromSeqno",

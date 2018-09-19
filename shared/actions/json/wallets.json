@@ -40,11 +40,13 @@
     "createNewAccount": {
       "_description": "Add a new wallet to your account",
       "name": "string",
+      "showOnCreation?": "boolean",
     },
     "createdNewAccount": {
       "_description":
         "The service responded with an error or that the create new account operation succeeded",
       "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
       "canError": {
         "name": "string",
         "error": "string",
@@ -82,6 +84,14 @@
       "accountID": "Types.AccountID",
       "name": "string",
     },
+    "changedAccountName": {
+      "_description": "A response from the service after an account's name is changed",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
+    },
     "setAccountAsDefault": {
       "_description": "Change the default account",
       "accountID": "Types.AccountID",
@@ -95,7 +105,7 @@
       "accountID": "Types.AccountID",
     },
     "deletedAccount": {
-      "_description": "A service responde after an account is deleted",
+      "_description": "A response from the service after an account is deleted.",
     },
     "loadDisplayCurrency": {
       "_description": "Load display currency for an account",
@@ -197,11 +207,13 @@
       "_description": "Link an existing Stellar account with this Keybase user.",
       "name": "string",
       "secretKey": "HiddenString",
+      "showOnCreation?": "boolean",
     },
     "linkedExistingAccount": {
       "_description":
         "The service responded with an error or that the link existing operation succeeded",
       "accountID": "Types.AccountID",
+      "showOnCreation?": "boolean",
       "canError": {
         "name": "string",
         "secretKey": "HiddenString",

@@ -4,7 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.ElementRef<any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,

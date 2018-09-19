@@ -722,6 +722,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return e
 	case SCTeamFTLOutdated:
 		return NewTeamFTLOutdatedError(s.Desc)
+	case SCFeatureFlag:
+		var feature Feature
+		for _, field := range s.Fields {
+			if field.Key == "feature" {
+				feature = Feature(field.Value)
+			}
+		}
+		return NewFeatureFlagError(s.Desc, feature)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -2347,5 +2355,13 @@ func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
 	ret.Code = SCTeamFTLOutdated
 	ret.Name = "TEAM_FTL_OUTDATED"
 	ret.Desc = e.msg
+	return ret
+}
+
+func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCFeatureFlag
+	ret.Name = "FEATURE_FLAG"
+	ret.Desc = e.msg
+	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
 }

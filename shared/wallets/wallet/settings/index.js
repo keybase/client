@@ -5,11 +5,12 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import * as Types from '../../../constants/types/wallets'
 
-export type SettingsProps = {
+export type SettingsProps = {|
   accountID: Types.AccountID,
   name: string,
   user: string,
   isDefault: boolean,
+  currencyWaiting: boolean,
   currency: Types.Currency,
   currencies: I.List<Types.Currency>,
   onBack: () => void,
@@ -18,11 +19,13 @@ export type SettingsProps = {
   onEditName: () => void,
   onCurrencyChange: (currency: Types.CurrencyCode) => void,
   refresh: () => void,
-}
+|}
+
+const headerKey = '_header'
 
 const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
-    <Kb.Box2 centerChildren={true} direction="vertical" key="_header">
+    <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
       <Kb.Text type="BodySmall" style={styles.dropdownHeader}>
         Past transactions won't be affected by this change.
       </Kb.Text>
@@ -43,19 +46,23 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean) => (
   </Kb.Box2>
 )
 
+const HoverText = Styles.isMobile
+  ? Kb.Text
+  : Styles.glamorous(Kb.Text)({
+      ':hover': {
+        backgroundColor: Styles.globalColors.yellow3,
+      },
+    })
+
 const AccountSettings = (props: SettingsProps) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.HeaderHocHeader title="Settings" onBack={props.onBack} headerStyle={styles.header} />
       <Kb.Box2 direction="vertical" style={styles.settingsPage} fullWidth={true}>
         <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
-        <Kb.ClickableBox style={styles.nameBox}>
-          <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
-          <Kb.Icon
-            style={Kb.iconCastPlatformStyles(styles.icon)}
-            type="iconfont-edit"
-            onClick={props.onEditName}
-          />
+        <Kb.ClickableBox onClick={props.onEditName} style={styles.nameBox}>
+          <HoverText type="BodySemibold">{props.name}</HoverText>
+          <Kb.Icon style={Kb.iconCastPlatformStyles(styles.icon)} type="iconfont-edit" />
         </Kb.ClickableBox>
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Identity</Kb.Text>
@@ -85,18 +92,22 @@ const AccountSettings = (props: SettingsProps) => {
         <Kb.Box2 direction="vertical" style={styles.sectionLabel}>
           <Kb.Text type="BodySmallSemibold">Display currency</Kb.Text>
         </Kb.Box2>
-        <Kb.Dropdown
-          items={makeDropdownItems(props.currencies, props.currency)}
-          selected={makeDropdownItem(props.currency, false)}
-          onChanged={(node: React.Node) => {
-            // $ForceType doesn't understand key will be string
-            const selectedCode: Types.CurrencyCode = node.key
-            if (selectedCode !== props.currency.code) {
-              props.onCurrencyChange(selectedCode)
-            }
-          }}
-          style={styles.dropdown}
-        />
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.dropdownContainer} gap="tiny">
+          <Kb.Dropdown
+            disabled={props.currencyWaiting}
+            items={makeDropdownItems(props.currencies, props.currency)}
+            selected={makeDropdownItem(props.currency, false)}
+            onChanged={(node: React.Node) => {
+              // $ForceType doesn't understand key will be string
+              const selectedCode: Types.CurrencyCode = node.key
+              if (selectedCode !== props.currency.code && selectedCode !== headerKey) {
+                props.onCurrencyChange(selectedCode)
+              }
+            }}
+            style={styles.dropdown}
+          />
+          <Kb.SaveIndicator saving={props.currencyWaiting} minSavingTimeMs={300} savedTimeoutMs={2500} />
+        </Kb.Box2>
         <Kb.Text type="BodySmall">The display currency appears:</Kb.Text>
         <Kb.Text type="BodySmall">- near your Lumens balance</Kb.Text>
         <Kb.Text type="BodySmall">- when sending or receiving Lumens</Kb.Text>
@@ -186,6 +197,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xlarge,
     },
   }),
+  dropdownContainer: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
   dropdown: {
     alignItems: 'center',
     marginBottom: Styles.globalMargins.xtiny,

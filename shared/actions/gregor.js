@@ -5,39 +5,37 @@ import * as GregorGen from './gregor-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import engine from '../engine'
+import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushState', ({reason, state}, response) => {
-    response && response.result()
-    const items = state.items || []
+  engine().setIncomingCallMap({
+    'keybase.1.gregorUI.pushState': ({reason, state}) => {
+      const items = state.items || []
 
-    const goodState = items.reduce((arr, {md, item}) => {
-      md && item && arr.push({item, md})
-      return arr
-    }, [])
+      const goodState = items.reduce((arr, {md, item}) => {
+        md && item && arr.push({item, md})
+        return arr
+      }, [])
 
-    if (goodState.length !== items.length) {
-      logger.warn('Lost some messages in filtering out nonNull gregor items')
-    }
-    return GregorGen.createPushState({reason, state: goodState})
-  })
-
-  engine().setIncomingActionCreators('keybase.1.gregorUI.pushOutOfBandMessages', ({oobm}, response) => {
-    response && response.result()
-    const filteredOOBM = (oobm || []).filter(Boolean)
-    return filteredOOBM.length ? GregorGen.createPushOOBM({messages: filteredOOBM}) : null
-  })
-
-  engine().setIncomingActionCreators(
-    'keybase.1.reachability.reachabilityChanged',
-    ({reachability}, response, _, getState) => {
-      if (getState().config.loggedIn) {
-        // Gregor reachability is only valid if we're logged in
-        return GregorGen.createUpdateReachable({reachable: reachability.reachable})
+      if (goodState.length !== items.length) {
+        logger.warn('Lost some messages in filtering out nonNull gregor items')
       }
-    }
-  )
+      return Saga.put(GregorGen.createPushState({reason, state: goodState}))
+    },
+    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
+      const filteredOOBM = (oobm || []).filter(Boolean)
+      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
+    },
+    'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        if (state.config.loggedIn) {
+          // Gregor reachability is only valid if we're logged in
+          yield Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
+        }
+      }),
+  })
 
   // Filter this firehose down to the system we care about: "git"
   // If ever you want to get OOBMs for a different system, then you need to enter it here.

@@ -734,11 +734,12 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 //=============================================================================
 
 type UnmarshalError struct {
-	T string
+	ExpectedTag PacketTag
+	Tag         PacketTag
 }
 
 func (u UnmarshalError) Error() string {
-	return "Bad " + u.T + " packet"
+	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
 }
 
 type VerificationError struct {
@@ -1199,11 +1200,8 @@ const (
 	merkleErrorNoLegacyUIDRoot
 	merkleErrorUIDMismatch
 	merkleErrorNoSkipSequence
-	merkleErrorSkipSequence
 	merkleErrorSkipMissing
 	merkleErrorSkipHashMismatch
-	merkleErrorNoLeftBookend
-	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
 	merkleErrorNotFound
@@ -1217,6 +1215,8 @@ const (
 	merkleErrorBadRoot
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
+	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {
@@ -1251,20 +1251,6 @@ type MerkleClashError struct {
 
 func (m MerkleClashError) Error() string {
 	return fmt.Sprintf("Merkle tree clashed with server reply: %s", m.c)
-}
-
-//=============================================================================
-
-type PvlSourceError struct {
-	msg string
-}
-
-func (e PvlSourceError) Error() string {
-	return fmt.Sprintf("PvlSource: %s", e.msg)
-}
-
-func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
-	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
 }
 
 //=============================================================================
@@ -2508,3 +2494,26 @@ func NewTeamFTLOutdatedError(s string) error {
 func (t TeamFTLOutdatedError) Error() string {
 	return fmt.Sprintf("FTL outdated: %s", t.msg)
 }
+
+var _ error = TeamFTLOutdatedError{}
+
+//=============================================================================
+
+type FeatureFlagError struct {
+	msg     string
+	feature Feature
+}
+
+func NewFeatureFlagError(s string, f Feature) error {
+	return FeatureFlagError{s, f}
+}
+
+func (f FeatureFlagError) Feature() Feature {
+	return f.feature
+}
+
+func (f FeatureFlagError) Error() string {
+	return fmt.Sprintf("Feature %q flagged off: %s", f.feature, f.msg)
+}
+
+var _ error = FeatureFlagError{}

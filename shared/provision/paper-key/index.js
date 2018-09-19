@@ -50,7 +50,7 @@ const PaperKey = (props: Props) => (
           value={props.paperKey}
         />
       </Box2>
-      {!!props.error && <Text type="BodyError">{props.error}</Text>}
+      {!!props.error && <Text type="BodySmallError">{props.error}</Text>}
       <ButtonBar fullWidth={true}>
         <WaitingButton
           label="Continue"

@@ -50,6 +50,21 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, "", accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	require.NotEmpty(t, accts[1].Seqno)
+
+	// test the singular version as well
+	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
+	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.True(t, details.IsDefault)
+	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
+	require.NotEmpty(t, details.Seqno)
+
+	argDetails.AccountID = accts[1].AccountID
+	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
+	require.NoError(t, err)
+	require.False(t, details.IsDefault)
+	require.Equal(t, "0 XLM", details.BalanceDescription)
+	require.NotEmpty(t, details.Seqno)
 }
 
 func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
@@ -829,6 +844,19 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
 	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+
+	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
+	require.NoError(t, err)
+	recipPayments = recipPaymentsPage.Payments
+	require.Len(t, recipPayments, 1)
+	t.Logf("recipPayments: %+v", recipPayments)
+	p = recipPayments[0].Payment
+	require.NotNil(t, p)
+	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
+	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
 }
 
 func TestPaymentDetailsEmptyAccId(t *testing.T) {
@@ -1120,6 +1148,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf(spew.Sdump(bres))
 	require.Equal(t, true, bres.ReadyToSend)
+	require.Equal(t, senderAccountID, bres.From)
 	require.Equal(t, "", bres.ToErrMsg)
 	require.Equal(t, "", bres.AmountErrMsg)
 	require.Equal(t, "", bres.SecretNoteErrMsg)
@@ -1127,6 +1156,50 @@ func TestBuildPaymentLocal(t *testing.T) {
 	require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
 	require.Equal(t, worthInfo, bres.WorthInfo)
 	requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+
+	t.Logf("using `fromDefaultAccount`")
+	for _, x := range []string{"blank", "match", "wrong"} {
+		var from stellar1.AccountID
+		var fromRes stellar1.AccountID
+		shouldFail := false
+		switch x {
+		case "blank":
+			fromRes = senderAccountID
+		case "match":
+			from = senderAccountID
+			fromRes = senderAccountID
+			shouldFail = true
+		case "wrong":
+			otherAccountID, _ := randomStellarKeypair()
+			from = otherAccountID
+			shouldFail = true
+		default:
+			panic("bad case")
+		}
+		bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+			From:               from,
+			FromPrimaryAccount: true,
+			To:                 tcs[1].Fu.Username,
+			Amount:             "8.50",
+			Currency:           &usd,
+		})
+		if shouldFail {
+			require.Error(t, err)
+			require.Equal(t, "invalid build payment parameters", err.Error())
+		} else {
+			require.NoError(t, err)
+			t.Logf(spew.Sdump(bres))
+			require.Equal(t, true, bres.ReadyToSend)
+			require.Equal(t, fromRes, bres.From, x)
+			require.Equal(t, "", bres.ToErrMsg)
+			require.Equal(t, "", bres.AmountErrMsg)
+			require.Equal(t, "", bres.SecretNoteErrMsg)
+			require.Equal(t, "", bres.PublicMemoErrMsg)
+			require.Equal(t, "26.7020180 XLM", bres.WorthDescription)
+			require.Equal(t, worthInfo, bres.WorthInfo)
+			requireBannerSet(t, bres, []stellar1.SendBannerLocal{})
+		}
+	}
 
 	t.Logf("sending to account ID")
 	bres, err = tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{

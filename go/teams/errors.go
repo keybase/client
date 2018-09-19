@@ -435,7 +435,7 @@ type AuditError struct {
 }
 
 func NewAuditError(format string, args ...interface{}) error {
-	return FastLoadError{Msg: fmt.Sprintf(format, args...)}
+	return AuditError{Msg: fmt.Sprintf(format, args...)}
 }
 
 func (e AuditError) Error() string {

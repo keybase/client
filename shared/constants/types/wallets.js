@@ -117,10 +117,12 @@ export type _AssetDescription = {
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
 
+export type Asset = 'native' | 'currency' | AssetDescription
+
 export type _Request = {
   amount: string, // The number alone
   amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
-  asset: 'native' | 'currency' | AssetDescription,
+  asset: Asset,
   completed: boolean,
   completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
   currencyCode: string, // set if asset === 'currency'

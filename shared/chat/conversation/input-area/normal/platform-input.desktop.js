@@ -324,7 +324,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           {flags.explodingMessagesEnabled &&
             this.props.showingMenu && (
               <SetExplodingMessagePopup
-                attachTo={this.props.attachmentRef}
+                attachTo={this.props.getAttachmentRef}
                 conversationIDKey={this.props.conversationIDKey}
                 onAfterSelect={this._inputFocus}
                 onHidden={this.props.toggleShowingMenu}

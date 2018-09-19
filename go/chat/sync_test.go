@@ -79,7 +79,7 @@ func TestSyncerConnected(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	ibox := storage.NewInbox(tc.Context(), uid)
+	ibox := storage.NewInbox(tc.Context())
 	store := storage.New(tc.Context(), tc.ChatG.ConvSource)
 
 	var convs []chat1.Conversation
@@ -126,7 +126,7 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox synced received")
 	}
-	_, _, err := ibox.ReadAll(ctx)
+	_, _, err := ibox.ReadAll(ctx, uid)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 
@@ -136,7 +136,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.NoError(t, cerr)
 	_, serr := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
-	_, iconvs, err := ibox.ReadAll(ctx)
+	_, iconvs, err := ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
 	require.Equal(t, len(convs), len(iconvs))
 
@@ -165,7 +165,7 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no background conv loaded")
 	}
-	vers, iconvs, err := ibox.ReadAll(context.TODO())
+	vers, iconvs, err := ibox.ReadAll(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Equal(t, len(convs), len(iconvs))
 	for _, ic := range iconvs {
@@ -180,7 +180,7 @@ func TestSyncerConnected(t *testing.T) {
 	require.Equal(t, 1, len(thread.Thread.Messages))
 
 	t.Logf("test server version")
-	srvVers, err := ibox.ServerVersion(context.TODO())
+	srvVers, err := ibox.ServerVersion(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Zero(t, srvVers)
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -197,7 +197,7 @@ func TestSyncerConnected(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no inbox stale received")
 	}
-	_, _, err = ibox.ReadAll(ctx)
+	_, _, err = ibox.ReadAll(ctx, uid)
 	require.Error(t, err)
 	require.IsType(t, storage.MissError{}, err)
 	_, cerr = store.Fetch(ctx, mconv, uid, nil, nil, nil)
@@ -205,10 +205,10 @@ func TestSyncerConnected(t *testing.T) {
 	require.IsType(t, storage.MissError{}, cerr)
 	_, serr = tc.Context().InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, serr)
-	_, iconvs, err = ibox.ReadAll(ctx)
+	_, iconvs, err = ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
 	require.Equal(t, len(convs), len(iconvs))
-	srvVers, err = ibox.ServerVersion(context.TODO())
+	srvVers, err = ibox.ServerVersion(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Equal(t, 5, srvVers)
 
@@ -439,7 +439,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	ibox := storage.NewInbox(tc.Context(), uid)
+	ibox := storage.NewInbox(tc.Context())
 	store := storage.New(tc.Context(), tc.ChatG.ConvSource)
 
 	tlfName := u.Username + "," + u1.Username
@@ -475,7 +475,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no background conv loaded")
 	}
-	_, iconvs, err := ibox.ReadAll(ctx)
+	_, iconvs, err := ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 1)
 	require.Equal(t, chat1.MessageID(2), iconvs[0].Conv.ReaderInfo.MaxMsgid)
@@ -512,7 +512,7 @@ func TestSyncerRetentionExpunge(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "no background conv loaded")
 	}
-	_, iconvs, err = ibox.ReadAll(context.TODO())
+	_, iconvs, err = ibox.ReadAll(context.TODO(), uid)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 1)
 	require.Equal(t, chat1.Expunge{Upto: 12}, iconvs[0].Conv.Expunge)
@@ -537,7 +537,7 @@ func TestSyncerTeamFilter(t *testing.T) {
 	tc := world.Tcs[u.Username]
 	syncer := NewSyncer(tc.Context())
 	syncer.isConnected = true
-	ibox := storage.NewInbox(tc.Context(), uid)
+	ibox := storage.NewInbox(tc.Context())
 
 	iconv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
 	tconv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username+","+u2.Username,
@@ -545,10 +545,10 @@ func TestSyncerTeamFilter(t *testing.T) {
 
 	_, err := tc.ChatG.InboxSource.Read(ctx, uid, nil, true, nil, nil)
 	require.NoError(t, err)
-	_, iconvs, err := ibox.ReadAll(ctx)
+	_, iconvs, err := ibox.ReadAll(ctx, uid)
 	require.NoError(t, err)
 	require.Len(t, iconvs, 2)
-	require.NoError(t, ibox.TeamTypeChanged(ctx, 1, tconv.GetConvID(), chat1.TeamType_COMPLEX, nil))
+	require.NoError(t, ibox.TeamTypeChanged(ctx, uid, 1, tconv.GetConvID(), chat1.TeamType_COMPLEX, nil))
 	tconv.Metadata.TeamType = chat1.TeamType_COMPLEX
 
 	t.Logf("dont sync shallow team change")

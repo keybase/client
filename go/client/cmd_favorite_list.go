@@ -54,7 +54,7 @@ func (c *CmdFavoriteList) Run() error {
 		if f.Private {
 			acc = "private"
 		}
-		GlobUI.Println(filepath.Join(acc, f.Name))
+		c.G().UI.GetTerminalUI().Printf("%s\n", filepath.Join(acc, f.Name))
 	}
 	return nil
 }

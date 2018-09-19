@@ -122,6 +122,10 @@ export const isUserActivelyLookingAtThisThread = (
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
 }
+export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
+  const meta = getMeta(state, getSelectedConversation(state))
+  return meta.teamname === teamname
+}
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
   return routePath.size === 3 && routePath.get(2) === 'infoPanel'
@@ -233,6 +237,7 @@ export {
   getMessageID,
   isSpecialMention,
   isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
@@ -250,6 +255,7 @@ export {
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
 } from './message'
 

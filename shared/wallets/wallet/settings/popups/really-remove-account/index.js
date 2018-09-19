@@ -2,11 +2,12 @@
 import React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import WalletPopup from '../../../../wallet-popup'
+import {WalletPopup} from '../../../../common'
 
 type Props = Kb.PropsWithTimer<{|
   name: string,
   loading: boolean,
+  waiting: boolean,
   onCopyKey: () => void,
   onFinish: () => void,
   onCancel: () => void,
@@ -34,6 +35,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
     this.props.onCopyKey()
   }
 
+  _getAttachmentRef = () => this._attachmentRef
+
   render() {
     return (
       <WalletPopup
@@ -49,6 +52,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             type="Wallet"
             ref={r => (this._attachmentRef = r)}
             waiting={this.props.loading}
+            disabled={this.props.waiting}
           />,
           <Kb.Button
             fullWidth={Styles.isMobile}
@@ -56,6 +60,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             label="Finish"
             onClick={this.props.onFinish}
             type="Secondary"
+            waiting={this.props.waiting}
             disabled={this.props.loading}
           />,
         ]}
@@ -74,7 +79,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           Paste it in a 100% safe place.
         </Kb.Text>
 
-        <Kb.Toast visible={this.state.showingToast} attachTo={this._attachmentRef} position={'top center'}>
+        <Kb.Toast visible={this.state.showingToast} attachTo={this._getAttachmentRef} position={'top center'}>
           <Kb.Text type="BodySmall" style={styles.toastText}>
             Copied to clipboard
           </Kb.Text>

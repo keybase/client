@@ -422,6 +422,12 @@ func doRetry(m MetaContext, arg APIArg, cli *Client, req *http.Request) (*http.R
 // a canceler, and an error. The canceler ought to be called before the caller (or its caller) is done
 // with this request.
 func doTimeout(m MetaContext, cli *Client, req *http.Request, timeout time.Duration) (*http.Response, func(), error) {
+	// check to see if the current context is canceled
+	select {
+	case <-m.Ctx().Done():
+		return nil, nil, m.Ctx().Err()
+	default:
+	}
 	ctx, cancel := context.WithTimeout(m.Ctx(), timeout*CITimeMultiplier(m.G()))
 	resp, err := ctxhttp.Do(ctx, cli.cli, req)
 	return resp, cancel, err
@@ -662,11 +668,24 @@ func (a *InternalAPIEngine) checkAppStatus(arg APIArg, ast *AppStatus) error {
 		}
 	}
 
-	if ast.Code == SCBadSession {
-		return BadSessionError{"server rejected session; is your device revoked?"}
-	}
+	return appStatusToTypedError(ast)
+}
 
-	return NewAppStatusError(ast)
+func appStatusToTypedError(ast *AppStatus) error {
+	switch ast.Code {
+	case SCBadSession:
+		return BadSessionError{"server rejected session; is your device revoked?"}
+	case SCFeatureFlag:
+		var feature Feature
+		if ast.Fields != nil {
+			if tmp, ok := ast.Fields["feature"]; ok {
+				feature = Feature(tmp)
+			}
+		}
+		return NewFeatureFlagError(ast.Desc, feature)
+	default:
+		return NewAppStatusError(ast)
+	}
 }
 
 func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {

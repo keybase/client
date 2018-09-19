@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 import * as Container from '../../../../util/container'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
@@ -8,12 +7,11 @@ import * as WalletsGen from '../../../../actions/wallets-gen'
 import * as Route from '../../../../actions/route-tree-gen'
 import * as Styles from '../../../../styles'
 import HiddenString from '../../../../util/hidden-string'
-import AccountPayment, {type Props as AccountPaymentProps} from '.'
+import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
   _defaultAccountID: WalletTypes.noAccountID,
-  _request: WalletConstants.makeRequest(),
   action: '',
   amount: '',
   balanceChange: '',
@@ -31,7 +29,6 @@ type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const common = {
     _defaultAccountID: WalletConstants.getDefaultAccountID(state),
-    _request: WalletConstants.makeRequest(),
   }
   switch (ownProps.message.type) {
     case 'sendPayment': {
@@ -55,32 +52,30 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
     }
     case 'requestPayment': {
-      const message: Types.MessageRequestPayment = ownProps.message
-      const requestID = ownProps.message.requestID
-      const request = WalletConstants.getRequest(state, requestID)
-      if (!request) {
+      const {requestInfo} = ownProps.message
+      if (!requestInfo) {
+        // waiting for service to load it
         return loadingProps
       }
-      common._request = request
       const sendProps =
         ownProps.message.author === state.config.username
           ? {}
           : {
-              sendButtonLabel: `Send${request.asset === 'currency' ? ' lumens worth ' : ' '}${
-                request.amountDescription
+              sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' lumens worth ' : ' '}${
+                requestInfo.amountDescription
               }`,
             }
 
       return {
         ...common,
         ...sendProps,
-        action: request.asset === 'currency' ? 'requested lumens worth' : 'requested',
-        amount: request.amountDescription,
+        action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
+        amount: requestInfo.amountDescription,
         balanceChange: '',
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: message.note,
+        memo: ownProps.message.note,
         pending: false,
       }
     }
@@ -90,13 +85,17 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onSend: (details: ?WalletTypes.Request, defaultAccountID: ?WalletTypes.AccountID) => {
-    if (details && defaultAccountID && ownProps.message.type === 'requestPayment') {
+  _onSend: (defaultAccountID: ?WalletTypes.AccountID) => {
+    if (ownProps.message.type !== 'requestPayment') {
+      throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
+    }
+    const {requestInfo} = ownProps.message
+    if (requestInfo && defaultAccountID && ownProps.message.type === 'requestPayment') {
       const message = ownProps.message
-      if (details.currencyCode) {
-        dispatch(WalletsGen.createSetBuildingCurrency({currency: details.currencyCode}))
+      if (requestInfo.currencyCode) {
+        dispatch(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode}))
       }
-      dispatch(WalletsGen.createSetBuildingAmount({amount: details.amount}))
+      dispatch(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}))
       dispatch(WalletsGen.createSetBuildingFrom({from: defaultAccountID || ''}))
       dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
       dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
@@ -117,31 +116,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   balanceChange: stateProps.balanceChange,
   balanceChangeColor: stateProps.balanceChangeColor,
   icon: stateProps.icon,
-  loadTxData: dispatchProps.loadTxData,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onSend: () => dispatchProps._onSend(stateProps._request, stateProps._defaultAccountID),
+  onSend: () => dispatchProps._onSend(stateProps._defaultAccountID),
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
 
-type LoadCalls = {|
-  loadTxData: () => void,
-|}
-
-class LoadWrapper extends React.Component<{...AccountPaymentProps, ...LoadCalls}> {
-  componentDidMount() {
-    if (this.props.loading) {
-      this.props.loadTxData()
-    }
-  }
-  render() {
-    const {loadTxData, ...passThroughProps} = this.props
-    return <AccountPayment {...passThroughProps} />
-  }
-}
-
 const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  LoadWrapper
+  AccountPayment
 )
 export default ConnectedAccountPayment

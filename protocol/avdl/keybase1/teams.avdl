@@ -207,6 +207,10 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // True if we've ever loaded this team for the "latest" version; sometimes
+    // we don't, depending on the access patterns
+    boolean loadedLatest;
   }
 
   record LinkTriple {
@@ -448,6 +452,12 @@ protocol teams {
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
     map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
+
+    // The head merkle object is the merkle root signed into the head of the team
+    // It was rolled out in 2018-09, so isn't available for all stored copies
+    // of TeamSigChainState. Thus, if you need it, you should check if it's there,
+    // and if not, fetch the chainlink from the server and check against linksIDs[1].
+    union { null, MerkleRootV2 } headMerkle;
   }
 
   // The team got this name at this point in time.
@@ -710,6 +720,8 @@ protocol teams {
     TeamID ID;
     boolean public;
 
+    union { null, TeamName } assertTeamName;
+
     // All (applications X keyGenerationsNeeded) should be loaded
     array<TeamApplication> applications;
     array<PerTeamKeyGeneration> keyGenerationsNeeded;
@@ -717,6 +729,10 @@ protocol teams {
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
     boolean needLatestKey;
+
+    // Specify this flag if you want to force past the time-based cache,
+    // currently set to one hour.
+    boolean forceRefresh;
   }
 
   record FastTeamLoadRes {
@@ -1048,4 +1064,6 @@ protocol teams {
    current user can't read the team.
    */
   TeamID getTeamID(string teamName);
+
+  FastTeamLoadRes ftl(FastTeamLoadArg arg);
 }

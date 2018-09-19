@@ -1,5 +1,6 @@
 // @flow
 import logger from '../../logger'
+import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
@@ -19,33 +20,34 @@ import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 
 const setupEngineListeners = () => {
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifyTracking.trackingChanged',
-    ({isTracking, username}) => ConfigGen.createUpdateFollowing({isTracking, username})
-  )
-
   getEngine().actionOnDisconnect('daemonError', () => {
     logger.flush()
     return ConfigGen.createDaemonError({daemonError: new Error('Disconnected')})
   })
   getEngine().actionOnConnect('handshake', () => ConfigGen.createStartHandshake())
 
-  getEngine().setIncomingActionCreators(
-    'keybase.1.NotifySession.loggedIn',
-    ({username}, response, _, getState) => {
-      response && response.result()
-      // only send this if we think we're not logged in
-      if (!getState().config.loggedIn) {
-        return ConfigGen.createLoggedIn({causedByStartup: false})
-      }
-    }
-  )
-
-  getEngine().setIncomingActionCreators('keybase.1.NotifySession.loggedOut', (_, __, ___, getState) => {
-    // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
-    if (getState().config.loggedIn) {
-      return ConfigGen.createLoggedOut()
-    }
+  getEngine().setIncomingCallMap({
+    'keybase.1.logUi.log': param => {
+      log(param)
+    },
+    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
+      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
+    'keybase.1.NotifySession.loggedOut': () =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're logged in (errors on provison can trigger this and mess things up)
+        if (state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedOut())
+        }
+      }),
+    'keybase.1.NotifySession.loggedIn': ({username}) =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        // only send this if we think we're not logged in
+        if (!state.config.loggedIn) {
+          yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+        }
+      }),
   })
 }
 
@@ -133,11 +135,15 @@ let _firstTimeConnecting = true
 const startHandshake = (state: TypedState) => {
   const firstTimeConnecting = _firstTimeConnecting
   _firstTimeConnecting = false
+  if (firstTimeConnecting) {
+    logger.info('First bootstrap started')
+  }
   return Saga.put(
     ConfigGen.createDaemonHandshake({firstTimeConnecting, version: state.config.daemonHandshakeVersion + 1})
   )
 }
 
+let _firstTimeBootstrapDone = true
 const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
   if (action.payload.version !== state.config.daemonHandshakeVersion) {
     // ignore out of date actions
@@ -151,6 +157,10 @@ const maybeDoneWithDaemonHandshake = (state: TypedState, action: ConfigGen.Daemo
         return Saga.put(ConfigGen.createRestartHandshake())
       }
     } else {
+      if (_firstTimeBootstrapDone) {
+        _firstTimeBootstrapDone = false
+        logger.info('First bootstrap ended')
+      }
       return Saga.put(ConfigGen.createDaemonHandshakeDone())
     }
   }

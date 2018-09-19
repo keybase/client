@@ -203,7 +203,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       <FloatingMenu
         closeOnSelect={false}
         containerStyle={styles.floatingContainer}
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         onHidden={hideMenuOnce}
         position="bottom right"

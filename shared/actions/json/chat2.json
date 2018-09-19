@@ -17,6 +17,7 @@
         "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'extension'", // from a notification from iOS share extension
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
@@ -441,11 +442,20 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
     },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
+    },
     "paymentInfoReceived": {
       "_description": "We received payment info for a sendPayment message",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "paymentInfo": "Types.ChatPaymentInfo"
+    },
+    "requestInfoReceived": {
+      "_description": "We received request info for a requestPayment message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "RPCChatTypes.MessageID",
+      "requestInfo": "Types.ChatRequestInfo"
     }
   }
 }

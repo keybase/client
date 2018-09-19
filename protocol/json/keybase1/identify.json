@@ -348,6 +348,15 @@
       ],
       "response": "Folder",
       "doc": "resolveImplicitTeam returns a TLF display name given a teamID. The publicness\n   of the team is inferred from the TeamID."
+    },
+    "normalizeSocialAssertion": {
+      "request": [
+        {
+          "name": "assertion",
+          "type": "string"
+        }
+      ],
+      "response": "SocialAssertion"
     }
   },
   "namespace": "keybase.1"

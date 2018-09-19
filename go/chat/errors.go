@@ -510,3 +510,17 @@ func IsOfflineError(err error) OfflineErrorKind {
 	}
 	return OfflineErrorKindOnline
 }
+
+//=============================================================================
+
+type FTLError struct {
+	msg string
+}
+
+func NewFTLError(s string) error {
+	return &FTLError{msg: s}
+}
+
+func (f FTLError) Error() string {
+	return fmt.Sprintf("FTL Error: %s", f.msg)
+}
