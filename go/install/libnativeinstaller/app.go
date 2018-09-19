@@ -1,4 +1,4 @@
-// Copyright 2017 Keybase, Inc. All rights reserved. Use of
+// Copyright 2018 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
 package libnativeinstaller
@@ -6,12 +6,13 @@ package libnativeinstaller
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
 	"github.com/kardianos/osext"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbconst"
 )
 
 // Log is the logging interface for this package
@@ -29,7 +30,7 @@ type Context interface {
 	GetRuntimeDir() string
 	GetMountDir() (string, error)
 	GetLogDir() string
-	GetRunMode() libkb.RunMode
+	GetRunMode() kbconst.RunMode
 	GetServiceInfoPath() string
 	GetKBFSInfoPath() string
 }
@@ -50,8 +51,8 @@ func AppBundleForPath() (string, error) {
 	}
 
 	appPath := paths[0] + ".app"
-	if exists, _ := libkb.FileExists(appPath); !exists {
-		return "", fmt.Errorf("App not found: %s", appPath)
+	if _, err := os.Stat(appPath); err != nil {
+		return "", fmt.Errorf("os.Stat(%q) error: %s", appPath, err)
 	}
 
 	return appPath, nil
@@ -65,7 +66,7 @@ func nativeInstallerAppBundleExecPath(appPath string) string {
 	return filepath.Join(nativeInstallerAppBundlePath(appPath), "Contents/MacOS/Keybase")
 }
 
-func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) error {
+func execNativeInstallerWithArg(args []string, runMode kbconst.RunMode, log Log) error {
 	appPath, err := AppBundleForPath()
 	if err != nil {
 		return err
@@ -79,60 +80,60 @@ func execNativeInstallerWithArg(args []string, runMode libkb.RunMode, log Log) e
 }
 
 // InstallMountDir calls the installer with --install-mountdir.
-func InstallMountDir(runMode libkb.RunMode, log Log) error {
+func InstallMountDir(runMode kbconst.RunMode, log Log) error {
 	log.Info("Creating mount directory")
 	return execNativeInstallerWithArg([]string{"--install-mountdir"}, runMode, log)
 }
 
 // UninstallMountDir calls the installer with --uninstall-mountdir.
-func UninstallMountDir(runMode libkb.RunMode, log Log) error {
+func UninstallMountDir(runMode kbconst.RunMode, log Log) error {
 	// We need the installer to remove the mount directory (since it's in the root, only the helper tool can do it)
 	return execNativeInstallerWithArg([]string{"--uninstall-mountdir"}, runMode, log)
 }
 
 // InstallRedirector calls the installer with --install-redirector.
-func InstallRedirector(runMode libkb.RunMode, log Log) error {
+func InstallRedirector(runMode kbconst.RunMode, log Log) error {
 	log.Info("Starting redirector")
 	return execNativeInstallerWithArg([]string{"--install-redirector"}, runMode, log)
 }
 
 // UninstallRedirector calls the installer with --uninstall-redirector.
-func UninstallRedirector(runMode libkb.RunMode, log Log) error {
+func UninstallRedirector(runMode kbconst.RunMode, log Log) error {
 	return execNativeInstallerWithArg([]string{"--uninstall-redirector"}, runMode, log)
 }
 
 // InstallFuse calls the installer with --install-fuse.
-func InstallFuse(runMode libkb.RunMode, log Log) error {
+func InstallFuse(runMode kbconst.RunMode, log Log) error {
 	log.Info("Installing KBFuse")
 	return execNativeInstallerWithArg([]string{"--install-fuse"}, runMode, log)
 }
 
 // UninstallFuse calls the installer with --uninstall-fuse.
-func UninstallFuse(runMode libkb.RunMode, log Log) error {
+func UninstallFuse(runMode kbconst.RunMode, log Log) error {
 	log.Info("Removing KBFuse")
 	return execNativeInstallerWithArg([]string{"--uninstall-fuse"}, runMode, log)
 }
 
 // InstallHelper calls the installer with --install-helper.
-func InstallHelper(runMode libkb.RunMode, log Log) error {
+func InstallHelper(runMode kbconst.RunMode, log Log) error {
 	log.Info("Installing Helper")
 	return execNativeInstallerWithArg([]string{"--install-helper"}, runMode, log)
 }
 
 // UninstallHelper calls the installer with --uninstall-helper.
-func UninstallHelper(runMode libkb.RunMode, log Log) error {
+func UninstallHelper(runMode kbconst.RunMode, log Log) error {
 	log.Info("Removing privileged helper tool")
 	return execNativeInstallerWithArg([]string{"--uninstall-helper"}, runMode, log)
 }
 
 // InstallCommandLinePrivileged calls the installer with --install-cli.
-func InstallCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+func InstallCommandLinePrivileged(runMode kbconst.RunMode, log Log) error {
 	log.Info("Installing command line (privileged)")
 	return execNativeInstallerWithArg([]string{"--install-cli"}, runMode, log)
 }
 
 // UninstallCommandLinePrivileged calls the installer with --uninstall-cli.
-func UninstallCommandLinePrivileged(runMode libkb.RunMode, log Log) error {
+func UninstallCommandLinePrivileged(runMode kbconst.RunMode, log Log) error {
 	log.Info("Removing command line (privileged)")
 	return execNativeInstallerWithArg([]string{"--uninstall-cli"}, runMode, log)
 }
@@ -144,7 +145,7 @@ func InstallAppBundle(context Context, sourcePath string, log Log) error {
 }
 
 // UninstallApp calls the installer with --install-app.
-func UninstallApp(runMode libkb.RunMode, log Log) error {
+func UninstallApp(runMode kbconst.RunMode, log Log) error {
 	log.Info("Removing app")
 	return execNativeInstallerWithArg([]string{"--uninstall-app"}, runMode, log)
 }
