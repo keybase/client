@@ -1,6 +1,6 @@
 // @flow
 import * as Constants from '../../../constants/teams'
-import * as KBFSGen from '../../../actions/kbfs-gen'
+import * as FsGen from '../../../actions/fs-gen'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import Title from '.'
 import {connect, type TypedState} from '../../../util/container'
@@ -17,7 +17,7 @@ const mapStateToProps = (state: TypedState, {teamname}) => {
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
   onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
-  onOpenFolder: () => dispatch(KBFSGen.createOpen({path: `/keybase/team/${teamname}`})),
+  onOpenFolder: () => dispatch(FsGen.createOpenInFileUI({path: `/keybase/team/${teamname}`})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

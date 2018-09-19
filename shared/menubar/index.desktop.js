@@ -15,7 +15,6 @@ import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upl
 export type Props = {
   logIn: () => void,
   loggedIn: boolean,
-  onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
   quit: () => void,
@@ -159,11 +158,6 @@ class MenubarRender extends React.Component<Props, State> {
       {title: 'Help', onClick: this.props.showHelp},
       {title: 'Quit app', onClick: this.props.quit},
     ]
-  }
-
-  _onAdd(path: string) {
-    this.props.onFolderClick(path)
-    this.props.refresh()
   }
 
   _getAttachmentRef = () => this.attachmentRef.current
