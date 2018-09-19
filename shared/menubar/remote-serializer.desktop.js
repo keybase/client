@@ -1,6 +1,7 @@
 // @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
 import {serialize as conversationSerialize} from '../chat/inbox/container/remote'
+import GetRowsFromTlfUpdate from '../fs/remote-container'
 
 export const serialize = {
   ...Avatar.serialize,
@@ -26,7 +27,7 @@ export const serialize = {
       return map
     }, {}),
   externalRemoteWindow: v => v,
-  fileRows: v => v,
+  fileRows: v => v.map(t => GetRowsFromTlfUpdate(t)).toArray(),
   isAsyncWriteHappening: v => v,
   loggedIn: v => v,
   username: v => v,

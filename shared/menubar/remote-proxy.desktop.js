@@ -7,7 +7,6 @@ import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
-import GetFileRows from '../fs/remote-container'
 import {serialize} from './remote-serializer.desktop'
 import memoize from 'memoize-one'
 
@@ -78,6 +77,7 @@ let _lastUsername
 let _lastClearCacheTrigger = 0
 const mergeProps = stateProps => {
   if (_lastUsername !== stateProps.username) {
+    _lastUsername = stateProps.username
     _lastClearCacheTrigger++
   }
   return {
@@ -90,7 +90,7 @@ const mergeProps = stateProps => {
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,
-    fileRows: GetFileRows(stateProps._tlfUpdates),
+    fileRows: stateProps._tlfUpdates,
     following: stateProps._following,
     isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
     loggedIn: stateProps.loggedIn,
