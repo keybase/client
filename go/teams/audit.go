@@ -235,12 +235,15 @@ func (a *Auditor) doPostProbes(m libkb.MetaContext, history *keybase1.AuditHisto
 		low = lastMaxMerkleProbe
 		probe, ok := history.PostProbes[lastMaxMerkleProbe]
 		if !ok {
-			return 0, keybase1.Seqno(0), NewAuditError("previous audit pointed to a bogus probe (seqno=%d)", lastMaxMerkleProbe)
-		}
-		prev = &probeTuple{
-			merkle: lastMaxMerkleProbe,
-			team:   probe.TeamSeqno,
-			// leave linkID nil, it's not needed...
+			// This might happen if leveldb was corrupted, or if we had a bug of some sort.
+			// But it makes sense not error out of the audit process.
+			m.CWarningf("previous audit pointed to a bogus probe (seqno=%d); starting from scratch", lastMaxMerkleProbe)
+		} else {
+			prev = &probeTuple{
+				merkle: lastMaxMerkleProbe,
+				team:   probe.TeamSeqno,
+				// leave linkID nil, it's not needed...
+			}
 		}
 	}
 
