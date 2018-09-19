@@ -1126,6 +1126,23 @@
     "registerSharePost": {
       "request": [
         {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
+    "failSharePost": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
           "name": "outboxID",
           "type": "OutboxID"
         }

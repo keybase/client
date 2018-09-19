@@ -296,5 +296,6 @@ protocol remote {
   void upgradeKBFSToImpteam(TLFID tlfID);
 
   // Share extension
-  void registerSharePost(OutboxID outboxID);
+  void registerSharePost(ConversationID convID, OutboxID outboxID);
+  void failSharePost(ConversationID convID, OutboxID outboxID);
 }

@@ -187,7 +187,7 @@ func ExtensionGetInbox() (res string, err error) {
 	return string(dat), nil
 }
 
-func ExtensionRegisterSend() (res string, err error) {
+func ExtensionRegisterSend(convID chat1.ConversationID) (res string, err error) {
 	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	outboxID, err := storage.NewOutboxID()
@@ -197,10 +197,32 @@ func ExtensionRegisterSend() (res string, err error) {
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
-	if err = extensionRi.RegisterSharePost(ctx, outboxID); err != nil {
+	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
+		ConvID:   convID,
+		OutboxID: outboxID,
+	}); err != nil {
 		return res, err
 	}
 	return outboxID.String(), nil
+}
+
+func extensionRegisterFailure(ctx context.Context, strConvID, strOutboxID string) {
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: invalid convID: %s", err)
+		return
+	}
+	outboxID := getOutboxID(strOutboxID)
+	if outboxID == nil {
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: nil outboxID")
+		return
+	}
+	if err := extensionRi.FailSharePost(ctx, chat1.FailSharePostArg{
+		ConvID:   convID,
+		OutboxID: *outboxID,
+	}); err != nil {
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: failed: %s", err)
+	}
 }
 
 func ExtensionDetectMIMEType(filename string) (res string, err error) {
@@ -288,6 +310,7 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 	body string, pusher PushNotifier) (err error) {
 	defer kbCtx.Trace("ExtensionPostText", func() error { return err })()
 	defer func() { err = flattenError(err) }()
+	defer func() { extensionRegisterFailure(ctx, strConvID, strOutboxID) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "message") }()
 
 	gc := globals.NewContext(kbCtx, kbChatCtx)

@@ -967,7 +967,13 @@ type UpgradeKBFSToImpteamArg struct {
 }
 
 type RegisterSharePostArg struct {
-	OutboxID OutboxID `codec:"outboxID" json:"outboxID"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	OutboxID OutboxID       `codec:"outboxID" json:"outboxID"`
+}
+
+type FailSharePostArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	OutboxID OutboxID       `codec:"outboxID" json:"outboxID"`
 }
 
 type RemoteInterface interface {
@@ -1005,7 +1011,8 @@ type RemoteInterface interface {
 	SetConvMinWriterRole(context.Context, SetConvMinWriterRoleArg) (SetConvMinWriterRoleRes, error)
 	RetentionSweepConv(context.Context, ConversationID) (SweepRes, error)
 	UpgradeKBFSToImpteam(context.Context, TLFID) error
-	RegisterSharePost(context.Context, OutboxID) error
+	RegisterSharePost(context.Context, RegisterSharePostArg) error
+	FailSharePost(context.Context, FailSharePostArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1562,7 +1569,23 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]RegisterSharePostArg)(nil), args)
 						return
 					}
-					err = i.RegisterSharePost(ctx, (*typedArgs)[0].OutboxID)
+					err = i.RegisterSharePost(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"failSharePost": {
+				MakeArg: func() interface{} {
+					ret := make([]FailSharePostArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FailSharePostArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FailSharePostArg)(nil), args)
+						return
+					}
+					err = i.FailSharePost(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1758,8 +1781,12 @@ func (c RemoteClient) UpgradeKBFSToImpteam(ctx context.Context, tlfID TLFID) (er
 	return
 }
 
-func (c RemoteClient) RegisterSharePost(ctx context.Context, outboxID OutboxID) (err error) {
-	__arg := RegisterSharePostArg{OutboxID: outboxID}
+func (c RemoteClient) RegisterSharePost(ctx context.Context, __arg RegisterSharePostArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.registerSharePost", []interface{}{__arg}, nil)
+	return
+}
+
+func (c RemoteClient) FailSharePost(ctx context.Context, __arg FailSharePostArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.failSharePost", []interface{}{__arg}, nil)
 	return
 }
