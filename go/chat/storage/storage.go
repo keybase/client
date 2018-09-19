@@ -786,7 +786,11 @@ func (s *Storage) ClearAll(ctx context.Context, convID chat1.ConversationID, uid
 	// They should never be called from private functions.
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
-	return s.maybeNukeLocked(ctx, true /*force*/, nil /*err */, convID, uid)
+	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
+	if err != nil {
+		return err
+	}
+	return s.clearUpthrough(ctx, convID, uid, maxMsgID)
 }
 
 func (s *Storage) ResultCollectorFromQuery(ctx context.Context, query *chat1.GetThreadQuery,
