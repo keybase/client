@@ -343,9 +343,7 @@ const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
       Types.getPathElements(u.path).reduce((acc, e, i, a) => {
         if (i < 2) return acc
         const path = Types.getPathFromElements(a.slice(0, i + 1))
-        if (!state.fs.pathItems.get(path))
-          return acc.add(path)
-        return acc
+        return acc.add(path)
       }, acc), I.Set()).toArray()
     yield Saga.sequentially([
       ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
