@@ -528,19 +528,6 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	return res, nil
 }
 
-func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) (err error) {
-	ctx, err, fin := s.Preamble(ctx, preambleArg{
-		RPCName: "SetAccountMobileOnlyLocal",
-		Err:     &err,
-	})
-	defer fin()
-	if err != nil {
-		return err
-	}
-
-	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
-}
-
 func (s *Server) mctx(ctx context.Context) libkb.MetaContext {
 	return libkb.NewMetaContext(ctx, s.G())
 }

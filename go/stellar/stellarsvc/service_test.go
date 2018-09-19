@@ -757,16 +757,16 @@ func TestSetMobileOnly(t *testing.T) {
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
 
-	account, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), stellar1.GetWalletAccountLocalArg{AccountID: accountID})
+	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
-	require.False(t, account.MobileOnly)
+	require.False(t, mobileOnly)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
 
-	account, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), stellar1.GetWalletAccountLocalArg{AccountID: accountID})
+	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
-	require.True(t, account.MobileOnly)
+	require.True(t, mobileOnly)
 }
 
 type TestContext struct {

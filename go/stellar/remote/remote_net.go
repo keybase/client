@@ -90,6 +90,10 @@ func (r *RemoteNet) MarkAsRead(ctx context.Context, accountID stellar1.AccountID
 	return MarkAsRead(ctx, r.G(), accountID, mostRecentID)
 }
 
+func (r *RemoteNet) IsAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) (bool, error) {
+	return IsAccountMobileOnly(ctx, r.G(), accountID)
+}
+
 func (r *RemoteNet) SetAccountMobileOnly(ctx context.Context, accountID stellar1.AccountID) error {
 	return SetAccountMobileOnly(ctx, r.G(), accountID)
 }

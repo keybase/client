@@ -474,6 +474,10 @@ func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stel
 	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
 }
 
+func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
+	return r.Backend.IsAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 // BackendMock is a mock of stellard.
@@ -970,6 +974,10 @@ func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, reques
 
 func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
 	return nil
+}
+
+func (r *BackendMock) IsAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (bool, error) {
+	return remote.IsAccountMobileOnly(ctx, tc.G, accountID)
 }
 
 func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {

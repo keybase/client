@@ -14,7 +14,6 @@ type WalletAccountLocal struct {
 	Name               string    `codec:"name" json:"name"`
 	BalanceDescription string    `codec:"balanceDescription" json:"balanceDescription"`
 	Seqno              string    `codec:"seqno" json:"seqno"`
-	MobileOnly         bool      `codec:"mobileOnly" json:"mobileOnly"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
@@ -24,7 +23,6 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		Name:               o.Name,
 		BalanceDescription: o.BalanceDescription,
 		Seqno:              o.Seqno,
-		MobileOnly:         o.MobileOnly,
 	}
 }
 
@@ -795,6 +793,11 @@ type SetAccountMobileOnlyLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type IsAccountMobileOnlyLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -905,6 +908,7 @@ type LocalInterface interface {
 	CancelRequestLocal(context.Context, CancelRequestLocalArg) error
 	MakeRequestLocal(context.Context, MakeRequestLocalArg) (KeybaseRequestID, error)
 	SetAccountMobileOnlyLocal(context.Context, SetAccountMobileOnlyLocalArg) error
+	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1392,6 +1396,22 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"isAccountMobileOnlyLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]IsAccountMobileOnlyLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]IsAccountMobileOnlyLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]IsAccountMobileOnlyLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.IsAccountMobileOnlyLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					ret := make([]BalancesLocalArg, 1)
@@ -1798,6 +1818,11 @@ func (c LocalClient) MakeRequestLocal(ctx context.Context, __arg MakeRequestLoca
 
 func (c LocalClient) SetAccountMobileOnlyLocal(ctx context.Context, __arg SetAccountMobileOnlyLocalArg) (err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.setAccountMobileOnlyLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccountMobileOnlyLocalArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.isAccountMobileOnlyLocal", []interface{}{__arg}, &res)
 	return
 }
 
