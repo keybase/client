@@ -141,15 +141,15 @@ type AssertionURL interface {
 	CheckAndNormalize(ctx AssertionContext) (AssertionURL, error)
 	IsKeybase() bool
 	IsUID() bool
-	ToUID() keybase1.UID
 	IsTeamID() bool
 	IsTeamName() bool
-	ToTeamID() keybase1.TeamID
-	ToTeamName() keybase1.TeamName
 	IsSocial() bool
 	IsRemote() bool
 	IsFingerprint() bool
 	MatchProof(p Proof) bool
+	ToUID() keybase1.UID
+	ToTeamID() keybase1.TeamID
+	ToTeamName() keybase1.TeamName
 	ToKeyValuePair() (string, string)
 	CacheKey() string
 	GetValue() string

@@ -85,8 +85,7 @@ const (
 )
 
 const (
-	UserCacheMaxAge      = 5 * time.Minute
-	PGPFingerprintHexLen = 40
+	UserCacheMaxAge = 5 * time.Minute
 
 	ProofCacheSize      = 0x1000
 	ProofCacheLongDur   = 48 * time.Hour

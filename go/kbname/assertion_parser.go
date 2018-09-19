@@ -243,14 +243,22 @@ func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
 
 func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser{lexer, nil, false}
+	parser := Parser{
+		lexer:   lexer,
+		err:     nil,
+		andOnly: false,
+	}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
 
 func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
-	parser := Parser{lexer, nil, true}
+	parser := Parser{
+		lexer:   lexer,
+		err:     nil,
+		andOnly: false,
+	}
 	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
