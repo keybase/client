@@ -50,7 +50,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
-  _dropdownRef: ?React.Component<any, any>
+  _dropdownRef: ?ClickableBox
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
