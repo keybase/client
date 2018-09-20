@@ -192,7 +192,7 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	if deviceID.IsNil() {
 		return res, err
 	}
-	hdid = make([]byte, libkb.DeviceIDLen)
+	hdid := make([]byte, libkb.DeviceIDLen)
 	if err = deviceID.ToBytes(hdid); err != nil {
 		return res, err
 	}
