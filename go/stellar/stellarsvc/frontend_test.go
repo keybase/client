@@ -1659,6 +1659,7 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.NotNil(t, info.Info.Asset)
 		require.Equal(t, "native", info.Info.Asset.Type)
 		require.Nil(t, info.Info.Currency)
+		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
 		t.Fatal("timed out waiting for chat request info notification to sender")
 	}
@@ -1675,9 +1676,19 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.NotNil(t, info.Info.Asset)
 		require.Equal(t, "native", info.Info.Asset.Type)
 		require.Nil(t, info.Info.Currency)
+		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
 		t.Fatal("timed out waiting for chat request info notification to sender")
 	}
+
+	// load it again, should not get another notification
+	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+	select {
+	case info := <-listenerRecip.requestInfos:
+		t.Fatalf("received request notification on second load: %+v", info)
+	case <-time.After(100 * time.Millisecond):
+	}
+
 }
 
 type chatListener struct {
