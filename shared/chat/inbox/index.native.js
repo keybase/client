@@ -187,7 +187,8 @@ class Inbox extends React.PureComponent<Props, State> {
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
-        rows={this.props.rows}
+        onSelectUp={this.props.onSelectUp}
+        onSelectDown={this.props.onSelectDown}
       />
     )
     return (

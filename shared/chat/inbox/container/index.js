@@ -13,6 +13,7 @@ import {
   isMobile,
 } from '../../../util/container'
 import type {TypedState} from '../../../util/container'
+import type {RowItemSmall, RowItemBig, RowItemDivider} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 
@@ -29,6 +30,19 @@ const mapStateToProps = (state: TypedState, {routeState}) => ({
 const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
+  _onSelectNext: (rows, selectedConversationIDKey, direction) => {
+    const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
+      if (row.type === 'small' || row.type === 'big') {
+        arr.push(row)
+      }
+      return arr
+    }, [])
+    const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
+    if (goodRows.length) {
+      const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
+    }
+  },
   onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
@@ -61,6 +75,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       400,
       {maxWait: 600}
     ),
+    onSelectDown: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     refreshInbox: dispatchProps.refreshInbox,
     rows,

@@ -348,6 +348,8 @@ const propsInboxCommon = {
   onHotkey: Sb.action('onHotkey'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
+  onSelectUp: Sb.action('onSelectUp'),
+  onSelectDown: Sb.action('onSelectDown'),
   rows: [],
   showNewChat: false,
   showNewConversation: false,

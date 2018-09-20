@@ -2,6 +2,7 @@
 // The filtered inbox rows. No dividers or headers, just smallbig row items
 import * as Types from '../../../constants/types/chat2'
 import memoize from 'memoize-one'
+import type {RowItem} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
   // special case, looking for yourself
@@ -92,7 +93,7 @@ const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: stri
   const metas = metaMap.valueSeq().toArray()
   const lcFilter = filter.toLowerCase()
   const lcYou = username.toLowerCase()
-  const rows = metas
+  const rows: Array<RowItem> = metas
     .map(
       meta => (meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter))
     )
@@ -103,7 +104,7 @@ const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: stri
       }
       return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
     })
-    .map(({data}) => data)
+    .map(({data}) => (data: RowItem))
 
   return {
     allowShowFloatingButton: false,

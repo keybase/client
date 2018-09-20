@@ -6,6 +6,7 @@ import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
 import memoize from 'memoize-one'
+import type {RowItem} from '../index.types'
 
 const smallTeamsCollapsedMaxShown = 5
 
@@ -73,10 +74,12 @@ const getRowsAndMetadata = memoize((metaMap: Types.MetaMap, smallTeamsExpanded: 
   const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
   const allowShowFloatingButton = smallRows.length > smallTeamsCollapsedMaxShown && !!bigMetas.length
   // why is this getting called so much
+  //
+  const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
   return {
     allowShowFloatingButton,
-    rows: [...smallRows, ...divider, ...bigRows],
+    rows,
     smallTeamsExpanded: showAllSmallRows, // only collapse if we're actually showing a divider,
   }
 })
