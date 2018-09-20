@@ -111,16 +111,6 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
-  const counterparty = (
-    <CounterpartyText
-      counterparty={props.counterparty}
-      counterpartyType={props.counterpartyType}
-      large={props.large}
-      showFullKey={false}
-      textType={textType}
-      textTypeSemibold={textTypeSemibold}
-    />
-  )
   const amount = props.isXLM ? (
     <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
       {props.amountUser}
@@ -132,6 +122,26 @@ const Detail = (props: DetailProps) => {
         {props.amountUser}
       </Text>
     </React.Fragment>
+  )
+
+  if (Types.isSender(props.yourRole) && Types.isReceiver(props.yourRole)) {
+    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+    return (
+      <Text type={textTypeSemibold}>
+        {verbPhrase} {amount} from this account to itself.
+      </Text>
+    )
+  }
+
+  const counterparty = (
+    <CounterpartyText
+      counterparty={props.counterparty}
+      counterpartyType={props.counterpartyType}
+      large={props.large}
+      showFullKey={false}
+      textType={textType}
+      textTypeSemibold={textTypeSemibold}
+    />
   )
 
   if (props.counterpartyType === 'otherAccount') {
