@@ -124,6 +124,7 @@ export type MessageTypes = {|
 export const bundleAccountMode = {
   none: 0,
   user: 1,
+  mobile: 2,
 }
 
 export const bundleBundleVersion = {
@@ -189,6 +190,7 @@ export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
   | 1 // USER_1
+  | 2 // MOBILE_2
 
 export type AccountReserve = $ReadOnly<{amount: String, description: String}>
 export type Asset = $ReadOnly<{type: String, code: String, issuer: String}>

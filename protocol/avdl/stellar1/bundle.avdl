@@ -39,7 +39,8 @@ protocol bundle {
 
   enum AccountMode {
     NONE_0,
-    USER_1 // Each of the user's devices has access to the keys
+    USER_1,  // All of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices has access to the keys
   }
 
   // Server-visible attributes of an account.

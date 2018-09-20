@@ -9,6 +9,7 @@ import {getEngine as engine, getEngineSaga} from '../../engine/require'
 export const bundleAccountMode = {
   none: 0,
   user: 1,
+  mobile: 2,
 }
 
 export const bundleBundleVersion = {

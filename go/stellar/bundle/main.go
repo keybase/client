@@ -1,6 +1,7 @@
 package bundle
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -74,6 +75,17 @@ func CreateNewAccount(bundle *stellar1.Bundle, name string, makePrimary bool) (p
 		return pub, err
 	}
 	return accountID, nil
+}
+
+func SetMobileOnly(bundle *stellar1.Bundle, accountID stellar1.AccountID) error {
+	for i, a := range bundle.Accounts {
+		if a.AccountID.Eq(accountID) {
+			bundle.Accounts[i].Mode = stellar1.AccountMode_MOBILE
+			return nil
+		}
+	}
+
+	return errors.New("account not found in bundle")
 }
 
 func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey, err error) {

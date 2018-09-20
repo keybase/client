@@ -108,7 +108,8 @@
       "name": "AccountMode",
       "symbols": [
         "NONE_0",
-        "USER_1"
+        "USER_1",
+        "MOBILE_2"
       ]
     },
     {
