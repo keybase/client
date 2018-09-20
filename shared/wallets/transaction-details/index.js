@@ -6,7 +6,7 @@ import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
-type Role = 'sender' | 'receiver'
+type Role = 'sender' | 'receiver' | 'senderAndReceiver'
 
 export type Props = {|
   amountUser: string,
@@ -14,7 +14,6 @@ export type Props = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -106,7 +105,6 @@ class TransactionDetails extends React.Component<Props> {
           amountXLM={this.props.amountXLM}
           counterparty={this.props.counterparty}
           counterpartyType={this.props.counterpartyType}
-          delta={this.props.delta}
           large={true}
           memo={this.props.memo}
           status={this.props.status}
@@ -122,7 +120,7 @@ class TransactionDetails extends React.Component<Props> {
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'sender'}
+            isYou={this.props.yourRole === 'sender' || this.props.yourRole === 'senderAndReceiver'}
             you={this.props.you}
             yourRole={this.props.yourRole}
           />
@@ -134,7 +132,7 @@ class TransactionDetails extends React.Component<Props> {
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'receiver'}
+            isYou={this.props.yourRole === 'receiver' || this.props.yourRole === 'senderAndReceiver'}
             you={this.props.you}
             yourRole={this.props.yourRole}
           />

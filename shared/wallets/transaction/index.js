@@ -171,7 +171,6 @@ const Detail = (props: DetailProps) => {
 }
 
 type AmountXLMProps = {|
-  delta: 'none' | 'increase' | 'decrease',
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
@@ -181,16 +180,16 @@ const AmountXLM = (props: AmountXLMProps) => {
   let color = globalColors.black
   if (props.pending) {
     color = globalColors.black_20
-  } else if (props.delta === 'decrease') {
+  } else if (props.yourRole === 'sender') {
     color = globalColors.red
-  } else if (props.delta === 'increase') {
+  } else if (props.yourRole === 'receiver') {
     color = globalColors.green
   }
 
   let amount = '0 XLM'
-  if (props.delta === 'decrease') {
+  if (props.yourRole === 'sender') {
     amount = `- ${props.amountXLM}`
-  } else if (props.delta === 'increase') {
+  } else if (props.yourRole === 'receiver') {
     amount = `+ ${props.amountXLM}`
   }
   return (
@@ -241,8 +240,6 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  // whether account balance has increased or decreased
-  delta: 'none' | 'increase' | 'decrease',
   large: boolean,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
@@ -306,12 +303,7 @@ export const Transaction = (props: Props) => {
                 <Markdown allowFontScaling={true}>{props.memo}</Markdown>
               </Box2>
             )}
-            <AmountXLM
-              delta={props.delta}
-              pending={pending}
-              yourRole={props.yourRole}
-              amountXLM={props.amountXLM}
-            />
+            <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
           </Box2>
         </Box2>
       </ClickableBox>

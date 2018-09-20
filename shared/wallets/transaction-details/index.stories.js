@@ -25,7 +25,6 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
@@ -47,7 +46,6 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         counterpartyType="stellarPublicKey"
-        delta="decrease"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
         yourRole="sender"
@@ -66,7 +64,6 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         onBack={Sb.action('onBack')}
         title="Details"
         amountUser="$12.50"
@@ -89,7 +86,6 @@ const load = () => {
         counterpartyType="keybaseUser"
         onBack={Sb.action('onBack')}
         title="Details"
-        delta="increase"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
@@ -109,7 +105,6 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="increase"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
@@ -127,7 +122,6 @@ const load = () => {
       <TransactionDetails
         counterparty="Second account"
         counterpartyType="otherAccount"
-        delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
         yourRole="receiver"

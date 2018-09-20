@@ -22,11 +22,7 @@ const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
-  const roles = [
-    {yourRole: 'sender', delta: 'decrease'},
-    {yourRole: 'sender', delta: 'none'},
-    {yourRole: 'receiver', delta: 'increase'},
-  ]
+  const roles = [{yourRole: 'sender'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiver'}]
   const sizes = [{large: true}, {large: false}]
   const memosAndTimes = [
     {memo: shortMemo, timestamp: yesterday},
@@ -38,8 +34,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 
   roles.forEach(r => {
     sizes.forEach(s => {
-      let role = r.delta === 'none' ? 'send to self' : r.yourRole
-      stories.add(namePrefix + ` (${role} - ${s.large ? 'large' : 'small'})`, () => {
+      stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
           components.push(

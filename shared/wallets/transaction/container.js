@@ -39,9 +39,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    counterparty: yourRole === 'sender' ? tx.target : tx.source,
+    counterparty: yourRole === 'sender' || yourRole === 'senderAndReceiver' ? tx.target : tx.source,
     counterpartyType,
-    delta: tx.delta,
     large: counterpartyType !== 'wallet',
     memo: tx.note.stringValue(),
     // TODO -- waiting on CORE integration for these two

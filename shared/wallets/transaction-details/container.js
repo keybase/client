@@ -35,7 +35,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     amountXLM: tx.amountDescription,
     counterparty: yourRole === 'sender' ? tx.target : tx.source,
     counterpartyType,
-    delta: tx.delta,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
