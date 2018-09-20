@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Types from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -29,7 +30,7 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole={Types.senderOnly}
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -48,7 +49,7 @@ const load = () => {
         counterpartyType="stellarPublicKey"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
-        yourRole="sender"
+        yourRole={Types.senderOnly}
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -68,7 +69,7 @@ const load = () => {
         title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole={Types.senderOnly}
         memo={memo}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -88,7 +89,7 @@ const load = () => {
         title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole={Types.receiverOnly}
         memo={memo}
         publicMemo="Foo bar"
         timestamp={yesterday}
@@ -109,7 +110,7 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole={Types.receiverOnly}
         memo={memo}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
@@ -124,7 +125,7 @@ const load = () => {
         counterpartyType="otherAccount"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
-        yourRole="receiver"
+        yourRole={Types.receiverOnly}
         memo={memo}
         onBack={Sb.action('onBack')}
         title="Details"

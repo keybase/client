@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Types from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import Transaction from '.'
@@ -22,7 +23,11 @@ const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
-  const roles = [{yourRole: 'sender'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiver'}]
+  const roles = [
+    {yourRole: Types.senderOnly},
+    {yourRole: Types.senderAndReceiver},
+    {yourRole: Types.receiverOnly},
+  ]
   const sizes = [{large: true}, {large: false}]
   const memosAndTimes = [
     {memo: shortMemo, timestamp: yesterday},
@@ -34,21 +39,24 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 
   roles.forEach(r => {
     sizes.forEach(s => {
-      stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
-        const components = []
-        memosAndTimes.forEach(t => {
-          components.push(
-            storyFn({
-              key: components.length,
-              ...r,
-              ...s,
-              ...t,
-              onSelectTransaction: Sb.action('onSelectTransaction'),
-            })
-          )
-        })
-        return components
-      })
+      stories.add(
+        namePrefix + ` (${Types.roleToString(r.yourRole)} - ${s.large ? 'large' : 'small'})`,
+        () => {
+          const components = []
+          memosAndTimes.forEach(t => {
+            components.push(
+              storyFn({
+                key: components.length,
+                ...r,
+                ...s,
+                ...t,
+                onSelectTransaction: Sb.action('onSelectTransaction'),
+              })
+            )
+          })
+          return components
+        }
+      )
     })
   })
 }
