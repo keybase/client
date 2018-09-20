@@ -1,6 +1,7 @@
 // @flow
 import {TeamsDivider} from '.'
 import {connect} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import type {RowItem} from '../../index.types'
 
@@ -19,7 +20,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         (acc, meta) => {
           if (meta.teamType !== 'big') {
             const id = meta.conversationIDKey
-            if (!ownProps.rows.find(r => r.conversationIDKey === id)) {
+            if (
+              Constants.isValidConversationIDKey(id) &&
+              !ownProps.rows.find(r => r.type === 'small' && r.conversationIDKey === id)
+            ) {
               const count = stateProps._badges.get(id, 0)
               acc.badgeCount += count
               acc.hiddenCount++
@@ -33,7 +37,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   return {
     badgeCount,
-    hiddenCount: hiddenCount - 1, // dont count ourselves
+    hiddenCount,
     showButton: ownProps.showButton,
     style: ownProps.style,
     toggle: ownProps.toggle,

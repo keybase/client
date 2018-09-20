@@ -58,7 +58,7 @@ class Inbox extends React.PureComponent<Props, State> {
           key="divider"
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
-          smallIDsHidden={this.props.smallIDsHidden}
+          rows={this.props.rows}
         />
       )
     }
@@ -181,9 +181,7 @@ class Inbox extends React.PureComponent<Props, State> {
     const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
-      this.props.showSmallTeamsExpandDivider && (
-        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-      )
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}

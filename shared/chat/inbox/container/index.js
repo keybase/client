@@ -17,6 +17,7 @@ import normalRowData from './normal'
 import filteredRowData from './filtered'
 
 const mapStateToProps = (state: TypedState, {routeState}) => ({
+  _username: state.config.username,
   _metaMap: state.chat2.metaMap,
   _selectedConversationIDKey: Constants.getSelectedConversation(state),
   _smallTeamsExpanded: routeState.get('smallTeamsExpanded'),
@@ -46,7 +47,7 @@ const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = stateProps.filter
-    ? filteredRowData(stateProps._metaMap)
+    ? filteredRowData(stateProps._metaMap, stateProps.filter, stateProps._username)
     : normalRowData(stateProps._metaMap, stateProps._smallTeamsExpanded)
   return {
     allowShowFloatingButton,

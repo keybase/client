@@ -1,6 +1,7 @@
 // @flow
 // Rows for our normal inbox view. A set of small items on top ordered by time, a set of teams/channels ordered by alpha
 // If you have teams and a bunch of small chats we truncate and put a divider in between
+import * as Types from '../../../constants/types/chat2'
 import * as I from 'immutable'
 import shallowEqual from 'shallowequal'
 import * as Constants from '../../../constants/chat2'
@@ -22,17 +23,19 @@ const splitMetas = memoize(metaMap => {
     }
   })
   return {bigMetas, smallMetas}
-}, (a, b) => a.teamType === b.teamType)
+})
 
 const sortByTimestsamp = (a, b) => b.timestamp - a.timestamp
 const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
   let metas
   if (showAllSmallRows) {
-    metas = I.Seq(smallMetas).sort(sortByTimestsamp)
+    metas = smallMetas.sort(sortByTimestsamp)
   } else {
-    metas = I.Seq(smallMetas).partialSort(smallTeamsCollapsedMaxShown, sortByTimestsamp)
+    metas = I.Seq(smallMetas)
+      .partialSort(smallTeamsCollapsedMaxShown, sortByTimestsamp)
+      .toArray()
   }
-  return metas.toArray().map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
+  return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
 }, shallowEqual)
 
 const sortByTeamChannel = (a, b) =>
@@ -61,8 +64,7 @@ const getBigRows = memoize(bigMetas => {
 
 // Get smallIDs and big RowItems. Figure out the divider if it exists and truncate the small list.
 // Convert the smallIDs to the Small RowItems
-const getRowsAndMetadata = memoize((metaMap, smallTeamsExpanded) => {
-  console.log('aaaa', metaMap)
+const getRowsAndMetadata = memoize((metaMap: Types.MetaMap, smallTeamsExpanded: boolean) => {
   const {bigMetas, smallMetas} = splitMetas(metaMap)
   const showAllSmallRows = smallTeamsExpanded || !bigMetas.length
   const smallRows = getSmallRows(smallMetas, showAllSmallRows)

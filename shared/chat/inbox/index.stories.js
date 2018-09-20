@@ -338,6 +338,7 @@ const getPropProviderProps = own => {
  * Inbox
  */
 const propsInboxCommon = {
+  allowShowFloatingButton: false,
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
@@ -348,11 +349,9 @@ const propsInboxCommon = {
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   rows: [],
-  showBuildATeam: false,
   showNewChat: false,
   showNewConversation: false,
   showSmallTeamsExpandDivider: false,
-  smallIDsHidden: [],
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
