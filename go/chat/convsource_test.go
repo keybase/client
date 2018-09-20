@@ -689,6 +689,16 @@ func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLF
 	return nil
 }
 
+func (f failingRemote) RegisterSharePost(ctx context.Context, _ chat1.RegisterSharePostArg) error {
+	require.Fail(f.t, "RegisterSharePost")
+	return nil
+}
+
+func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostArg) error {
+	require.Fail(f.t, "FailSharePost")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
