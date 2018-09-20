@@ -173,6 +173,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amountDescription: '',
   asset: 'native',
   currencyCode: '',
+  type: 'requestInfo',
 })
 
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
@@ -190,6 +191,7 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   note: new HiddenString(''),
   status: 'none',
   statusDescription: '',
+  type: 'paymentInfo',
   worth: '',
 })
 
