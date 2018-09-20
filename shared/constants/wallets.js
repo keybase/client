@@ -283,7 +283,7 @@ const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => 
   }
 }
 
-const paymentToYourRole = (p: Types.Payment): 'sender' | 'receiver' | 'senderAndReceiver' => {
+const paymentToYourRole = (p: Types.Payment): Types.Role => {
   switch (p.delta) {
     case 'none':
       return 'senderAndReceiver'

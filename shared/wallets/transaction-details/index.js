@@ -6,8 +6,6 @@ import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
-type Role = 'sender' | 'receiver' | 'senderAndReceiver'
-
 export type Props = {|
   amountUser: string,
   amountXLM: string,
@@ -28,7 +26,7 @@ export type Props = {|
   timestamp: Date | null,
   transactionID?: string,
   you: string,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 type CounterpartyProps = {|
@@ -37,7 +35,7 @@ type CounterpartyProps = {|
   counterpartyType: Types.CounterpartyType,
   isYou: boolean,
   you: string,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -89,7 +87,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
   }
 }
 
-const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Role) =>
+const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) =>
   status === 'completed' ? (yourRole === 'receiver' ? 'Received' : 'Sent') : capitalize(status)
 
 class TransactionDetails extends React.Component<Props> {

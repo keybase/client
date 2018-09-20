@@ -7,8 +7,6 @@ import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
-type Role = 'sender' | 'receiver' | 'senderAndReceiver'
-
 type CounterpartyIconProps = {|
   large: boolean,
   counterparty: string,
@@ -101,7 +99,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 type DetailProps = {|
   large: boolean,
   pending: boolean,
-  yourRole: Role,
+  yourRole: Types.Role,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
@@ -171,7 +169,7 @@ const Detail = (props: DetailProps) => {
 }
 
 type AmountXLMProps = {|
-  yourRole: Role,
+  yourRole: Types.Role,
   amountXLM: string,
   pending: boolean,
 |}
@@ -251,7 +249,7 @@ export type Props = {|
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 export const Transaction = (props: Props) => {
