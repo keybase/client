@@ -16,21 +16,14 @@ import type {TypedState} from '../../../util/container'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 
-const mapStateToProps = (state: TypedState, {routeState}) => {
-  const filter = state.chat2.inboxFilter
-  const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
-  const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
-  const neverLoaded = !state.chat2.inboxHasLoaded
-
-  return {
-    ...rowMetadata,
-    _selectedConversationIDKey,
-    filter,
-    isLoading: Constants.anyChatWaitingKeys(state),
-    neverLoaded,
-  }
-}
+const mapStateToProps = (state: TypedState, {routeState}) => ({
+  _metaMap: state.chat2.metaMap,
+  _selectedConversationIDKey: Constants.getSelectedConversation(state),
+  _smallTeamsExpanded: routeState.get('smallTeamsExpanded'),
+  filter: state.chat2.inboxFilter,
+  isLoading: Constants.anyChatWaitingKeys(state),
+  neverLoaded: !state.chat2.inboxHasLoaded,
+})
 
 const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
@@ -51,25 +44,29 @@ const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  filter: stateProps.filter,
-  isLoading: stateProps.isLoading,
-  neverLoaded: stateProps.neverLoaded,
-  onNewChat: dispatchProps.onNewChat,
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
-  onSelectDebounced: debounce(
-    (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
-    400,
-    {maxWait: 600}
-  ),
-  onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-  refreshInbox: dispatchProps.refreshInbox,
-  rows: stateProps.rows,
-  showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
-  smallIDsHidden: stateProps.smallIDsHidden,
-  smallTeamsExpanded: stateProps.smallTeamsExpanded,
-  toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-})
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = stateProps.filter
+    ? filteredRowData(stateProps._metaMap)
+    : normalRowData(stateProps._metaMap, stateProps._smallTeamsExpanded)
+  return {
+    allowShowFloatingButton,
+    filter: stateProps.filter,
+    isLoading: stateProps.isLoading,
+    neverLoaded: stateProps.neverLoaded,
+    onNewChat: dispatchProps.onNewChat,
+    onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
+    onSelectDebounced: debounce(
+      (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
+      400,
+      {maxWait: 600}
+    ),
+    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    refreshInbox: dispatchProps.refreshInbox,
+    rows,
+    smallTeamsExpanded,
+    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+  }
+}
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),

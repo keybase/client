@@ -17,6 +17,8 @@ type SwitchProps = {
 
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
+    // TEMP
+    return <NoConversation />
     switch (this.props.type) {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />

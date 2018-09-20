@@ -66,7 +66,7 @@ class Inbox extends PureComponent<Props, State> {
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
           showButton={row.showButton}
-          smallIDsHidden={this.props.smallIDsHidden}
+          rows={this.props.rows}
           style={{marginBottom: globalMargins.tiny}}
         />
       )
@@ -135,9 +135,7 @@ class Inbox extends PureComponent<Props, State> {
   render() {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
-      this.props.showSmallTeamsExpandDivider && (
-        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-      )
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>

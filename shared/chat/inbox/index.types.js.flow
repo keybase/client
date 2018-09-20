@@ -44,7 +44,7 @@ export type Props = {
   showBuildATeam: boolean,
   showNewChat: boolean,
   showNewConversation: boolean,
-  showSmallTeamsExpandDivider: boolean,
+  allowShowFloatingButton: boolean,
   smallTeamsExpanded: boolean,
   smallIDsHidden: Array<ConversationIDKey>,
   toggleSmallTeamsExpanded: () => void,
