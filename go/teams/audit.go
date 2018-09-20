@@ -15,7 +15,7 @@ import (
 
 // AuditCurrentVersion is the version that works with this code. Older stored
 // versions will be discarded on load from level DB.
-const AuditCurrentVersion = keybase1.AuditVersion_V1
+const AuditCurrentVersion = keybase1.AuditVersion_V2
 
 var desktopParams = libkb.TeamAuditParams{
 	RootFreshness:         time.Minute,
@@ -214,7 +214,7 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 		return &keybase1.AuditHistory{
 			ID:         id,
 			Public:     id.IsPublic(),
-			Version:    keybase1.AuditVersion_V1,
+			Version:    AuditCurrentVersion,
 			PreProbes:  make(map[keybase1.Seqno]keybase1.Probe),
 			PostProbes: make(map[keybase1.Seqno]keybase1.Probe),
 		}
@@ -422,6 +422,21 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 	return err
 }
 
+func (a *Auditor) checkTail(m libkb.MetaContext, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
+	link, ok := chain[lastAudit.MaxChainSeqno]
+	if !ok {
+		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxChainSeqno)
+	}
+	if !link.Eq(lastAudit.ChainTail) {
+		return NewAuditError("bad chain tail mismatch (%s != %s) at chain link %d", link, lastAudit.ChainTail, lastAudit.MaxChainSeqno)
+	}
+	link, ok = chain[maxChainSeqno]
+	if !ok {
+		return NewAuditError("given chain didn't have a link at %d, but it was expected", maxChainSeqno)
+	}
+	return nil
+}
+
 func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
 
 	defer m.CTrace(fmt.Sprintf("Auditor#auditLocked(%v)", id), func() error { return err })()
@@ -443,6 +458,16 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	if last != nil && last.MaxChainSeqno >= maxChainSeqno {
 		m.CDebugf("Short-circuit audit, since there is no new data (@%v <= %v)", maxChainSeqno, last.MaxChainSeqno)
 		return nil
+	}
+
+	// Check that the last time we ran an audit is a subchain of the new links
+	// we got down. It suffices to check that the last link in that chain
+	// appears in the given chain with the right link ID.
+	if last != nil {
+		err = a.checkTail(m, *last, chain, maxChainSeqno)
+		if err != nil {
+			return err
+		}
 	}
 
 	root, err := m.G().MerkleClient.FetchRootFromServerByFreshness(m, getAuditParams(m).RootFreshness)
@@ -485,6 +510,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		// Note that the MaxMerkleProbe can be 0 in the case that there were
 		// pre-probes, but no post-probes.
 		MaxMerkleProbe: maxMerkleProbe,
+		ChainTail:      chain[maxChainSeqno],
 	}
 	history.Audits = append(history.Audits, audit)
 	history.PriorMerkleSeqno = headMerkleSeqno

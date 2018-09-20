@@ -827,10 +827,11 @@ func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
 }
 
 type Audit struct {
-	Time           Time  `codec:"time" json:"time"`
-	MaxMerkleSeqno Seqno `codec:"maxMerkleSeqno" json:"maxMerkleSeqno"`
-	MaxChainSeqno  Seqno `codec:"maxChainSeqno" json:"maxChainSeqno"`
-	MaxMerkleProbe Seqno `codec:"maxMerkleProbe" json:"maxMerkleProbe"`
+	Time           Time   `codec:"time" json:"time"`
+	MaxMerkleSeqno Seqno  `codec:"mms" json:"mms"`
+	MaxChainSeqno  Seqno  `codec:"mcs" json:"mcs"`
+	MaxMerkleProbe Seqno  `codec:"mmp" json:"mmp"`
+	ChainTail      LinkID `codec:"ct" json:"ct"`
 }
 
 func (o Audit) DeepCopy() Audit {
@@ -839,12 +840,13 @@ func (o Audit) DeepCopy() Audit {
 		MaxMerkleSeqno: o.MaxMerkleSeqno.DeepCopy(),
 		MaxChainSeqno:  o.MaxChainSeqno.DeepCopy(),
 		MaxMerkleProbe: o.MaxMerkleProbe.DeepCopy(),
+		ChainTail:      o.ChainTail.DeepCopy(),
 	}
 }
 
 type Probe struct {
-	Index     int   `codec:"i" json:"index"`
-	TeamSeqno Seqno `codec:"s" json:"teamSeqno"`
+	Index     int   `codec:"i" json:"i"`
+	TeamSeqno Seqno `codec:"s" json:"t"`
 }
 
 func (o Probe) DeepCopy() Probe {
@@ -859,6 +861,7 @@ type AuditVersion int
 const (
 	AuditVersion_V0 AuditVersion = 0
 	AuditVersion_V1 AuditVersion = 1
+	AuditVersion_V2 AuditVersion = 2
 )
 
 func (o AuditVersion) DeepCopy() AuditVersion { return o }
@@ -866,11 +869,13 @@ func (o AuditVersion) DeepCopy() AuditVersion { return o }
 var AuditVersionMap = map[string]AuditVersion{
 	"V0": 0,
 	"V1": 1,
+	"V2": 2,
 }
 
 var AuditVersionRevMap = map[AuditVersion]string{
 	0: "V0",
 	1: "V1",
+	2: "V2",
 }
 
 func (e AuditVersion) String() string {

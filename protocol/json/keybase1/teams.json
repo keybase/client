@@ -651,15 +651,27 @@
         },
         {
           "type": "Seqno",
-          "name": "maxMerkleSeqno"
+          "name": "maxMerkleSeqno",
+          "mpackkey": "mms",
+          "jsonkey": "mms"
         },
         {
           "type": "Seqno",
-          "name": "maxChainSeqno"
+          "name": "maxChainSeqno",
+          "mpackkey": "mcs",
+          "jsonkey": "mcs"
         },
         {
           "type": "Seqno",
-          "name": "maxMerkleProbe"
+          "name": "maxMerkleProbe",
+          "mpackkey": "mmp",
+          "jsonkey": "mmp"
+        },
+        {
+          "type": "LinkID",
+          "name": "chainTail",
+          "mpackkey": "ct",
+          "jsonkey": "ct"
         }
       ]
     },
@@ -670,12 +682,14 @@
         {
           "type": "int",
           "name": "index",
-          "mpackkey": "i"
+          "mpackkey": "i",
+          "jsonkey": "i"
         },
         {
           "type": "Seqno",
           "name": "teamSeqno",
-          "mpackkey": "s"
+          "mpackkey": "s",
+          "jsonkey": "t"
         }
       ]
     },
@@ -684,7 +698,8 @@
       "name": "AuditVersion",
       "symbols": [
         "V0_0",
-        "V1_1"
+        "V1_1",
+        "V2_2"
       ]
     },
     {
