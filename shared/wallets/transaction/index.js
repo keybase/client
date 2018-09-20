@@ -7,7 +7,7 @@ import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
-type Role = 'sender' | 'receiver'
+type Role = 'sender' | 'receiver' | 'senderAndReceiver'
 
 type CounterpartyIconProps = {|
   large: boolean,
@@ -138,7 +138,7 @@ const Detail = (props: DetailProps) => {
 
   if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    if (props.yourRole === 'sender') {
+    if (props.yourRole === 'sender' || props.yourRole === 'senderAndReceiver') {
       return (
         <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
@@ -153,7 +153,7 @@ const Detail = (props: DetailProps) => {
     )
   }
 
-  if (props.yourRole === 'sender') {
+  if (props.yourRole === 'sender' || props.yourRole === 'senderAndReceiver') {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
       <Text type={textTypeSemibold}>
