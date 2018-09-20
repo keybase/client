@@ -19,6 +19,55 @@ const commonProps = {
   style: {borderWidth: 1, borderStyle: 'solid', borderColor: globalColors.black_10},
 }
 
+type TestInputState = {
+  value: string,
+}
+class TestInput extends React.Component<{}, TestInputState> {
+  state = {value: ''}
+  // prettier-ignore
+  _input = React.createRef<typeof PlainInput>()
+
+  _insertText = (t: string) => {
+    const input = this._input.current
+    if (input) {
+      const selection = input.getSelection()
+      if (selection) {
+        this.setState(
+          s => {
+            const value = s.value.substring(0, selection.start) + t + s.value.substring(selection.start)
+            return {value}
+          },
+          () => {
+            const input = this._input.current
+            if (input) {
+              const newCursorPos = selection.start + t.length
+              input.setSelection({start: newCursorPos, end: newCursorPos})
+              input.focus()
+            }
+          }
+        )
+      }
+    }
+  }
+
+  render() {
+    return (
+      <Box2 direction="vertical" fullWidth={true} gap="small">
+        <PlainInput
+          {...commonProps}
+          ref={this._input}
+          value={this.state.value}
+          onEnterKeyDown={() => this._insertText('foo')}
+          onChangeText={v => this.setState(s => (s.value === v ? null : {value: v}))}
+        />
+        <ButtonBar>
+          <Button type="Secondary" label="Insert 'foo' (Enter)" onClick={() => this._insertText('foo')} />
+        </ButtonBar>
+      </Box2>
+    )
+  }
+}
+
 type ControlledInputState = {[key: string]: string}
 class ControlledInputPlayground extends React.Component<{}, ControlledInputState> {
   state = {}
@@ -96,6 +145,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
             <Button type="Secondary" label="Run test" onClick={this._testCrossSelection} />
           </ButtonBar>
         </Box2>
+        <TestInput />
       </Box2>
     )
   }

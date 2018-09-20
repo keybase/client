@@ -105,6 +105,14 @@ class PlainInput extends React.PureComponent<InternalProps> {
     }
   }
 
+  getSelection = () => {
+    const n = this._input
+    if (n) {
+      return {start: n.selectionStart, end: n.selectionEnd}
+    }
+    return null
+  }
+
   setSelection = (s: Selection) => {
     const controlled = !!this.props.value
     if (!controlled) {

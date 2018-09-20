@@ -75,6 +75,8 @@ class PlainInput extends Component<InternalProps, State> {
     this._setSelection(newTextInfo.selection)
   }
 
+  getSelection = () => this._lastNativeSelection || {start: 0, end: 0}
+
   setSelection = (s: Selection) => {
     const controlled = !!this.props.value
     if (!controlled) {
