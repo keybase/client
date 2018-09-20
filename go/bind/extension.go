@@ -187,6 +187,18 @@ func ExtensionGetInbox() (res string, err error) {
 	return string(dat), nil
 }
 
+func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1.DeviceID, err error) {
+	deviceID := gc.ActiveDevice.DeviceID()
+	if deviceID.IsNil() {
+		return res, err
+	}
+	hdid = make([]byte, libkb.DeviceIDLen)
+	if err = deviceID.ToBytes(hdid); err != nil {
+		return res, err
+	}
+	return gregor1.DeviceID(hdid), nil
+}
+
 func ExtensionRegisterSend(convID chat1.ConversationID) (res string, err error) {
 	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
 	defer func() { err = flattenError(err) }()
@@ -197,9 +209,15 @@ func ExtensionRegisterSend(convID chat1.ConversationID) (res string, err error) 
 	gc := globals.NewContext(kbCtx, kbChatCtx)
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	deviceID, err := extensionGetDeviceID(ctx, gc)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: failed to get deviceID: %s", err)
+		return res, err
+	}
 	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
 		ConvID:   convID,
 		OutboxID: outboxID,
+		DeviceID: deviceID,
 	}); err != nil {
 		return res, err
 	}
@@ -221,20 +239,15 @@ func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err erro
 		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: nil outboxID")
 		return
 	}
-	deviceID := gc.ActiveDevice.DeviceID()
-	if deviceID.IsNil() {
-		kbCtx.Log.CDebugf(ctx, "hdid := make([]byte, libkb.DeviceIDLen): no device ID")
-		return
-	}
-	hdid := make([]byte, libkb.DeviceIDLen)
-	if err = deviceID.ToBytes(hdid); err != nil {
-		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: failed to convert deviceID: %s", err)
+	deviceID, err := extensionGetDeviceID(ctx, gc)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: failed to get deviceID: %s", err)
 		return
 	}
 	if err := extensionRi.FailSharePost(ctx, chat1.FailSharePostArg{
 		ConvID:   convID,
 		OutboxID: *outboxID,
-		DeviceID: gregor1.DeviceID(hdid),
+		DeviceID: deviceID,
 	}); err != nil {
 		kbCtx.Log.CDebugf(ctx, "extensionRegisterFailure: failed: %s", err)
 	}
