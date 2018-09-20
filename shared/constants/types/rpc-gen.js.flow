@@ -1686,8 +1686,8 @@ export type AsyncOps =
   | 7 // LIST_RECURSIVE_TO_DEPTH_7
   | 8 // GET_REVISIONS_8
 
-export type Audit = $ReadOnly<{time: Time, mms /* maxMerkleSeqno */: Seqno, mcs /* maxChainSeqno */: Seqno, mmp /* maxMerkleProbe */: Seqno, ct /* chainTail */: LinkID}>
-export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
+export type Audit = $ReadOnly<{time: Time, mms /* maxMerkleSeqno */: Seqno, mcs /* maxChainSeqno */: Seqno, mmp /* maxMerkleProbe */: Seqno}>
+export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}, tails: {[key: string]: LinkID}}>
 export type AuditVersion =
   | 0 // V0_0
   | 1 // V1_1

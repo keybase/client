@@ -288,10 +288,6 @@ protocol teams {
     // The maximum merkle Seqno probed in this audit.
     @mpackkey("mmp") @jsonkey("mmp")
     Seqno maxMerkleProbe;
-
-    // The Link ID of the chain tail
-    @mpackkey("ct") @jsonkey("ct")
-    LinkID chainTail;
   }
 
   record Probe {
@@ -325,6 +321,8 @@ protocol teams {
     map<Seqno,Probe> preProbes;
     // Probes of after the team was created
     map<Seqno,Probe> postProbes;
+    // For each chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> tails;
   }
 
   enum TeamInviteCategory {

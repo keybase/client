@@ -666,12 +666,6 @@
           "name": "maxMerkleProbe",
           "mpackkey": "mmp",
           "jsonkey": "mmp"
-        },
-        {
-          "type": "LinkID",
-          "name": "chainTail",
-          "mpackkey": "ct",
-          "jsonkey": "ct"
         }
       ]
     },
@@ -745,6 +739,14 @@
             "keys": "Seqno"
           },
           "name": "postProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "tails"
         }
       ]
     },

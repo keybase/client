@@ -217,6 +217,7 @@ func makeHistory(history *keybase1.AuditHistory, id keybase1.TeamID) *keybase1.A
 			Version:    AuditCurrentVersion,
 			PreProbes:  make(map[keybase1.Seqno]keybase1.Probe),
 			PostProbes: make(map[keybase1.Seqno]keybase1.Probe),
+			Tails:      make(map[keybase1.Seqno]keybase1.LinkID),
 		}
 	}
 	ret := history.DeepCopy()
@@ -422,16 +423,20 @@ func (a *Auditor) lookupProbes(m libkb.MetaContext, teamID keybase1.TeamID, tupl
 	return err
 }
 
-func (a *Auditor) checkTail(m libkb.MetaContext, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
+func (a *Auditor) checkTail(m libkb.MetaContext, history *keybase1.AuditHistory, lastAudit keybase1.Audit, chain map[keybase1.Seqno]keybase1.LinkID, maxChainSeqno keybase1.Seqno) (err error) {
 	link, ok := chain[lastAudit.MaxChainSeqno]
-	if !ok {
+	if !ok || link.IsNil() {
 		return NewAuditError("last audit ended at %d, but wasn't found in new chain", lastAudit.MaxChainSeqno)
 	}
-	if !link.Eq(lastAudit.ChainTail) {
-		return NewAuditError("bad chain tail mismatch (%s != %s) at chain link %d", link, lastAudit.ChainTail, lastAudit.MaxChainSeqno)
+	tail, ok := history.Tails[lastAudit.MaxChainSeqno]
+	if !ok || tail.IsNil() {
+		return NewAuditError("previous chain tail at %d did not have a linkID", lastAudit.MaxChainSeqno)
+	}
+	if !link.Eq(tail) {
+		return NewAuditError("bad chain tail mismatch (%s != %s) at chain link %d", link, tail, lastAudit.MaxChainSeqno)
 	}
 	link, ok = chain[maxChainSeqno]
-	if !ok {
+	if !ok || link.IsNil() {
 		return NewAuditError("given chain didn't have a link at %d, but it was expected", maxChainSeqno)
 	}
 	return nil
@@ -464,7 +469,7 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 	// we got down. It suffices to check that the last link in that chain
 	// appears in the given chain with the right link ID.
 	if last != nil {
-		err = a.checkTail(m, *last, chain, maxChainSeqno)
+		err = a.checkTail(m, history, *last, chain, maxChainSeqno)
 		if err != nil {
 			return err
 		}
@@ -510,10 +515,10 @@ func (a *Auditor) auditLocked(m libkb.MetaContext, id keybase1.TeamID, headMerkl
 		// Note that the MaxMerkleProbe can be 0 in the case that there were
 		// pre-probes, but no post-probes.
 		MaxMerkleProbe: maxMerkleProbe,
-		ChainTail:      chain[maxChainSeqno],
 	}
 	history.Audits = append(history.Audits, audit)
 	history.PriorMerkleSeqno = headMerkleSeqno
+	history.Tails[maxChainSeqno] = chain[maxChainSeqno]
 
 	err = a.putToCache(m, id, lru, history)
 	if err != nil {

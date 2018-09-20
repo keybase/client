@@ -827,11 +827,10 @@ func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
 }
 
 type Audit struct {
-	Time           Time   `codec:"time" json:"time"`
-	MaxMerkleSeqno Seqno  `codec:"mms" json:"mms"`
-	MaxChainSeqno  Seqno  `codec:"mcs" json:"mcs"`
-	MaxMerkleProbe Seqno  `codec:"mmp" json:"mmp"`
-	ChainTail      LinkID `codec:"ct" json:"ct"`
+	Time           Time  `codec:"time" json:"time"`
+	MaxMerkleSeqno Seqno `codec:"mms" json:"mms"`
+	MaxChainSeqno  Seqno `codec:"mcs" json:"mcs"`
+	MaxMerkleProbe Seqno `codec:"mmp" json:"mmp"`
 }
 
 func (o Audit) DeepCopy() Audit {
@@ -840,7 +839,6 @@ func (o Audit) DeepCopy() Audit {
 		MaxMerkleSeqno: o.MaxMerkleSeqno.DeepCopy(),
 		MaxChainSeqno:  o.MaxChainSeqno.DeepCopy(),
 		MaxMerkleProbe: o.MaxMerkleProbe.DeepCopy(),
-		ChainTail:      o.ChainTail.DeepCopy(),
 	}
 }
 
@@ -886,13 +884,14 @@ func (e AuditVersion) String() string {
 }
 
 type AuditHistory struct {
-	ID               TeamID          `codec:"ID" json:"ID"`
-	Public           bool            `codec:"public" json:"public"`
-	PriorMerkleSeqno Seqno           `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
-	Version          AuditVersion    `codec:"version" json:"version"`
-	Audits           []Audit         `codec:"audits" json:"audits"`
-	PreProbes        map[Seqno]Probe `codec:"preProbes" json:"preProbes"`
-	PostProbes       map[Seqno]Probe `codec:"postProbes" json:"postProbes"`
+	ID               TeamID           `codec:"ID" json:"ID"`
+	Public           bool             `codec:"public" json:"public"`
+	PriorMerkleSeqno Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Version          AuditVersion     `codec:"version" json:"version"`
+	Audits           []Audit          `codec:"audits" json:"audits"`
+	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
+	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
+	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -936,6 +935,18 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.PostProbes),
+		Tails: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]LinkID, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Tails),
 	}
 }
 
