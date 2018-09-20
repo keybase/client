@@ -199,7 +199,7 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	return gregor1.DeviceID(hdid), nil
 }
 
-func ExtensionRegisterSend(convID chat1.ConversationID) (res string, err error) {
+func ExtensionRegisterSend(strConvID string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
 	defer func() { err = flattenError(err) }()
 	outboxID, err := storage.NewOutboxID()
@@ -212,6 +212,11 @@ func ExtensionRegisterSend(convID chat1.ConversationID) (res string, err error) 
 	deviceID, err := extensionGetDeviceID(ctx, gc)
 	if err != nil {
 		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: failed to get deviceID: %s", err)
+		return res, err
+	}
+	convID, err := chat1.MakeConvID(strConvID)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "ExtensionRegisterSend: invalid convID: %s", err)
 		return res, err
 	}
 	if err = extensionRi.RegisterSharePost(ctx, chat1.RegisterSharePostArg{
@@ -361,12 +366,13 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 			MessageType: chat1.MessageType_TEXT,
 			TlfName:     restoreName(gc, name, chat1.ConversationMembersType(membersType)),
 			TlfPublic:   public,
+			OutboxID:    getOutboxID(strOutboxID),
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: body,
 		}),
 	}
-	if _, _, err = sender.Send(ctx, convID, msg, 0, getOutboxID(strOutboxID)); err != nil {
+	if _, _, err = sender.Send(ctx, convID, msg, 0, nil); err != nil {
 		return err
 	}
 	return nil

@@ -237,13 +237,13 @@ const BOOL isSimulator = NO;
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(&error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
     KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, pusher, &error);
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    NSString* outboxID = KeybaseExtensionRegisterSend(&error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
     KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, pusher, &error);
     [self maybeCompleteRequest:lastItem];
   };
@@ -257,7 +257,7 @@ const BOOL isSimulator = NO;
       [self maybeCompleteRequest:lastItem];
       return;
     }
-    NSString* outboxID = KeybaseExtensionRegisterSend(&error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, &error);
     NSString* filePath = [url relativePath];
     if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
       // Generate image preview here, since it runs out of memory easy in Go
