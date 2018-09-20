@@ -150,13 +150,16 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 })
 
 // Populate `time` with Date.now() if not provided.
-export const makeError = (
-  record?: $Rest<Types._FsError, {time: number, error: string}> & {time?: number, error: any}
-): I.RecordOf<Types._FsError> => {
+export const makeError = (record?: {
+  time?: number,
+  error: any,
+  erroredAction: any,
+  retriableAction?: any,
+}): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
     time: time || Date.now(),
-    error: !error ? 'unknown error' : JSON.stringify(error),
+    error: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
     retriableAction,
   })
@@ -259,7 +262,11 @@ const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
       ? makeAvatarPathItemIconSpec(usernames[0])
       : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
 }
-export const getIconSpecFromUsernamesAndTeamname = (usernames: ?Array<string>, teamname: ?string, me?: ?string) => {
+export const getIconSpecFromUsernamesAndTeamname = (
+  usernames: ?Array<string>,
+  teamname: ?string,
+  me?: ?string
+) => {
   return teamname && teamname.length > 0
     ? makeTeamAvatarPathItemIconSpec(teamname)
     : getIconSpecFromUsernames(usernames || [], me)
@@ -534,24 +541,32 @@ const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEdi
   }
 }
 
-export const userTlfHistoryRPCToState = (history: Array<RPCTypes.FSFolderEditHistory>): Types.UserTlfUpdates => {
+export const userTlfHistoryRPCToState = (
+  history: Array<RPCTypes.FSFolderEditHistory>
+): Types.UserTlfUpdates => {
   let updates = []
   history.forEach(folder => {
     const updateServerTime = folder.serverTime
     const path = pathFromFolderRPC(folder.folder)
     const tlfUpdates = folder.history
-      ? folder.history.map(({writerName, edits}) => makeTlfUpdate({
-          path,
-          serverTime: updateServerTime,
-          writer: writerName,
-          history: I.List(edits
-            ? edits.map(({filename, notificationType, serverTime}) => makeTlfEdit({
-                filename,
-                serverTime,
-                editType: fsNotificationTypeToEditType(notificationType),
-              }))
-            : []),
-        }))
+      ? folder.history.map(({writerName, edits}) =>
+          makeTlfUpdate({
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
+            history: I.List(
+              edits
+                ? edits.map(({filename, notificationType, serverTime}) =>
+                    makeTlfEdit({
+                      filename,
+                      serverTime,
+                      editType: fsNotificationTypeToEditType(notificationType),
+                    })
+                  )
+                : []
+            ),
+          })
+        )
       : []
     updates = updates.concat(tlfUpdates)
   })
@@ -731,18 +746,16 @@ export const kbfsOutdated = (state: TypedState) =>
   isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
 
 export const kbfsUninstallString = (state: TypedState) => {
-  if (state.fs.fuseStatus &&
-    state.fs.fuseStatus.status &&
-    state.fs.fuseStatus.status.fields) {
-      const field = state.fs.fuseStatus.status.fields.find((element) => {
-        return element.key === 'uninstallString'
-      })
-      if (field) {
-        return field.value
-      }
+  if (state.fs.fuseStatus && state.fs.fuseStatus.status && state.fs.fuseStatus.status.fields) {
+    const field = state.fs.fuseStatus.status.fields.find(element => {
+      return element.key === 'uninstallString'
+    })
+    if (field) {
+      return field.value
     }
-    return ''
   }
+  return ''
+}
 
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
