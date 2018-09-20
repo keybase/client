@@ -307,17 +307,19 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 		return nil, err
 	}
 
-	if teamID.IsPublic() != public {
-		return nil, teams.NewBadPublicError(teamID, public)
-	}
-
-	name, err := teams.ResolveIDToNameForceRefresh(ctx, t.G().ExternalG(), teamID)
+	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
+	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
+		ID:           teamID,
+		Public:       teamID.IsPublic(),
+		ForceRefresh: true,
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.NameInfo{
 		ID:            tlfID,
-		CanonicalName: name.String(),
+		CanonicalName: loadRes.Name.String(),
 	}, nil
 }
 
