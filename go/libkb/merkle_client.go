@@ -327,15 +327,16 @@ type MerkleRootPayloadUnpacked struct {
 				Version *keybase1.Seqno       `json:"version"`
 			} `json:"privateteam"`
 		} `json:"kbfs"`
-		LegacyUIDRoot NodeHashShort  `json:"legacy_uid_root"`
-		Prev          NodeHashLong   `json:"prev"`
-		Root          NodeHashLong   `json:"root"`
-		Seqno         keybase1.Seqno `json:"seqno"`
-		Skips         SkipTable      `json:"skips"`
-		Txid          string         `json:"txid"`
-		Type          string         `json:"type"`
-		Version       int            `json:"version"`
-		PvlHash       string         `json:"pvl_hash"`
+		LegacyUIDRoot     NodeHashShort  `json:"legacy_uid_root"`
+		Prev              NodeHashLong   `json:"prev"`
+		Root              NodeHashLong   `json:"root"`
+		Seqno             keybase1.Seqno `json:"seqno"`
+		Skips             SkipTable      `json:"skips"`
+		Txid              string         `json:"txid"`
+		Type              string         `json:"type"`
+		Version           int            `json:"version"`
+		PvlHash           string         `json:"pvl_hash"`
+		ProofServicesHash string         `json:"proof_services_hash"`
 	} `json:"body"`
 	Ctime int64  `json:"ctime"`
 	Tag   string `json:"tag"`
@@ -1893,6 +1894,13 @@ func (mr *MerkleRoot) PvlHash() string {
 	return mr.payload.pvlHash()
 }
 
+func (mr *MerkleRoot) ProofServicesHash() string {
+	if mr == nil {
+		return ""
+	}
+	return mr.payload.proofServicesHash()
+}
+
 func (mr *MerkleRoot) SkipToSeqno(s keybase1.Seqno) NodeHash {
 	if mr == nil {
 		return nil
@@ -1946,6 +1954,7 @@ func (mrp MerkleRootPayload) seqno() keybase1.Seqno       { return mrp.unpacked.
 func (mrp MerkleRootPayload) rootHash() NodeHash          { return mrp.unpacked.Body.Root }
 func (mrp MerkleRootPayload) legacyUIDRootHash() NodeHash { return mrp.unpacked.Body.LegacyUIDRoot }
 func (mrp MerkleRootPayload) pvlHash() string             { return mrp.unpacked.Body.PvlHash }
+func (mrp MerkleRootPayload) proofServicesHash() string   { return mrp.unpacked.Body.ProofServicesHash }
 func (mrp MerkleRootPayload) ctime() int64                { return mrp.unpacked.Ctime }
 func (mrp MerkleRootPayload) kbfsPrivate() (keybase1.KBFSRootHash, *keybase1.Seqno) {
 	return mrp.unpacked.Body.Kbfs.Private.Root, mrp.unpacked.Body.Kbfs.Private.Version

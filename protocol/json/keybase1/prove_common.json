@@ -97,23 +97,38 @@
     },
     {
       "type": "record",
+      "name": "ParamProofUsernameConfig",
+      "fields": [
+        {
+          "type": "string",
+          "name": "re"
+        },
+        {
+          "type": "int",
+          "name": "min"
+        },
+        {
+          "type": "int",
+          "name": "max"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ParamProofServiceConfig",
       "fields": [
         {
-          "type": "boolean",
-          "name": "enabled"
-        },
-        {
-          "type": "boolean",
-          "name": "isDevel"
-        },
-        {
-          "type": "string",
-          "name": "displayName"
+          "type": "int",
+          "name": "version"
         },
         {
           "type": "string",
           "name": "domain"
+        },
+        {
+          "type": "string",
+          "name": "displayName",
+          "jsonkey": "display_name"
         },
         {
           "type": [
@@ -123,23 +138,26 @@
           "name": "group"
         },
         {
-          "type": "string",
-          "name": "usernameRe"
+          "type": "ParamProofUsernameConfig",
+          "name": "username"
         },
         {
           "type": "string",
-          "name": "prefillUrl"
+          "name": "prefillUrl",
+          "jsonkey": "prefill_url"
         },
         {
           "type": "string",
-          "name": "checkUrl"
+          "name": "checkUrl",
+          "jsonkey": "check_url"
         },
         {
           "type": {
             "type": "array",
             "items": "string"
           },
-          "name": "checkPath"
+          "name": "checkPath",
+          "jsonkey": "check_path"
         }
       ]
     }

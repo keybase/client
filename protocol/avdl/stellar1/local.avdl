@@ -14,6 +14,7 @@ protocol local {
     string seqno;               // the stellar sequence number for this account 
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
+  WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
 
   record AccountAssetLocal {
     string name;                    // "Lumens" for native. AssetCode like "BTC" for non-native.
@@ -55,7 +56,8 @@ protocol local {
     NONE_0,
     KEYBASE_1,
     STELLAR_2,
-    SBS_3
+    SBS_3,
+    OWNACCOUNT_4
   }
 
   // Summary of a payment.
@@ -72,13 +74,24 @@ protocol local {
     string worth;                   // "$123.23"
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous)
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;
+
+    boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
   }
 
   record PaymentOrErrorLocal {
@@ -89,10 +102,15 @@ protocol local {
   record PaymentsPageLocal {
     array<PaymentOrErrorLocal> payments;
     union { null, PageCursor } cursor;
+    union { null, PaymentID } oldestUnread;  // draw orange line underneath this payment
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);
   array<PaymentOrErrorLocal> getPendingPaymentsLocal(int sessionID, AccountID accountID);
+
+  // markAsReadLocal will mark as "read" all the payments created at or before the time 
+  // of the payment referenced by `mostRecentID`.
+  void markAsReadLocal(int sessionID, AccountID accountID, PaymentID mostRecentID);
 
   // Details of a payment.
   // Keep in sync with PaymentLocal.
@@ -109,10 +127,19 @@ protocol local {
     string worth;                   // "$123.23", amount in local currency at the time of sending, or empty if no OutsideCurrency
     string worthCurrency;           // "USD", "CAD", etc. (the symbols can be ambiguous), or empty
 
-    string source;                  // keybase username or stellar public key
-    ParticipantType sourceType;     // keybase or stellar
-    string target;                  // keybase username, stellar public key, or sbs assertion
-    ParticipantType targetType;     // keybase, stellar, or sbs
+    // What type to display the sender and recipient as.
+    // Either neither or both are OWNACCOUNT.
+    ParticipantType fromType; // cannot be SBS
+    ParticipantType toType;
+
+    AccountID fromAccountID;   // Always filled
+    string    fromAccountName; // Optional. User's name for the account or Account ID if not named. Filled if fromType = OWNACCOUNT
+    string    fromUsername;    // Optional. Filled if KEYBASE.
+
+    union { null, AccountID } toAccountID; // Optional.
+    string    toAccountName; // Optional. Filled if toType = OWNACCOUNT
+    string    toUsername;    // Optional. Filled if KEYBASE.
+    string    toAssertion;   // Optional. Filled if SBS.
 
     string note;                    // secret note
     string noteErr;
@@ -228,7 +255,7 @@ protocol local {
     string toErrMsg;
 
     // Optional. `arg.to` may be an account ID that resolves to a user.
-    // If this is returned, caller should switch to (to=res.toUsername,toIsAccountID=false).
+    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
     string toUsername;
 
     // Optional. Error to show with the amount field.

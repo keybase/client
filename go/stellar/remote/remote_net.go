@@ -85,3 +85,7 @@ func (r *RemoteNet) RequestDetails(ctx context.Context, requestID stellar1.Keyba
 func (r *RemoteNet) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error {
 	return CancelRequest(ctx, r.G(), requestID)
 }
+
+func (r *RemoteNet) MarkAsRead(ctx context.Context, accountID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
+	return MarkAsRead(ctx, r.G(), accountID, mostRecentID)
+}

@@ -26,6 +26,7 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/ephemeral"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
@@ -34,7 +35,7 @@ import (
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/pvlsource"
+	"github.com/keybase/client/go/pvl"
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellargregor"
@@ -301,6 +302,7 @@ func (d *Service) SetupCriticalSubServices() error {
 	epick.Push(d.setupTeams())
 	epick.Push(d.setupStellar())
 	epick.Push(d.setupPVL())
+	epick.Push(d.setupParamProofStore())
 	epick.Push(d.setupEphemeralKeys())
 	return epick.Error()
 }
@@ -321,7 +323,12 @@ func (d *Service) setupStellar() error {
 }
 
 func (d *Service) setupPVL() error {
-	pvlsource.NewPvlSourceAndInstall(d.G())
+	pvl.NewPvlSourceAndInstall(d.G())
+	return nil
+}
+
+func (d *Service) setupParamProofStore() error {
+	externals.NewParamProofStoreAndInstall(d.G())
 	return nil
 }
 

@@ -313,24 +313,19 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("subsubteam is: %s (%s)", expectedSubTeamName.String(), *subteamID)
 
-	loadTeam := func(id keybase1.TeamID, g keybase1.PerTeamKeyGeneration, forceRefresh bool) {
-		t.Logf("load the subteam")
+	loadTeam := func(id keybase1.TeamID, forceRefresh bool) {
+		t.Logf("load the team %s", id)
 		arg := keybase1.FastTeamLoadArg{
-			ID:           id,
-			Applications: []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-			ForceRefresh: forceRefresh,
+			ID:            id,
+			Applications:  []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
+			ForceRefresh:  forceRefresh,
+			NeedLatestKey: true,
 		}
-		if g == keybase1.PerTeamKeyGeneration(0) {
-			arg.NeedLatestKey = true
-		} else {
-			arg.KeyGenerationsNeeded = []keybase1.PerTeamKeyGeneration{g}
-		}
-		res, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
-		m[0].CDebugf("shit %+v", res)
+		_, err := tcs[0].G.GetFastTeamLoader().Load(m[0], arg)
 		require.NoError(t, err)
 	}
 
-	loadTeam(teamID, keybase1.PerTeamKeyGeneration(0), false)
+	loadTeam(teamID, false)
 
 	// Rotate the key by removing and adding B from the team
 	for i := 0; i < 3; i++ {
@@ -342,6 +337,6 @@ func TestLoadRKMForLatestCORE8894(t *testing.T) {
 	err = RotateKey(m[0].Ctx(), tcs[0].G, teamID)
 	require.NoError(t, err)
 
-	loadTeam(*subteamID, keybase1.PerTeamKeyGeneration(0), true)
-	loadTeam(teamID, keybase1.PerTeamKeyGeneration(0), false)
+	loadTeam(*subteamID, true)
+	loadTeam(teamID, false)
 }

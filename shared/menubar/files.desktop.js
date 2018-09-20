@@ -100,7 +100,6 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
           usernames={[props.writer]}
-          onUsernameClicked="profile"
           type="BodySemibold"
           underline={true}
           colorFollowing={true}

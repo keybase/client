@@ -147,7 +147,7 @@ type MenuButtonsProps = {
   isRevoked: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
-  setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
+  setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
   toggleShowingMenu: () => void,
 }

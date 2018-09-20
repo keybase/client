@@ -38,6 +38,7 @@ type configGetter interface {
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -535,7 +536,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
 	GetTorError() ProofError
 }
 
@@ -581,8 +582,10 @@ type ExternalServicesCollector interface {
 	ListProofCheckers() []string
 }
 
-type PvlSource interface {
-	GetPVL(m MetaContext) (PvlUnparsed, error)
+// Generic store for data that is hashed into the merkle root. Used by pvl and
+// parameterized proofs.
+type MerkleStore interface {
+	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.

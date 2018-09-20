@@ -100,7 +100,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ libkb.PvlUnparsed) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) libkb.ProofError {
 	if i.checkStatusHook != nil {
 		return i.checkStatusHook(h, pcm)
 	}
@@ -1118,9 +1118,9 @@ func TestResolveAndCheck(t *testing.T) {
 		// NOTE: Generic proofs are a WIP, this should change to a
 		// NotFoundError and a success case as the implementation proceeds.
 		// See CORE-8787
-		{"foobunny@mastodon.social", libkb.AppStatusError{}, false},
+		{"foobunny@gubble.social", libkb.AppStatusError{}, false},
 		// TODO set this up for success!
-		{"t_alice@mastodon.social", libkb.AppStatusError{}, false},
+		{"t_alice@gubble.social", libkb.AppStatusError{}, false},
 	}
 	for _, test := range tests {
 		tc.G.Resolver = goodResolver

@@ -1255,20 +1255,6 @@ func (m MerkleClashError) Error() string {
 
 //=============================================================================
 
-type PvlSourceError struct {
-	msg string
-}
-
-func (e PvlSourceError) Error() string {
-	return fmt.Sprintf("PvlSource: %s", e.msg)
-}
-
-func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
-	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
-}
-
-//=============================================================================
-
 type CanceledError struct {
 	M string
 }

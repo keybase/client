@@ -30,6 +30,7 @@ func (n NullConfiguration) GetSessionFilename() string                          
 func (n NullConfiguration) GetDbFilename() string                                          { return "" }
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
+func (n NullConfiguration) GetParamProofKitFilename() string                               { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
@@ -560,6 +561,16 @@ func (e *Env) GetPvlKitFilename() string {
 		func() string { return e.cmd.GetPvlKitFilename() },
 		func() string { return os.Getenv("KEYBASE_PVL_KIT_FILE") },
 		func() string { return e.GetConfig().GetPvlKitFilename() },
+	)
+}
+
+// GetParamProofKitFilename gets the path to param proof kit file.  Its value
+// is usually "" which means to use the server.
+func (e *Env) GetParamProofKitFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetParamProofKitFilename() },
+		func() string { return os.Getenv("KEYBASE_PARAM_PROOF_KIT_FILE") },
+		func() string { return e.GetConfig().GetParamProofKitFilename() },
 	)
 }
 

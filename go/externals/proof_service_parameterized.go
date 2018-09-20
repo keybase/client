@@ -29,7 +29,7 @@ func NewParamProofChecker(p libkb.RemoteProofChainLink) (*ParamProofChecker, lib
 
 func (rc *ParamProofChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *ParamProofChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+func (rc *ParamProofChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
 	// TODO will have to use the `check_url`/`check_path` config values to verify the proof.
 	return libkb.NewProofError(keybase1.ProofStatus_BASE_HARD_ERROR, "Not implemented")
 }
@@ -45,10 +45,8 @@ type ParamProofServiceType struct {
 
 func NewParamProofServiceType(conf keybase1.ParamProofServiceConfig) ParamProofServiceType {
 	return ParamProofServiceType{
-		conf: conf,
-		// TODO the loader will have to validate the config from the server and
-		// disable invalid ones without blowing up. CORE-8655
-		usernameRe: regexp.MustCompile(conf.UsernameRe),
+		conf:       conf,
+		usernameRe: regexp.MustCompile(conf.Username.Re),
 	}
 }
 
@@ -94,7 +92,7 @@ func (t ParamProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) li
 	return &ParamProofChecker{l}
 }
 
-func (t ParamProofServiceType) IsDevelOnly() bool { return t.conf.IsDevel }
+func (t ParamProofServiceType) IsDevelOnly() bool { return false }
 
 func (t ParamProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
 	// TODO

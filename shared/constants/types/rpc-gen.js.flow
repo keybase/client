@@ -1568,6 +1568,11 @@ export const simpleFSRevisionSpanType = {
   lastFive: 1,
 }
 
+export const teamsAuditVersion = {
+  v0: 0,
+  v1: 1,
+}
+
 export const teamsSeitanKeyAndLabelVersion = {
   v1: 1,
   v2: 2,
@@ -1681,7 +1686,11 @@ export type AsyncOps =
   | 8 // GET_REVISIONS_8
 
 export type Audit = $ReadOnly<{time: Time, maxMerkleSeqno: Seqno, maxChainSeqno: Seqno, maxMerkleProbe: Seqno}>
-export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
+export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
+export type AuditVersion =
+  | 0 // V0_0
+  | 1 // V1_1
+
 export type AuthenticityType =
   | 0 // SIGNED_0
   | 1 // REPUDIABLE_1
@@ -2048,6 +2057,11 @@ export type MemberInfo = $ReadOnly<{userID: UID, teamID: TeamID, fqName: String,
 export type MerkleRoot = $ReadOnly<{version: Int, root: Bytes}>
 export type MerkleRootAndTime = $ReadOnly<{root: MerkleRootV2, updateTime: Time, fetchTime: Time}>
 export type MerkleRootV2 = $ReadOnly<{seqno: Seqno, hashMeta: HashMeta}>
+export type MerkleStoreEntry = $ReadOnly<{hash: MerkleStoreKitHash, entry: MerkleStoreEntryString}>
+export type MerkleStoreEntryString = String
+export type MerkleStoreKit = String
+export type MerkleStoreKitHash = String
+export type MerkleStoreSupportedVersion = Int
 export type MerkleTreeID =
   | 0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
@@ -2090,7 +2104,8 @@ export type PGPQuery = $ReadOnly<{secret: Boolean, query: String, exactMatch: Bo
 export type PGPSigVerification = $ReadOnly<{isSigned: Boolean, verified: Boolean, signer: User, signKey: PublicKey}>
 export type PGPSignOptions = $ReadOnly<{keyQuery: String, mode: SignMode, binaryIn: Boolean, binaryOut: Boolean}>
 export type PGPVerifyOptions = $ReadOnly<{signedBy: String, signature: Bytes}>
-export type ParamProofServiceConfig = $ReadOnly<{enabled: Boolean, isDevel: Boolean, displayName: String, domain: String, group?: ?ProofServiceGroup, usernameRe: String, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
+export type ParamProofServiceConfig = $ReadOnly<{version: Int, domain: String, displayName: String, group?: ?ProofServiceGroup, username: ParamProofUsernameConfig, prefillUrl: String, checkUrl: String, checkPath?: ?Array<String>}>
+export type ParamProofUsernameConfig = $ReadOnly<{re: String, min: Int, max: Int}>
 export type PassphraseStream = $ReadOnly<{passphraseStream: Bytes, generation: Int}>
 export type PassphraseType =
   | 0 // NONE_0
