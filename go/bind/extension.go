@@ -199,9 +199,15 @@ func extensionGetDeviceID(ctx context.Context, gc *globals.Context) (res gregor1
 	return gregor1.DeviceID(hdid), nil
 }
 
-func ExtensionRegisterSend(strConvID string) (res string, err error) {
+func ExtensionRegisterSend(strConvID string, pusher PushNotifier) (res string, err error) {
 	defer kbCtx.Trace("ExtensionRegisterSend", func() error { return err })()
 	defer func() { err = flattenError(err) }()
+	defer func() {
+		// We are going to abort if this doesn't work, so let the user know about it now
+		if err != nil {
+			extensionPushResult(pusher, err, strConvID, "message")
+		}
+	}()
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return res, err
