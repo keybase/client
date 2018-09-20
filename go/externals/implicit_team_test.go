@@ -25,7 +25,8 @@ func containsString(xs []string, target string) bool {
 }
 
 func TestParseImplicitTeamTLFName(t *testing.T) {
-	tc := libkb.SetupTest(t, "ParseImplicitTeamTLFName", 1)
+	tc := setupTest(t, "ParseImplicitTeamTLFName", 1)
+	defer tc.Cleanup()
 	badNames := []string{
 		"foobar",
 		"/keybas/public/foo,bar",
@@ -77,7 +78,8 @@ func TestParseImplicitTeamTLFName(t *testing.T) {
 }
 
 func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
-	tc := libkb.SetupTest(t, "ParseImplicitTeamTLFNameEvenMore", 1)
+	tc := setupTest(t, "ParseImplicitTeamTLFNameEvenMore", 1)
+	defer tc.Cleanup()
 	tests := []struct {
 		input  string
 		output *keybase1.ImplicitTeamDisplayName
@@ -169,7 +171,8 @@ func TestParseImplicitTeamTLFNameEvenMore(t *testing.T) {
 // TestParseImplicitTeamDisplayName is just a quick sanity check.
 // quick sanity test -- mostly redundant with TLFName test above
 func TestParseImplicitTeamDisplayName(t *testing.T) {
-	tc := libkb.SetupTest(t, "ParseImplicitTeamDisplayName", 1)
+	tc := setupTest(t, "ParseImplicitTeamDisplayName", 1)
+	defer tc.Cleanup()
 	goodName := "twitter:alice,bob@facebook,carol@keybase,dave"
 	_, err := libkb.ParseImplicitTeamDisplayName(MakeAssertionContext(tc.G), "", false)
 	require.Error(t, err)

@@ -92,15 +92,24 @@ protocol proveCommon {
     string id;
   }
 
+  record ParamProofUsernameConfig {
+    string re;
+    int min;
+    int max;
+  }
+
   record ParamProofServiceConfig {
-    boolean enabled;
-    boolean isDevel;
-    string displayName;
+    int version;
     string domain;
+    @jsonkey("display_name")
+    string displayName;
     union { null, ProofServiceGroup } group;
-    string usernameRe;
+    ParamProofUsernameConfig username;
+    @jsonkey("prefill_url")
     string prefillUrl;
+    @jsonkey("check_url")
     string checkUrl;
+    @jsonkey("check_path")
     array<string> checkPath;
   }
 
