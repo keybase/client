@@ -29,8 +29,11 @@ var vt100EscapeCodes = []EscapeCode{
 	EscapeCode{keyEscape, '[', '3', 'm'},
 	// Underline
 	EscapeCode{keyEscape, '[', '4', 'm'},
-	// Reset bold
+	// Reset bold (or doubly underline according to ECMA-48; fallback is code [22m)
+	// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
 	EscapeCode{keyEscape, '[', '2', '1', 'm'},
+	// Normal intensity
+	EscapeCode{keyEscape, '[', '2', '2', 'm'},
 	// Reset italic
 	EscapeCode{keyEscape, '[', '2', '3', 'm'},
 	// Reset underline

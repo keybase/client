@@ -45,7 +45,7 @@ type CodePair struct {
 }
 
 var (
-	CpBold          = CodePair{1, 21}
+	CpBold          = CodePair{1, 22}
 	CpDim           = CodePair{2, 22}
 	CpItalic        = CodePair{3, 23}
 	CpUnderline     = CodePair{4, 24}
