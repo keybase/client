@@ -93,6 +93,9 @@ func (p CommandLine) GetChatDbFilename() string {
 func (p CommandLine) GetPvlKitFilename() string {
 	return p.GetGString("pvl-kit")
 }
+func (p CommandLine) GetParamProofKitFilename() string {
+	return p.GetGString("paramproof-kit")
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -554,6 +557,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "pvl-kit",
 			Usage: "Specify an alternate local PVL kit file location.",
+		},
+		cli.StringFlag{
+			Name:  "paramproof-kit",
+			Usage: "Specify an alternate local parameterized proof kit file location.",
 		},
 		cli.BoolFlag{
 			Name:  "remember-passphrase",

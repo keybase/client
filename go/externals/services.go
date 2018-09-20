@@ -5,11 +5,17 @@ package externals
 
 import (
 	"context"
+	"encoding/json"
+	"regexp"
 	"strings"
 	"sync"
 
 	libkb "github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
+
+// SupportedVersion is which version of ParamProofs is supported by this client.
+const SupportedVersion int = 1
 
 // staticProofServies are only used for testing or for basic assertion
 // validation
@@ -101,18 +107,21 @@ func (p *proofServices) ListProofCheckers() []string {
 }
 
 func (p *proofServices) loadParamProofServices() {
-	// TODO need to hook this into storage for parameterized configs, CORE-8655
 	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
-	if !shouldRun || p.loaded {
+	if !shouldRun {
 		return
 	}
 
-	loader := NullConfigLoader{}
-	proofTypes, err := loader.LoadAll()
+	m := libkb.NewMetaContext(context.TODO(), p.G())
+	entry, err := p.G().GetParamProofStore().GetLatestEntry(m)
 	if err != nil {
-		// TODO CORE-8655
-		p.G().Log.CDebugf(context.TODO(), "unable to load configs: %v", err)
+		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
+		return
+	}
+	proofTypes, err := p.parseServices(entry)
+	if err != nil {
+		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
 	}
 	services := []libkb.ServiceType{}
@@ -120,5 +129,28 @@ func (p *proofServices) loadParamProofServices() {
 		services = append(services, NewParamProofServiceType(params))
 	}
 	p.register(services)
-	p.loaded = true
+}
+
+type proofServicesT struct {
+	Services []keybase1.ParamProofServiceConfig `json:"services"`
+}
+
+func (p *proofServices) parseServices(entry keybase1.MerkleStoreEntry) ([]keybase1.ParamProofServiceConfig, error) {
+	b := []byte(entry.Entry)
+	services := proofServicesT{}
+
+	if err := json.Unmarshal(b, &services); err != nil {
+		return nil, err
+	}
+
+	// Do some basic validation of what we parsed
+	configs := []keybase1.ParamProofServiceConfig{}
+	for _, config := range services.Services {
+		if _, err := regexp.Compile(config.Username.Re); err != nil {
+			p.G().Log.CDebugf(context.TODO(), "usernameRe %s does not compile for %s: %v", config.DisplayName, config.Username.Re, err)
+			continue
+		}
+		configs = append(configs, config)
+	}
+	return configs, nil
 }

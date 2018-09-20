@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Button, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
+import {Avatar, Box, Text, Icon, Input, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
 
 type Props = {
@@ -105,11 +105,13 @@ class DeleteRepo extends React.Component<Props, State> {
           )}
           <Box style={{flex: 1}} />
           <Box style={globalStyles.flexBoxRow}>
-            <Button
+            <WaitingButton
               type="Secondary"
               onClick={this.props.onClose}
               label="Cancel"
               style={{marginRight: globalMargins.tiny}}
+              waitingKey={this.props.waitingKey}
+              onlyDisable={true}
             />
             <WaitingButton
               type="Danger"

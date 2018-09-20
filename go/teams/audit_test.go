@@ -44,12 +44,12 @@ func TestAuditStaleTeam(t *testing.T) {
 	}
 
 	addC := func(asUser int) {
-		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[2].Username, keybase1.TeamRole_READER)
+		_, err = AddMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username, keybase1.TeamRole_READER)
 		require.NoError(t, err)
 	}
 
 	rmC := func(asUser int) {
-		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[2].Username)
+		err = RemoveMember(m[asUser].Ctx(), tcs[asUser].G, teamName.String(), fus[C].Username)
 		require.NoError(t, err)
 	}
 
@@ -101,4 +101,69 @@ func TestAuditStaleTeam(t *testing.T) {
 	setFastAudits(m[A])
 	t.Logf("User A loading the team, and auditing on an primed cached")
 	load(A)
+}
+
+func TestAuditRotateAudit(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	t.Logf("create team")
+	teamName, teamID := createTeam2(*tcs[0])
+	m := make([]libkb.MetaContext, 2)
+	for i, tc := range tcs {
+		m[i] = libkb.NewMetaContextForTest(*tc)
+	}
+
+	// We set up codenames for 3 users, A, B and C
+	const (
+		A = 0
+		B = 1
+	)
+
+	load := func() {
+		_, err := Load(m[A].Ctx(), tcs[A].G, keybase1.LoadTeamArg{
+			Name:        teamName.String(),
+			Public:      false,
+			ForceRepoll: true,
+		})
+		require.NoError(t, err)
+	}
+
+	addB := func() {
+		_, err := AddMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username, keybase1.TeamRole_READER)
+		require.NoError(t, err)
+	}
+
+	rmB := func() {
+		err := RemoveMember(m[A].Ctx(), tcs[A].G, teamName.String(), fus[B].Username)
+		require.NoError(t, err)
+	}
+
+	setFastAudits := func() {
+		// do a lot of probes so we're likely to find issues
+		m[A].G().Env.Test.TeamAuditParams = &libkb.TeamAuditParams{
+			NumPostProbes:         10,
+			MerkleMovementTrigger: keybase1.Seqno(1),
+			RootFreshness:         time.Duration(1),
+			LRUSize:               500,
+			NumPreProbes:          3,
+			Parallelism:           3,
+		}
+	}
+
+	assertAuditTo := func(n keybase1.Seqno) {
+		auditor := m[A].G().GetTeamAuditor().(*Auditor)
+		history, err := auditor.getFromCache(m[A], teamID, auditor.getLRU())
+		require.NoError(t, err)
+		require.Equal(t, lastAudit(history).MaxChainSeqno, n)
+	}
+
+	setFastAudits()
+	addB()
+	load()
+	assertAuditTo(keybase1.Seqno(2))
+	rmB()
+	addB()
+	load()
+	assertAuditTo(keybase1.Seqno(4))
 }

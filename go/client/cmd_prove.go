@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	"golang.org/x/net/context"
 
@@ -103,13 +102,14 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	serviceList := strings.Join(g.GetProofServices().ListProofCheckers(), ", ")
-	description := fmt.Sprintf("Supported services are: %s.", serviceList)
+	// TODO CORE 8657 make subcommand or option to list services
+	// serviceList := strings.Join(g.GetProofServices().ListProofCheckers(), ", ")
+	// description := fmt.Sprintf("Supported services are: %s.", serviceList)
 	cmd := cli.Command{
 		Name:         "prove",
 		ArgumentHelp: "<service> [service username]",
 		Usage:        "Generate a new proof",
-		Description:  description,
+		// Description:  description,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "output, o",
