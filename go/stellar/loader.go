@@ -239,11 +239,20 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 		return
 	}
 
+	isUpdate := false
 	p.Lock()
+	existing, ok := p.requests[id]
+	if !ok || local.Status != existing.Status {
+		// must be a newly loaded request or the status changed for
+		// a notification to be sent below
+		isUpdate = true
+	}
 	p.requests[id] = local
 	p.Unlock()
 
-	p.sendRequestNotification(m, id, local)
+	if isUpdate {
+		p.sendRequestNotification(m, id, local)
+	}
 }
 
 func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
@@ -294,6 +303,7 @@ func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDet
 		AmountDescription: details.AmountDescription,
 		Asset:             details.Asset,
 		Currency:          details.Currency,
+		Status:            details.Status,
 	}
 
 	return &info
