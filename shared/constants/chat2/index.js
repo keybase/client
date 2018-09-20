@@ -236,6 +236,8 @@ export {
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
+  getRequestMessageInfo,
+  getPaymentMessageInfo,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

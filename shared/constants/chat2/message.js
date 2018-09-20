@@ -29,6 +29,42 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+export const getRequestMessageInfo = (state: TypedState, message: Types.MessageRequestPayment) => {
+  if (message.requestInfo) {
+    return message.requestInfo
+  }
+  const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybeRequestInfo) {
+    return null
+  }
+  if (maybeRequestInfo.type !== 'requestInfo') {
+    throw new Error(
+      `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
+        message.conversationIDKey
+      } msgID: ${message.id}`
+    )
+  }
+  return maybeRequestInfo
+}
+
+export const getPaymentMessageInfo = (state: TypedState, message: Types.MessageSendPayment) => {
+  if (message.paymentInfo) {
+    return message.paymentInfo
+  }
+  const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybePaymentInfo) {
+    return null
+  }
+  if (maybePaymentInfo.type !== 'paymentInfo') {
+    throw new Error(
+      `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
+        message.conversationIDKey
+      } msgID: ${message.id}`
+    )
+  }
+  return maybePaymentInfo
+}
+
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
   switch (t) {
