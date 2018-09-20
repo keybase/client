@@ -132,6 +132,9 @@ class Inbox extends PureComponent<Props, State> {
     this.props.onNewChat()
   }
 
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
+
   render() {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
@@ -143,8 +146,8 @@ class Inbox extends PureComponent<Props, State> {
             filterFocusCount={this.props.filterFocusCount}
             focusFilter={this.props.focusFilter}
             onNewChat={this._prepareNewChat}
-            onSelectUp={this.props.onSelectUp}
-            onSelectDown={this.props.onSelectDown}
+            onSelectUp={this._onSelectUp}
+            onSelectDown={this._onSelectDown}
           />
           <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>

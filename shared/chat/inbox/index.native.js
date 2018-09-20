@@ -168,6 +168,9 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
+
   render() {
     this._dividerShowButton = false
     this._dividerIndex = this.props.rows.findIndex(r => {
@@ -187,8 +190,8 @@ class Inbox extends React.PureComponent<Props, State> {
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
-        onSelectUp={this.props.onSelectUp}
-        onSelectDown={this.props.onSelectDown}
+        onSelectUp={this._onSelectUp}
+        onSelectDown={this._onSelectDown}
       />
     )
     return (
