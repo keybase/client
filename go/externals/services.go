@@ -113,8 +113,8 @@ func (p *proofServices) loadParamProofServices() {
 		return
 	}
 
-	m := libkb.NewMetaContext(context.TODO(), p.G())
-	entry, err := p.G().GetParamProofStore().GetLatestEntry(m)
+	mctx := libkb.NewMetaContext(context.TODO(), p.G())
+	entry, err := p.G().GetParamProofStore().GetLatestEntry(mctx)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
 		return
