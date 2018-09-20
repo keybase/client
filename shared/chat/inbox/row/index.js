@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import logger from '../../../logger'
 import BigTeamHeader from './big-team-header/container'
 import BigTeamChannel from './big-team-channel/container'
 import FilterBigTeamChannel from './filter-big-team-channel/container'
@@ -70,7 +71,8 @@ const makeRow = (options: MakeRowOptions) => {
         )
     }
   }
-  return new Error(`Unhandled row type ${options.type}`)
+  logger.error(`Unhandled row type ${options.type}`)
+  return null
 }
 
 const _bigTeamLabelStyle = {
