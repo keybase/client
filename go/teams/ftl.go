@@ -102,6 +102,20 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	return res, nil
 }
 
+// VerifyTeamName verifies that the given ID aligns with the given name, using the Merkle tree only
+// (and not verifying sigs along the way).
+func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) (err error) {
+	m = m.WithLogTag("FTL")
+	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
+	_, err = f.Load(m, keybase1.FastTeamLoadArg{
+		ID:             id,
+		Public:         id.IsPublic(),
+		AssertTeamName: &name,
+		ForceRefresh:   forceRefresh,
+	})
+	return err
+}
+
 func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 
 	if arg.ID.IsPublic() != arg.Public {
