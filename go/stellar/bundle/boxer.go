@@ -38,7 +38,8 @@ func Box(bundle stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration,
 	if err != nil {
 		return res, err
 	}
-	accountsVisible, accountsSecret := accountsSplit(bundle.Accounts)
+	accountsVisible, accountsSecret, accountsMobileSecret := accountsSplit(bundle.Accounts)
+	_ = accountsMobileSecret
 	res.FormatVersion = stellar1.BundleVersion_V1
 	visibleV1 := stellar1.BundleVisibleV1{
 		Revision: bundle.Revision,
@@ -199,7 +200,7 @@ func Decrypt(encBundle stellar1.EncryptedBundle,
 	return res, err
 }
 
-func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibleEntry, sec []stellar1.BundleSecretEntry) {
+func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibleEntry, sec []stellar1.BundleSecretEntry, mobile []stellar1.BundleSecretEntry) {
 	for _, acc := range accounts {
 		vis = append(vis, stellar1.BundleVisibleEntry{
 			AccountID: acc.AccountID,
@@ -212,7 +213,7 @@ func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibl
 			Name:      acc.Name,
 		})
 	}
-	return vis, sec
+	return vis, sec, mobile
 }
 
 func merge(secret stellar1.BundleSecretV1, visible stellar1.BundleVisibleV1) (res stellar1.Bundle, err error) {
