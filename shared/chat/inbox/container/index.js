@@ -13,21 +13,21 @@ import {
   isMobile,
 } from '../../../util/container'
 import type {TypedState} from '../../../util/container'
-import type {RowItemSmall, RowItemBig, RowItemDivider} from '../index.types'
+import type {RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 
-const mapStateToProps = (state: TypedState, {routeState}) => ({
+const mapStateToProps = (state: TypedState) => ({
   _username: state.config.username,
   _metaMap: state.chat2.metaMap,
   _selectedConversationIDKey: Constants.getSelectedConversation(state),
-  _smallTeamsExpanded: routeState.get('smallTeamsExpanded'),
+  _smallTeamsExpanded: state.chat2.smallTeamsExpanded,
   filter: state.chat2.inboxFilter,
   isLoading: Constants.anyChatWaitingKeys(state),
   neverLoaded: !state.chat2.inboxHasLoaded,
 })
 
-const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
@@ -52,10 +52,7 @@ const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend
       })
     ),
   refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  toggleSmallTeamsExpanded: () =>
-    setRouteState({
-      smallTeamsExpanded: !routeState.get('smallTeamsExpanded'),
-    }),
+  toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render

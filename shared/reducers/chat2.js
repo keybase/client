@@ -364,7 +364,8 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
-    // fallthrough actually select it
+    case Chat2Gen.toggleSmallTeamsExpanded:
+      return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {
