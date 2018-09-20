@@ -414,7 +414,7 @@ protocol local {
   // Whether this account is one of this user's.
   boolean ownAccountLocal(AccountID accountID);
 
-  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary);
+  void importSecretKeyLocal(SecretKey secretKey, boolean makePrimary, string name);
 
   // prompts for passphrase
   SecretKey exportSecretKeyLocal(AccountID accountID);

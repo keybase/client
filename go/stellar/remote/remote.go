@@ -208,6 +208,7 @@ func addWalletServerArg(serverArg libkb.JSONPayload, bundleEncB64 string, bundle
 	section["encrypted"] = bundleEncB64
 	section["visible"] = bundleVisB64
 	section["version"] = formatVersion
+	section["miniversion"] = 2
 	serverArg["stellar"] = section
 }
 
