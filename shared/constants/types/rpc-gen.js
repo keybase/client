@@ -668,6 +668,7 @@ export const simpleFSRevisionSpanType = {
 export const teamsAuditVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {

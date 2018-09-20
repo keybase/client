@@ -278,23 +278,29 @@ protocol teams {
   record Audit {
     Time time;
     // The Maximum Merkle Seqno known globally at the time of the audit.
+    @mpackkey("mms") @jsonkey("mms")
     Seqno maxMerkleSeqno;
+
     // The maximum Seqno in the chain at the time of the audit.
+    @mpackkey("mcs") @jsonkey("mcs")
     Seqno maxChainSeqno;
+
     // The maximum merkle Seqno probed in this audit.
+    @mpackkey("mmp") @jsonkey("mmp")
     Seqno maxMerkleProbe;
   }
 
   record Probe {
-    @mpackkey("i")
+    @mpackkey("i") @jsonkey("i")
     int index;
-    @mpackkey("s")
+    @mpackkey("s") @jsonkey("t")
     Seqno teamSeqno;
   }
 
   enum AuditVersion {
     V0_0,
-    V1_1
+    V1_1,
+    V2_2
   }
 
   record AuditHistory {
@@ -315,6 +321,8 @@ protocol teams {
     map<Seqno,Probe> preProbes;
     // Probes of after the team was created
     map<Seqno,Probe> postProbes;
+    // For each chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> tails;
   }
 
   enum TeamInviteCategory {

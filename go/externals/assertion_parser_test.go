@@ -6,14 +6,14 @@ package externals
 import (
 	"testing"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNormalization(t *testing.T) {
-	tc := libkb.SetupTest(t, "Normalization", 1)
-	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid || josh@mastodon.SoCiAl"
-	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid,josh@mastodon.social"
+	tc := setupTest(t, "Normalization", 1)
+	defer tc.Cleanup()
+	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid || josh@gubble.SoCiAl"
+	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid,josh@gubble.social"
 	expr, err := AssertionParse(tc.G, inp)
 	require.NoError(t, err)
 	require.Equal(t, expr.String(), outp)
@@ -24,7 +24,8 @@ type Pair struct {
 }
 
 func TestParserFail1(t *testing.T) {
-	tc := libkb.SetupTest(t, "ParserFail1", 1)
+	tc := setupTest(t, "ParserFail1", 1)
+	defer tc.Cleanup()
 	bads := []Pair{
 		{"aa ||", "Unexpected EOF"},
 		{"aa &&", "Unexpected EOF"},
