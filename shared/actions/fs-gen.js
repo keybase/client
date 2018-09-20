@@ -44,7 +44,9 @@ export const notifySyncActivity = 'fs:notifySyncActivity'
 export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
 export const openFilesFromWidget = 'fs:openFilesFromWidget'
-export const openInFileUI = 'fs:openInFileUI'
+export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
+export const openPathInFilesTab = 'fs:openPathInFilesTab'
+export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
@@ -158,7 +160,12 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   parentPath: Types.Path,
 |}>
 type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
-type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
+type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
+type _OpenPathInFilesTabPayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath?: I.List<string>,
+|}>
+type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
   routePath: I.List<string>,
@@ -237,7 +244,9 @@ export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) =>
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({error: false, payload, type: openAndUpload})
 export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({error: false, payload, type: openFilesFromWidget})
-export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
+export const createOpenLocalPathInSystemFileManager = (payload: _OpenLocalPathInSystemFileManagerPayload) => ({error: false, payload, type: openLocalPathInSystemFileManager})
+export const createOpenPathInFilesTab = (payload: _OpenPathInFilesTabPayload) => ({error: false, payload, type: openPathInFilesTab})
+export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({error: false, payload, type: openPathInSystemFileManager})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({error: false, payload, type: pickAndUpload})
@@ -290,7 +299,9 @@ export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _
 export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
 export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
 export type OpenFilesFromWidgetPayload = $Call<typeof createOpenFilesFromWidget, _OpenFilesFromWidgetPayload>
-export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
+export type OpenLocalPathInSystemFileManagerPayload = $Call<typeof createOpenLocalPathInSystemFileManager, _OpenLocalPathInSystemFileManagerPayload>
+export type OpenPathInFilesTabPayload = $Call<typeof createOpenPathInFilesTab, _OpenPathInFilesTabPayload>
+export type OpenPathInSystemFileManagerPayload = $Call<typeof createOpenPathInSystemFileManager, _OpenPathInSystemFileManagerPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type PickAndUploadPayload = $Call<typeof createPickAndUpload, _PickAndUploadPayload>
@@ -345,7 +356,9 @@ export type Actions =
   | NotifyTlfUpdatePayload
   | OpenAndUploadPayload
   | OpenFilesFromWidgetPayload
-  | OpenInFileUIPayload
+  | OpenLocalPathInSystemFileManagerPayload
+  | OpenPathInFilesTabPayload
+  | OpenPathInSystemFileManagerPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload

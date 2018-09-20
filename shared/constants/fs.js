@@ -259,7 +259,11 @@ const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
       ? makeAvatarPathItemIconSpec(usernames[0])
       : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
 }
-export const getIconSpecFromUsernamesAndTeamname = (usernames: ?Array<string>, teamname: ?string, me?: ?string) => {
+export const getIconSpecFromUsernamesAndTeamname = (
+  usernames: ?Array<string>,
+  teamname: ?string,
+  me?: ?string
+) => {
   return teamname && teamname.length > 0
     ? makeTeamAvatarPathItemIconSpec(teamname)
     : getIconSpecFromUsernames(usernames || [], me)
@@ -534,24 +538,32 @@ const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEdi
   }
 }
 
-export const userTlfHistoryRPCToState = (history: Array<RPCTypes.FSFolderEditHistory>): Types.UserTlfUpdates => {
+export const userTlfHistoryRPCToState = (
+  history: Array<RPCTypes.FSFolderEditHistory>
+): Types.UserTlfUpdates => {
   let updates = []
   history.forEach(folder => {
     const updateServerTime = folder.serverTime
     const path = pathFromFolderRPC(folder.folder)
     const tlfUpdates = folder.history
-      ? folder.history.map(({writerName, edits}) => makeTlfUpdate({
-          path,
-          serverTime: updateServerTime,
-          writer: writerName,
-          history: I.List(edits
-            ? edits.map(({filename, notificationType, serverTime}) => makeTlfEdit({
-                filename,
-                serverTime,
-                editType: fsNotificationTypeToEditType(notificationType),
-              }))
-            : []),
-        }))
+      ? folder.history.map(({writerName, edits}) =>
+          makeTlfUpdate({
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
+            history: I.List(
+              edits
+                ? edits.map(({filename, notificationType, serverTime}) =>
+                    makeTlfEdit({
+                      filename,
+                      serverTime,
+                      editType: fsNotificationTypeToEditType(notificationType),
+                    })
+                  )
+                : []
+            ),
+          })
+        )
       : []
     updates = updates.concat(tlfUpdates)
   })
@@ -731,18 +743,16 @@ export const kbfsOutdated = (state: TypedState) =>
   isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
 
 export const kbfsUninstallString = (state: TypedState) => {
-  if (state.fs.fuseStatus &&
-    state.fs.fuseStatus.status &&
-    state.fs.fuseStatus.status.fields) {
-      const field = state.fs.fuseStatus.status.fields.find((element) => {
-        return element.key === 'uninstallString'
-      })
-      if (field) {
-        return field.value
-      }
+  if (state.fs.fuseStatus && state.fs.fuseStatus.status && state.fs.fuseStatus.status.fields) {
+    const field = state.fs.fuseStatus.status.fields.find(element => {
+      return element.key === 'uninstallString'
+    })
+    if (field) {
+      return field.value
     }
-    return ''
   }
+  return ''
+}
 
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
@@ -772,6 +782,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInSystemFileManager:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openLocalPathInSystemFileManager:
+      return `Failed to open path: ${action.payload.path}.`
     default:
       return 'An unexplainable error has occurred.'
   }
