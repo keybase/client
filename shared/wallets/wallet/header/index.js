@@ -37,7 +37,7 @@ const Header = (props: Props) => (
         )}
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-        {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase wallet</Kb.Text>}
+        {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
