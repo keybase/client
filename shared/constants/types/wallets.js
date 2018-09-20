@@ -12,7 +12,7 @@ export opaque type Role = 'sender' | 'receiver' | 'senderAndReceiver'
 
 export const senderOnly: Role = 'sender'
 export const receiverOnly: Role = 'receiver'
-export const senderAndReceiver: Role = 'receiver'
+export const senderAndReceiver: Role = 'senderAndReceiver'
 
 export const roleToString = (r: Role): string => r
 
