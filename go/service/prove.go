@@ -74,22 +74,30 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 		SessionID: arg.SessionID,
 	}
 	m := libkb.NewMetaContext(ctx, ph.G()).WithUIs(uis)
-	err = engine.RunEngine2(m, eng)
-	if err != nil {
+	if err = engine.RunEngine2(m, eng); err != nil {
 		return res, err
 	}
 	res.SigID = eng.SigID()
 	return res, err
 }
 
+// Prove handles the `keybase.1.checkProof` RPC.
 func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	eng := engine.NewProveCheck(ph.G(), arg.SigID)
 	m := libkb.NewMetaContext(ctx, ph.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
-		return
+		return res, err
 	}
 	found, status, state, text := eng.Results()
-	res = keybase1.CheckProofStatus{Found: found, Status: status, State: state, ProofText: text}
+	return keybase1.CheckProofStatus{
+		Found:     found,
+		Status:    status,
+		State:     state,
+		ProofText: text,
+	}, nil
+}
 
-	return
+// Prove handles the `keybase.1.listProofServices` RPC.
+func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
+	return ph.G().GetProofServices().ListProofCheckers(), nil
 }

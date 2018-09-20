@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -20,15 +22,21 @@ import (
 // CmdProve is the wrapper structure for the `keybase prove` operation.
 type CmdProve struct {
 	libkb.Contextified
-	arg    keybase1.StartProofArg
-	output string
+	arg          keybase1.StartProofArg
+	output       string
+	listServices bool
 }
 
 // ParseArgv parses arguments for the prove command.
 func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	p.arg.Force = ctx.Bool("force")
+	p.listServices = ctx.Bool("list-services")
 	p.output = ctx.String("output")
+
+	if p.listServices {
+		return nil
+	}
 
 	if nargs > 2 || nargs == 0 {
 		return fmt.Errorf("prove takes 1 or 2 args: <service> [<username>]")
@@ -56,7 +64,11 @@ func (p *CmdProve) fileOutputHook(txt string) (err error) {
 
 // RunClient runs the `keybase prove` subcommand in client/server mode.
 func (p *CmdProve) Run() error {
-	var cli keybase1.ProveClient
+
+	cli, err := GetProveClient(p.G())
+	if err != nil {
+		return err
+	}
 
 	var proveUIProtocol rpc.Protocol
 
@@ -77,12 +89,19 @@ func (p *CmdProve) Run() error {
 		NewSecretUIProtocol(p.G()),
 	}
 
-	cli, err := GetProveClient(p.G())
-	if err != nil {
-		return err
-	}
 	if err = RegisterProtocolsWithContext(protocols, p.G()); err != nil {
 		return err
+	}
+
+	if p.listServices {
+		services, err := cli.ListProofServices(context.TODO())
+		if err != nil {
+			return err
+		}
+		sort.Strings(services)
+		ui := p.G().UI.GetTerminalUI()
+		ui.Printf("Supported services are: %s.\n", strings.Join(services, ", "))
+		return nil
 	}
 
 	// command line interface wants the PromptPosted ui loop
@@ -102,14 +121,11 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
 func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	// TODO CORE 8657 make subcommand or option to list services
-	// serviceList := strings.Join(g.GetProofServices().ListProofCheckers(), ", ")
-	// description := fmt.Sprintf("Supported services are: %s.", serviceList)
 	cmd := cli.Command{
 		Name:         "prove",
 		ArgumentHelp: "<service> [service username]",
 		Usage:        "Generate a new proof",
-		// Description:  description,
+		Description:  "Run keybase prove --list-services to see available services.",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "output, o",
@@ -118,6 +134,10 @@ func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			cli.BoolFlag{
 				Name:  "force, f",
 				Usage: "Don't prompt.",
+			},
+			cli.BoolFlag{
+				Name:  "list-services, l",
+				Usage: "List all available services",
 			},
 		},
 		Action: func(c *cli.Context) {
