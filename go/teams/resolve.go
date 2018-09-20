@@ -32,8 +32,7 @@ func resolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 		return keybase1.TeamName{}, err
 	}
 	name = rres.GetTeamName()
-	mctx := libkb.NewMetaContext(ctx, g)
-	if err = g.GetFastTeamLoader().VerifyTeamName(mctx, id, name, forceRefresh); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamName{}, err
 	}
 
@@ -58,8 +57,7 @@ func resolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.
 		return keybase1.TeamID(""), err
 	}
 	id = rres.GetTeamID()
-	mctx := libkb.NewMetaContext(ctx, g)
-	if err = g.GetFastTeamLoader().VerifyTeamName(mctx, id, name, forceRefresh); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamID(""), err
 	}
 	return id, nil

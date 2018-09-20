@@ -164,7 +164,7 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 			ForceRefresh: forceRefresh,
 		},
 		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
-		needFreshState:     true,
+		needLatestName:     true,
 		readSubteamID:      bottomSubteam,
 	})
 	if err != nil {
@@ -198,13 +198,14 @@ type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
 	downPointersNeeded []keybase1.Seqno
 	readSubteamID      keybase1.TeamID
-	needFreshState     bool
+	needLatestName     bool
 }
 
-// NeedFresh returns true if the load argument implies that we need a refreshment
-// of the local cache for this team.
-func (a fastLoadArg) NeedFresh() bool {
-	return a.needFreshState || a.NeedLatestKey
+// needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
+// let's say to figure out what this team is currently named, or to figure out the most recent
+// encryption key to encrypt new messages for.
+func (a fastLoadArg) needChainTail() bool {
+	return a.needLatestName || a.NeedLatestKey
 }
 
 // load acquires a lock by team ID, and the runs loadLocked.
@@ -508,16 +509,16 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) {
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
-	if arg.NeedFresh() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
+	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && arg.ForceRefresh {
-		m.CDebugf("refresh forced via argument")
+	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
+		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
-		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
+	if arg.ForceRefresh {
+		m.CDebugf("refresh forced via flag")
 		s.needRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
