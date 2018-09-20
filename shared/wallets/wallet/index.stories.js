@@ -9,7 +9,6 @@ import settings from './settings/index.stories'
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: props => ({
-    onDeposit: Sb.action('onDeposit'),
     onReceive: Sb.action('onReceive'),
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),

@@ -5,7 +5,6 @@ import * as Styles from '../../../styles'
 
 type Props = {
   isDefaultWallet: boolean,
-  onDeposit: () => void,
   onReceive: () => void,
   onSendToAnotherAccount: () => void,
   onSendToKeybaseUser: () => void,
@@ -49,7 +48,6 @@ const Header = (props: Props) => (
       />
       <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
       <DropdownButton
-        onDeposit={props.onDeposit}
         onSettings={props.onSettings}
         onShowSecretKey={props.onShowSecretKey}
         disabled={!props.walletName}
@@ -104,7 +102,6 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
 }
 
 type DropdownProps = {|
-  onDeposit: () => void,
   onShowSecretKey: () => void,
   onSettings: () => void,
   disabled: boolean,
@@ -112,10 +109,6 @@ type DropdownProps = {|
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
   _menuItems = [
-    {
-      onClick: () => this.props.onDeposit(),
-      title: 'Deposit',
-    },
     {
       onClick: () => this.props.onShowSecretKey(),
       title: 'Show secret key',
