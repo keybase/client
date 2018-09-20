@@ -14,25 +14,11 @@ export const senderOnly: Role = 'sender'
 export const receiverOnly: Role = 'receiver'
 export const senderAndReceiver: Role = 'senderAndReceiver'
 
-export const roleToString = (r: Role): string => r
-
-export const deltaToYourRole = (delta: 'none' | 'increase' | 'decrease'): Role => {
-  switch (delta) {
-    case 'none':
-      return 'senderAndReceiver'
-    case 'increase':
-      return 'receiver'
-    case 'decrease':
-      return 'sender'
-    default:
-      // TODO: Do something here.
-      return 'sender'
-  }
-}
-
 export const isSender = (r: Role) => r === 'sender' || r === 'senderAndReceiver'
 
 export const isReceiver = (r: Role) => r === 'receiver' || r === 'senderAndReceiver'
+
+export const roleToString = (r: Role): string => r
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'

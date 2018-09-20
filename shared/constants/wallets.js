@@ -284,7 +284,17 @@ const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => 
 }
 
 const paymentToYourRole = (p: Types.Payment): Types.Role => {
-  return Types.deltaToYourRole(p.delta)
+  switch (p.delta) {
+    case 'none':
+      return Types.senderAndReceiver
+    case 'increase':
+      return Types.receiverOnly
+    case 'decrease':
+      return Types.senderOnly
+    default:
+      // TODO: Do something here.
+      return Types.senderOnly
+  }
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
