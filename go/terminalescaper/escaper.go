@@ -31,8 +31,6 @@ var vt100EscapeCodes = []EscapeCode{
 	EscapeCode{keyEscape, '[', '4', 'm'},
 	// Reset bold
 	EscapeCode{keyEscape, '[', '2', '1', 'm'},
-	// Reset dim
-	EscapeCode{keyEscape, '[', '2', '2', 'm'},
 	// Reset italic
 	EscapeCode{keyEscape, '[', '2', '3', 'm'},
 	// Reset underline
