@@ -88,7 +88,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 }
 
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) =>
-  status === 'completed' ? (yourRole === 'receiver' ? 'Received' : 'Sent') : capitalize(status)
+  status === 'completed' ? (Types.isReceiver(yourRole) ? 'Received' : 'Sent') : capitalize(status)
 
 class TransactionDetails extends React.Component<Props> {
   componentDidMount() {
@@ -118,7 +118,7 @@ class TransactionDetails extends React.Component<Props> {
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'sender' || this.props.yourRole === 'senderAndReceiver'}
+            isYou={Types.isSender(this.props.yourRole)}
             you={this.props.you}
             yourRole={this.props.yourRole}
           />
@@ -130,7 +130,7 @@ class TransactionDetails extends React.Component<Props> {
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'receiver' || this.props.yourRole === 'senderAndReceiver'}
+            isYou={Types.isReceiver(this.props.yourRole)}
             you={this.props.you}
             yourRole={this.props.yourRole}
           />

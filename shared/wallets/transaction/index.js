@@ -136,7 +136,7 @@ const Detail = (props: DetailProps) => {
 
   if (props.counterpartyType === 'otherAccount') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    if (props.yourRole === 'sender' || props.yourRole === 'senderAndReceiver') {
+    if (Types.isSender(props.yourRole)) {
       return (
         <Text type={textTypeSemibold}>
           {verbPhrase} {amount} from this account to {counterparty}.
@@ -151,7 +151,7 @@ const Detail = (props: DetailProps) => {
     )
   }
 
-  if (props.yourRole === 'sender' || props.yourRole === 'senderAndReceiver') {
+  if (Types.isSender(props.yourRole)) {
     const verbPhrase = props.pending ? 'Sending' : 'You sent'
     return (
       <Text type={textTypeSemibold}>
@@ -178,16 +178,16 @@ const AmountXLM = (props: AmountXLMProps) => {
   let color = globalColors.black
   if (props.pending) {
     color = globalColors.black_20
-  } else if (props.yourRole === 'sender') {
+  } else if (props.yourRole === Types.senderOnly) {
     color = globalColors.red
-  } else if (props.yourRole === 'receiver') {
+  } else if (props.yourRole === Types.receiverOnly) {
     color = globalColors.green
   }
 
   let amount = '0 XLM'
-  if (props.yourRole === 'sender') {
+  if (props.yourRole === Types.senderOnly) {
     amount = `- ${props.amountXLM}`
-  } else if (props.yourRole === 'receiver') {
+  } else if (props.yourRole === Types.receiverOnly) {
     amount = `+ ${props.amountXLM}`
   }
   return (
@@ -255,7 +255,7 @@ export type Props = {|
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
-    props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
+    props.large && !(props.yourRole === Types.receiverOnly && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.onSelectTransaction}>

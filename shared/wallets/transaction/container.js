@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    counterparty: yourRole === 'sender' || yourRole === 'senderAndReceiver' ? tx.target : tx.source,
+    counterparty: Types.isSender(yourRole) ? tx.target : tx.source,
     counterpartyType,
     large: counterpartyType !== 'wallet',
     memo: tx.note.stringValue(),
