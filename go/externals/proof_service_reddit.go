@@ -109,7 +109,7 @@ func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
+func (t RedditServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes, username string, sigID keybase1.SigID) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return

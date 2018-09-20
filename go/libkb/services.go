@@ -82,7 +82,7 @@ func (t BaseServiceType) LastWriterWins() bool                               { r
 func (t BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { return nil, nil }
 func (t BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }
 
-func (t BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes) (string, error) {
+func (t BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes, username string, sigID keybase1.SigID) (string, error) {
 	return ppr.Text, nil
 }
 
