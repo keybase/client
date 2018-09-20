@@ -350,6 +350,8 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
+const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+
 export {
   accountResultToAccount,
   assetsResultToAssets,
@@ -398,5 +400,6 @@ export {
   sendReceiveFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
+  shortenAccountID,
   statusSimplifiedToString,
 }

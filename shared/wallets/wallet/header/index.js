@@ -1,9 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Constants from '../../../constants/wallets'
+import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
 
 type Props = {
+  accountID: Types.AccountID,
   isDefaultWallet: boolean,
   onReceive: () => void,
   onSendToAnotherAccount: () => void,
@@ -11,7 +14,7 @@ type Props = {
   onSendToStellarAddress: () => void,
   onSettings: () => void,
   onShowSecretKey: () => void,
-  keybaseUser?: string,
+  keybaseUser: string,
   walletName: ?string,
 }
 
@@ -24,9 +27,9 @@ const Header = (props: Props) => (
     gapEnd={true}
     style={styles.noShrink}
   >
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
+    <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
-        {props.keybaseUser && <Kb.Avatar size={16} username={props.keybaseUser} />}
+        {props.isDefaultWallet && <Kb.Avatar size={16} username={props.keybaseUser} />}
         {props.walletName ? (
           <Kb.Text selectable={true} type="BodyBig">
             {props.walletName}
@@ -35,8 +38,13 @@ const Header = (props: Props) => (
           <Kb.ProgressIndicator style={styles.spinner} type="Small" />
         )}
       </Kb.Box2>
+      {props.isDefaultWallet && (
+        <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
+          <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>
+        </Kb.Box2>
+      )}
       <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-        {props.isDefaultWallet && <Kb.Text type="BodySmall">Default Keybase account</Kb.Text>}
+        <SmallAccountID accountID={props.accountID} />
       </Kb.Box2>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
@@ -148,6 +156,33 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
           position="bottom center"
         />
       </Kb.ClickableBox>
+    )
+  }
+}
+
+type SmallAccountIDProps = {
+  accountID: Types.AccountID,
+}
+class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boolean}> {
+  state = {expanded: false}
+  _expand = () => this.setState(s => (s.expanded ? null : {expanded: true}))
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.accountID !== this.props.accountID && this.state.expanded) {
+      this.setState({expanded: false})
+    }
+  }
+
+  render() {
+    return (
+      <Kb.Text
+        type="BodySmall"
+        className={this.state.expanded ? '' : 'hover-underline'}
+        selectable={this.state.expanded}
+        onClick={this.state.expanded ? null : () => this._expand()}
+      >
+        {this.state.expanded ? this.props.accountID : Constants.shortenAccountID(this.props.accountID)}
+      </Kb.Text>
     )
   }
 }
