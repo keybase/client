@@ -29,40 +29,40 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
-export const getRequestMessageInfo = (state: TypedState, message: Types.MessageRequestPayment) => {
-  if (message.requestInfo) {
-    return message.requestInfo
-  }
+export const getRequestMessageInfo = (
+  state: TypedState,
+  message: Types.MessageRequestPayment
+): ?MessageTypes.ChatRequestInfo => {
   const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
   if (!maybeRequestInfo) {
-    return null
+    return message.requestInfo
   }
-  if (maybeRequestInfo.type !== 'requestInfo') {
-    throw new Error(
-      `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
-        message.conversationIDKey
-      } msgID: ${message.id}`
-    )
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
   }
-  return maybeRequestInfo
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
 }
 
-export const getPaymentMessageInfo = (state: TypedState, message: Types.MessageSendPayment) => {
-  if (message.paymentInfo) {
-    return message.paymentInfo
-  }
+export const getPaymentMessageInfo = (
+  state: TypedState,
+  message: Types.MessageSendPayment
+): ?MessageTypes.ChatPaymentInfo => {
   const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
   if (!maybePaymentInfo) {
-    return null
+    return message.paymentInfo
   }
-  if (maybePaymentInfo.type !== 'paymentInfo') {
-    throw new Error(
-      `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
-        message.conversationIDKey
-      } msgID: ${message.id}`
-    )
+  if (maybePaymentInfo.type === 'paymentInfo') {
+    return maybePaymentInfo
   }
-  return maybePaymentInfo
+  throw new Error(
+    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
 }
 
 // Map service message types to our message types.
