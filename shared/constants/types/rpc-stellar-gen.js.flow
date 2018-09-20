@@ -165,6 +165,7 @@ export const localParticipantType = {
   keybase: 1,
   stellar: 2,
   sbs: 3,
+  ownaccount: 4,
 }
 
 export const localPaymentStatus = {
@@ -183,7 +184,7 @@ export const remotePaymentSummaryType = {
   relay: 3,
 }
 export type AccountAssetLocal = $ReadOnly<{name: String, assetCode: String, issuerName: String, issuerAccountID: String, balanceTotal: String, balanceAvailableToSend: String, worthCurrency: String, worth: String, availableToSendWorth: String, reserves?: ?Array<AccountReserve>}>
-export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readPaymentID?: ?PaymentID}>
+export type AccountDetails = $ReadOnly<{accountID: AccountID, seqno: String, balances?: ?Array<Balance>, subentryCount: Int, available: String, reserves?: ?Array<AccountReserve>, readTransactionID?: ?TransactionID}>
 export type AccountID = String
 export type AccountMode =
   | 0 // NONE_0
@@ -231,13 +232,14 @@ export type ParticipantType =
   | 1 // KEYBASE_1
   | 2 // STELLAR_2
   | 3 // SBS_3
+  | 4 // OWNACCOUNT_4
 
 export type PaymentCLILocal = $ReadOnly<{txID: TransactionID, time: TimeMs, status: String, statusDetail: String, amount: String, asset: Asset, displayAmount?: ?String, displayCurrency?: ?String, fromStellar: AccountID, toStellar?: ?AccountID, fromUsername?: ?String, toUsername?: ?String, toAssertion?: ?String, note: String, noteErr: String}>
 export type PaymentDetails = $ReadOnly<{summary: PaymentSummary, memo: String, memoType: String}>
-export type PaymentDetailsLocal = $ReadOnly<{id: PaymentID, txID: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
+export type PaymentDetailsLocal = $ReadOnly<{id: PaymentID, txID: TransactionID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, fromType: ParticipantType, toType: ParticipantType, fromAccountID: AccountID, fromAccountName: String, fromUsername: String, toAccountID?: ?AccountID, toAccountName: String, toUsername: String, toAssertion: String, note: String, noteErr: String, publicNote: String, publicNoteType: String}>
 export type PaymentDirectPost = $ReadOnly<{fromDeviceID: Keybase1.DeviceID, to?: ?Keybase1.UserVersion, displayAmount: String, displayCurrency: String, noteB64: String, signedTransaction: String, quickReturn: Boolean}>
 export type PaymentID = $ReadOnly<{txID: TransactionID}>
-export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, source: String, sourceType: ParticipantType, target: String, targetType: ParticipantType, note: String, noteErr: String, unread: Boolean}>
+export type PaymentLocal = $ReadOnly<{id: PaymentID, time: TimeMs, statusSimplified: PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, amountDescription: String, delta: BalanceDelta, worth: String, worthCurrency: String, fromType: ParticipantType, toType: ParticipantType, fromAccountID: AccountID, fromAccountName: String, fromUsername: String, toAccountID?: ?AccountID, toAccountName: String, toUsername: String, toAssertion: String, note: String, noteErr: String, unread: Boolean}>
 export type PaymentNotificationMsg = $ReadOnly<{accountID: AccountID, paymentID: PaymentID}>
 export type PaymentOrErrorCLILocal = $ReadOnly<{payment?: ?PaymentCLILocal, err?: ?String}>
 export type PaymentOrErrorLocal = $ReadOnly<{payment?: ?PaymentLocal, err?: ?String}>
@@ -267,7 +269,7 @@ export type PaymentSummaryType =
   | 2 // DIRECT_2
   | 3 // RELAY_3
 
-export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
+export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?TransactionID}>
 export type PaymentsPageLocal = $ReadOnly<{payments?: ?Array<PaymentOrErrorLocal>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
 export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String, autoClaimToken?: ?String}>
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>

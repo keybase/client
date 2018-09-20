@@ -468,9 +468,9 @@
         {
           "type": [
             null,
-            "PaymentID"
+            "TransactionID"
           ],
-          "name": "readPaymentID"
+          "name": "readTransactionID"
         }
       ]
     },
@@ -495,7 +495,7 @@
         {
           "type": [
             null,
-            "PaymentID"
+            "TransactionID"
           ],
           "name": "oldestUnread"
         }
@@ -688,7 +688,7 @@
         },
         {
           "name": "mostRecentID",
-          "type": "PaymentID"
+          "type": "TransactionID"
         }
       ],
       "response": null

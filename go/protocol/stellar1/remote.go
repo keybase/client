@@ -423,13 +423,13 @@ func (o PaymentDetails) DeepCopy() PaymentDetails {
 }
 
 type AccountDetails struct {
-	AccountID     AccountID        `codec:"accountID" json:"accountID"`
-	Seqno         string           `codec:"seqno" json:"seqno"`
-	Balances      []Balance        `codec:"balances" json:"balances"`
-	SubentryCount int              `codec:"subentryCount" json:"subentryCount"`
-	Available     string           `codec:"available" json:"available"`
-	Reserves      []AccountReserve `codec:"reserves" json:"reserves"`
-	ReadPaymentID *PaymentID       `codec:"readPaymentID,omitempty" json:"readPaymentID,omitempty"`
+	AccountID         AccountID        `codec:"accountID" json:"accountID"`
+	Seqno             string           `codec:"seqno" json:"seqno"`
+	Balances          []Balance        `codec:"balances" json:"balances"`
+	SubentryCount     int              `codec:"subentryCount" json:"subentryCount"`
+	Available         string           `codec:"available" json:"available"`
+	Reserves          []AccountReserve `codec:"reserves" json:"reserves"`
+	ReadTransactionID *TransactionID   `codec:"readTransactionID,omitempty" json:"readTransactionID,omitempty"`
 }
 
 func (o AccountDetails) DeepCopy() AccountDetails {
@@ -460,20 +460,20 @@ func (o AccountDetails) DeepCopy() AccountDetails {
 			}
 			return ret
 		})(o.Reserves),
-		ReadPaymentID: (func(x *PaymentID) *PaymentID {
+		ReadTransactionID: (func(x *TransactionID) *TransactionID {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.ReadPaymentID),
+		})(o.ReadTransactionID),
 	}
 }
 
 type PaymentsPage struct {
 	Payments     []PaymentSummary `codec:"payments" json:"payments"`
 	Cursor       *PageCursor      `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	OldestUnread *PaymentID       `codec:"oldestUnread,omitempty" json:"oldestUnread,omitempty"`
+	OldestUnread *TransactionID   `codec:"oldestUnread,omitempty" json:"oldestUnread,omitempty"`
 }
 
 func (o PaymentsPage) DeepCopy() PaymentsPage {
@@ -496,7 +496,7 @@ func (o PaymentsPage) DeepCopy() PaymentsPage {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Cursor),
-		OldestUnread: (func(x *PaymentID) *PaymentID {
+		OldestUnread: (func(x *TransactionID) *TransactionID {
 			if x == nil {
 				return nil
 			}
@@ -623,7 +623,7 @@ type PendingPaymentsArg struct {
 type MarkAsReadArg struct {
 	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID    AccountID            `codec:"accountID" json:"accountID"`
-	MostRecentID PaymentID            `codec:"mostRecentID" json:"mostRecentID"`
+	MostRecentID TransactionID        `codec:"mostRecentID" json:"mostRecentID"`
 }
 
 type PaymentDetailsArg struct {

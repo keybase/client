@@ -132,14 +132,14 @@ protocol remote {
     int subentryCount;  // number of entries in the ledger (which raise minimum balance)
     string available;   // for native XLM the amount that is available to send (amount - min balance)
     array<AccountReserve> reserves;
-    union { null, PaymentID } readPaymentID;
+    union { null, TransactionID } readTransactionID;
   }
   AccountDetails details(keybase1.UserVersion caller, AccountID accountID);
 
   record PaymentsPage {
     array<PaymentSummary> payments;
     union { null, PageCursor } cursor;
-    union { null, PaymentID } oldestUnread;  
+    union { null, TransactionID } oldestUnread;  
   }
   PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
 
@@ -147,7 +147,7 @@ protocol remote {
 
   // markAsRead will mark as "read" all the payments in an account created at or before the time 
   // of the payment referenced by `mostRecentID`.
-  void markAsRead(keybase1.UserVersion caller, AccountID accountID, PaymentID mostRecentID);
+  void markAsRead(keybase1.UserVersion caller, AccountID accountID, TransactionID mostRecentID);
 
   // txID can be either a keybase or stellar transaction ID.
   PaymentDetails paymentDetails(keybase1.UserVersion caller, string txID);

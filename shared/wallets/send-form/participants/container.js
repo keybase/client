@@ -1,9 +1,10 @@
 // @flow
 import Participants from '.'
 import * as RouteTree from '../../../actions/route-tree'
+import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import {getAccount, getAccountIDs} from '../../../constants/wallets'
+import {getAccount, getAccountIDs, searchKey} from '../../../constants/wallets'
 import {stringToAccountID} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
@@ -88,6 +89,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onShowProfile: (username: string) => {
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
   },
+  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
 })
 
 export default compose(

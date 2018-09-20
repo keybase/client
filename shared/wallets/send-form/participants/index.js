@@ -29,6 +29,7 @@ type ParticipantsProps = {|
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
 |}
 
@@ -52,6 +53,7 @@ const Participants = (props: ParticipantsProps) => (
       onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
+      onShowSuggestions={props.onShowSuggestions}
       recipientFullName={props.recipientFullName}
       recipientType={props.recipientType}
       recipientUsername={props.recipientUsername}

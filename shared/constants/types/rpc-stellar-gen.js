@@ -50,6 +50,7 @@ export const localParticipantType = {
   keybase: 1,
   stellar: 2,
   sbs: 3,
+  ownaccount: 4,
 }
 
 export const localPaymentStatus = {
