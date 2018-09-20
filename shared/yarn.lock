@@ -55,15 +55,15 @@
     source-map "^0.5.0"
 
 "@babel/core@^7.0.0":
-  version "7.0.1"
-  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.0.1.tgz#406658caed0e9686fa4feb5c2f3cefb6161c0f41"
+  version "7.1.0"
+  resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.1.0.tgz#08958f1371179f62df6966d8a614003d11faeb04"
   dependencies:
     "@babel/code-frame" "^7.0.0"
     "@babel/generator" "^7.0.0"
-    "@babel/helpers" "^7.0.0"
-    "@babel/parser" "^7.0.0"
-    "@babel/template" "^7.0.0"
-    "@babel/traverse" "^7.0.0"
+    "@babel/helpers" "^7.1.0"
+    "@babel/parser" "^7.1.0"
+    "@babel/template" "^7.1.0"
+    "@babel/traverse" "^7.1.0"
     "@babel/types" "^7.0.0"
     convert-source-map "^1.1.0"
     debug "^3.1.0"
@@ -226,7 +226,7 @@
     "@babel/traverse" "^7.0.0"
     "@babel/types" "^7.0.0"
 
-"@babel/helpers@7.0.0", "@babel/helpers@^7.0.0":
+"@babel/helpers@7.0.0", "@babel/helpers@^7.0.0", "@babel/helpers@^7.1.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babel/helpers/-/helpers-7.0.0.tgz#7213388341eeb07417f44710fd7e1d00acfa6ac0"
   dependencies:
@@ -254,7 +254,7 @@
     output-file-sync "^2.0.0"
     v8flags "^3.1.1"
 
-"@babel/parser@7.0.0", "@babel/parser@7.0.0-beta.53", "@babel/parser@^7.0.0":
+"@babel/parser@7.0.0", "@babel/parser@7.0.0-beta.53", "@babel/parser@^7.0.0", "@babel/parser@^7.1.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babel/parser/-/parser-7.0.0.tgz#697655183394facffb063437ddf52c0277698775"
 
@@ -724,7 +724,7 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
-"@babel/template@7.0.0", "@babel/template@^7.0.0":
+"@babel/template@7.0.0", "@babel/template@^7.0.0", "@babel/template@^7.1.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.0.0.tgz#c2bc9870405959c89a9c814376a2ecb247838c80"
   dependencies:
@@ -732,7 +732,7 @@
     "@babel/parser" "^7.0.0"
     "@babel/types" "^7.0.0"
 
-"@babel/traverse@7.0.0", "@babel/traverse@^7.0.0":
+"@babel/traverse@7.0.0", "@babel/traverse@^7.0.0", "@babel/traverse@^7.1.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babel/traverse/-/traverse-7.0.0.tgz#b1fe9b6567fdf3ab542cfad6f3b31f854d799a61"
   dependencies:
@@ -8607,6 +8607,10 @@ mem@^4.0.0:
     mimic-fn "^1.0.0"
     p-is-promise "^1.1.0"
 
+memoize-one@^3.1.1:
+  version "3.1.1"
+  resolved "http://registry.npmjs.org/memoize-one/-/memoize-one-3.1.1.tgz#ef609811e3bc28970eac2884eece64d167830d17"
+
 memoize-one@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.0.2.tgz#3fb8db695aa14ab9c0f1644e1585a8806adc1aee"
@@ -11268,6 +11272,10 @@ react-transition-group@^1.1.2:
     prop-types "^15.5.6"
     warning "^3.0.0"
 
+react-virtualized-auto-sizer@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#a61dd4f756458bbf63bd895a92379f9b70f803bd"
+
 react-vis@^1.10.4:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/react-vis/-/react-vis-1.11.1.tgz#9dca99fd252aacf9a5674ed45b4c40f7c207f26f"
@@ -11297,6 +11305,12 @@ react-waypoint@^8.0.3:
   dependencies:
     consolidated-events "^1.1.0 || ^2.0.0"
     prop-types "^15.0.0"
+
+react-window@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.1.2.tgz#1909e5e9bc0158531c18044b1f06ad91b11291e8"
+  dependencies:
+    memoize-one "^3.1.1"
 
 react@15.5.4:
   version "15.5.4"
