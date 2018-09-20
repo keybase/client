@@ -38,6 +38,7 @@ type configGetter interface {
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string

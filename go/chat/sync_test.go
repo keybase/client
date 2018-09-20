@@ -659,7 +659,7 @@ func TestSyncerBackgroundLoader(t *testing.T) {
 	}, 0, nil)
 	require.NoError(t, err)
 	require.NotNil(t, delMsg)
-	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+	require.NoError(t, hcs.storage.ClearAll(context.TODO(), conv.GetConvID(), uid))
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
 		conv.MaxMsgs = append(conv.MaxMsgs, *delMsg)
 		conv.MaxMsgSummaries = append(conv.MaxMsgSummaries, delMsg.Summary())

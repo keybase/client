@@ -255,7 +255,7 @@ protocol local {
     string toErrMsg;
 
     // Optional. `arg.to` may be an account ID that resolves to a user.
-    // If this is returned, caller should switch to (to=res.toUsername,toIsAccountID=false).
+    // If this is returned, caller could switch to (to=res.toUsername,toIsAccountID=false).
     string toUsername;
 
     // Optional. Error to show with the amount field.

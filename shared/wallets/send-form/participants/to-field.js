@@ -15,6 +15,7 @@ type ToFieldProps = {|
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
   // Used for sending to a stellar address.
   incorrect?: string,
@@ -160,6 +161,7 @@ class ToField extends React.Component<ToFieldProps> {
         <Search
           onClickResult={this.onSelectRecipient}
           onClose={() => {}}
+          onShowSuggestions={this.props.onShowSuggestions}
           onShowTracker={this.props.onShowProfile}
         />
       )
