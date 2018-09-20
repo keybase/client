@@ -1571,6 +1571,7 @@ export const simpleFSRevisionSpanType = {
 export const teamsAuditVersion = {
   v0: 0,
   v1: 1,
+  v2: 2,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {
@@ -1685,11 +1686,12 @@ export type AsyncOps =
   | 7 // LIST_RECURSIVE_TO_DEPTH_7
   | 8 // GET_REVISIONS_8
 
-export type Audit = $ReadOnly<{time: Time, maxMerkleSeqno: Seqno, maxChainSeqno: Seqno, maxMerkleProbe: Seqno}>
-export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}}>
+export type Audit = $ReadOnly<{time: Time, mms /* maxMerkleSeqno */: Seqno, mcs /* maxChainSeqno */: Seqno, mmp /* maxMerkleProbe */: Seqno}>
+export type AuditHistory = $ReadOnly<{ID: TeamID, public: Boolean, priorMerkleSeqno: Seqno, version: AuditVersion, audits?: ?Array<Audit>, preProbes: {[key: string]: Probe}, postProbes: {[key: string]: Probe}, tails: {[key: string]: LinkID}}>
 export type AuditVersion =
   | 0 // V0_0
   | 1 // V1_1
+  | 2 // V2_2
 
 export type AuthenticityType =
   | 0 // SIGNED_0
