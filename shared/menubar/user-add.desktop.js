@@ -45,7 +45,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
       <Input
         small={true}
         smallLabel={isPublic || !username ? '' : `${username},`}
-        smallLabelStyle={{marginRight: 0, color: globalColors.darkBlue, fontStyle: 'italic'}}
+        smallLabelStyle={{marginRight: 0, color: globalColors.darkBlue}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
