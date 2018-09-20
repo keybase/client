@@ -341,7 +341,7 @@ func ExtensionPostText(strConvID, strOutboxID, name string, public bool, members
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, err, strConvID, strOutboxID) }()
+	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "message") }()
 
 	defer func() {
@@ -390,7 +390,7 @@ func ExtensionPostImage(strConvID, strOutboxID, name string, public bool, member
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, err, strConvID, strOutboxID) }()
+	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
 	uid, err := assertLoggedInUID(ctx, gc)
@@ -444,7 +444,7 @@ func ExtensionPostVideo(strConvID, strOutboxID, name string, public bool, member
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, err, strConvID, strOutboxID) }()
+	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
 	uid, err := assertLoggedInUID(ctx, gc)
@@ -487,7 +487,7 @@ func ExtensionPostFile(strConvID, strOutboxID, name string, public bool, members
 	ctx := chat.Context(context.Background(), gc,
 		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
 	defer func() { err = flattenError(err) }()
-	defer func() { extensionRegisterFailure(ctx, err, strConvID, strOutboxID) }()
+	defer func() { extensionRegisterFailure(ctx, gc, err, strConvID, strOutboxID) }()
 	defer func() { extensionPushResult(pusher, err, strConvID, "file") }()
 
 	uid, err := assertLoggedInUID(ctx, gc)
