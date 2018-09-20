@@ -20,6 +20,9 @@ var vt100EscapeCodes = []EscapeCode{
 	EscapeCode{keyEscape, '[', '3', '5', 'm'},
 	EscapeCode{keyEscape, '[', '3', '6', 'm'},
 	EscapeCode{keyEscape, '[', '3', '7', 'm'},
+	EscapeCode{keyEscape, '[', '9', '0', 'm'},
+	// Reset foreground color
+	EscapeCode{keyEscape, '[', '3', '9', 'm'},
 	// Bold
 	EscapeCode{keyEscape, '[', '1', 'm'},
 	// Italic
@@ -28,6 +31,8 @@ var vt100EscapeCodes = []EscapeCode{
 	EscapeCode{keyEscape, '[', '4', 'm'},
 	// Reset bold
 	EscapeCode{keyEscape, '[', '2', '1', 'm'},
+	// Reset dim
+	EscapeCode{keyEscape, '[', '2', '2', 'm'},
 	// Reset italic
 	EscapeCode{keyEscape, '[', '2', '3', 'm'},
 	// Reset underline
