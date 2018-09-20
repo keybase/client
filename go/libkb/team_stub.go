@@ -79,6 +79,10 @@ func (n nullFastTeamLoader) HintLatestSeqno(_ MetaContext, _ keybase1.TeamID, _ 
 	return nil
 }
 
+func (n nullFastTeamLoader) VerifyTeamName(_ MetaContext, _ keybase1.TeamID, _ keybase1.TeamName, _ bool) error {
+	return nil
+}
+
 func (n nullFastTeamLoader) OnLogout() {}
 
 func newNullFastTeamLoader() nullFastTeamLoader { return nullFastTeamLoader{} }

@@ -281,21 +281,22 @@ func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string
 
 func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
-		Public:      public,
-		ForceRepoll: true,
-	})
+
+	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
 		return nil, err
 	}
-	tlfID, err := chat1.TeamIDToTLFID(team.ID)
+	id, err := teams.ResolveNameToIDForceRefresh(ctx, t.G().ExternalG(), teamName)
+	if err != nil {
+		return nil, err
+	}
+	tlfID, err := chat1.TeamIDToTLFID(id)
 	if err != nil {
 		return nil, err
 	}
 	return &types.NameInfo{
 		ID:            tlfID,
-		CanonicalName: team.Name().String(),
+		CanonicalName: teamName.String(),
 	}, nil
 }
 
@@ -305,17 +306,20 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 	if err != nil {
 		return nil, err
 	}
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      public,
-		ForceRepoll: true,
+
+	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
+	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
+		ID:           teamID,
+		Public:       teamID.IsPublic(),
+		ForceRefresh: true,
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.NameInfo{
 		ID:            tlfID,
-		CanonicalName: team.Name().String(),
+		CanonicalName: loadRes.Name.String(),
 	}, nil
 }
 
