@@ -15,25 +15,30 @@ type OwnProps = {
 const mapStateToProps = state => ({_badges: state.chat2.badgeMap, _metaMap: state.chat2.metaMap})
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {badgeCount, hiddenCount} = ownProps.showButton
-    ? stateProps._metaMap.reduce(
-        (acc, meta) => {
-          if (meta.teamType !== 'big') {
-            const id = meta.conversationIDKey
-            if (
-              Constants.isValidConversationIDKey(id) &&
-              !ownProps.rows.find(r => r.type === 'small' && r.conversationIDKey === id)
-            ) {
-              const count = stateProps._badges.get(id, 0)
-              acc.badgeCount += count
-              acc.hiddenCount++
-            }
-          }
-          return acc
-        },
-        {badgeCount: 0, hiddenCount: 0}
-      )
-    : {badgeCount: 0, hiddenCount: 0}
+  // we remove the badge count of the stuff we're showing
+  let badgeCount = 0
+  let hiddenCount = 0
+  ownProps.rows.forEach(row => {
+    if (row.type === 'small') {
+      badgeCount -= stateProps._badges.get(row.conversationIDKey, 0)
+      hiddenCount -= 1
+    }
+  })
+
+  if (ownProps.showButton) {
+    stateProps._metaMap.forEach(meta => {
+      if (meta.teamType === 'big') {
+        return
+      }
+      const id = meta.conversationIDKey
+      if (!Constants.isValidConversationIDKey(id)) {
+        return
+      }
+
+      badgeCount += stateProps._badges.get(id, 0)
+      hiddenCount++
+    })
+  }
 
   return {
     badgeCount,
