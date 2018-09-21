@@ -2,6 +2,7 @@ package teams
 
 import (
 	"fmt"
+	"math/rand"
 	"sort"
 
 	"github.com/keybase/client/go/kbfs"
@@ -294,4 +295,13 @@ func sortStringsFront(ss []string, front string) {
 		}
 		return a < b
 	})
+}
+
+func RandomPhoneNumber() string {
+	var numberRunes = []rune("0123456789")
+	ret := make([]rune, 8)
+	for i := range ret {
+		ret[i] = numberRunes[rand.Intn(len(numberRunes))]
+	}
+	return "00" + string(ret)
 }
