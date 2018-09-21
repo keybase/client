@@ -23,13 +23,10 @@ const lineClamp = (lines: number) => ({
 })
 
 const _blackNormalWhiteTerminal = {
-  Normal: globalColors.black_75,
   Terminal: globalColors.white,
 }
 
-const _blueLink = {
-  Normal: globalColors.blue,
-}
+const _blueLink = {}
 
 const metaData = {
   // Header
@@ -191,19 +188,11 @@ const metaData = {
       Normal: globalColors.blue3,
       Terminal: globalColors.blue3,
     },
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      lineHeight: '20px',
-    },
   },
   TerminalComment: {
     colorForBackgroundMode: {
       Normal: globalColors.blue3_40,
       Terminal: globalColors.blue3_40,
-    },
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      lineHeight: '20px',
     },
   },
   TerminalEmpty: {
@@ -211,25 +200,10 @@ const metaData = {
       Normal: globalColors.blue3_40,
       Terminal: globalColors.blue3_40,
     },
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      height: 20,
-      lineHeight: '20px',
-    },
   },
   TerminalInline: {
     colorForBackgroundMode: {
       Normal: globalColors.darkBlue,
-    },
-    styleOverride: {
-      ...globalStyles.fontTerminal,
-      backgroundColor: globalColors.blue4,
-      borderRadius: 2,
-      display: 'inline-block',
-      lineHeight: '16px',
-      height: 17,
-      padding: 2,
-      wordWrap: 'break-word',
     },
   },
 }

@@ -2,9 +2,9 @@
 import React, {Component} from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
-import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
+import {defaultColor, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {desktopStyles} from '../styles'
+import {desktopStyles, globalColors} from '../styles'
 import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
@@ -94,26 +94,26 @@ function getStyle(
   selectable: ?boolean
 ) {
   const meta = metaData[type]
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
-  const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
+  const colorStyle =
+    backgroundMode === 'Normal'
+      ? null
+      : {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
-        userSelect: 'text',
         cursor: 'text',
+        userSelect: 'text',
       }
     : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
 
   return {
     ...colorStyle,
-    ...cursorStyle,
     ...lineClampStyle,
     ...clickableStyle,
     ...selectableStyle,
     ...textDecoration,
-    ...meta.styleOverride,
   }
 }
 export {getStyle}

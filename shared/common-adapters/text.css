@@ -20,7 +20,7 @@
     font-weight: 800;
 }
 
-.text_header {
+.text_Header {
     font-size: 16px;
     line-height: 20px;
     color: rgba(0, 0, 0, 0.75);
@@ -134,6 +134,10 @@
     font-family: OpenSans;
     font-weight: 400;
 }
+
+.text_BodySmallPrimaryLink {
+}
+
 .text_BodySmallExtrabold {
     font-size: 12px;
     line-height: 16px;
@@ -154,9 +158,6 @@
     font-family: OpenSans;
     font-weight: 600;
 }
-
-
-
 
 .text_BodySmallSecondaryLink {
     font-size: 12px;
@@ -229,4 +230,58 @@
     text-rendering: optimizeLegibility;
     font-family: OpenSans;
     font-weight: 600;
+}
+
+
+.text_BodySmallSemibold {
+    font-size: 12px;
+    line-height: 16px;
+    color: rgba(0, 0, 0, 0.40);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: OpenSans;
+    font-weight: 600;
+}
+
+
+.text_Terminal {
+    font-size: 13px;
+    line-height: 20px;
+    color: #A8CCFF;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+}
+
+.text_TerminalComment {
+font-size: 13px;
+    line-height: 20px;
+    color: rgba(168, 204, 255, 0.4);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+}
+
+.text_TerminalEmpty {
+    font-size: 13px;
+    line-height: 20px;
+    color: rgba(168, 204, 255, 0.4);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+    height: 20px;
+}
+
+.text_TerminalInline {
+    font-size: 13px;
+    line-height: 16px;
+    color: #2645A3;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: Source Code Pro;
+    background-color: #EBF2FC;
+    border-radius: 2px;
+    height: 17px;
+    padding: 2px;
+    word-wrap: break-word;
 }
