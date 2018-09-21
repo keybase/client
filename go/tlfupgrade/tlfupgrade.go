@@ -2,6 +2,7 @@ package tlfupgrade
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -10,7 +11,9 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
 type BackgroundTLFUpdater struct {
@@ -79,6 +82,7 @@ func (b *BackgroundTLFUpdater) runAll() {
 		b.shutdownCh = make(chan struct{})
 		b.running = true
 		go b.runAppType(keybase1.TeamApplication_CHAT)
+		go b.runAppType(keybase1.TeamApplication_KBFS)
 	}
 }
 
@@ -183,6 +187,18 @@ func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, t
 	switch appType {
 	case keybase1.TeamApplication_CHAT:
 		b.upgradeTLFForChat(ctx, tlfName, tlfID, public)
+	case keybase1.TeamApplication_KBFS:
+		ft := keybase1.FolderType_PRIVATE
+		if public {
+			ft = keybase1.FolderType_PUBLIC
+		}
+		if err := b.upgradeTLFForKBFS(ctx, keybase1.Folder{
+			Name:       tlfName,
+			Private:    !public,
+			FolderType: ft,
+		}); err != nil {
+			b.debug(ctx, "upgradeTLF: KBFS upgrade failed: %s", err)
+		}
 	default:
 		b.debug(ctx, "upgradeTLF: unknown app type: %v", appType)
 	}
@@ -193,11 +209,52 @@ func (b *BackgroundTLFUpdater) upgradeTLFForChat(ctx context.Context, tlfName st
 	chatTLFID, err := chat1.MakeTLFID(tlfID.String())
 	if err != nil {
 		b.debug(ctx, "upgradeTLFForChat: invalid TLFID: %s", err)
+		return
 	}
 	if err := b.chat().UpgradeKBFSToImpteam(ctx, tlfName, chatTLFID, public); err != nil {
 		b.debug(ctx, "upgradeTLFForChat: failed to upgrade TLFID for chat: tlfID: %v err: %s", tlfID, err)
+		return
 	}
 	if b.upgradeCh != nil {
 		*b.upgradeCh <- tlfID
 	}
+}
+
+func (b *BackgroundTLFUpdater) upgradeTLFForKBFS(ctx context.Context, folder keybase1.Folder) (err error) {
+	defer b.G().CTraceTimed(ctx, fmt.Sprintf("upgradeTLFForKBFS(%s)", folder.Name),
+		func() error { return err })()
+	// Set up KBFS connection
+	if b.G().ConnectionManager == nil {
+		return errors.New("not connection manager available")
+	}
+	xp := b.G().ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return libkb.KBFSNotRunningError{}
+	}
+	keysCli := &keybase1.TlfKeysClient{
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(b.G()), libkb.LogTagsFromContext),
+	}
+	upgradeCli := &keybase1.ImplicitTeamMigrationClient{
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(b.G()), libkb.LogTagsFromContext),
+	}
+
+	// Run migration
+	if err := upgradeCli.StartMigration(ctx, folder); err != nil {
+		return err
+	}
+	keysRes, err := keysCli.GetTLFCryptKeys(ctx, keybase1.TLFQuery{
+		TlfName:          folder.Name,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_DEFAULT_KBFS,
+	})
+	if err != nil {
+		return err
+	}
+	if err := teams.UpgradeTLFIDToImpteam(ctx, b.G(), folder.Name, keysRes.NameIDBreaks.TlfID,
+		!folder.Private, keybase1.TeamApplication_KBFS, keysRes.CryptKeys); err != nil {
+		return err
+	}
+	if err := upgradeCli.FinalizeMigration(ctx, folder); err != nil {
+		return err
+	}
+	return nil
 }
