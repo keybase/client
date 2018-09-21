@@ -22,8 +22,8 @@ func newContentTypeOverridingResponseWriter(
 	}
 }
 
-func (w *contentTypeOverridingResponseWriter) overrideMimeType(
-	mimeType string) (newMimeType string) {
+func (w *contentTypeOverridingResponseWriter) calculateOverride(
+	mimeType string) (newMimeType, disposition string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
 	// by the frontend WebView.
 	ty := strings.ToLower(mimeType)
@@ -34,23 +34,25 @@ func (w *contentTypeOverridingResponseWriter) overrideMimeType(
 		strings.Contains(ty, "xml") ||
 		strings.Contains(ty, "html") ||
 		strings.HasPrefix(ty, "text/"):
-		return "text/plain"
+		return "text/plain", "inline"
 	// Pass multimedia types through, and pdf too.
 	case strings.HasPrefix(ty, "audio/") ||
 		strings.HasPrefix(ty, "image/") ||
 		strings.HasPrefix(ty, "video/") ||
 		ty == "application/pdf":
-		return ty
-	// Otherwise default to binary data.
+		return ty, "inline"
+	// Otherwise default to text + attachment.
 	default:
-		return "application/octet-stream"
+		return "text/plain", "attachment"
 	}
 }
 
 func (w *contentTypeOverridingResponseWriter) override() {
 	t := w.original.Header().Get("Content-Type")
 	if len(t) > 0 {
-		w.original.Header().Set("Content-Type", w.overrideMimeType(t))
+		ct, disp := w.calculateOverride(t)
+		w.original.Header().Set("Content-Type", ct)
+		w.original.Header().Set("Content-Disposition", disp)
 	}
 	w.original.Header().Set("X-Content-Type-Options", "nosniff")
 }
