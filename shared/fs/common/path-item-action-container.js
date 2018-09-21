@@ -34,7 +34,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
         _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
       }
     : {
-        _showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+        _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
       }),
 
   ...(!isIOS
@@ -45,7 +45,7 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
 })
 
 type actions = {
-  showInFileUI?: () => void,
+  showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
   saveMedia?: (() => void) | 'disabled',
   shareNative?: (() => void) | 'disabled',
@@ -61,7 +61,7 @@ type MenuItemAppender = (
 
 const aShowIn: MenuItemAppender = (menuActions, stateProps, dispatchProps, path) => {
   if (!isMobile && stateProps._fileUIEnabled) {
-    menuActions.showInFileUI = dispatchProps._showInFileUI
+    menuActions.showInSystemFileManager = dispatchProps._showInSystemFileManager
   }
 }
 
@@ -168,7 +168,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         )
   const itemStyles = Constants.getItemStyles(pathElements, type, _username)
   const {
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,
@@ -197,7 +197,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     actionIconFontSize,
     actionIconWhite,
     // menu actions
-    showInFileUI,
+    showInSystemFileManager,
     ignoreFolder,
     saveMedia,
     shareNative,

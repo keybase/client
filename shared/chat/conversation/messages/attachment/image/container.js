@@ -30,7 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(FsGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
 })
 

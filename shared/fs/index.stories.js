@@ -65,9 +65,9 @@ const rowProviders = {
     ...ownProps,
     onOpen: () => {},
   }),
-  ConnectedOpenInFileUI: () => ({
+  ConnectedOpenInSystemFileManager: () => ({
     kbfsEnabled: false,
-    openInFileUI: Sb.action('openInFileUI'),
+    openInSystemFileManager: Sb.action('openInSystemFileManager'),
     installFuse: Sb.action('installFuse'),
   }),
 }
@@ -140,7 +140,7 @@ const provider = Sb.createPropProviderWithCommon({
     }),
     itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
     onDownload: () => {},
-    onShowInFileUI: () => {},
+    onShowInSystemFileManager: () => {},
     onShare: () => {},
     onSave: () => {},
   }),
@@ -152,7 +152,7 @@ const provider = Sb.createPropProviderWithCommon({
     }),
     onAction: () => {},
     onBack: () => {},
-    onShowInFileUI: () => {},
+    onShowInSystemFileManager: () => {},
     loadFilePreview: () => {},
     path: '/keybase/private/foo/bar.jpg',
   }),
