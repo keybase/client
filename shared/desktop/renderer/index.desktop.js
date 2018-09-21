@@ -24,6 +24,7 @@ import flags from '../../util/feature-flags'
 import InputMonitor from './input-monitor.desktop'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {skipAppFocusActions} from '../../local-debug.desktop'
+import {initDesktopStyles} from '../../styles/index.desktop'
 
 let _store
 function setupStore() {
@@ -202,6 +203,7 @@ function setupHMR(store) {
 }
 
 function load() {
+  initDesktopStyles()
   const store = setupStore()
   setupRoutes(store)
   setupApp(store)

@@ -110,6 +110,26 @@ export const backgroundURL = (...to: Array<string>) => {
   return ''
 }
 
+export const initDesktopStyles = () => {
+  const head = document.head
+  if (!head) {
+    console.error('initDesktopStyles failed')
+    return
+  }
+  const style = document.createElement('style')
+  style.type = 'text/css'
+  const css = Object.keys(globalColors).reduce((s, name) => {
+    const color = globalColors[name]
+    if (color) {
+      return s + `.color_${name} {color: ${color};}\n` + `.hover_color_${name}:hover {color: ${color};}\n`
+    } else {
+      return s
+    }
+  }, '')
+  style.appendChild(document.createTextNode(css))
+  head.appendChild(style)
+}
+
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
@@ -131,6 +151,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
+export {default as styled} from 'react-emotion'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
 export type {StylesCrossPlatform} from './index.types'

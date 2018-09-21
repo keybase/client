@@ -1,0 +1,13 @@
+/* Used by icon on desktop to speed up perf */
+.icon {
+    -webkit-font-smoothing: antialiased;
+    font-family: kb;
+    font-size: 16;
+    font-style: normal;
+    font-variant: normal;
+    font-weight: normal;
+    line-height: 1;
+    speak: none;
+    text-transform: none;
+    user-select: none;
+}
