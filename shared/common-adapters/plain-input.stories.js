@@ -5,7 +5,7 @@ import Box, {Box2} from './box'
 import Button from './button'
 import ButtonBar from './button-bar'
 import Text from './text'
-import {action, storiesOf} from '../stories/storybook'
+import {action, scrollViewDecorator, storiesOf} from '../stories/storybook'
 import {globalColors, globalMargins} from '../styles'
 
 const commonProps = {
@@ -19,10 +19,7 @@ const commonProps = {
   style: {borderWidth: 1, borderStyle: 'solid', borderColor: globalColors.black_10},
 }
 
-type TestInputState = {
-  value: string,
-}
-class TestInput extends React.Component<{}, TestInputState> {
+class TestInput extends React.Component<{multiline: boolean}, {value: string}> {
   state = {value: ''}
   // prettier-ignore
   _input = React.createRef<typeof PlainInput>()
@@ -34,7 +31,7 @@ class TestInput extends React.Component<{}, TestInputState> {
       if (selection) {
         this.setState(
           s => {
-            const value = s.value.substring(0, selection.start) + t + s.value.substring(selection.start)
+            const value = s.value.substring(0, selection.start) + t + s.value.substring(selection.end)
             return {value}
           },
           () => {
@@ -57,6 +54,7 @@ class TestInput extends React.Component<{}, TestInputState> {
           {...commonProps}
           ref={this._input}
           value={this.state.value}
+          multiline={this.props.multiline}
           onEnterKeyDown={() => this._insertText('foo')}
           onChangeText={v => this.setState(s => (s.value === v ? null : {value: v}))}
         />
@@ -69,7 +67,7 @@ class TestInput extends React.Component<{}, TestInputState> {
 }
 
 type ControlledInputState = {[key: string]: string}
-class ControlledInputPlayground extends React.Component<{}, ControlledInputState> {
+class ControlledInputPlayground extends React.Component<{multiline: boolean}, ControlledInputState> {
   state = {}
   mutationTarget = React.createRef()
   _onChangeText = (valueKey: string) => (t: string) => this.setState({[valueKey]: t})
@@ -104,24 +102,25 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
     }
   }
   render() {
+    const common = {...commonProps, multiline: this.props.multiline}
     return (
       <Box2 direction="vertical" fullWidth={true} gap="small" style={{padding: globalMargins.small}}>
         <Text type="Body">Basic controlled inputs</Text>
         <PlainInput
-          {...commonProps}
+          {...common}
           value={this.state.value1 || ''}
           onChangeText={this._onChangeText('value1')}
           placeholder={`type="text"`}
         />
         <PlainInput
-          {...commonProps}
+          {...common}
           value={this.state.value2 || ''}
           onChangeText={this._onChangeText('value2')}
           type="password"
           placeholder={`type="password"`}
         />
         <PlainInput
-          {...commonProps}
+          {...common}
           value={this.state.value3 || ''}
           onChangeText={this._onChangeText('value3')}
           type="number"
@@ -130,7 +129,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
         <Box2 direction="vertical" fullWidth={true} gap="small">
           <Text type="Body">Live mutations</Text>
           <PlainInput
-            {...commonProps}
+            {...common}
             ref={this.mutationTarget}
             value={this.state.changingValue || ''}
             onChangeText={this._onChangeChangingValue}
@@ -145,7 +144,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
             <Button type="Secondary" label="Run test" onClick={this._testCrossSelection} />
           </ButtonBar>
         </Box2>
-        <TestInput />
+        <TestInput multiline={this.props.multiline} />
       </Box2>
     )
   }
@@ -154,6 +153,7 @@ class ControlledInputPlayground extends React.Component<{}, ControlledInputState
 const load = () => {
   storiesOf('Common/Plain input', module)
     .addDecorator(story => <Box style={{padding: 20}}>{story()}</Box>)
+    .addDecorator(scrollViewDecorator)
     .add('Basic', () => <PlainInput {...commonProps} />)
     .add('Different text type', () => <PlainInput {...commonProps} textType="BodyExtrabold" />)
     .add('Larger text type', () => <PlainInput {...commonProps} textType="HeaderBig" />)
@@ -180,9 +180,9 @@ const load = () => {
     .add('With placeholder color', () => (
       <PlainInput {...commonProps} placeholder="I'm blue!" placeholderColor="blue" />
     ))
-
-  // Sandbox for testing controlled input bugginess
-  storiesOf('Common', module).add('Controlled input playground', () => <ControlledInputPlayground />)
+    // Sandbox for testing controlled input bugginess
+    .add('Controlled input playground', () => <ControlledInputPlayground multiline={false} />)
+    .add('Controlled input playground (multiline)', () => <ControlledInputPlayground multiline={true} />)
 }
 
 export default load
