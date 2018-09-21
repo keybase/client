@@ -96,6 +96,30 @@ class TransactionDetails extends React.Component<Props> {
   }
 
   render() {
+    const you = (
+      <NameWithIcon colorFollowing={true} horizontal={true} username={this.props.you} metaOne="You" />
+    )
+    const counterparty = (
+      <Counterparty
+        counterparty={this.props.counterparty}
+        counterpartyMeta={this.props.counterpartyMeta}
+        counterpartyType={this.props.counterpartyType}
+        isYou={false}
+        you={this.props.you}
+        yourRole={this.props.yourRole}
+      />
+    )
+
+    let sender
+    let receiver
+    if (Types.isSender(this.props.yourRole)) {
+      sender = you
+      receiver = counterparty
+    } else {
+      sender = counterparty
+      receiver = you
+    }
+
     return (
       <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
@@ -114,26 +138,12 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Sender:</Text>
-          <Counterparty
-            counterparty={this.props.counterparty}
-            counterpartyMeta={this.props.counterpartyMeta}
-            counterpartyType={this.props.counterpartyType}
-            isYou={Types.isSender(this.props.yourRole)}
-            you={this.props.you}
-            yourRole={this.props.yourRole}
-          />
+          {sender}
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Recipient:</Text>
-          <Counterparty
-            counterparty={this.props.counterparty}
-            counterpartyMeta={this.props.counterpartyMeta}
-            counterpartyType={this.props.counterpartyType}
-            isYou={!Types.isSender(this.props.yourRole)}
-            you={this.props.you}
-            yourRole={this.props.yourRole}
-          />
+          {receiver}
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
