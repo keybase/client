@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {glamorous, desktopStyles} from '../styles'
+import {desktopStyles} from '../styles'
 import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
@@ -62,26 +62,26 @@ class Text extends Component<Props> {
     if (!this.props.type) {
       throw new Error('Missing type on Text')
     }
-    const Span = glamorous.span(
-      getStyle(
-        this.props.type,
-        this.props.backgroundMode,
-        this.props.lineClamp,
-        !!this.props.onClick,
-        this.props.selectable
-      ),
-      this.props.style
-    )
 
     return (
-      <Span
+      <span
         title={this.props.title}
         ref={this.props.allowHighlightText ? this._setRef : undefined}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
+        style={{
+          ...getStyle(
+            this.props.type,
+            this.props.backgroundMode,
+            this.props.lineClamp,
+            !!this.props.onClick,
+            this.props.selectable
+          ),
+          ...this.props.style,
+        }}
       >
         {this.props.children}
-      </Span>
+      </span>
     )
   }
 }
@@ -118,7 +118,6 @@ function getStyle(
     ...meta.styleOverride,
   }
 }
-
 export {getStyle}
 
 export default Text
