@@ -34,6 +34,7 @@ function _specsForMobileOrDesktop() {
     http: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     https: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     dnsOrGenericWebSite: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
+    web: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     rooter: {icon: isMobile ? 'icon-website-64' : 'icon-website-48'},
     btc: {icon: isMobile ? 'icon-bitcoin-logo-64' : 'icon-bitcoin-logo-48'},
     zcash: {icon: isMobile ? 'icon-zcash-logo-64' : 'icon-zcash-logo-48'},
