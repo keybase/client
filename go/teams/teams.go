@@ -1741,14 +1741,10 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
 	})
 
-	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	latestKey, err := t.ApplicationKey(ctx, appType)
 	if err != nil {
 		return err
 	}
-	if len(teamKeys) == 0 {
-		return errors.New("no team keys for TLF associate")
-	}
-	latestKey := teamKeys[len(teamKeys)-1]
 	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
 	if err != nil {
 		return err
