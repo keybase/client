@@ -3,7 +3,7 @@ import {compose, connect, setDisplayName, type TypedState} from '../../util/cont
 import * as FsGen from '../../actions/fs-gen'
 import Downloads, {type DownloadsProps} from './downloads'
 import {isMobile} from '../../constants/platform'
-import {downloadFolder} from '../../util/file.desktop'
+import {downloadFolder} from '../../util/file'
 
 const mapStateToProps = (state: TypedState) => ({
   _downloads: state.fs.downloads,
