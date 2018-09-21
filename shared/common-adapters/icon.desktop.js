@@ -3,22 +3,24 @@ import * as Shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, styled, desktopStyles, collapseStyles} from '../styles'
+import {globalColors, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import Box from './box'
 import type {Props, IconType} from './icon'
+import {invert} from 'lodash-es'
 
-const StyledSpan = styled('span')(props => ({
-  color: props.color,
-  ...(props.hoverColor
-    ? {
-        ':hover': {
-          color: props.hoverColor,
-        },
-      }
-    : null),
-}))
+const invertedColors = invert(globalColors)
+
+// const StyledSpan = styled('span')(props => ({
+// color: props.color,
+// ...(props.hoverColor
+// ? {
+// ':hover': {
+// color: props.hoverColor,
+// },
+// }
+// : null),
+// }))
 
 class Icon extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
@@ -86,39 +88,59 @@ class Icon extends Component<Props, void> {
     if (hasContainer) {
       const cleanStyle = collapseStyles([
         {
-          fontFamily: 'kb',
-          speak: 'none',
-          fontStyle: 'normal',
-          fontWeight: 'normal',
-          fontVariant: 'normal',
-          textTransform: 'none',
-          lineHeight: 1,
           WebkitFontSmoothing: 'antialiased',
+          fontFamily: 'kb',
+          fontStyle: 'normal',
+          fontVariant: 'normal',
+          fontWeight: 'normal',
+          lineHeight: 1,
+          speak: 'none',
+          textTransform: 'none',
         },
         this.props.style,
       ])
 
+      let colorStyleName
+      let hoverStyleName
+      let inheritStyle
+
+      // TODO get rid of this concept
+      if (this.props.inheritColor) {
+        inheritStyle = {
+          color: 'inherit',
+          hoverColor: 'inherit',
+        }
+      } else {
+        const hoverColorName =
+          !this.props.inheritColor && this.props.onClick ? invertedColors[hoverColor] : null
+        hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
+        const colorName = invertedColors[color]
+        if (!colorName) {
+          throw new Error('Invalid color for icon, needs to be in stylesheet')
+        }
+        // colorStyleName = this.props.inheritColor ? '' : `color_${colorName}`
+      }
+
       return (
-        <Box style={this.props.boxStyle}>
-          <StyledSpan
+        <div style={this.props.boxStyle}>
+          <span
             alt={this.props.hint}
-            color={color}
             style={{
               ...desktopStyles.noSelect,
               ...styles.icon,
               ...fontSizeHint,
               ...(onClick ? desktopStyles.clickable : {}),
               ...cleanStyle,
+              ...inheritStyle,
             }}
-            className={this.props.className || ''}
-            onMouseEnter={this.props.onMouseEnter}
-            onMouseLeave={this.props.onMouseLeave}
-            hoverColor={onClick ? hoverColor : null}
+            className={[colorStyleName, hoverStyleName, this.props.className].filter(Boolean).join(' ')}
+            onMouseEnter={undefined /* this.props.onMouseEnter */}
+            onMouseLeave={undefined /* this.props.onMouseLeave */}
             onClick={onClick}
           >
             {iconElement}
-          </StyledSpan>
-        </Box>
+          </span>
+        </div>
       )
     } else {
       return iconElement
