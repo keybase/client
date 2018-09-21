@@ -124,16 +124,7 @@ const Detail = (props: DetailProps) => {
     </React.Fragment>
   )
 
-  if (props.yourRole === 'senderAndReceiver') {
-    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    return (
-      <Text type={textTypeSemibold}>
-        {verbPhrase} {amount} from this account to itself.
-      </Text>
-    )
-  }
-
-  const counterparty = (
+  const counterparty = () => (
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
@@ -144,38 +135,53 @@ const Detail = (props: DetailProps) => {
     />
   )
 
-  if (props.counterpartyType === 'otherAccount') {
-    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    if (Types.isSender(props.yourRole)) {
+  switch (props.yourRole) {
+    case 'senderOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from this account to {counterparty()}.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'Sending' : 'You sent'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} to {counterparty()}.
+          </Text>
+        )
+      }
+    case 'receiverOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from {counterparty()} to this account.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'sending' : 'sent you'
+        return (
+          <Text type={textTypeSemibold}>
+            {counterparty()} {verbPhrase} {amount}.
+          </Text>
+        )
+      }
+    case 'senderAndReceiver':
+      const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold}>
-          {verbPhrase} {amount} from this account to {counterparty}.
+          {verbPhrase} {amount} from this account to itself.
         </Text>
       )
-    }
-
-    return (
-      <Text type={textTypeSemibold}>
-        {verbPhrase} {amount} from {counterparty} to this account.
-      </Text>
-    )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
+      */
+      throw new Error(`Unexpected role ${props.yourRole}`)
   }
-
-  if (Types.isSender(props.yourRole)) {
-    const verbPhrase = props.pending ? 'Sending' : 'You sent'
-    return (
-      <Text type={textTypeSemibold}>
-        {verbPhrase} {amount} to {counterparty}.
-      </Text>
-    )
-  }
-
-  const verbPhrase = props.pending ? 'sending' : 'sent you'
-  return (
-    <Text type={textTypeSemibold}>
-      {counterparty} {verbPhrase} {amount}.
-    </Text>
-  )
 }
 
 type AmountXLMProps = {|
