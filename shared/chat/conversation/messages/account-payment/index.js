@@ -10,7 +10,13 @@ import {
   Text,
   type IconType,
 } from '../../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 
 export type Props = {|
   action: string,
@@ -37,7 +43,7 @@ const AccountPayment = (props: Props) => {
         <Box2
           direction="horizontal"
           gap="xtiny"
-          style={{...styles.headingContainer, marginBottom: globalMargins.xtiny}}
+          style={collapseStyles([styles.headingContainer, {marginBottom: globalMargins.xtiny}])}
         >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
