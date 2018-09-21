@@ -1,6 +1,6 @@
 // @flow
-import {globalStyles, globalColors} from '../styles'
-import type {MetaType, TextType, Background} from './text'
+import {globalColors} from '../styles'
+import type {Background} from './text'
 
 function defaultColor(backgroundMode: ?Background) {
   return {
@@ -26,8 +26,6 @@ const _blackNormalWhiteTerminal = {
   Terminal: globalColors.white,
 }
 
-const _blueLink = {}
-
 const metaData = {
   // Header
   HeaderBig: {
@@ -46,7 +44,6 @@ const metaData = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
   },
   HeaderLink: {
-    colorForBackgroundMode: _blueLink,
     isLink: true,
   },
   // Body big
@@ -54,7 +51,6 @@ const metaData = {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
   },
   BodyBigLink: {
-    colorForBackgroundMode: _blueLink,
     isLink: true,
   },
   BodyBigExtrabold: {
@@ -75,7 +71,6 @@ const metaData = {
   },
   BodySemiboldLink: {
     colorForBackgroundMode: {
-      ..._blueLink,
       Terminal: globalColors.white,
     },
     isLink: true,

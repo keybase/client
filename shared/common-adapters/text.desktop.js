@@ -97,7 +97,11 @@ function getStyle(
   const colorStyle =
     backgroundMode === 'Normal'
       ? null
-      : {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+      : {
+          color:
+            (meta.colorForBackgroundMode && meta.colorForBackgroundMode[backgroundMode]) ||
+            defaultColor(backgroundMode),
+        }
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? desktopStyles.clickable : null
   const selectableStyle = selectable

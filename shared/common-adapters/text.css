@@ -136,6 +136,14 @@
 }
 
 .text_BodySmallPrimaryLink {
+    font-size: 12px;
+    line-height: 16px;
+    color: #4C8EFF;
+    cursor: pointer;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: OpenSans;
+    font-weight: 600;
 }
 
 .text_BodySmallExtrabold {
