@@ -785,6 +785,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInSystemFileManager:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openLocalPathInSystemFileManager:
+      return `Failed to open path: ${action.payload.path}.`
     default:
       return 'An unexplainable error has occurred.'
   }
