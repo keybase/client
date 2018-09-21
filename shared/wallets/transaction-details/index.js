@@ -5,6 +5,7 @@ import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
+import {SmallAccountID} from '../common'
 
 type Role = 'sender' | 'receiver'
 
@@ -12,7 +13,7 @@ export type Props = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
   delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
@@ -23,6 +24,8 @@ export type Props = {|
   onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  recipientAccountID: ?Types.AccountID,
+  senderAccountID: Types.AccountID,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -33,8 +36,9 @@ export type Props = {|
 |}
 
 type CounterpartyProps = {|
+  accountID: ?Types.AccountID,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
   isYou: boolean,
   you: string,
@@ -43,7 +47,15 @@ type CounterpartyProps = {|
 
 const Counterparty = (props: CounterpartyProps) => {
   if (props.isYou) {
-    return <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+    return (
+      <NameWithIcon
+        colorFollowing={true}
+        horizontal={true}
+        username={props.you}
+        metaOne="You"
+        metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
+      />
+    )
   }
 
   if (props.counterpartyType === 'keybaseUser') {
@@ -53,6 +65,7 @@ const Counterparty = (props: CounterpartyProps) => {
         horizontal={true}
         username={props.counterparty}
         metaOne={props.counterpartyMeta}
+        metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
       />
     )
   }
@@ -119,6 +132,7 @@ class TransactionDetails extends React.Component<Props> {
         <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Sender:</Text>
           <Counterparty
+            accountID={this.props.senderAccountID}
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
@@ -131,6 +145,7 @@ class TransactionDetails extends React.Component<Props> {
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Recipient:</Text>
           <Counterparty
+            accountID={this.props.recipientAccountID}
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}

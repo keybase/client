@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import {stringToAccountID} from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -32,6 +33,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="sender"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -46,12 +49,15 @@ const load = () => {
         counterparty="G43289XXXXX34OPL"
         onBack={Sb.action('onBack')}
         title="Details"
+        counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
         delta="decrease"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
         yourRole="sender"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -73,6 +79,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="sender"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -94,6 +102,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -116,6 +126,8 @@ const load = () => {
         amountXLM="53.1688643 XLM"
         yourRole="receiver"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
@@ -127,11 +139,14 @@ const load = () => {
       <TransactionDetails
         counterparty="Second account"
         counterpartyType="otherAccount"
+        counterpartyMeta={null}
         delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
         yourRole="receiver"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         onBack={Sb.action('onBack')}
         title="Details"
         timestamp={yesterday}
