@@ -33,16 +33,9 @@ type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  isYou: boolean,
-  you: string,
-  yourRole: Types.Role,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
-  if (props.isYou) {
-    return <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
-  }
-
   if (props.counterpartyType === 'keybaseUser') {
     return (
       <NameWithIcon
@@ -104,9 +97,6 @@ class TransactionDetails extends React.Component<Props> {
         counterparty={this.props.counterparty}
         counterpartyMeta={this.props.counterpartyMeta}
         counterpartyType={this.props.counterpartyType}
-        isYou={false}
-        you={this.props.you}
-        yourRole={this.props.yourRole}
       />
     )
 
