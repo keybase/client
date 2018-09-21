@@ -20,7 +20,7 @@ type CmdSimpleFSUpgrade struct {
 	public  bool
 }
 
-// NewCmdSimpleFSPs creates a new cli.Command.
+// NewCmdSimpleFSUpgrade creates a new cli.Command.
 func NewCmdSimpleFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "upgrade",
@@ -38,7 +38,6 @@ func NewCmdSimpleFSUpgrade(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 	}
 }
 
-// Run runs the command in client/server mode.
 func (c *CmdSimpleFSUpgrade) Run() error {
 	cli, err := GetKBFSClient(c.G())
 	if err != nil {
