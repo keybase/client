@@ -5,8 +5,8 @@ import Box from './box'
 import Text from './text'
 import {globalColors, globalStyles, isMobile, platformStyles} from '../styles'
 
-const SmallGap = () => <Box style={{minHeight: 24}} />
-const LargeGap = () => <Box style={{minHeight: 36}} />
+const SmallGap = () => <Box style={{minHeight: 0 /* 24 */}} />
+const LargeGap = () => <Box style={{minHeight: 0 /* 36 */}} />
 
 const displayBlock = {
   style: platformStyles({
@@ -112,9 +112,9 @@ const mapText = (secondary: boolean) => {
           {types.label}
         </Text>
       )
-      for (let i = 0; i < 50; ++i) {
-        items.push(item(types.type + i + 3))
-      }
+      // for (let i = 0; i < 50; ++i) {
+      // items.push(item(types.type + i + 3))
+      // }
       items.push(item(types.type + '1'))
       items.push(item(types.type + '2'))
       items.push(<SmallGap key={types.type} />)

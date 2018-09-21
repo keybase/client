@@ -41,13 +41,13 @@ class Text extends Component<Props> {
 
   _className(props: Props) {
     const meta = metaData[props.type]
-    const classNames = [props.className]
+    const classNames = [`text_${props.type}`, props.className]
     if (props.underline) {
       classNames.push('underline')
     } else if (meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal')) {
       classNames.push('hover-underline')
     }
-    return classNames.join(' ') || undefined
+    return classNames.filter(Boolean).join(' ') || undefined
   }
 
   _urlClick = (e: MouseEvent) => {
@@ -94,7 +94,6 @@ function getStyle(
   selectable: ?boolean
 ) {
   const meta = metaData[type]
-  const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
@@ -108,7 +107,6 @@ function getStyle(
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
 
   return {
-    ...sizeStyle,
     ...colorStyle,
     ...cursorStyle,
     ...lineClampStyle,
