@@ -297,18 +297,18 @@ const paymentToYourRoleAndCounterparty = (
     if (p.source !== p.target) {
       throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
     }
-    return {yourRole: Types.senderAndReceiver, counterparty: p.source, counterpartyType: 'otherAccount'}
+    return {yourRole: 'senderAndReceiver', counterparty: p.source, counterpartyType: 'otherAccount'}
   }
 
   if (p.delta === 'increase') {
     return {
-      yourRole: Types.receiverOnly,
+      yourRole: 'receiverOnly',
       counterparty: p.source,
       counterpartyType: partyTypeToCounterpartyType(p.sourceType),
     }
   } else if (p.delta === 'decrease') {
     return {
-      yourRole: Types.senderOnly,
+      yourRole: 'senderOnly',
       counterparty: p.target,
       counterpartyType: partyTypeToCounterpartyType(p.targetType),
     }

@@ -13,10 +13,6 @@ export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTy
 // from an account to itself.
 export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 
-export const senderOnly: Role = 'senderOnly'
-export const receiverOnly: Role = 'receiverOnly'
-export const senderAndReceiver: Role = 'senderAndReceiver'
-
 export const isSender = (r: Role) => r === 'senderOnly' || r === 'senderAndReceiver'
 
 export const isReceiver = (r: Role) => r === 'receiverOnly' || r === 'senderAndReceiver'

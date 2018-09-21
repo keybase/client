@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Types from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import Transaction from '.'
@@ -17,29 +16,13 @@ const beforeLastWeek = moment(now)
   .subtract(8, 'days')
   .toDate()
 
-export const roleToString = (r: Types.Role): string => {
-  switch (r) {
-    case Types.senderOnly:
-      return 'sender'
-    case Types.receiverOnly:
-      return 'receiver'
-    case Types.senderAndReceiver:
-      return 'send to self'
-  }
-  return 'unknown role'
-}
-
 const singleEmojiMemo = '🎁'
 const shortMemo = 'Short memo.'
 const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
-  const roles = [
-    {yourRole: Types.senderOnly},
-    {yourRole: Types.senderAndReceiver},
-    {yourRole: Types.receiverOnly},
-  ]
+  const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
   const sizes = [{large: true}, {large: false}]
   const memosAndTimes = [
     {memo: shortMemo, timestamp: yesterday},
@@ -51,7 +34,7 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 
   roles.forEach(r => {
     sizes.forEach(s => {
-      stories.add(namePrefix + ` (${roleToString(r.yourRole)} - ${s.large ? 'large' : 'small'})`, () => {
+      stories.add(namePrefix + ` (${r.yourRole} - ${s.large ? 'large' : 'small'})`, () => {
         const components = []
         memosAndTimes.forEach(t => {
           components.push(

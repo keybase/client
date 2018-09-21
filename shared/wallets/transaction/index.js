@@ -287,7 +287,7 @@ export type Props = {|
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
-    props.large && !(props.yourRole === Types.receiverOnly && props.counterpartyType === 'stellarPublicKey')
+    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.onSelectTransaction}>
