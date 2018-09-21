@@ -83,32 +83,39 @@ const colorForStatus = (status: Types.StatusSimplified) => {
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) =>
   status === 'completed' ? (Types.isReceiver(yourRole) ? 'Received' : 'Sent') : capitalize(status)
 
+const propsToParties = (props: Props) => {
+  const you = <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+  const counterparty = (
+    <Counterparty
+      counterparty={props.counterparty}
+      counterpartyMeta={props.counterpartyMeta}
+      counterpartyType={props.counterpartyType}
+    />
+  )
+
+  switch (props.yourRole) {
+    case 'senderOnly':
+      return {sender: you, receiver: counterparty}
+    case 'receiverOnly':
+      return {sender: counterparty, receiver: you}
+    case 'senderAndReceiver':
+      return {sender: you, receiver: counterparty}
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
+      */
+      throw new Error(`Unexpected role ${props.yourRole}`)
+  }
+}
+
 class TransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
 
   render() {
-    const you = (
-      <NameWithIcon colorFollowing={true} horizontal={true} username={this.props.you} metaOne="You" />
-    )
-    const counterparty = (
-      <Counterparty
-        counterparty={this.props.counterparty}
-        counterpartyMeta={this.props.counterpartyMeta}
-        counterpartyType={this.props.counterpartyType}
-      />
-    )
-
-    let sender
-    let receiver
-    if (Types.isSender(this.props.yourRole)) {
-      sender = you
-      receiver = counterparty
-    } else {
-      sender = counterparty
-      receiver = you
-    }
+    const {sender, receiver} = propsToParties(this.props)
 
     return (
       <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
