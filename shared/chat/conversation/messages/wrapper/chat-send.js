@@ -85,12 +85,17 @@ class SendIndicator extends React.Component<Props, State> {
     } else if (!props.failed && state.lastfailed) {
       iconStatus = 'sending'
     }
-    return {
-      ...state,
-      iconStatus,
-      lastFailed: props.failed,
-      lastSent: props.sent,
+
+    if (props.failed !== state.lastFailed || props.sent !== state.lastSent) {
+      return {
+        ...state,
+        iconStatus,
+        lastFailed: props.failed,
+        lastSent: props.sent,
+      }
     }
+    // Return null to indicate no change to state.
+    return null
   }
 
   componentDidUpdate(prevProps, prevState) {

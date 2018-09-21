@@ -49,8 +49,8 @@ class RetentionPicker extends React.Component<Props, State> {
     selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,
-    prevPolicy: nil,
-    prevTeamPolicy: nil,
+    prevPolicy: null,
+    prevTeamPolicy: null,
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
@@ -105,17 +105,17 @@ class RetentionPicker extends React.Component<Props, State> {
   _setDropdownRef = ref => (this._dropdownRef = ref)
   _getDropdownRef = () => this._dropdownRef
 
-  static makeItems(props: Props) {
+  _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
-    if (props.showInheritOption) {
+    if (this.props.showInheritOption) {
       policies.unshift(retentionPolicies.policyInherit)
     }
     const items = policies.map(policy => {
       if (policy.type === 'retain') {
         return {title: 'Never auto-delete', onClick: () => this._onSelect(policy)}
       } else if (policy.type === 'inherit') {
-        if (props.teamPolicy) {
-          return {title: policyToInheritLabel(props.teamPolicy), onClick: () => this._onSelect(policy)}
+        if (this.props.teamPolicy) {
+          return {title: policyToInheritLabel(this.props.teamPolicy), onClick: () => this._onSelect(policy)}
         } else {
           throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
         }
@@ -145,39 +145,34 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (
-      !policyEquals(nextProps.policy, this.props.policy) ||
-      !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
-    ) {
-      if (policyEquals(nextProps.policy, this.state.selected)) {
-        // we just got updated retention policy matching the selected one
-        this._setSaving(false)
-      } // we could show a notice that we received a new value in an else block
-      this._makeItems()
-      this._setInitialSelected(nextProps.policy)
-    }
-  }
   
   static getDerivedStateFromProps(props, state) {
-    let saving = state.saving
     if (
       !policyEquals(props.policy, state.prevPolicy) ||
       !policyEquals(props.teamPolicy, state.prevTeamPolicy)
     ) {
+      let saving = state.saving
       if (policyEquals(props.policy, state.selected)) {
         // we just got updated retention policy matching the selected one
         saving = false
       } // we could show a notice that we received a new value in an else block
       
-      this._setInitialSelected(nextProps.policy)
       return {
         ...state,
+        items: null, // to be populated in componentDidUpdate
         saving,
-        items: makeItems(nextProps),
         prevPolicy: props.policy,
         prevTeamPolicy: props.teamPolicy,
       }
+    }
+    // Return null to indicate no change to state.
+    return null
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.items === null) {
+      this._makeItems()
+      this._setInitialSelected(this.props.policy)
     }
   }
 
