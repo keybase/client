@@ -17,17 +17,18 @@ const mapStateToProps = (state: TypedState, ownProps) => {
     status === 'pending'
       ? Constants.getPendingPayment(state, accountID, paymentID)
       : Constants.getPayment(state, accountID, paymentID)
-  const yourRole = Constants.paymentToYourRole(_transaction, you)
-  const counterpartyType = Constants.paymentToCounterpartyType(_transaction)
+  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(_transaction)
   return {
     _transaction,
     counterpartyMeta:
-      counterpartyType === 'keybaseUser'
-        ? getFullname(state, yourRole === 'sender' ? _transaction.target : _transaction.source)
+      yourRoleAndCounterparty.counterpartyType === 'keybaseUser'
+        ? getFullname(
+            state,
+            yourRoleAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
+          )
         : null,
-    counterpartyType,
     you,
-    yourRole,
+    yourRoleAndCounterparty,
   }
 }
 
@@ -39,14 +40,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const {yourRole, counterpartyType} = stateProps
   return {
+    ...stateProps.yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    counterparty: yourRole === 'sender' ? tx.target : tx.source,
     counterpartyMeta: stateProps.counterpartyMeta,
-    counterpartyType,
-    delta: tx.delta,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
@@ -59,7 +57,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     timestamp: new Date(tx.time),
     title: 'Transaction details',
     transactionID: tx.txID,
-    yourRole,
     you: stateProps.you,
   }
 }

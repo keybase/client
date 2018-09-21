@@ -1,5 +1,6 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
+import * as FsTypes from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, type TypedState} from '../../util/container'
 import {privateFolderWithUsers} from '../../constants/config'
@@ -16,7 +17,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   _onOpenPrivateFolder: (myUsername, username) => {
     if (myUsername && username) {
-      dispatch(FsGen.createOpenInFileUI({path: privateFolderWithUsers([username, myUsername])}))
+      dispatch(
+        FsGen.createOpenPathInFilesTab({
+          path: FsTypes.stringToPath(privateFolderWithUsers([username, myUsername])),
+        })
+      )
     }
   },
   _onStartChat: (username: string) => {

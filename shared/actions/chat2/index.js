@@ -1604,11 +1604,12 @@ const _maybeAutoselectNewestConversation = (
 
 const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
-  const path =
+  const path = FsTypes.stringToPath(
     meta.teamType !== 'adhoc'
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
-  return Saga.put(FsGen.createOpenInFileUI({path}))
+  )
+  return Saga.put(FsGen.createOpenPathInFilesTab({path}))
 }
 
 const getRecommendations = (
