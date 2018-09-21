@@ -288,10 +288,12 @@ const paymentToYourRoleAndCounterparty = (
   p: Types.Payment
 ): {yourRole: Types.Role, counterparty: string, counterpartyType: Types.CounterpartyType} => {
   if (p.delta === 'none') {
-    if (p.sourceType !== 'ownaccount') {
+    // Need to guard check that sourceType is non-empty to handle the
+    // case when p is the empty value.
+    if (p.sourceType && p.sourceType !== 'ownaccount') {
       throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
     }
-    if (p.targetType !== 'ownaccount') {
+    if (p.targetType && p.targetType !== 'ownaccount') {
       throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
     }
     if (p.source !== p.target) {

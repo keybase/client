@@ -271,7 +271,7 @@ export type Props = {|
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   large: boolean,
-  // Ignored if yourRole is receiver and counterpartyType is
+  // Ignored if yourRole is receiverOnly and counterpartyType is
   // stellarPublicKey.
   memo: string,
   onCancelPayment?: () => void,
