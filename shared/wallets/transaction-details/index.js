@@ -99,6 +99,8 @@ const propsToParties = (props: Props) => {
     case 'receiverOnly':
       return {sender: counterparty, receiver: you}
     case 'senderAndReceiver':
+      // Even if we sent money from an account to itself, show the
+      // account details as the recipient.
       return {sender: you, receiver: counterparty}
     default:
       /*::
