@@ -42,6 +42,9 @@ class FilterSmallTeam extends PureComponent<Props, State> {
     isHovered: false,
   }
 
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     const props = this.props
     return (
@@ -51,8 +54,8 @@ class FilterSmallTeam extends PureComponent<Props, State> {
       >
         <HoverBox
           style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}
-          onMouseLeave={() => this.setState({isHovered: false})}
-          onMouseOver={() => this.setState({isHovered: true})}
+          onMouseLeave={this._onMouseLeave}
+          onMouseOver={this._onMouseOver}
         >
           {props.teamname ? (
             <TeamAvatar

@@ -36,6 +36,9 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
     isHovered: false,
   }
 
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
@@ -44,8 +47,8 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
             styles.filteredRow,
             this.props.isSelected && {backgroundColor: globalColors.blue},
           ])}
-          onMouseLeave={() => this.setState({isHovered: false})}
-          onMouseOver={() => this.setState({isHovered: true})}
+          onMouseLeave={this._onMouseLeave}
+          onMouseOver={this._onMouseOver}
         >
           <TeamAvatar
             teamname={this.props.teamname}
