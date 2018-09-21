@@ -317,9 +317,9 @@ const paymentToYourRoleAndCounterparty = (
 
     default:
       /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
-  */
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
+      */
       throw new Error(`Unexpected delta ${p.delta}`)
   }
 }
