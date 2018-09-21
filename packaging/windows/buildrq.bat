@@ -12,11 +12,11 @@ for /f %%i in ('..\..\keybase\winresource.exe -cb') do set KEYBASE_BUILD=%%i
 ..\..\keybase\winresource.exe  -d "Keybase quiet start utility" -n "keybaserq.exe" -i ../../../media/icons/Keybase.ico
 go build -ldflags "-H windowsgui" -o keybaserq.exe
 
-SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com keybaserq.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 keybaserq.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 keybaserq.exe
+SignTool.exe sign /i digicert /a /as /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 keybaserq.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
