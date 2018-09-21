@@ -184,15 +184,25 @@ type AmountXLMProps = {|
   pending: boolean,
 |}
 
-const AmountXLM = (props: AmountXLMProps) => {
-  let color = globalColors.black
-  if (props.pending) {
-    color = globalColors.black_20
-  } else if (props.yourRole === Types.senderOnly) {
-    color = globalColors.red
-  } else if (props.yourRole === Types.receiverOnly) {
-    color = globalColors.green
+const roleToColor = (role: Types.Role): string => {
+  switch (role) {
+    case 'senderOnly':
+      return globalColors.red
+    case 'receiverOnly':
+      return globalColors.green
+    case 'senderAndReceiver':
+      return globalColors.black
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
   }
+}
+
+const AmountXLM = (props: AmountXLMProps) => {
+  const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
 
   let amount = '0 XLM'
   if (props.yourRole === Types.senderOnly) {
