@@ -223,7 +223,7 @@ func TestChangeWalletName(t *testing.T) {
 		}
 	}
 
-	chk("", "")
+	chk("", "name required")
 	chk("office lunch money", "")
 	chk("savings", "")
 	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
