@@ -182,7 +182,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
           />
         )}
         <IsTyping
-          style={collapseStyles([styles.typing, {opacity: this.props.typing.size > 0 ? 1 : 0}])}
+          style={collapseStyles([styles.typing, this.props.typing.size > 0 && styles.visibleTyping])}
           typing={this.props.typing}
         />
         <Box style={styles.container}>
@@ -377,7 +377,11 @@ const styles = styleSheetCreate({
     bottom: 2,
     height: 16,
     left: 3,
+    opacity: 0,
     position: 'relative',
+  },
+  visibleTyping: {
+    opacity: 1,
   },
 })
 
