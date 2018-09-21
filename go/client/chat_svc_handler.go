@@ -635,10 +635,13 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            opts.Query,
 		IsRegex:          opts.IsRegex,
-		MaxHits:          opts.MaxHits,
-		MaxMessages:      opts.MaxMessages,
-		BeforeContext:    opts.BeforeContext,
-		AfterContext:     opts.AfterContext,
+		Opts: chat1.SearchOpts{
+			SentBy:        opts.SentBy,
+			MaxHits:       opts.MaxHits,
+			MaxMessages:   opts.MaxMessages,
+			BeforeContext: opts.BeforeContext,
+			AfterContext:  opts.AfterContext,
+		},
 	}
 
 	res, err := client.GetSearchRegexp(ctx, arg)

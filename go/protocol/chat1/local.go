@@ -4674,11 +4674,7 @@ type GetSearchRegexpArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Query            string                       `codec:"query" json:"query"`
 	IsRegex          bool                         `codec:"isRegex" json:"isRegex"`
-	SentBy           string                       `codec:"sentBy" json:"sentBy"`
-	MaxHits          int                          `codec:"maxHits" json:"maxHits"`
-	MaxMessages      int                          `codec:"maxMessages" json:"maxMessages"`
-	BeforeContext    int                          `codec:"beforeContext" json:"beforeContext"`
-	AfterContext     int                          `codec:"afterContext" json:"afterContext"`
+	Opts             SearchOpts                   `codec:"opts" json:"opts"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
