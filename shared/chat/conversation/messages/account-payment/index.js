@@ -35,7 +35,7 @@ const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
     <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
       <ProgressIndicator style={styles.progressIndicator} />
-      <Text type="BodySmall">loading Stellar ledger...</Text>
+      <Text type="BodySmall">loading...</Text>
     </Box2>
   ) : (
     <React.Fragment>
