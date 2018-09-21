@@ -3,13 +3,13 @@ import * as Shared from './icon.shared'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
+import {globalColors, styled, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import Box from './box'
 import type {Props, IconType} from './icon'
 
-const StyledSpan = glamorous.span(props => ({
+const StyledSpan = styled('span')(props => ({
   color: props.color,
   ...(props.hoverColor
     ? {

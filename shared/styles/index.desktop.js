@@ -131,6 +131,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
 export {default as glamorous} from 'glamorous'
+export {default as styled} from 'react-emotion'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
 export type {StylesCrossPlatform} from './index.types'

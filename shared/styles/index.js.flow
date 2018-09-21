@@ -63,9 +63,14 @@ declare export var windowStyle: {
   height: number,
 }
 
+// TODO deprecated
 declare export function glamorous(
   Component: any // React.ComponentType<P>
 ): (...styles: Array<any>) => any // React.Component<P>
+
+declare export function styled(
+  Component: any // React.ComponentType<P>
+): (...styles: Array<CSS.StylesCrossPlatform | (any => CSS.StylesCrossPlatform)>) => any // React.Component<P>
 
 declare export var isAndroid: boolean
 declare export var isIOS: boolean
