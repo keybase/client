@@ -201,15 +201,27 @@ const roleToColor = (role: Types.Role): string => {
   }
 }
 
+const getAmount = (role: Types.Role, amountXLM: string): string => {
+  switch (role) {
+    case 'senderOnly':
+      return `- ${amountXLM}`
+    case 'receiverOnly':
+      return `+ ${amountXLM}`
+    case 'senderAndReceiver':
+      return '0 XLM'
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
+  }
+}
+
 const AmountXLM = (props: AmountXLMProps) => {
   const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
 
-  let amount = '0 XLM'
-  if (props.yourRole === Types.senderOnly) {
-    amount = `- ${props.amountXLM}`
-  } else if (props.yourRole === Types.receiverOnly) {
-    amount = `+ ${props.amountXLM}`
-  }
+  const amount = getAmount(props.yourRole, props.amountXLM)
   return (
     <Text
       onClick={event => event.stopPropagation()}
