@@ -287,40 +287,41 @@ const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
 const paymentToYourRoleAndCounterparty = (
   p: Types.Payment
 ): {yourRole: Types.Role, counterparty: string, counterpartyType: Types.CounterpartyType} => {
-  if (p.delta === 'none') {
-    // Need to guard check that sourceType is non-empty to handle the
-    // case when p is the empty value.
-    if (p.sourceType && p.sourceType !== 'ownaccount') {
-      throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
-    }
-    if (p.targetType && p.targetType !== 'ownaccount') {
-      throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
-    }
-    if (p.source !== p.target) {
-      throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
-    }
-    return {yourRole: 'senderAndReceiver', counterparty: p.source, counterpartyType: 'otherAccount'}
-  }
+  switch (p.delta) {
+    case 'none':
+      // Need to guard check that sourceType is non-empty to handle the
+      // case when p is the empty value.
+      if (p.sourceType && p.sourceType !== 'ownaccount') {
+        throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
+      }
+      if (p.targetType && p.targetType !== 'ownaccount') {
+        throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
+      }
+      if (p.source !== p.target) {
+        throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
+      }
+      return {yourRole: 'senderAndReceiver', counterparty: p.source, counterpartyType: 'otherAccount'}
 
-  if (p.delta === 'increase') {
-    return {
-      yourRole: 'receiverOnly',
-      counterparty: p.source,
-      counterpartyType: partyTypeToCounterpartyType(p.sourceType),
-    }
-  } else if (p.delta === 'decrease') {
-    return {
-      yourRole: 'senderOnly',
-      counterparty: p.target,
-      counterpartyType: partyTypeToCounterpartyType(p.targetType),
-    }
-  }
+    case 'increase':
+      return {
+        yourRole: 'receiverOnly',
+        counterparty: p.source,
+        counterpartyType: partyTypeToCounterpartyType(p.sourceType),
+      }
+    case 'decrease':
+      return {
+        yourRole: 'senderOnly',
+        counterparty: p.target,
+        counterpartyType: partyTypeToCounterpartyType(p.targetType),
+      }
 
-  /*::
+    default:
+      /*::
     declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
     ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
   */
-  throw new Error(`Unexpected delta ${p.delta}`)
+      throw new Error(`Unexpected delta ${p.delta}`)
+  }
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
