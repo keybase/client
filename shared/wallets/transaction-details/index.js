@@ -80,8 +80,26 @@ const colorForStatus = (status: Types.StatusSimplified) => {
   }
 }
 
-const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) =>
-  status === 'completed' ? (Types.isReceiver(yourRole) ? 'Received' : 'Sent') : capitalize(status)
+const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
+  if (status !== 'completed') {
+    return capitalize(status)
+  }
+
+  switch (yourRole) {
+    case 'senderOnly':
+      return 'Sent'
+    case 'receiverOnly':
+      return 'Received'
+    case 'senderAndReceiver':
+      return 'Sent'
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
+      */
+      throw new Error(`Unexpected role ${yourRole}`)
+  }
+}
 
 const propsToParties = (props: Props) => {
   const you = <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
