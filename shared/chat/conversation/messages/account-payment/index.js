@@ -10,7 +10,7 @@ import {
   Text,
   type IconType,
 } from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   action: string,
@@ -34,7 +34,11 @@ const AccountPayment = (props: Props) => {
   ) : (
     <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
-        <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
+        <Box2
+          direction="horizontal"
+          gap="xtiny"
+          style={{...styles.headingContainer, marginBottom: globalMargins.xtiny}}
+        >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
             {props.action}{' '}
