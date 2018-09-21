@@ -7,10 +7,10 @@ import {WalletPopup} from '../../../../common'
 type Props = Kb.PropsWithTimer<{|
   name: string,
   loading: boolean,
+  waiting: boolean,
   onCopyKey: () => void,
   onFinish: () => void,
   onCancel: () => void,
-  waitingKey: string,
   onLoadSecretKey: () => void,
 |}>
 
@@ -52,14 +52,15 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             type="Wallet"
             ref={r => (this._attachmentRef = r)}
             waiting={this.props.loading}
+            disabled={this.props.waiting}
           />,
-          <Kb.WaitingButton
+          <Kb.Button
             fullWidth={Styles.isMobile}
             key={1}
             label="Finish"
             onClick={this.props.onFinish}
             type="Secondary"
-            waitingKey={this.props.waitingKey}
+            waiting={this.props.waiting}
             disabled={this.props.loading}
           />,
         ]}

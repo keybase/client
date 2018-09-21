@@ -84,6 +84,14 @@
       "accountID": "Types.AccountID",
       "name": "string",
     },
+    "changedAccountName": {
+      "_description": "A response from the service after an account's name is changed",
+      "accountID": "Types.AccountID",
+      "canError": {
+        "name": "string",
+        "error": "string",
+      }
+    },
     "setAccountAsDefault": {
       "_description": "Change the default account",
       "accountID": "Types.AccountID",

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Looper;
-import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
 

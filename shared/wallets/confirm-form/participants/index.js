@@ -13,7 +13,6 @@ type ParticipantsProps = {|
   // Must have a recipient user, stellar address, or account
   recipientUsername?: string,
   recipientFullName?: string,
-  onShowProfile?: string => void,
   recipientStellarAddress?: string,
   recipientAccountName?: string,
   recipientAccountAssets?: string,
@@ -28,13 +27,13 @@ const Participants = (props: ParticipantsProps) => {
         throw new Error('Recipient type keybaseUser requires prop recipientUsername')
       }
       toFieldContent = (
-        <Kb.NameWithIcon
+        <Kb.ConnectedNameWithIcon
           colorFollowing={true}
           horizontal={true}
           username={props.recipientUsername}
           metaOne={props.recipientFullName}
           avatarStyle={styles.avatar}
-          onClick={props.onShowProfile}
+          onClick="tracker"
         />
       )
       break

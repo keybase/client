@@ -15,10 +15,10 @@ const warningProps = {
 const reallyProps = {
   name: 'awesome account',
   loading: false,
+  waiting: false,
   onCancel: Sb.action('onCancel'),
   onFinish: Sb.action('onFinish'),
   onCopyKey: Sb.action('onCopyKey'),
-  waitingKey: 'waitingKey',
   onLoadSecretKey: Sb.action('onLoadSecretKey'),
 }
 
@@ -35,7 +35,7 @@ const load = () => {
         onAccept={Sb.action('onAccept')}
         onClose={Sb.action('onClose')}
         username="cecileb"
-        waitingKey="waitingKey"
+        waiting={false}
       />
     ))
 }

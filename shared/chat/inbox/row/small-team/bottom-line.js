@@ -94,7 +94,9 @@ class BottomLine extends PureComponent<Props> {
           )
           break
         default:
-          snippetDecoration = this.props.snippetDecoration
+          snippetDecoration = this.props.snippetDecoration ? (
+            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+          ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
@@ -144,7 +146,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     flexGrow: 1,
-    height: 17,
+    height: isMobile ? 21 : 17,
     position: 'relative',
   },
   rekeyNeededContainer: {

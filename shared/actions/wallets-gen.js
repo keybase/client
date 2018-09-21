@@ -20,6 +20,7 @@ export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
+export const changedAccountName = 'wallets:changedAccountName'
 export const clearBuildingPayment = 'wallets:clearBuildingPayment'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearErrors = 'wallets:clearErrors'
@@ -85,6 +86,11 @@ type _ChangeAccountNamePayload = $ReadOnly<{|
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|
   accountID: Types.AccountID,
   code: Types.CurrencyCode,
+|}>
+type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _ChangedAccountNamePayloadError = $ReadOnly<{|
+  name: string,
+  error: string,
 |}>
 type _ClearBuildingPaymentPayload = void
 type _ClearBuiltPaymentPayload = void
@@ -191,6 +197,11 @@ export const createDeletedAccount = (payload: _DeletedAccountPayload) => ({error
  * A response from the service after an account is set as the default
  */
 export const createDidSetAccountAsDefault = (payload: _DidSetAccountAsDefaultPayload) => ({error: false, payload, type: didSetAccountAsDefault})
+/**
+ * A response from the service after an account's name is changed
+ */
+export const createChangedAccountName = (payload: _ChangedAccountNamePayload) => ({error: false, payload, type: changedAccountName})
+export const createChangedAccountNameError = (payload: _ChangedAccountNamePayloadError) => ({error: true, payload, type: changedAccountName})
 /**
  * Add a new wallet to your account
  */
@@ -401,6 +412,8 @@ export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceive
 export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequestPayload>
 export type ChangeAccountNamePayload = $Call<typeof createChangeAccountName, _ChangeAccountNamePayload>
 export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurrency, _ChangeDisplayCurrencyPayload>
+export type ChangedAccountNamePayload = $Call<typeof createChangedAccountName, _ChangedAccountNamePayload>
+export type ChangedAccountNamePayloadError = $Call<typeof createChangedAccountNameError, _ChangedAccountNamePayloadError>
 export type ClearBuildingPaymentPayload = $Call<typeof createClearBuildingPayment, _ClearBuildingPaymentPayload>
 export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
 export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
@@ -460,6 +473,8 @@ export type Actions =
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload
+  | ChangedAccountNamePayload
+  | ChangedAccountNamePayloadError
   | ClearBuildingPaymentPayload
   | ClearBuiltPaymentPayload
   | ClearErrorsPayload

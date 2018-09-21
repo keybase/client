@@ -14,7 +14,6 @@ const followingStateToStyle = (followingState: Types.FollowingState) => {
       color: globalColors.blue,
     },
     You: {
-      fontStyle: 'italic',
       color: globalColors.black_75,
     },
   }[followingState]

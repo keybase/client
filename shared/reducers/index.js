@@ -5,7 +5,6 @@ import config from './config'
 import dev from './dev'
 import devices from './devices'
 import entities from './entities'
-import favorite from './favorite'
 import fs from './fs'
 import git from './git'
 import gregor from './gregor'
@@ -36,7 +35,6 @@ const reducers = {
   dev,
   devices,
   entities,
-  favorite,
   fs,
   git,
   gregor,

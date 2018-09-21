@@ -156,8 +156,14 @@ const BOOL isSimulator = NO;
     [super didReceiveMemoryWarning];
 }
 
-- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSData*))resultCb  {
+- (void)createVideoPreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,int,NSString*,NSData*))resultCb  {
   NSError *error = NULL;
+  NSString* path = [url relativePath];
+  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
+  if (error != nil) {
+    NSLog(@"MIME type error, setting to Quicktime: %@", error);
+    mimeType = @"video/quicktime";
+  }
   CMTime time = CMTimeMake(1, 1);
   AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:url options:nil];
   AVAssetImageGenerator *generateImg = [[AVAssetImageGenerator alloc] initWithAsset:asset];
@@ -169,24 +175,49 @@ const BOOL isSimulator = NO;
   UIImage* original = [UIImage imageWithCGImage:cgOriginal];
   UIImage* scaled = [UIImage imageWithCGImage:cgThumb];
   NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  resultCb(duration, original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
   CGImageRelease(cgOriginal);
   CGImageRelease(cgThumb);
 }
 
-- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSData*))resultCb  {
-  UIImage* original = [UIImage imageWithData:[NSData dataWithContentsOfURL:url]];
+- (void)createImagePreview:(NSURL*)url resultCb:(void (^)(int,int,int,int,NSString*,NSData*))resultCb  {
+  NSError* error = nil;
+  NSString* path = [url relativePath];
+  NSData* imageDat = [NSData dataWithContentsOfURL:url];
+  NSString* mimeType = KeybaseExtensionDetectMIMEType(path, &error);
+  if (error != nil) {
+    NSLog(@"createImagePreview: MIME type error, setting to JPEG: %@", error);
+    mimeType = @"image/jpeg";
+  }
+  // If this GIF is small enough, then we can probably create the real preview in
+  // Go, so let's give it a shot.
+  if ([mimeType isEqualToString:@"image/gif"] && imageDat.length < 10*1024*1024) {
+    NSLog(@"createImagePreview: not generating preview for small GIF");
+    resultCb(0, 0, 0, 0, mimeType, nil);
+    return;
+  }
+  
+  UIImage* original = [UIImage imageWithData:imageDat];
   CFURLRef cfurl = CFBridgingRetain(url);
   CGImageSourceRef is = CGImageSourceCreateWithURL(cfurl, nil);
   NSDictionary* opts = [[NSDictionary alloc] initWithObjectsAndKeys:
                         (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
-                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                        (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageAlways,
                         [NSNumber numberWithInt:640], (id)kCGImageSourceThumbnailMaxPixelSize,
                         nil];
   CGImageRef image = CGImageSourceCreateThumbnailAtIndex(is, 0, (CFDictionaryRef)opts);
   UIImage* scaled = [UIImage imageWithCGImage:image];
-  NSData* preview = UIImageJPEGRepresentation(scaled, 0.7);
-  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, preview);
+  NSData* preview = nil;
+  if ([mimeType isEqualToString:@"image/png"]) {
+    preview = UIImagePNGRepresentation(scaled);
+  } else if ([mimeType isEqualToString:@"image/gif"]) {
+    // We aren't going to be playing this in the thread, so let's just
+    // use a JPEG
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  } else {
+    preview = UIImageJPEGRepresentation(scaled, 0.7);
+  }
+  resultCb(original.size.width, original.size.height, scaled.size.width, scaled.size.height, mimeType, preview);
   CGImageRelease(image);
   CFRelease(cfurl);
   CFRelease(is);
@@ -206,12 +237,22 @@ const BOOL isSimulator = NO;
   NSString* name = self.convTarget[@"Name"];
   NSNumber* membersType = self.convTarget[@"MembersType"];
   NSItemProviderCompletionHandler urlHandler = ^(NSURL* url, NSError* error) {
-    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, pusher, &error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+    if (error != nil) {
+      NSLog(@"failed to register send: %@", error);
+    } else {
+      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], self.contentText, pusher, &error);
+    }
     [self maybeCompleteRequest:lastItem];
   };
   
   NSItemProviderCompletionHandler textHandler = ^(NSString* text, NSError* error) {
-    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], text, pusher, &error);
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+    if (error != nil) {
+      NSLog(@"failed to register send: %@", error);
+    } else {
+      KeybaseExtensionPostText(convID, outboxID, name, NO, [membersType longValue], text, pusher, &error);
+    }
     [self maybeCompleteRequest:lastItem];
   };
   
@@ -224,24 +265,32 @@ const BOOL isSimulator = NO;
       [self maybeCompleteRequest:lastItem];
       return;
     }
+    NSString* outboxID = KeybaseExtensionRegisterSend(convID, pusher, &error);
+    if (error != nil) {
+      NSLog(@"failed to register send: %@", error);
+      [self maybeCompleteRequest:lastItem];
+      return;
+    }
     NSString* filePath = [url relativePath];
     if ([item hasItemConformingToTypeIdentifier:@"public.movie"]) {
       // Generate image preview here, since it runs out of memory easy in Go
-      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+      [self createVideoPreview:url resultCb:^(int duration, int baseWidth, int baseHeight, int previewWidth, int previewHeight,
+                                              NSString* mimeType, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostVideo(convID, name, NO, [membersType longValue], self.contentText, filePath,
+        KeybaseExtensionPostVideo(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
                                  duration, baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else if ([item hasItemConformingToTypeIdentifier:@"public.image"]) {
       // Generate image preview here, since it runs out of memory easy in Go
-      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight, NSData* preview) {
+      [self createImagePreview:url resultCb:^(int baseWidth, int baseHeight, int previewWidth, int previewHeight,
+                                              NSString* mimeType, NSData* preview) {
         NSError* error = NULL;
-        KeybaseExtensionPostJPEG(convID, name, NO, [membersType longValue], self.contentText, filePath,
-                                 baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
+        KeybaseExtensionPostImage(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, mimeType,
+                                  baseWidth, baseHeight, previewWidth, previewHeight, preview, pusher, &error);
       }];
     } else {
       NSError* error = NULL;
-      KeybaseExtensionPostFile(convID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
+      KeybaseExtensionPostFile(convID, outboxID, name, NO, [membersType longValue], self.contentText, filePath, pusher, &error);
     }
     [self maybeCompleteRequest:lastItem];
   };

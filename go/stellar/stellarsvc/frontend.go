@@ -37,23 +37,11 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	for _, account := range bundle.Accounts {
-		acct := stellar1.WalletAccountLocal{
-			AccountID: account.AccountID,
-			IsDefault: account.IsPrimary,
-			Name:      account.Name,
-		}
-
-		details, err := s.remoter.Details(ctx, acct.AccountID)
-		if err != nil {
-			s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", acct.AccountID, err)
-			return nil, err
-		}
-		acct.BalanceDescription, err = balanceList(details.Balances).balanceDescription()
+	for _, entry := range bundle.Accounts {
+		acct, err := s.accountLocal(ctx, entry)
 		if err != nil {
 			return nil, err
 		}
-		acct.Seqno = details.Seqno
 
 		accts = append(accts, acct)
 	}
@@ -73,6 +61,54 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 	})
 
 	return accts, nil
+}
+
+func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (acct stellar1.WalletAccountLocal, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetWalletAccountLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return acct, err
+	}
+
+	bundle, _, err := remote.Fetch(ctx, s.G())
+	if err != nil {
+		return acct, err
+	}
+
+	entry, err := bundle.Lookup(arg.AccountID)
+	if err != nil {
+		return acct, err
+	}
+
+	return s.accountLocal(ctx, entry)
+}
+
+func (s *Server) accountLocal(ctx context.Context, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
+	var empty stellar1.WalletAccountLocal
+	details, err := s.remoter.Details(ctx, entry.AccountID)
+	if err != nil {
+		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", entry.AccountID, err)
+		return empty, err
+	}
+	balance, err := balanceList(details.Balances).balanceDescription()
+	if err != nil {
+		return empty, err
+	}
+
+	acct := stellar1.WalletAccountLocal{
+		AccountID:          entry.AccountID,
+		IsDefault:          entry.IsPrimary,
+		Name:               entry.Name,
+		BalanceDescription: balance,
+		Seqno:              details.Seqno,
+	}
+
+	return acct, nil
+
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
@@ -289,6 +325,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
@@ -296,7 +333,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	m := libkb.NewMetaContext(ctx, s.G())
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p)
+		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -304,6 +341,10 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		}
 	}
 	page.Cursor = srvPayments.Cursor
+
+	if srvPayments.OldestUnread != nil {
+		page.OldestUnread = &stellar1.PaymentID{TxID: *srvPayments.OldestUnread}
+	}
 
 	return page, nil
 }
@@ -319,6 +360,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
 	if err != nil {
 		return nil, err
@@ -327,7 +369,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 	m := libkb.NewMetaContext(ctx, s.G())
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p)
+		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -350,6 +392,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
+	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
 	details, err := s.remoter.PaymentDetails(ctx, arg.Id.TxID.String())
 	if err != nil {
 		return payment, err
@@ -362,7 +405,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		acctID = *arg.AccountID
 	}
 	m := libkb.NewMetaContext(ctx, s.G())
-	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary)
+	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
@@ -378,10 +421,15 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		Delta:             summary.Delta,
 		Worth:             summary.Worth,
 		WorthCurrency:     summary.WorthCurrency,
-		Source:            summary.Source,
-		SourceType:        summary.SourceType,
-		Target:            summary.Target,
-		TargetType:        summary.TargetType,
+		FromType:          summary.FromType,
+		ToType:            summary.ToType,
+		FromAccountID:     summary.FromAccountID,
+		FromAccountName:   summary.FromAccountName,
+		FromUsername:      summary.FromUsername,
+		ToAccountID:       summary.ToAccountID,
+		ToAccountName:     summary.ToAccountName,
+		ToUsername:        summary.ToUsername,
+		ToAssertion:       summary.ToAssertion,
 		Note:              summary.Note,
 		NoteErr:           summary.NoteErr,
 		PublicNote:        details.Memo,
@@ -1204,6 +1252,20 @@ func (s *Server) CancelRequestLocal(ctx context.Context, arg stellar1.CancelRequ
 	}
 
 	return s.remoter.CancelRequest(ctx, arg.ReqID)
+}
+
+func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName:       "MarkAsReadLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID.TxID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

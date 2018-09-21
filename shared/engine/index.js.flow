@@ -2,16 +2,35 @@
 import Session from './session'
 import type {TypedActions} from '../util/container'
 import type {TypedState} from '../constants/reducer'
-import type {IncomingCallMapType as KBIncomingCallMap} from '../constants/types/rpc-gen'
-import type {IncomingCallMapType as ChatIncomingCallMap} from '../constants/types/rpc-chat-gen'
-import type {IncomingCallMapType as GregorIncomingCallMap} from '../constants/types/rpc-gregor-gen'
-import type {IncomingCallMapType as SellarIncomingCallMap} from '../constants/types/rpc-stellar-gen'
+import type {
+  CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
+  IncomingCallMapType as KBIncomingCallMap,
+} from '../constants/types/rpc-gen'
+import type {
+  CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
+  IncomingCallMapType as ChatIncomingCallMap,
+} from '../constants/types/rpc-chat-gen'
+import type {
+  CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
+  IncomingCallMapType as GregorIncomingCallMap,
+} from '../constants/types/rpc-gregor-gen'
+import type {
+  CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
+  IncomingCallMapType as SellarIncomingCallMap,
+} from '../constants/types/rpc-stellar-gen'
 
-type IncomingCallMap = {|
-  ...KBIncomingCallMap<TypedState>,
-  ...ChatIncomingCallMap<TypedState>,
-  ...GregorIncomingCallMap<TypedState>,
-  ...SellarIncomingCallMap<TypedState>,
+export type IncomingCallMapType = {|
+  ...KBIncomingCallMap,
+  ...ChatIncomingCallMap,
+  ...GregorIncomingCallMap,
+  ...SellarIncomingCallMap,
+|}
+
+export type CustomResponseIncomingCallMapType = {|
+  ...KBCustomResponseIncomingCallMap,
+  ...ChatCustomResponseIncomingCallMap,
+  ...GregorCustomResponseIncomingCallMap,
+  ...SellarCustomResponseIncomingCallMap,
 |}
 
 declare export class Engine {
@@ -26,9 +45,10 @@ declare export class Engine {
   actionOnConnect(key: string, f: () => ?TypedActions): void;
   actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
-  setIncomingCallMap(incomingCallMap: IncomingCallMap): void;
+  setIncomingCallMap(incomingCallMap: IncomingCallMapType): void;
+  setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
   createSession({
-    incomingCallMap?: IncomingCallMap,
+    incomingCallMap?: IncomingCallMapType,
     waitingKey?: string,
     cancelHandler?: any,
     dangling?: boolean,

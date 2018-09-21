@@ -126,6 +126,7 @@ protocol chatUi {
     string amountDescription; 
     union { null, stellar1.Asset } asset;
     union { null, stellar1.OutsideCurrencyCode } currency;
+    stellar1.RequestStatus status;
   }
 
   record UIMessageValid {

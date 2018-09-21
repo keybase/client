@@ -49,9 +49,13 @@ type CheckProofArg struct {
 	SigID     SigID `codec:"sigID" json:"sigID"`
 }
 
+type ListProofServicesArg struct {
+}
+
 type ProveInterface interface {
 	StartProof(context.Context, StartProofArg) (StartProofResult, error)
 	CheckProof(context.Context, CheckProofArg) (CheckProofStatus, error)
+	ListProofServices(context.Context) ([]string, error)
 }
 
 func ProveProtocol(i ProveInterface) rpc.Protocol {
@@ -90,6 +94,17 @@ func ProveProtocol(i ProveInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"listProofServices": {
+				MakeArg: func() interface{} {
+					ret := make([]ListProofServicesArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.ListProofServices(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -105,5 +120,10 @@ func (c ProveClient) StartProof(ctx context.Context, __arg StartProofArg) (res S
 
 func (c ProveClient) CheckProof(ctx context.Context, __arg CheckProofArg) (res CheckProofStatus, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.prove.checkProof", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProveClient) ListProofServices(ctx context.Context) (res []string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.prove.listProofServices", []interface{}{ListProofServicesArg{}}, &res)
 	return
 }

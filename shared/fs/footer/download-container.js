@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState, {downloadKey}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenInFileUI({path: p})),
+  _opener: (p: Types.LocalPath) => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: p})),
   _dismisser: (key: string) => dispatch(FsGen.createDismissDownload({key})),
   _canceler: (key: string) => dispatch(FsGen.createCancelDownload({key})),
 })

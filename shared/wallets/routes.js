@@ -9,7 +9,12 @@ import ReceiveModal from './receive-modal/container'
 import ExportSecretKey from './export-secret-key/container'
 import TransactionDetails from './transaction-details/container'
 import AccountSettings from './wallet/settings/container'
-import {SetDefaultAccountPopup, RemoveAccountPopup, ReallyRemoveAccountPopup} from './wallet/settings/popups'
+import {
+  SetDefaultAccountPopup,
+  RemoveAccountPopup,
+  ReallyRemoveAccountPopup,
+  RenameAccountPopup,
+} from './wallet/settings/popups'
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
@@ -65,6 +70,11 @@ const walletChildren = {
           },
         },
         component: RemoveAccountPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      renameAccount: {
+        children: {},
+        component: RenameAccountPopup,
         tags: makeLeafTags({layerOnTop: !isMobile}),
       },
       setDefaultAccount: {

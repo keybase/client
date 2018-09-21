@@ -10,7 +10,6 @@ import logger from '../logger'
 import {isMobile} from '../constants/platform'
 import HiddenString from '../util/hidden-string'
 import {type TypedState} from '../constants/reducer'
-import {niceError} from '../util/errors'
 import {devicesTab as settingsDevicesTab} from '../constants/settings'
 import type {CommonResponseHandler} from '../engine/types'
 
@@ -49,10 +48,16 @@ class ProvisioningManager {
   _stashedResponse = null
   _stashedResponseKey: ?ValidCallback = null
   _addingANewDevice: boolean
+  _done: boolean = false
 
   constructor(addingANewDevice: boolean, onlyCallThisFromTheHelper: 'ONLY_CALL_THIS_FROM_HELPER') {
     this._addingANewDevice = addingANewDevice
     ProvisioningManager.singleton = this
+  }
+
+  done = (reason: string) => {
+    logger.info('ProvisioningManager.done', reason)
+    this._done = true
   }
 
   _stashResponse = (key: ValidCallback, response: any) => {
@@ -62,8 +67,10 @@ class ProvisioningManager {
 
   _getAndClearResponse = (key: ValidCallback) => {
     if (this._stashedResponseKey !== key) {
+      logger.info('ProvisioningManager._getAndClearResponse error', key, this._stashedResponseKey)
       throw new Error(`Invalid response key used wants: ${key} has: ${this._stashedResponseKey || ''}`)
     }
+    logger.info('ProvisioningManager._getAndClearResponse success', key)
     const response = this._stashedResponse
     this._stashedResponse = null
     return response
@@ -71,6 +78,10 @@ class ProvisioningManager {
 
   // Choosing a device to use to provision
   chooseDeviceHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet chooseDeviceHandler called')
+      return
+    }
     this._stashResponse('keybase.1.provisionUi.chooseDevice', response)
     return Saga.put(
       ProvisionGen.createShowDeviceListPage({
@@ -80,6 +91,10 @@ class ProvisioningManager {
   }
 
   submitDeviceSelect = (state: TypedState) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitDeviceSelect called')
+      return
+    }
     const response = this._getAndClearResponse('keybase.1.provisionUi.chooseDevice')
     if (!response || !response.result) {
       throw new Error('Tried to submit a device choice but missing callback')
@@ -95,6 +110,10 @@ class ProvisioningManager {
 
   // Telling the daemon the other device type when adding a new device
   chooseDeviceTypeHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet chooseDeviceTypeHandler called')
+      return
+    }
     return Saga.call(function*() {
       const state: TypedState = yield Saga.select()
       let type
@@ -118,6 +137,10 @@ class ProvisioningManager {
 
   // Choosing a name for this new device
   promptNewDeviceNameHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet promptNewDeviceNameHandler called')
+      return
+    }
     this._stashResponse('keybase.1.provisionUi.PromptNewDeviceName', response)
     return Saga.put(
       ProvisionGen.createShowNewDeviceNamePage({
@@ -128,6 +151,11 @@ class ProvisioningManager {
   }
 
   submitDeviceName = (state: TypedState) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitDeviceName called')
+      return
+    }
+
     // local error, ignore
     if (state.provision.error.stringValue()) {
       return
@@ -148,6 +176,10 @@ class ProvisioningManager {
 
   // We now need to exchange a secret sentence. Either side can move the process forward
   displayAndPromptSecretHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet displayAndPromptSecretHandler called')
+      return
+    }
     this._stashResponse('keybase.1.provisionUi.DisplayAndPromptSecret', response)
     return Saga.put(
       ProvisionGen.createShowCodePage({
@@ -158,6 +190,10 @@ class ProvisioningManager {
   }
 
   submitTextCode = (state: TypedState) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitTextCode called')
+      return
+    }
     // local error, ignore
     if (state.provision.error.stringValue()) {
       return
@@ -178,11 +214,19 @@ class ProvisioningManager {
 
   // Trying to use gpg flow
   chooseGPGMethodHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet chooseGPGMethodHandler called')
+      return
+    }
     this._stashResponse('keybase.1.provisionUi.chooseGPGMethod', response)
     return Saga.put(ProvisionGen.createShowGPGPage())
   }
 
   submitGPGMethod = (state: TypedState, action: ProvisionGen.SubmitGPGMethodPayload) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitGPGMethod called')
+      return
+    }
     // local error, ignore
     if (state.provision.error.stringValue()) {
       return
@@ -201,6 +245,10 @@ class ProvisioningManager {
   }
 
   switchToGPGSignOKHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet switchToGPGSignOKHandler called')
+      return
+    }
     this._stashResponse('keybase.1.provisionUi.switchToGPGSignOK', response)
     return Saga.all([
       Saga.put(ProvisionGen.createSwitchToGPGSignOnly({importError: params.importError})),
@@ -209,6 +257,10 @@ class ProvisioningManager {
   }
 
   submitGPGSignOK = (state: TypedState, action: ProvisionGen.SubmitGPGSignOKPayload) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitGPGSignOK called')
+      return
+    }
     const response = this._getAndClearResponse('keybase.1.provisionUi.switchToGPGSignOK')
     if (!response || !response.result) {
       throw new Error('Tried to respond to gpg sign ok but missing callback')
@@ -219,6 +271,10 @@ class ProvisioningManager {
 
   // User has an uploaded key so we can use a passphrase OR they selected a paperkey
   getPassphraseHandler = (params, response) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet getPassphraseHandler called')
+      return
+    }
     this._stashResponse('keybase.1.secretUi.getPassphrase', response)
 
     let error = ''
@@ -242,6 +298,10 @@ class ProvisioningManager {
     state: TypedState,
     action: ProvisionGen.SubmitPassphrasePayload | ProvisionGen.SubmitPaperkeyPayload
   ) => {
+    if (this._done) {
+      logger.info('ProvisioningManager done, yet submitPassphraseOrPaperkey called')
+      return
+    }
     // local error, ignore
     if (state.provision.error.stringValue()) {
       return
@@ -260,28 +320,35 @@ class ProvisioningManager {
     response.result({passphrase, storeSecret: false})
   }
 
-  getIncomingCallMap = () =>
+  getCustomResponseIncomingCallMap = () =>
     this._addingANewDevice
       ? {
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDeviceType': this.chooseDeviceTypeHandler,
         }
       : {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
-          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': this.displayAndPromptSecretHandler,
-          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
           'keybase.1.provisionUi.PromptNewDeviceName': this.promptNewDeviceNameHandler,
-          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
-          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
           'keybase.1.provisionUi.chooseDevice': this.chooseDeviceHandler,
           'keybase.1.provisionUi.chooseGPGMethod': this.chooseGPGMethodHandler,
           'keybase.1.provisionUi.switchToGPGSignOK': this.switchToGPGSignOKHandler,
           'keybase.1.secretUi.getPassphrase': this.getPassphraseHandler,
+        }
+
+  getIncomingCallMap = () =>
+    this._addingANewDevice
+      ? {
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
+        }
+      : {
+          'keybase.1.loginUi.displayPrimaryPaperKey': ignoreCallback,
+          'keybase.1.provisionUi.DisplaySecretExchanged': ignoreCallback,
+          'keybase.1.provisionUi.ProvisioneeSuccess': ignoreCallback,
+          'keybase.1.provisionUi.ProvisionerSuccess': ignoreCallback,
         }
 
   showCodePage = () =>
@@ -328,6 +395,7 @@ const startProvisioning = (state: TypedState) =>
       }
 
       yield RPCTypes.loginLoginRpcSaga({
+        customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
         incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: {
           clientType: RPCTypes.commonClientType.guiMain,
@@ -347,18 +415,23 @@ const addNewDevice = (state: TypedState) =>
     makeProvisioningManager(true)
     try {
       yield RPCTypes.deviceDeviceAddRpcSaga({
+        customResponseIncomingCallMap: ProvisioningManager.getSingleton().getCustomResponseIncomingCallMap(),
         incomingCallMap: ProvisioningManager.getSingleton().getIncomingCallMap(),
         params: undefined,
         waitingKey: Constants.waitingKey,
       })
+      ProvisioningManager.getSingleton().done('success')
       // Now refresh and nav back
       yield Saga.put(DevicesGen.createLoad())
       yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
     } catch (e) {
+      ProvisioningManager.getSingleton().done(e.message)
       // If we're canceling then ignore the error
       if (e.desc !== Constants.cancelDesc) {
         logger.error(`Provision -> Add device error: ${e.message}`)
-        yield Saga.put(ProvisionGen.createProvisionError({error: new HiddenString(niceError(e))}))
+        yield Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: devicesRoot}))
+        // show black bar
+        throw e
       }
     }
   })

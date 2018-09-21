@@ -39,9 +39,10 @@
 			"revisionTime": "2017-06-26T11:06:00Z"
 		},
 		{
-			"path": "github.com/Microsoft/go-winio",
-			"revision": "97e4973ce50b2ff5f09635a57e2b88a037aae829",
-			"revisionTime": "2018-08-23T15:24:21-07:00"
+			"checksumSHA1": "rRRQUZrxRapCpdmV2BUgmJRE/ww=",
+			"path": "github.com/Keybase/go-winio",
+			"revision": "b1d96ab97b58dcaf6fd4e4c21cdf73a5bc3a388e",
+			"revisionTime": "2018-09-13T22:10:37Z"
 		},
 		{
 			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
@@ -384,14 +385,14 @@
 			"revisionTime": "2018-08-06T20:08:11Z"
 		},
 		{
-			"path": "github.com/keybase/ps-go",
-			"revision": ""
-		},
-		{
 			"checksumSHA1": "o3BupHtJ9Txi4Cfns9vcvvLrQC8=",
 			"path": "github.com/keybase/pipeliner",
 			"revision": "d5de6f17e362642916083c2fb9c1c8b8606c0bf8",
 			"revisionTime": "2018-08-24T13:24:23Z"
+		},
+		{
+			"path": "github.com/keybase/ps-go",
+			"revision": ""
 		},
 		{
 			"checksumSHA1": "AdTewzl8bd3Il/9CHP/+b4hkhyw=",

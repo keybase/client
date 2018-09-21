@@ -873,6 +873,7 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.toggleMessageReaction:
     case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
+    case Chat2Gen.openChatFromWidget:
       return state
     default:
       /*::

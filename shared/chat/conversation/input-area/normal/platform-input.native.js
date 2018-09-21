@@ -309,7 +309,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
   </NativeTouchableWithoutFeedback>
 )
 
-const containerPadding = 6
+const containerPadding = 8
 const styles = styleSheetCreate({
   accessory: {
     bottom: 1,
@@ -335,7 +335,7 @@ const styles = styleSheetCreate({
   },
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'flex-end',
+    alignItems: 'center',
     backgroundColor: globalColors.fastBlank,
     borderTopColor: globalColors.black_10,
     borderTopWidth: 1,
@@ -354,8 +354,7 @@ const styles = styleSheetCreate({
   },
   input: {
     marginLeft: globalMargins.tiny,
-    paddingBottom: 12,
-    paddingTop: 12,
+    marginRight: globalMargins.tiny,
     ...(isIOS
       ? {}
       : {

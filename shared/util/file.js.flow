@@ -5,6 +5,8 @@ export type StatResult = {
   lastModified: number,
 }
 
+declare export var downloadFolder: string
+
 declare export function tmpDir(): string
 declare export function tmpFile(suffix: string): string
 declare export function downloadFilePath(filename: string): Promise<string> // searches for one

@@ -51,7 +51,7 @@ const _createNewTeam = function*(action: TeamsGen.CreateNewTeamPayload) {
       Saga.put(
         RouteTreeGen.createNavigateTo({
           path: isMobile ? [chatTab] : [{props: {teamname}, selected: 'team'}],
-          parentPath: [teamsTab],
+          parentPath: isMobile ? [] : [teamsTab],
         })
       ),
       // Show the avatar editor on desktop.
@@ -99,12 +99,27 @@ const _joinTeam = function*(action: TeamsGen.JoinTeamPayload) {
   }
 }
 
-const _leaveTeam = function(action: TeamsGen.LeaveTeamPayload) {
-  const {teamname} = action.payload
-  return Saga.call(RPCTypes.teamsTeamLeaveRpcPromise, {
-    name: teamname,
-    permanent: false,
+const _leaveTeam = function(state: TypedState, action: TeamsGen.LeaveTeamPayload) {
+  const {context, teamname} = action.payload
+  logger.info(`leaveTeam: Leaving ${teamname} from context ${context}`)
+  return RPCTypes.teamsTeamLeaveRpcPromise(
+    {
+      name: teamname,
+      permanent: false,
+    },
+    Constants.leaveTeamWaitingKey(teamname)
+  ).then(() => {
+    logger.info(`leaveTeam: left ${teamname} successfully`)
+    return TeamsGen.createLeftTeam({context, teamname})
   })
+}
+
+const _leftTeam = (state: TypedState, action: TeamsGen.LeftTeamPayload) => {
+  const selectedTeamnames = Constants.getSelectedTeamNames(state)
+  if (selectedTeamnames.includes(action.payload.teamname)) {
+    // Back out of that team's page
+    return Saga.put(RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: []}))
+  }
 }
 
 const _addPeopleToTeam = function*(action: TeamsGen.AddPeopleToTeamPayload) {
@@ -1079,42 +1094,50 @@ const arrayOfActionsToSequentially = actions =>
 
 const setupEngineListeners = () => {
   engine().setIncomingCallMap({
-    'keybase.1.NotifyTeam.teamChangedByName': (param, _, state) => {
-      logger.info(`Got teamChanged for ${param.teamName} from service`)
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(param.teamName)) {
-        // only reload if that team is selected
-        return arrayOfActionsToSequentially(getLoadCalls(param.teamName))
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.teamDeleted': (param, _, state) => {
-      const {teamID} = param
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return arrayOfActionsToSequentially([
-          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
-          ...getLoadCalls(),
-        ])
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.teamExit': (param, _, state) => {
-      const {teamID} = param
-      const selectedTeamNames = Constants.getSelectedTeamNames(state)
-      if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
-        return arrayOfActionsToSequentially([
-          RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
-          ...getLoadCalls(),
-        ])
-      }
-      return arrayOfActionsToSequentially(getLoadCalls())
-    },
-    'keybase.1.NotifyTeam.avatarUpdated': ({name}, _, state) => [
-      state.teams.teamnames.includes(name)
-        ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
-        : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]})),
-    ],
+    'keybase.1.NotifyTeam.teamChangedByName': param =>
+      Saga.call(function*() {
+        logger.info(`Got teamChanged for ${param.teamName} from service`)
+        const state = yield Saga.select()
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(param.teamName)) {
+          // only reload if that team is selected
+          yield arrayOfActionsToSequentially(getLoadCalls(param.teamName))
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.teamDeleted': param =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        const {teamID} = param
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+          yield arrayOfActionsToSequentially([
+            RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+            ...getLoadCalls(),
+          ])
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.teamExit': param =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        const {teamID} = param
+        const selectedTeamNames = Constants.getSelectedTeamNames(state)
+        if (selectedTeamNames.includes(Constants.getTeamNameFromID(state, teamID))) {
+          yield arrayOfActionsToSequentially([
+            RouteTreeGen.createNavigateTo({path: [], parentPath: [teamsTab]}),
+            ...getLoadCalls(),
+          ])
+        }
+        yield arrayOfActionsToSequentially(getLoadCalls())
+      }),
+    'keybase.1.NotifyTeam.avatarUpdated': ({name}) =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        yield state.teams.teamnames.includes(name)
+          ? Saga.put(ConfigGen.createLoadTeamAvatars({teamnames: [name]}))
+          : Saga.put(ConfigGen.createLoadAvatars({usernames: [name]}))
+      }),
   })
 }
 
@@ -1351,7 +1374,8 @@ const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
 }
 
 const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToPromise(TeamsGen.leaveTeam, _leaveTeam)
+  yield Saga.actionToAction(TeamsGen.leftTeam, _leftTeam)
   yield Saga.safeTakeEveryPure(TeamsGen.createNewTeam, _createNewTeam)
   yield Saga.safeTakeEvery(TeamsGen.joinTeam, _joinTeam)
   yield Saga.safeTakeEvery(TeamsGen.getDetails, _getDetails)
@@ -1361,7 +1385,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(TeamsGen.createNewTeamFromConversation, _createNewTeamFromConversation)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannelInfo, _getChannelInfo, _afterGetChannelInfo)
   yield Saga.safeTakeEveryPure(TeamsGen.getChannels, _getChannels, _afterGetChannels)
-  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams], getTeams)
+  yield Saga.actionToAction([ConfigGen.loggedIn, TeamsGen.getTeams, TeamsGen.leftTeam], getTeams)
   yield Saga.safeTakeEveryPure(TeamsGen.saveChannelMembership, _saveChannelMembership)
   yield Saga.safeTakeEvery(TeamsGen.createChannel, _createChannel)
   yield Saga.safeTakeEvery(TeamsGen.addToTeam, _addToTeam)

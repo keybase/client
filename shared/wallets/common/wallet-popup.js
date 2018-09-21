@@ -48,11 +48,16 @@ const WalletPopup = (props: WalletModalProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: {
-    height: 525,
-    width: 360,
-    borderRadius: 4,
-  },
+  outerContainer: Styles.platformStyles({
+    isElectron: {
+      height: 525,
+      width: 360,
+      borderRadius: 4,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
   header: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,

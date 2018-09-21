@@ -278,7 +278,7 @@ func formatImplicitTeamDisplayNameCommon(ctx context.Context, g *libkb.GlobalCon
 		return "", fmt.Errorf("invalid implicit team name: no writers")
 	}
 
-	return kbfs.NormalizeNamesInTLF(writerNames, readerNames, suffix)
+	return kbfs.NormalizeNamesInTLF(g, writerNames, readerNames, suffix)
 }
 
 // Sort a list of strings but order `front` in front IF it appears.

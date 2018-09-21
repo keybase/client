@@ -4,7 +4,7 @@ import * as ConfigGen from '../config-gen'
 import * as Constants from '../../constants/chat2'
 import * as GregorGen from '../gregor-gen'
 import * as I from 'immutable'
-import * as KBFSGen from '../kbfs-gen'
+import * as FsGen from '../fs-gen'
 import * as NotificationsGen from '../notifications-gen'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
@@ -25,6 +25,7 @@ import type {TypedState} from '../../util/container'
 import {chatTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
+import {switchTo} from '../route-tree'
 import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
@@ -588,13 +589,16 @@ const arrayOfActionsToSequentially = actions =>
 
 // Handle calls that come from the service
 const setupEngineListeners = () => {
+  // TODO clean this up so we don't need this
+  const getState = engine().deprecatedGetGetState()
+
   engine().setIncomingCallMap({
-    'chat.1.NotifyChat.NewChatActivity': ({activity}, _, state) => {
+    'chat.1.NotifyChat.NewChatActivity': ({activity}) => {
       logger.info(`Got new chat activity of type: ${activity.activityType}`)
       switch (activity.activityType) {
         case RPCChatTypes.notifyChatChatActivityType.incomingMessage:
           return activity.incomingMessage
-            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, state))
+            ? arrayOfActionsToSequentially(onIncomingMessage(activity.incomingMessage, getState()))
             : null
         case RPCChatTypes.notifyChatChatActivityType.setStatus:
           return arrayOfActionsToSequentially(chatActivityToMetasAction(activity.setStatus))
@@ -606,7 +610,7 @@ const setupEngineListeners = () => {
           const failedMessage: ?RPCChatTypes.FailedMessageInfo = activity.failedMessage
           return failedMessage && failedMessage.outboxRecords
             ? arrayOfActionsToSequentially(
-                onErrorMessage(failedMessage.outboxRecords, state.config.username || '')
+                onErrorMessage(failedMessage.outboxRecords, getState().config.username || '')
               )
             : null
         }
@@ -637,7 +641,7 @@ const setupEngineListeners = () => {
           return Saga.put(Chat2Gen.createInboxRefresh({reason: 'teamTypeChanged'}))
         case RPCChatTypes.notifyChatChatActivityType.expunge:
           return activity.expunge
-            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, state))
+            ? arrayOfActionsToSequentially(expungeToActions(activity.expunge, getState()))
             : null
         case RPCChatTypes.notifyChatChatActivityType.ephemeralPurge:
           return activity.ephemeralPurge
@@ -653,8 +657,8 @@ const setupEngineListeners = () => {
     },
     'chat.1.NotifyChat.ChatTLFFinalize': ({convID}) =>
       Saga.put(Chat2Gen.createMetaRequestTrusted({conversationIDKeys: [Types.conversationIDToKey(convID)]})),
-    'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}, _, state) =>
-      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, state)),
+    'chat.1.NotifyChat.ChatInboxSynced': ({syncRes}) =>
+      arrayOfActionsToSequentially(onChatInboxSynced(syncRes, getState())),
     'chat.1.NotifyChat.ChatInboxSyncStarted': () =>
       Saga.put(WaitingGen.createIncrementWaiting({key: Constants.waitingKeyInboxSyncStarted})),
     'chat.1.NotifyChat.ChatInboxStale': () => Saga.put(Chat2Gen.createInboxRefresh({reason: 'inboxStale'})),
@@ -789,6 +793,7 @@ const loadThreadMessageTypes = Object.keys(RPCChatTypes.commonMessageType).reduc
 
 const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   switch (reason) {
+    case 'extension':
     case 'push':
       return RPCChatTypes.commonGetThreadReason.push
     case 'foregrounding':
@@ -1509,8 +1514,16 @@ const _maybeAutoselectNewestConversation = (
     | TeamsGen.LeaveTeamPayload,
   state: TypedState
 ) => {
+  // If there is a team we should avoid when selecting a new conversation (e.g.
+  // on team leave) put the name in `avoidTeam` and `isEligibleConvo` below will
+  // take it into account
+  let avoidTeam = ''
+  if (action.type === TeamsGen.leaveTeam) {
+    avoidTeam = action.payload.teamname
+  }
   let selected = Constants.getSelectedConversation(state)
-  if (!state.chat2.metaMap.get(selected)) {
+  const selectedMeta = state.chat2.metaMap.get(selected)
+  if (!selectedMeta) {
     selected = Constants.noConversationIDKey
   }
   if (action.type === Chat2Gen.metaDelete) {
@@ -1542,19 +1555,30 @@ const _maybeAutoselectNewestConversation = (
     action.payload.conversationIDKey === selected
   ) {
     // Intentional fall-through -- force select a new one
-  } else if (Constants.isValidConversationIDKey(selected)) {
-    // Stay with our existing convo if it was not empty or pending
+  } else if (
+    Constants.isValidConversationIDKey(selected) &&
+    (!avoidTeam || (selectedMeta && selectedMeta.teamname !== avoidTeam))
+  ) {
+    // Stay with our existing convo if it was not empty or pending, or the
+    // selected convo already doesn't belong to the team we're trying to switch
+    // away from
     return
   }
 
+  const isEligibleConvo = meta => {
+    if (meta.teamType === 'big') {
+      // Don't select a big team channel
+      return false
+    }
+    if (avoidTeam && meta.teamname === avoidTeam) {
+      // We just left this team, don't select a convo from it
+      return false
+    }
+    return true
+  }
+
   // If we got here we're auto selecting the newest convo
-  const meta = state.chat2.metaMap.maxBy(
-    meta =>
-      meta.teamType !== 'big' &&
-      (action.type !== TeamsGen.leaveTeam || meta.teamname !== action.payload.teamname)
-        ? meta.timestamp
-        : 0
-  )
+  const meta = state.chat2.metaMap.maxBy(meta => (isEligibleConvo(meta) ? meta.timestamp : 0))
 
   if (meta) {
     return Saga.put(
@@ -1563,8 +1587,12 @@ const _maybeAutoselectNewestConversation = (
         reason: 'findNewestConversation',
       })
     )
-  } else if (action.type === TeamsGen.leaveTeam) {
-    // the team we left is the only chat we had
+  } else if (avoidTeam) {
+    // No conversations besides in the team we're trying to avoid. Select
+    // nothing
+    logger.info(
+      `AutoselectNewestConversation: no eligible conversations left in inbox (no conversations outside of team we're avoiding); selecting nothing`
+    )
     return Saga.put(
       Chat2Gen.createSelectConversation({
         conversationIDKey: Constants.noConversationIDKey,
@@ -1576,11 +1604,12 @@ const _maybeAutoselectNewestConversation = (
 
 const openFolder = (action: Chat2Gen.OpenFolderPayload, state: TypedState) => {
   const meta = Constants.getMeta(state, action.payload.conversationIDKey)
-  const path =
+  const path = FsTypes.stringToPath(
     meta.teamType !== 'adhoc'
       ? teamFolder(meta.teamname)
       : privateFolderWithUsers(meta.participants.toArray())
-  return Saga.put(KBFSGen.createOpen({path}))
+  )
+  return Saga.put(FsGen.createOpenPathInFilesTab({path}))
 }
 
 const getRecommendations = (
@@ -1940,18 +1969,42 @@ const loadCanUserPerform = (action: Chat2Gen.SelectConversationPayload, state: T
 
 // Helpers to nav you to the right place
 const navigateToInbox = (
-  action: Chat2Gen.NavigateToInboxPayload | Chat2Gen.LeaveConversationPayload,
+  action:
+    | Chat2Gen.NavigateToInboxPayload
+    | Chat2Gen.LeaveConversationPayload
+    | TeamsGen.LeaveTeamPayload
+    | TeamsGen.LeftTeamPayload,
   state: TypedState
 ) => {
   if (action.type === Chat2Gen.leaveConversation && action.payload.dontNavigateToInbox) {
     return
   }
-  const actions = [
-    Saga.put(
-      RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
-    ),
-  ]
-  if (action.payload.findNewConversation && !isMobile) {
+  const resetRouteAction = Saga.put(
+    RouteTreeGen.createNavigateTo({path: [{props: {}, selected: chatTab}, {props: {}, selected: null}]})
+  )
+  if (action.type === TeamsGen.leaveTeam || action.type === TeamsGen.leftTeam) {
+    const {context, teamname} = action.payload
+    switch (action.type) {
+      case TeamsGen.leaveTeam:
+        if (context !== 'chat' && Constants.isTeamConversationSelected(state, teamname)) {
+          // If we're leaving a team from somewhere else and we have a team convo
+          // selected, reset the chat tab to the root
+          logger.info(`chat:navigateToInbox resetting chat tab nav stack to root because of leaveTeam`)
+          return Saga.put(RouteTreeGen.createNavigateTo({path: [], parentPath: [chatTab]}))
+        }
+        break
+      case TeamsGen.leftTeam:
+        if (context === 'chat') {
+          // If we've left a team from the chat tab indiscriminately navigate to
+          // the tab root
+          logger.info(`chat:navigateToInbox navigating to cleared chat routes because of leftTeam`)
+          return resetRouteAction
+        }
+    }
+    return
+  }
+  const actions = [resetRouteAction]
+  if (action.type === Chat2Gen.navigateToInbox && action.payload.findNewConversation && !isMobile) {
     actions.push(_maybeAutoselectNewestConversation(action, state))
   }
   return Saga.sequentially(actions)
@@ -2396,6 +2449,18 @@ const setMinWriterRole = (action: Chat2Gen.SetMinWriterRolePayload) => {
   })
 }
 
+const openChatFromWidget = (
+  state: TypedState,
+  {payload: {conversationIDKey}}: Chat2Gen.OpenChatFromWidgetPayload
+) =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    Saga.put(switchTo([chatTab])),
+    ...(conversationIDKey
+      ? [Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxSmall'}))]
+      : []),
+  ])
+
 const gregorPushState = (_: any, action: GregorGen.PushStatePayload) => {
   const actions = []
   const items = action.payload.state
@@ -2541,7 +2606,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     markThreadAsRead
   )
 
-  yield Saga.safeTakeEveryPure([Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation], navigateToInbox)
+  yield Saga.safeTakeEveryPure(
+    [Chat2Gen.navigateToInbox, Chat2Gen.leaveConversation, TeamsGen.leaveTeam, TeamsGen.leftTeam],
+    navigateToInbox
+  )
   yield Saga.safeTakeEveryPure(Chat2Gen.navigateToThread, navigateToThread)
 
   yield Saga.safeTakeEveryPure(Chat2Gen.joinConversation, joinConversation)
@@ -2560,6 +2628,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     createConversationError
   )
   yield Saga.safeTakeEveryPure([Chat2Gen.selectConversation, Chat2Gen.previewConversation], changePendingMode)
+  yield Saga.actionToAction(Chat2Gen.openChatFromWidget, openChatFromWidget)
 
   // Exploding things
   yield Saga.safeTakeEveryPure(

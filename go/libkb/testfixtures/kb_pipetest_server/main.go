@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"net"
 
-	mspipe "github.com/Microsoft/go-winio"
+	mspipe "github.com/keybase/go-winio"
 )
 
 // Use Dial to connect to a server and read messages from it.

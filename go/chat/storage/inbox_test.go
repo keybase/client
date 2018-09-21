@@ -830,6 +830,34 @@ func TestMobileSharedInbox(t *testing.T) {
 	}
 }
 
+func makeUID(t *testing.T) gregor1.UID {
+	b, err := libkb.RandBytes(16)
+	require.NoError(t, err)
+	return gregor1.UID(b)
+}
+
+func TestInboxMembershipDupUpdate(t *testing.T) {
+	ctc, inbox, uid := setupInboxTest(t, "membership")
+	defer ctc.Cleanup()
+
+	uid2 := makeUID(t)
+	conv := makeConvo(gregor1.Time(1), 1, 1)
+	conv.Conv.Metadata.AllList = []gregor1.UID{uid, uid2}
+	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, []chat1.Conversation{conv.Conv}, nil, nil))
+
+	otherJoinedConvs := []chat1.ConversationMember{chat1.ConversationMember{
+		Uid:    uid2,
+		ConvID: conv.GetConvID(),
+	}}
+	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
+		nil, otherJoinedConvs, nil, nil, nil))
+
+	_, res, err := inbox.ReadAll(context.TODO(), uid)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	require.Equal(t, 2, len(res[0].Conv.Metadata.AllList))
+}
+
 func TestInboxMembershipUpdate(t *testing.T) {
 	ctc, inbox, uid := setupInboxTest(t, "membership")
 	defer ctc.Cleanup()

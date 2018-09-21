@@ -24,10 +24,12 @@ type ParticipantsProps = {|
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
+  toFieldInput: string,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
 |}
 
@@ -50,9 +52,11 @@ const Participants = (props: ParticipantsProps) => (
       onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
+      onShowSuggestions={props.onShowSuggestions}
       recipientFullName={props.recipientFullName}
       recipientType={props.recipientType}
       recipientUsername={props.recipientUsername}
+      toFieldInput={props.toFieldInput}
       user={props.user}
     />
   </Kb.Box2>

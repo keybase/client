@@ -61,6 +61,11 @@ export const normalizePush = (n: any): ?Types.PushNotification => {
         userInteraction,
         username: data.username,
       }
+    } else if (data.type === 'chat.extension' && data.convID) {
+      return {
+        conversationIDKey: ChatTypes.stringToConversationIDKey(data.convID),
+        type: 'chat.extension',
+      }
     }
 
     return null

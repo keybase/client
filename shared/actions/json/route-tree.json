@@ -29,7 +29,7 @@
       "path": "RCConstants.PropsPath<any>",
       "parentPath?": "?RCConstants.Path"
     },
-    "navigateUp": { },
+    "navigateUp": {},
     "putActionIfOnPath": {
       "expectedPath": "RCConstants.Path",
       "otherAction": "any",
