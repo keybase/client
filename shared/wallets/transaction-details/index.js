@@ -85,6 +85,7 @@ const Counterparty = (props: CounterpartyProps) => {
           showFullKey={true}
           textType="BodySemibold"
         />
+        {props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Box2>
     </Box2>
   )

@@ -83,11 +83,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'otherAccount':
-      return props.large ? (
-        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
-      ) : (
-        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
-      )
+      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
