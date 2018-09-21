@@ -29,7 +29,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Name:         "fs",
 		Usage:        "Perform filesystem operations",
 		ArgumentHelp: "[arguments...]",
-		Subcommands: []cli.Command{
+		Subcommands: append([]cli.Command{
 			NewCmdSimpleFSList(cl, g),
 			NewCmdSimpleFSCopy(cl, g),
 			NewCmdSimpleFSMove(cl, g),
@@ -45,7 +45,7 @@ func NewCmdSimpleFS(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			NewCmdSimpleFSHistory(cl, g),
 			NewCmdSimpleFSQuota(cl, g),
 			NewCmdSimpleFSRecover(cl, g),
-		},
+		}, getBuildSpecificFSCommands(cl, g)...),
 	}
 }
 
