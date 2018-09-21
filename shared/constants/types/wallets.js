@@ -11,15 +11,15 @@ export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTy
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
 // from an account to itself.
-export opaque type Role = 'sender' | 'receiver' | 'senderAndReceiver'
+export opaque type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
 
-export const senderOnly: Role = 'sender'
-export const receiverOnly: Role = 'receiver'
+export const senderOnly: Role = 'senderOnly'
+export const receiverOnly: Role = 'receiverOnly'
 export const senderAndReceiver: Role = 'senderAndReceiver'
 
-export const isSender = (r: Role) => r === 'sender' || r === 'senderAndReceiver'
+export const isSender = (r: Role) => r === 'senderOnly' || r === 'senderAndReceiver'
 
-export const isReceiver = (r: Role) => r === 'receiver' || r === 'senderAndReceiver'
+export const isReceiver = (r: Role) => r === 'receiverOnly' || r === 'senderAndReceiver'
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
