@@ -74,11 +74,11 @@ func (c *GenericSocialProofConfig) validate() error {
 	return nil
 }
 
-func (c *GenericSocialProofConfig) prefillURLWithValues(username string, sigID keybase1.SigID) (string, error) {
-	url := strings.Replace(c.PrefillUrl, kbUsernameKey, username, 1)
+func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername string, sigID keybase1.SigID) (string, error) {
+	url := strings.Replace(c.PrefillUrl, kbUsernameKey, kbUsername, 1)
 	url = strings.Replace(url, sigHashKey, sigID.String(), 1)
-	if !strings.Contains(url, username) {
-		return "", fmt.Errorf("Invalid PrefillUrl, missing username")
+	if !strings.Contains(url, kbUsername) {
+		return "", fmt.Errorf("Invalid PrefillUrl, missing kbUsername")
 	}
 	if !strings.Contains(url, sigID.String()) {
 		return "", fmt.Errorf("Invalid PrefillUrl, missing sigHash")
@@ -143,8 +143,9 @@ func (t GenericSocialProofServiceType) CheckProofText(text string, id keybase1.S
 	return nil
 }
 
-func (t GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes, username string, sigID keybase1.SigID) (string, error) {
-	return t.config.prefillURLWithValues(username, sigID)
+func (t GenericSocialProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes,
+	kbUsername string, sigID keybase1.SigID) (string, error) {
+	return t.config.prefillURLWithValues(kbUsername, sigID)
 }
 
 func (t GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {

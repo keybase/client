@@ -570,7 +570,8 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(mctx MetaContext, ppr *PostProofRes, username string, sigID keybase1.SigID) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
