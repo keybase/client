@@ -8,6 +8,9 @@ import * as StellarRPCTypes from './rpc-stellar-gen'
 export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTypes.PaymentID) =>
   p1.txID === p2.txID
 
+// Possible roles given an account and a
+// transaction. senderAndReceiver means a transaction sending money
+// from an account to itself.
 export opaque type Role = 'sender' | 'receiver' | 'senderAndReceiver'
 
 export const senderOnly: Role = 'sender'
@@ -17,8 +20,6 @@ export const senderAndReceiver: Role = 'senderAndReceiver'
 export const isSender = (r: Role) => r === 'sender' || r === 'senderAndReceiver'
 
 export const isReceiver = (r: Role) => r === 'receiver' || r === 'senderAndReceiver'
-
-export const roleToString = (r: Role): string => r
 
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'

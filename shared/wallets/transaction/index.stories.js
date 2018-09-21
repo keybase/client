@@ -17,6 +17,18 @@ const beforeLastWeek = moment(now)
   .subtract(8, 'days')
   .toDate()
 
+export const roleToString = (r: Types.Role): string => {
+  switch (r) {
+    case Types.senderOnly:
+      return 'sender'
+    case Types.receiverOnly:
+      return 'receiver'
+    case Types.senderAndReceiver:
+      return 'send to self'
+  }
+  return 'unknown role'
+}
+
 const singleEmojiMemo = '🎁'
 const shortMemo = 'Short memo.'
 const longMemo =
@@ -39,24 +51,21 @@ const addConfigs = (stories, namePrefix, storyFn) => {
 
   roles.forEach(r => {
     sizes.forEach(s => {
-      stories.add(
-        namePrefix + ` (${Types.roleToString(r.yourRole)} - ${s.large ? 'large' : 'small'})`,
-        () => {
-          const components = []
-          memosAndTimes.forEach(t => {
-            components.push(
-              storyFn({
-                key: components.length,
-                ...r,
-                ...s,
-                ...t,
-                onSelectTransaction: Sb.action('onSelectTransaction'),
-              })
-            )
-          })
-          return components
-        }
-      )
+      stories.add(namePrefix + ` (${roleToString(r.yourRole)} - ${s.large ? 'large' : 'small'})`, () => {
+        const components = []
+        memosAndTimes.forEach(t => {
+          components.push(
+            storyFn({
+              key: components.length,
+              ...r,
+              ...s,
+              ...t,
+              onSelectTransaction: Sb.action('onSelectTransaction'),
+            })
+          )
+        })
+        return components
+      })
     })
   })
 }
