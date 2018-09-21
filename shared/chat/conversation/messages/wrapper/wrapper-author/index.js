@@ -285,7 +285,6 @@ const styles = styleSheetCreate({
     alignSelf: 'flex-start',
     marginBottom: 0,
   },
-  usernameYou: {},
 })
 
 export default WrapperAuthor

@@ -51,15 +51,12 @@ const DeviceRow = (props: Props) => {
 }
 const styles = Styles.styleSheetCreate({
   icon: {opacity: 0.2},
-  text: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_40,
-      flex: 0,
-      textDecorationLine: 'line-through',
-      textDecorationStyle: 'solid',
-    },
-    isElectron: {},
-  }),
+  text: {
+    color: Styles.globalColors.black_40,
+    flex: 0,
+    textDecorationLine: 'line-through',
+    textDecorationStyle: 'solid',
+  },
 })
 
 export default DeviceRow
