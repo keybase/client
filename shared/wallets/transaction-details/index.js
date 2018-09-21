@@ -130,7 +130,7 @@ class TransactionDetails extends React.Component<Props> {
             counterparty={this.props.counterparty}
             counterpartyMeta={this.props.counterpartyMeta}
             counterpartyType={this.props.counterpartyType}
-            isYou={Types.isReceiver(this.props.yourRole)}
+            isYou={!Types.isSender(this.props.yourRole)}
             you={this.props.you}
             yourRole={this.props.yourRole}
           />
