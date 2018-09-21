@@ -121,12 +121,7 @@ export const initDesktopStyles = () => {
   const css = Object.keys(globalColors).reduce((s, name) => {
     const color = globalColors[name]
     if (color) {
-      return (
-        s +
-        `.color_${name} {color: ${color};}\n` +
-        `.hover_color_${name} {color: inherit};\n` +
-        `.hover_color_${name}:hover {color: ${color};}\n`
-      )
+      return s + `.color_${name} {color: ${color};}\n` + `.hover_color_${name}:hover {color: ${color};}\n`
     } else {
       return s
     }

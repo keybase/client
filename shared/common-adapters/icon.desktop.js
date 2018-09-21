@@ -111,14 +111,13 @@ class Icon extends Component<Props, void> {
           hoverColor: 'inherit',
         }
       } else {
-        const hoverColorName =
-          !this.props.inheritColor && this.props.onClick ? invertedColors[hoverColor] : null
+        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
         hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
         const colorName = invertedColors[color]
         if (!colorName) {
           throw new Error('Invalid color for icon, needs to be in stylesheet')
         }
-        // colorStyleName = this.props.inheritColor ? '' : `color_${colorName}`
+        colorStyleName = `color_${colorName}`
       }
 
       return (
@@ -134,8 +133,8 @@ class Icon extends Component<Props, void> {
               ...inheritStyle,
             }}
             className={[colorStyleName, hoverStyleName, this.props.className].filter(Boolean).join(' ')}
-            onMouseEnter={undefined /* this.props.onMouseEnter */}
-            onMouseLeave={undefined /* this.props.onMouseLeave */}
+            onMouseEnter={this.props.onMouseEnter}
+            onMouseLeave={this.props.onMouseLeave}
             onClick={onClick}
           >
             {iconElement}
