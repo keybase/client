@@ -11,17 +11,6 @@ import {invert} from 'lodash-es'
 
 const invertedColors = invert(globalColors)
 
-// const StyledSpan = styled('span')(props => ({
-// color: props.color,
-// ...(props.hoverColor
-// ? {
-// ':hover': {
-// color: props.hoverColor,
-// },
-// }
-// : null),
-// }))
-
 class Icon extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -54,8 +43,12 @@ class Icon extends Component<Props, void> {
         (this.props.opacity ? globalColors.black : globalColors.black_75)
     }
 
-    const isFontIcon = iconType.startsWith('iconfont-')
-    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    const isFontIcon = iconMeta[iconType].isFont
+    let fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    // in style sheet, so don't apply
+    if (fontSizeHint && fontSizeHint.fontSize === 16) {
+      fontSizeHint = null
+    }
     const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
@@ -65,41 +58,31 @@ class Icon extends Component<Props, void> {
 
     const hasContainer = (this.props.onClick && this.props.style) || isFontIcon
 
-    const imgStyle = collapseStyles([
-      desktopStyles.noSelect,
-      !hasContainer ? this.props.style : {},
-      onClick ? desktopStyles.clickable : {},
-      this.props.color ? {color: color} : {},
-    ])
+    let iconElement
 
-    const iconElement = isFontIcon ? (
-      String.fromCharCode(iconMeta[iconType].charCode || 0)
-    ) : (
-      <img
-        className={this.props.className}
-        draggable="false"
-        title={this.props.hint}
-        style={imgStyle}
-        onClick={onClick}
-        srcSet={iconTypeToSrcSet(iconType)}
-      />
-    )
-
-    if (hasContainer) {
-      const cleanStyle = collapseStyles([
-        {
-          WebkitFontSmoothing: 'antialiased',
-          fontFamily: 'kb',
-          fontStyle: 'normal',
-          fontVariant: 'normal',
-          fontWeight: 'normal',
-          lineHeight: 1,
-          speak: 'none',
-          textTransform: 'none',
-        },
-        this.props.style,
+    if (isFontIcon) {
+      iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
+    } else {
+      const imgStyle = collapseStyles([
+        desktopStyles.noSelect,
+        !hasContainer ? this.props.style : {},
+        onClick ? desktopStyles.clickable : {},
+        this.props.color ? {color: color} : {},
       ])
 
+      iconElement = (
+        <img
+          className={this.props.className}
+          draggable="false"
+          title={this.props.hint}
+          style={imgStyle}
+          onClick={onClick}
+          srcSet={iconTypeToSrcSet(iconType)}
+        />
+      )
+    }
+
+    if (hasContainer) {
       let colorStyleName
       let hoverStyleName
       let inheritStyle
@@ -125,14 +108,14 @@ class Icon extends Component<Props, void> {
           <span
             alt={this.props.hint}
             style={{
-              ...desktopStyles.noSelect,
-              ...styles.icon,
               ...fontSizeHint,
               ...(onClick ? desktopStyles.clickable : {}),
-              ...cleanStyle,
               ...inheritStyle,
+              ...this.props.style,
             }}
-            className={[colorStyleName, hoverStyleName, this.props.className].filter(Boolean).join(' ')}
+            className={['icon', colorStyleName, hoverStyleName, this.props.className]
+              .filter(Boolean)
+              .join(' ')}
             onMouseEnter={this.props.onMouseEnter}
             onMouseLeave={this.props.onMouseLeave}
             onClick={onClick}
@@ -183,12 +166,6 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
     .filter(Boolean)
     .join(', ')
   return sets ? `-webkit-image-set(${sets})` : null
-}
-
-export const styles = {
-  icon: {
-    fontSize: 16,
-  },
 }
 
 export function castPlatformStyles(styles: any) {
