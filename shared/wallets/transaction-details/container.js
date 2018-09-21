@@ -28,13 +28,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const yourRole = Constants.paymentToYourRole(tx)
-  const counterpartyType = Constants.paymentToCounterpartyType(tx)
+  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
   return {
+    ...yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    counterparty: Types.isSender(yourRole) ? tx.target : tx.source,
-    counterpartyType,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
@@ -45,7 +43,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     timestamp: new Date(tx.time),
     title: 'Transaction details',
     transactionID: tx.txID,
-    yourRole,
     you: stateProps._you,
   }
 }

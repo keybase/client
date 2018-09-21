@@ -269,32 +269,56 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   })
 }
 
-const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
-  let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
-  switch (partyType) {
+const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
+  switch (t) {
     case 'ownaccount':
       return 'otherAccount'
     case 'sbs':
     case 'keybase':
       return 'keybaseUser'
     case 'stellar':
+      return 'stellarPublicKey'
     default:
+      // TODO: Have better typing here so we don't need this.
       return 'stellarPublicKey'
   }
 }
 
-const paymentToYourRole = (p: Types.Payment): Types.Role => {
-  switch (p.delta) {
-    case 'none':
-      return Types.senderAndReceiver
-    case 'increase':
-      return Types.receiverOnly
-    case 'decrease':
-      return Types.senderOnly
-    default:
-      // TODO: Do something here.
-      return Types.senderOnly
+const paymentToYourRoleAndCounterparty = (
+  p: Types.Payment
+): {yourRole: Types.Role, counterparty: string, counterpartyType: Types.CounterpartyType} => {
+  if (p.delta === 'none') {
+    if (p.sourceType !== 'ownaccount') {
+      throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
+    }
+    if (p.targetType !== 'ownaccount') {
+      throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
+    }
+    if (p.source !== p.target) {
+      throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
+    }
+    return {yourRole: Types.senderAndReceiver, counterparty: p.source, counterpartyType: 'otherAccount'}
   }
+
+  if (p.delta === 'increase') {
+    return {
+      yourRole: Types.receiverOnly,
+      counterparty: p.source,
+      counterpartyType: partyTypeToCounterpartyType(p.sourceType),
+    }
+  } else if (p.delta === 'decrease') {
+    return {
+      yourRole: Types.senderOnly,
+      counterparty: p.target,
+      counterpartyType: partyTypeToCounterpartyType(p.targetType),
+    }
+  }
+
+  /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
+  */
+  throw new Error(`Unexpected delta ${p.delta}`)
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
@@ -399,8 +423,7 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  paymentToCounterpartyType,
-  paymentToYourRole,
+  paymentToYourRoleAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
   sendPaymentWaitingKey,
