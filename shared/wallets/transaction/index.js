@@ -124,7 +124,7 @@ const Detail = (props: DetailProps) => {
     </React.Fragment>
   )
 
-  if (Types.isSender(props.yourRole) && Types.isReceiver(props.yourRole)) {
+  if (props.yourRole === 'senderAndReceiver') {
     const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
     return (
       <Text type={textTypeSemibold}>
