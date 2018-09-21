@@ -868,6 +868,7 @@ type OwnAccountLocalArg struct {
 type ImportSecretKeyLocalArg struct {
 	SecretKey   SecretKey `codec:"secretKey" json:"secretKey"`
 	MakePrimary bool      `codec:"makePrimary" json:"makePrimary"`
+	Name        string    `codec:"name" json:"name"`
 }
 
 type ExportSecretKeyLocalArg struct {

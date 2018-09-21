@@ -500,7 +500,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 	}
 	// Make sure to keep this validation in sync with ChangeAccountName.
 	if arg.Name == "" {
-		return nil
+		return fmt.Errorf("name required")
 	}
 	runes := utf8.RuneCountInString(arg.Name)
 	if runes > stellar.AccountNameMaxRunes {

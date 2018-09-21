@@ -1357,6 +1357,10 @@
         {
           "name": "makePrimary",
           "type": "boolean"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ],
       "response": null
