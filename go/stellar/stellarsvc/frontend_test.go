@@ -1699,6 +1699,31 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 
 }
 
+func TestSetMobileOnly(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accountID := getPrimaryAccountID(tcs[0])
+
+	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.False(t, mobileOnly)
+
+	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.True(t, mobileOnly)
+
+	// XXX note that the real test here will be that the secret bundle does not come
+	// back for desktop devices or mobile devices that are less than 7d old.
+	// This is just a basic test at this point...
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 

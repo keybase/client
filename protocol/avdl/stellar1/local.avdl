@@ -346,6 +346,9 @@ protocol local {
   KeybaseRequestID makeRequestLocal(int sessionID, string recipient, union { null, Asset } asset, 
     union { null, OutsideCurrencyCode } currency, string amount, string note);
 
+  void setAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+  boolean isAccountMobileOnlyLocal(int sessionID, AccountID accountID);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
