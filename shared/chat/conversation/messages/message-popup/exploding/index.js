@@ -46,13 +46,13 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   state = {
     secondsLeft: this.secondsLeft(),
   }
-  
+
   componentDidMount() {
     if (!__STORYBOOK__) {
       this.timer = addTicker(this.tick)
     }
   }
-  
+
   componentWillUnmount() {
     this.timer && removeTicker(this.timer)
   }
@@ -69,7 +69,6 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
   }
 
   tick = () => {
-
     this.setState({secondsLeft: this.secondsLeft()})
   }
 
