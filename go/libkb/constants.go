@@ -539,6 +539,7 @@ const (
 
 const (
 	Kex2PhraseEntropy  = 88
+	Kex2PhraseEntropy2 = 99 // we've upped the entropy to 99 bits after the 2018 NCC Audit
 	Kex2ScryptCost     = 1 << 17
 	Kex2ScryptLiteCost = 1 << 10
 	Kex2ScryptR        = 8

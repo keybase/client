@@ -69,14 +69,15 @@ func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner
 
 		if len(receivedSecret.Phrase) > 0 {
 			m.CDebugf("received secret phrase, checking validity")
-			checker := libkb.MakeCheckKex2SecretPhrase(e.G())
+			checker := libkb.MakeCheckKex2SecretPhrase(m.G())
 			if !checker.F(receivedSecret.Phrase) {
 				m.CDebugf("secret phrase failed validity check (attempt %d)", i+1)
 				arg.PreviousErr = checker.Hint
 				continue
 			}
-			m.CDebugf("received secret phrase, adding to provisioner")
-			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+			uid := m.CurrentUID()
+			m.CDebugf("received secret phrase, adding to provisioner with uid=%s", uid)
+			ks, err := libkb.NewKex2SecretFromUIDAndPhrase(uid, receivedSecret.Phrase)
 			if err != nil {
 				m.CWarningf("NewKex2SecretFromPhrase error: %s", err)
 				return err
@@ -100,20 +101,23 @@ func (e *DeviceAdd) promptLoop(m libkb.MetaContext, provisioner *Kex2Provisioner
 func (e *DeviceAdd) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("DeviceAdd#Run", func() error { return err })()
 
-	e.G().LocalSigchainGuard().Set(m.Ctx(), "DeviceAdd")
-	defer e.G().LocalSigchainGuard().Clear(m.Ctx(), "DeviceAdd")
+	m.G().LocalSigchainGuard().Set(m.Ctx(), "DeviceAdd")
+	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "DeviceAdd")
 
 	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_NEW_DEVICE}
 	provisioneeType, err := m.UIs().ProvisionUI.ChooseDeviceType(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
-	m.CDebugf("provisionee device type: %v", provisioneeType)
+	uid := m.CurrentUID()
 
-	// make a new secret:
-	useMobileSecret := provisioneeType == keybase1.DeviceType_MOBILE ||
-		e.G().GetAppType() == libkb.DeviceTypeMobile
-	secret, err := libkb.NewKex2Secret(useMobileSecret)
+	// make a new secret; continue to generate legacy Kex2 secrets for now.
+	kex2SecretTyp := libkb.Kex2SecretTypeLegacyDesktop
+	if provisioneeType == keybase1.DeviceType_MOBILE || m.G().GetAppType() == libkb.DeviceTypeMobile {
+		kex2SecretTyp = libkb.Kex2SecretTypeLegacyMobile
+	}
+	m.CDebugf("provisionee device type: %v; uid: %s; secret type: %d", provisioneeType, uid, kex2SecretTyp)
+	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
 	if err != nil {
 		return err
 	}
