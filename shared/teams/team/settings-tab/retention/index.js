@@ -145,7 +145,6 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  
   static getDerivedStateFromProps(props, state) {
     if (
       !policyEquals(props.policy, state.prevPolicy) ||
@@ -156,7 +155,6 @@ class RetentionPicker extends React.Component<Props, State> {
         // we just got updated retention policy matching the selected one
         saving = false
       } // we could show a notice that we received a new value in an else block
-      
       return {
         ...state,
         items: null, // to be populated in componentDidUpdate
