@@ -49,8 +49,8 @@ class RetentionPicker extends React.Component<Props, State> {
     selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,
-    prevPolicy: null,
-    prevTeamPolicy: null,
+    prevPolicy: retentionPolicies.policyRetain,
+    prevTeamPolicy: retentionPolicies.policyRetain,
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
