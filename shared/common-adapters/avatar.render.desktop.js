@@ -32,51 +32,42 @@ const Background = ({borderRadius}) => (
 // The actual image
 class UserImage extends React.PureComponent<ImageProps> {
   render() {
-    const {opacity = 1, url, borderRadius, size} = this.props
+    const {opacity = 1, url, borderRadius, className} = this.props
     const style = {
       backgroundImage: url,
       borderRadius,
-      height: size,
-      opacity,
-      width: size,
     }
-    return <div className="avatar-user-image" style={style} />
+    if (opacity !== 1) {
+      style.opacity = opacity
+    }
+    return <div className={`avatar-user-image ${className}`} style={style} />
   }
 }
 
 // Layer on top to extend outside of the image
-const Border = ({borderColor, isTeam, size, borderRadius}) => {
+const Border = ({borderColor, isTeam, borderRadius, className}) => {
   const style = {
     borderRadius,
     boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
       !borderColor ? (isTeam ? Styles.globalColors.black_10 : '') : borderColor
     } ${isTeam ? 'inset' : ''}`,
-    width: size,
   }
-  return <div className={isTeam ? 'avatar-border-team' : 'avatar-border'} style={style} />
+  const cn = `${isTeam ? 'avatar-border-team' : 'avatar-border'} ${className}`
+  return <div className={cn} style={style} />
 }
 
 class AvatarRender extends React.PureComponent<Props, State> {
   render() {
     const borderRadius = this.props.isTeam ? sizeToTeamBorderRadius[String(this.props.size)] : '50%'
+    const avatarSizeClasName = `avatar-size-${this.props.size}`
 
     return (
-      <div
-        className="avatar"
-        onClick={this.props.onClick}
-        style={Styles.collapseStyles([
-          {
-            height: this.props.size,
-            width: this.props.size,
-          },
-          this.props.style,
-        ])}
-      >
+      <div className={`avatar ${avatarSizeClasName}`} onClick={this.props.onClick} style={this.props.style}>
         {!this.props.skipBackground && <Background borderRadius={borderRadius} />}
         {this.props.url && (
           <UserImage
             opacity={this.props.opacity}
-            size={this.props.size}
+            className={avatarSizeClasName}
             url={this.props.url}
             borderRadius={borderRadius}
           />
@@ -85,7 +76,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
           <Border
             isTeam={this.props.isTeam}
             borderColor={this.props.borderColor || Styles.globalColors.black_10}
-            size={this.props.size}
+            className={avatarSizeClasName}
             borderRadius={borderRadius}
           />
         )}
