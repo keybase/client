@@ -32,18 +32,22 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      items={props.items.reverse().map(({onClick, name, iconSpec}) => ({
-        onClick,
-        title: name,
-        view: (
-          <Box style={stylesRow}>
-            <PathItemIcon spec={iconSpec} style={pathItemIconStyle} small={true} />
-            <Text type="Body" lineClamp={1}>
-              {name}
-            </Text>
-          </Box>
-        ),
-      }))}
+      items={props.items
+        .map(({onClick, name, iconSpec}) => ({
+          onClick,
+          title: name,
+          view: (
+            <Box style={stylesRow}>
+              <PathItemIcon spec={iconSpec} style={pathItemIconStyle} small={true} />
+              <Text type="Body" lineClamp={1}>
+                {name}
+              </Text>
+            </Box>
+          ),
+        }))
+        // Surprise! .reverse() is *in-place*, so we shouldn't call it on the
+        // prop.
+        .reverse()}
       position="bottom right"
       closeOnSelect={true}
     />
