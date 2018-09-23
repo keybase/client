@@ -112,9 +112,6 @@ const mapText = (secondary: boolean) => {
           {types.label}
         </Text>
       )
-      for (let i = 0; i < 50; ++i) {
-        items.push(item(types.type + i + 3))
-      }
       items.push(item(types.type + '1'))
       items.push(item(types.type + '2'))
       items.push(<SmallGap key={types.type} />)
@@ -125,32 +122,19 @@ const mapText = (secondary: boolean) => {
   return items
 }
 
-class WithRefresh extends React.Component {
-  state = {k: 1}
-  inc = () => {
-    console.log('refreshint')
-    this.setState(old => ({
-      k: old.k + 1,
-    }))
-  }
-  render() {
-    return (
-      <Box key={this.state.k} style={outerStyle}>
-        <div onClick={this.inc}>Refresh: {this.state.k}</div>
+const load = () => {
+  Sb.storiesOf('Common', module)
+    .addDecorator(Sb.perfDecorator(50))
+    .addDecorator(Sb.scrollViewDecorator)
+    .add('Text', () => (
+      <Box style={outerStyle}>
         <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
         <Container backgroundColor={globalColors.darkBlue3}>
           <SecondaryColorBox />
           {mapText(true)}
         </Container>
       </Box>
-    )
-  }
-}
-
-const load = () => {
-  Sb.storiesOf('Common', module)
-    .addDecorator(Sb.scrollViewDecorator)
-    .add('Text', () => <WithRefresh />)
+    ))
 }
 
 const outerStyle = isMobile

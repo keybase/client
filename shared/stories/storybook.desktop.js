@@ -6,4 +6,4 @@ const createPropProviderWithCommon = PropProviders.createPropProviderWithCommon
 export {PropProviders, createPropProviderWithCommon}
 export {storiesOf} from '@storybook/react'
 export {action} from '@storybook/addon-actions'
-export {createPropProvider, unexpected, Rnd, scrollViewDecorator} from './storybook.shared'
+export {createPropProvider, unexpected, Rnd, scrollViewDecorator, perfDecorator} from './storybook.shared'
