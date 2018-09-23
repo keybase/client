@@ -63,22 +63,25 @@ class Text extends Component<Props> {
       throw new Error('Missing type on Text')
     }
 
+    // $FlowIssue
+    const style = {
+      ...getStyle(
+        this.props.type,
+        this.props.backgroundMode,
+        this.props.lineClamp,
+        !!this.props.onClick,
+        this.props.selectable
+      ),
+      ...this.props.style,
+    }
+
     return (
       <span
         title={this.props.title}
         ref={this.props.allowHighlightText ? this._setRef : undefined}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
-        style={{
-          ...getStyle(
-            this.props.type,
-            this.props.backgroundMode,
-            this.props.lineClamp,
-            !!this.props.onClick,
-            this.props.selectable
-          ),
-          ...this.props.style,
-        }}
+        style={style}
       >
         {this.props.children}
       </span>
@@ -99,6 +102,7 @@ function getStyle(
       ? null
       : {
           color:
+            // $FlowIssue
             (meta.colorForBackgroundMode && meta.colorForBackgroundMode[backgroundMode]) ||
             defaultColor(backgroundMode),
         }

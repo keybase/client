@@ -82,11 +82,17 @@ const idealSizeMultMap = {
   '96': {'1': 192, '2': 192, '3': 960},
 }
 
+const _getMultsMapCache = {}
 export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): any {
   let sizes: any = Object.keys(imgMap)
 
   if (!sizes.length) {
     return null
+  }
+
+  const sizeKey = sizes.join(':')
+  if (_getMultsMapCache[sizeKey]) {
+    return _getMultsMapCache[sizeKey]
   }
 
   sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
@@ -114,6 +120,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
 
+  _getMultsMapCache[sizeKey] = multsMap
   return multsMap
 }
 

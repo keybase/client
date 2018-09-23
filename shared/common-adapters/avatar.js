@@ -82,21 +82,6 @@ const teamPlaceHolders: {[key: string]: IconType} = {
   '960': 'icon-team-placeholder-avatar-960',
 }
 
-// prettier-ignore
-// const followStateToType = {
-// '128': {theyNo: {youYes: 'icon-following-28'}, theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'}},
-// '48': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-// '64': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-// '96': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-// }
-
-// const followStateToSize = {
-// '128': {theyNo: {youYes: 28}, theyYes: {youNo: 28, youYes: 28}},
-// '48': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-// '64': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-// '96': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-// }
-
 const followSizeToStyle = {
   '128': {bottom: 0, left: 88, position: 'absolute'},
   '48': {bottom: 0, left: 30, position: 'absolute'},
@@ -108,28 +93,14 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
+  // $FlowIssue quicker to just make this string than to do all this mapp lookup
+  const iconType: ?IconType = rel ? `icon-${rel}-${iconSize}` : null
   return {
     iconSize,
     iconStyle: followSizeToStyle[size],
-    iconType: rel ? `icon-${rel}-${iconSize}` : null,
+    iconType,
   }
 }
-
-// function _followIconType(size: number, followsYou: boolean, following: boolean) {
-// const sizeString = String(size)
-// if (followStateToType.hasOwnProperty(sizeString)) {
-// return followStateToType[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
-// }
-// return null
-// }
-
-// function _followIconSize(size: number, followsYou: boolean, following: boolean) {
-// const sizeString = String(size)
-// if (followStateToSize.hasOwnProperty(sizeString)) {
-// return followStateToSize[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
-// }
-// return 0
-// }
 
 let _askQueue = {}
 let _askDispatch = null
@@ -303,8 +274,8 @@ const mockOwnToViewProps = (
 
   const iconInfo = followIconHelper(
     ownProps.size,
-    ownProps.showFollowingStatus && followsYou,
-    ownProps.showFollowingStatus && following
+    !!(ownProps.showFollowingStatus && followsYou),
+    !!(ownProps.showFollowingStatus && following)
   )
   return {
     clearInterval: action('clearInterval'),

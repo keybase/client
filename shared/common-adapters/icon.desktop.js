@@ -103,16 +103,19 @@ class Icon extends Component<Props, void> {
         colorStyleName = `color_${colorName}`
       }
 
+      // $FlowIssue
+      const style = {
+        ...fontSizeHint,
+        ...(onClick ? desktopStyles.clickable : {}),
+        ...inheritStyle,
+        ...this.props.style,
+      }
+
       return (
         <div style={this.props.boxStyle}>
           <span
             alt={this.props.hint}
-            style={{
-              ...fontSizeHint,
-              ...(onClick ? desktopStyles.clickable : {}),
-              ...inheritStyle,
-              ...this.props.style,
-            }}
+            style={style}
             className={['icon', colorStyleName, hoverStyleName, this.props.className]
               .filter(Boolean)
               .join(' ')}
