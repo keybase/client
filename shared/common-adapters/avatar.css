@@ -1,0 +1,46 @@
+/* Used by avatar on desktop to speed up perf */
+
+.avatar {
+    user-select: none;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.avatar-background {
+    background-color: #f0f0f0;
+    bottom: 1px;
+    left: 1px;
+    position: absolute;
+    right: 1px;
+    top: 1px;
+}
+
+.avatar-user-image {
+    flex-shrink: 0;
+    background-size: cover;
+    bottom: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.avatar-border-team {
+    background: rgba(0, 0, 0, 0);
+    bottom: 0;
+    flex-shrink: 0;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.avatar-border {
+    background: rgba(0, 0, 0, 0);
+    bottom: 1px;
+    flex-shrink: 0;
+    left: 1px;
+    position: absolute;
+    right: 1px;
+    top: 1px;
+}

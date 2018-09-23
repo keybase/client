@@ -83,19 +83,19 @@ const teamPlaceHolders: {[key: string]: IconType} = {
 }
 
 // prettier-ignore
-const followStateToType = {
-  '128': {theyNo: {youYes: 'icon-following-28'}, theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'}},
-  '48': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-  '64': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-  '96': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
-}
+// const followStateToType = {
+// '128': {theyNo: {youYes: 'icon-following-28'}, theyYes: {youNo: 'icon-follow-me-28', youYes: 'icon-mutual-follow-28'}},
+// '48': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
+// '64': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
+// '96': {theyNo: {youYes: 'icon-following-21'}, theyYes: {youNo: 'icon-follow-me-21', youYes: 'icon-mutual-follow-21'}},
+// }
 
-const followStateToSize = {
-  '128': {theyNo: {youYes: 28}, theyYes: {youNo: 28, youYes: 28}},
-  '48': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-  '64': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-  '96': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
-}
+// const followStateToSize = {
+// '128': {theyNo: {youYes: 28}, theyYes: {youNo: 28, youYes: 28}},
+// '48': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
+// '64': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
+// '96': {theyNo: {youYes: 21}, theyYes: {youNo: 21, youYes: 21}},
+// }
 
 const followSizeToStyle = {
   '128': {bottom: 0, left: 88, position: 'absolute'},
@@ -104,21 +104,32 @@ const followSizeToStyle = {
   '96': {bottom: 0, left: 65, position: 'absolute'},
 }
 
-function _followIconType(size: number, followsYou: boolean, following: boolean) {
-  const sizeString = String(size)
-  if (followStateToType.hasOwnProperty(sizeString)) {
-    return followStateToType[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
+const followIconHelper = (size: number, followsYou: boolean, following: boolean) => {
+  const iconSize = size === 128 ? 28 : 21
+  const rel =
+    followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
+  return {
+    iconSize,
+    iconStyle: followSizeToStyle[size],
+    iconType: rel ? `icon-${rel}-${iconSize}` : null,
   }
-  return null
 }
 
-function _followIconSize(size: number, followsYou: boolean, following: boolean) {
-  const sizeString = String(size)
-  if (followStateToSize.hasOwnProperty(sizeString)) {
-    return followStateToSize[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
-  }
-  return 0
-}
+// function _followIconType(size: number, followsYou: boolean, following: boolean) {
+// const sizeString = String(size)
+// if (followStateToType.hasOwnProperty(sizeString)) {
+// return followStateToType[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
+// }
+// return null
+// }
+
+// function _followIconSize(size: number, followsYou: boolean, following: boolean) {
+// const sizeString = String(size)
+// if (followStateToSize.hasOwnProperty(sizeString)) {
+// return followStateToSize[sizeString][followsYou ? 'theyYes' : 'theyNo'][following ? 'youYes' : 'youNo']
+// }
+// return 0
+// }
 
 let _askQueue = {}
 let _askDispatch = null
@@ -188,14 +199,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 
   const name = isTeam ? ownProps.teamname : ownProps.username
 
+  const iconInfo = followIconHelper(ownProps.size, stateProps.followsYou, stateProps.following)
+
   return {
     askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     editable: ownProps.editable,
-    followIconSize: _followIconSize(ownProps.size, stateProps.followsYou, stateProps.following),
-    followIconStyle: followSizeToStyle[ownProps.size] || null,
-    followIconType: _followIconType(ownProps.size, stateProps.followsYou, stateProps.following),
+    followIconSize: iconInfo.iconSize,
+    followIconStyle: iconInfo.iconStyle,
+    followIconType: iconInfo.iconType,
     following: stateProps.following,
     followsYou: stateProps.followsYou,
     isTeam,
@@ -288,6 +301,11 @@ const mockOwnToViewProps = (
   const setInterval = action('setInterval')
   const setTimeout = action('setTimeout')
 
+  const iconInfo = followIconHelper(
+    ownProps.size,
+    ownProps.showFollowingStatus && followsYou,
+    ownProps.showFollowingStatus && following
+  )
   return {
     clearInterval: action('clearInterval'),
     clearTimeout: action('clearTimeout'),
@@ -302,9 +320,9 @@ const mockOwnToViewProps = (
 
     borderColor: ownProps.borderColor,
     children: ownProps.children,
-    followIconSize: _followIconSize(ownProps.size, followsYou, following),
-    followIconStyle: followSizeToStyle[ownProps.size],
-    followIconType: _followIconType(ownProps.size, followsYou, following),
+    followIconSize: iconInfo.iconSize,
+    followIconStyle: iconInfo.iconStyle,
+    followIconType: iconInfo.iconType,
     following,
     followsYou,
     isTeam,

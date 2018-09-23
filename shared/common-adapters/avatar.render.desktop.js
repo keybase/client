@@ -1,7 +1,7 @@
 // @flow
 import Icon from './icon'
 import * as React from 'react'
-import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
+import * as Styles from '../styles'
 import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
@@ -25,90 +25,36 @@ const sizeToTeamBorderRadius = {
 }
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
-const backgroundOffset = 1
-const BackgroundDiv = glamorous.div(
-  {
-    bottom: backgroundOffset,
-    left: backgroundOffset,
-    position: 'absolute',
-    right: backgroundOffset,
-    top: backgroundOffset,
-  },
-  props => ({
-    backgroundColor: props.loadingColor || globalColors.lightGrey,
-    borderRadius: props.borderRadius,
-  })
+const Background = ({borderRadius}) => (
+  <div className="avatar-background" style={borderRadius ? {borderRadius} : null} />
 )
-class Background extends React.PureComponent<{borderRadius: any}> {
-  render() {
-    return <BackgroundDiv borderRadius={this.props.borderRadius} />
-  }
-}
 
 // The actual image
-const UserImageDiv = glamorous.div(
-  {
-    backgroundSize: 'cover',
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-    right: 0,
-    top: 0,
-  },
-  props => {
-    const {opacity = 1} = props
-    return {
-      backgroundImage: props.url,
-      borderRadius: props.borderRadius,
-      flexShrink: 0,
-      height: props.size,
-      opacity,
-      width: props.size,
-    }
-  }
-)
 class UserImage extends React.PureComponent<ImageProps> {
   render() {
-    return (
-      <UserImageDiv
-        opacity={this.props.opacity}
-        size={this.props.size}
-        url={this.props.url}
-        borderRadius={this.props.borderRadius}
-      />
-    )
+    const {opacity = 1, url, borderRadius, size} = this.props
+    const style = {
+      backgroundImage: url,
+      borderRadius,
+      height: size,
+      opacity,
+      width: size,
+    }
+    return <div className="avatar-user-image" style={style} />
   }
 }
 
 // Layer on top to extend outside of the image
-const Border = ({
-  borderColor,
-  isTeam,
-  size,
-  borderRadius,
-}: {
-  borderColor: string,
-  isTeam?: boolean,
-  size: number,
-  borderRadius: string,
-}) => (
-  <div
-    style={{
-      background: globalColors.transparent,
-      borderRadius,
-      bottom: isTeam ? 0 : 1,
-      boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
-        !borderColor ? (isTeam ? globalColors.black_10 : '') : borderColor
-      } ${isTeam ? 'inset' : ''}`,
-      flexShrink: 0,
-      left: isTeam ? 0 : 1,
-      position: 'absolute',
-      right: isTeam ? 0 : 1,
-      top: isTeam ? 0 : 1,
-      width: size,
-    }}
-  />
-)
+const Border = ({borderColor, isTeam, size, borderRadius}) => {
+  const style = {
+    borderRadius,
+    boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
+      !borderColor ? (isTeam ? Styles.globalColors.black_10 : '') : borderColor
+    } ${isTeam ? 'inset' : ''}`,
+    width: size,
+  }
+  return <div className={isTeam ? 'avatar-border-team' : 'avatar-border'} style={style} />
+}
 
 class AvatarRender extends React.PureComponent<Props, State> {
   render() {
@@ -116,13 +62,11 @@ class AvatarRender extends React.PureComponent<Props, State> {
 
     return (
       <div
+        className="avatar"
         onClick={this.props.onClick}
-        style={collapseStyles([
-          desktopStyles.noSelect,
+        style={Styles.collapseStyles([
           {
-            flexShrink: 0,
             height: this.props.size,
-            position: 'relative',
             width: this.props.size,
           },
           this.props.style,
@@ -140,7 +84,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
         {(!!this.props.borderColor || this.props.isTeam) && (
           <Border
             isTeam={this.props.isTeam}
-            borderColor={this.props.borderColor || globalColors.black_10}
+            borderColor={this.props.borderColor || Styles.globalColors.black_10}
             size={this.props.size}
             borderRadius={borderRadius}
           />
