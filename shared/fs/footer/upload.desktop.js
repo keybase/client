@@ -85,6 +85,7 @@ const stylesBox = {
   alignItems: 'center',
   justifyContent: 'center',
   maxHeight: height,
+  height,
 }
 
 export default Upload
