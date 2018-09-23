@@ -188,6 +188,14 @@ function* folderList(
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
+    if (action.type === FsGen.editSuccess) {
+      // Note that we discard the Edit metadat here rather than immediately
+      // after an FsGen.editSuccess event, so that if we hear about journal
+      // uploading the new folder before we hear from the folder list result,
+      // fs/footer/upload-container.js can determine this is a newly created
+      // folder instead of a file upload based on state.fs.edits.
+      yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
+    }
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
   }

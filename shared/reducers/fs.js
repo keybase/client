@@ -194,7 +194,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
-    case FsGen.editSuccess:
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
@@ -252,6 +251,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.openPathInSystemFileManager:
     case FsGen.openLocalPathInSystemFileManager:
     case FsGen.commitEdit:
+    case FsGen.editSuccess:
     case FsGen.letResetUserBackIn:
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
