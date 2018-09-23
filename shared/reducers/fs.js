@@ -170,8 +170,20 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
       }
+
+      const existingNewFolderNames = new Set(
+        state.edits
+          .valueSeq()
+          .filter(edit => edit.parentPath === parentPath)
+          .map(edit => edit.name)
+      )
+
       let newFolderName = 'New Folder'
-      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+      for (
+        let i = 2;
+        parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
+        ++i
+      ) {
         newFolderName = `New Folder ${i}`
       }
 
