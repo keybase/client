@@ -184,6 +184,7 @@ dependencies {
     implementation 'org.msgpack:msgpack:0.6.12'
     implementation "com.google.android.gms:play-services-gcm:$googlePlayServicesVersion"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
+    implementation project(':react-native-touch-id')
     implementation project(':react-native-push-notification')
     implementation 'org.slf4j:slf4j-api:1.7.21'
     implementation 'com.facebook.fresco:animated-gif:1.10.0'

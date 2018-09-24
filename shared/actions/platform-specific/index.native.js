@@ -231,7 +231,7 @@ function* loadStartupDetails() {
   const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
   const linkTask = yield Saga.fork(Linking.getInitialURL)
   const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
-  const [touchIDAllowed, touchIDEnabled, routeState, link, push] = yield Saga.join(
+  const [touchIDAllowed, touchIDEnabledString, routeState, link, push] = yield Saga.join(
     touchIDAllowedTask,
     touchIDEnabledTask,
     routeStateTask,
@@ -239,8 +239,18 @@ function* loadStartupDetails() {
     initialPush
   )
 
-  console.log('[TouchID]: state loaded: allowed:', touchIDAllowed, ' enabled: ', touchIDEnabled)
-  yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDAllowed}))
+  const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
+  const touchIDEnabled = touchIDEnabledString === 'true'
+
+  console.log(
+    '[TouchID]: state loaded: allowed:',
+    touchIDAllowed,
+    ' enabled: ',
+    touchIDEnabled,
+    'enabled string: ',
+    touchIDEnabledString
+  )
+  yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
   yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled}))
 
   // Top priority, push
@@ -369,8 +379,10 @@ const askTouchID = (state: TypedState) =>
     inAskTouchID = false
   })
 
-const saveTouchIDEnabled = (_, action: ConfigGen.TouchIDEnabledPayload) =>
-  Saga.spawn(AsyncStorage.setItem, 'touchIDEnabled', action.payload.enabled ? 'true' : 'false')
+const saveTouchIDEnabled = (_, action: ConfigGen.TouchIDEnabledPayload) => {
+  console.log('[TouchID]: saving pref', action.payload.enabled)
+  return Saga.spawn(AsyncStorage.setItem, 'touchIDEnabled', action.payload.enabled ? 'true' : 'false')
+}
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([ConfigGen.mobileAppState, ConfigGen.daemonHandshakeDone], askTouchID)
