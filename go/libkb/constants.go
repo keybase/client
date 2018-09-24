@@ -401,6 +401,8 @@ var PGPArmorHeaders = map[string]string{
 	"Comment": DownloadURL,
 }
 
+const GenericSocialWebServiceBinding = "web_service_binding.generic_social"
+
 var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"keybase":    keybase1.ProofType_KEYBASE,
 	"twitter":    keybase1.ProofType_TWITTER,
