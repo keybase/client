@@ -173,9 +173,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
       const existingNewFolderNames = new Set(
         state.edits
-          .valueSeq()
           .filter(edit => edit.parentPath === parentPath)
           .map(edit => edit.name)
+          .toSet()
       )
 
       let newFolderName = 'New Folder'
