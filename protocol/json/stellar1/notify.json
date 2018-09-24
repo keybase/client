@@ -25,6 +25,14 @@
     "paymentStatusNotification": {
       "request": [
         {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "paymentID",
+          "type": "PaymentID"
+        },
+        {
           "name": "kbTxID",
           "type": "KeybaseTransactionID"
         },

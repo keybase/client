@@ -1178,7 +1178,7 @@ func (n *NotifyRouter) HandleWalletPaymentNotification(ctx context.Context, acco
 	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentNotification")
 }
 
-func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
+func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, accountID stellar1.AccountID, kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
 	if n == nil {
 		return
 	}
@@ -1189,8 +1189,10 @@ func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context
 			// In the background do...
 			go func() {
 				arg := stellar1.PaymentStatusNotificationArg{
-					KbTxID: kbTxID,
-					TxID:   txID,
+					AccountID: accountID,
+					PaymentID: stellar1.PaymentID{TxID: txID},
+					KbTxID:    kbTxID,
+					TxID:      txID,
 				}
 				(stellar1.NotifyClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),

@@ -75,7 +75,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	}
 	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
 
-	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.KbTxID, msg.TxID)
+	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, msg.KbTxID, msg.TxID)
 	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), stellar1.PaymentID{TxID: msg.TxID})
 
 	// We will locally dismiss for now so that each client only plays them once:
