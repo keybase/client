@@ -7,8 +7,9 @@ import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdo
 import {unknownPathItem} from '../../constants/fs'
 
 const mapStateToProps = (state: TypedState) => ({
-  _uploads: state.fs.uploads,
+  _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
+  _uploads: state.fs.uploads,
 })
 
 // NOTE flip this to show a button to debug the upload banner animations.
@@ -35,10 +36,21 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
-const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
-  const filePaths = _uploads.syncingPaths.filter(
-    path => _pathItems.get(path, unknownPathItem).type !== 'folder'
-  )
+const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) => {
+  // Filter out folder paths.
+  const filePaths = _uploads.syncingPaths.filter(path => {
+    const pathType = _pathItems.get(path, unknownPathItem).type
+    // If we don't know about this pathType from state.fs.pathItems, it might
+    // be a newly created folder and we just haven't heard the result from the
+    // folderList RPC triggered by editSuccess yet. So check that. If we know
+    // about this pathType from state.fs.pathItems, it must have been loaded
+    // from an RPC. So just use that to make sure this is not a folder.
+    return pathType === 'unknown'
+      ? !_edits.find(
+          edit => edit.type === 'new-folder' && Types.pathConcat(edit.parentPath, edit.name) === path
+        )
+      : pathType !== 'folder'
+  })
 
   return ({
     // We just use syncingPaths rather than merging with writingToJournal here
