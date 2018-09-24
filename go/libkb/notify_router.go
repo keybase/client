@@ -79,7 +79,7 @@ type NotifyListener interface {
 	AvatarUpdated(name string, formats []keybase1.AvatarFormat)
 	DeviceCloneCountChanged(newClones int)
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
-	WalletPaymentStatusNotification(kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID)
+	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
@@ -160,7 +160,7 @@ func (n *NoopNotifyListener) AvatarUpdated(name string, formats []keybase1.Avata
 func (n *NoopNotifyListener) DeviceCloneCountChanged(newClones int)                              {}
 func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
-func (n *NoopNotifyListener) WalletPaymentStatusNotification(kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
+func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
 func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
@@ -1178,7 +1178,7 @@ func (n *NotifyRouter) HandleWalletPaymentNotification(ctx context.Context, acco
 	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentNotification")
 }
 
-func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, accountID stellar1.AccountID, kbTxID stellar1.KeybaseTransactionID, txID stellar1.TransactionID) {
+func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 	if n == nil {
 		return
 	}
@@ -1190,9 +1190,7 @@ func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context
 			go func() {
 				arg := stellar1.PaymentStatusNotificationArg{
 					AccountID: accountID,
-					PaymentID: stellar1.PaymentID{TxID: txID},
-					KbTxID:    kbTxID,
-					TxID:      txID,
+					PaymentID: paymentID,
 				}
 				(stellar1.NotifyClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
@@ -1202,7 +1200,7 @@ func (n *NotifyRouter) HandleWalletPaymentStatusNotification(ctx context.Context
 		return true
 	})
 	if n.listener != nil {
-		n.listener.WalletPaymentStatusNotification(kbTxID, txID)
+		n.listener.WalletPaymentStatusNotification(accountID, paymentID)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent wallet PaymentStatusNotification")
 }

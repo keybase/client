@@ -31,14 +31,6 @@
         {
           "name": "paymentID",
           "type": "PaymentID"
-        },
-        {
-          "name": "kbTxID",
-          "type": "KeybaseTransactionID"
-        },
-        {
-          "name": "txID",
-          "type": "TransactionID"
         }
       ],
       "response": null,

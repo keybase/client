@@ -108,7 +108,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'stellar.1.notify.paymentStatusNotification': {|
-    inParam: $ReadOnly<{|accountID: AccountID, paymentID: PaymentID, kbTxID: KeybaseTransactionID, txID: TransactionID|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, paymentID: PaymentID|}>,
     outParam: void,
   |},
   'stellar.1.notify.requestStatusNotification': {|
