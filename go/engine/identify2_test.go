@@ -100,12 +100,12 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	if i.checkStatusHook != nil {
-		return i.checkStatusHook(h, pcm)
+		return nil, i.checkStatusHook(h, pcm)
 	}
 	m.CDebugf("Check status rubber stamp: %+v", h)
-	return nil
+	return nil, nil
 }
 
 func (i *Identify2WithUIDTester) GetTorError() libkb.ProofError {
