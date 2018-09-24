@@ -139,6 +139,12 @@ func runUnit(t *testing.T, unit TestCase) (lastLoadRet *Team) {
 			err := json.Unmarshal(link, &outer)
 			require.NoError(t, err)
 			var inner interface{}
+
+			err = jsonw.EnsureMaxDepthBytesDefault([]byte(outer.PayloadJSON))
+			if err != nil {
+				t.Logf("team link '%v' #'%v': JSON exceeds max depth permissable: %v", teamLabel, i+1, err)
+			}
+			require.NoError(t, err)
 			err = json.Unmarshal([]byte(outer.PayloadJSON), &inner)
 			if err != nil {
 				t.Logf("team link '%v' #'%v': corrupted: %v", teamLabel, i+1, err)
