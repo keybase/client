@@ -1867,14 +1867,22 @@ func (k *SimpleFS) LocalChange(
 // BatchChanges implements the libkbfs.Observer interface for SimpleFS.
 func (k *SimpleFS) BatchChanges(
 	ctx context.Context, changes []libkbfs.NodeChange, _ []libkbfs.NodeID) {
-	k.subscribeLock.RLock()
-	defer k.subscribeLock.RUnlock()
+	// Don't take any locks while processing these notifications,
+	// since it risks deadlock.
+	fbs := make(map[libkbfs.FolderBranch]bool, 1)
 	for _, nc := range changes {
-		fb := nc.Node.GetFolderBranch()
-		if fb == k.subscribeCurrFB {
-			k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPath)
-		}
+		fbs[nc.Node.GetFolderBranch()] = true
 	}
+
+	go func() {
+		k.subscribeLock.RLock()
+		defer k.subscribeLock.RUnlock()
+		for fb := range fbs {
+			if fb == k.subscribeCurrFB {
+				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPath)
+			}
+		}
+	}()
 }
 
 // TlfHandleChange implements the libkbfs.Observer interface for SimpleFS.
