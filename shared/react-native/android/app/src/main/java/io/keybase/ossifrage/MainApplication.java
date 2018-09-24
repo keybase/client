@@ -25,12 +25,12 @@ import java.util.List;
 import io.keybase.ossifrage.modules.StorybookConstants;
 import io.keybase.ossifrage.modules.BackgroundJobCreator;
 import io.keybase.ossifrage.modules.BackgroundSyncJob;
+import io.keybase.ossifrage.modules.NativeLogger;
 
 public class MainApplication extends Application implements ReactApplication {
-  private File logFile;
-
   @Override
-  public void onCreate () {
+  public void onCreate() {
+    NativeLogger.info("MainApplication created");
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
     JobManager manager = JobManager.create(this);
@@ -44,8 +44,6 @@ public class MainApplication extends Application implements ReactApplication {
         manager.cancelAllForTag(BackgroundSyncJob.TAG);
         BackgroundSyncJob.scheduleJob();
     }
-
-    logFile = this.getFileStreamPath("android.log");
   }
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
@@ -60,7 +58,7 @@ public class MainApplication extends Application implements ReactApplication {
       if (BuildConfig.BUILD_TYPE == "storyBook") {
         return Arrays.<ReactPackage>asList(
           new MainReactPackage(),
-          new KBReactPackage("") {
+          new KBReactPackage() {
             @Override
             public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
               List<NativeModule> modules = new ArrayList<>();
@@ -78,7 +76,7 @@ public class MainApplication extends Application implements ReactApplication {
 
       return Arrays.<ReactPackage>asList(
               new MainReactPackage(),
-              new KBReactPackage(logFile.getAbsolutePath()),
+              new KBReactPackage(),
               new ReactNativePushNotificationPackage(),
               new RNCameraPackage(),
               new ImagePickerPackage(),

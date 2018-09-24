@@ -6,7 +6,7 @@ import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate}
 import ReactButton from '../react-button/container'
 
 export type Props = {|
-  attachmentRef?: ?React.Component<any, any>,
+  attachmentRef?: () => ?React.Component<any>,
   conversationIDKey: Types.ConversationIDKey,
   onAddReaction: () => void,
   onHidden: () => void,

@@ -369,13 +369,9 @@ func (e *Kex2Provisionee) decodeSig(sig []byte) (*decodedSig, error) {
 	if err != nil {
 		return nil, err
 	}
-	packet, err := libkb.DecodePacket(body)
+	naclSig, err := libkb.DecodeNaclSigInfoPacket(body)
 	if err != nil {
 		return nil, err
-	}
-	naclSig, ok := packet.Body.(*libkb.NaclSigInfo)
-	if !ok {
-		return nil, libkb.UnmarshalError{T: "Nacl signature"}
 	}
 	jw, err := jsonw.Unmarshal(naclSig.Payload)
 	if err != nil {

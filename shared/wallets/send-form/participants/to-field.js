@@ -15,9 +15,11 @@ type ToFieldProps = {|
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
   // Used for sending to a stellar address.
   incorrect?: string,
+  toFieldInput: string,
   // Used for sending from account to account
   // We need the users' name, list of accounts, currently selected account, and callbacks to link and create new accounts.
   user: string,
@@ -59,15 +61,16 @@ class ToField extends React.Component<ToFieldProps> {
 
     // There are a few different ways the participants form can look:
     // Case 1: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a stellar address or searched user, not another account.
-    if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
+    // We can only get this case when the recipient is a searched user, not another account.
+    if (this.props.recipientUsername && this.props.recipientType === 'keybaseUser') {
       component = (
         <React.Fragment>
-          <Kb.NameWithIcon
+          <Kb.ConnectedNameWithIcon
             colorFollowing={true}
             horizontal={true}
             username={this.props.recipientUsername}
             avatarStyle={styles.avatar}
+            onClick="tracker"
           />
           <Kb.Icon
             type="iconfont-remove"
@@ -125,7 +128,11 @@ class ToField extends React.Component<ToFieldProps> {
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
             <Kb.Icon
-              type={this.props.incorrect ? 'icon-stellar-logo-grey-16' : 'icon-stellar-logo-16'}
+              type={
+                this.props.incorrect || this.props.toFieldInput.length === 0
+                  ? 'icon-stellar-logo-grey-16'
+                  : 'icon-stellar-logo-16'
+              }
               style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
             />
             <Kb.NewInput
@@ -154,6 +161,7 @@ class ToField extends React.Component<ToFieldProps> {
         <Search
           onClickResult={this.onSelectRecipient}
           onClose={() => {}}
+          onShowSuggestions={this.props.onShowSuggestions}
           onShowTracker={this.props.onShowProfile}
         />
       )

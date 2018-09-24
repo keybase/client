@@ -97,6 +97,13 @@
         }
       ],
       "response": "CheckProofStatus"
+    },
+    "listProofServices": {
+      "request": [],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
     }
   },
   "namespace": "keybase.1"

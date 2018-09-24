@@ -31,9 +31,13 @@ const AccountNameMaxRunes = 24
 // Safe (but wasteful) to call even if the user has a bundle already.
 func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.CreateWallet", func() error { return err })()
-	clearBundle, err := bundle.NewInitialBundle()
+	loggedInUsername := g.ActiveDevice.Username(libkb.NewMetaContext(ctx, g))
+	if !loggedInUsername.IsValid() {
+		return false, fmt.Errorf("could not get logged-in username")
+	}
+	clearBundle, err := bundle.NewInitialBundle(fmt.Sprintf("%v's account", loggedInUsername))
 	if err != nil {
-		return created, err
+		return false, err
 	}
 	meUV, err := g.GetMeUV(ctx)
 	if err != nil {
@@ -323,7 +327,7 @@ func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI
 	}
 
 	if idRes.User.Username == "" {
-		expr, err := externals.AssertionParse(string(to))
+		expr, err := externals.AssertionParse(m.G(), string(to))
 		if err != nil {
 			m.CDebugf("error parsing assertion: %s", err)
 			return res, fmt.Errorf("invalid recipient %q: %s", to, err)
@@ -1014,10 +1018,13 @@ func reverse(s string) string {
 
 // ChangeAccountName changes the name of an account.
 // Make sure to keep this in sync with ValidateAccountNameLocal.
-// An empty name is always acceptable.
+// An empty name is not allowed.
 // Renaming an account to an already used name is blocked.
 // Maximum length of AccountNameMaxRunes runes.
 func ChangeAccountName(m libkb.MetaContext, accountID stellar1.AccountID, newName string) (err error) {
+	if newName == "" {
+		return fmt.Errorf("name required")
+	}
 	runes := utf8.RuneCountInString(newName)
 	if runes > AccountNameMaxRunes {
 		return fmt.Errorf("account name can be %v characters at the longest but was %v", AccountNameMaxRunes, runes)

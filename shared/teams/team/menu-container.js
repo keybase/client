@@ -8,7 +8,7 @@ import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'
 
 type OwnProps = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   onHidden: () => void,
   teamname: string,
   visible: boolean,
@@ -63,7 +63,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   items: Array<MenuItem | 'Divider' | null>,
   onHidden: () => void,
   visible: boolean,

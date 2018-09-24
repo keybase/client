@@ -154,6 +154,15 @@ export type _MessageAttachment = {
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
+export type _ChatRequestInfo = {
+  amount: string,
+  amountDescription: string,
+  asset: WalletTypes.Asset,
+  currencyCode: string, // set if asset === 'currency'
+  type: 'requestInfo',
+}
+export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
+
 export type _MessageRequestPayment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
@@ -167,6 +176,7 @@ export type _MessageRequestPayment = {
   outboxID: ?OutboxID,
   reactions: Reactions,
   requestID: RPCStellarTypes.KeybaseRequestID,
+  requestInfo: ?ChatRequestInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'requestPayment',
 }
@@ -178,6 +188,7 @@ export type _ChatPaymentInfo = {
   note: HiddenString,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  type: 'paymentInfo',
   worth: string,
 }
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>

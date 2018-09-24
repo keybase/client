@@ -15,12 +15,12 @@ import {walletsTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
 
-const buildPayment = (state: TypedState) =>
+const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
-    fromPrimaryAccount: false,
-    from: state.wallets.selectedAccount,
+    fromPrimaryAccount: !state.wallets.buildingPayment.from,
+    from: state.wallets.buildingPayment.from,
     fromSeqno: '',
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
@@ -34,14 +34,11 @@ const buildPayment = (state: TypedState) =>
 
 const createNewAccount = (state: TypedState, action: WalletsGen.CreateNewAccountPayload) => {
   const {name} = action.payload
-  return RPCTypes.localCreateWalletAccountLocalRpcPromise(
-    {
-      name,
-    },
-    Constants.createNewAccountWaitingKey
-  )
+  return RPCTypes.localCreateWalletAccountLocalRpcPromise({name}, Constants.createNewAccountWaitingKey)
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createCreatedNewAccount({accountID}))
+    .then(accountID =>
+      WalletsGen.createCreatedNewAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error creating new account: ${err.desc}`)
       return WalletsGen.createCreatedNewAccountError({error: err.desc, name})
@@ -161,6 +158,15 @@ const changeDisplayCurrency = (state: TypedState, action: WalletsGen.ChangeDispl
     Constants.changeDisplayCurrencyWaitingKey
   ).then(res => WalletsGen.createLoadDisplayCurrency({accountID: action.payload.accountID}))
 
+const changeAccountName = (state: TypedState, action: WalletsGen.ChangeAccountNamePayload) =>
+  RPCTypes.localChangeWalletAccountNameLocalRpcPromise(
+    {
+      accountID: action.payload.accountID,
+      newName: action.payload.name,
+    },
+    Constants.changeAccountNameWaitingKey
+  ).then(res => WalletsGen.createChangedAccountName({accountID: action.payload.accountID}))
+
 const deleteAccount = (state: TypedState, action: WalletsGen.DeleteAccountPayload) =>
   RPCTypes.localDeleteWalletAccountLocalRpcPromise(
     {
@@ -202,7 +208,9 @@ const linkExistingAccount = (state: TypedState, action: WalletsGen.LinkExistingA
     Constants.linkExistingWaitingKey
   )
     .then(accountIDString => Types.stringToAccountID(accountIDString))
-    .then(accountID => WalletsGen.createLinkedExistingAccount({accountID}))
+    .then(accountID =>
+      WalletsGen.createLinkedExistingAccount({accountID, showOnCreation: action.payload.showOnCreation})
+    )
     .catch(err => {
       logger.warn(`Error linking existing account: ${err.desc}`)
       return WalletsGen.createLinkedExistingAccountError({error: err.desc, name, secretKey})
@@ -237,22 +245,32 @@ const deletedAccount = (state: TypedState) =>
     })
   )
 
-const navigateUp = (
+const createdOrLinkedAccount = (
   state: TypedState,
   action: WalletsGen.CreatedNewAccountPayload | WalletsGen.LinkedExistingAccountPayload
 ) => {
-  if (action.type === WalletsGen.createdNewAccount && action.error) {
+  if (action.error) {
     // Create new account failed, don't nav
     return
   }
-  if (action.type === WalletsGen.linkedExistingAccount && action.error) {
-    // Link existing failed, don't nav
+  if (action.payload.showOnCreation) {
+    return Saga.put(WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true}))
+  }
+  return Saga.put(Route.navigateUp())
+}
+
+const navigateUp = (
+  state: TypedState,
+  action: WalletsGen.DidSetAccountAsDefaultPayload | WalletsGen.ChangedAccountNamePayload
+) => {
+  if (action.error) {
+    // we don't want to nav on error
     return
   }
   return Saga.put(Route.navigateUp())
 }
 
-const navigateToAccount = (action: WalletsGen.SelectAccountPayload) => {
+const navigateToAccount = (state: TypedState, action: WalletsGen.SelectAccountPayload) => {
   if (action.type === WalletsGen.selectAccount && !action.payload.show) {
     // we don't want to show, don't nav
     return
@@ -309,8 +327,6 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
     'stellar.1.notify.paymentNotification': refreshPayments,
-    // $FlowIssue @cjb this needs to be fixed
-    'stellar.1.notify.paymentStatusNotification': refreshPayments,
   })
 }
 
@@ -331,6 +347,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.linkedExistingAccount,
       WalletsGen.refreshPayments,
       WalletsGen.didSetAccountAsDefault,
+      WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
       ConfigGen.loggedIn,
     ],
@@ -365,11 +382,13 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.loadDisplayCurrency, loadDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.changeDisplayCurrency, changeDisplayCurrency)
   yield Saga.actionToPromise(WalletsGen.setAccountAsDefault, setAccountAsDefault)
-  yield Saga.safeTakeEveryPure(
-    [WalletsGen.selectAccount, WalletsGen.didSetAccountAsDefault],
-    navigateToAccount
+  yield Saga.actionToPromise(WalletsGen.changeAccountName, changeAccountName)
+  yield Saga.actionToAction(WalletsGen.selectAccount, navigateToAccount)
+  yield Saga.actionToAction([WalletsGen.didSetAccountAsDefault, WalletsGen.changedAccountName], navigateUp)
+  yield Saga.actionToAction(
+    [WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount],
+    createdOrLinkedAccount
   )
-  yield Saga.actionToAction([WalletsGen.createdNewAccount, WalletsGen.linkedExistingAccount], navigateUp)
   yield Saga.safeTakeEveryPure(WalletsGen.accountsReceived, maybeSelectDefaultAccount)
   yield Saga.actionToPromise(
     [

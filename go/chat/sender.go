@@ -41,7 +41,7 @@ func NewBlockingSender(g *globals.Context, boxer *Boxer, getRi func() chat1.Remo
 		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "BlockingSender", false),
 		getRi:             getRi,
 		boxer:             boxer,
-		store:             attachments.NewS3Store(g.GetLog(), g.GetRuntimeDir()),
+		store:             attachments.NewS3Store(g.GetLog(), g.GetEnv(), g.GetRuntimeDir()),
 		clock:             clockwork.NewRealClock(),
 		prevPtrPagination: &chat1.Pagination{Num: 50},
 	}
@@ -101,10 +101,12 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 	pagination := &chat1.Pagination{
 		Num: s.prevPtrPagination.Num,
 	}
-	// If we fail to find anything to prev against after numRetries, we allow
+	// If we fail to find anything to prev against after maxAttempts, we allow
 	// the message to be send with an empty prev list.
-	numRetries := 5
-	for i := 0; i < numRetries; i++ {
+	maxAttempts := 5
+	attempt := 0
+	reachedLast := false
+	for {
 		thread, err = s.G().ConvSource.Pull(ctx, conv.GetConvID(), msg.ClientHeader.Sender,
 			chat1.GetThreadReason_PREPARE,
 			&chat1.GetThreadQuery{
@@ -141,17 +143,29 @@ func (s *BlockingSender) addPrevPointersAndCheckConvID(ctx context.Context, msg 
 
 		if hasPrev {
 			break
-		} else if thread.Pagination.Last {
-			return resMsg, fmt.Errorf("Could not find previous messages for prev pointers (of %v)", len(thread.Messages))
+		} else if thread.Pagination.Last && !reachedLast {
+			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v). Nuking local storage and retrying.", len(thread.Messages))
+			if err := s.G().ConvSource.Clear(ctx, conv.GetConvID(), msg.ClientHeader.Sender); err != nil {
+				s.Debug(ctx, "Unable to clear conversation: %v, %v", conv.GetConvID(), err)
+				break
+			}
+			attempt = 0
+			pagination.Next = nil
+			// Make sure we only reset `attempt` once
+			reachedLast = true
+			continue
+		} else if attempt >= maxAttempts || reachedLast {
+			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), after %v attempts. Giving up.", len(thread.Messages), attempt)
+			break
 		} else {
-			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v of %v, retrying", len(thread.Messages), i, numRetries)
+			s.Debug(ctx, "Could not find previous messages for prev pointers (of %v), attempt: %v of %v, retrying", len(thread.Messages), attempt, maxAttempts)
 		}
+		attempt++
 	}
 
 	for _, msg2 := range thread.Messages {
 		if msg2.IsValid() {
-			err = s.checkConvID(ctx, conv, msg, msg2)
-			if err != nil {
+			if err = s.checkConvID(ctx, conv, msg, msg2); err != nil {
 				return resMsg, err
 			}
 			break

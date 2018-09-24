@@ -52,6 +52,7 @@ func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalC
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
 		newCmdWalletInit(cl, g),
+		newCmdWalletSetMobileOnly(cl, g),
 	}
 }
 

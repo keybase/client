@@ -20,7 +20,7 @@ const noError = new HiddenString('')
 const makeInit = ({method, payload, initialStore}: {method: string, payload: any, initialStore?: Object}) => {
   const {dispatch, getState, getRoutePath, sagaMiddleware} = startReduxSaga(initialStore)
   const manager = _testing.makeProvisioningManager(true)
-  const callMap = manager.getIncomingCallMap()
+  const callMap = manager.getCustomResponseIncomingCallMap()
   const mockIncomingCall = callMap[method]
   if (!mockIncomingCall) {
     throw new Error('No call')

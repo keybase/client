@@ -3,11 +3,9 @@ import chat2Saga from '../actions/chat2'
 import configSaga from '../actions/config'
 import createSagaMiddleware from 'redux-saga'
 import deviceSaga from '../actions/devices'
-import favoriteSaga from '../actions/favorite'
 import fsSaga from '../actions/fs'
 import gitSaga from '../actions/git'
 import gregorSaga from '../actions/gregor'
-import kbfsSaga from '../actions/kbfs'
 import loginSaga from '../actions/login'
 import provisionSaga from '../actions/provision'
 import notificationsSaga from '../actions/notifications'
@@ -32,10 +30,8 @@ function* mainSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.fork(chat2Saga)
   yield Saga.fork(configSaga)
   yield Saga.fork(deviceSaga)
-  yield Saga.fork(favoriteSaga)
   yield Saga.fork(fsSaga)
   yield Saga.fork(gregorSaga)
-  yield Saga.fork(kbfsSaga)
   yield Saga.fork(loginSaga)
   yield Saga.fork(provisionSaga)
   yield Saga.fork(notificationsSaga)

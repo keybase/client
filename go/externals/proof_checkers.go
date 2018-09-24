@@ -2,3 +2,18 @@
 // this source code is governed by the included BSD license.
 
 package externals
+
+import libkb "github.com/keybase/client/go/libkb"
+
+func getStaticProofServices() []libkb.ServiceType {
+	services := []libkb.ServiceType{
+		DNSServiceType{},
+		FacebookServiceType{},
+		GithubServiceType{},
+		HackerNewsServiceType{},
+		RedditServiceType{},
+		TwitterServiceType{},
+		WebServiceType{},
+	}
+	return append(services, getBuildSpecificStaticProofServices()...)
+}

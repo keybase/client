@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/client/go/stellar/relays"
 )
 
-func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummary) (*stellar1.PaymentLocal, error) {
+func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummary, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return nil, err
@@ -19,11 +19,11 @@ func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p s
 
 	switch typ {
 	case stellar1.PaymentSummaryType_STELLAR:
-		return transformPaymentStellar(m, acctID, p.Stellar())
+		return transformPaymentStellar(m, acctID, p.Stellar(), oc)
 	case stellar1.PaymentSummaryType_DIRECT:
-		return transformPaymentDirect(m, acctID, p.Direct())
+		return transformPaymentDirect(m, acctID, p.Direct(), oc)
 	case stellar1.PaymentSummaryType_RELAY:
-		return transformPaymentRelay(m, acctID, p.Relay())
+		return transformPaymentRelay(m, acctID, p.Relay(), oc)
 	default:
 		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
 	}
@@ -80,16 +80,17 @@ func TransformRequestDetails(m libkb.MetaContext, details stellar1.RequestDetail
 	return &loc, nil
 }
 
-func transformPaymentStellar(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar) (*stellar1.PaymentLocal, error) {
+func transformPaymentStellar(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryStellar, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.From, p.To, acctID)
 	if err != nil {
 		return nil, err
 	}
 
-	loc.Source = p.From.String()
-	loc.SourceType = stellar1.ParticipantType_STELLAR
-	loc.Target = p.To.String()
-	loc.TargetType = stellar1.ParticipantType_STELLAR
+	loc.FromAccountID = p.From
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	loc.ToAccountID = &p.To
+	loc.ToType = stellar1.ParticipantType_STELLAR
+	fillOwnAccounts(m, loc, oc)
 
 	loc.StatusSimplified = stellar1.PaymentStatus_COMPLETED
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -97,7 +98,7 @@ func transformPaymentStellar(m libkb.MetaContext, acctID stellar1.AccountID, p s
 	return loc, nil
 }
 
-func transformPaymentDirect(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect) (*stellar1.PaymentLocal, error) {
+func transformPaymentDirect(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryDirect, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	loc, err := newPaymentLocal(p.TxID, p.Ctime, p.Amount, p.FromStellar, p.ToStellar, acctID)
 	if err != nil {
 		return nil, err
@@ -108,14 +109,23 @@ func transformPaymentDirect(m libkb.MetaContext, acctID stellar1.AccountID, p st
 		return nil, err
 	}
 
-	loc.Source, loc.SourceType = lookupUsernameFallback(m, p.From.Uid, p.FromStellar)
-
-	if p.To != nil {
-		loc.Target, loc.TargetType = lookupUsernameFallback(m, p.To.Uid, p.ToStellar)
-	} else {
-		loc.Target = p.ToStellar.String()
-		loc.TargetType = stellar1.ParticipantType_STELLAR
+	loc.FromAccountID = p.FromStellar
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	if username, err := lookupUsername(m, p.From.Uid); err == nil {
+		loc.FromUsername = username
+		loc.FromType = stellar1.ParticipantType_KEYBASE
 	}
+
+	loc.ToAccountID = &p.ToStellar
+	loc.ToType = stellar1.ParticipantType_STELLAR
+	if p.To != nil {
+		if username, err := lookupUsername(m, p.To.Uid); err == nil {
+			loc.ToUsername = username
+			loc.ToType = stellar1.ParticipantType_KEYBASE
+		}
+	}
+
+	fillOwnAccounts(m, loc, oc)
 
 	loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
@@ -126,7 +136,7 @@ func transformPaymentDirect(m libkb.MetaContext, acctID stellar1.AccountID, p st
 	return loc, nil
 }
 
-func transformPaymentRelay(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay) (*stellar1.PaymentLocal, error) {
+func transformPaymentRelay(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummaryRelay, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
 	var toStellar stellar1.AccountID
 	if p.Claim != nil {
 		toStellar = p.Claim.ToStellar
@@ -141,19 +151,23 @@ func transformPaymentRelay(m libkb.MetaContext, acctID stellar1.AccountID, p ste
 		return nil, err
 	}
 
-	loc.Source, loc.SourceType = lookupUsernameFallback(m, p.From.Uid, p.FromStellar)
+	loc.FromAccountID = p.FromStellar
+	loc.FromType = stellar1.ParticipantType_STELLAR
+	if username, err := lookupUsername(m, p.From.Uid); err == nil {
+		loc.FromUsername = username
+		loc.FromType = stellar1.ParticipantType_KEYBASE
+	}
 
+	loc.ToAssertion = p.ToAssertion
+	loc.ToType = stellar1.ParticipantType_SBS
 	if p.To != nil {
-		name, err := lookupUsername(m, p.To.Uid)
+		username, err := lookupUsername(m, p.To.Uid)
 		if err != nil {
 			m.CDebugf("recipient lookup failed: %s", err)
 			return nil, errors.New("recipient lookup failed")
 		}
-		loc.Target = name
-		loc.TargetType = stellar1.ParticipantType_KEYBASE
-	} else {
-		loc.Target = p.ToAssertion
-		loc.TargetType = stellar1.ParticipantType_SBS
+		loc.ToUsername = username
+		loc.ToType = stellar1.ParticipantType_KEYBASE
 	}
 
 	if p.TxStatus != stellar1.TransactionStatus_SUCCESS {
@@ -167,18 +181,18 @@ func transformPaymentRelay(m libkb.MetaContext, acctID stellar1.AccountID, p ste
 	}
 	if p.Claim != nil {
 		loc.StatusSimplified = p.Claim.TxStatus.ToPaymentStatus()
+		loc.ToAccountID = &p.Claim.ToStellar
+		loc.ToType = stellar1.ParticipantType_STELLAR
+		loc.ToUsername = ""
+		loc.ToAccountName = ""
+		if username, err := lookupUsername(m, p.Claim.To.Uid); err == nil {
+			loc.ToUsername = username
+			loc.ToType = stellar1.ParticipantType_KEYBASE
+		}
 		if p.Claim.TxStatus == stellar1.TransactionStatus_SUCCESS {
 			// If the claim succeeded, the relay payment is done.
 			loc.ShowCancel = false
 			loc.StatusDetail = ""
-			name, err := lookupUsername(m, p.Claim.To.Uid)
-			if err == nil {
-				loc.Target = name
-				loc.TargetType = stellar1.ParticipantType_KEYBASE
-			} else {
-				loc.Target = p.Claim.ToStellar.String()
-				loc.TargetType = stellar1.ParticipantType_STELLAR
-			}
 		} else {
 			claimantUsername, err := lookupUsername(m, p.Claim.To.Uid)
 			if err != nil {
@@ -192,6 +206,7 @@ func transformPaymentRelay(m libkb.MetaContext, acctID stellar1.AccountID, p ste
 		}
 	}
 	loc.StatusDescription = strings.ToLower(loc.StatusSimplified.String())
+	fillOwnAccounts(m, loc, oc)
 
 	relaySecrets, err := relays.DecryptB64(m.Ctx(), m.G(), p.TeamID, p.BoxB64)
 	if err == nil {
@@ -234,6 +249,28 @@ func lookupUsername(m libkb.MetaContext, uid keybase1.UID) (string, error) {
 		return "", err
 	}
 	return uname.String(), nil
+}
+
+func fillOwnAccounts(mctx libkb.MetaContext, loc *stellar1.PaymentLocal, oc OwnAccountLookupCache) {
+	lookupOwnAccountQuick := func(accountID *stellar1.AccountID) (accountName string) {
+		if accountID == nil {
+			return ""
+		}
+		own, name, err := oc.OwnAccount(mctx.Ctx(), *accountID)
+		if err != nil || !own {
+			return ""
+		}
+		if name != "" {
+			return name
+		}
+		return accountID.String()
+	}
+	loc.FromAccountName = lookupOwnAccountQuick(&loc.FromAccountID)
+	loc.ToAccountName = lookupOwnAccountQuick(loc.ToAccountID)
+	if loc.FromAccountName != "" && loc.ToAccountName != "" {
+		loc.FromType = stellar1.ParticipantType_OWNACCOUNT
+		loc.ToType = stellar1.ParticipantType_OWNACCOUNT
+	}
 }
 
 func decryptNote(m libkb.MetaContext, txid stellar1.TransactionID, note string) (plaintext, errOutput string) {

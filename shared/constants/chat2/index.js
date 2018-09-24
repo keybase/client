@@ -18,6 +18,7 @@ import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountsInfoMap: I.Map(),
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
@@ -121,6 +122,10 @@ export const isUserActivelyLookingAtThisThread = (
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
+}
+export const isTeamConversationSelected = (state: TypedState, teamname: string) => {
+  const meta = getMeta(state, getSelectedConversation(state))
+  return meta.teamname === teamname
 }
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
@@ -231,8 +236,11 @@ export {
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
+  getRequestMessageInfo,
+  getPaymentMessageInfo,
   isSpecialMention,
   isVideoAttachment,
+  makeChatRequestInfo,
   makeMessageAttachment,
   makeMessageDeleted,
   makeMessageText,
@@ -250,6 +258,7 @@ export {
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,
+  uiRequestInfoToChatRequestInfo,
   upgradeMessage,
 } from './message'
 

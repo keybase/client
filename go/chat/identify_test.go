@@ -23,7 +23,7 @@ func TestChatBackgroundIdentify(t *testing.T) {
 	tc := world.Tcs[u.Username]
 
 	g := globals.NewContext(tc.G, tc.ChatG)
-	inbox := storage.NewInbox(g, u.User.GetUID().ToBytes())
+	inbox := storage.NewInbox(g)
 
 	tlfName := u.Username
 	msg := chat1.MessageBoxed{
@@ -43,7 +43,8 @@ func TestChatBackgroundIdentify(t *testing.T) {
 		MaxMsgs:         []chat1.MessageBoxed{msg},
 		MaxMsgSummaries: []chat1.MessageSummary{msg.Summary()},
 	}
-	require.NoError(t, inbox.Merge(context.TODO(), 1, []chat1.Conversation{conv}, nil, nil))
+	require.NoError(t, inbox.Merge(context.TODO(), u.User.GetUID().ToBytes(), 1, []chat1.Conversation{conv},
+		nil, nil))
 
 	handler := NewIdentifyChangedHandler(g)
 	require.NotNil(t, handler.G().NotifyRouter, "notify router")

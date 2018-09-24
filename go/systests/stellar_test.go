@@ -230,13 +230,23 @@ func sampleNote() stellar1.NoteContents {
 func gift(t testing.TB, accountID stellar1.AccountID) {
 	t.Logf("gift -> %v", accountID)
 	url := "https://friendbot.stellar.org/?addr=" + accountID.String()
-	t.Logf("gift url: %v", url)
-	res, err := http.Get(url)
-	require.NoError(t, err, "friendbot request error")
-	bodyBuf := new(bytes.Buffer)
-	bodyBuf.ReadFrom(res.Body)
-	t.Logf("gift res: %v", bodyBuf.String())
-	require.Equal(t, 200, res.StatusCode, "friendbot response status code")
+	for i := 0; i < retryCount; i++ {
+		t.Logf("gift url: %v", url)
+		res, err := http.Get(url)
+		if err != nil {
+			t.Logf("http get %s error: %s", url, err)
+			continue
+		}
+		bodyBuf := new(bytes.Buffer)
+		bodyBuf.ReadFrom(res.Body)
+		res.Body.Close()
+		t.Logf("gift res: %v", bodyBuf.String())
+		if res.StatusCode == 200 {
+			return
+		}
+		t.Logf("gift status not ok: %d", res.StatusCode)
+	}
+	t.Fatalf("gift to %s failed after multiple attempts", accountID)
 }
 
 func useStellarTestNet(t testing.TB) {

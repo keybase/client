@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
 import * as Styles from '../../styles'
-import WalletPopup from '../wallet-popup'
+import {WalletPopup} from '../common'
 
 type Props = {
   federatedAddress?: string,

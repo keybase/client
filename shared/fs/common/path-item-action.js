@@ -36,7 +36,7 @@ type Props = {
   path: Types.Path,
   pathElements: Array<string>,
   // Menu items
-  showInFileUI?: () => void,
+  showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
   saveMedia?: (() => void) | 'disabled',
   shareNative?: (() => void) | 'disabled',
@@ -112,11 +112,11 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
           },
         ]
       : []),
-    ...(props.showInFileUI
+    ...(props.showInSystemFileManager
       ? [
           {
             title: 'Show in ' + fileUIName,
-            onClick: hideMenuOnClick(props.showInFileUI, hideMenu),
+            onClick: hideMenuOnClick(props.showInSystemFileManager, hideMenu),
           },
         ]
       : []),
@@ -203,7 +203,7 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
       <FloatingMenu
         closeOnSelect={false}
         containerStyle={styles.floatingContainer}
-        attachTo={props.attachmentRef}
+        attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         onHidden={hideMenuOnce}
         position="bottom right"

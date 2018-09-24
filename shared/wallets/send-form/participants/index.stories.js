@@ -102,6 +102,8 @@ const defaultProps = {
   onLinkAccount: Sb.action('onLinkAccount'),
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
   onShowProfile: Sb.action('onShowProfile'),
+  onShowSuggestions: Sb.action('onShowSuggestions'),
+  toFieldInput: '',
 }
 
 const load = () => {

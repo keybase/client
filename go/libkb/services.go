@@ -152,3 +152,26 @@ func (a assertionContext) NormalizeSocialName(service string, username string) (
 }
 
 //=============================================================================
+
+// NOTE the static methods should only be used in tests or as a basic sanity
+// check for the syntactical correctness of an assertion. All other callers
+// should use the non-static versions.
+// This uses only the 'static' services which exclude any parameterized proofs.
+type staticAssertionContext struct {
+	esc ExternalServicesCollector
+}
+
+func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
+	return staticAssertionContext{esc: s}
+}
+
+func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.esc.GetServiceType(service)
+	if st == nil {
+		// If we don't know about this service, normalize by going to lowercase
+		return strings.ToLower(username), nil
+	}
+	return st.NormalizeUsername(username)
+}
+
+//=============================================================================

@@ -8,11 +8,13 @@ import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as Types from '../types/chat2'
 import * as FsTypes from '../types/fs'
 import * as WalletConstants from '../wallets'
+import * as WalletTypes from '../types/wallets'
 import HiddenString from '../../util/hidden-string'
 import {clamp} from 'lodash-es'
 import {isMobile} from '../platform'
 import type {TypedState} from '../reducer'
 import {noConversationIDKey} from '../types/chat2/common'
+import logger from '../../logger'
 
 export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   switch (m.state) {
@@ -25,6 +27,42 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
     default:
       return null
   }
+}
+
+export const getRequestMessageInfo = (
+  state: TypedState,
+  message: Types.MessageRequestPayment
+): ?MessageTypes.ChatRequestInfo => {
+  const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
+}
+
+export const getPaymentMessageInfo = (
+  state: TypedState,
+  message: Types.MessageSendPayment
+): ?MessageTypes.ChatPaymentInfo => {
+  const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybePaymentInfo) {
+    return message.paymentInfo
+  }
+  if (maybePaymentInfo.type === 'paymentInfo') {
+    return maybePaymentInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
 }
 
 // Map service message types to our message types.
@@ -166,11 +204,20 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   videoDuration: null,
 })
 
+export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo> = I.Record({
+  amount: '',
+  amountDescription: '',
+  asset: 'native',
+  currencyCode: '',
+  type: 'requestInfo',
+})
+
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
   ...makeMessageCommon,
   note: '',
   reactions: I.Map(),
   requestID: '',
+  requestInfo: null,
   type: 'requestPayment',
 })
 
@@ -180,6 +227,7 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   note: new HiddenString(''),
   status: 'none',
   statusDescription: '',
+  type: 'paymentInfo',
   worth: '',
 })
 
@@ -270,6 +318,34 @@ export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   timestamp: 0,
   username: '',
 })
+
+export const uiRequestInfoToChatRequestInfo = (
+  r: ?RPCChatTypes.UIRequestInfo
+): ?MessageTypes.ChatRequestInfo => {
+  if (!r) {
+    return null
+  }
+  let asset = 'native'
+  let currencyCode = ''
+  if (!(r.asset || r.currency)) {
+    logger.error('Received UIRequestInfo with no asset or currency code')
+    return null
+  } else if (r.asset && r.asset.type !== 'native') {
+    asset = WalletConstants.makeAssetDescription({
+      code: r.asset.code,
+      issuerAccountID: WalletTypes.stringToAccountID(r.asset.issuer),
+    })
+  } else if (r.currency) {
+    asset = 'currency'
+    currencyCode = r.currency
+  }
+  return makeChatRequestInfo({
+    amount: r.amount,
+    amountDescription: r.amountDescription,
+    asset,
+    currencyCode,
+  })
+}
 
 export const uiPaymentInfoToChatPaymentInfo = (
   p: ?RPCChatTypes.UIPaymentInfo
@@ -625,6 +701,7 @@ const validUIMessagetoMessage = (
             ...common,
             note: m.messageBody.requestpayment.note,
             requestID: m.messageBody.requestpayment.requestID,
+            requestInfo: uiRequestInfoToChatRequestInfo(m.requestInfo),
           })
         : null
     case RPCChatTypes.commonMessageType.none:

@@ -112,7 +112,7 @@ func (s *Server) ImportSecretKeyLocal(ctx context.Context, arg stellar1.ImportSe
 		return err
 	}
 
-	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, "")
+	return stellar.ImportSecretKey(ctx, s.G(), arg.SecretKey, arg.MakePrimary, arg.Name)
 }
 
 func (s *Server) ExportSecretKeyLocal(ctx context.Context, accountID stellar1.AccountID) (res stellar1.SecretKey, err error) {
@@ -512,7 +512,13 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 		return res, err
 	}
 	if recipient.AccountID == nil {
-		return res, fmt.Errorf("Recipient does not have an account.")
+		if recipient.User != nil {
+			return res, fmt.Errorf("Assertion resolved to Keybase user %q, but they do not have a Stellar account", recipient.User.Username)
+		} else if recipient.Assertion != nil {
+			return res, fmt.Errorf("Could not resolve assertion %q", *recipient.Assertion)
+		} else {
+			return res, fmt.Errorf("Could not find a Stellar account for %q", recipient.Input)
+		}
 	}
 	res.AccountID = stellar1.AccountID(*recipient.AccountID)
 	if recipient.User != nil {

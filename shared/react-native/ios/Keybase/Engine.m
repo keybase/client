@@ -9,7 +9,7 @@
 #import "Engine.h"
 
 #import <keybase/keybase.h>
-#import "RCTEventDispatcher.h"
+#import <React/RCTEventDispatcher.h>
 #import "AppDelegate.h"
 #import "Utils.h"
 

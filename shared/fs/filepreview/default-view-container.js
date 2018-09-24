@@ -11,7 +11,7 @@ const mapStateToProps = (state: TypedState, {path}) => {
   return {
     _username,
     _path: path,
-    fileUIEnabled: state.favorite.fuseStatus ? state.favorite.fuseStatus.kextStarted : false,
+    fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
     pathItem,
   }
 }
@@ -20,12 +20,12 @@ const mapDispatchToProps = (dispatch, {path, routePath}) => ({
   download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
   saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
   shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
-  showInFileUI: () => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+  showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
   const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {download, saveMedia, shareNative, showInFileUI} = dispatchProps
+  const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
   const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
   return {
     fileUIEnabled,
@@ -34,7 +34,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     download,
     saveMedia,
     shareNative,
-    showInFileUI,
+    showInSystemFileManager,
   }
 }
 

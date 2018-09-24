@@ -1,15 +1,33 @@
 // @flow
-import type {TypedState} from '../constants/reducer'
-import type {IncomingCallMapType as KBIncomingCallMap} from '../constants/types/rpc-gen'
-import type {IncomingCallMapType as ChatIncomingCallMap} from '../constants/types/rpc-chat-gen'
-import type {IncomingCallMapType as GregorIncomingCallMap} from '../constants/types/rpc-gregor-gen'
-import type {IncomingCallMapType as SellarIncomingCallMap} from '../constants/types/rpc-stellar-gen'
+import type {
+  CustomResponseIncomingCallMap as KBCustomResponseIncomingCallMap,
+  IncomingCallMapType as KBIncomingCallMap,
+} from '../constants/types/rpc-gen'
+import type {
+  CustomResponseIncomingCallMap as ChatCustomResponseIncomingCallMap,
+  IncomingCallMapType as ChatIncomingCallMap,
+} from '../constants/types/rpc-chat-gen'
+import type {
+  CustomResponseIncomingCallMap as GregorCustomResponseIncomingCallMap,
+  IncomingCallMapType as GregorIncomingCallMap,
+} from '../constants/types/rpc-gregor-gen'
+import type {
+  CustomResponseIncomingCallMap as SellarCustomResponseIncomingCallMap,
+  IncomingCallMapType as SellarIncomingCallMap,
+} from '../constants/types/rpc-stellar-gen'
 
 type IncomingCallMap = {|
-  ...KBIncomingCallMap<TypedState>,
-  ...ChatIncomingCallMap<TypedState>,
-  ...GregorIncomingCallMap<TypedState>,
-  ...SellarIncomingCallMap<TypedState>,
+  ...KBIncomingCallMap,
+  ...ChatIncomingCallMap,
+  ...GregorIncomingCallMap,
+  ...SellarIncomingCallMap,
+|}
+
+type CustomResponseIncomingCallMap = {|
+  ...KBCustomResponseIncomingCallMap,
+  ...ChatCustomResponseIncomingCallMap,
+  ...GregorCustomResponseIncomingCallMap,
+  ...SellarCustomResponseIncomingCallMap,
 |}
 
 declare class Session {
@@ -24,7 +42,8 @@ declare class Session {
   start: (method: string, param: ?Object, callback: ?() => void) => void;
   constructor({
     sessionID: number,
-    incomingCallMap: ?IncomingCallMap,
+    incomingCallMap?: ?IncomingCallMap,
+    customResponseIncomingCallMap?: ?CustomResponseIncomingCallMap,
     waitingKey?: string,
     invoke: (method: string, param: ?[Object], cb: (err: any, data: any) => void) => void,
     endHandler: (session: Object) => void,

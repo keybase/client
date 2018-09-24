@@ -5,12 +5,12 @@ import * as GregorGen from './gregor-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import engine from '../engine'
+import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
   engine().setIncomingCallMap({
-    'keybase.1.gregorUI.pushState': ({reason, state}, response) => {
-      response && response.result()
+    'keybase.1.gregorUI.pushState': ({reason, state}) => {
       const items = state.items || []
 
       const goodState = items.reduce((arr, {md, item}) => {
@@ -23,17 +23,18 @@ const setupEngineListeners = () => {
       }
       return Saga.put(GregorGen.createPushState({reason, state: goodState}))
     },
-    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}, response) => {
-      response && response.result()
+    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
       const filteredOOBM = (oobm || []).filter(Boolean)
       return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
     },
-    'keybase.1.reachability.reachabilityChanged': ({reachability}, response, state) => {
-      if (state.config.loggedIn) {
-        // Gregor reachability is only valid if we're logged in
-        return Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
-      }
-    },
+    'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
+      Saga.call(function*() {
+        const state: TypedState = yield Saga.select()
+        if (state.config.loggedIn) {
+          // Gregor reachability is only valid if we're logged in
+          yield Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
+        }
+      }),
   })
 
   // Filter this firehose down to the system we care about: "git"

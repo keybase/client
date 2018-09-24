@@ -15,7 +15,7 @@ func TestProfileEdit(t *testing.T) {
 
 	identify := func() keybase1.UserCard {
 		i := newIdentify2WithUIDTester(tc.G)
-		tc.G.Services = i
+		tc.G.SetProofServices(i)
 
 		// add NoSkipSelf and NeedProofSet to go through with the full identify,
 		// with RPCs to the outside and all.

@@ -266,8 +266,7 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 		},
 		NetContext: m.Ctx(),
 	}
-	_, err := m.G().API.Post(apiArg)
-	if err != nil {
+	if _, err := m.G().API.Post(apiArg); err != nil {
 		m.CDebugf("error posting to rooter: %s", err)
 		return err
 	}
@@ -318,7 +317,7 @@ func (p *Prove) checkProofText(m libkb.MetaContext) error {
 }
 
 func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
-	if p.st = m.G().Services.GetServiceType(p.arg.Service); p.st == nil {
+	if p.st = m.G().GetProofServices().GetServiceType(p.arg.Service); p.st == nil {
 		err = libkb.BadServiceError{Service: p.arg.Service}
 	}
 	return

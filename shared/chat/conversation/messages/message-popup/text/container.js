@@ -1,5 +1,5 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
@@ -12,7 +12,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Text from '.'
 
 type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.MessageText,
   onHidden: () => void,
   position: Position,

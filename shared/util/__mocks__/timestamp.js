@@ -14,18 +14,8 @@ export function formatTimeForPopup(time: number): string {
   return '[mocked]'
 }
 
-export function formatTimeForStellarTransaction(timestamp: Date) {
-  return {
-    human: '[mocked]',
-    tooltip: '[mocked]',
-  }
-}
-
-export function formatTimeForStellarTransactionDetails(timestamp: Date) {
-  return {
-    human: '[mocked]',
-    tooltip: '[mocked]',
-  }
+export function formatTimeForStellarTooltip(time: number): string {
+  return '[mocked]'
 }
 
 export function formatTimeForRevoked(time: number): string {

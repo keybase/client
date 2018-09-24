@@ -180,21 +180,29 @@ const setupReachabilityWatcher = () =>
   })
 
 const setupEngineListeners = () => {
+  getEngine().setCustomResponseIncomingCallMap({
+    'keybase.1.logsend.prepareLogsend': (_, response) => {
+      dumpLogs().then(() => {
+        response && response.result()
+      })
+    },
+  })
   getEngine().setIncomingCallMap({
     'keybase.1.NotifyApp.exit': () => {
       console.log('App exit requested')
       SafeElectron.getApp().exit(0)
     },
-    'keybase.1.NotifyFS.FSActivity': ({notification}, _, state) => {
-      kbfsNotification(notification, NotifyPopup, state)
-    },
+    'keybase.1.NotifyFS.FSActivity': ({notification}) =>
+      Saga.call(function*() {
+        const state = yield Saga.select()
+        kbfsNotification(notification, NotifyPopup, state)
+      }),
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
       RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       })
     },
-    'keybase.1.NotifyService.shutdown': (code, response) => {
-      response && response.result()
+    'keybase.1.NotifyService.shutdown': code => {
       if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
         console.log('Quitting due to service shutdown')
         // Quit just the app, not the service
@@ -204,11 +212,6 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
-    },
-    'keybase.1.logsend.prepareLogsend': (_, response) => {
-      dumpLogs().then(() => {
-        response && response.result()
-      })
     },
   })
 }

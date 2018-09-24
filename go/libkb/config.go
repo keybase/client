@@ -430,6 +430,9 @@ func (f *JSONConfigFile) GetChatDbFilename() string {
 func (f *JSONConfigFile) GetPvlKitFilename() string {
 	return f.GetTopLevelString("pvl_kit")
 }
+func (f *JSONConfigFile) GetParamProofKitFilename() string {
+	return f.GetTopLevelString("paramproof_kit")
+}
 func (f *JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
 	return res
@@ -828,4 +831,12 @@ func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
+}
+
+func (f *JSONConfigFile) GetAttachmentHTTPStartPort() (int, bool) {
+	return f.GetIntAtPath("attachment_httpsrv_port")
+}
+
+func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
+	return f.GetBoolAtPath("attachment_disable_multi")
 }

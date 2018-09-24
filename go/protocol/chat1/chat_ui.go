@@ -446,6 +446,7 @@ type UIRequestInfo struct {
 	AmountDescription string                        `codec:"amountDescription" json:"amountDescription"`
 	Asset             *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
 	Currency          *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	Status            stellar1.RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o UIRequestInfo) DeepCopy() UIRequestInfo {
@@ -466,6 +467,7 @@ func (o UIRequestInfo) DeepCopy() UIRequestInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
+		Status: o.Status.DeepCopy(),
 	}
 }
 

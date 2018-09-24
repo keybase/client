@@ -32,28 +32,49 @@ public class NativeLogger extends ReactContextBaseJavaModule {
 
     // This should do roughly the same thing as dumpLine from
     // native-logger.js.
-    private static String dumpLine(String toLog) throws IOException {
+    private static String dumpLine(String toLog) {
         long millis = System.currentTimeMillis();
         StringWriter sw = new StringWriter();
         JsonWriter js = new JsonWriter(sw);
-        js.beginArray()
+        try {
+            js.beginArray()
                 .value(millis)
                 .value(toLog)
                 .endArray()
                 .close();
-        return sw.toString();
+            return sw.toString();
+        } catch (IOException e) {
+            rawLog(ERROR_TAG, "Exception in dumpLine: " + Log.getStackTraceString(e));
+            return toLog;
+        }
     }
 
-    public static void error(String log) throws IOException {
+    private static String dumpLine(String toLog, Throwable tr) {
+      return dumpLine(toLog + ": " + Log.getStackTraceString(tr));
+    }
+
+    public static void error(String log) {
         rawLog(ERROR_TAG, dumpLine(log));
     }
 
-    public static void info(String log) throws IOException {
+    public static void error(String log, Throwable tr) {
+        rawLog(ERROR_TAG, dumpLine(log, tr));
+    }
+
+    public static void info(String log) {
         rawLog(INFO_TAG, dumpLine(log));
     }
 
-    public static void warn(String log) throws IOException {
+    public static void info(String log, Throwable tr) {
+        rawLog(INFO_TAG, dumpLine(log, tr));
+    }
+
+    public static void warn(String log) {
         rawLog(WARN_TAG, dumpLine(log));
+    }
+
+    public static void warn(String log, Throwable tr) {
+        rawLog(WARN_TAG, dumpLine(log, tr));
     }
 
     public NativeLogger(final ReactApplicationContext reactContext) {
@@ -92,7 +113,7 @@ public class NativeLogger extends ReactContextBaseJavaModule {
             promise.resolve(totalArray);
         } catch (IOException e) {
             promise.reject(e);
-            e.printStackTrace();
+            rawLog(ERROR_TAG, "Exception in dump: " + Log.getStackTraceString(e));
         }
     }
 }

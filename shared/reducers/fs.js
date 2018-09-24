@@ -170,8 +170,20 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         console.warn(`bad parentPath: ${parentPathItem.type}`)
         return state
       }
+
+      const existingNewFolderNames = new Set(
+        state.edits
+          .filter(edit => edit.parentPath === parentPath)
+          .map(edit => edit.name)
+          .toSet()
+      )
+
       let newFolderName = 'New Folder'
-      for (let i = 2; parentPathItem.children.has(newFolderName); ++i) {
+      for (
+        let i = 2;
+        parentPathItem.children.has(newFolderName) || existingNewFolderNames.has(newFolderName);
+        ++i
+      ) {
         newFolderName = `New Folder ${i}`
       }
 
@@ -194,7 +206,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
-    case FsGen.editSuccess:
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
@@ -229,6 +240,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         default:
           return nextState
       }
+    case FsGen.userFileEditsLoaded:
+      return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
     case FsGen.placeholderAction:
@@ -236,7 +249,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
-    case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.notifySyncActivity:
@@ -247,11 +259,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.saveMedia:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
+    case FsGen.openPathInFilesTab:
+    case FsGen.openPathInSystemFileManager:
+    case FsGen.openLocalPathInSystemFileManager:
     case FsGen.commitEdit:
+    case FsGen.editSuccess:
     case FsGen.letResetUserBackIn:
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:
     case FsGen.upload:
+    case FsGen.openFilesFromWidget:
+    case FsGen.userFileEditsLoad:
       return state
     default:
       /*::

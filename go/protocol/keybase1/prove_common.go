@@ -265,6 +265,70 @@ func (e ProofType) String() string {
 	return ""
 }
 
+type ProofServiceGroup struct {
+	Id string `codec:"id" json:"id"`
+}
+
+func (o ProofServiceGroup) DeepCopy() ProofServiceGroup {
+	return ProofServiceGroup{
+		Id: o.Id,
+	}
+}
+
+type ParamProofUsernameConfig struct {
+	Re  string `codec:"re" json:"re"`
+	Min int    `codec:"min" json:"min"`
+	Max int    `codec:"max" json:"max"`
+}
+
+func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
+	return ParamProofUsernameConfig{
+		Re:  o.Re,
+		Min: o.Min,
+		Max: o.Max,
+	}
+}
+
+type ParamProofServiceConfig struct {
+	Version     int                      `codec:"version" json:"version"`
+	Domain      string                   `codec:"domain" json:"domain"`
+	DisplayName string                   `codec:"displayName" json:"display_name"`
+	Group       *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
+	Username    ParamProofUsernameConfig `codec:"username" json:"username"`
+	PrefillUrl  string                   `codec:"prefillUrl" json:"prefill_url"`
+	CheckUrl    string                   `codec:"checkUrl" json:"check_url"`
+	CheckPath   []string                 `codec:"checkPath" json:"check_path"`
+}
+
+func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
+	return ParamProofServiceConfig{
+		Version:     o.Version,
+		Domain:      o.Domain,
+		DisplayName: o.DisplayName,
+		Group: (func(x *ProofServiceGroup) *ProofServiceGroup {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Group),
+		Username:   o.Username.DeepCopy(),
+		PrefillUrl: o.PrefillUrl,
+		CheckUrl:   o.CheckUrl,
+		CheckPath: (func(x []string) []string {
+			if x == nil {
+				return nil
+			}
+			ret := make([]string, len(x))
+			for i, v := range x {
+				vCopy := v
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.CheckPath),
+	}
+}
+
 type ProveCommonInterface interface {
 }
 

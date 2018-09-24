@@ -49,8 +49,8 @@ func sendSimple(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext, p
 	_, boxed, err := sender.Send(ctx, convID, pt, 0, nil)
 	require.NoError(t, err)
 
-	ibox := storage.NewInbox(tc.Context(), uid)
-	vers, err := ibox.Version(ctx)
+	ibox := storage.NewInbox(tc.Context())
+	vers, err := ibox.Version(ctx, uid)
 	if err != nil {
 		require.IsType(t, storage.MissError{}, err)
 		vers = 0

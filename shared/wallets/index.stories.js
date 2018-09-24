@@ -5,6 +5,7 @@ import {storiesOf} from '../stories/storybook'
 import asset from './asset/index.stories'
 import banner from './banner/index.stories'
 import common from './common/index.stories'
+import createAccount from './create-account/index.stories'
 import linkExisting from './link-existing/index.stories'
 import sendForm from './send-form/index.stories'
 import confirmForm from './confirm-form/index.stories'
@@ -19,6 +20,7 @@ const load = () => {
   asset()
   banner()
   common()
+  createAccount()
   exportSecretKey()
   linkExisting()
   receiveModal()

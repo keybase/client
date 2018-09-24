@@ -5,9 +5,7 @@ import {capitalize} from 'lodash-es'
 import {Avatar, Box2, ClickableBox, Divider, Icon, ConnectedUsernames, Markdown} from '../../common-adapters'
 import Text, {type TextType} from '../../common-adapters/text'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
-import {formatTimeForStellarTransaction, formatTimeForStellarTransactionDetails} from '../../util/timestamp'
-
-type Role = 'sender' | 'receiver'
+import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/timestamp'
 
 type CounterpartyIconProps = {|
   large: boolean,
@@ -101,7 +99,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
 type DetailProps = {|
   large: boolean,
   pending: boolean,
-  yourRole: Role,
+  yourRole: Types.Role,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
@@ -113,7 +111,20 @@ const Detail = (props: DetailProps) => {
   const textTypeSemibold = props.large ? 'BodySemibold' : 'BodySmallSemibold'
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
-  const counterparty = (
+  const amount = props.isXLM ? (
+    <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+      {props.amountUser}
+    </Text>
+  ) : (
+    <React.Fragment>
+      Lumens worth{' '}
+      <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+        {props.amountUser}
+      </Text>
+    </React.Fragment>
+  )
+
+  const counterparty = () => (
     <CounterpartyText
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
@@ -123,65 +134,107 @@ const Detail = (props: DetailProps) => {
       textTypeSemibold={textTypeSemibold}
     />
   )
-  const amount = props.isXLM ? (
-    <Text type={textTypeExtrabold}>{props.amountUser}</Text>
-  ) : (
-    <React.Fragment>
-      Lumens worth <Text type={textTypeExtrabold}>{props.amountUser}</Text>
-    </React.Fragment>
-  )
 
-  if (props.counterpartyType === 'otherAccount') {
-    const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
-    if (props.yourRole === 'sender') {
+  switch (props.yourRole) {
+    case 'senderOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from this account to {counterparty()}.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'Sending' : 'You sent'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} to {counterparty()}.
+          </Text>
+        )
+      }
+    case 'receiverOnly':
+      if (props.counterpartyType === 'otherAccount') {
+        const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
+        return (
+          <Text type={textTypeSemibold}>
+            {verbPhrase} {amount} from {counterparty()} to this account.
+          </Text>
+        )
+      } else {
+        const verbPhrase = props.pending ? 'sending' : 'sent you'
+        return (
+          <Text type={textTypeSemibold}>
+            {counterparty()} {verbPhrase} {amount}.
+          </Text>
+        )
+      }
+    case 'senderAndReceiver':
+      const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold}>
-          {verbPhrase} {amount} from this account to {counterparty}.
+          {verbPhrase} {amount} from this account to itself.
         </Text>
       )
-    }
-
-    return (
-      <Text type={textTypeSemibold}>
-        {verbPhrase} {amount} from {counterparty} to this account.
-      </Text>
-    )
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
+      */
+      throw new Error(`Unexpected role ${props.yourRole}`)
   }
-
-  if (props.yourRole === 'sender') {
-    const verbPhrase = props.pending ? 'Sending' : 'You sent'
-    return (
-      <Text type={textTypeSemibold}>
-        {verbPhrase} {amount} to {counterparty}.
-      </Text>
-    )
-  }
-
-  const verbPhrase = props.pending ? 'sending' : 'sent you'
-  return (
-    <Text type={textTypeSemibold}>
-      {counterparty} {verbPhrase} {amount}.
-    </Text>
-  )
 }
 
 type AmountXLMProps = {|
-  delta: 'none' | 'increase' | 'decrease',
-  yourRole: Role,
+  yourRole: Types.Role,
   amountXLM: string,
   pending: boolean,
 |}
 
+const roleToColor = (role: Types.Role): string => {
+  switch (role) {
+    case 'senderOnly':
+      return globalColors.red
+    case 'receiverOnly':
+      return globalColors.green
+    case 'senderAndReceiver':
+      return globalColors.black
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
+  }
+}
+
+const getAmount = (role: Types.Role, amountXLM: string): string => {
+  switch (role) {
+    case 'senderOnly':
+      return `- ${amountXLM}`
+    case 'receiverOnly':
+      return `+ ${amountXLM}`
+    case 'senderAndReceiver':
+      return '0 XLM'
+    default:
+      /*::
+    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
+    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
+  */
+      throw new Error(`Unexpected role ${role}`)
+  }
+}
+
 const AmountXLM = (props: AmountXLMProps) => {
-  const color = props.pending
-    ? globalColors.black_20
-    : props.delta === 'decrease'
-      ? globalColors.red
-      : globalColors.green
-  const amount = `${props.amountXLM}`
+  const color = props.pending ? globalColors.black_20 : roleToColor(props.yourRole)
+
+  const amount = getAmount(props.yourRole, props.amountXLM)
   return (
-    <Text style={{color, textAlign: 'right'}} type="BodyExtrabold">
-      {props.delta === 'increase' ? '+ ' : '- '}
+    <Text
+      onClick={event => event.stopPropagation()}
+      selectable={true}
+      style={{color, textAlign: 'right'}}
+      type="BodyExtrabold"
+    >
       {amount}
     </Text>
   )
@@ -209,13 +262,8 @@ export const TimestampLine = (props: TimestampLineProps) => {
       </Text>
     )
   }
-  let human
-  let tooltip
-  if (props.relative) {
-    ;({human, tooltip} = formatTimeForStellarTransaction(props.timestamp))
-  } else {
-    ;({human, tooltip} = formatTimeForStellarTransactionDetails(props.timestamp))
-  }
+  const human = formatTimeForMessages(props.timestamp)
+  const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
     <Text title={tooltip} type="BodySmall">
       {human}
@@ -228,10 +276,8 @@ export type Props = {|
   amountXLM: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
-  // whether account balance has increased or decreased
-  delta: 'none' | 'increase' | 'decrease',
   large: boolean,
-  // Ignored if yourRole is receiver and counterpartyType is
+  // Ignored if yourRole is receiverOnly and counterpartyType is
   // stellarPublicKey.
   memo: string,
   onCancelPayment?: () => void,
@@ -241,13 +287,13 @@ export type Props = {|
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
   timestamp: Date | null,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 export const Transaction = (props: Props) => {
   const pending = !props.timestamp || props.status !== 'completed'
   const showMemo =
-    props.large && !(props.yourRole === 'receiver' && props.counterpartyType === 'stellarPublicKey')
+    props.large && !(props.yourRole === 'receiverOnly' && props.counterpartyType === 'stellarPublicKey')
   return (
     <Box2 direction="vertical" fullWidth={true}>
       <ClickableBox onClick={props.onSelectTransaction}>
@@ -293,12 +339,7 @@ export const Transaction = (props: Props) => {
                 <Markdown allowFontScaling={true}>{props.memo}</Markdown>
               </Box2>
             )}
-            <AmountXLM
-              delta={props.delta}
-              pending={pending}
-              yourRole={props.yourRole}
-              amountXLM={props.amountXLM}
-            />
+            <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
           </Box2>
         </Box2>
       </ClickableBox>

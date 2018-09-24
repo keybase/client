@@ -142,7 +142,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               !this.state.playingVideo &&
               this.state.loaded && (
                 <Box style={styles.durationContainer}>
-                  <Text type={'BodySmall'} style={styles.durationText}>
+                  <Text type={'BodyTinyBold'} style={styles.durationText}>
                     {this.props.videoDuration}
                   </Text>
                 </Box>
@@ -236,26 +236,19 @@ const styles = styleSheetCreate({
     right: '50%',
     top: '50%',
   },
-  durationContainer: platformStyles({
-    isElectron: {
-      bottom: '5%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-    isMobile: {
-      bottom: '7%',
-      position: 'absolute',
-      right: '3%',
-      backgroundColor: globalColors.black_75,
-      alignSelf: 'flex-start',
-    },
-  }),
+  durationContainer: {
+    backgroundColor: globalColors.black_60,
+    bottom: globalMargins.tiny,
+    position: 'absolute',
+    right: globalMargins.tiny,
+    borderRadius: 2,
+    alignSelf: 'flex-start',
+    padding: 1,
+  },
   durationText: {
     color: globalColors.white,
-    paddingLeft: 5,
-    paddingRight: 5,
+    paddingLeft: 3,
+    paddingRight: 3,
   },
   progressContainer: {
     ...globalStyles.flexBoxRow,
@@ -274,13 +267,14 @@ const styles = styleSheetCreate({
     isElectron: {
       bottom: '50%',
       left: '50%',
-      marginBottom: -32,
-      marginLeft: -32,
-      marginRight: -32,
-      marginTop: -32,
+      marginBottom: -24,
+      marginLeft: -24,
+      marginRight: -24,
+      marginTop: -24,
       position: 'absolute',
       right: '50%',
       top: '50%',
+      width: 48,
     },
     isMobile: {
       width: 48,
