@@ -208,6 +208,7 @@ func (t GenericSocialProofServiceType) NormalizeUsername(s string) (string, erro
 	if !t.config.usernameRe.MatchString(s) {
 		return "", libkb.NewBadUsernameError(s)
 	}
+	// TODO always normalize ToLower? See CORE-8984
 	return strings.ToLower(s), nil
 }
 

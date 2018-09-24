@@ -927,27 +927,6 @@ func stepSelectorJSON(m metaContext, ins selectorJSONT, state scriptState) (scri
 	return state, err
 }
 
-func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper,
-	selectors []keybase1.SelectorEntry) ([]string, libkb.ProofError) {
-	logger := func(format string, args ...interface{}) {
-		debugWithState(m, state, format, args)
-	}
-	jsonResults, perr := libkb.AtSelectorPath(selectedObject, selectors, logger)
-	if perr != nil {
-		return nil, perr
-	}
-	results := []string{}
-	for _, object := range jsonResults {
-		s, err := libkb.JsonStringSimple(object)
-		if err != nil {
-			logger("JSON could not read object: %v (%v)", err, object)
-			continue
-		}
-		results = append(results, s)
-	}
-	return results, nil
-}
-
 func stepSelectorCSS(m metaContext, ins selectorCSST, state scriptState) (scriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.fetchMode != fetchModeHTML {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -1024,6 +1003,27 @@ func runCSSSelectorInner(m metaContext, html *goquery.Selection,
 	}
 
 	return selection, nil
+}
+
+func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *jsonw.Wrapper,
+	selectors []keybase1.SelectorEntry) ([]string, libkb.ProofError) {
+	logger := func(format string, args ...interface{}) {
+		debugWithState(m, state, format, args)
+	}
+	jsonResults, perr := libkb.AtSelectorPath(selectedObject, selectors, logger)
+	if perr != nil {
+		return nil, perr
+	}
+	results := []string{}
+	for _, object := range jsonResults {
+		s, err := libkb.JsonStringSimple(object)
+		if err != nil {
+			logger("JSON could not read object: %v (%v)", err, object)
+			continue
+		}
+		results = append(results, s)
+	}
+	return results, nil
 }
 
 // Take a regex descriptor, do variable substitution, and build a regex.
