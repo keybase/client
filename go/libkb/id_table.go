@@ -255,6 +255,14 @@ func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 }
 func (s *SocialProofChainLink) GetService() string { return s.service }
 
+func (s *SocialProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jsonw.Wrapper, error) {
+	ret := s.BaseToTrackingStatement(state)
+	if err := remoteProofToTrackingStatement(s, ret); err != nil {
+		return nil, err
+	}
+	return ret, nil
+}
+
 func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	k, v := s.ToKeyValuePair()
 	if list, found := tl.ids[k]; !found || len(list) == 0 {

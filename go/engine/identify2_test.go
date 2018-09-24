@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -1115,25 +1116,29 @@ func TestResolveAndCheck(t *testing.T) {
 		{"t_alice", libkb.UIDMismatchError{}, true},
 		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
 		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
-		// NOTE: Generic proofs are a WIP, this should change to a
-		// NotFoundError and a success case as the implementation proceeds.
-		// See CORE-8787
 		{"foobunny@gubble.social", libkb.ResolutionError{}, false},
-		// TODO set this up for success!
-		{"t_alice@gubble.social", libkb.ResolutionError{}, false},
 	}
 	for _, test := range tests {
 		tc.G.Resolver = goodResolver
 		if test.useEvil {
 			tc.G.Resolver = &evilResolver
 		}
-		upk, err := ResolveAndCheck(m, test.s, true)
+		upk, err := ResolveAndCheck(m, test.s, true /*useTracking*/)
 		require.IsType(t, test.e, err)
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
 			require.Equal(t, upk.GetName(), "t_tracy")
 		}
 	}
+
+	// Test happy path for gubble social assertion
+	fu := CreateAndSignupFakeUser(tc, "track")
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	assertion := fmt.Sprintf("%s@gubble.social", fu.Username)
+	upk, err := ResolveAndCheck(m, assertion, true /* useTracking */)
+	require.NoError(t, err)
+	require.True(t, upk.GetUID().Equal(fu.UID()))
+	require.Equal(t, upk.GetName(), fu.Username)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

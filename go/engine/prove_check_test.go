@@ -43,7 +43,7 @@ func TestProveCheck(t *testing.T) {
 		require.True(t, proveUI.checked)
 		proveCheck(sigID, false /* noText */)
 
-		sigID = _testProveGubbleSocial(tc, fu, sigVersion)
+		sigID = proveGubbleSocial(tc, fu, sigVersion)
 		proveCheck(sigID, true /* noText */)
 	})
 }

@@ -171,7 +171,7 @@ func TestIdGenericSocialProof(t *testing.T) {
 
 	// create new user and have them prove a gubble.social account
 	fu := CreateAndSignupFakeUser(tc, "login")
-	_testProveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
 	Logout(tc)
 
 	fu2 := CreateAndSignupFakeUser(tc, "login")

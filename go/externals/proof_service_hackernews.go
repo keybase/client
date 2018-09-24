@@ -30,6 +30,7 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 
 func (h *HackerNewsChecker) CheckStatus(mctx libkb.MetaContext, hint libkb.SigHint, _ libkb.ProofCheckerMode,
 	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
 	return nil, CheckProofPvl(mctx, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
 }
 
