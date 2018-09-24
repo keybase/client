@@ -404,17 +404,18 @@ var PGPArmorHeaders = map[string]string{
 const GenericSocialWebServiceBinding = "web_service_binding.generic_social"
 
 var RemoteServiceTypes = map[string]keybase1.ProofType{
-	"keybase":    keybase1.ProofType_KEYBASE,
-	"twitter":    keybase1.ProofType_TWITTER,
-	"facebook":   keybase1.ProofType_FACEBOOK,
-	"github":     keybase1.ProofType_GITHUB,
-	"reddit":     keybase1.ProofType_REDDIT,
-	"coinbase":   keybase1.ProofType_COINBASE,
-	"hackernews": keybase1.ProofType_HACKERNEWS,
-	"https":      keybase1.ProofType_GENERIC_WEB_SITE,
-	"http":       keybase1.ProofType_GENERIC_WEB_SITE,
-	"dns":        keybase1.ProofType_DNS,
-	"rooter":     keybase1.ProofType_ROOTER,
+	"keybase":        keybase1.ProofType_KEYBASE,
+	"twitter":        keybase1.ProofType_TWITTER,
+	"facebook":       keybase1.ProofType_FACEBOOK,
+	"github":         keybase1.ProofType_GITHUB,
+	"reddit":         keybase1.ProofType_REDDIT,
+	"coinbase":       keybase1.ProofType_COINBASE,
+	"hackernews":     keybase1.ProofType_HACKERNEWS,
+	"https":          keybase1.ProofType_GENERIC_WEB_SITE,
+	"http":           keybase1.ProofType_GENERIC_WEB_SITE,
+	"dns":            keybase1.ProofType_DNS,
+	"rooter":         keybase1.ProofType_ROOTER,
+	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
 var RemoteServiceOrder = []keybase1.ProofType{
@@ -426,6 +427,7 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_COINBASE,
 	keybase1.ProofType_HACKERNEWS,
 	keybase1.ProofType_GENERIC_WEB_SITE,
+	keybase1.ProofType_GENERIC_SOCIAL,
 	keybase1.ProofType_ROOTER,
 }
 
