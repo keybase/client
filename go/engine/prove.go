@@ -266,8 +266,7 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 		},
 		NetContext: m.Ctx(),
 	}
-	_, err := m.G().API.Post(apiArg)
-	if err != nil {
+	if _, err := m.G().API.Post(apiArg); err != nil {
 		m.CDebugf("error posting to rooter: %s", err)
 		return err
 	}

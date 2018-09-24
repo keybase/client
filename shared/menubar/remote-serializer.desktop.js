@@ -26,10 +26,13 @@ export const serialize = {
       }
       return map
     }, {}),
+  endEstimate: v => v,
   externalRemoteWindow: v => v,
+  fileName: v => v,
   fileRows: v => v.map(t => GetRowsFromTlfUpdate(t)).toArray(),
-  isAsyncWriteHappening: v => v,
+  files: v => v,
   loggedIn: v => v,
+  totalSyncingBytes: v => v,
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,

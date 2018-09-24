@@ -269,22 +269,59 @@ const requestResultToRequest = (r: RPCTypes.RequestDetailsLocal) => {
   })
 }
 
-const paymentToCounterpartyType = (p: Types.Payment): Types.CounterpartyType => {
-  let partyType = p.delta === 'increase' ? p.sourceType : p.targetType
-  switch (partyType) {
+const partyTypeToCounterpartyType = (t: string): Types.CounterpartyType => {
+  switch (t) {
     case 'ownaccount':
       return 'otherAccount'
     case 'sbs':
     case 'keybase':
       return 'keybaseUser'
     case 'stellar':
+      return 'stellarPublicKey'
     default:
+      // TODO: Have better typing here so we don't need this.
       return 'stellarPublicKey'
   }
 }
 
-const paymentToYourRole = (p: Types.Payment, username: string): 'sender' | 'receiver' => {
-  return p.delta === 'increase' ? 'receiver' : 'sender'
+const paymentToYourRoleAndCounterparty = (
+  p: Types.Payment
+): {yourRole: Types.Role, counterparty: string, counterpartyType: Types.CounterpartyType} => {
+  switch (p.delta) {
+    case 'none':
+      // Need to guard check that sourceType is non-empty to handle the
+      // case when p is the empty value.
+      if (p.sourceType && p.sourceType !== 'ownaccount') {
+        throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
+      }
+      if (p.targetType && p.targetType !== 'ownaccount') {
+        throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
+      }
+      if (p.source !== p.target) {
+        throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
+      }
+      return {yourRole: 'senderAndReceiver', counterparty: p.source, counterpartyType: 'otherAccount'}
+
+    case 'increase':
+      return {
+        yourRole: 'receiverOnly',
+        counterparty: p.source,
+        counterpartyType: partyTypeToCounterpartyType(p.sourceType),
+      }
+    case 'decrease':
+      return {
+        yourRole: 'senderOnly',
+        counterparty: p.target,
+        counterpartyType: partyTypeToCounterpartyType(p.targetType),
+      }
+
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(p.delta);
+      */
+      throw new Error(`Unexpected delta ${p.delta}`)
+  }
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
@@ -308,10 +345,10 @@ const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.List())
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state))
 
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.List())
+  state.wallets.pendingMap.get(accountID || getSelectedAccount(state))
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
@@ -328,8 +365,7 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
 
 const getAccountName = (account: Types.Account) =>
-  account.name ||
-  (account.accountID !== Types.noAccountID ? Types.accountIDToString(account.accountID) : null)
+  account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
@@ -389,8 +425,7 @@ export {
   makeReserve,
   makeState,
   paymentResultToPayment,
-  paymentToCounterpartyType,
-  paymentToYourRole,
+  paymentToYourRoleAndCounterparty,
   requestResultToRequest,
   requestPaymentWaitingKey,
   sendPaymentWaitingKey,

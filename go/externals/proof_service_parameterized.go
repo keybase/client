@@ -45,7 +45,11 @@ type ParamProofServiceType struct {
 
 func NewParamProofServiceType(conf keybase1.ParamProofServiceConfig) ParamProofServiceType {
 	return ParamProofServiceType{
-		conf:       conf,
+		conf: conf,
+		// NOTE: configuration regexes are validated when retrieved from the
+		// server, this serves as a final initialization sanity check. If we
+		// end up doing more validation we should make a validated type that
+		// has the clean values coming from proofServes.parseServices
 		usernameRe: regexp.MustCompile(conf.Username.Re),
 	}
 }

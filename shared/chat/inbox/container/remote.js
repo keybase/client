@@ -23,6 +23,7 @@ const valuesCached = memoize((...vals) => vals.map(v => v))
 const metaMapToFirstValues = memoize(metaMap =>
   metaMap
     .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
+    .filter((_, id) => Constants.isValidConversationIDKey(id))
     .valueSeq()
     .toArray()
 )

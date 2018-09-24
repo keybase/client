@@ -178,7 +178,6 @@ export type _Flags = {
   kextPermissionError: boolean,
   securityPrefsPropmted: boolean,
   showBanner: boolean,
-  syncing: boolean,
 }
 
 export type Flags = I.RecordOf<_Flags>
@@ -212,10 +211,12 @@ export type UserTlfUpdates = I.List<TlfUpdate>
 
 export type PathItems = I.Map<Path, PathItem>
 
+export type Edits = I.Map<EditID, Edit>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
-  edits: I.Map<EditID, Edit>,
+  edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Set<Path>,
   downloads: I.Map<string, Download>,
