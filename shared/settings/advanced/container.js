@@ -30,7 +30,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
-  onSetTouchIDEnabled: (enabled: boolean) => dispatch(ConfigGen.createTouchIDEnabled({enabled})),
+  onSetTouchIDEnabled: (enabled: boolean) =>
+    dispatch(ConfigGen.createTouchIDEnabled({enabled, writeToConfig: true})),
 })
 
 export default compose(

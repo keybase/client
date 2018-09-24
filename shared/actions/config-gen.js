@@ -124,7 +124,10 @@ type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _TouchIDAllowedBySystemPayload = $ReadOnly<{|allowed: string|}>
-type _TouchIDEnabledPayload = $ReadOnly<{|enabled: boolean|}>
+type _TouchIDEnabledPayload = $ReadOnly<{|
+  enabled: boolean,
+  writeToConfig: boolean,
+|}>
 type _TouchIDStatePayload = $ReadOnly<{|state: 'asking' | 'done'|}>
 type _UpdateFollowingPayload = $ReadOnly<{|
   username: string,

@@ -226,32 +226,10 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = null
 
-  const touchIDAllowedTask = yield Saga.fork(TouchID.isSupported)
-  const touchIDEnabledTask = yield Saga.fork(AsyncStorage.getItem, 'touchIDEnabled')
   const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
   const linkTask = yield Saga.fork(Linking.getInitialURL)
   const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
-  const [touchIDAllowed, touchIDEnabledString, routeState, link, push] = yield Saga.join(
-    touchIDAllowedTask,
-    touchIDEnabledTask,
-    routeStateTask,
-    linkTask,
-    initialPush
-  )
-
-  const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
-  const touchIDEnabled = touchIDEnabledString === 'true'
-
-  console.log(
-    '[TouchID]: state loaded: allowed:',
-    touchIDAllowed,
-    ' enabled: ',
-    touchIDEnabled,
-    'enabled string: ',
-    touchIDEnabledString
-  )
-  yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
-  yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled}))
+  const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Top priority, push
   if (push) {
@@ -322,9 +300,15 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
 // Dont re-enter this logic
 let inAskTouchID = false
 let wasBackgrounded = true
-const askTouchID = (state: TypedState) =>
+const askTouchID = (state: TypedState, action) =>
   Saga.call(function*() {
-    console.log('[TouchID]: checking')
+    console.log('[TouchID]: checking', action.type)
+
+    if (state.config.daemonHandshakeState !== 'done') {
+      console.log('[TouchID]: still loading, bailing')
+      inAskTouchID = false
+      return
+    }
 
     if (!state.config.touchIDAllowedBySystem || !state.config.touchIDEnabled) {
       console.log('[TouchID]: not enabled, bailing')
@@ -348,6 +332,7 @@ const askTouchID = (state: TypedState) =>
     }
 
     const appState = state.config.mobileAppState
+    console.log('[TouchID]: current app state', appState)
 
     if (appState === 'background') {
       console.log('[TouchID]: background, bailing')
@@ -379,9 +364,54 @@ const askTouchID = (state: TypedState) =>
     inAskTouchID = false
   })
 
+const loadTouchIDSettings = (_, action: ConfigGen.DaemonHandshakePayload) =>
+  Saga.call(function*() {
+    const loadTouchWaitKey = 'platform.specific.touchid'
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: loadTouchWaitKey,
+        version: action.payload.version,
+      })
+    )
+    const touchIDAllowedTask = yield Saga.fork(TouchID.isSupported)
+    const touchIDEnabledTask = yield Saga.fork(() =>
+      RPCTypes.configGetValueRpcPromise({path: 'ui.touchIDEnabled'}).catch(() => null)
+    )
+    const [touchIDAllowed, touchIDEnabledConfigValue] = yield Saga.join(
+      touchIDAllowedTask,
+      touchIDEnabledTask
+    )
+
+    const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
+    const touchIDEnabled = !!(touchIDEnabledConfigValue && touchIDEnabledConfigValue.b)
+
+    console.log(
+      '[TouchID]: state allowed:',
+      touchIDAllowed,
+      ' enabled: ',
+      touchIDEnabled,
+      'enabled config value: ',
+      touchIDEnabledConfigValue
+    )
+    yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
+    yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled, writeToConfig: false}))
+
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: loadTouchWaitKey,
+        version: action.payload.version,
+      })
+    )
+  })
+
 const saveTouchIDEnabled = (_, action: ConfigGen.TouchIDEnabledPayload) => {
   console.log('[TouchID]: saving pref', action.payload.enabled)
-  return Saga.spawn(AsyncStorage.setItem, 'touchIDEnabled', action.payload.enabled ? 'true' : 'false')
+  return Saga.spawn(RPCTypes.configSetValueRpcPromise, {
+    path: 'ui.touchIDEnabled',
+    value: {b: action.payload.enabled, isNull: false},
+  })
 }
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
@@ -392,6 +422,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadTouchIDSettings)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
