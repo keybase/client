@@ -59,7 +59,6 @@ export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
       ? []
       : Constants.getRowParticipants(m, _username)
           .toArray()
-          .slice(0, 2),
     showBold: styles.showBold,
     snippet: m.snippet,
     snippetDecoration: m.snippetDecoration,
