@@ -31,7 +31,8 @@ func NewGenericSocialProofChecker(p libkb.RemoteProofChainLink) (*GenericSocialP
 func (rc *GenericSocialProofChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *GenericSocialProofChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
-	// TODO will have to use the `check_url`/`check_path` config values to verify the proof.
+	// TODO CORE-8658 will have to use the `check_url`/`check_path` config
+	// values to verify the proof.
 	return libkb.NewProofError(keybase1.ProofStatus_BASE_HARD_ERROR, "Not implemented")
 }
 
@@ -153,6 +154,3 @@ func (t GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChain
 }
 
 func (t GenericSocialProofServiceType) IsDevelOnly() bool { return false }
-
-// We can post multiple generic social proofs to a single service.
-func (t GenericSocialProofServiceType) LastWriterWins() bool { return false }
