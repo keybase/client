@@ -55,10 +55,7 @@ export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
     isSelected: false,
     // excluding onSelectConversation
     participantNeedToRekey,
-    participants: m.teamname
-      ? []
-      : Constants.getRowParticipants(m, _username)
-          .toArray()
+    participants: m.teamname ? [] : Constants.getRowParticipants(m, _username).toArray(),
     showBold: styles.showBold,
     snippet: m.snippet,
     snippetDecoration: m.snippetDecoration,
