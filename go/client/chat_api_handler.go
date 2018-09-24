@@ -328,6 +328,7 @@ type searchRegexpOptionsV1 struct {
 	ConversationID string `json:"conversation_id"`
 	Query          string `json:"query"`
 	IsRegex        bool   `json:"is_regex"`
+	SentBy         string `json:"sent_by"`
 	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
 	BeforeContext  int    `json:"before_context"`

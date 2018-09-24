@@ -2135,8 +2135,7 @@ func (h *Server) GetSearchRegexp(ctx context.Context, arg chat1.GetSearchRegexpA
 		}
 		close(ch)
 	}()
-	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.SentBy, arg.MaxHits,
-		arg.MaxMessages, arg.BeforeContext, arg.AfterContext)
+	hits, err := h.G().Searcher.SearchRegexp(ctx, uiCh, arg.ConversationID, re, arg.Opts)
 	if err != nil {
 		return res, err
 	}
