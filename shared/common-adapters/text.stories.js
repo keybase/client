@@ -125,7 +125,8 @@ const mapText = (secondary: boolean) => {
   return items
 }
 
-class WithRefresh extends React.Component {
+// TODO this is going away in the next pr
+class WithRefresh extends React.Component<any, any> {
   state = {k: 1}
   inc = () => {
     console.log('refreshint')

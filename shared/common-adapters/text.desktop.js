@@ -1,15 +1,15 @@
 // @flow
-import React, {Component} from 'react'
+import * as Styles from '../styles'
+import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
 import {defaultColor, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
-import {desktopStyles, globalColors} from '../styles'
 import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
 
-class Text extends Component<Props> {
+class Text extends React.Component<Props> {
   _span: any
 
   highlightText() {
@@ -63,22 +63,24 @@ class Text extends Component<Props> {
       throw new Error('Missing type on Text')
     }
 
+    const style = Styles.collapseStyles([
+      getStyle(
+        this.props.type,
+        this.props.backgroundMode,
+        this.props.lineClamp,
+        !!this.props.onClick,
+        this.props.selectable
+      ),
+      this.props.style,
+    ])
+
     return (
       <span
         title={this.props.title}
         ref={this.props.allowHighlightText ? this._setRef : undefined}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
-        style={{
-          ...getStyle(
-            this.props.type,
-            this.props.backgroundMode,
-            this.props.lineClamp,
-            !!this.props.onClick,
-            this.props.selectable
-          ),
-          ...this.props.style,
-        }}
+        style={style}
       >
         {this.props.children}
       </span>
@@ -103,7 +105,7 @@ function getStyle(
             defaultColor(backgroundMode),
         }
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
-  const clickableStyle = clickable ? desktopStyles.clickable : null
+  const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
         cursor: 'text',
