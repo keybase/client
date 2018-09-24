@@ -23,13 +23,13 @@ const mapStateToProps = (state: TypedState) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => {
+const mapDispatchToProps = (dispatch: Dispatch, {path}: OwnProps) => {
   return {
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
-    _openInFileUI: (path: Types.Path) => dispatch(FsGen.createOpenInFileUI({path: Types.pathToString(path)})),
+    _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
   }
 }
 
@@ -39,7 +39,8 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   onDismiss: dispatchProps.onDismiss,
   onInstall: dispatchProps.onInstall,
   onUninstall: dispatchProps.onUninstall,
-  openInFileUI: stateProps.kbfsEnabled && path ? () => dispatchProps._openInFileUI(path) : undefined,
+  openInSystemFileManager:
+    stateProps.kbfsEnabled && path ? () => dispatchProps._openInSystemFileManager : undefined,
   path,
   dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })

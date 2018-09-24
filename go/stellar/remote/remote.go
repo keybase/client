@@ -208,6 +208,7 @@ func addWalletServerArg(serverArg libkb.JSONPayload, bundleEncB64 string, bundle
 	section["encrypted"] = bundleEncB64
 	section["visible"] = bundleVisB64
 	section["version"] = formatVersion
+	section["miniversion"] = 2
 	serverArg["stellar"] = section
 }
 
@@ -615,6 +616,40 @@ func MarkAsRead(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.
 	payload["most_recent_id"] = mostRecentID
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/markasread",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		JSONPayload: payload,
+		NetContext:  ctx,
+	}
+	var res libkb.AppStatusEmbed
+	return g.API.PostDecode(apiArg, &res)
+}
+
+type isMobileResult struct {
+	libkb.AppStatusEmbed
+	MobileOnly int `json:"mobile_only"`
+}
+
+func IsAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (bool, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/mobileonly",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: accountID.String()},
+		},
+		NetContext: ctx,
+	}
+	var res isMobileResult
+	if err := g.API.GetDecode(apiArg, &res); err != nil {
+		return false, err
+	}
+	return res.MobileOnly != 0, nil
+}
+
+func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	payload := make(libkb.JSONPayload)
+	payload["account_id"] = accountID
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/mobileonly",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		JSONPayload: payload,
 		NetContext:  ctx,

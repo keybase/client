@@ -124,7 +124,6 @@ const mapText = (secondary: boolean) => {
 
 const load = () => {
   Sb.storiesOf('Common', module)
-    .addDecorator(Sb.perfDecorator(50))
     .addDecorator(Sb.scrollViewDecorator)
     .add('Text', () => (
       <Box style={outerStyle}>
