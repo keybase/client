@@ -22,10 +22,10 @@ type Kex2Secret struct {
 type Kex2SecretType int
 
 const (
-	Kex2SecretTypeNone          Kex2SecretType = 0
-	Kex2SecretTypeLegacyDesktop Kex2SecretType = 1
-	Kex2SecretTypeLegacyMobile  Kex2SecretType = 2
-	Kex2SecretTypeV2            Kex2SecretType = 3
+	Kex2SecretTypeNone      Kex2SecretType = 0
+	Kex2SecretTypeV1Desktop Kex2SecretType = 1
+	Kex2SecretTypeV1Mobile  Kex2SecretType = 2
+	Kex2SecretTypeV2        Kex2SecretType = 3
 )
 
 func NewKex2SecretFromTypeAndUID(typ Kex2SecretType, uid keybase1.UID) (*Kex2Secret, error) {
@@ -45,7 +45,7 @@ func NewKex2SecretFromTypeAndUID(typ Kex2SecretType, uid keybase1.UID) (*Kex2Sec
 	// communicate that to the two devices involved in kex without breaking the existing protocol,
 	// we have added an extra word that is not in the dictionary. Up to date clients can see this
 	// word and use the lighter version of scrypt.
-	if typ == Kex2SecretTypeLegacyMobile {
+	if typ == Kex2SecretTypeV1Mobile {
 		phrase += " " + kexPhraseVersion
 	}
 	return newKex2SecretFromTypeUIDAndPhrase(typ, uid, phrase)
@@ -65,13 +65,13 @@ func kex2TypeFromPhrase(phrase string) (typ Kex2SecretType, err error) {
 
 	words := strings.Split(phrase, " ")
 	if len(words) == 8 {
-		return Kex2SecretTypeLegacyDesktop, nil
+		return Kex2SecretTypeV1Desktop, nil
 	}
 	if len(words) != 9 {
 		return Kex2SecretTypeNone, errors.New("wrong number of words in passphrase; wanted 8 or 9")
 	}
 	if words[len(words)-1] == kexPhraseVersion {
-		return Kex2SecretTypeLegacyMobile, nil
+		return Kex2SecretTypeV1Mobile, nil
 	}
 	return Kex2SecretTypeV2, nil
 }
@@ -81,9 +81,9 @@ func newKex2SecretFromTypeUIDAndPhrase(typ Kex2SecretType, uid keybase1.UID, phr
 	var cost int
 	var salt []byte
 	switch typ {
-	case Kex2SecretTypeLegacyMobile:
+	case Kex2SecretTypeV1Mobile:
 		cost = Kex2ScryptLiteCost
-	case Kex2SecretTypeLegacyDesktop:
+	case Kex2SecretTypeV1Desktop:
 		cost = Kex2ScryptCost
 	case Kex2SecretTypeV2:
 		cost = Kex2ScryptLiteCost

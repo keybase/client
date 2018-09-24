@@ -93,11 +93,11 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 }
 
 func TestDeviceAddPhraseLegacyDesktop(t *testing.T) {
-	testDeviceAddPhrase(t, libkb.Kex2SecretTypeLegacyDesktop)
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Desktop)
 }
 
 func TestDeviceAddPhraseLegacyMobile(t *testing.T) {
-	testDeviceAddPhrase(t, libkb.Kex2SecretTypeLegacyMobile)
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Mobile)
 }
 
 func TestDeviceAddPhraseV2(t *testing.T) {

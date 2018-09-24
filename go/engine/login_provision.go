@@ -169,9 +169,9 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	uid := m.CurrentUID()
 
 	// Continue to generate legacy Kex2 secret types
-	kex2SecretTyp := libkb.Kex2SecretTypeLegacyDesktop
+	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
 	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
-		kex2SecretTyp = libkb.Kex2SecretTypeLegacyMobile
+		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
 	}
 	m.CDebugf("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
 	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
