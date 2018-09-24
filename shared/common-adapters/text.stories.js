@@ -112,9 +112,6 @@ const mapText = (secondary: boolean) => {
           {types.label}
         </Text>
       )
-      for (let i = 0; i < 50; ++i) {
-        items.push(item(types.type + i + 3))
-      }
       items.push(item(types.type + '1'))
       items.push(item(types.type + '2'))
       items.push(<SmallGap key={types.type} />)
