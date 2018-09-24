@@ -110,7 +110,7 @@ func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret 
 		err = libkb.NewWebUnreachableError(host)
 		return
 	}
-	if len(t.scheme) > 0 && prot != t.scheme {
+	if len(t.scheme) > 0 && len(prot) > 0 && prot != t.scheme {
 		msg := fmt.Sprintf("You tried to prove ownership of %s over %s but gave a %s link.", host, t.scheme, prot)
 		err = libkb.NewProtocolSchemeMismatch(msg)
 		return
