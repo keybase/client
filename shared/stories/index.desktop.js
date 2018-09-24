@@ -3,13 +3,13 @@
 import * as React from 'react'
 import * as Sb from './storybook'
 import {addDecorator} from '@storybook/react'
-import stories from './shared-stories'
-// import desktopStories from './platform-stories.desktop'
+import sharedStories from './shared-stories'
+import desktopStories from './platform-stories.desktop'
 // Load css
 import '../desktop/renderer/style.css'
 import {initDesktopStyles} from '../styles/index.desktop'
 
-// const stories = {...sharedStories, ...desktopStories}
+const stories = {...sharedStories, ...desktopStories}
 
 const rootDecorator = story => (
   <div style={{height: '100%', width: '100%'}}>

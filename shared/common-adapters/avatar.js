@@ -91,7 +91,7 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
   const iconSize = size === 128 ? 28 : 21
   const rel =
     followsYou === following ? (followsYou ? 'mutual-follow' : null) : followsYou ? 'follow-me' : 'following'
-  // $FlowIssue quicker to just make this string than to do all this mapp lookup
+  // $FlowIssue can't infer this string is a valid icon, but its ok. we'll catch it in snapshots if this is wrong
   const iconType: ?IconType = rel ? `icon-${rel}-${iconSize}` : null
   return {
     iconSize,
