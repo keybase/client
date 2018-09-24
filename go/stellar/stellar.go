@@ -504,7 +504,7 @@ func sendPayment(m libkb.MetaContext, remoter remote.Remoter, sendArg SendPaymen
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := ChatSendPaymentMessage(m, senderEntry.AccountID, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -526,12 +526,14 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 	if err != nil {
 		return res, err
 	}
+
+	fromAccountID, err := accountIDFromSecretKey(from)
+	if err != nil {
+		return res, err
+	}
+
 	sp := NewSeqnoProvider(m.Ctx(), remoter)
 	if fromSeqno != nil {
-		fromAccountID, err := accountIDFromSecretKey(from)
-		if err != nil {
-			return res, err
-		}
 		sp.Override(fromAccountID.String(), xdr.SequenceNumber(*fromSeqno))
 	}
 	relay, err := relays.Create(relays.Input{
@@ -564,7 +566,7 @@ func sendRelayPayment(m libkb.MetaContext, remoter remote.Remoter,
 		return res, err
 	}
 
-	if err := ChatSendPaymentMessage(m, recipient, rres.StellarID); err != nil {
+	if err := ChatSendPaymentMessage(m, fromAccountID, recipient, rres.StellarID); err != nil {
 		// if the chat message fails to send, just log the error
 		m.CDebugf("failed to send chat SendPayment message: %s", err)
 	}
@@ -1144,7 +1146,7 @@ func CreateNewAccount(m libkb.MetaContext, accountName string) (ret stellar1.Acc
 	return ret, remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
+func ChatSendPaymentMessage(m libkb.MetaContext, senderID stellar1.AccountID, recipient stellarcommon.Recipient, txID stellar1.TransactionID) error {
 	if recipient.User == nil {
 		// only send if recipient is keybase username
 		return nil
@@ -1159,6 +1161,10 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 
 	msg := chat1.MessageSendPayment{
 		PaymentID: stellar1.PaymentID{TxID: txID},
+		SenderID:  senderID,
+	}
+	if recipient.AccountID != nil {
+		msg.RecipientID = stellar1.AccountID(recipient.AccountID.String())
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)
