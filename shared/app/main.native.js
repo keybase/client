@@ -12,6 +12,7 @@ import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
 
 type Props = {
+  hideUI: boolean,
   routeDef: any,
   routeState: any,
   showPushPrompt: any,
@@ -33,6 +34,9 @@ class Main extends React.Component<Props> {
   }
 
   render() {
+    if (this.props.hideUI) {
+      return null
+    }
     if (this.props.showPushPrompt) {
       return <PushPrompt />
     }
@@ -57,12 +61,13 @@ class Main extends React.Component<Props> {
 const ViewForGatewayDest = (props: any) => <View {...props} />
 
 const mapStateToProps = (state: TypedState) => ({
+  hideUI: state.config.touchIDState === 'asking',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   navigateUp: () => dispatch(navigateUp()),
   setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
 })

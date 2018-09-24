@@ -14,9 +14,11 @@ import Advanced from './index'
 import {connect, lifecycle, type TypedState} from '../../util/container'
 
 const mapStateToProps = (state: TypedState) => ({
-  openAtLogin: state.config.openAtLogin,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
+  openAtLogin: state.config.openAtLogin,
   processorProfileInProgress: Constants.processorProfileInProgress(state),
+  touchIDAllowedBySystem: state.config.touchIDAllowedBySystem,
+  touchIDEnabled: state.config.touchIDEnabled,
   traceInProgress: Constants.traceInProgress(state),
 })
 
@@ -28,6 +30,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   onProcessorProfile: (durationSeconds: number) => dispatch(createProcessorProfile({durationSeconds})),
   onSetOpenAtLogin: (open: boolean) => dispatch(ConfigGen.createSetOpenAtLogin({open, writeFile: true})),
   onTrace: (durationSeconds: number) => dispatch(createTrace({durationSeconds})),
+  onSetTouchIDEnabled: (enabled: boolean) => dispatch(ConfigGen.createTouchIDEnabled({enabled})),
 })
 
 export default compose(
