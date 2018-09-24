@@ -101,7 +101,6 @@ function getStyle(
       ? null
       : {
           color:
-            // $FlowIssue
             (meta.colorForBackgroundMode && meta.colorForBackgroundMode[backgroundMode]) ||
             defaultColor(backgroundMode),
         }
