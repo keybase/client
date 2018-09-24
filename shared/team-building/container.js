@@ -168,8 +168,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
 const Connected = compose(
   connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  PopupDialogHoc,
-  setDisplayName('TeamBuilding')
+  setDisplayName('TeamBuilding'),
+  PopupDialogHoc
 )(TeamBuilding)
 
 class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
