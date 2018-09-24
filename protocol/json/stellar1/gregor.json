@@ -12,6 +12,10 @@
       "name": "PaymentStatusMsg",
       "fields": [
         {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
           "type": "KeybaseTransactionID",
           "name": "kbTxID"
         },
