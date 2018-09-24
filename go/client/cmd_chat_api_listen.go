@@ -138,15 +138,20 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 				Username:   mv.SenderUsername,
 				DeviceName: mv.SenderDeviceName,
 			},
-			SentAt:             mv.Ctime.UnixSeconds(),
-			SentAtMs:           mv.Ctime.UnixMilliseconds(),
-			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
-			IsEphemeral:        mv.IsEphemeral,
-			IsEphemeralExpired: mv.IsEphemeralExpired,
-			ETime:              mv.Etime,
-			HasPairwiseMacs:    mv.HasPairwiseMacs,
-			Reactions:          mv.Reactions,
-			Content:            d.svc.convertMsgBody(mv.MessageBody),
+			SentAt:              mv.Ctime.UnixSeconds(),
+			SentAtMs:            mv.Ctime.UnixMilliseconds(),
+			RevokedDevice:       mv.SenderDeviceRevokedAt != nil,
+			IsEphemeral:         mv.IsEphemeral,
+			IsEphemeralExpired:  mv.IsEphemeralExpired,
+			ETime:               mv.Etime,
+			HasPairwiseMacs:     mv.HasPairwiseMacs,
+			Content:             d.svc.convertMsgBody(mv.MessageBody),
+			AtMentionUsernames:  mv.AtMentions,
+			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
+			ChannelNameMentions: mv.ChannelNameMentions,
+		}
+		if mv.Reactions.Reactions != nil {
+			summary.Reactions = &mv.Reactions
 		}
 		return &Message{Msg: summary}
 	}

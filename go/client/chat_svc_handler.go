@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
+	chatutils "github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -184,16 +185,19 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				UID:      mv.ClientHeader.Sender.String(),
 				DeviceID: mv.ClientHeader.SenderDevice.String(),
 			},
-			SentAt:             mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs:           mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:               prev,
-			Unread:             unread,
-			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted:      mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
-			IsEphemeral:        mv.IsEphemeral(),
-			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
-			ETime:              mv.Etime(),
-			HasPairwiseMacs:    mv.HasPairwiseMacs(),
+			SentAt:              mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:            mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:                prev,
+			Unread:              unread,
+			RevokedDevice:       mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			IsEphemeral:         mv.IsEphemeral(),
+			IsEphemeralExpired:  mv.IsEphemeralExpired(time.Now()),
+			ETime:               mv.Etime(),
+			HasPairwiseMacs:     mv.HasPairwiseMacs(),
+			AtMentionUsernames:  mv.AtMentionUsernames,
+			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
+			ChannelNameMentions: chatutils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
 		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions
@@ -1052,22 +1056,25 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID                 chat1.MessageID                `json:"id"`
-	Channel            ChatChannel                    `json:"channel"`
-	Sender             MsgSender                      `json:"sender"`
-	SentAt             int64                          `json:"sent_at"`
-	SentAtMs           int64                          `json:"sent_at_ms"`
-	Content            MsgContent                     `json:"content"`
-	Prev               []chat1.MessagePreviousPointer `json:"prev"`
-	Unread             bool                           `json:"unread"`
-	RevokedDevice      bool                           `json:"revoked_device,omitempty"`
-	Offline            bool                           `json:"offline,omitempty"`
-	KBFSEncrypted      bool                           `json:"kbfs_encrypted,omitempty"`
-	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
-	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
-	ETime              gregor1.Time                   `json:"etime,omitempty"`
-	Reactions          *chat1.ReactionMap             `json:"reactions,omitempty"`
-	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
+	ID                  chat1.MessageID                `json:"id"`
+	Channel             ChatChannel                    `json:"channel"`
+	Sender              MsgSender                      `json:"sender"`
+	SentAt              int64                          `json:"sent_at"`
+	SentAtMs            int64                          `json:"sent_at_ms"`
+	Content             MsgContent                     `json:"content"`
+	Prev                []chat1.MessagePreviousPointer `json:"prev"`
+	Unread              bool                           `json:"unread"`
+	RevokedDevice       bool                           `json:"revoked_device,omitempty"`
+	Offline             bool                           `json:"offline,omitempty"`
+	KBFSEncrypted       bool                           `json:"kbfs_encrypted,omitempty"`
+	IsEphemeral         bool                           `json:"is_ephemeral,omitempty"`
+	IsEphemeralExpired  bool                           `json:"is_ephemeral_expired,omitempty"`
+	ETime               gregor1.Time                   `json:"etime,omitempty"`
+	Reactions           *chat1.ReactionMap             `json:"reactions,omitempty"`
+	HasPairwiseMacs     bool                           `json:"has_pairwise_macs,omitempty"`
+	AtMentionUsernames  []string                       `json:"at_mention_usernames,omitempty"`
+	ChannelMention      string                         `json:"channel_mention,omitempty"`
+	ChannelNameMentions []chat1.UIChannelNameMention   `json:"channel_name_mentions,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.
