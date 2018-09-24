@@ -27,11 +27,11 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 
 	accountID := tcs[0].Backend.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
-	}
-	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "qq",
+	})
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
@@ -42,12 +42,12 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Len(t, accts, 2)
 	require.Equal(t, accountID, accts[0].AccountID, accountID)
 	require.True(t, accts[0].IsDefault)
-	require.Equal(t, "", accts[0].Name) // TODO: once we can set the name on an account, check this
+	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	require.NotEmpty(t, accts[0].Seqno)
 
 	require.False(t, accts[1].IsDefault)
-	require.Equal(t, "", accts[1].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	require.NotEmpty(t, accts[1].Seqno)
 
@@ -55,6 +55,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
 	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
+	require.Equal(t, "qq", accts[0].Name)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -62,6 +63,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	argDetails.AccountID = accts[1].AccountID
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.False(t, details.IsDefault)
 	require.Equal(t, "0 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -76,11 +78,11 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 
 	accountID := tcs[0].Backend.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
-	}
-	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "qq",
+	})
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
@@ -209,7 +211,7 @@ func TestChangeWalletName(t *testing.T) {
 	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
 	require.Len(t, accs, 1)
-	require.Equal(t, accs[0].Name, "")
+	require.Equal(t, accs[0].Name, firstAccountName(t, tcs[0]))
 
 	chk := func(name string, expected string) {
 		err = tcs[0].Srv.ValidateAccountNameLocal(context.Background(), stellar1.ValidateAccountNameLocalArg{Name: name})
@@ -221,7 +223,7 @@ func TestChangeWalletName(t *testing.T) {
 		}
 	}
 
-	chk("", "")
+	chk("", "name required")
 	chk("office lunch money", "")
 	chk("savings", "")
 	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
@@ -294,11 +296,11 @@ func TestSetAccountAsDefault(t *testing.T) {
 	}
 
 	for _, v := range additionalAccs {
-		arg := stellar1.ImportSecretKeyLocalArg{
+		err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 			SecretKey:   tcs[0].Backend.SecretKey(v),
 			MakePrimary: false,
-		}
-		err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), arg)
+			Name:        "qq",
+		})
 		require.NoError(t, err)
 	}
 
@@ -360,7 +362,7 @@ func testCreateOrLinkNewAccount(t *testing.T, create bool) {
 
 	require.Len(t, accts, 2)
 	require.True(t, accts[0].IsDefault)
-	require.Equal(t, "", accts[0].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[0].Name)
 	require.Equal(t, "0 XLM", accts[0].BalanceDescription)
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, accID, accts[1].AccountID)
@@ -405,6 +407,7 @@ func TestDeleteWallet(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accID2),
 		MakePrimary: true,
+		Name:        "qq",
 	})
 	require.NoError(t, err)
 
@@ -604,6 +607,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	err = srvSender.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "qq",
 	})
 	require.NoError(t, err)
 
@@ -616,12 +620,14 @@ func TestGetPaymentsLocal(t *testing.T) {
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDRecip),
 		MakePrimary: true,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDRecip2),
 		MakePrimary: false,
+		Name:        "vv",
 	})
 	require.NoError(t, err)
 
@@ -705,7 +711,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, accountIDRecip, *p.ToAccountID)
 		var toAccountName string
 		if !sender {
-			toAccountName = accountIDRecip.String()
+			toAccountName = "uu"
 		}
 		require.Equal(t, toAccountName, p.ToAccountName, "ToAccountName")
 		require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
@@ -807,7 +813,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, accountIDRecip, *p.ToAccountID)
 		var toAccountName string
 		if !sender {
-			toAccountName = accountIDRecip.String()
+			toAccountName = "uu"
 		}
 		require.Equal(t, toAccountName, p.ToAccountName)
 		require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
@@ -897,7 +903,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.Equal(t, "", p.FromAccountName)
 	require.Equal(t, stellar1.ParticipantType_STELLAR, p.ToType)
 	require.Equal(t, accountIDRecip2, *p.ToAccountID)
-	require.Equal(t, accountIDRecip2.String(), p.ToAccountName)
+	require.Equal(t, "vv", p.ToAccountName)
 	require.Equal(t, "", p.ToUsername)
 	require.Equal(t, "", p.ToAssertion)
 	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
@@ -914,6 +920,7 @@ func TestSendToSelf(t *testing.T) {
 	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountID1),
 		MakePrimary: true,
+		Name:        "qq",
 	})
 	require.NoError(t, err)
 
@@ -925,6 +932,7 @@ func TestSendToSelf(t *testing.T) {
 
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey: rm.SecretKey(accountID2),
+		Name:      "uu",
 	})
 	require.NoError(t, err)
 
@@ -1691,6 +1699,31 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 
 }
 
+func TestSetMobileOnly(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accountID := getPrimaryAccountID(tcs[0])
+
+	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.False(t, mobileOnly)
+
+	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.True(t, mobileOnly)
+
+	// XXX note that the real test here will be that the secret bundle does not come
+	// back for desktop devices or mobile devices that are less than 7d old.
+	// This is just a basic test at this point...
+}
+
 type chatListener struct {
 	libkb.NoopNotifyListener
 
@@ -1712,4 +1745,10 @@ func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.Conversati
 
 func (c *chatListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
 	c.requestInfos <- chat1.ChatRequestInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
+}
+
+func firstAccountName(t testing.TB, tc *TestContext) string {
+	loggedInUsername := tc.G.ActiveDevice.Username(libkb.NewMetaContextForTest(tc.TestContext))
+	require.True(t, loggedInUsername.IsValid())
+	return fmt.Sprintf("%v's account", loggedInUsername)
 }

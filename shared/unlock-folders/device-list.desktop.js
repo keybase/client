@@ -23,7 +23,7 @@ class DeviceRow extends Component<{device: _Device}, void> {
         <div style={deviceRowStyles.iconWrapper}>
           <Icon type={icon} style={{height: 22}} />
         </div>
-        <Text type="BodySemiboldItalic" style={{marginLeft: 16}}>
+        <Text type="BodySemibold" style={{marginLeft: 16}}>
           {this.props.device.name}
         </Text>
       </div>

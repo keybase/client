@@ -7,8 +7,9 @@ import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdo
 import {unknownPathItem} from '../../constants/fs'
 
 const mapStateToProps = (state: TypedState) => ({
-  _uploads: state.fs.uploads,
+  _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
+  _uploads: state.fs.uploads,
 })
 
 // NOTE flip this to show a button to debug the upload banner animations.
@@ -35,22 +36,46 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
-const mergeProps = ({_uploads, _pathItems}, {debugToggleShow}) => {
-  const filePaths = _uploads.syncingPaths.filter(
-    path => _pathItems.get(path, unknownPathItem).type !== 'folder'
-  )
+export const uploadsToUploadCountdownHOCProps = (
+  edits: Types.Edits,
+  pathItems: Types.PathItems,
+  uploads: Types.Uploads
+): $Exact<UploadCountdownHOCProps> => {
+  // We just use syncingPaths rather than merging with writingToJournal here
+  // since journal status comes a bit slower, and merging the two causes
+  // flakes on our perception of overall upload status.
 
-  return ({
+  // Filter out folder paths.
+  const filePaths = uploads.syncingPaths.filter(path => {
+    const pathType = pathItems.get(path, unknownPathItem).type
+    // If we don't know about this pathType from state.fs.pathItems, it might
+    // be a newly created folder and we just haven't heard the result from the
+    // folderList RPC triggered by editSuccess yet. So check that. If we know
+    // about this pathType from state.fs.pathItems, it must have been loaded
+    // from an RPC. So just use that to make sure this is not a folder.
+    return pathType === 'unknown'
+      ? !edits.find(
+          edit => edit.type === 'new-folder' && Types.pathConcat(edit.parentPath, edit.name) === path
+        )
+      : pathType !== 'folder'
+  })
+
+  return {
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
     files: filePaths.size,
     fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
-    endEstimate: enableDebugUploadBanner ? _uploads.endEstimate + 32000 : _uploads.endEstimate,
-    totalSyncingBytes: _uploads.totalSyncingBytes,
+    endEstimate: enableDebugUploadBanner ? uploads.endEstimate + 32000 : uploads.endEstimate,
+    totalSyncingBytes: uploads.totalSyncingBytes,
+  }
+}
+
+const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
+  ({
+    ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
   }: UploadCountdownHOCProps)
-}
 
 export default compose(
   // $FlowIssue @jzila

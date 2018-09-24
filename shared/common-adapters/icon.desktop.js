@@ -1,15 +1,15 @@
 // @flow
 import * as Shared from './icon.shared'
+import * as Styles from '../styles'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import type {Props, IconType} from './icon'
 import {invert} from 'lodash-es'
+import type {Props, IconType} from './icon'
 
-const invertedColors = invert(globalColors)
+const invertedColors = invert(Styles.globalColors)
 
 class Icon extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
@@ -36,11 +36,13 @@ class Icon extends Component<Props, void> {
       hoverColor = 'inherit'
     } else {
       color =
-        this.props.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
+        this.props.color ||
+        color ||
+        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_40)
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
-        (this.props.opacity ? globalColors.black : globalColors.black_75)
+        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black_75)
     }
 
     const isFontIcon = iconMeta[iconType].isFont
@@ -63,10 +65,10 @@ class Icon extends Component<Props, void> {
     if (isFontIcon) {
       iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
     } else {
-      const imgStyle = collapseStyles([
-        desktopStyles.noSelect,
+      const imgStyle = Styles.collapseStyles([
+        Styles.desktopStyles.noSelect,
         !hasContainer ? this.props.style : {},
-        onClick ? desktopStyles.clickable : {},
+        onClick ? Styles.desktopStyles.clickable : {},
         this.props.color ? {color: color} : {},
       ])
 
@@ -103,13 +105,12 @@ class Icon extends Component<Props, void> {
         colorStyleName = `color_${colorName}`
       }
 
-      // $FlowIssue
-      const style = {
-        ...fontSizeHint,
-        ...(onClick ? desktopStyles.clickable : {}),
-        ...inheritStyle,
-        ...this.props.style,
-      }
+      const style = Styles.collapseStyles([
+        fontSizeHint,
+        onClick && Styles.desktopStyles.clickable,
+        inheritStyle,
+        this.props.style,
+      ])
 
       return (
         <div style={this.props.boxStyle}>

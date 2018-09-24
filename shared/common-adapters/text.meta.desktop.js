@@ -26,7 +26,7 @@ const _blackNormalWhiteTerminal = {
   Terminal: globalColors.white,
 }
 
-const metaData = {
+const metaData: Object = {
   // Header
   HeaderBig: {
     colorForBackgroundMode: _blackNormalWhiteTerminal,
