@@ -29,7 +29,7 @@ func TestSuccess1(t *testing.T) {
 }
 
 func TestAssertions1(t *testing.T) {
-	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || pgp://aabbcc) && (keybear@octodon.social || mastodon.social:keybear)"
+	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || pgp://aabbcc) && (keybear@octodon.social || gubble.social:keybear)"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "maxk.org"},
@@ -37,7 +37,7 @@ func TestAssertions1(t *testing.T) {
 			{"twitter", "bb"},
 			{"github", "xxx"},
 			{"keybase", "yyy"},
-			{"mastodon.social", "keybear"},
+			{"gubble.social", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
@@ -49,7 +49,7 @@ func TestAssertions1(t *testing.T) {
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
 			{"pgp", "00aabbcc"},
-			{"mastodon.social", "keybear"},
+			{"gubble.social", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
@@ -66,13 +66,13 @@ func TestAssertions1(t *testing.T) {
 			{"twitter", "bb"},
 			{"github", "xxx"},
 			{"keybase", "yyy"},
-			{"mastodon", "keybear"},
+			{"gubble", "keybear"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"http", "foo.com"},
 			{"keybase", "maxi"},
-			{"mastodon.social", "keybase"},
+			{"gubble.social", "keybase"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
@@ -103,23 +103,23 @@ func TestAssertions1(t *testing.T) {
 
 func TestAssertions2(t *testing.T) {
 	// Coyne-style grammar
-	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+mastodon.social:max"
+	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com+gubble.social:max"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
 			{"keybase", "max"},
-			{"mastodon.social", "max"},
+			{"gubble.social", "max"},
 		}),
 		*NewProofSet([]Proof{
 			{"https", "nutflex.com"},
 			{"pgp", "2233aabbcc"},
 			{"keybase", "malgorithms"},
-			{"mastodon.social", "max"},
+			{"gubble.social", "max"},
 		}),
 		*NewProofSet([]Proof{
 			{"keybase", "samwise"},
 			{"dns", "match.com"},
-			{"mastodon.social", "max"},
+			{"gubble.social", "max"},
 		}),
 	}
 	expr, err := AssertionParse(testAssertionContext{}, a)

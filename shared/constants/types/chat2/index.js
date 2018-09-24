@@ -35,6 +35,10 @@ export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
 export type _State = {
+  accountsInfoMap: I.Map<
+    Common.ConversationIDKey,
+    I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
+  >, // temp cache for requestPayment and sendPayment message data
   badgeMap: ConversationCountMap, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'

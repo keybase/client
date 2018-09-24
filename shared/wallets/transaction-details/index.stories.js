@@ -25,12 +25,11 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -47,10 +46,9 @@ const load = () => {
         onBack={Sb.action('onBack')}
         title="Details"
         counterpartyType="stellarPublicKey"
-        delta="decrease"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -66,12 +64,11 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         onBack={Sb.action('onBack')}
         title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -89,10 +86,9 @@ const load = () => {
         counterpartyType="keybaseUser"
         onBack={Sb.action('onBack')}
         title="Details"
-        delta="increase"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
         publicMemo="Foo bar"
         timestamp={yesterday}
@@ -109,12 +105,11 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="increase"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
@@ -127,10 +122,9 @@ const load = () => {
       <TransactionDetails
         counterparty="Second account"
         counterpartyType="otherAccount"
-        delta="increase"
         amountUser="$100"
         amountXLM="545.2562704 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
         onBack={Sb.action('onBack')}
         title="Details"

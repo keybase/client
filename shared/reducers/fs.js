@@ -194,7 +194,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         ['edits', action.payload.editID],
         editItem => editItem && editItem.set('name', action.payload.name)
       )
-    case FsGen.editSuccess:
     case FsGen.discardEdit:
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
@@ -238,7 +237,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
-    case FsGen.openInFileUI:
     case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.notifySyncActivity:
@@ -249,7 +247,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.saveMedia:
     case FsGen.mimeTypeLoad:
     case FsGen.openPathItem:
+    case FsGen.openPathInFilesTab:
+    case FsGen.openPathInSystemFileManager:
+    case FsGen.openLocalPathInSystemFileManager:
     case FsGen.commitEdit:
+    case FsGen.editSuccess:
     case FsGen.letResetUserBackIn:
     case FsGen.openAndUpload:
     case FsGen.pickAndUpload:

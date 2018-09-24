@@ -430,6 +430,9 @@ func (f *JSONConfigFile) GetChatDbFilename() string {
 func (f *JSONConfigFile) GetPvlKitFilename() string {
 	return f.GetTopLevelString("pvl_kit")
 }
+func (f *JSONConfigFile) GetParamProofKitFilename() string {
+	return f.GetTopLevelString("paramproof_kit")
+}
 func (f *JSONConfigFile) GetPinentry() string {
 	res, _ := f.GetStringAtPath("pinentry.path")
 	return res

@@ -104,7 +104,6 @@ const styles = Styles.styleSheetCreate({
   }),
   headerName: {
     color: Styles.globalColors.red,
-    fontStyle: 'italic',
     marginTop: 4,
     textDecorationLine: 'line-through',
   },

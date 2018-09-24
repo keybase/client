@@ -46,9 +46,11 @@ type ParamProofServiceType struct {
 func NewParamProofServiceType(conf keybase1.ParamProofServiceConfig) ParamProofServiceType {
 	return ParamProofServiceType{
 		conf: conf,
-		// TODO the loader will have to validate the config from the server and
-		// disable invalid ones without blowing up. CORE-8655
-		usernameRe: regexp.MustCompile(conf.UsernameRe),
+		// NOTE: configuration regexes are validated when retrieved from the
+		// server, this serves as a final initialization sanity check. If we
+		// end up doing more validation we should make a validated type that
+		// has the clean values coming from proofServes.parseServices
+		usernameRe: regexp.MustCompile(conf.Username.Re),
 	}
 }
 
@@ -94,7 +96,7 @@ func (t ParamProofServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) li
 	return &ParamProofChecker{l}
 }
 
-func (t ParamProofServiceType) IsDevelOnly() bool { return t.conf.IsDevel }
+func (t ParamProofServiceType) IsDevelOnly() bool { return false }
 
 func (t ParamProofServiceType) FormatProofText(m libkb.MetaContext, ppr *libkb.PostProofRes) (res string, err error) {
 	// TODO

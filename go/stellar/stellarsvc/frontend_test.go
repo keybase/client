@@ -27,11 +27,11 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 
 	accountID := tcs[0].Backend.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
-	}
-	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "qq",
+	})
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
@@ -42,12 +42,12 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Len(t, accts, 2)
 	require.Equal(t, accountID, accts[0].AccountID, accountID)
 	require.True(t, accts[0].IsDefault)
-	require.Equal(t, "", accts[0].Name) // TODO: once we can set the name on an account, check this
+	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	require.NotEmpty(t, accts[0].Seqno)
 
 	require.False(t, accts[1].IsDefault)
-	require.Equal(t, "", accts[1].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	require.NotEmpty(t, accts[1].Seqno)
 
@@ -55,6 +55,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
 	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
+	require.Equal(t, "qq", accts[0].Name)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -62,6 +63,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	argDetails.AccountID = accts[1].AccountID
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.False(t, details.IsDefault)
 	require.Equal(t, "0 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -76,11 +78,11 @@ func TestGetAccountAssetsLocalWithBalance(t *testing.T) {
 
 	accountID := tcs[0].Backend.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accountID),
 		MakePrimary: true,
-	}
-	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "qq",
+	})
 	require.NoError(t, err)
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
@@ -209,7 +211,7 @@ func TestChangeWalletName(t *testing.T) {
 	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
 	require.NoError(t, err)
 	require.Len(t, accs, 1)
-	require.Equal(t, accs[0].Name, "")
+	require.Equal(t, accs[0].Name, firstAccountName(t, tcs[0]))
 
 	chk := func(name string, expected string) {
 		err = tcs[0].Srv.ValidateAccountNameLocal(context.Background(), stellar1.ValidateAccountNameLocalArg{Name: name})
@@ -221,7 +223,7 @@ func TestChangeWalletName(t *testing.T) {
 		}
 	}
 
-	chk("", "")
+	chk("", "name required")
 	chk("office lunch money", "")
 	chk("savings", "")
 	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
@@ -294,11 +296,11 @@ func TestSetAccountAsDefault(t *testing.T) {
 	}
 
 	for _, v := range additionalAccs {
-		arg := stellar1.ImportSecretKeyLocalArg{
+		err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 			SecretKey:   tcs[0].Backend.SecretKey(v),
 			MakePrimary: false,
-		}
-		err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), arg)
+			Name:        "qq",
+		})
 		require.NoError(t, err)
 	}
 
@@ -360,7 +362,7 @@ func testCreateOrLinkNewAccount(t *testing.T, create bool) {
 
 	require.Len(t, accts, 2)
 	require.True(t, accts[0].IsDefault)
-	require.Equal(t, "", accts[0].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), accts[0].Name)
 	require.Equal(t, "0 XLM", accts[0].BalanceDescription)
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, accID, accts[1].AccountID)
@@ -405,6 +407,7 @@ func TestDeleteWallet(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   tcs[0].Backend.SecretKey(accID2),
 		MakePrimary: true,
+		Name:        "qq",
 	})
 	require.NoError(t, err)
 
@@ -604,18 +607,27 @@ func TestGetPaymentsLocal(t *testing.T) {
 	err = srvSender.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "qq",
+	})
+	require.NoError(t, err)
+
+	err = srvSender.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: accountIDSender,
+		NewName:   "office lunch money",
 	})
 	require.NoError(t, err)
 
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDRecip),
 		MakePrimary: true,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 
 	err = srvRecip.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDRecip2),
 		MakePrimary: false,
+		Name:        "vv",
 	})
 	require.NoError(t, err)
 
@@ -686,10 +698,25 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
+
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
+		require.Equal(t, accountIDSender, p.FromAccountID)
+		var fromAccountName string
+		if sender {
+			fromAccountName = "office lunch money"
+		}
+		require.Equal(t, fromAccountName, p.FromAccountName, "FromAccountName")
+		require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.ToType)
+		require.Equal(t, accountIDRecip, *p.ToAccountID)
+		var toAccountName string
+		if !sender {
+			toAccountName = "uu"
+		}
+		require.Equal(t, toAccountName, p.ToAccountName, "ToAccountName")
+		require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
+		require.Equal(t, "", p.ToAssertion)
+
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 	}
@@ -697,7 +724,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 	require.NoError(t, err)
 	senderPayments := senderPaymentsPage.Payments
 	require.Len(t, senderPayments, 1)
-	t.Logf("senderPayments: %+v", senderPayments)
+	t.Logf("senderPayments: %v", spew.Sdump(senderPayments))
 	if senderPayments[0].Err != nil {
 		t.Logf("senderPayments error: %+v", *senderPayments[0].Err)
 	}
@@ -730,7 +757,7 @@ func TestGetPaymentsLocal(t *testing.T) {
 		require.Equal(t, info.MsgID, msgID)
 		require.True(t, info.ConvID.Eq(convID))
 		require.Equal(t, info.Info.AmountDescription, "1,011.1230000 XLM")
-		require.Equal(t, info.Info.Delta, stellar1.BalanceDelta_DECREASE)
+		require.Equal(t, stellar1.BalanceDelta_DECREASE, info.Info.Delta)
 		require.Equal(t, info.Info.Worth, "$321.87")
 		require.Equal(t, info.Info.Note, "here you go")
 		require.Equal(t, info.Info.Status, stellar1.PaymentStatus_COMPLETED)
@@ -773,28 +800,41 @@ func TestGetPaymentsLocal(t *testing.T) {
 		}
 		require.Equal(t, "$321.87", p.Worth, "Worth")
 		require.Equal(t, "USD", p.WorthCurrency, "WorthCurrency")
-		require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-		require.Equal(t, tcs[1].Fu.Username, p.Target, "Target")
-		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.TargetType, "TargetType")
+
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
+		require.Equal(t, accountIDSender, p.FromAccountID)
+		var fromAccountName string
+		if sender {
+			fromAccountName = "office lunch money"
+		}
+		require.Equal(t, fromAccountName, p.FromAccountName)
+		require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+		require.Equal(t, stellar1.ParticipantType_KEYBASE, p.ToType)
+		require.Equal(t, accountIDRecip, *p.ToAccountID)
+		var toAccountName string
+		if !sender {
+			toAccountName = "uu"
+		}
+		require.Equal(t, toAccountName, p.ToAccountName)
+		require.Equal(t, tcs[1].Fu.Username, p.ToUsername)
+		require.Equal(t, "", p.ToAssertion)
+
 		require.Equal(t, "here you go", p.Note)
 		require.Empty(t, p.NoteErr)
 		require.Equal(t, "public note", p.PublicNote)
 		require.Equal(t, "text", p.PublicNoteType)
 	}
-	argDetails := stellar1.GetPaymentDetailsLocalArg{
+	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
 		AccountID: &accountIDSender,
-	}
-	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), argDetails)
+	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, true)
 
-	argDetails = stellar1.GetPaymentDetailsLocalArg{
+	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
 		AccountID: &accountIDRecip,
-	}
-	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), argDetails)
+	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, false)
 
@@ -840,10 +880,15 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	p := senderPayments[0].Payment
 	require.NotNil(t, p)
-	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
-	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
+	require.Equal(t, accountIDSender, p.FromAccountID)
+	require.Equal(t, "office lunch money", p.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.ToType)
+	require.Equal(t, accountIDRecip2, *p.ToAccountID)
+	require.Equal(t, "", p.ToAccountName)
+	require.Equal(t, "", p.ToUsername)
+	require.Equal(t, "", p.ToAssertion)
 
 	recipPaymentsPage, err = srvRecip.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountIDRecip2})
 	require.NoError(t, err)
@@ -852,11 +897,169 @@ func TestGetPaymentsLocal(t *testing.T) {
 	t.Logf("recipPayments: %+v", recipPayments)
 	p = recipPayments[0].Payment
 	require.NotNil(t, p)
-	require.Equal(t, tcs[0].Fu.Username, p.Source, "Source")
-	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.SourceType, "SourceType")
-	require.Equal(t, accountIDRecip2.String(), p.Target, "Target")
-	require.Equal(t, stellar1.ParticipantType_STELLAR, p.TargetType, "TargetType")
+	require.Equal(t, stellar1.ParticipantType_KEYBASE, p.FromType)
+	require.Equal(t, accountIDSender, p.FromAccountID)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, "", p.FromAccountName)
+	require.Equal(t, stellar1.ParticipantType_STELLAR, p.ToType)
+	require.Equal(t, accountIDRecip2, *p.ToAccountID)
+	require.Equal(t, "vv", p.ToAccountName)
+	require.Equal(t, "", p.ToUsername)
+	require.Equal(t, "", p.ToAssertion)
 	require.NotEmpty(t, p.NoteErr) // can't send encrypted note to stellar address
+}
+
+func TestSendToSelf(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	rm := tcs[0].Backend
+	accountID1 := rm.AddAccount()
+	accountID2 := rm.AddAccount()
+
+	err := tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey:   rm.SecretKey(accountID1),
+		MakePrimary: true,
+		Name:        "qq",
+	})
+	require.NoError(t, err)
+
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: accountID1,
+		NewName:   "office lunch money",
+	})
+	require.NoError(t, err)
+
+	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
+		SecretKey: rm.SecretKey(accountID2),
+		Name:      "uu",
+	})
+	require.NoError(t, err)
+
+	err = tcs[0].Srv.ChangeWalletAccountNameLocal(context.Background(), stellar1.ChangeWalletAccountNameLocalArg{
+		AccountID: accountID2,
+		NewName:   "savings",
+	})
+	require.NoError(t, err)
+
+	t.Logf("Send to the same account")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountID1,
+		To:            accountID1.String(),
+		ToIsAccountID: true,
+		Amount:        "100",
+		Asset:         stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+
+	t.Logf("Send to another of the same user's account")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountID1,
+		To:            accountID2.String(),
+		ToIsAccountID: true,
+		Amount:        "200",
+		Asset:         stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+
+	t.Logf("Send from another of the same user's account")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		From:          accountID2,
+		To:            accountID1.String(),
+		ToIsAccountID: true,
+		Amount:        "300",
+		Asset:         stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+
+	page, err := tcs[0].Srv.GetPaymentsLocal(context.Background(), stellar1.GetPaymentsLocalArg{AccountID: accountID1})
+	require.NoError(t, err)
+	t.Logf("%v", spew.Sdump(page))
+	require.Len(t, page.Payments, 3)
+
+	p := page.Payments[2].Payment
+	require.Equal(t, "100 XLM", p.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.FromType)
+	require.Equal(t, accountID1, p.FromAccountID)
+	require.Equal(t, "office lunch money", p.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
+	require.Equal(t, accountID1, *p.ToAccountID)
+	require.Equal(t, "office lunch money", p.ToAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername)
+	require.Equal(t, "", p.ToAssertion)
+
+	p = page.Payments[1].Payment
+	require.Equal(t, "200 XLM", p.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.FromType)
+	require.Equal(t, accountID1, p.FromAccountID)
+	require.Equal(t, "office lunch money", p.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
+	require.Equal(t, accountID2, *p.ToAccountID)
+	require.Equal(t, "savings", p.ToAccountName)
+	require.Equal(t, "", p.ToUsername)
+	require.Equal(t, "", p.ToAssertion)
+
+	p = page.Payments[0].Payment
+	require.Equal(t, "300 XLM", p.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.FromType)
+	require.Equal(t, accountID2, p.FromAccountID)
+	require.Equal(t, "savings", p.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, p.ToType)
+	require.Equal(t, accountID1, *p.ToAccountID)
+	require.Equal(t, "office lunch money", p.ToAccountName)
+	require.Equal(t, tcs[0].Fu.Username, p.ToUsername) // the sender resolved the username before sending, so it's recorded
+	require.Equal(t, "", p.ToAssertion)
+
+	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+		Id:        page.Payments[2].Payment.Id,
+		AccountID: &accountID1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "100 XLM", pd.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
+	require.Equal(t, accountID1, pd.FromAccountID)
+	require.Equal(t, "office lunch money", pd.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, pd.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
+	require.Equal(t, accountID1, *pd.ToAccountID)
+	require.Equal(t, "office lunch money", pd.ToAccountName)
+	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
+	require.Equal(t, "", pd.ToAssertion)
+
+	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+		Id:        page.Payments[1].Payment.Id,
+		AccountID: &accountID1,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "200 XLM", pd.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
+	require.Equal(t, accountID1, pd.FromAccountID)
+	require.Equal(t, "office lunch money", pd.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, pd.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
+	require.Equal(t, accountID2, *pd.ToAccountID)
+	require.Equal(t, "savings", pd.ToAccountName)
+	require.Equal(t, "", pd.ToUsername)
+	require.Equal(t, "", pd.ToAssertion)
+
+	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
+		Id:        page.Payments[0].Payment.Id,
+		AccountID: &accountID2,
+	})
+	require.NoError(t, err)
+	require.Equal(t, "300 XLM", pd.AmountDescription)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.FromType)
+	require.Equal(t, accountID2, pd.FromAccountID)
+	require.Equal(t, "savings", pd.FromAccountName)
+	require.Equal(t, tcs[0].Fu.Username, pd.FromUsername)
+	require.Equal(t, stellar1.ParticipantType_OWNACCOUNT, pd.ToType)
+	require.Equal(t, accountID1, *pd.ToAccountID)
+	require.Equal(t, "office lunch money", pd.ToAccountName)
+	require.Equal(t, tcs[0].Fu.Username, pd.ToUsername)
+	require.Equal(t, "", pd.ToAssertion)
 }
 
 func TestPaymentDetailsEmptyAccId(t *testing.T) {
@@ -1464,6 +1667,7 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.NotNil(t, info.Info.Asset)
 		require.Equal(t, "native", info.Info.Asset.Type)
 		require.Nil(t, info.Info.Currency)
+		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
 		t.Fatal("timed out waiting for chat request info notification to sender")
 	}
@@ -1480,9 +1684,44 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 		require.NotNil(t, info.Info.Asset)
 		require.Equal(t, "native", info.Info.Asset.Type)
 		require.Nil(t, info.Info.Currency)
+		require.Equal(t, stellar1.RequestStatus_OK, info.Info.Status)
 	case <-time.After(20 * time.Second):
 		t.Fatal("timed out waiting for chat request info notification to sender")
 	}
+
+	// load it again, should not get another notification
+	loaderRecip.LoadRequest(context.Background(), convID, msgID, tcs[0].Fu.Username, reqID)
+	select {
+	case info := <-listenerRecip.requestInfos:
+		t.Fatalf("received request notification on second load: %+v", info)
+	case <-time.After(100 * time.Millisecond):
+	}
+
+}
+
+func TestSetMobileOnly(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	_, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	accountID := getPrimaryAccountID(tcs[0])
+
+	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.False(t, mobileOnly)
+
+	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+
+	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
+	require.NoError(t, err)
+	require.True(t, mobileOnly)
+
+	// XXX note that the real test here will be that the secret bundle does not come
+	// back for desktop devices or mobile devices that are less than 7d old.
+	// This is just a basic test at this point...
 }
 
 type chatListener struct {
@@ -1506,4 +1745,10 @@ func (c *chatListener) ChatPaymentInfo(uid keybase1.UID, convID chat1.Conversati
 
 func (c *chatListener) ChatRequestInfo(uid keybase1.UID, convID chat1.ConversationID, msgID chat1.MessageID, info chat1.UIRequestInfo) {
 	c.requestInfos <- chat1.ChatRequestInfoArg{Uid: uid, ConvID: convID, MsgID: msgID, Info: info}
+}
+
+func firstAccountName(t testing.TB, tc *TestContext) string {
+	loggedInUsername := tc.G.ActiveDevice.Username(libkb.NewMetaContextForTest(tc.TestContext))
+	require.True(t, loggedInUsername.IsValid())
+	return fmt.Sprintf("%v's account", loggedInUsername)
 }

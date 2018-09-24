@@ -38,6 +38,7 @@ type configGetter interface {
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -629,6 +630,7 @@ type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	OnLogout()
 }
 

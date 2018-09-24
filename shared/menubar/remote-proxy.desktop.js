@@ -56,8 +56,9 @@ const mapStateToProps = (state: TypedState) => ({
   _following: state.config.following,
   _badgeInfo: state.notifications.navBadges,
   _externalRemoteWindowID: state.config.menubarWindowID,
-  _uploads: state.fs.uploads,
+  _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
+  _uploads: state.fs.uploads,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
   conversations: GetNewestConvMetas(state),
@@ -79,7 +80,7 @@ const mergeProps = stateProps => ({
   windowOpts,
   windowParam: '',
   windowTitle: '',
-  ...uploadsToUploadCountdownHOCProps(stateProps._uploads, stateProps._pathItems),
+  ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
 })
 
 // Actions are handled by remote-container

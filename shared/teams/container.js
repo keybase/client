@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
@@ -21,7 +22,7 @@ const mapStateToProps = (state: TypedState) => ({
   teamnames: getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {routePath}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
   onCreateTeam: () => {
     dispatch(
@@ -40,7 +41,9 @@ const mapDispatchToProps = dispatch => ({
   onManageChat: (teamname: Teamname) =>
     dispatch(navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
   onOpenFolder: (teamname: Teamname) =>
-    dispatch(FsGen.createOpenInFileUI({path: `/keybase/team/${teamname}`})),
+    dispatch(
+      FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
+    ),
   onReadMore: () => {
     openURL('https://keybase.io/blog/introducing-keybase-teams')
   },

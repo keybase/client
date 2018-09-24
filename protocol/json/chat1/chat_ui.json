@@ -500,6 +500,10 @@
             "stellar1.OutsideCurrencyCode"
           ],
           "name": "currency"
+        },
+        {
+          "type": "stellar1.RequestStatus",
+          "name": "status"
         }
       ]
     },

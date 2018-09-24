@@ -13,5 +13,5 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-yarn run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
+yarn run package -- --arch x64 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico
 popd

@@ -41,6 +41,7 @@ function unlink(filepath: string): Promise<void> {
 }
 
 const cachesDirectoryPath = tmpDir()
+const downloadFolder = ''
 
 export {
   cachesDirectoryPath,
@@ -53,4 +54,5 @@ export {
   unlink,
   writeStream,
   downloadFilePathNoSearch,
+  downloadFolder,
 }

@@ -17,7 +17,7 @@ type DefaultViewProps = {
   download: () => void,
   saveMedia: () => void,
   shareNative: () => void,
-  showInFileUI: () => void,
+  showInSystemFileManager: () => void,
 }
 
 const DefaultView = (props: DefaultViewProps) => (
@@ -61,7 +61,7 @@ const DefaultView = (props: DefaultViewProps) => (
           type="Secondary"
           label={'Show in ' + fileUIName}
           style={{marginTop: globalMargins.small}}
-          onClick={props.showInFileUI}
+          onClick={props.showInSystemFileManager}
         />
       ) : (
         <Button

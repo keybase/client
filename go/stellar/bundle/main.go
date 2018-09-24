@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-func NewInitialBundle() (res stellar1.Bundle, err error) {
+func NewInitialBundle(accountName string) (res stellar1.Bundle, err error) {
 	accountID, masterKey, err := randomStellarKeypair()
 	if err != nil {
 		return res, err
@@ -22,7 +22,7 @@ func NewInitialBundle() (res stellar1.Bundle, err error) {
 			Mode:      stellar1.AccountMode_USER,
 			IsPrimary: true,
 			Signers:   []stellar1.SecretKey{masterKey},
-			Name:      "",
+			Name:      accountName,
 		}},
 	}, nil
 }
@@ -44,6 +44,9 @@ func AddAccount(bundle *stellar1.Bundle, secretKey stellar1.SecretKey, name stri
 	secretKey, accountID, _, err := libkb.ParseStellarSecretKey(string(secretKey))
 	if err != nil {
 		return err
+	}
+	if name == "" {
+		return fmt.Errorf("Name required for new account")
 	}
 	if makePrimary {
 		for i := range bundle.Accounts {
