@@ -485,7 +485,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	for _, key := range keys {
 		eldestSeqno, err := s.keyToEldestSeqno(key)
 		if err != nil || eldestSeqno < 0 {
-			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
+			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %v", key, eldestSeqno, err)
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {

@@ -26,6 +26,7 @@ type EKLib struct {
 
 	// During testing we may want to stall background creation to assert cache
 	// state.
+	forcePublish             bool
 	clock                    clockwork.Clock
 	backgroundCreationTestCh chan bool
 	stopCh                   chan struct{}
@@ -53,6 +54,10 @@ func (e *EKLib) Shutdown() {
 	if e.stopCh != nil {
 		close(e.stopCh)
 	}
+}
+
+func (e *EKLib) SetForcePublish(forcePublish bool) {
+	e.forcePublish = forcePublish
 }
 
 func (e *EKLib) backgroundKeygen() {
@@ -174,7 +179,7 @@ func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot)
 
 	if deviceEKNeeded, err := e.newDeviceEKNeeded(ctx, merkleRoot); err != nil {
 		return err
-	} else if deviceEKNeeded {
+	} else if deviceEKNeeded || e.forcePublish {
 		_, err = publishNewDeviceEK(ctx, e.G(), merkleRoot)
 		if err != nil {
 			return err
@@ -188,7 +193,7 @@ func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot)
 	// encryption.
 	if userEKNeeded, err := e.newUserEKNeeded(ctx, merkleRoot); err != nil {
 		return err
-	} else if userEKNeeded {
+	} else if userEKNeeded || e.forcePublish {
 		_, err = publishNewUserEK(ctx, e.G(), merkleRoot)
 		if err != nil {
 			return err
@@ -498,7 +503,7 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 				e.backgroundCreationTestCh <- true
 			}
 		}()
-	} else if teamEKNeeded {
+	} else if teamEKNeeded || e.forcePublish {
 		publishedMetadata, err := publishNewTeamEK(ctx, e.G(), teamID, merkleRoot)
 		if err != nil {
 			return teamEK, err
