@@ -8,6 +8,7 @@ import {type TypedState, compose, connect, setDisplayName, createSelector} from 
 import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
+import memoizeOne from 'memoize-one'
 import type {ServiceIdWithContact, User} from '../constants/types/team-building'
 
 // TODO
@@ -80,11 +81,24 @@ const teamSoFarPropSelector = createSelector(
     })
 )
 
+// TODO test this
+// Format the component is expecting, which is different than the normalized version in the store
+const deriveTeamSoFarProp = (teamSoFar: Set<User>) =>
+  teamSoFar.toArray().map(userInfo => {
+    const {username, serviceId} = parseUserId(userInfo.id)
+    return {
+      userId: userInfo.id,
+      prettyName: userInfo.prettyName,
+      service: serviceId,
+      username,
+    }
+  })
+
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
     searchResults: searchResultsSelector(state, ownProps),
     searchResultsProp: searchResultsPropSelector(state, ownProps),
-    teamSoFarProp: teamSoFarPropSelector(state),
+    teamSoFarProp: deriveTeamSoFarProp(state.chat2.teamBuildingTeamSoFar),
   }
 }
 
