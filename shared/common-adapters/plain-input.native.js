@@ -192,7 +192,7 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   _getProps = () => {
-    const common: any = {
+    const common = {
       ...pick(this.props, ['maxLength', 'value']), // Props we should only passthrough if supplied
       autoCapitalize: this.props.autoCapitalize || 'none',
       autoCorrect: !!this.props.autoCorrect,
@@ -213,9 +213,6 @@ class PlainInput extends Component<InternalProps, State> {
       secureTextEntry: this.props.type === 'password',
       style: this._getStyle(),
       underlineColorAndroid: 'transparent',
-    }
-    if (this.props.maxLength) {
-      common.maxLength = this.props.maxLength
     }
     if (this.props.multiline) {
       return {
