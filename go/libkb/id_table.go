@@ -141,7 +141,6 @@ type RemoteProofChainLink interface {
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
 	GetProofType() keybase1.ProofType
 	ProofText() string
-	RequiresHint() bool
 }
 
 type WebProofChainLink struct {
@@ -199,7 +198,6 @@ func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
 func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
 func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
 func (w *WebProofChainLink) ProofText() string         { return w.proofText }
-func (w *WebProofChainLink) RequiresHint() bool        { return true }
 
 func (w *WebProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
@@ -251,10 +249,7 @@ func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 func (s *SocialProofChainLink) GetHostname() string       { return "" }
 func (s *SocialProofChainLink) GetProtocol() string       { return "" }
 func (s *SocialProofChainLink) ProofText() string         { return s.proofText }
-func (s *SocialProofChainLink) RequiresHint() bool {
-	return !s.isGeneric
-}
-func (s *SocialProofChainLink) ToIDString() string { return s.ToDisplayString() }
+func (s *SocialProofChainLink) ToIDString() string        { return s.ToDisplayString() }
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 	return s.service, s.username
 }
@@ -1150,7 +1145,6 @@ func (s *SelfSigChainLink) GetRemoteUsername() string { return s.GetUsername() }
 func (s *SelfSigChainLink) GetHostname() string       { return "" }
 func (s *SelfSigChainLink) GetProtocol() string       { return "" }
 func (s *SelfSigChainLink) ProofText() string         { return "" }
-func (s *SelfSigChainLink) RequiresHint() bool        { return true }
 
 func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 
@@ -1607,7 +1601,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	pvlHashUsed = pvlU.Hash
 
 	res.hint = idt.sigHints.Lookup(sid)
-	if res.hint == nil && p.RequiresHint() {
+	if res.hint == nil {
 		res.err = NewProofError(keybase1.ProofStatus_NO_HINT, "No server-given hint for sig=%s", sid)
 		return
 	}
