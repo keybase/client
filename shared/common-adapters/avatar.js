@@ -2,9 +2,8 @@
 // High level avatar class. Handdles converting from usernames to urls. Deals with testing mode.
 import * as React from 'react'
 import Render from './avatar.render'
-import {debounce} from 'lodash-es'
+import {throttle} from 'lodash-es'
 import {iconTypeToImgSet, urlsToImgSet, type IconType, type Props as IconProps} from './icon'
-import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import {setDisplayName, connect, type TypedState, compose} from '../util/container'
 import {
   platformStyles,
@@ -43,7 +42,7 @@ export type OwnProps = {|
   showFollowingStatus?: boolean, // show the green dots or not
 |}
 
-type PropsWithoutTimer = {|
+type Props = {|
   askForUserData?: () => void,
   borderColor?: ?string,
   children?: React.Node,
@@ -54,6 +53,7 @@ type PropsWithoutTimer = {|
   following: boolean,
   followsYou: boolean,
   isTeam: boolean,
+  load: () => void,
   loadingColor?: string,
   name: string,
   onClick?: (e?: SyntheticEvent<Element>) => void,
@@ -67,8 +67,6 @@ type PropsWithoutTimer = {|
   url: URLType,
   username?: ?string,
 |}
-
-type Props = PropsWithTimer<PropsWithoutTimer>
 
 const avatarPlaceHolders: {[key: string]: IconType} = {
   '192': 'icon-placeholder-avatar-192',
@@ -102,22 +100,33 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
   }
 }
 
-let _askQueue = {}
-let _askDispatch = null
-// We queue up the actions across all instances of Avatars so we don't flood the system with tons of actions
-const _askForUserDataQueueUp = (username: string, dispatch) => {
-  _askDispatch = dispatch
-  _askQueue[username] = true
-  _reallyAskForUserData()
-}
-
-const _reallyAskForUserData: () => void = debounce(() => {
-  if (_askDispatch) {
-    const usernames = Object.keys(_askQueue)
-    _askQueue = {}
-    _askDispatch(ConfigGen.createLoadAvatars({usernames}))
+// We keep one timer for all instances to reduce timer overhead
+class SharedAskForUserData {
+  _dispatch: any => void
+  _teamQueue = {}
+  _userQueue = {}
+  _makeCalls = throttle(() => {
+    if (!this._dispatch) {
+      return
+    }
+    const usernames = Object.keys(this._userQueue)
+    const teamnames = Object.keys(this._teamQueue)
+    this._teamQueue = {}
+    this._userQueue = {}
+    this._dispatch(ConfigGen.createLoadAvatars({usernames}))
+    this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
+  }, 200)
+  getTeam = name => {
+    this._teamQueue[name] = true
+    this._makeCalls()
   }
-}, 100)
+  getUser = name => {
+    this._userQueue[name] = true
+    this._makeCalls()
+  }
+  injectDispatch = dispatch => (this._dispatch = dispatch)
+}
+const _sharedAskForUserData = new SharedAskForUserData()
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
@@ -128,19 +137,21 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  _askForTeamUserData: (teamname: string) =>
-    dispatch(ConfigGen.createLoadTeamAvatars({teamnames: [teamname]})),
-  _askForUserData: (username: string) => _askForUserDataQueueUp(username, dispatch),
-  _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
-    isMobile || desktopDest === 'profile'
-      ? dispatch(createShowUserProfile({username}))
-      : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-  onClick:
-    flags.avatarUploadsEnabled && ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
-})
+const mapDispatchToProps = (dispatch, ownProps) => {
+  _sharedAskForUserData.injectDispatch(dispatch)
+  return {
+    _goToProfile: (username: string, desktopDest: 'profile' | 'tracker') =>
+      isMobile || desktopDest === 'profile'
+        ? dispatch(createShowUserProfile({username}))
+        : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+    onClick:
+      flags.avatarUploadsEnabled && ownProps.onEditAvatarClick
+        ? ownProps.onEditAvatarClick
+        : ownProps.onClick,
+  }
+}
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithoutTimer => {
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const isTeam = ownProps.isTeam || !!ownProps.teamname
 
   let onClick = dispatchProps.onClick
@@ -160,12 +171,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   }
 
-  const askForUserData = isTeam
+  const load = isTeam
     ? () => {
-        ownProps.teamname && dispatchProps._askForTeamUserData(ownProps.teamname)
+        ownProps.teamname && _sharedAskForUserData.getTeam(ownProps.teamname)
       }
     : () => {
-        ownProps.username && dispatchProps._askForUserData(ownProps.username)
+        ownProps.username && _sharedAskForUserData.getUser(ownProps.username)
       }
 
   const name = isTeam ? ownProps.teamname : ownProps.username
@@ -173,7 +184,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
   const iconInfo = followIconHelper(ownProps.size, stateProps.followsYou, stateProps.following)
 
   return {
-    askForUserData,
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     editable: ownProps.editable,
@@ -183,6 +193,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
     following: stateProps.following,
     followsYou: stateProps.followsYou,
     isTeam,
+    load,
     loadingColor: ownProps.loadingColor,
     name: name || '',
     onClick,
@@ -196,27 +207,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 }
 
 class AvatarConnector extends React.PureComponent<Props> {
-  _mounted: boolean = true
-
   componentDidMount() {
-    this._mounted = true
-    this.props.setTimeout(this._maybeLoadUserData, 200)
+    this.props.load()
   }
   componentDidUpdate(prevProps: Props) {
     if (this.props.name !== prevProps.name) {
-      this._maybeLoadUserData()
+      this.props.load()
     }
-  }
-  componentWillUnmount() {
-    this._mounted = false
   }
 
-  _maybeLoadUserData = () => {
-    // Still looking at the same user?
-    if (this._mounted && this.props.askForUserData) {
-      this.props.askForUserData()
-    }
-  }
   render() {
     return (
       <Render
@@ -240,11 +239,9 @@ class AvatarConnector extends React.PureComponent<Props> {
   }
 }
 
-const Avatar = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Avatar'),
-  HOCTimers
-)(AvatarConnector)
+const Avatar = compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Avatar'))(
+  AvatarConnector
+)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,
@@ -278,17 +275,6 @@ const mockOwnToViewProps = (
     !!(ownProps.showFollowingStatus && following)
   )
   return {
-    clearInterval: action('clearInterval'),
-    clearTimeout: action('clearTimeout'),
-    setInterval: (...args) => {
-      setInterval(...args)
-      return (0: any)
-    },
-    setTimeout: (...args) => {
-      setTimeout(...args)
-      return (0: any)
-    },
-
     borderColor: ownProps.borderColor,
     children: ownProps.children,
     followIconSize: iconInfo.iconSize,
@@ -297,6 +283,7 @@ const mockOwnToViewProps = (
     following,
     followsYou,
     isTeam,
+    load: () => {},
     loadingColor: ownProps.loadingColor,
     name: name || '',
     onClick,

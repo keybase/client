@@ -6,7 +6,7 @@ import type {AvatarSize, Props} from './avatar.render'
 
 type ImageProps = {
   opacity: ?number,
-  size: AvatarSize,
+  className: string,
   url: string,
   borderRadius: any,
 }
@@ -33,7 +33,7 @@ const Background = ({borderRadius}) => (
 class UserImage extends React.PureComponent<ImageProps> {
   render() {
     const {opacity = 1, url, borderRadius, className} = this.props
-    const style = {
+    const style: Object = {
       backgroundImage: url,
       borderRadius,
     }
