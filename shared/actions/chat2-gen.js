@@ -26,6 +26,7 @@ export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const filePickerError = 'chat2:filePickerError'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
+export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -137,6 +138,7 @@ type _DesktopNotificationPayload = $ReadOnly<{|
 |}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _HandleSeeingExplodingMessagesPayload = void
+type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|
@@ -391,6 +393,10 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({err
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
 /**
+ * Set that we've seen wallets integration in chat. This can come from the view or from gregor.
+ */
+export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({error: false, payload, type: handleSeeingWallets})
+/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({error: false, payload, type: setMinWriterRole})
@@ -514,6 +520,7 @@ export type CreateConversationPayload = $Call<typeof createCreateConversation, _
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePickerErrorPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
+export type HandleSeeingWalletsPayload = $Call<typeof createHandleSeeingWallets, _HandleSeeingWalletsPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
@@ -595,6 +602,7 @@ export type Actions =
   | DesktopNotificationPayload
   | FilePickerErrorPayload
   | HandleSeeingExplodingMessagesPayload
+  | HandleSeeingWalletsPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload
