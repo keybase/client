@@ -90,7 +90,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     return null
   }
 
-  const sizeKey = sizes.join(':')
+  const sizeKey = targetSize + ']' + sizes.join(':')
   if (_getMultsMapCache[sizeKey]) {
     return _getMultsMapCache[sizeKey]
   }
