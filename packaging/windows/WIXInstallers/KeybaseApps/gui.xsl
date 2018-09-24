@@ -6,10 +6,10 @@
   </xsl:copy>
  </xsl:template>  
 
- <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Id">
+ <xsl:template match="wix:Directory[@Name='Keybase-win32-x64']/@Id">
   <xsl:attribute name="Id">GuiDir</xsl:attribute>
  </xsl:template>
- <xsl:template match="wix:Directory[@Name='Keybase-win32-ia32']/@Name">
+ <xsl:template match="wix:Directory[@Name='Keybase-win32-x64']/@Name">
   <xsl:attribute name="Name">Gui</xsl:attribute>
  </xsl:template>
  <xsl:template match="wix:Directory[@Name='resources']/@Id">

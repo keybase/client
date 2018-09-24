@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
 import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
@@ -77,7 +78,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),
   _onBrowsePublicFolder: (username: string) =>
-    dispatch(FsGen.createOpenInFileUI({path: `/keybase/public/${username}`})),
+    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   _onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
@@ -91,12 +92,17 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
       ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
-  onFolderClick: folder => dispatch(FsGen.createOpenInFileUI({path: folder.path})),
+  onFolderClick: folder =>
+    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
-    dispatch(FsGen.createOpenInFileUI({path: `/keybase/private/${theirUsername},${myUsername}`})),
+    dispatch(
+      FsGen.createOpenPathInFilesTab({
+        path: FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`),
+      })
+    ),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
   onRevokeProof: (proof: TrackerTypes.Proof) =>
     dispatch(

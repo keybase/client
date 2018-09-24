@@ -939,6 +939,14 @@ func (m *ChatRemoteMock) SetConvMinWriterRole(ctx context.Context, _ chat1.SetCo
 	return res, errors.New("SetConvMinWriterRole not mocked")
 }
 
+func (m *ChatRemoteMock) RegisterSharePost(ctx context.Context, _ chat1.RegisterSharePostArg) error {
+	return errors.New("RegisterSharePost not mocked")
+}
+
+func (m *ChatRemoteMock) FailSharePost(ctx context.Context, _ chat1.FailSharePostArg) error {
+	return errors.New("FailSharePost not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error

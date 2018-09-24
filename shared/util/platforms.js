@@ -9,8 +9,9 @@ const ProveMessages = {
   facebook: 'Prove your Facebook',
   github: 'Prove your GitHub',
   hackernews: 'Prove your Hacker News',
-  http: 'Prove your website',
-  https: 'Prove your website',
+  http: 'Prove your HTTP website',
+  https: 'Prove your HTTPS website',
+  web: 'Prove your website',
   keybase: '',
   none: '',
   pgp: 'Add a PGP key',
@@ -32,6 +33,7 @@ export function subtitle(platform: PlatformsExpandedType): ?string {
     case 'dns':
     case 'http':
     case 'https':
+    case 'web':
       return platform
     default:
       return `@${platform}`

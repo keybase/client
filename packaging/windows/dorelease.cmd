@@ -3,6 +3,8 @@ if NOT DEFINED KBFSRevision set KBFSRevision=master
 if NOT DEFINED UpdaterRevision set UpdaterRevision=master
 if NOT DEFINED ReleaseRevision set ReleaseRevision=master
 
+set GOARCH=amd64
+
 set OUTPUT=echo
 if DEFINED SlackBot set OUTPUT=go run %GOPATH%/src/github.com/keybase/slackbot/send/main.go -i=1
 
@@ -82,7 +84,7 @@ call %GOPATH%\src\github.com\keybase\client\packaging\windows\doinstaller_wix.cm
 
 ::Publish to S3
 echo "Uploading %BUILD_TAG%"
-s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.386.msi prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
+s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\Keybase_%BUILD_TAG%.%GOARCH%.msi prerelease.keybase.io/windows  || goto:build_error || EXIT /B 1
 
 if %UpdateChannel% NEQ "None" (
     :: Test channel json
@@ -125,7 +127,7 @@ set BUILD_TAG_ENCODED=!BUILD_TAG:+=%%2B!
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
     %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%, kbfs: %KBFS_BUILD%"
-    %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.386.msi"
+    %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
     goto :no_smokeb
 )
 ::Smoke B json
@@ -134,7 +136,7 @@ set smokeBSemVer=%KEYBASE_VERSION%
 %GOPATH%\src\github.com\keybase\release\release announce-build --build-a="%SmokeASemVer%" --build-b="%smokeBSemVer%" --platform="windows" || goto:build_error || EXIT /B 1
 set BUILD_TAG_ENCODED=!SmokeASemVer:+=%%2B!
 %OUTPUT% "Successfully built Windows: --build-a=%SmokeASemVer% --build-b=%smokeBSemVer%
-%OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.386.msi"
+%OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
 :no_smokeb
 
 echo %ERRORLEVEL%

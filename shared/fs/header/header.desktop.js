@@ -6,7 +6,7 @@ import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import OpenInFileUI from '../common/open-in-fileui-container'
+import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
 
 const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
   <Box style={styleHeaderContainer}>
@@ -21,7 +21,7 @@ const FolderHeader = ({path, onChat}: FolderHeaderProps) => (
           <Box style={styleFolderHeaderEnd}>
             <AddNew path={path} style={styleAddNew} />
             <WithTooltip text="Show in Finder">
-              <OpenInFileUI path={path} />
+              <OpenInSystemFileManager path={path} />
             </WithTooltip>
             {onChat && (
               <Icon
