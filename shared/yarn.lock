@@ -6048,9 +6048,9 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-framed-msgpack-rpc@1.1.13:
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.13.tgz#2ca09bd7adbb5f61c09ee7175f26dea2b97044e6"
+framed-msgpack-rpc@1.1.14:
+  version "1.1.14"
+  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.14.tgz#49a5df023cc0debcb1287eaf175a2a5adfaf1321"
   dependencies:
     iced-error "0.0.9"
     iced-lock "^1.0.2"
