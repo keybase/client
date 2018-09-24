@@ -189,7 +189,7 @@ function* folderList(
     ]
     yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
     if (action.type === FsGen.editSuccess) {
-      // Note that we discard the Edit metadat here rather than immediately
+      // Note that we discard the Edit metadata here rather than immediately
       // after an FsGen.editSuccess event, so that if we hear about journal
       // uploading the new folder before we hear from the folder list result,
       // fs/footer/upload-container.js can determine this is a newly created
