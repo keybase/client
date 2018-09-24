@@ -2,19 +2,35 @@
 import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as Constants from '../../../../../constants/chat2'
+import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import * as Constants from '../../../../../constants/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
 
 const mapStateToProps = state => ({
   _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),
+  _you: state.config.username,
   isNew: state.chat2.isWalletsNew,
 })
 
 const mapDispatchToProps = dispatch => ({
-  onClick: () => dispatch(Chat2Gen.createHandleSeeingWallets()),
-  // dispatch(RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]})),
+  _onClick: (to: string) => {
+    dispatch(Chat2Gen.createHandleSeeingWallets())
+    dispatch(WalletsGen.createAbandonPayment())
+    dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
+    dispatch(WalletsGen.createSetBuildingTo({to}))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {isRequest: true},
+            selected: WalletConstants.sendReceiveFormRouteKey,
+          },
+        ],
+      })
+    )
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -22,9 +38,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // Only show this for one-on-one conversations
     return {shouldRender: false}
   }
+  const to = stateProps._meta.participants.find(u => u !== stateProps._you)
   return {
     isNew: stateProps.isNew,
-    onClick: () => {}, // TODO
+    onClick: () => dispatchProps._onClick(to), // TODO
     shouldRender: true,
     size: ownProps.size,
     style: ownProps.style,
