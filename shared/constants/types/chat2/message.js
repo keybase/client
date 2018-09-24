@@ -159,6 +159,7 @@ export type _ChatRequestInfo = {
   amountDescription: string,
   asset: WalletTypes.Asset,
   currencyCode: string, // set if asset === 'currency'
+  type: 'requestInfo',
 }
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
@@ -187,6 +188,7 @@ export type _ChatPaymentInfo = {
   note: HiddenString,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  type: 'paymentInfo',
   worth: string,
 }
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>

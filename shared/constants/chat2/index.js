@@ -18,6 +18,7 @@ import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountsInfoMap: I.Map(),
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
@@ -235,6 +236,8 @@ export {
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
+  getRequestMessageInfo,
+  getPaymentMessageInfo,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

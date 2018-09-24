@@ -28,8 +28,9 @@ export function tmpRandFile(suffix: string): Promise<string> {
   })
 }
 
-// TODO make this a user setting
-export const downloadFolder = __STORYBOOK__ ? '' : path.join(os.homedir(), 'Downloads')
+export const downloadFolder = __STORYBOOK__
+  ? ''
+  : process.env.XDG_DOWNLOAD_DIR || path.join(os.homedir(), 'Downloads')
 
 export function downloadFilePathNoSearch(filename: string): string {
   return path.join(downloadFolder, filename)

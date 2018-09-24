@@ -13,11 +13,19 @@ type Props = {
   path?: Types.Path,
   onDismiss?: () => void,
   onInstall: () => void,
-  openInFileUI?: () => void,
+  openInSystemFileManager?: () => void,
   dokanUninstall?: () => void,
 }
 
-const Banner = ({kbfsEnabled, kbfsOutdated, showBanner, onInstall, onDismiss, openInFileUI, dokanUninstall}: Props) => {
+const Banner = ({
+  kbfsEnabled,
+  kbfsOutdated,
+  showBanner,
+  onInstall,
+  onDismiss,
+  openInSystemFileManager,
+  dokanUninstall,
+}: Props) => {
   if (!showBanner) {
     return null
   }
@@ -29,7 +37,8 @@ const Banner = ({kbfsEnabled, kbfsOutdated, showBanner, onInstall, onDismiss, op
     alignItems: 'center',
     position: 'relative',
   }
-  const promptText = kbfsOutdated ? dokanUninstall
+  const promptText = kbfsOutdated
+    ? dokanUninstall
       ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
       : 'A newer version of Dokan is available. Please remove the old version before installing it.'
     : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
@@ -41,9 +50,9 @@ const Banner = ({kbfsEnabled, kbfsOutdated, showBanner, onInstall, onDismiss, op
         <Text type="Header" style={textStyle}>
           {onDismiss && 'Yay! '}Keybase is {onDismiss && 'now '}enabled in your {fileUIName}.
         </Text>
-        {openInFileUI && (
+        {openInSystemFileManager && (
           <Box style={{justifyContent: 'flex-start'}}>
-            <Button type="Primary" label="Open folder" onClick={openInFileUI} />
+            <Button type="Primary" label="Open folder" onClick={openInSystemFileManager} />
           </Box>
         )}
       </Box>
