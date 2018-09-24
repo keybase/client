@@ -20,7 +20,7 @@ import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
-import StellarIcon from './stellar-icon/container'
+import WalletsIcon from './wallets-icon/container'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
 
@@ -335,7 +335,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}
-          {flags.walletsEnabled && <StellarIcon size={16} style={styles.marginRightTiny} />}
+          {flags.walletsEnabled && <WalletsIcon size={16} style={styles.marginRightTiny} />}
           <Kb.Icon
             color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
             onClick={this._emojiPickerToggle}

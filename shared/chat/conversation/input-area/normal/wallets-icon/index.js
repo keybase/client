@@ -3,13 +3,13 @@ import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
-type StellarIconProps = {
+type WalletsIconProps = {
   isNew: boolean,
   onClick: () => void,
   size: number,
   style?: Styles.StylesCrossPlatform,
 }
-const StellarIcon = ({isNew, onClick, size, style}: StellarIconProps) => (
+const WalletsIcon = ({isNew, onClick, size, style}: WalletsIconProps) => (
   <Kb.Box2 direction="horizontal" style={Styles.collapseStyles([styles.container, style])}>
     <Kb.Icon type="iconfont-dollar-sign" fontSize={size} onClick={onClick} />
     {isNew && <Kb.Box style={styles.newBadge} />}
@@ -35,4 +35,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default StellarIcon
+export default WalletsIcon
