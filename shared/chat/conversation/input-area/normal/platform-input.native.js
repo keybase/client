@@ -25,6 +25,7 @@ import {ExplodingMeta} from './shared'
 import type {PlatformInputProps} from './types'
 import flags from '../../../../util/feature-flags'
 import FilePickerPopup from '../filepicker-popup'
+import StellarIcon from './stellar-icon/container'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -280,6 +281,7 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
+      {flags.walletsEnabled && <StellarIcon size={22} style={styles.actionButton} />}
       <Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
