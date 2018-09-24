@@ -2344,20 +2344,28 @@ function* handleSeeingExplodingMessages(action: Chat2Gen.HandleSeeingExplodingMe
   })
 }
 
-const handleSeeingWallets = (state: TypedState, action: Chat2Gen.HandleSeeingWalletsPayload) => {
-  if (!state.chat2.isWalletsNew) {
-    logger.info('handleSeeingWallets: we already think wallets is old; skipping gregor update.')
+function* handleSeeingWallets(action: Chat2Gen.HandleSeeingWalletsPayload) {
+  const gregorState = yield Saga.call(RPCTypes.gregorGetStateRpcPromise)
+  const seenWallets = gregorState.items.some(i => i.item.category === Constants.seenWalletsGregorKey)
+  if (seenWallets) {
+    logger.info('handleSeeingWallets: gregor state already think wallets is old; skipping update.')
     return
   }
-  return RPCTypes.gregorUpdateCategoryRpcPromise({
-    body: 'true',
-    category: Constants.seenWalletsGregorKey,
-    dtime: {time: 0, offset: 0},
-  })
-    .then(() => logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey'))
-    .catch(err =>
-      logger.error(`handleSeeingWallets: failed to set seenWalletsGregorKey. Error: ${err.message}`)
+  try {
+    logger.info('handleSeeingWallets: setting seenWalletsGregorKey')
+    yield Saga.call(RPCTypes.gregorUpdateCategoryRpcPromise, {
+      body: 'true',
+      category: Constants.seenWalletsGregorKey,
+      dtime: {time: 0, offset: 0},
+    })
+    logger.info('handleSeeingWallets: successfully set seenWalletsGregorKey')
+  } catch (err) {
+    logger.error(
+      `handleSeeingWallets: failed to set seenWalletsGregorKey. Local state might not persist on restart. Error: ${
+        err.message
+      }`
     )
+  }
 }
 
 const loadStaticConfig = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) =>
@@ -2517,7 +2525,7 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) 
   const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
   if (seenWallets && state.chat2.isWalletsNew) {
     logger.info('chat.gregorPushState: got seenWallets and we thought they were new, updating store.')
-    actions.push(Saga.put(Chat2Gen.createHandleSeeingWallets()))
+    actions.push(Saga.put(Chat2Gen.createSetWalletsOld()))
   }
 
   return Saga.sequentially(actions)
@@ -2661,7 +2669,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setConvExplodingModeFailure
   )
   yield Saga.safeTakeEvery(Chat2Gen.handleSeeingExplodingMessages, handleSeeingExplodingMessages)
-  yield Saga.actionToPromise(Chat2Gen.handleSeeingWallets, handleSeeingWallets)
+  yield Saga.safeTakeEvery(Chat2Gen.handleSeeingWallets, handleSeeingWallets)
   yield Saga.safeTakeEveryPure(Chat2Gen.toggleMessageReaction, toggleMessageReaction)
   yield Saga.actionToAction(ConfigGen.daemonHandshake, loadStaticConfig)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
