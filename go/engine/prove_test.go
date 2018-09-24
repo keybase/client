@@ -61,36 +61,28 @@ func TestProveRooterCachedKeys(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestProveGenericSocialPromptPosted(t *testing.T) {
-	testProveGenericSocial(t, true /* promptPosted */)
-}
-
-func TestProveGenericSocialNoPromptPosted(t *testing.T) {
-	testProveGenericSocial(t, false /* promptPosted */)
-}
-
-func testProveGenericSocial(t *testing.T, promptPosted bool) {
+func TestProveGenericSocial(t *testing.T) {
 	doWithSigChainVersions(func(sigVersion libkb.SigVersion) {
 		tc := SetupEngineTest(t, "prove")
 		defer tc.Cleanup()
 
 		fu := CreateAndSignupFakeUser(tc, "prove")
-		_proveGubbleSocial(tc, fu, sigVersion, promptPosted)
+		_testProveGubbleSocial(tc, fu, sigVersion)
 	})
 }
 
-func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion, promptPosted bool) {
+func _testProveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) keybase1.SigID {
 	g := tc.G
 	sv := keybase1.SigVersion(sigVersion)
-	serviceType := g.GetProofServices().GetServiceType("gubble.social")
-	require.NotNil(tc.T, serviceType)
+	proofService := g.GetProofServices().GetServiceType("gubble.social")
+	require.NotNil(tc.T, proofService)
 
 	// Post a proof to the testing generic social service, gubble.social
 	arg := keybase1.StartProofArg{
-		Service:      serviceType.GetTypeName(),
+		Service:      proofService.GetTypeName(),
 		Username:     fu.Username,
 		Force:        false,
-		PromptPosted: promptPosted,
+		PromptPosted: true,
 		SigVersion:   &sv,
 	}
 	eng := NewProve(g, &arg)
@@ -111,7 +103,6 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 		_, err := g.API.Post(apiArg)
 		require.NoError(tc.T, err)
 
-		// TODO in CORE-8658 can we check this directly from GenericSocialProofChecker?
 		apiArg = libkb.APIArg{
 			Endpoint:    fmt.Sprintf("gubble_universe/gubble_social/%s/proofs", fu.Username),
 			SessionType: libkb.APISessionTypeNONE,
@@ -119,21 +110,26 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 
 		res, err := g.GetAPI().Get(apiArg)
 		require.NoError(tc.T, err)
-		type resJSON struct {
-			Res struct {
-				KeybaseProofs []struct {
-					SigHash    string `json:"sig_hash"`
-					KBUsername string `json:"kb_username"`
-				} `json:"keybase_proofs"`
-			} `json:"res"`
-		}
-		var proofs resJSON
-		err = res.Body.UnmarshalAgain(&proofs)
+		objects, err := libkb.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
+			keybase1.SelectorEntry{
+				IsKey: true,
+				Key:   "res",
+			},
+			keybase1.SelectorEntry{
+				IsKey: true,
+				Key:   "keybase_proofs",
+			},
+		}, tc.T.Logf)
 		require.NoError(tc.T, err)
-		require.True(tc.T, len(proofs.Res.KeybaseProofs) >= 1)
-		for _, proof := range proofs.Res.KeybaseProofs {
-			if proof.KBUsername == fu.Username {
-				return true, proof.SigHash, nil
+		require.Len(tc.T, objects, 1)
+
+		var proofs []keybase1.ParamProofJSON
+		err = objects[0].UnmarshalAgain(&proofs)
+		require.NoError(tc.T, err)
+		require.True(tc.T, len(proofs) >= 1)
+		for _, proof := range proofs {
+			if proof.KbUsername == fu.Username && sigID.Equal(proof.SigHash) {
+				return true, proof.SigHash.String(), nil
 			}
 		}
 		return false, "", fmt.Errorf("proof not found")
@@ -148,4 +144,9 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	require.NoError(tc.T, err)
+	require.False(tc.T, proveUI.overwrite)
+	require.False(tc.T, proveUI.warning)
+	require.False(tc.T, proveUI.recheck)
+	require.True(tc.T, proveUI.checked)
+	return eng.sigID
 }

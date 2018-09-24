@@ -98,6 +98,52 @@
     },
     {
       "type": "record",
+      "name": "SelectorEntry",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isIndex"
+        },
+        {
+          "type": "int",
+          "name": "index"
+        },
+        {
+          "type": "boolean",
+          "name": "isKey"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "boolean",
+          "name": "isAll"
+        },
+        {
+          "type": "boolean",
+          "name": "isContents"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ParamProofJSON",
+      "fields": [
+        {
+          "type": "SigID",
+          "name": "sigHash",
+          "jsonkey": "sig_hash"
+        },
+        {
+          "type": "string",
+          "name": "kbUsername",
+          "jsonkey": "kb_username"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ParamProofUsernameConfig",
       "fields": [
         {
@@ -144,8 +190,18 @@
         },
         {
           "type": "string",
+          "name": "brandColor",
+          "jsonkey": "brand_color"
+        },
+        {
+          "type": "string",
           "name": "prefillUrl",
           "jsonkey": "prefill_url"
+        },
+        {
+          "type": "string",
+          "name": "profileUrl",
+          "jsonkey": "profile_url"
         },
         {
           "type": "string",
@@ -155,7 +211,7 @@
         {
           "type": {
             "type": "array",
-            "items": "string"
+            "items": "SelectorEntry"
           },
           "name": "checkPath",
           "jsonkey": "check_path"

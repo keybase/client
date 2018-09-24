@@ -28,8 +28,9 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckStatus(m libkb.MetaContext, hint libkb.SigHint, _ libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
-	return CheckProofPvl(m, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
+func (h *HackerNewsChecker) CheckStatus(mctx libkb.MetaContext, hint libkb.SigHint, _ libkb.ProofCheckerMode,
+	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
+	return nil, CheckProofPvl(mctx, keybase1.ProofType_HACKERNEWS, h.proof, hint, pvlU)
 }
 
 //=============================================================================
@@ -42,9 +43,9 @@ func KarmaURL(un string) string {
 	return APIBase(un) + "/karma.json"
 }
 
-func CheckKarma(m libkb.MetaContext, un string) (int, error) {
+func CheckKarma(mctx libkb.MetaContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := m.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: u, MetaContext: m})
+	res, err := mctx.G().GetExternalAPI().Get(libkb.APIArg{Endpoint: u, MetaContext: mctx})
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}
@@ -67,7 +68,7 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	return s, nil
 }
 
-func (t HackerNewsServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (string, error) {
+func (t HackerNewsServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -105,14 +106,14 @@ func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, si
 	return t.BaseCheckProofForURL(text, id)
 }
 
-func (t HackerNewsServiceType) PreProofCheck(m libkb.MetaContext, un string) (markup *libkb.Markup, err error) {
-	if _, e := CheckKarma(m, un); e != nil {
+func (t HackerNewsServiceType) PreProofCheck(mctx libkb.MetaContext, un string) (markup *libkb.Markup, err error) {
+	if _, e := CheckKarma(mctx, un); e != nil {
 		markup = libkb.FmtMarkup(`
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
 		if e != nil {
-			m.CDebugf("Error from HN: %s", e)
+			mctx.CDebugf("Error from HN: %s", e)
 		}
 		err = libkb.NewInsufficientKarmaError(un)
 	}

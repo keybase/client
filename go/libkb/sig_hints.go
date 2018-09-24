@@ -5,16 +5,18 @@ package libkb
 
 import (
 	"fmt"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
 type SigHint struct {
-	sigID     keybase1.SigID
-	remoteID  string
-	apiURL    string
-	humanURL  string
-	checkText string
+	sigID      keybase1.SigID
+	remoteID   string
+	apiURL     string
+	humanURL   string
+	checkText  string
+	isVerified bool
 }
 
 func (sh SigHint) GetHumanURL() string  { return sh.humanURL }
@@ -37,6 +39,17 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh.humanURL, _ = jw.AtKey("human_url").GetString()
 	sh.checkText, _ = jw.AtKey("proof_text_check").GetString()
 	return
+}
+
+func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkText string) *SigHint {
+	return &SigHint{
+		sigID:      sigID,
+		remoteID:   remoteID,
+		apiURL:     apiURL,
+		humanURL:   humanURL,
+		checkText:  checkText,
+		isVerified: true,
+	}
 }
 
 func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
@@ -173,10 +186,13 @@ func (sh *SigHints) RefreshWith(m MetaContext, jw *jsonw.Wrapper) (err error) {
 	return nil
 }
 
-func LoadAndRefreshSigHints(m MetaContext, uid keybase1.UID) (sh *SigHints, err error) {
-	sh, err = LoadSigHints(m, uid)
-	if err == nil {
-		err = sh.Refresh(m)
+func LoadAndRefreshSigHints(m MetaContext, uid keybase1.UID) (*SigHints, error) {
+	sh, err := LoadSigHints(m, uid)
+	if err != nil {
+		return nil, err
 	}
-	return
+	if err = sh.Refresh(m); err != nil {
+		return nil, err
+	}
+	return sh, nil
 }

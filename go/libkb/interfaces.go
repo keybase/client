@@ -536,7 +536,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 

@@ -278,6 +278,38 @@ func (o ProofServiceGroup) DeepCopy() ProofServiceGroup {
 	}
 }
 
+type SelectorEntry struct {
+	IsIndex    bool   `codec:"isIndex" json:"isIndex"`
+	Index      int    `codec:"index" json:"index"`
+	IsKey      bool   `codec:"isKey" json:"isKey"`
+	Key        string `codec:"key" json:"key"`
+	IsAll      bool   `codec:"isAll" json:"isAll"`
+	IsContents bool   `codec:"isContents" json:"isContents"`
+}
+
+func (o SelectorEntry) DeepCopy() SelectorEntry {
+	return SelectorEntry{
+		IsIndex:    o.IsIndex,
+		Index:      o.Index,
+		IsKey:      o.IsKey,
+		Key:        o.Key,
+		IsAll:      o.IsAll,
+		IsContents: o.IsContents,
+	}
+}
+
+type ParamProofJSON struct {
+	SigHash    SigID  `codec:"sigHash" json:"sig_hash"`
+	KbUsername string `codec:"kbUsername" json:"kb_username"`
+}
+
+func (o ParamProofJSON) DeepCopy() ParamProofJSON {
+	return ParamProofJSON{
+		SigHash:    o.SigHash.DeepCopy(),
+		KbUsername: o.KbUsername,
+	}
+}
+
 type ParamProofUsernameConfig struct {
 	Re  string `codec:"re" json:"re"`
 	Min int    `codec:"min" json:"min"`
@@ -298,9 +330,11 @@ type ParamProofServiceConfig struct {
 	DisplayName string                   `codec:"displayName" json:"display_name"`
 	Group       *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
 	Username    ParamProofUsernameConfig `codec:"username" json:"username"`
+	BrandColor  string                   `codec:"brandColor" json:"brand_color"`
 	PrefillUrl  string                   `codec:"prefillUrl" json:"prefill_url"`
+	ProfileUrl  string                   `codec:"profileUrl" json:"profile_url"`
 	CheckUrl    string                   `codec:"checkUrl" json:"check_url"`
-	CheckPath   []string                 `codec:"checkPath" json:"check_path"`
+	CheckPath   []SelectorEntry          `codec:"checkPath" json:"check_path"`
 }
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
@@ -316,15 +350,17 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			return &tmp
 		})(o.Group),
 		Username:   o.Username.DeepCopy(),
+		BrandColor: o.BrandColor,
 		PrefillUrl: o.PrefillUrl,
+		ProfileUrl: o.ProfileUrl,
 		CheckUrl:   o.CheckUrl,
-		CheckPath: (func(x []string) []string {
+		CheckPath: (func(x []SelectorEntry) []SelectorEntry {
 			if x == nil {
 				return nil
 			}
-			ret := make([]string, len(x))
+			ret := make([]SelectorEntry, len(x))
 			for i, v := range x {
-				vCopy := v
+				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret

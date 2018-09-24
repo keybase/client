@@ -1509,7 +1509,11 @@ func (idt *IdentityTable) identifyActiveProof(m MetaContext, lcr *LinkCheckResul
 }
 
 type LinkCheckResult struct {
-	hint                 *SigHint
+	hint *SigHint
+	// The client checker fills this in with any knowledge it has about hint
+	// metadata if it is able to derive it without server help. This value is
+	// preferred to the plain old server-trust `hint`
+	verifiedHint         *SigHint
 	cached               *CheckResult
 	err                  ProofError
 	snoozedErr           ProofError
@@ -1523,10 +1527,15 @@ type LinkCheckResult struct {
 	torWarning           bool
 }
 
-func (l LinkCheckResult) GetDiff() TrackDiff            { return l.diff }
-func (l LinkCheckResult) GetError() error               { return l.err }
-func (l LinkCheckResult) GetProofError() ProofError     { return l.err }
-func (l LinkCheckResult) GetHint() *SigHint             { return l.hint }
+func (l LinkCheckResult) GetDiff() TrackDiff        { return l.diff }
+func (l LinkCheckResult) GetError() error           { return l.err }
+func (l LinkCheckResult) GetProofError() ProofError { return l.err }
+func (l LinkCheckResult) GetHint() *SigHint {
+	if l.verifiedHint != nil {
+		return l.verifiedHint
+	}
+	return l.hint
+}
 func (l LinkCheckResult) GetCached() *CheckResult       { return l.cached }
 func (l LinkCheckResult) GetPosition() int              { return l.position }
 func (l LinkCheckResult) GetTorWarning() bool           { return l.torWarning }
@@ -1644,7 +1653,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	if res.hint != nil {
 		hint = *res.hint
 	}
-	res.err = pc.CheckStatus(m, hint, pcm, pvlU)
+	res.verifiedHint, res.err = pc.CheckStatus(m, hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {
