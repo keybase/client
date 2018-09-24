@@ -15,7 +15,6 @@ const load = () => {
   Sb.storiesOf('Common', module)
     .addDecorator(provider)
     .addDecorator(Sb.scrollViewDecorator)
-    .addDecorator(Sb.perfDecorator(10))
     .add('Avatar', () =>
       sizes.map(size => {
         const commonProps = {
