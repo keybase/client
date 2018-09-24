@@ -383,7 +383,6 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
 
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.put(FsGen.createSetFlags({syncing: true})),
         Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
@@ -391,10 +390,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
     yield Saga.put(makeUnretriableErrorHandler(action)(error))
   } finally {
     polling = false
-    yield Saga.sequentially([
-      Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})),
-      Saga.put(FsGen.createSetFlags({syncing: false})),
-    ])
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
   }
 }
 
