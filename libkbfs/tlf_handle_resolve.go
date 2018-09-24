@@ -528,7 +528,7 @@ func (h TlfHandle) ResolvesTo(
 				}
 			}
 			if !bareHandle.ResolvedUsersEqual(wUsers, rUsers) {
-				return false, nil, err
+				return false, partialResolvedH, nil
 			}
 			// Set other's writers/readers to be equal to h's, since
 			// we already checked the team membership.  If the
