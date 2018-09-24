@@ -500,7 +500,7 @@ func (s *Server) ValidateAccountNameLocal(ctx context.Context, arg stellar1.Vali
 	}
 	// Make sure to keep this validation in sync with ChangeAccountName.
 	if arg.Name == "" {
-		return nil
+		return fmt.Errorf("name required")
 	}
 	runes := utf8.RuneCountInString(arg.Name)
 	if runes > stellar.AccountNameMaxRunes {
@@ -1266,6 +1266,32 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 	}
 
 	return s.remoter.MarkAsRead(ctx, arg.AccountID, arg.MostRecentID.TxID)
+}
+
+func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAccountMobileOnlyLocalArg) (mobileOnly bool, err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "IsAccountMobileOnlyLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return false, err
+	}
+
+	return s.remoter.IsAccountMobileOnly(ctx, arg.AccountID)
+}
+
+func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.SetAccountMobileOnlyLocalArg) (err error) {
+	ctx, err, fin := s.Preamble(ctx, preambleArg{
+		RPCName: "SetAccountMobileOnlyLocal",
+		Err:     &err,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
 }
 
 // Subtract a 100 stroop fee from the available balance.

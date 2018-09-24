@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
-import {downloadFolder} from '../../util/file.desktop'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
@@ -11,19 +10,17 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
-import {fsTab} from '../../constants/tabs'
 import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
-import {navigateTo} from '../route-tree'
-import {makeRetriableErrorHandler} from './shared'
+import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 type pathType = 'file' | 'directory'
 
 // pathToURL takes path and converts to (file://) url.
 // See https://github.com/sindresorhus/file-url
-function pathToURL(path: string): string {
-  let goodPath = path.replace(/\\/g, '/')
+function pathToURL(p: string): string {
+  let goodPath = p.replace(/\\/g, '/')
 
   // Windows drive letter must be prefixed with a slash
   if (goodPath[0] !== '/') {
@@ -81,71 +78,59 @@ function getPathType(openPath: string): Promise<pathType> {
   })
 }
 
-function _open(openPath: string) {
-  return new Promise((resolve, reject) => {
-    getPathType(openPath).then(typ => {
-      if (typ === 'directory') {
-        if (isWindows) {
-          if (!SafeElectron.getShell().openItem(openPath)) {
-            reject(new Error(`Unable to open item: ${openPath}`))
-            return
-          }
-        } else {
-          openInDefaultDirectory(openPath).then(resolve, reject)
-          return
-        }
-      } else if (typ === 'file') {
-        if (!SafeElectron.getShell().showItemInFolder(openPath)) {
-          reject(new Error(`Unable to open item in folder: ${openPath}`))
-          return
-        }
-      } else {
-        reject(new Error(`Invalid path type`))
-        return
-      }
-      resolve()
-    })
-  })
-}
+// _openPathInSystemFileManagerPromise opens `openPath` in system file manager.
+// If isFolder is true, it just opens it. Otherwise, it shows it in its parent
+// folder. This function does not check if the file exists, or try to convert
+// KBFS paths. Caller should take care of those.
+const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean) =>
+  new Promise(
+    (resolve, reject) =>
+      isFolder
+        ? isWindows
+          ? SafeElectron.getShell().openItem(openPath)
+            ? resolve()
+            : reject(new Error('unable to open item'))
+          : openInDefaultDirectory(openPath).then(resolve, reject)
+        : SafeElectron.getShell().showItemInFolder(openPath)
+          ? resolve()
+          : reject(new Error('unable to open item in folder'))
+  )
 
-function* openWithCurrentMountDir(openPath: string): Saga.SagaGenerator<any, any> {
-  const goodPath = path.posix.normalize(openPath)
-  if (!openPath.startsWith(Config.defaultKBFSPath)) {
-    throw new Error(`openWithCurrentMountDir requires ${Config.defaultKBFSPath} prefix: ${openPath}`)
-  }
+const openLocalPathInSystemFileManager = (
+  state: TypedState,
+  action: FsGen.OpenLocalPathInSystemFileManagerPayload
+) =>
+  getPathType(action.payload.path)
+    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.path, pathType === 'directory'))
+    .catch(makeUnretriableErrorHandler(action))
 
-  // turns '/keybase/private/alice' to 'private/alice'
-  const subPath = goodPath
-    .split('/')
-    .slice(2)
-    .join(path.sep)
+const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
+  path.resolve(
+    mountLocation,
+    Types.getPathElements(kbfsPath)
+      .slice(1)
+      .join(path.sep)
+  )
 
-  const kbfsPath = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-
-  if (!kbfsPath) {
-    throw new Error('No kbfsPath (RPC)')
-  }
-
-  const resolvedPath = path.resolve(kbfsPath, subPath)
-  // Check to make sure our resolved path starts with the kbfsPath
-  // i.e. (not opening a folder outside kbfs)
-  if (!resolvedPath.startsWith(kbfsPath)) {
-    throw new Error(`openWithCurrentMountDir requires ${kbfsPath} prefix: ${goodPath}`)
-  }
-
-  yield Saga.call(_open, resolvedPath)
-}
-
-// openInFileUI tries to open a path as following:
-// 1) If it's a KBFS path, open with system file manager if FUSE is enabled,
-//    and go to Files tab if FUSE is disabled.
-// 2) If it's not a KBFS path, just open it with system file manager.
-const openInFileUI = (state: TypedState, {payload: {path}}: FsGen.OpenInFileUIPayload) =>
-  path && path.startsWith(Config.defaultKBFSPath)
-    ? isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
-      ? Saga.call(openWithCurrentMountDir, path)
-      : Saga.put(navigateTo([fsTab, {props: {path: Types.stringToPath(path)}, selected: 'folder'}]))
-    : Saga.call(_open, path || downloadFolder)
+const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
+  isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+    ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+        .then(mountLocation =>
+          _openPathInSystemFileManagerPromise(
+            _rebaseKbfsPathToMountLocation(action.payload.path, mountLocation),
+            state.fs.pathItems.get(action.payload.path, Constants.unknownPathItem).type === 'folder'
+          )
+        )
+        .catch(err => {
+          console.log({'songgao-msg': 'catch', err})
+          return makeRetriableErrorHandler(action)(err)
+        })
+    : new Promise((resolve, reject) =>
+        // This usually indicates a developer error as
+        // openPathInSystemFileManager shouldn't be used when FUSE integration
+        // is not enabled. So just blackbar to encourage a log send.
+        reject(new Error('FUSE integration is not enabled'))
+      )
 
 function waitForMount(attempt: number) {
   return new Promise((resolve, reject) => {
@@ -336,27 +321,34 @@ const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
     )
   })
 
-const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
-  try {
-    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
-    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
-      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-        if (i < 2) return acc
-        const path = Types.getPathFromElements(a.slice(0, i + 1))
-        return acc.add(path)
-      }, acc), I.Set()).toArray()
-    yield Saga.sequentially([
-      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
-      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
-    ])
-  } catch (ex) {
-    yield makeRetriableErrorHandler(action)
-  }
-})
+const loadUserFileEdits = (state: TypedState, action) =>
+  Saga.call(function*() {
+    try {
+      const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
+      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+      const updateSet = tlfUpdates
+        .reduce(
+          (acc: I.Set<Types.Path>, u) =>
+            Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+              if (i < 2) return acc
+              const path = Types.getPathFromElements(a.slice(0, i + 1))
+              return acc.add(path)
+            }, acc),
+          I.Set()
+        )
+        .toArray()
+      yield Saga.sequentially([
+        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
+        Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
+      ])
+    } catch (ex) {
+      yield makeRetriableErrorHandler(action)
+    }
+  })
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToAction(FsGen.openInFileUI, openInFileUI)
+  yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
+  yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
   yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)

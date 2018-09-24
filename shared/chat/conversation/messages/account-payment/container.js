@@ -1,5 +1,6 @@
 // @flow
 import * as Container from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as WalletConstants from '../../../../constants/wallets'
 import * as WalletTypes from '../../../../constants/types/wallets'
@@ -32,7 +33,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
   switch (ownProps.message.type) {
     case 'sendPayment': {
-      const {paymentInfo} = ownProps.message
+      const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
       if (!paymentInfo) {
         // waiting for service to load it (missed service cache on loading thread)
         return loadingProps
@@ -52,13 +53,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
     }
     case 'requestPayment': {
-      const {requestInfo} = ownProps.message
+      const message = ownProps.message
+      const requestInfo = Constants.getRequestMessageInfo(state, message)
       if (!requestInfo) {
         // waiting for service to load it
         return loadingProps
       }
       const sendProps =
-        ownProps.message.author === state.config.username
+        message.author === state.config.username
           ? {}
           : {
               sendButtonLabel: `Send${requestInfo.asset === 'currency' ? ' lumens worth ' : ' '}${
@@ -75,7 +77,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: ownProps.message.note,
+        memo: message.note,
         pending: false,
       }
     }
