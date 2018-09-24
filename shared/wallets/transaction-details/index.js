@@ -168,7 +168,7 @@ class TransactionDetails extends React.Component<Props> {
             <TimestampLine
               status={this.props.status}
               error={this.props.statusDetail}
-              relative={false}
+              selectable={true}
               timestamp={this.props.timestamp}
             />
           )}
@@ -176,12 +176,16 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Public memo:</Text>
-          <Text type="Body">{this.props.publicMemo}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.publicMemo}
+          </Text>
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Transaction ID:</Text>
-          <Text type="Body">{this.props.transactionID}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.transactionID}
+          </Text>
           {this.props.onViewTransaction && (
             <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction

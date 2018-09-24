@@ -201,7 +201,7 @@ type TimestampLineProps = {|
   error: string,
   status: Types.StatusSimplified,
   timestamp: Date | null,
-  relative: boolean,
+  selectable: boolean,
 |}
 
 export const TimestampLine = (props: TimestampLineProps) => {
@@ -222,7 +222,7 @@ export const TimestampLine = (props: TimestampLineProps) => {
   const human = formatTimeForMessages(props.timestamp)
   const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
-    <Text title={tooltip} type="BodySmall">
+    <Text selectable={props.selectable} title={tooltip} type="BodySmall">
       {human}
     </Text>
   )
@@ -272,7 +272,7 @@ export const Transaction = (props: Props) => {
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
               error={props.statusDetail}
-              relative={true}
+              selectable={false}
               status={props.status}
               timestamp={props.timestamp}
             />
