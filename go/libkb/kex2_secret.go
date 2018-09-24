@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"errors"
-	"fmt"
 	"github.com/keybase/client/go/kex2"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/scrypt"
