@@ -1,11 +1,14 @@
 // @flow
+import * as React from 'react'
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
+import * as Constants from '../../../../../constants/chat2'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as WalletConstants from '../../../../../constants/wallets'
-import _WalletsIcon from '.'
+import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
 
 const mapStateToProps = state => ({
+  _meta: Constants.getMeta(state, Constants.getSelectedConversation(state)),
   isNew: state.chat2.isWalletsNew,
 })
 
@@ -14,10 +17,29 @@ const mapDispatchToProps = dispatch => ({
   // dispatch(RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]})),
 })
 
-const WalletsIcon = Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({
-  ...o,
-  ...s,
-  ...d,
-}))(_WalletsIcon)
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  if (stateProps._meta.teamType !== 'adhoc' || stateProps._meta.participants.size !== 2) {
+    // Only show this for one-on-one conversations
+    return {shouldRender: false}
+  }
+  return {
+    isNew: stateProps.isNew,
+    onClick: () => {}, // TODO
+    shouldRender: true,
+    size: ownProps.size,
+    style: ownProps.style,
+  }
+}
+
+type WrapperProps = {|...ViewProps, shouldRender: true|} | {|shouldRender: false|}
+const Wrapper = (props: WrapperProps) => {
+  if (props.shouldRender) {
+    const {shouldRender, ...passThroughProps} = props
+    return <WalletsIconRender {...passThroughProps} />
+  }
+  return null
+}
+
+const WalletsIcon = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wrapper)
 
 export default WalletsIcon
