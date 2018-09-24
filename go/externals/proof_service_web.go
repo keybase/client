@@ -63,7 +63,6 @@ func (t WebServiceType) AllStringKeys() []string {
 	}
 	return []string{t.scheme}
 }
-func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the (lowercased) hostname.
