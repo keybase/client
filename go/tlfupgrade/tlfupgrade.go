@@ -25,9 +25,10 @@ type BackgroundTLFUpdater struct {
 	running     bool
 
 	// testing
-	testingAPIServer  libkb.API
-	testingChatHelper libkb.ChatHelper
-	upgradeCh         *chan keybase1.TLFID
+	testingAPIServer   libkb.API
+	testingChatHelper  libkb.ChatHelper
+	testingDisableKBFS bool
+	upgradeCh          *chan keybase1.TLFID
 }
 
 func NewBackgroundTLFUpdater(g *libkb.GlobalContext) *BackgroundTLFUpdater {
@@ -79,6 +80,9 @@ func (b *BackgroundTLFUpdater) runAll() {
 		b.shutdownCh = make(chan struct{})
 		b.running = true
 		go b.runAppType(keybase1.TeamApplication_CHAT)
+		if !b.testingDisableKBFS {
+			go b.runAppType(keybase1.TeamApplication_KBFS)
+		}
 	}
 }
 
@@ -183,6 +187,10 @@ func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, t
 	switch appType {
 	case keybase1.TeamApplication_CHAT:
 		b.upgradeTLFForChat(ctx, tlfName, tlfID, public)
+	case keybase1.TeamApplication_KBFS:
+		if err := UpgradeTLFForKBFS(ctx, b.G(), tlfName, public); err != nil {
+			b.debug(ctx, "upgradeTLF: KBFS upgrade failed: %s", err)
+		}
 	default:
 		b.debug(ctx, "upgradeTLF: unknown app type: %v", appType)
 	}
@@ -190,14 +198,18 @@ func (b *BackgroundTLFUpdater) upgradeTLF(ctx context.Context, tlfName string, t
 
 func (b *BackgroundTLFUpdater) upgradeTLFForChat(ctx context.Context, tlfName string, tlfID keybase1.TLFID,
 	public bool) {
+	defer func() {
+		if b.upgradeCh != nil {
+			*b.upgradeCh <- tlfID
+		}
+	}()
 	chatTLFID, err := chat1.MakeTLFID(tlfID.String())
 	if err != nil {
 		b.debug(ctx, "upgradeTLFForChat: invalid TLFID: %s", err)
+		return
 	}
 	if err := b.chat().UpgradeKBFSToImpteam(ctx, tlfName, chatTLFID, public); err != nil {
 		b.debug(ctx, "upgradeTLFForChat: failed to upgrade TLFID for chat: tlfID: %v err: %s", tlfID, err)
-	}
-	if b.upgradeCh != nil {
-		*b.upgradeCh <- tlfID
+		return
 	}
 }
