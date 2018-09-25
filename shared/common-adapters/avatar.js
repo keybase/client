@@ -212,7 +212,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): PropsWithout
 }
 
 class AvatarConnector extends React.PureComponent<Props> {
-  _mounted: boolean = true
+  _mounted: boolean = false
 
   componentDidMount() {
     this._mounted = true

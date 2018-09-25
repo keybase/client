@@ -61,7 +61,7 @@ class RpcStats extends React.Component<Props, State> {
     visible: false,
   }
 
-  _mounted = true
+  _mounted = false
   _intervalID: ?IntervalID
 
   _cleanup = () => {
