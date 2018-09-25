@@ -6,7 +6,7 @@ import {Box, Text, BackButton} from '../../common-adapters'
 import PathItemInfo from '../common/path-item-info'
 import {isMobile} from '../../constants/platform'
 import PathItemAction from '../common/path-item-action-container'
-import OpenInFileUI from '../common/open-in-fileui-container'
+import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
 
 type HeaderProps = {
   path: Types.Path,
@@ -31,7 +31,7 @@ const Header = (props: HeaderProps) => (
       )}
     </Box>
     <Box style={stylesHeaderIcons}>
-      <OpenInFileUI path={props.path} />
+      <OpenInSystemFileManager path={props.path} />
       <PathItemAction path={props.path} fontSize={16} />
     </Box>
   </Box>

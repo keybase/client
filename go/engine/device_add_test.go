@@ -92,7 +92,20 @@ func testDeviceAdd(t *testing.T, upgradePerUserKey bool) {
 	wg.Wait()
 }
 
-func TestDeviceAddPhrase(t *testing.T) {
+func TestDeviceAddPhraseLegacyDesktop(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Desktop)
+}
+
+func TestDeviceAddPhraseLegacyMobile(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV1Mobile)
+}
+
+func TestDeviceAddPhraseV2(t *testing.T) {
+	testDeviceAddPhrase(t, libkb.Kex2SecretTypeV2)
+}
+
+func testDeviceAddPhrase(t *testing.T, typ libkb.Kex2SecretType) {
+
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -104,7 +117,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 	// provisioner needs to be logged in
 	userX := CreateAndSignupFakeUser(tcX, "login")
 
-	secretY, err := libkb.NewKex2Secret(false)
+	secretY, err := libkb.NewKex2SecretFromTypeAndUID(typ, userX.UID())
 	if err != nil {
 		t.Fatal(err)
 	}

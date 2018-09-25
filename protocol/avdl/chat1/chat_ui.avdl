@@ -122,8 +122,8 @@ protocol chatUi {
   }
 
   record UIRequestInfo {
-    string amount; 
-    string amountDescription; 
+    string amount;
+    string amountDescription;
     union { null, stellar1.Asset } asset;
     union { null, stellar1.OutsideCurrencyCode } currency;
     stellar1.RequestStatus status;
@@ -203,6 +203,11 @@ protocol chatUi {
     UIMessage hitMessage;
     array<UIMessage> afterMessages;
     array<string>  matches;
+  }
+
+  record ChatConvSearchHit {
+    ConversationID convID;
+    array<ChatSearchHit> hits;
   }
 
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);

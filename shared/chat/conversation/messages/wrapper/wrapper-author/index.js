@@ -130,7 +130,11 @@ const Failure = ({failureDescription, isExplodingUnreadable, onEdit, onRetry, on
 
 const LeftSide = props => (
   <Box style={styles.leftSide}>
-    {props.includeHeader && <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />}
+    {props.includeHeader && (
+      <Box style={styles.hasHeader}>
+        <UserAvatar author={props.author} onAuthorClick={props.onAuthorClick} />
+      </Box>
+    )}
   </Box>
 )
 
@@ -221,7 +225,7 @@ const styles = styleSheetCreate({
   failStyleUnderline: {color: globalColors.red, textDecorationLine: 'underline'},
   flexOneColumn: {...globalStyles.flexBoxColumn, flex: 1},
   flexOneRow: {...globalStyles.flexBoxRow, flex: 1},
-  hasHeader: {paddingTop: 6},
+  hasHeader: {paddingTop: globalMargins.xtiny},
   leftSide: platformStyles({
     common: {
       flexShrink: 0,
@@ -280,9 +284,6 @@ const styles = styleSheetCreate({
   username: {
     alignSelf: 'flex-start',
     marginBottom: 0,
-  },
-  usernameYou: {
-    ...globalStyles.italic,
   },
 })
 

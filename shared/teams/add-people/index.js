@@ -75,6 +75,7 @@ const AddPeople = (props: Props) => (
           onExitSearch={props.onClearSearch}
           placeholder="Add people"
           searchKey={'addToTeamSearch'}
+          showServiceFilter={true}
         />
       </Kb.Box>
       <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>

@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 import {ParticipantsRow, AccountEntry} from '../../common'
 import type {CounterpartyType} from '../../../constants/types/wallets'
 
-type ParticipantsProps = {|
+export type ParticipantsProps = {|
   recipientType: CounterpartyType,
   yourUsername: string,
   fromAccountName: string,

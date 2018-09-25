@@ -32,7 +32,7 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      items={props.items.reverse().map(({onClick, name, iconSpec}) => ({
+      items={props.items.map(({onClick, name, iconSpec}) => ({
         onClick,
         title: name,
         view: (

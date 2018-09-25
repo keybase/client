@@ -1,6 +1,9 @@
 // @flow
 import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
+import * as I from 'immutable'
+import * as Types from '../../constants/types/wallets'
+
 import Wallet from '.'
 
 const mapStateToProps = (state: TypedState) => ({
@@ -21,25 +24,37 @@ const mergeProps = (stateProps, dispatchProps) => {
   // 2. assets header and list of assets
   // 3. transactions header and transactions
   // Formatted in a SectionList
-  sections.push({data: stateProps.assets.map((a, index) => index).toArray(), title: 'Your assets'})
-  const completed = stateProps.payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
-  const pending = stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
+  const assets =
+    stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
+  sections.push({data: assets, title: 'Your assets'})
 
-  if (pending.length > 0) {
-    sections.push({data: pending, title: 'Pending'})
+  if (stateProps.pending && stateProps.pending.count() > 0) {
+    sections.push({
+      data: stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray(),
+      title: 'Pending',
+    })
   }
 
-  if (completed.length === 0) {
-    sections.push({data: ['historyPlaceholder'], title: 'History'})
-  } else {
-    sections.push({data: completed, title: 'History'})
-  }
+  sections.push({
+    data: paymentsFromState(stateProps.payments),
+    title: 'History',
+  })
 
   return {
     accountID: stateProps.accountID,
     navigateAppend: dispatchProps.navigateAppend,
     sections,
   }
+}
+
+const paymentsFromState = (payments: ?I.List<Types.Payment>) => {
+  if (!payments) {
+    return ['notLoadedYet']
+  }
+  if (payments.count() === 0) {
+    return ['noPayments']
+  }
+  return payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
 }
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)

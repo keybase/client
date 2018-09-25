@@ -1383,7 +1383,7 @@ func GetKBFSTeamSettings(ctx context.Context, g *libkb.GlobalContext, isPublic b
 	if err != nil {
 		return res, err
 	}
-	res.TlfID = team.KBFSTLFID()
+	res.TlfID = team.LatestKBFSTLFID()
 	g.Log.CDebugf(ctx, "res: %+v", res)
 	return res, err
 }

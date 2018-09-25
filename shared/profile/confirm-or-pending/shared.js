@@ -72,6 +72,7 @@ export function propsForPlatform(props: Props): Object {
         } doesn't load over https. If you get a real SSL certificate (not self-signed) in the future, please replace this proof with a fresh one.`,
       }
     case 'https':
+    case 'web':
       return {
         ...commonConfirm(props),
       }

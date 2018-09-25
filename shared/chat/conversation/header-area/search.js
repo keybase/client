@@ -45,5 +45,6 @@ export default compose(
     autoFocus: true,
     searchKey: 'chatSearch',
     placeholder: 'Search someone',
+    showServiceFilter: true,
   })
 )(UserInput)

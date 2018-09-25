@@ -18,6 +18,7 @@ import {makeConversationMeta, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  accountsInfoMap: I.Map(),
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
@@ -25,6 +26,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
+  isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -37,6 +39,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pendingOutboxToOrdinal: I.Map(),
   quote: null,
   selectedConversation: noConversationIDKey,
+  smallTeamsExpanded: false,
   staticConfig: null,
   typingMap: I.Map(),
   unreadMap: I.Map(),
@@ -175,6 +178,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
 
+// When user clicks wallets icon in chat input, set seenWalletsGregorKey with
+// body of 'true'
+export const seenWalletsGregorKey = 'chat.seenWallets'
+
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
 ): RPCChatTypes.GetInboxLocalQuery => {
@@ -235,6 +242,8 @@ export {
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
+  getRequestMessageInfo,
+  getPaymentMessageInfo,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

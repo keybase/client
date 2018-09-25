@@ -9,6 +9,7 @@ import settings from './settings/index.stories'
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: props => ({
+    accountID: stringToAccountID('fakeAccountID'),
     onReceive: Sb.action('onReceive'),
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
@@ -24,7 +25,7 @@ const provider = Sb.createPropProviderWithCommon({
 const props = {
   accountID: stringToAccountID('fakeAccountID'),
   navigateAppend: Sb.action('navigateAppend'),
-  sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['historyPlaceholder']}],
+  sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['noPayments']}],
 }
 
 const load = () => {

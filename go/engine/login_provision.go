@@ -166,8 +166,15 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	m.CDebugf("deviceWithType: got device name: %q", name)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile ||
-		provisionerType == keybase1.DeviceType_MOBILE)
+	uid := m.CurrentUID()
+
+	// Continue to generate legacy Kex2 secret types
+	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
+	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
+		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
+	}
+	m.CDebugf("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
+	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
 	if err != nil {
 		return err
 	}
@@ -214,7 +221,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 					continue
 				}
 				m.CDebugf("received secret phrase, adding to provisionee")
-				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+				ks, err := libkb.NewKex2SecretFromUIDAndPhrase(uid, receivedSecret.Phrase)
 				if err != nil {
 					m.CWarningf("DisplayAndPromptSecret error: %s", err)
 				} else {

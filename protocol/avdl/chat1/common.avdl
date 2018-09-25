@@ -523,7 +523,15 @@
     BACKGROUNDCONVLOAD_3,
     FIXRETRY_4,
     PREPARE_5,
-    SEARCHER_6
+    SEARCHER_6,
+    INDEXED_SEARCH_7
   }
 
+  record SearchOpts {
+    string sentBy;
+    int maxHits;
+    int maxMessages;
+    int beforeContext;
+    int afterContext;
+  }
 }

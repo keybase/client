@@ -80,6 +80,7 @@ function iconNameForProof({type}: {type: PlatformsExpandedType}): IconType {
     dnsOrGenericWebSite: 'iconfont-identity-website',
     http: 'iconfont-identity-website',
     https: 'iconfont-identity-website',
+    web: 'iconfont-identity-website',
     dns: 'iconfont-identity-website',
   }
 

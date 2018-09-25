@@ -1122,6 +1122,40 @@
         }
       ],
       "response": null
+    },
+    "registerSharePost": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "deviceID",
+          "type": "gregor1.DeviceID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
+    },
+    "failSharePost": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "deviceID",
+          "type": "gregor1.DeviceID"
+        },
+        {
+          "name": "outboxID",
+          "type": "OutboxID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
