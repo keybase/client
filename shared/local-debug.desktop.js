@@ -3,7 +3,7 @@ import {jsonDebugFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+let PERF = false
 
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
@@ -54,6 +54,9 @@ if (!__STORYBOOK__) {
       const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
+      if (pathJson.hasOwnProperty('PERF')) {
+        PERF = pathJson.PERF
+      }
     } catch (e) {
       console.warn('Invalid local debug file')
     }

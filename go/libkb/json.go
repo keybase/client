@@ -4,6 +4,8 @@
 package libkb
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -72,7 +74,15 @@ func (f *JSONFile) Load(warnOnNotFound bool) error {
 	}
 	f.exists = true
 	defer file.Close()
-	decoder := json.NewDecoder(file)
+
+	var buf bytes.Buffer
+	fileTee := io.TeeReader(bufio.NewReader(file), &buf)
+	err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(fileTee))
+	if err != nil {
+		return err
+	}
+
+	decoder := json.NewDecoder(&buf)
 	obj := make(map[string]interface{})
 	// Treat empty files like an empty dictionary
 	if err = decoder.Decode(&obj); err != nil && err != io.EOF {

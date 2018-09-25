@@ -60,6 +60,10 @@ func jsonLocalDbGetInto(ops LocalDbOps, obj interface{}, id DbKey) (found bool, 
 	var buf []byte
 	buf, found, err = ops.Get(id)
 	if err == nil && found {
+		err = jsonw.EnsureMaxDepthBytesDefault(buf)
+		if err != nil {
+			return found, err
+		}
 		err = json.Unmarshal(buf, &obj)
 	}
 	return found, err

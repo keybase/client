@@ -27,7 +27,7 @@ class Left extends React.PureComponent<Props> {
         topLine={
           <Text type="BodySmallSemibold">
             {you === author ? (
-              <Text type="BodySmallSemiboldItalic" style={{color: globalColors.black_60}}>
+              <Text type="BodySmallSemibold" style={{color: globalColors.black_60}}>
                 You
               </Text>
             ) : (

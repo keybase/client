@@ -68,7 +68,7 @@ func (p *Prove) SubConsumers() []libkb.UIConsumer {
 
 func (p *Prove) loadMe(m libkb.MetaContext) (err error) {
 	p.me, err = libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(m).WithForceReload())
-	return
+	return err
 }
 
 func (p *Prove) checkExists1(m libkb.MetaContext) (err error) {
@@ -88,7 +88,7 @@ func (p *Prove) checkExists1(m libkb.MetaContext) (err error) {
 		}
 		p.supersede = true
 	}
-	return
+	return nil
 }
 
 func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
@@ -139,16 +139,16 @@ func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
 				Typ:     keybase1.PromptOverwriteType_SITE,
 			})
 			if err != nil {
-				return
+				return err
 			}
 			if !redo {
 				err = libkb.NotConfirmedError{}
-				return
+				return err
 			}
 			p.supersede = true
 		}
 	}
-	return
+	return nil
 }
 
 func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
@@ -159,7 +159,7 @@ func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
 			m.CWarningf("prove ui OutputPrechecks call error: %s", uierr)
 		}
 	}
-	return
+	return err
 }
 
 func (p *Prove) doWarnings(m libkb.MetaContext) (err error) {
@@ -168,9 +168,10 @@ func (p *Prove) doWarnings(m libkb.MetaContext) (err error) {
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
 		if ok, err = m.UIs().ProveUI.PreProofWarning(m.Ctx(), arg); err == nil && !ok {
 			err = libkb.NotConfirmedError{}
+			return err
 		}
 	}
-	return
+	return nil
 }
 
 func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
@@ -187,11 +188,11 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 	sigVersion := libkb.SigVersion(*p.arg.SigVersion)
 
 	if p.proof, err = p.me.ServiceProof(m, p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
-		return
+		return err
 	}
 
 	if p.sigInner, err = p.proof.Marshal(); err != nil {
-		return
+		return err
 	}
 
 	p.sig, p.sigID, _, err = libkb.MakeSig(
@@ -205,31 +206,32 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 		sigVersion,
 	)
 
-	return
+	return err
 }
 
 func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 	arg := libkb.PostProofArg{
-		Sig:            p.sig,
-		ProofType:      p.st.GetProofType(),
-		ID:             p.sigID,
-		Supersede:      p.supersede,
-		RemoteUsername: p.remoteNameNormalized,
-		RemoteKey:      p.st.GetAPIArgKey(),
-		SigningKey:     p.signingKey,
+		Sig:               p.sig,
+		ProofType:         p.st.GetProofType(),
+		RemoteServiceType: p.st.GetTypeName(),
+		ID:                p.sigID,
+		Supersede:         p.supersede,
+		RemoteUsername:    p.remoteNameNormalized,
+		RemoteKey:         p.st.GetAPIArgKey(),
+		SigningKey:        p.signingKey,
 	}
 	if libkb.SigVersion(*p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
 		arg.SigInner = p.sigInner
 	}
 	p.postRes, err = libkb.PostProof(m, arg)
-	return
+	return err
 }
 
 func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
 	mkp := p.st.PostInstructions(p.remoteNameNormalized)
 	var txt string
-	if txt, err = p.st.FormatProofText(m, p.postRes); err != nil {
-		return
+	if txt, err = p.st.FormatProofText(m, p.postRes, p.arg.Username, p.sigID); err != nil {
+		return err
 	}
 	err = m.UIs().ProveUI.OutputInstructions(m.Ctx(), keybase1.OutputInstructionsArg{
 		Instructions: mkp.Export(),
@@ -307,7 +309,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		err = libkb.ProofNotYetAvailableError{}
 	}
 
-	return
+	return err
 }
 
 func (p *Prove) checkProofText(m libkb.MetaContext) error {
@@ -320,7 +322,7 @@ func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
 	if p.st = m.G().GetProofServices().GetServiceType(p.arg.Service); p.st == nil {
 		err = libkb.BadServiceError{Service: p.arg.Service}
 	}
-	return
+	return err
 }
 
 // SigID returns the signature id of the proof posted to the
@@ -339,60 +341,60 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 
 	stage("GetServiceType")
 	if err = p.getServiceType(m); err != nil {
-		return
+		return err
 	}
 	stage("LoadMe")
 	if err = p.loadMe(m); err != nil {
-		return
+		return err
 	}
 	stage("CheckExists1")
 	if err = p.checkExists1(m); err != nil {
-		return
+		return err
 	}
 	stage("PromptRemoteName")
 	if err = p.promptRemoteName(m); err != nil {
-		return
+		return err
 	}
 	stage("CheckExists2")
 	if err = p.checkExists2(m); err != nil {
-		return
+		return err
 	}
 	stage("DoPrechecks")
 	if err = p.doPrechecks(m); err != nil {
-		return
+		return err
 	}
 	stage("DoWarnings")
 	if err = p.doWarnings(m); err != nil {
-		return
+		return err
 	}
 	m.G().LocalSigchainGuard().Set(m.Ctx(), "Prove")
 	defer m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
 	stage("GenerateProof")
 	if err = p.generateProof(m); err != nil {
-		return
+		return err
 	}
 	stage("PostProofToServer")
 	if err = p.postProofToServer(m); err != nil {
-		return
+		return err
 	}
 	m.G().LocalSigchainGuard().Clear(m.Ctx(), "Prove")
 	stage("CheckProofText")
 	if err = p.checkProofText(m); err != nil {
-		return
+		return err
 	}
 	stage("InstructAction")
 	if err = p.instructAction(m); err != nil {
-		return
+		return err
 	}
 
 	if !p.arg.PromptPosted {
 		m.CDebugf("PromptPosted not set, prove run finished")
-		return
+		return nil
 	}
 
 	stage("PromptPostedLoop")
 	if err = p.promptPostedLoop(m); err != nil {
-		return
+		return err
 	}
 	m.UIs().LogUI.Notice("Success!")
 	return nil
