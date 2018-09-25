@@ -1,7 +1,6 @@
 // @flow
 import React from 'react'
 import * as Kb from '../common-adapters/index'
-import {isMobile} from '../constants/platform'
 import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
