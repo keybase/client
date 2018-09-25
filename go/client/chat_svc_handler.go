@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/utils"
-	chatutils "github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -197,7 +196,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 			HasPairwiseMacs:     mv.HasPairwiseMacs(),
 			AtMentionUsernames:  mv.AtMentionUsernames,
 			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
-			ChannelNameMentions: chatutils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
+			ChannelNameMentions: utils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
 		}
 		if mv.Reactions.Reactions != nil {
 			msg.Reactions = &mv.Reactions
