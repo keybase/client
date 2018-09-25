@@ -79,7 +79,7 @@ func (m *MinTerm) getNewTerminal(prompt string) (*terminal.Terminal, error) {
 	term := terminal.NewTerminal(m.getReadWriter(), prompt)
 	a, b := m.Size()
 	if a < 80 {
-		a, b = 80, 24
+		a = 80
 	}
 	err := term.SetSize(a, b)
 	if err != nil {
