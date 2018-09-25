@@ -6,7 +6,7 @@ IFS=: read -a GOPATH_ARRAY <<< "$GOPATH"
 GOPATH0=${GOPATH_ARRAY[0]}
 
 APK_DIR="$GOPATH0/src/github.com/keybase/client/shared/react-native/android/app/build/outputs/apk"
-APK_FILENAME="app-debug.apk"
+APK_FILENAME="app-storyBook.apk"
 
 ADB_DEVICE=""
 if [ -n "${ADB_DEVICE_ID-}" ]; then
@@ -23,6 +23,6 @@ fi
 
 echo "Found $APK_PATH"
 
-adb $ADB_DEVICE push "$APK_PATH" /data/local/tmp/io.keybase.ossifrage.debug
-adb $ADB_DEVICE shell pm install -t -r "/data/local/tmp/io.keybase.ossifrage.debug"
+adb $ADB_DEVICE push "$APK_PATH" /data/local/tmp/io.keybase.ossifrage.storyBook
+adb $ADB_DEVICE shell pm install -t -r "/data/local/tmp/io.keybase.ossifrage.storyBook"
 adb $ADB_DEVICE shell am start -n "io.keybase.ossifrage.debug/io.keybase.ossifrage.MainActivity" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER
