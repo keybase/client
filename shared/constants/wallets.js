@@ -389,6 +389,8 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
+const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+
 const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
@@ -441,5 +443,6 @@ export {
   sendReceiveFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
+  shortenAccountID,
   statusSimplifiedToString,
 }
