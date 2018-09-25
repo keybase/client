@@ -48,9 +48,8 @@ export default function(
   switch (action.type) {
     case TrackerGen.resetStore:
       return {
-        ...state,
-        trackers: {},
-        nonUserTrackers: {},
+        ...Constants.initialState,
+        serverStarted: state.serverStarted,
       }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
