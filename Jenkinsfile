@@ -151,7 +151,7 @@ helpers.rootLinuxNode(env, {
                                 // that we can have master breaks, but it
                                 // strikes a good balance between velocity and
                                 // test coverage.
-                                if (env.BRANCH_NAME == "master") {
+                                if (true) {
                                     build([
                                         job: "/kbfs/master",
                                         parameters: [
