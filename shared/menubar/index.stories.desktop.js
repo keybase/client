@@ -18,7 +18,6 @@ const props = {
     following: {},
   },
   folderProps: null,
-  isAsyncWriteHappening: false,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
   onFolderClick: Storybook.action('onFolderClick'),
@@ -36,11 +35,18 @@ const props = {
   conversations: [
     // TODO: fill in a few.
   ],
+  files: 0,
+  fileName: null,
+  totalSyncingBytes: 0,
 }
 
 const providers = Storybook.createPropProviderWithCommon({
-  ChatRow: () => ({
+  ChatPreview: () => ({
     convRows: [],
+    onViewAll: () => {},
+  }),
+  FilesPreview: () => ({
+    tlfRows: [],
     onViewAll: () => {},
   }),
 })
@@ -77,7 +83,7 @@ const load = () => {
         }}
       />
     ))
-    .add('Async write happening', () => <Menubar {...props} isAsyncWriteHappening={true} />)
+    .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
 }
 
 export default load

@@ -210,7 +210,8 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	}
 
 	m := libkb.NewMetaContext(ctx, p.G())
-	summary, err := TransformPaymentSummary(m, "", details.Summary)
+	oc := NewOwnAccountLookupCache(ctx, m.G())
+	summary, err := TransformPaymentSummary(m, "", details.Summary, oc)
 	if err != nil {
 		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id.TxID, err)
 		return
@@ -238,11 +239,20 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 		return
 	}
 
+	isUpdate := false
 	p.Lock()
+	existing, ok := p.requests[id]
+	if !ok || local.Status != existing.Status {
+		// must be a newly loaded request or the status changed for
+		// a notification to be sent below
+		isUpdate = true
+	}
 	p.requests[id] = local
 	p.Unlock()
 
-	p.sendRequestNotification(m, id, local)
+	if isUpdate {
+		p.sendRequestNotification(m, id, local)
+	}
 }
 
 func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
@@ -255,18 +265,17 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		StatusDescription: summary.StatusDescription,
 	}
 
-	// calculate the payment delta
-	username := p.G().ActiveDevice.Username(m)
-	if msg.sender.Eq(username) {
-		info.Delta = stellar1.BalanceDelta_DECREASE
-		// check if sending to self
-		if summary.TargetType == stellar1.ParticipantType_KEYBASE {
-			if libkb.NewNormalizedUsername(summary.Target).Eq(username) {
-				info.Delta = stellar1.BalanceDelta_NONE
-			}
-		}
+	info.Delta = stellar1.BalanceDelta_NONE
+
+	// Calculate the payment delta
+	if summary.FromType == stellar1.ParticipantType_OWNACCOUNT && summary.ToType == stellar1.ParticipantType_OWNACCOUNT {
+		// This is a transfer between the user's own accounts.
+		info.Delta = stellar1.BalanceDelta_NONE
 	} else {
 		info.Delta = stellar1.BalanceDelta_INCREASE
+		if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
+			info.Delta = stellar1.BalanceDelta_DECREASE
+		}
 	}
 
 	return &info
@@ -294,6 +303,7 @@ func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDet
 		AmountDescription: details.AmountDescription,
 		Asset:             details.Asset,
 		Currency:          details.Currency,
+		Status:            details.Status,
 	}
 
 	return &info

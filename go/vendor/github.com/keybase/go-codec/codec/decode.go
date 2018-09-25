@@ -161,6 +161,10 @@ type DecodeOptions struct {
 	// Instead, we provision up to MaxInitLen, fill that up, and start appending after that.
 	MaxInitLen int
 
+	// MaxDepth defines the maximum depth when decoding nested
+	// maps and slices. If 0 or negative, we default to 100.
+	MaxDepth int
+
 	// ReaderBufferSize is the size of the buffer used when reading.
 	//
 	// if > 0, we use a smart buffer internally for performance purposes.
@@ -247,7 +251,24 @@ type DecodeOptions struct {
 
 // ------------------------------------
 
+func safeReadx(r decReader, clen, maxInitLen int) []byte {
+	len := decInferLen(clen, maxInitLen, 1)
+	bsOut := make([]byte, len)
+	r.readb(bsOut)
+	for len < clen {
+		dlen := decInferLen(clen-len, maxInitLen, 1)
+		bs2 := bsOut
+		bsOut = make([]byte, len+dlen)
+		copy(bsOut, bs2)
+		r.readb(bsOut[len:])
+		len += dlen
+	}
+	return bsOut
+}
+
 type bufioDecReader struct {
+	maxInitLen int
+
 	buf []byte
 	r   io.Reader
 
@@ -380,11 +401,7 @@ func (z *bufioDecReader) readx(n int) (bs []byte) {
 		}
 		return
 	}
-	bs = make([]byte, n)
-	_, err := z.Read(bs)
-	if err != nil {
-		panic(err)
-	}
+	bs = safeReadx(z, n, z.maxInitLen)
 	return
 }
 
@@ -552,6 +569,8 @@ func (z *bufioDecReader) stopTrack() (bs []byte) {
 //
 // It also has a fallback implementation of ByteScanner if needed.
 type ioDecReader struct {
+	maxInitLen int
+
 	r io.Reader // the reader passed in
 
 	rr io.Reader
@@ -644,18 +663,12 @@ func (z *ioDecReader) readx(n int) (bs []byte) {
 	if n <= 0 {
 		return
 	}
-	if n < len(z.x) {
+	if n <= len(z.x) {
 		bs = z.x[:n]
-	} else {
-		bs = make([]byte, n)
+		z.readb(bs)
+		return
 	}
-	if _, err := decReadFull(z.rr, bs); err != nil {
-		panic(err)
-	}
-	z.n += len(bs)
-	if z.trb {
-		z.tr = append(z.tr, bs...)
-	}
+	bs = safeReadx(z, n, z.maxInitLen)
 	return
 }
 
@@ -1509,8 +1522,12 @@ func (d *Decoder) kMap(f *codecFnInfo, rv reflect.Value) {
 	containerLen := dd.ReadMapStart()
 	elemsep := d.esep
 	ti := f.ti
+
+	ktype, vtype := ti.key, ti.elem
+
 	if rv.IsNil() {
-		rv.Set(makeMapReflect(ti.rt, containerLen))
+		rvlen := decInferLen(containerLen, d.h.MaxInitLen, int(ktype.Size()+vtype.Size()))
+		rv.Set(makeMapReflect(ti.rt, rvlen))
 	}
 
 	if containerLen == 0 {
@@ -1518,7 +1535,6 @@ func (d *Decoder) kMap(f *codecFnInfo, rv reflect.Value) {
 		return
 	}
 
-	ktype, vtype := ti.key, ti.elem
 	ktypeId := rt2id(ktype)
 	vtypeKind := vtype.Kind()
 
@@ -1843,7 +1859,8 @@ type decReaderSwitch struct {
 // 	return z.ri.readUntil(in, stop)
 // }
 
-// A Decoder reads and decodes an object from an input stream in the codec format.
+// A Decoder reads and decodes an object from an input stream in the
+// codec format. Decoder is not goroutine-safe.
 type Decoder struct {
 	panicHdl
 	// hopefully, reduce derefencing cost by laying the decReader inside the Decoder.
@@ -1868,6 +1885,12 @@ type Decoder struct {
 	n   *decNaked
 	nsp *sync.Pool
 	err error
+
+	// Whether we're in a Decode or MustDecode call.
+	decoding bool
+	// The remaining number of nested decode() calls before giving
+	// up.
+	remainingDepth int
 
 	// ---- cpu cache line boundary?
 	b  [decScratchByteArrayLen]byte // scratch buffer, used by Decoder and xxxEncDrivers
@@ -1941,6 +1964,7 @@ func (d *Decoder) Reset(r io.Reader) {
 	}
 	if d.bi == nil {
 		d.bi = new(bufioDecReader)
+		d.bi.maxInitLen = d.h.MaxInitLen
 	}
 	d.bytes = false
 	if d.h.ReaderBufferSize > 0 {
@@ -1952,6 +1976,7 @@ func (d *Decoder) Reset(r io.Reader) {
 		// d.s = d.sa[:0]
 		if d.ri == nil {
 			d.ri = new(ioDecReader)
+			d.ri.maxInitLen = d.h.MaxInitLen
 		}
 		d.ri.reset(r)
 		d.r = d.ri
@@ -2048,9 +2073,29 @@ func (d *Decoder) Decode(v interface{}) (err error) {
 	return
 }
 
+// The default starting value of remainingDepth.
+//
+// TODO: Make this configurable.
+const defaultMaxDepth = 100
+
 // MustDecode is like Decode, but panics if unable to Decode.
 // This provides insight to the code location that triggered the error.
 func (d *Decoder) MustDecode(v interface{}) {
+	// If we're in a top-level MustDecode call, set remainingDepth
+	// (checked by decode() below). Without this, we run the risk
+	// of overflowing the stack, which is a fatal error.
+	if !d.decoding {
+		d.decoding = true
+		d.remainingDepth = d.h.MaxDepth
+		if d.remainingDepth <= 0 {
+			d.remainingDepth = defaultMaxDepth
+		}
+		defer func() {
+			d.decoding = false
+			d.remainingDepth = 0
+		}()
+	}
+
 	// TODO: Top-level: ensure that v is a pointer and not nil.
 	if d.err != nil {
 		panic(d.err)
@@ -2202,6 +2247,14 @@ func setZero(iv interface{}) {
 }
 
 func (d *Decoder) decode(iv interface{}) {
+	d.remainingDepth--
+	if d.remainingDepth < 0 {
+		panic("max depth exceeded")
+	}
+	defer func() {
+		d.remainingDepth++
+	}()
+
 	// check nil and interfaces explicitly,
 	// so that type switches just have a run of constant non-interface types.
 	if iv == nil {
@@ -2477,18 +2530,7 @@ func decByteSlice(r decReader, clen, maxInitLen int, bs []byte) (bsOut []byte) {
 		bsOut = bs[:clen]
 		r.readb(bsOut)
 	} else {
-		// bsOut = make([]byte, clen)
-		len2 := decInferLen(clen, maxInitLen, 1)
-		bsOut = make([]byte, len2)
-		r.readb(bsOut)
-		for len2 < clen {
-			len3 := decInferLen(clen-len2, maxInitLen, 1)
-			bs3 := bsOut
-			bsOut = make([]byte, len2+len3)
-			copy(bsOut, bs3)
-			r.readb(bsOut[len2:])
-			len2 += len3
-		}
+		bsOut = safeReadx(r, clen, maxInitLen)
 	}
 	return
 }

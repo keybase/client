@@ -1,29 +1,29 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../styles'
-import Toast from './toast.desktop'
+import Box from './box'
+import Toast from './toast'
 import Text from './text'
 import {type Props} from './with-tooltip'
 
 type State = {
   mouseIn: boolean,
   visible: boolean,
-  attachmentRef: ?React.ElementRef<any>,
 }
 
 class WithTooltip extends React.Component<Props, State> {
   state = {
     mouseIn: false,
     visible: false,
-    attachmentRef: null,
   }
+  _attachmentRef: ?React.Component<any> = null
   _onMouseEnter = () => {
     this.setState({mouseIn: true})
   }
   _onMouseLeave = () => {
     this.setState({mouseIn: false, visible: false})
   }
-  _setAttachmentRef = attachmentRef => this.setState({attachmentRef})
+  _setAttachmentRef = attachmentRef => (this._attachmentRef = attachmentRef)
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (!prevState.mouseIn && this.state.mouseIn) {
       // Set visible after Toast is mounted, to trigger transition on opacity.
@@ -35,7 +35,7 @@ class WithTooltip extends React.Component<Props, State> {
   }
   render() {
     return (
-      <div
+      <Box
         style={this.props.containerStyle}
         ref={this._setAttachmentRef}
         onMouseEnter={this._onMouseEnter}
@@ -47,7 +47,7 @@ class WithTooltip extends React.Component<Props, State> {
           <Toast
             containerStyle={this.props.multiline ? styles.containerMultiline : styles.container}
             visible={this.state.visible}
-            attachTo={() => this.state.attachmentRef}
+            attachTo={() => this._attachmentRef}
             position={this.props.position || 'top center'}
           >
             <Text type="BodySmall" style={styles.text}>
@@ -55,7 +55,7 @@ class WithTooltip extends React.Component<Props, State> {
             </Text>
           </Toast>
         )}
-      </div>
+      </Box>
     )
   }
 }

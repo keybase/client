@@ -143,12 +143,16 @@ const handleLoudMessage = notification => {
     yield Saga.put(Chat2Gen.createNavigateToThread())
     if (unboxPayload && membersType) {
       logger.info('[Push] unboxing message')
-      yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-        convID: conversationIDKey,
-        membersType,
-        payload: unboxPayload,
-        shouldAck: false,
-      })
+      try {
+        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: conversationIDKey,
+          membersType,
+          payload: unboxPayload,
+          shouldAck: false,
+        })
+      } catch (e) {
+        logger.info('[Push] failed to unbox message form payload')
+      }
     }
   })
 }
@@ -161,6 +165,11 @@ const handleFollow = notification => {
   const {username} = notification
   logger.info('[Push] follower: ', username)
   return Saga.put(ProfileGen.createShowUserProfile({username}))
+}
+
+const handleChatExtension = notification => {
+  const {conversationIDKey} = notification
+  return Saga.put(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'extension'}))
 }
 
 // on iOS the go side handles a lot of push details
@@ -179,6 +188,8 @@ const handlePush = (_: any, action: PushGen.NotificationPayload) => {
         return handleLoudMessage(notification)
       case 'follow':
         return handleFollow(notification)
+      case 'chat.extension':
+        return handleChatExtension(notification)
     }
   } catch (e) {
     if (__DEV__) {

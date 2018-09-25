@@ -500,6 +500,10 @@
             "stellar1.OutsideCurrencyCode"
           ],
           "name": "currency"
+        },
+        {
+          "type": "stellar1.RequestStatus",
+          "name": "status"
         }
       ]
     },
@@ -758,6 +762,23 @@
             "items": "string"
           },
           "name": "matches"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatConvSearchHit",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ChatSearchHit"
+          },
+          "name": "hits"
         }
       ]
     }

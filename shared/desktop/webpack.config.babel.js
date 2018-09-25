@@ -3,7 +3,7 @@
  * We build:
  * Electron main thread / render threads for the main window and remote windows (menubar, trackers, etc)
  */
-import UglifyJSPlugin from 'uglifyjs-webpack-plugin'
+import TerserPlugin from 'terser-webpack-plugin'
 import getenv from 'getenv'
 import merge from 'webpack-merge'
 import path from 'path'
@@ -124,11 +124,11 @@ const config = (_, {mode}) => {
         : {
             optimization: {
               minimizer: [
-                new UglifyJSPlugin({
+                new TerserPlugin({
                   cache: true,
                   parallel: true,
                   sourceMap: true,
-                  uglifyOptions: {
+                  terserOptions: {
                     compress: {
                       inline: false, // uglify has issues inlining code and handling variables https://github.com/mishoo/UglifyJS2/issues/2842
                     },

@@ -1,6 +1,6 @@
 // @flow
 import * as Types from '../../../../../constants/types/chat2'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import {connect, type TypedState, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
@@ -21,7 +21,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
 })
 

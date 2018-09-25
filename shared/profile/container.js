@@ -1,6 +1,7 @@
 // @flow
 import logger from '../logger'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
+import * as FsTypes from '../constants/types/fs'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ProfileGen from '../actions/profile-gen'
@@ -11,8 +12,7 @@ import * as Types from '../constants/types/profile'
 import * as WalletsGen from '../actions/wallets-gen'
 import * as Route from '../actions/route-tree-gen'
 import * as WalletConstants from '../constants/wallets'
-import type {AccountID} from '../constants/types/wallets'
-import {pathFromFolder} from '../constants/favorite'
+import {noAccountID} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
 import Profile from './index'
@@ -56,8 +56,6 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
 
 const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}: OwnProps) => {
   const myUsername = state.config.username
-  // TODO: Remove this after CORE-8785 is merged in and allows us to skip explictly setting the from account if it's from the default account
-  const myAccountID = WalletConstants.getDefaultAccountID(state)
   const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
@@ -67,7 +65,6 @@ const mapStateToProps = (state: TypedState, {routeProps, routeState, routePath}:
   return {
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
-    myAccountID,
     myUsername,
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
@@ -81,9 +78,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onAddToTeam: (username: string) => dispatch(navigateAppend([{props: {username}, selected: 'addToTeam'}])),
   onBack: () => dispatch(navigateUp()),
   _onBrowsePublicFolder: (username: string) =>
-    dispatch(
-      KBFSGen.createOpen({path: pathFromFolder({isPublic: true, isTeam: false, users: [{username}]}).path})
-    ),
+    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/public/${username}`)})),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   _onChat: (username: string) =>
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'})),
@@ -97,18 +92,15 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
       ? dispatch(navigateAppend([{props: {image}, selected: 'editAvatar'}]))
       : dispatch(navigateAppend(['editAvatarPlaceholder'])),
   onEditProfile: () => dispatch(navigateAppend(['editProfile'])),
-  onFolderClick: folder => dispatch(KBFSGen.createOpen({path: folder.path})),
+  onFolderClick: folder =>
+    dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({localIgnore: false, username})),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   _onOpenPrivateFolder: (myUsername: string, theirUsername: string) =>
     dispatch(
-      KBFSGen.createOpen({
-        path: pathFromFolder({
-          isPublic: false,
-          isTeam: false,
-          users: [{username: theirUsername}, {username: myUsername}],
-        }).path,
+      FsGen.createOpenPathInFilesTab({
+        path: FsTypes.stringToPath(`/keybase/private/${theirUsername},${myUsername}`),
       })
     ),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
@@ -124,11 +116,11 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
         [peopleTab]
       )
     ),
-  _onSendOrRequestLumens: (to: string, sendingAccount: ?AccountID) => {
+  _onSendOrRequestLumens: (to: string) => {
     dispatch(WalletsGen.createClearBuildingPayment())
     dispatch(WalletsGen.createClearBuiltPayment())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-    dispatch(WalletsGen.createSetBuildingFrom({from: sendingAccount || ''}))
+    dispatch(WalletsGen.createSetBuildingFrom({from: noAccountID}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
     dispatch(
       Route.createNavigateAppend({
@@ -205,7 +197,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     },
     onFollow: () => dispatchProps._onFollow(username),
     onSearch: () => dispatchProps.onSearch(),
-    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username, stateProps.myAccountID),
+    onSendOrRequestLumens: () => dispatchProps._onSendOrRequestLumens(username),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
     username,

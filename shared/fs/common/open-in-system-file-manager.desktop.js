@@ -15,8 +15,8 @@ import {
 } from '../../common-adapters'
 import {fileUIName} from '../../constants/platform'
 
-type OpenInFileUIProps = {
-  openInFileUI: () => void,
+type OpenInSystemFileManagerProps = {
+  openInSystemFileManager: () => void,
 }
 
 type FinderPopupProps = {
@@ -25,16 +25,16 @@ type FinderPopupProps = {
 
 type Props = {
   kbfsEnabled: boolean,
-} & OpenInFileUIProps &
+} & OpenInSystemFileManagerProps &
   FinderPopupProps
 
-const OpenInFileUI = ({openInFileUI}: OpenInFileUIProps) => (
+const OpenInSystemFileManager = ({openInSystemFileManager}: OpenInSystemFileManagerProps) => (
   <WithTooltip text="Show in Finder">
     <Icon
       type="iconfont-finder"
       style={iconCastPlatformStyles(styles.pathItemActionIcon)}
       fontSize={16}
-      onClick={openInFileUI}
+      onClick={openInSystemFileManager}
       className="fs-path-item-hover-icon"
     />
   </WithTooltip>
@@ -109,7 +109,7 @@ const styles = Styles.styleSheetCreate({
 
 export default (props: Props) =>
   props.kbfsEnabled ? (
-    <OpenInFileUI openInFileUI={props.openInFileUI} />
+    <OpenInSystemFileManager openInSystemFileManager={props.openInSystemFileManager} />
   ) : (
     <FinderPopup installFuse={props.installFuse} />
   )

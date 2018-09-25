@@ -72,7 +72,7 @@ func TestCreateWallet(t *testing.T) {
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
 	require.Len(t, bundle.Accounts[0].Signers, 1)
-	require.Equal(t, "", bundle.Accounts[0].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), bundle.Accounts[0].Name)
 
 	t.Logf("Lookup the user by public address as another user")
 	a1 := bundle.Accounts[0].AccountID
@@ -100,6 +100,7 @@ func TestCreateWallet(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s2,
 		MakePrimary: true,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 
@@ -187,6 +188,7 @@ func TestImportExport(t *testing.T) {
 	argS1 := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s1,
 		MakePrimary: false,
+		Name:        "qq",
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.NoError(t, err)
@@ -236,6 +238,7 @@ func TestImportExport(t *testing.T) {
 	argS2 := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s2,
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
 	require.NoError(t, err)
@@ -310,11 +313,11 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	accountIDSender := rm.AddAccount()
 	accountIDRecip := rm.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
-	}
-	err = srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "uu",
+	})
 	require.NoError(t, err)
 
 	arg := stellar1.SendCLILocalArg{
@@ -360,6 +363,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
@@ -412,6 +416,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
@@ -679,6 +684,7 @@ func TestDefaultCurrency(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s1,
 		MakePrimary: false,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 

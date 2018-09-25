@@ -401,7 +401,7 @@ func (e *ScanProofsEngine) CheckOne(m libkb.MetaContext, rec map[string]string, 
 	if pvlSource == nil {
 		return nil, foundhint, fmt.Errorf("no pvl source for proof verification")
 	}
-	pvlU, err := pvlSource.GetPVL(m)
+	pvlU, err := pvlSource.GetLatestEntry(m)
 	if err != nil {
 		return nil, foundhint, fmt.Errorf("error getting pvl: %s", err)
 	}

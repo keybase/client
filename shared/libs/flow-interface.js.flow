@@ -10,6 +10,12 @@ declare var module: {
     decline: any,
   },
 }
+declare module 'memoize-one' {
+  declare export default function memoize<R, A1, A2, A3, A4, A5, A5>(
+    func: (A1, A2, A3, A4, A5, A5) => R,
+    equalityCheck?: (a: A1, b: A1) => boolean
+  ): (A1, A2, A3, A4, A5, A5) => R
+}
 declare module '@babel/cli' {
   declare module.exports: any
 }
@@ -290,9 +296,6 @@ declare module 'react-navigation/src/views/CardStack/CardStackTransitioner' {
   declare module.exports: any
 }
 declare module 'react-navigation' {
-  declare module.exports: any
-}
-declare module 'react-virtualized' {
   declare module.exports: any
 }
 declare module 'react-waypoint' {

@@ -5,15 +5,16 @@ import Flags from '../util/feature-flags'
 import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
+import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
+import Upload from '../fs/footer/upload'
+import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
 
 export type Props = {
-  isAsyncWriteHappening: boolean,
   logIn: () => void,
   loggedIn: boolean,
-  onFolderClick: (path: ?string) => void,
   onRekey: (path: string) => void,
   openApp: (tab: ?string) => void,
   quit: () => void,
@@ -23,13 +24,14 @@ export type Props = {
   showUser: (username: ?string) => void,
   username: ?string,
   badgeInfo: {[string]: number},
-}
+} & UploadCountdownHOCProps
 
 type State = {|
   showingMenu: boolean,
 |}
 
 const ArrowTick = () => <Kb.Box style={styles.arrowTick} />
+const UploadWithCountdown = UploadCountdownHOC(Upload)
 
 class MenubarRender extends React.Component<Props, State> {
   state: State = {
@@ -158,11 +160,6 @@ class MenubarRender extends React.Component<Props, State> {
     ]
   }
 
-  _onAdd(path: string) {
-    this.props.onFolderClick(path)
-    this.props.refresh()
-  }
-
   _getAttachmentRef = () => this.attachmentRef.current
 
   _renderLoggedIn() {
@@ -224,13 +221,20 @@ class MenubarRender extends React.Component<Props, State> {
             position="bottom right"
           />
         </Kb.Box>
-        <ChatContainer />
-        {this.props.isAsyncWriteHappening && (
-          <Kb.Box style={styles.uploadingContainer}>
-            <Kb.Icon type="icon-loader-uploading-16" />
-            <Kb.Text type="BodySmall">UPLOADING CHANGES...</Kb.Text>
-          </Kb.Box>
+        {Flags.fileWidgetEnabled ? (
+          <Kb.ScrollView>
+            <ChatContainer convLimit={3} />
+            <FilesPreview />
+          </Kb.ScrollView>
+        ) : (
+          <ChatContainer />
         )}
+        <UploadWithCountdown
+          endEstimate={this.props.endEstimate}
+          files={this.props.files}
+          fileName={this.props.fileName}
+          totalSyncingBytes={this.props.totalSyncingBytes}
+        />
       </Kb.Box>
     )
   }

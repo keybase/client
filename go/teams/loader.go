@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -68,6 +69,13 @@ type TeamLoader struct {
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
 	nameLookupBurstCache *libkb.BurstCache
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
@@ -843,6 +851,8 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - ForceRepoll
 // - Cache freshness / StaleOK
 // - NeedSeqnos
+// - If this user is in global "force repoll" mode, where it would be too spammy to
+//   push out individual team changed notifications, so all team loads need a repoll.
 func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (bool, bool) {
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
@@ -911,6 +921,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
+		repoll = true
+	}
+
+	// InForceRepoll needs to a acquire a lock, so avoid it if we can
+	// (i.e., if repoll is already set to true).
+	if !repoll && l.InForceRepollMode(ctx) {
 		repoll = true
 	}
 
@@ -1469,4 +1485,26 @@ func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, s
 
 	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
 	return err
+}
+
+func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOffset) error {
+	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v)", dtime)
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	l.forceRepollUntil = dtime
+	return nil
+}
+
+func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	if l.forceRepollUntil == nil {
+		return false
+	}
+	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
+		l.G().Log.CDebugf(ctx, "TeamLoader#InForceRepollMode: returning true")
+		return true
+	}
+	l.forceRepollUntil = nil
+	return false
 }

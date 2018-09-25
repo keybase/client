@@ -7,6 +7,7 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
+    "toggleSmallTeamsExpanded": {},
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -17,6 +18,7 @@
         "'setPendingMode'", // set to pending
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
+        "'extension'", // from a notification from iOS share extension
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
@@ -440,6 +442,9 @@
       "_description": "Update the minWriterRole stored with the conversation metadata.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
+    },
+    "openChatFromWidget": {
+      "conversationIDKey?": "Types.ConversationIDKey"
     },
     "paymentInfoReceived": {
       "_description": "We received payment info for a sendPayment message",

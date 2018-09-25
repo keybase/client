@@ -51,12 +51,20 @@ if [ -n "$kbfs_commit" ]; then
   export LOCAL_KBFS=1
 fi
 
+cd "$kbfs_dir"
+echo "Recent KBFS commit log"
+git log -n 3
+
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
   echo "Checking out $client_commit on client (will reset to $client_branch)"
   git fetch
   git checkout "$client_commit"
 fi
+
+cd "$client_dir"
+echo "Recent client commit log"
+git log -n 3
 
 cd "$shared_dir"
 

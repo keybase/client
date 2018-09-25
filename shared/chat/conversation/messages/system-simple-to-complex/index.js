@@ -2,10 +2,9 @@
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
 import UserNotice from '../user-notice'
-import {Box, Text, ConnectedUsernames, Icon} from '../../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../../styles'
+import {Box, Text, ConnectedUsernames} from '../../../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import {formatTimeForMessages} from '../../../../util/timestamp'
-import {isAndroid} from '../../../../constants/platform'
 
 type Props = {
   message: Types.MessageSystemSimpleToComplex,
@@ -67,20 +66,10 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>
                 {bullet}
               </Text>
-              {isAndroid ? (
-                <Text type="BodySmallSemibold">
-                  Notifications will no longer happen for every message. Tap the info icon in the top right to
-                  configure them.
-                </Text>
-              ) : (
-                <Text type="BodySmallSemibold">
-                  Notifications will no longer happen for every message. {isMobile ? 'Tap' : 'Click on'} the{' '}
-                  <Box style={{display: isMobile ? 'flex' : 'inline-block', height: 11, width: 11}}>
-                    <Icon type="iconfont-info" fontSize={11} />
-                  </Box>{' '}
-                  to configure them.
-                </Text>
-              )}
+              <Text type="BodySmallSemibold">
+                Notifications will no longer happen for every message. Tap the info icon in the top right to
+                configure them.
+              </Text>
             </Box>
             <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.tiny}}>
               <Text type="BodySmallSemibold" style={{marginRight: globalMargins.tiny}}>

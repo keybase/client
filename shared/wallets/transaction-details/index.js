@@ -6,15 +6,12 @@ import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 
-type Role = 'sender' | 'receiver'
-
 export type Props = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  delta: 'none' | 'increase' | 'decrease',
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -29,23 +26,16 @@ export type Props = {|
   timestamp: Date | null,
   transactionID?: string,
   you: string,
-  yourRole: Role,
+  yourRole: Types.Role,
 |}
 
 type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta?: string,
   counterpartyType: Types.CounterpartyType,
-  isYou: boolean,
-  you: string,
-  yourRole: Role,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
-  if (props.isYou) {
-    return <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
-  }
-
   if (props.counterpartyType === 'keybaseUser') {
     return (
       <NameWithIcon
@@ -90,8 +80,54 @@ const colorForStatus = (status: Types.StatusSimplified) => {
   }
 }
 
-const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Role) =>
-  status === 'completed' ? (yourRole === 'receiver' ? 'Received' : 'Sent') : capitalize(status)
+const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
+  if (status !== 'completed') {
+    return capitalize(status)
+  }
+
+  switch (yourRole) {
+    case 'senderOnly':
+      return 'Sent'
+    case 'receiverOnly':
+      return 'Received'
+    case 'senderAndReceiver':
+      return 'Sent'
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
+      */
+      throw new Error(`Unexpected role ${yourRole}`)
+  }
+}
+
+const propsToParties = (props: Props) => {
+  const you = <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+  const counterparty = (
+    <Counterparty
+      counterparty={props.counterparty}
+      counterpartyMeta={props.counterpartyMeta}
+      counterpartyType={props.counterpartyType}
+    />
+  )
+
+  switch (props.yourRole) {
+    case 'senderOnly':
+      return {sender: you, receiver: counterparty}
+    case 'receiverOnly':
+      return {sender: counterparty, receiver: you}
+    case 'senderAndReceiver':
+      // Even if we sent money from an account to itself, show the
+      // account details as the recipient.
+      return {sender: you, receiver: counterparty}
+    default:
+      /*::
+      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
+      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
+      */
+      throw new Error(`Unexpected role ${props.yourRole}`)
+  }
+}
 
 class TransactionDetails extends React.Component<Props> {
   componentDidMount() {
@@ -99,6 +135,8 @@ class TransactionDetails extends React.Component<Props> {
   }
 
   render() {
+    const {sender, receiver} = propsToParties(this.props)
+
     return (
       <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
@@ -106,7 +144,6 @@ class TransactionDetails extends React.Component<Props> {
           amountXLM={this.props.amountXLM}
           counterparty={this.props.counterparty}
           counterpartyType={this.props.counterpartyType}
-          delta={this.props.delta}
           large={true}
           memo={this.props.memo}
           status={this.props.status}
@@ -118,26 +155,12 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Sender:</Text>
-          <Counterparty
-            counterparty={this.props.counterparty}
-            counterpartyMeta={this.props.counterpartyMeta}
-            counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'sender'}
-            you={this.props.you}
-            yourRole={this.props.yourRole}
-          />
+          {sender}
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Recipient:</Text>
-          <Counterparty
-            counterparty={this.props.counterparty}
-            counterpartyMeta={this.props.counterpartyMeta}
-            counterpartyType={this.props.counterpartyType}
-            isYou={this.props.yourRole === 'receiver'}
-            you={this.props.you}
-            yourRole={this.props.yourRole}
-          />
+          {receiver}
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>

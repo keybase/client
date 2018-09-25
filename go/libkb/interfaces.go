@@ -38,6 +38,7 @@ type configGetter interface {
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -535,7 +536,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
 	GetTorError() ProofError
 }
 
@@ -569,7 +570,8 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(MetaContext, *PostProofRes) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -581,8 +583,10 @@ type ExternalServicesCollector interface {
 	ListProofCheckers() []string
 }
 
-type PvlSource interface {
-	GetPVL(m MetaContext) (PvlUnparsed, error)
+// Generic store for data that is hashed into the merkle root. Used by pvl and
+// parameterized proofs.
+type MerkleStore interface {
+	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -617,6 +621,7 @@ type TeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
+	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
@@ -626,6 +631,7 @@ type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	OnLogout()
 }
 

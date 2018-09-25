@@ -95,7 +95,7 @@ export default compose(
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
       },
-      updateSaving: () => (saving: boolean) => ({saving}),
+      updateSaving: ({saving: oldSaving}) => (saving: boolean) => (oldSaving === saving ? null : {saving}),
       syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
         channelWide,
         desktop,
@@ -105,38 +105,39 @@ export default compose(
     }
   ),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      // Same as the store?
+    componentDidUpdate(prevProps) {
+      // Same as the store and thought we were saving?
       if (
-        nextProps._storeDesktop === nextProps.desktop &&
-        nextProps._storeMobile === nextProps.mobile &&
-        nextProps._storeChannelWide === nextProps.channelWide &&
-        nextProps._storeMuted === nextProps.muted
+        this.props.saving &&
+        this.props._storeDesktop === this.props.desktop &&
+        this.props._storeMobile === this.props.mobile &&
+        this.props._storeChannelWide === this.props.channelWide &&
+        this.props._storeMuted === this.props.muted
       ) {
-        nextProps.updateSaving(false)
+        this.props.updateSaving(false)
       } else {
         // did our local settings change at all?
         if (
-          this.props.desktop !== nextProps.desktop ||
-          this.props.mobile !== nextProps.mobile ||
-          this.props.channelWide !== nextProps.channelWide ||
-          this.props.muted !== nextProps.muted
+          this.props.desktop !== prevProps.desktop ||
+          this.props.mobile !== prevProps.mobile ||
+          this.props.channelWide !== prevProps.channelWide ||
+          this.props.muted !== prevProps.muted
         ) {
-          nextProps.updateSaving(true)
+          this.props.updateSaving(true)
         }
       }
       // store changed?
       if (
-        this.props._storeDesktop !== nextProps._storeDesktop ||
-        this.props._storeMobile !== nextProps._storeMobile ||
-        this.props._storeChannelWide !== nextProps._storeChannelWide ||
-        this.props._storeMuted !== nextProps._storeMuted
+        prevProps._storeDesktop !== this.props._storeDesktop ||
+        prevProps._storeMobile !== this.props._storeMobile ||
+        prevProps._storeChannelWide !== this.props._storeChannelWide ||
+        prevProps._storeMuted !== this.props._storeMuted
       ) {
-        nextProps.syncLocalToStore(
-          nextProps._storeChannelWide,
-          nextProps._storeDesktop,
-          nextProps._storeMobile,
-          nextProps._storeMuted
+        this.props.syncLocalToStore(
+          this.props._storeChannelWide,
+          this.props._storeDesktop,
+          this.props._storeMobile,
+          this.props._storeMuted
         )
       }
     },

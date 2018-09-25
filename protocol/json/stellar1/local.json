@@ -110,7 +110,8 @@
         "NONE_0",
         "KEYBASE_1",
         "STELLAR_2",
-        "SBS_3"
+        "SBS_3",
+        "OWNACCOUNT_4"
       ]
     },
     {
@@ -158,20 +159,43 @@
           "name": "worthCurrency"
         },
         {
-          "type": "string",
-          "name": "source"
+          "type": "ParticipantType",
+          "name": "fromType"
         },
         {
           "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "fromAccountName"
         },
         {
-          "type": "ParticipantType",
-          "name": "targetType"
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -180,6 +204,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -220,6 +248,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -272,20 +307,43 @@
           "name": "worthCurrency"
         },
         {
-          "type": "string",
-          "name": "source"
+          "type": "ParticipantType",
+          "name": "fromType"
         },
         {
           "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "fromAccountName"
         },
         {
-          "type": "ParticipantType",
-          "name": "targetType"
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -677,6 +735,19 @@
         "items": "WalletAccountLocal"
       }
     },
+    "getWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "WalletAccountLocal"
+    },
     "getAccountAssetsLocal": {
       "request": [
         {
@@ -728,6 +799,23 @@
         "type": "array",
         "items": "PaymentOrErrorLocal"
       }
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
     },
     "getPaymentDetailsLocal": {
       "request": [
@@ -1143,6 +1231,32 @@
       ],
       "response": "KeybaseRequestID"
     },
+    "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "isAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1269,6 +1383,10 @@
         {
           "name": "makePrimary",
           "type": "boolean"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ],
       "response": null
