@@ -605,6 +605,11 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 	if t.lookupUpgraded {
 		tlfIDs := team.KBFSTLFIDs()
 		if len(tlfIDs) > 0 {
+			// We pull the first TLF ID here for this lookup since it has the highest chance of being
+			// correct. The upgrade wrote a bunch of TLF IDs in over the last months, but it is possible
+			// that KBFS can add more. All the upgrade TLFs should be ahead of them though, since if the
+			// upgrade process encounters a team with a TLF ID already in there, it will abort if they
+			// don't match.
 			tlfID = tlfIDs[0].ToBytes()
 		}
 	} else {
