@@ -33,12 +33,6 @@ class Inbox extends PureComponent<Props, State> {
       listRowsResized = true
     }
 
-    // divider size changed
-    // if (prevProps.showSmallTeamsExpandDivider !== this.props.showSmallTeamsExpandDivider) {
-    // // just reset all sizes, this should be rare
-    // listRowsResized = true
-    // }
-
     // filter / not filter
     if (!!prevProps.filter !== !!this.props.filter) {
       listRowsResized = true
