@@ -46,4 +46,5 @@ func TestLoadParamServices(t *testing.T) {
 	gubbleAPIRoot := fmt.Sprintf("%s/_/api/1.0/gubble_social", libkb.DevelServerURI)
 	require.Equal(t, fmt.Sprintf("%s%s", gubbleRoot, "?kb_username=%{kb_username}&sig_hash=%{sig_hash}"), gubbleConf.PrefillUrl)
 	require.Equal(t, fmt.Sprintf("%s%s", gubbleAPIRoot, "/%{username}/proofs.json"), gubbleConf.CheckUrl)
+	require.Equal(t, []string{"res", "keybase_proofs"}, gubbleConf.CheckPath)
 }
