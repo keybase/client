@@ -754,6 +754,38 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
+func TestMobileBundle(t *testing.T) {
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
+	defer cleanup()
+
+	created, err := stellar.CreateWallet(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.True(t, created)
+
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
+	require.Len(t, bundle.Accounts, 1)
+	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
+	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
+	require.True(t, bundle.Accounts[0].IsPrimary)
+	require.Len(t, bundle.Accounts[0].Signers, 1)
+
+	// make the primary account mobile only
+	err = stellar.SetAccountMobileOnly(ctx, bundle.Accounts[0].AccountID)
+	require.NoError(t, err)
+
+	// fetch the bundle again
+	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
+	require.Len(t, bundle.Accounts, 1)
+	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
+	require.Equal(t, stellar1.AccountMode_MOBILE, bundle.Accounts[0].Mode)
+	require.True(t, bundle.Accounts[0].IsPrimary)
+	require.Len(t, bundle.Accounts[0].Signers, 0)
+}
+
 type TestContext struct {
 	libkb.TestContext
 	Fu      *kbtest.FakeUser
