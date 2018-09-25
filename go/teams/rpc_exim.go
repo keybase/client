@@ -12,7 +12,6 @@ import (
 )
 
 func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keybase1.Time, application keybase1.TeamApplication) (ret keybase1.TeamPlusApplicationKeys, err error) {
-	var applicationKeys []keybase1.TeamApplicationKey
 	loadKeys := true
 	if t.IsPublic() {
 		// If it's a public team, only try to load application keys if
@@ -22,10 +21,31 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 		loadKeys = err == nil && role != keybase1.TeamRole_NONE
 	}
 
+	var applicationKeys []keybase1.TeamApplicationKey
 	if loadKeys {
-		applicationKeys, err = t.AllApplicationKeys(ctx, application)
+		teamKeys, err := t.AllApplicationKeys(ctx, application)
 		if err != nil {
 			return ret, err
+		}
+		kbfsKeys := t.KBFSCryptKeys(ctx, application)
+		if len(kbfsKeys) > 0 {
+			latestKBFSGen := kbfsKeys[len(kbfsKeys)-1].Generation()
+			for _, k := range kbfsKeys {
+				applicationKeys = append(applicationKeys, keybase1.TeamApplicationKey{
+					Application:   application,
+					KeyGeneration: keybase1.PerTeamKeyGeneration(k.KeyGeneration),
+					Key:           k.Key,
+				})
+			}
+			for _, tk := range teamKeys {
+				applicationKeys = append(applicationKeys, keybase1.TeamApplicationKey{
+					Application:   application,
+					KeyGeneration: keybase1.PerTeamKeyGeneration(tk.Generation() + latestKBFSGen),
+					Key:           tk.Key,
+				})
+			}
+		} else {
+			applicationKeys = teamKeys
 		}
 	}
 
