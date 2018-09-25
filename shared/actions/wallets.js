@@ -201,7 +201,7 @@ const setAccountAsDefault = (state: TypedState, action: WalletsGen.SetAccountAsD
 const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDetailPayload) =>
   RPCTypes.localGetPaymentDetailsLocalRpcPromise({
     accountID: action.payload.accountID,
-    id: action.payload.paymentID,
+    id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
   }).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,

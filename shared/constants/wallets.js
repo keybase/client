@@ -143,7 +143,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
-  id: {txID: ''},
+  id: Types.noPaymentID,
   note: new HiddenString(''),
   noteErr: new HiddenString(''),
   publicMemo: new HiddenString(''),
@@ -205,7 +205,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
-    id: p.id,
+    id: Types.rpcPaymentIDToPaymentID(p.id),
     note: new HiddenString(p.note),
     noteErr: new HiddenString(p.noteErr),
     source,
@@ -353,11 +353,11 @@ const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.pendingMap.get(accountID || getSelectedAccount(state))
 
-const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
+const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
   makePayment()
 
-const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: RPCTypes.PaymentID) =>
+const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
   makePayment()
 
