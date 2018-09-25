@@ -14,13 +14,14 @@ import {getPath} from '../route-tree'
 import {walletsTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
 import {getEngine} from '../engine'
+import {anyWaiting} from '../constants/waiting'
 
 const buildPayment = (state: TypedState, action: any) =>
   RPCTypes.localBuildPaymentLocalRpcPromise({
     amount: state.wallets.buildingPayment.amount,
     // FIXME: Assumes XLM.
-    fromPrimaryAccount: !state.wallets.buildingPayment.from,
-    from: state.wallets.buildingPayment.from,
+    fromPrimaryAccount: state.wallets.buildingPayment.from === Types.noAccountID,
+    from: state.wallets.buildingPayment.from === Types.noAccountID ? '' : state.wallets.buildingPayment.from,
     fromSeqno: '',
     publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
     secretNote: state.wallets.buildingPayment.secretNote.stringValue(),
@@ -51,7 +52,7 @@ const sendPayment = (state: TypedState) =>
       amount: state.wallets.buildingPayment.amount,
       // FIXME -- support other assets.
       asset: {type: 'native', code: '', issuer: ''},
-      from: state.wallets.buildingPayment.from,
+      from: state.wallets.builtPayment.from,
       fromSeqno: '',
       publicMemo: state.wallets.buildingPayment.publicMemo.stringValue(),
       quickReturn: true,
@@ -79,6 +80,19 @@ const requestPayment = (state: TypedState) =>
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 
 const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+
+const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
+  const {from: _accountID} = action.payload.build
+  const accountID = Types.stringToAccountID(_accountID)
+
+  // Don't load the account if we already have a call doing this
+  const waitingKey = Constants.loadAccountWaitingKey(accountID)
+  if (!Constants.isAccountLoaded(state, accountID) && !anyWaiting(state, waitingKey)) {
+    return RPCTypes.localGetWalletAccountLocalRpcPromise({accountID: accountID}, waitingKey).then(account =>
+      WalletsGen.createAccountsReceived({accounts: [Constants.accountResultToAccount(account)]})
+    )
+  }
+}
 
 const loadAccounts = (
   state: TypedState,
@@ -340,6 +354,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   }
 
   yield Saga.actionToPromise(WalletsGen.createNewAccount, createNewAccount)
+  yield Saga.actionToPromise(WalletsGen.builtPaymentReceived, loadAccount)
   yield Saga.actionToPromise(
     [
       WalletsGen.loadAccounts,
@@ -349,7 +364,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.didSetAccountAsDefault,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
-      ConfigGen.loggedIn,
     ],
     loadAccounts
   )

@@ -12,7 +12,6 @@ import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
-  _defaultAccountID: WalletTypes.noAccountID,
   action: '',
   amount: '',
   balanceChange: '',
@@ -28,9 +27,6 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const common = {
-    _defaultAccountID: WalletConstants.getDefaultAccountID(state),
-  }
   switch (ownProps.message.type) {
     case 'sendPayment': {
       const paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
@@ -39,7 +35,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
       return {
-        ...common,
         action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
@@ -69,7 +64,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
             }
 
       return {
-        ...common,
         ...sendProps,
         action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
@@ -87,27 +81,22 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onSend: (defaultAccountID: ?WalletTypes.AccountID) => {
+  onSend: () => {
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
     }
     const {requestInfo} = ownProps.message
-    if (requestInfo && defaultAccountID && ownProps.message.type === 'requestPayment') {
+    if (requestInfo && ownProps.message.type === 'requestPayment') {
       const message = ownProps.message
       if (requestInfo.currencyCode) {
         dispatch(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode}))
       }
       dispatch(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}))
-      dispatch(WalletsGen.createSetBuildingFrom({from: defaultAccountID || ''}))
+      dispatch(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID})) // Meaning default account
       dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
       dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
       dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)}))
       dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
-    }
-  },
-  loadTxData: () => {
-    if (ownProps.message.type === 'requestPayment') {
-      dispatch(WalletsGen.createLoadRequestDetail({requestID: ownProps.message.requestID}))
     }
   },
 })
@@ -120,7 +109,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onSend: () => dispatchProps._onSend(stateProps._defaultAccountID),
+  onSend: dispatchProps.onSend,
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
