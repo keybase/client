@@ -248,7 +248,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 		TeamID:      team.ID,
 		Writers:     writers,
 		TrackBreaks: nil,
-		FolderID:    team.KBFSTLFID(),
+		FolderID:    team.LatestKBFSTLFID(),
 	}
 
 	if arg.DoIdentifies {
