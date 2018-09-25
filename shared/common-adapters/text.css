@@ -230,6 +230,16 @@
     font-weight: 400;
 }
 
+.text_BodyTinyBold {
+    font-size: 11px;
+    line-height: 15px;
+    color: rgba(0, 0, 0, 0.4);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-family: OpenSans;
+    font-weight: 700;
+}
+
 .text_BodyTinySemibold {
     font-size: 11px;
     line-height: 15px;

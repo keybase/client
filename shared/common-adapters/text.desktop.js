@@ -3,7 +3,7 @@ import * as Styles from '../styles'
 import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
-import {defaultColor, lineClamp, metaData} from './text.meta.desktop'
+import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
 import {findDOMNode} from 'react-dom'
 import shallowEqual from 'shallowequal'
 
@@ -64,7 +64,7 @@ class Text extends React.Component<Props> {
     }
 
     const style = Styles.collapseStyles([
-      getStyle(
+      fastGetStyle(
         this.props.type,
         this.props.backgroundMode,
         this.props.lineClamp,
@@ -88,7 +88,8 @@ class Text extends React.Component<Props> {
   }
 }
 
-function getStyle(
+// Only used by this file, other things (input etc) refer to this. TODO likely discuss and change how this works
+function fastGetStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
@@ -122,7 +123,41 @@ function getStyle(
     ...textDecoration,
   }
 }
-export {getStyle}
+
+// Only used by external components
+function externalGetStyle(
+  type: TextType,
+  backgroundMode?: Background = 'Normal',
+  lineClampNum?: ?number,
+  clickable?: ?boolean,
+  selectable: ?boolean
+) {
+  const meta = metaData[type]
+  const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
+  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+  const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
+  const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
+  const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
+  const selectableStyle = selectable
+    ? {
+        userSelect: 'text',
+        cursor: 'text',
+      }
+    : null
+  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null
+
+  return {
+    ...sizeStyle,
+    ...colorStyle,
+    ...cursorStyle,
+    ...lineClampStyle,
+    ...clickableStyle,
+    ...selectableStyle,
+    ...textDecoration,
+    ...meta.styleOverride,
+  }
+}
+export {externalGetStyle as getStyle}
 
 export default Text
 export {Text as TextMixed}
