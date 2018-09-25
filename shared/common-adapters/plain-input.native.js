@@ -46,6 +46,9 @@ class PlainInput extends Component<InternalProps, State> {
     this._timeoutIDs.push(setTimeout(fn, timeoutMS))
   }
 
+  // This is controlled if a value prop is passed
+  _controlled = () => typeof this.props.value === 'string'
+
   componentWillUnmount() {
     this._timeoutIDs.forEach(clearTimeout)
   }
@@ -57,8 +60,7 @@ class PlainInput extends Component<InternalProps, State> {
   }
 
   transformText = (fn: TextInfo => TextInfo) => {
-    const controlled = !!this.props.value
-    if (controlled) {
+    if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
       logger.error(errMsg)
@@ -78,8 +80,7 @@ class PlainInput extends Component<InternalProps, State> {
   getSelection = () => this._lastNativeSelection || {start: 0, end: 0}
 
   setSelection = (s: Selection) => {
-    const controlled = !!this.props.value
-    if (!controlled) {
+    if (!this._controlled()) {
       const errMsg =
         'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
       logger.error(errMsg)

@@ -23,6 +23,9 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input = ref
   }
 
+  // This is controlled if a value prop is passed
+  _controlled = () => typeof this.props.value === 'string'
+
   _onChange = ({target: {value = ''}}) => {
     this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
@@ -75,8 +78,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
-    const controlled = !!this.props.value
-    if (controlled) {
+    if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
       logger.error(errMsg)
@@ -114,8 +116,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   }
 
   setSelection = (s: Selection) => {
-    const controlled = !!this.props.value
-    if (!controlled) {
+    if (!this._controlled()) {
       const errMsg =
         'Attempted to use setSelection on uncontrolled input component. Use transformText instead'
       logger.error(errMsg)
