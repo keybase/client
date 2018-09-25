@@ -30,3 +30,10 @@ export type SearchKey = I.List<SearchString | ServiceIdWithContact>
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
 export type SearchResults = I.Map<SearchKey, Array<User>>
 export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
+
+export type TeamBuildingSubState = {
+  teamBuildingTeamSoFar: I.Set<User>,
+  teamBuildingSearchResults: SearchResults,
+  teamBuildingServiceResultCount: ServiceResultCount,
+  teamBuildingFinishedTeam: I.Set<User>,
+}

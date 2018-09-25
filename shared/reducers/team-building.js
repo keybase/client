@@ -1,30 +1,22 @@
 // @flow
 // Used in the chat reducer
 import * as I from 'immutable'
-import * as ChatTypes from '../constants/types/chat2'
+import * as Constants from '../constants/team-building'
+import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 
-// Uses ChatState and relies on these fields exisitng
-// teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.User>,
-// teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
-// teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
-// teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.User>,
-
-export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions) {
+export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
+  state: S,
+  action: TeamBuildingGen.Actions
+): S {
   switch (action.type) {
     case TeamBuildingGen.resetStore:
     case TeamBuildingGen.cancelTeamBuilding:
-      return state.merge({
-        teamBuildingTeamSoFar: I.Set(),
-        teamBuildingSearchResults: I.Map(),
-        teamBuildingServiceResultCount: I.Map(),
-        teamBuildingFinishedTeam: I.Set(),
-      })
+      return state.merge(Constants.makeSubState())
     case TeamBuildingGen.addUsersToTeamSoFar:
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
-
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
     }
     case TeamBuildingGen.searchResultsLoaded: {
@@ -40,13 +32,15 @@ export default function(state: ChatTypes.State, action: TeamBuildingGen.Actions)
       )
     }
     case TeamBuildingGen.finishedTeamBuilding:
-      return state
-        .set('teamBuildingFinishedTeam', state.teamBuildingTeamSoFar)
-        .set('teamBuildingTeamSoFar', I.Set())
+      return state.merge({
+        teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,
+        teamBuildingTeamSoFar: I.Set(),
+      })
 
     // Saga only actions
     case TeamBuildingGen.search:
       return state
+
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any

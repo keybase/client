@@ -2,6 +2,7 @@
 import logger from '../logger'
 import React from 'react'
 import * as I from 'immutable'
+import {debounce} from 'lodash-es'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {type TypedState, compose, connect, setDisplayName, createSelector} from '../util/container'
@@ -62,28 +63,14 @@ const searchResultsPropSelector = createSelector(
       services: info.serviceMap,
       prettyName: info.prettyName,
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
-      inTeam: teamSoFar.has(info),
+      inTeam: teamSoFar.some(u => u.id === info.id),
     }))
   }
 )
 
-const teamSoFarPropSelector = createSelector(
-  (state: TypedState) => state.chat2.teamBuildingTeamSoFar,
-  (teamSoFar: I.Set<User>) =>
-    teamSoFar.toArray().map(userInfo => {
-      const {username, serviceId} = parseUserId(userInfo.id)
-      return {
-        userId: userInfo.id,
-        prettyName: userInfo.prettyName,
-        service: serviceId,
-        username,
-      }
-    })
-)
-
 // TODO test this
 // Format the component is expecting, which is different than the normalized version in the store
-const deriveTeamSoFarProp = (teamSoFar: Set<User>) =>
+const deriveTeamSoFarProp = memoizeOne((teamSoFar: I.Set<User>) =>
   teamSoFar.toArray().map(userInfo => {
     const {username, serviceId} = parseUserId(userInfo.id)
     return {
@@ -93,12 +80,23 @@ const deriveTeamSoFarProp = (teamSoFar: Set<User>) =>
       username,
     }
   })
+)
+
+const deriveServiceResultCount = memoizeOne(() => ({}))
+const deriveShowServiceResultCount = memoizeOne(() => false)
+
+const deriveUserFromUserIdFn = memoizeOne((searchResults: ?Array<User>) => (userId: string): ?User =>
+  (searchResults || []).filter(u => u.id === userId)[0] || null
+)
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   return {
-    searchResults: searchResultsSelector(state, ownProps),
+    userFromUserId: deriveUserFromUserIdFn(searchResultsSelector(state, ownProps)),
     searchResultsProp: searchResultsPropSelector(state, ownProps),
     teamSoFarProp: deriveTeamSoFarProp(state.chat2.teamBuildingTeamSoFar),
+    // TODO
+    serviceResultCount: deriveServiceResultCount(),
+    showServiceResultCount: deriveShowServiceResultCount(),
   }
 }
 
@@ -106,63 +104,113 @@ const mapDispatchToProps = dispatch => ({
   _onAdd: (user: User) => dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [user]})),
   onRemove: (userId: string) => dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: [userId]})),
   onFinishTeamBuilding: () => dispatch(TeamBuildingGen.createFinishedTeamBuilding()),
-  _search: (query: string, service: ServiceIdWithContact) => {
+  _search: debounce((query: string, service: ServiceIdWithContact) => {
     dispatch(TeamBuildingGen.createSearch({query, service}))
-  },
+  }, 500),
   _onCancelTeamBuilding: () => dispatch(TeamBuildingGen.createCancelTeamBuilding()),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
-  const {teamSoFarProp, searchResultsProp, searchResults} = stateProps
-
-  const onChangeText = (newText: string) => {
-    ownProps.onChangeText(newText)
-    dispatchProps._search(newText, ownProps.selectedService)
+const deriveOnBackspace = memoizeOne(
+  <X>(
+    searchString: ?string,
+    teamSoFarProp: Array<{+userId: string} & X>,
+    onRemove: (userId: string) => void
+  ) => () => {
+    // Check if empty and we have a team so far
+    !searchString && teamSoFarProp.length && onRemove(teamSoFarProp[teamSoFarProp.length - 1].userId)
   }
+)
 
-  const onAdd = (userId: string) => {
-    if (searchResults) {
-      const user = searchResults.filter(u => u.id === userId)[0]
-      if (!user) {
-        logger.error(`Couldn't find User to add for ${userId}`)
-      }
-      ownProps.incClearTextTrigger()
-      dispatchProps._onAdd(user)
-    }
-  }
-
-  const onEnterKeyDown = () => {
+const deriveOnEnterKeyDown = memoizeOne(
+  <X, Y>(
+    searchResultsProp: Array<{+userId: string} & X>,
+    teamSoFarProp: Array<{+userId: string} & Y>,
+    highlightedIndex: ?number,
+    onAdd: (userId: string) => void,
+    onRemove: (userId: string) => void
+  ) => () => {
     if (searchResultsProp.length) {
-      const selectedResult = searchResultsProp[ownProps.highlightedIndex || 0]
+      const selectedResult = searchResultsProp[highlightedIndex || 0]
       if (selectedResult) {
-        onAdd(selectedResult.userId)
+        if (teamSoFarProp.filter(u => u.userId === selectedResult.userId).length) {
+          onRemove(selectedResult.userId)
+        } else {
+          onAdd(selectedResult.userId)
+        }
       }
     }
   }
+)
+
+const deriveOnAdd = memoizeOne(
+  (userFromUserId: (userId: string) => ?User, dispatchOnAdd: (user: User) => void, clearText: () => void) => (
+    userId: string
+  ) => {
+    const user = userFromUserId(userId)
+    if (!user) {
+      logger.error(`Couldn't find User to add for ${userId}`)
+      clearText()
+      return
+    }
+    clearText()
+    dispatchOnAdd(user)
+  }
+)
+
+const deriveOnChangeText = memoizeOne(
+  (
+    onChangeText: (newText: string) => void,
+    search: (text: string, service: ServiceIdWithContact) => void,
+    selectedService: ServiceIdWithContact
+  ) => (newText: string) => {
+    onChangeText(newText)
+    search(newText, selectedService)
+  }
+)
+
+const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
+  const {
+    teamSoFarProp,
+    searchResultsProp,
+    userFromUserId,
+    serviceResultCount,
+    showServiceResultCount,
+  } = stateProps
+
+  const onChangeText = deriveOnChangeText(
+    ownProps.onChangeText,
+    dispatchProps._search,
+    ownProps.selectedService
+  )
+
+  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.incClearTextTrigger)
+
+  const onEnterKeyDown = deriveOnEnterKeyDown(
+    searchResultsProp,
+    teamSoFarProp,
+    ownProps.highlightedIndex,
+    onAdd,
+    dispatchProps.onRemove
+  )
 
   return {
-    onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
-    onChangeText,
-    onEnterKeyDown,
-    onDownArrowKeyDown: ownProps.onDownArrowKeyDown,
-    onUpArrowKeyDown: ownProps.onUpArrowKeyDown,
-    teamSoFar: teamSoFarProp,
-    onRemove: dispatchProps.onRemove,
-    onBackspace: () => {
-      // Check if empty and we have a team so far
-      !ownProps.searchString &&
-        teamSoFarProp.length &&
-        dispatchProps.onRemove(teamSoFarProp[teamSoFarProp.length - 1].userId)
-    },
-    selectedService: ownProps.selectedService,
-    onChangeService: ownProps.onChangeService,
-    serviceResultCount: {}, // TODO
-    showServiceResultCount: false, // TODO
-    searchResults: searchResultsProp,
+    clearTextTrigger: ownProps.clearTextTrigger,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
-    clearTextTrigger: ownProps.clearTextTrigger,
+    onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFarProp, dispatchProps.onRemove),
+    onChangeService: ownProps.onChangeService,
+    onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
+    onDownArrowKeyDown: ownProps.onDownArrowKeyDown,
+    onEnterKeyDown,
+    onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
+    onRemove: dispatchProps.onRemove,
+    onUpArrowKeyDown: ownProps.onUpArrowKeyDown,
+    searchResults: searchResultsProp,
+    selectedService: ownProps.selectedService,
+    serviceResultCount,
+    showServiceResultCount,
+    teamSoFar: teamSoFarProp,
   }
 }
 

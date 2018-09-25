@@ -4,22 +4,15 @@ import * as Sb from '../stories/storybook'
 import * as Kb from '../common-adapters'
 import UserBubble from './user-bubble'
 import TeamBuilding from './index'
-import ConnectedTeamBuilding from './container'
 import Input from './input'
 import TeamBox from './team-box'
 import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 
-const provider = Sb.createPropProviderWithCommon({
-  ...Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both']),
-  TeamBuilding: {
-    searchResults: [],
-    searchResultsProp: [],
-    teamSoFarProp: [],
-    teamSoFar: [],
-  },
-})
+const provider = Sb.createPropProviderWithCommon(
+  Sb.PropProviders.Avatar(['following', 'both'], ['followers', 'both'])
+)
 
 const OutlineWrapper = ({style, children}: any) => (
   <Kb.Box2
@@ -39,14 +32,11 @@ const OutlineWrapper = ({style, children}: any) => (
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
-    .add('Connected Team Building', () => (
-      <OutlineWrapper style={{marginTop: 20, width: 460, height: 434}}>
-        <ConnectedTeamBuilding />
-      </OutlineWrapper>
-    ))
     .add('Team Building', () => (
       <OutlineWrapper style={{marginTop: 20, width: 460, height: 434}}>
         <TeamBuilding
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
           onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
           clearTextTrigger={0}
           onChangeText={Sb.action('onChangeText')}
@@ -75,12 +65,10 @@ const load = () => {
               userId: 'chris',
             },
           ]}
-          selectedService="keybase"
-          onChangeService={Sb.action('onChangeService')}
           serviceResultCount={{}}
           showServiceResultCount={false}
           onAdd={Sb.action('onAdd')}
-          highlightedIndex={2}
+          highlightedIndex={1}
           searchResults={[
             {
               userId: 'chris',
@@ -126,6 +114,7 @@ const load = () => {
         />
       </OutlineWrapper>
     ))
+
     .add('Input', () => (
       <Input
         clearTextTrigger={0}

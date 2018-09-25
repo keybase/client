@@ -37,6 +37,11 @@ type RawSearchResult = {
 const closeTeamBuilding = () => Saga.put(RouteTreeGen.createNavigateUp())
 
 const search = (_, {payload: {query, service, limit = 10}}: TeamBuildingGen.SearchPayload) => {
+  const trimmed_query = trim(query)
+  if (trimmed_query === '') {
+    return
+  }
+
   if (service === 'contact') {
     // TODO add a way to search for contacts
     return Promise.reject(new Error('Contact search is not implemented'))
@@ -44,16 +49,18 @@ const search = (_, {payload: {query, service, limit = 10}}: TeamBuildingGen.Sear
 
   return RPCTypes.apiserverGetWithSessionRpcPromise({
     args: [
-      {key: 'q', value: trim(query)},
+      {key: 'q', value: trimmed_query},
       {key: 'num_wanted', value: String(limit)},
       {key: 'service', value: service === 'keybase' ? '' : service},
       {key: 'include_services_summary', value: '1'},
     ],
     endpoint: 'user/user_search',
+  }).then(results => {
+    const users = JSON.parse(results.body)
+      .list.map(r => parseRawResultToUser(r, service))
+      .filter(u => !!u)
+    return TeamBuildingGen.createSearchResultsLoaded({users, query, service})
   })
-    .then(results => JSON.parse(results.body).list)
-    .then(results => results.map(r => parseRawResultToUser(r, service)).filter(u => !!u))
-    .then(users => TeamBuildingGen.createSearchResultsLoaded({users, query, service}))
 }
 
 const parseRawResultToUser = (

@@ -22,4 +22,11 @@ function followStateHelperWithId(
   return 'NoState'
 }
 
-export {followStateHelperWithId}
+const makeSubState = (): Types.TeamBuildingSubState => ({
+  teamBuildingTeamSoFar: I.Set(),
+  teamBuildingSearchResults: I.Map(),
+  teamBuildingServiceResultCount: I.Map(),
+  teamBuildingFinishedTeam: I.Set(),
+})
+
+export {followStateHelperWithId, makeSubState}

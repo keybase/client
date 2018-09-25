@@ -54,13 +54,7 @@ export type _State = {
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
-
-  // TeamBuilding
-  teamBuildingSearchResults: TeamBuildingTypes.SearchResults,
-  teamBuildingServiceResultCount: TeamBuildingTypes.ServiceResultCount,
-  teamBuildingTeamSoFar: I.Set<TeamBuildingTypes.User>,
-  teamBuildingFinishedTeam: I.Set<TeamBuildingTypes.User>,
-}
+} & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>
 

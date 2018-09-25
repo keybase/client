@@ -41,12 +41,6 @@ export type Props = {
   clearTextTrigger: number,
 }
 
-// const searchResultToUser = (result: SearchResult): User => ({
-// serviceMap: I.Map(result.services),
-// id: result.userId,
-// prettyName: result.prettyName,
-// })
-
 const TeamBuilding = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
     <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -73,6 +67,7 @@ const TeamBuilding = (props: Props) => (
     ) : (
       <Kb.List
         items={props.searchResults}
+        selectedIndex={props.highlightedIndex || 0}
         renderItem={(index, result) => (
           <UserResult
             key={result.userId}
