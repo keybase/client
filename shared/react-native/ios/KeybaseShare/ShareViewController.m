@@ -307,7 +307,7 @@ const BOOL isSimulator = NO;
     [imageData writeToFile:filename atomically:YES];
     [self handleFileURL:url item:item lastItem:lastItem];
     
-    [[NSFileManager new] removeItemAtPath:filename error:&error];
+    [[NSFileManager defaultManager] removeItemAtPath:filename error:&error];
     if (error != nil) {
       NSLog(@"unable to remove temp file: %@", error);
     }
