@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -118,4 +119,8 @@ func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) 
 
 func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.TeamID) (keybase1.KBFSTeamSettings, error) {
 	return teams.GetKBFSTeamSettings(ctx, h.G(), teamID.IsPublic(), teamID)
+}
+
+func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg) error {
+	return tlfupgrade.UpgradeTLFForKBFS(ctx, h.G(), arg.TlfName, arg.Public)
 }
