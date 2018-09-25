@@ -666,6 +666,18 @@ func NewWebUnreachableError(h string) WebUnreachableError {
 
 //=============================================================================
 
+type ProtocolSchemeMismatch struct {
+	msg string
+}
+
+func (h ProtocolSchemeMismatch) Error() string {
+	return h.msg
+}
+func NewProtocolSchemeMismatch(msg string) ProtocolSchemeMismatch {
+	return ProtocolSchemeMismatch{msg: msg}
+}
+
+//=============================================================================
 type ProtocolDowngradeError struct {
 	msg string
 }

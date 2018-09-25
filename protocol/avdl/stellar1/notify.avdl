@@ -7,7 +7,7 @@ protocol notify {
   void paymentNotification(AccountID accountID, PaymentID paymentID);
 
   @notify("")
-  void paymentStatusNotification(KeybaseTransactionID kbTxID, TransactionID txID);
+  void paymentStatusNotification(AccountID accountID, PaymentID paymentID);
 
   @notify("")
   void requestStatusNotification(KeybaseRequestID reqID);

@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
@@ -330,7 +331,14 @@ func doRequestShared(m MetaContext, api Requester, arg APIArg, req *http.Request
 	}
 
 	if wantJSONRes {
-		reader := newCountingReader(internalResp.Body)
+		var buf bytes.Buffer
+		bodyTee := io.TeeReader(internalResp.Body, &buf)
+		err = jsonw.EnsureMaxDepthDefault(bufio.NewReader(bodyTee))
+		if err != nil {
+			return nil, finisher, nil, err
+		}
+
+		reader := newCountingReader(&buf)
 		decoder := json.NewDecoder(reader)
 		var obj interface{}
 		decoder.UseNumber()
