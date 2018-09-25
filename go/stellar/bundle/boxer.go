@@ -14,10 +14,12 @@ import (
 )
 
 /*
-The client posts to the server the bundle in 3 parts:
+The client posts to the server the bundle in 4 parts:
+
 1. bundle_encrypted = b64(msgpack(EncryptedStellarBundle))
-2. bundle_visible = b64(msgpack(StellarBundleVisibleV1))
-3. format_version = StellarBundleSecretVersioned.Version
+2. bundle_mobile_encrypted = b64(msgpack(EncryptedStellarBundle))
+3. bundle_visible = b64(msgpack(StellarBundleVisibleV1))
+4. format_version = StellarBundleSecretVersioned.Version
 
 EncryptedStellarBundle := secretbox(key, bundlepack, randomnonce).
 key := HMAC(PUKSeed[gen], "Derived-User-NaCl-SecretBox-StellarBundle-1")
@@ -27,6 +29,8 @@ bundlepack := msgpack(StellarBundleSecretVersioned)
 type BoxResult struct {
 	Enc           stellar1.EncryptedBundle
 	EncB64        string // base64 msgpack'd Enc
+	MobileEnc     stellar1.EncryptedBundle
+	MobileEncB64  string // base64 msgpack'd MobileEnc
 	VisB64        string // base64 msgpack'd Vis
 	FormatVersion stellar1.BundleVersion
 }
@@ -38,8 +42,9 @@ func Box(bundle stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration,
 	if err != nil {
 		return res, err
 	}
+
 	accountsVisible, accountsSecret, accountsMobileSecret := accountsSplit(bundle.Accounts)
-	_ = accountsMobileSecret
+
 	res.FormatVersion = stellar1.BundleVersion_V1
 	visibleV1 := stellar1.BundleVisibleV1{
 		Revision: bundle.Revision,
@@ -52,11 +57,27 @@ func Box(bundle stellar1.Bundle, pukGen keybase1.PerUserKeyGeneration,
 	}
 	res.VisB64 = base64.StdEncoding.EncodeToString(visiblePack)
 	visibleHash := sha256.Sum256(visiblePack)
+
 	versionedSecret := stellar1.NewBundleSecretVersionedWithV1(stellar1.BundleSecretV1{
 		VisibleHash: visibleHash[:],
 		Accounts:    accountsSecret,
 	})
 	res.Enc, res.EncB64, err = Encrypt(versionedSecret, pukGen, puk)
+	if err != nil {
+		return res, err
+	}
+
+	if len(accountsMobileSecret) > 0 {
+		mobileSecret := stellar1.NewBundleSecretVersionedWithV1(stellar1.BundleSecretV1{
+			VisibleHash: visibleHash[:],
+			Accounts:    accountsMobileSecret,
+		})
+		res.MobileEnc, res.MobileEncB64, err = Encrypt(mobileSecret, pukGen, puk)
+		if err != nil {
+			return res, err
+		}
+	}
+
 	return res, err
 }
 
@@ -207,11 +228,21 @@ func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibl
 			Mode:      acc.Mode,
 			IsPrimary: acc.IsPrimary,
 		})
-		sec = append(sec, stellar1.BundleSecretEntry{
-			AccountID: acc.AccountID,
-			Signers:   acc.Signers,
-			Name:      acc.Name,
-		})
+
+		switch acc.Mode {
+		case stellar1.AccountMode_USER:
+			sec = append(sec, stellar1.BundleSecretEntry{
+				AccountID: acc.AccountID,
+				Signers:   acc.Signers,
+				Name:      acc.Name,
+			})
+		case stellar1.AccountMode_MOBILE:
+			mobile = append(sec, stellar1.BundleSecretEntry{
+				AccountID: acc.AccountID,
+				Signers:   acc.Signers,
+				Name:      acc.Name,
+			})
+		}
 	}
 	return vis, sec, mobile
 }

@@ -63,6 +63,8 @@ func TestBundleRoundtrip(t *testing.T) {
 	require.Equal(t, 2, res.Enc.V)
 	require.True(t, len(res.Enc.E) > 100)
 	require.Equal(t, pukGen, res.Enc.Gen)
+	require.Empty(t, res.MobileEnc.E)
+	require.Empty(t, res.MobileEncB64)
 
 	dec2, err := Decode(res.EncB64)
 	require.NoError(t, err)
