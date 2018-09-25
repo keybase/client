@@ -3,8 +3,11 @@ import * as React from 'react'
 import {VirtualizedList} from 'react-native'
 
 class NativeVirtualizedList extends React.Component<React.ElementProps<VirtualizedList>> {
-  _mounted = true
+  _mounted = false
 
+  componentDidMount() {
+    this._mounted = true
+  }
   componentWillUnmount() {
     this._mounted = false
   }

@@ -156,7 +156,7 @@ function renderStackRoute(route, shouldRender) {
 
 class MainNavStack extends Component<any, {verticalOffset: number}> {
   _listener = null
-  _mounted = true
+  _mounted = false
   state = {
     verticalOffset: 0,
   }
