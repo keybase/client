@@ -786,6 +786,9 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
       const {conversationIDKey, messageID, requestInfo} = action.payload
       return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
     }
+    case Chat2Gen.handleSeeingWallets: // fallthrough
+    case Chat2Gen.setWalletsOld:
+      return state.isWalletsNew ? state.set('isWalletsNew', false) : state
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:

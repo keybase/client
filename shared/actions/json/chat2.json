@@ -424,6 +424,12 @@
       "_description":
         "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     },
+    "setWalletsOld": {
+      "_description": "Set that wallets in chat is not new."
+    },
+    "handleSeeingWallets": {
+      "_description": "The user has interacted with wallets in chat."
+    },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
