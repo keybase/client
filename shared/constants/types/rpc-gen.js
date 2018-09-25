@@ -537,6 +537,7 @@ export const proveCommonProofType = {
   coinbase: 5,
   hackernews: 6,
   facebook: 8,
+  genericSocial: 9,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
@@ -663,6 +664,12 @@ export const simpleFSPathType = {
 export const simpleFSRevisionSpanType = {
   default: 0,
   lastFive: 1,
+}
+
+export const teamsAuditVersion = {
+  v0: 0,
+  v1: 1,
+  v2: 2,
 }
 
 export const teamsSeitanKeyAndLabelVersion = {

@@ -4,7 +4,7 @@ import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../co
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
 
 export type Props = {
-  attachTo: () => ?React.ElementRef<any>,
+  attachTo: () => ?React.Component<any>,
   description: string,
   following: {[key: string]: true},
   memberCount: number,

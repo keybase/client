@@ -39,7 +39,9 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
 
   return items.length > 3
     ? {
-        dropdownItems: items.slice(0, items.length - 2),
+        // Note that .reverse() is in-place, so call it here instead of in
+        // component.
+        dropdownItems: items.slice(0, items.length - 2).reverse(),
         shownItems: items.slice(items.length - 2),
       }
     : {

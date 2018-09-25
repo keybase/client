@@ -666,6 +666,18 @@ func NewWebUnreachableError(h string) WebUnreachableError {
 
 //=============================================================================
 
+type ProtocolSchemeMismatch struct {
+	msg string
+}
+
+func (h ProtocolSchemeMismatch) Error() string {
+	return h.msg
+}
+func NewProtocolSchemeMismatch(msg string) ProtocolSchemeMismatch {
+	return ProtocolSchemeMismatch{msg: msg}
+}
+
+//=============================================================================
 type ProtocolDowngradeError struct {
 	msg string
 }
@@ -1251,20 +1263,6 @@ type MerkleClashError struct {
 
 func (m MerkleClashError) Error() string {
 	return fmt.Sprintf("Merkle tree clashed with server reply: %s", m.c)
-}
-
-//=============================================================================
-
-type PvlSourceError struct {
-	msg string
-}
-
-func (e PvlSourceError) Error() string {
-	return fmt.Sprintf("PvlSource: %s", e.msg)
-}
-
-func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
-	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
 }
 
 //=============================================================================

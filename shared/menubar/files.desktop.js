@@ -37,7 +37,7 @@ const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
       <Kb.Icon type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
-      <Kb.Text type="BodySecondaryLink">
+      <Kb.Text type="BodySecondaryLink" style={styles.fileUpdateName}>
         {props.name}
       </Kb.Text>
     </Kb.Box2>
@@ -100,7 +100,6 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
           usernames={[props.writer]}
-          onUsernameClicked="profile"
           type="BodySemibold"
           underline={true}
           colorFollowing={true}
@@ -181,6 +180,11 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xtiny,
     alignItems: 'center',
   },
+  fileUpdateName: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,

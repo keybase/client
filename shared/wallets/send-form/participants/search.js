@@ -5,10 +5,12 @@ import ResultsList from '../../../search/results-list/container'
 import UserInput from '../../../search/user-input/container'
 import {Box2} from '../../../common-adapters'
 import {ParticipantsRow} from '../../common'
+import {searchKey} from '../../../constants/wallets'
 
 export type SearchProps = {|
   onClickResult: (username: string) => void,
   onClose: () => void,
+  onShowSuggestions: () => void,
   onShowTracker: (username: string) => void,
 |}
 
@@ -17,7 +19,6 @@ type SearchState = {|
   hideClearSearch: boolean,
 |}
 
-const searchKey = 'walletSearch'
 const placeholder = 'Search Keybase'
 
 // TODO: Once UserInput is cleaned up, we may be able to stretch it
@@ -26,6 +27,10 @@ class Search extends React.Component<SearchProps, SearchState> {
   state = {
     displayResultsList: false,
     hideClearSearch: true,
+  }
+
+  componentDidMount() {
+    this.props.onShowSuggestions()
   }
 
   onFocus = () => {

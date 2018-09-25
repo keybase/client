@@ -15,6 +15,7 @@ type ToFieldProps = {|
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
   // Used for sending to a stellar address.
   incorrect?: string,
@@ -60,8 +61,8 @@ class ToField extends React.Component<ToFieldProps> {
 
     // There are a few different ways the participants form can look:
     // Case 1: A user has been set, so we display their name and avatar
-    // We can only get this case when the recipient is a stellar address or searched user, not another account.
-    if (this.props.recipientUsername && this.props.recipientType !== 'otherAccount') {
+    // We can only get this case when the recipient is a searched user, not another account.
+    if (this.props.recipientUsername && this.props.recipientType === 'keybaseUser') {
       component = (
         <React.Fragment>
           <Kb.ConnectedNameWithIcon
@@ -160,6 +161,7 @@ class ToField extends React.Component<ToFieldProps> {
         <Search
           onClickResult={this.onSelectRecipient}
           onClose={() => {}}
+          onShowSuggestions={this.props.onShowSuggestions}
           onShowTracker={this.props.onShowProfile}
         />
       )

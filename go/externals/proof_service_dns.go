@@ -27,7 +27,7 @@ func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError)
 
 func (rc *DNSChecker) GetTorError() libkb.ProofError { return libkb.ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU libkb.PvlUnparsed) libkb.ProofError {
+func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
 	if pcm != libkb.ProofCheckerModeActive {
 		m.CDebugf("DNS check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
 		return libkb.ProofErrorUnchecked
@@ -69,7 +69,8 @@ func (t DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostProofRes) (string, error) {
+func (t DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostProofRes,
+	kbUsername string, sigID keybase1.SigID) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 

@@ -40,6 +40,8 @@ export type Props = {|
 const HoverBox = Styles.isMobile
   ? LongPressable
   : Styles.glamorous(Box2)(props => ({
+      paddingTop: 2,
+      paddingBottom: 2,
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
@@ -147,7 +149,7 @@ type MenuButtonsProps = {
   isRevoked: boolean,
   message: Types.Message,
   ordinal: Types.Ordinal,
-  setAttachmentRef: ?(ref: ?React.Component<any, any>) => void,
+  setAttachmentRef: (ref: ?React.Component<any>) => void,
   setShowingPicker: boolean => void,
   toggleShowingMenu: () => void,
 }

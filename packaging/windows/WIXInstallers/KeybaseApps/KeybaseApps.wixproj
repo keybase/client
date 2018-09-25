@@ -12,6 +12,23 @@
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <Name>KeybaseApps</Name>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <DefineConstants>Debug;GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</DefineConstants>
+    <SuppressIces>ICE20;ICE38</SuppressIces>
+    <CompilerAdditionalOptions />
+    <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>obj\$(Platform)\$(Configuration)\</IntermediateOutputPath>
+    <SuppressValidation>False</SuppressValidation>
+    <SuppressIces>ICE20;ICE38;ICE91;ICE60</SuppressIces>
+    <DefineConstants>GuiSourceDir=$(GOPATH)\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64</DefineConstants>
+    <CompilerAdditionalOptions />
+    <LinkerAdditionalOptions>-ext WixUtilExtension.dll</LinkerAdditionalOptions>
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <OutputPath>bin\$(Configuration)\</OutputPath>
     <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
@@ -37,10 +54,10 @@
   </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
-    <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /i "%25CERTISSUER%25" "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
+    <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" "%25SIGNTOOL%25" sign /v /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /i "%25CERTISSUER%25" /sha1 EB187C8CBF63D8CA0DFB3CBA97E8E310FC3FDE52 "$(TargetDir)$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-ia32\Keybase-win32-ia32 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
+    <PreBuildEvent>"%25WIX%25bin\heat" dir %25GOPATH%25\src\github.com\keybase\client\shared\desktop\release\win32-x64\Keybase-win32-x64 -cg GuiComps -ag -sfrag -template fragment  -var var.GuiSourceDir  -dr INSTALLFOLDER -t $(ProjectDir)\gui.xsl -out $(ProjectDir)\gui.wxs
 cd /d "$(ProjectDir)"
 if NOT exist Redist\dokan-dev\1.1.0.2000\DokanSetup_redist.exe (
       if NOT exist Redist\ mkdir Redist

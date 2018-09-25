@@ -8,14 +8,16 @@ import (
 )
 
 type PaymentStatusMsg struct {
-	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
-	TxID   TransactionID        `codec:"txID" json:"txID"`
+	AccountID AccountID            `codec:"accountID" json:"accountID"`
+	KbTxID    KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
+	TxID      TransactionID        `codec:"txID" json:"txID"`
 }
 
 func (o PaymentStatusMsg) DeepCopy() PaymentStatusMsg {
 	return PaymentStatusMsg{
-		KbTxID: o.KbTxID.DeepCopy(),
-		TxID:   o.TxID.DeepCopy(),
+		AccountID: o.AccountID.DeepCopy(),
+		KbTxID:    o.KbTxID.DeepCopy(),
+		TxID:      o.TxID.DeepCopy(),
 	}
 }
 

@@ -467,7 +467,7 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
 	if err == nil {
 		res.TeamID = team.ID
-		res.TlfID = team.KBFSTLFID()
+		res.TlfID = team.LatestKBFSTLFID()
 	}
 	return res, err
 }
@@ -484,7 +484,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 		arg.Name, arg.Public)
 	if err == nil {
 		res.TeamID = team.ID
-		res.TlfID = team.KBFSTLFID()
+		res.TlfID = team.LatestKBFSTLFID()
 	}
 	return res, err
 }

@@ -5,7 +5,7 @@ import * as TeamConstants from '../../../../../constants/teams'
 import * as Types from '../../../../../constants/types/chat2'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Route from '../../../../../actions/route-tree'
 import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
@@ -14,7 +14,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Exploding from '.'
 
 export type OwnProps = {
-  attachTo: () => ?React.ElementRef<any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,
@@ -96,7 +96,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
       ownProps.message.downloadPath &&
-      dispatch(KBFSGen.createOpenInFileUI({path: ownProps.message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: ownProps.message.downloadPath}))
   },
 })
 

@@ -82,7 +82,8 @@ type GlobalContext struct {
 	itciCacher       LRUer            // Cacher for implicit team conflict info
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
-	pvlSource        PvlSource        // a cache and fetcher for pvl
+	pvlSource        MerkleStore      // a cache and fetcher for pvl
+	paramProofStore  MerkleStore      // a cache and fetcher for param proofs
 	PayloadCache     *PayloadCache    // cache of ChainLink payload json wrappers
 
 	GpgClient        *GpgCLI        // A standard GPG-client (optional)
@@ -596,8 +597,12 @@ func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	return g.fullSelfer
 }
 
+func (g *GlobalContext) GetParamProofStore() MerkleStore {
+	return g.paramProofStore
+}
+
 // to implement ProofContext
-func (g *GlobalContext) GetPvlSource() PvlSource {
+func (g *GlobalContext) GetPvlSource() MerkleStore {
 	return g.pvlSource
 }
 
@@ -1038,7 +1043,13 @@ func (g *GlobalContext) SetProofServices(s ExternalServicesCollector) {
 	g.proofServices = s
 }
 
-func (g *GlobalContext) SetPvlSource(s PvlSource) {
+func (g *GlobalContext) SetParamProofStore(s MerkleStore) {
+	g.cacheMu.Lock()
+	defer g.cacheMu.Unlock()
+	g.paramProofStore = s
+}
+
+func (g *GlobalContext) SetPvlSource(s MerkleStore) {
 	g.cacheMu.Lock()
 	defer g.cacheMu.Unlock()
 	g.pvlSource = s

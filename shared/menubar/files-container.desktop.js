@@ -7,6 +7,8 @@ import * as FsConstants from '../constants/fs'
 import * as TimestampUtil from '../util/timestamp'
 import {FilesPreview, type UserTlfUpdateRowProps} from './files.desktop'
 import {remoteConnect, compose} from '../util/container'
+import * as SafeElectron from '../util/safe-electron.desktop'
+import {throttle} from 'lodash'
 
 const mapStateToProps = (state) => ({
   _username: state.username,
@@ -49,8 +51,11 @@ type TlfUpdateHocProps = {|
 
 const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<TlfUpdateHocProps> {
-    componentDidMount() {
-      this.props.loadTlfUpdates()
+    _refresh = throttle(() => this.props.loadTlfUpdates(), 1000 * 5)
+    componentDidMount = () => {
+      SafeElectron.getRemote()
+        .getCurrentWindow()
+        .on('show', this._refresh)
     }
     render() {
       return <ComposedComponent {...this.props} />

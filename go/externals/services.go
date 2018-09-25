@@ -5,11 +5,16 @@ package externals
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"sync"
 
 	libkb "github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
+
+// SupportedVersion is which version of ParamProofs is supported by this client.
+const SupportedVersion int = 1
 
 // staticProofServies are only used for testing or for basic assertion
 // validation
@@ -59,6 +64,10 @@ type proofServices struct {
 }
 
 func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
+	return newProofServices(g)
+}
+
+func newProofServices(g *libkb.GlobalContext) *proofServices {
 	p := &proofServices{
 		Contextified: libkb.NewContextified(g),
 		collection:   make(map[string]libkb.ServiceType),
@@ -101,24 +110,50 @@ func (p *proofServices) ListProofCheckers() []string {
 }
 
 func (p *proofServices) loadParamProofServices() {
-	// TODO need to hook this into storage for parameterized configs, CORE-8655
 	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
-	if !shouldRun || p.loaded {
+	if !shouldRun {
 		return
 	}
 
-	loader := NullConfigLoader{}
-	proofTypes, err := loader.LoadAll()
+	mctx := libkb.NewMetaContext(context.TODO(), p.G())
+	entry, err := p.G().GetParamProofStore().GetLatestEntry(mctx)
 	if err != nil {
-		// TODO CORE-8655
-		p.G().Log.CDebugf(context.TODO(), "unable to load configs: %v", err)
+		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
+		return
+	}
+	serviceConfigs, err := p.parseServiceConfigs(entry)
+	if err != nil {
+		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
 	}
 	services := []libkb.ServiceType{}
-	for _, params := range proofTypes {
-		services = append(services, NewParamProofServiceType(params))
+	for _, config := range serviceConfigs {
+		services = append(services, NewGenericSocialProofServiceType(config))
 	}
 	p.register(services)
-	p.loaded = true
+}
+
+type proofServicesT struct {
+	Services []keybase1.ParamProofServiceConfig `json:"services"`
+}
+
+func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (res []*GenericSocialProofConfig, err error) {
+	b := []byte(entry.Entry)
+	services := proofServicesT{}
+
+	if err := json.Unmarshal(b, &services); err != nil {
+		return nil, err
+	}
+
+	// Do some basic validation of what we parsed
+	for _, config := range services.Services {
+		validConf, err := NewGenericSocialProofConfig(config)
+		if err != nil {
+			p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", config.DisplayName, err)
+			continue
+		}
+		res = append(res, validConf)
+	}
+	return res, nil
 }

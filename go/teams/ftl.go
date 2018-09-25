@@ -39,7 +39,7 @@ type FastTeamChainLoader struct {
 	lruMutex sync.RWMutex
 	lru      *lru.Cache
 
-	// Feature-flagging is power by the server. If we get feature flagged off, we
+	// Feature-flagging is powered by the server. If we get feature flagged off, we
 	// won't retry for another hour.
 	featureFlagGate *libkb.FeatureFlagGate
 }
@@ -50,7 +50,7 @@ const FTLVersion = 1
 func NewFastTeamLoader(g *libkb.GlobalContext) *FastTeamChainLoader {
 	ret := &FastTeamChainLoader{
 		world:           NewLoaderContextFromG(g),
-		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, time.Hour),
+		featureFlagGate: libkb.NewFeatureFlagGate(libkb.FeatureFTL, 2*time.Minute),
 	}
 	ret.newLRU()
 	return ret
@@ -102,6 +102,20 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	return res, nil
 }
 
+// VerifyTeamName verifies that the given ID aligns with the given name, using the Merkle tree only
+// (and not verifying sigs along the way).
+func (f *FastTeamChainLoader) VerifyTeamName(m libkb.MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) (err error) {
+	m = m.WithLogTag("FTL")
+	defer m.CTrace(fmt.Sprintf("FastTeamChainLoader#VerifyTeamName(%v,%s)", id, name.String()), func() error { return err })()
+	_, err = f.Load(m, keybase1.FastTeamLoadArg{
+		ID:             id,
+		Public:         id.IsPublic(),
+		AssertTeamName: &name,
+		ForceRefresh:   forceRefresh,
+	})
+	return err
+}
+
 func (f *FastTeamChainLoader) loadOneAttempt(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 
 	if arg.ID.IsPublic() != arg.Public {
@@ -150,7 +164,7 @@ func (f *FastTeamChainLoader) verifyTeamNameViaParentLoad(m libkb.MetaContext, i
 			ForceRefresh: forceRefresh,
 		},
 		downPointersNeeded: []keybase1.Seqno{parent.ParentSeqno},
-		needFreshState:     true,
+		needLatestName:     true,
 		readSubteamID:      bottomSubteam,
 	})
 	if err != nil {
@@ -184,13 +198,14 @@ type fastLoadArg struct {
 	keybase1.FastTeamLoadArg
 	downPointersNeeded []keybase1.Seqno
 	readSubteamID      keybase1.TeamID
-	needFreshState     bool
+	needLatestName     bool
 }
 
-// NeedFresh returns true if the load argument implies that we need a refreshment
-// of the local cache for this team.
-func (a fastLoadArg) NeedFresh() bool {
-	return a.needFreshState || a.NeedLatestKey
+// needChainTail returns true if the argument mandates that we need a reasonably up-to-date chain tail,
+// let's say to figure out what this team is currently named, or to figure out the most recent
+// encryption key to encrypt new messages for.
+func (a fastLoadArg) needChainTail() bool {
+	return a.needLatestName || a.NeedLatestKey
 }
 
 // load acquires a lock by team ID, and the runs loadLocked.
@@ -494,16 +509,16 @@ func (s *shoppingList) addDownPointer(seqno keybase1.Seqno) {
 func (s *shoppingList) computeWithPreviousState(m libkb.MetaContext, arg fastLoadArg, state *keybase1.FastTeamData) {
 	cachedAt := state.CachedAt.Time()
 	s.linksSince = state.Chain.Last.Seqno
-	if arg.NeedFresh() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
+	if arg.needChainTail() && m.G().Clock().Now().Sub(cachedAt) > time.Hour {
 		m.CDebugf("cached value is more than an hour old (cached at %s)", cachedAt)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && arg.ForceRefresh {
-		m.CDebugf("refresh forced via argument")
+	if arg.needChainTail() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
+		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
 		s.needRefresh = true
 	}
-	if arg.NeedFresh() && state.LatestSeqnoHint > state.Chain.Last.Seqno {
-		m.CDebugf("cached value is stale: seqno %d > %d", state.LatestSeqnoHint, state.Chain.Last.Seqno)
+	if arg.ForceRefresh {
+		m.CDebugf("refresh forced via flag")
 		s.needRefresh = true
 	}
 	if !stateHasKeys(m, s, arg, state) {
@@ -1179,6 +1194,7 @@ func (f *FastTeamChainLoader) getLRU() *lru.Cache {
 // OnLogout is called when the user logs out, which pruges the LRU.
 func (f *FastTeamChainLoader) OnLogout() {
 	f.newLRU()
+	f.featureFlagGate.Clear()
 }
 
 func (f *FastTeamChainLoader) HintLatestSeqno(m libkb.MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) (err error) {

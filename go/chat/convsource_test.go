@@ -689,6 +689,16 @@ func (f failingRemote) UpgradeKBFSToImpteam(ctx context.Context, tlfID chat1.TLF
 	return nil
 }
 
+func (f failingRemote) RegisterSharePost(ctx context.Context, _ chat1.RegisterSharePostArg) error {
+	require.Fail(f.t, "RegisterSharePost")
+	return nil
+}
+
+func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostArg) error {
+	require.Fail(f.t, "FailSharePost")
+	return nil
+}
+
 type failingTlf struct {
 	t *testing.T
 }
@@ -1269,7 +1279,7 @@ func TestClearFromDelete(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, chat1.MessageID(4), delMsg.GetMessageID())
 
-	require.NoError(t, hcs.storage.MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+	require.NoError(t, hcs.storage.Nuke(context.TODO(), conv.GetConvID(), uid))
 	_, err = hcs.GetMessages(ctx, conv, uid, []chat1.MessageID{3, 2}, nil)
 	require.NoError(t, err)
 	tv, err := hcs.PullLocalOnly(ctx, conv.GetConvID(), uid, nil, nil, 0)

@@ -30,7 +30,7 @@ type HeaderProps = {|
 
 type Props = {|
   ...HeaderProps,
-  attachTo?: () => ?React.ElementRef<any>,
+  attachTo?: () => ?React.Component<any>,
   onCancel: ?() => void, // if falsy tx is not cancelable
   onHidden: () => void,
   position: Position,

@@ -828,9 +828,9 @@ func (o FastTeamSigChainState) DeepCopy() FastTeamSigChainState {
 
 type Audit struct {
 	Time           Time  `codec:"time" json:"time"`
-	MaxMerkleSeqno Seqno `codec:"maxMerkleSeqno" json:"maxMerkleSeqno"`
-	MaxChainSeqno  Seqno `codec:"maxChainSeqno" json:"maxChainSeqno"`
-	MaxMerkleProbe Seqno `codec:"maxMerkleProbe" json:"maxMerkleProbe"`
+	MaxMerkleSeqno Seqno `codec:"mms" json:"mms"`
+	MaxChainSeqno  Seqno `codec:"mcs" json:"mcs"`
+	MaxMerkleProbe Seqno `codec:"mmp" json:"mmp"`
 }
 
 func (o Audit) DeepCopy() Audit {
@@ -843,8 +843,8 @@ func (o Audit) DeepCopy() Audit {
 }
 
 type Probe struct {
-	Index     int   `codec:"i" json:"index"`
-	TeamSeqno Seqno `codec:"s" json:"teamSeqno"`
+	Index     int   `codec:"i" json:"i"`
+	TeamSeqno Seqno `codec:"s" json:"t"`
 }
 
 func (o Probe) DeepCopy() Probe {
@@ -854,13 +854,44 @@ func (o Probe) DeepCopy() Probe {
 	}
 }
 
+type AuditVersion int
+
+const (
+	AuditVersion_V0 AuditVersion = 0
+	AuditVersion_V1 AuditVersion = 1
+	AuditVersion_V2 AuditVersion = 2
+)
+
+func (o AuditVersion) DeepCopy() AuditVersion { return o }
+
+var AuditVersionMap = map[string]AuditVersion{
+	"V0": 0,
+	"V1": 1,
+	"V2": 2,
+}
+
+var AuditVersionRevMap = map[AuditVersion]string{
+	0: "V0",
+	1: "V1",
+	2: "V2",
+}
+
+func (e AuditVersion) String() string {
+	if v, ok := AuditVersionRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type AuditHistory struct {
-	ID               TeamID          `codec:"ID" json:"ID"`
-	Public           bool            `codec:"public" json:"public"`
-	PriorMerkleSeqno Seqno           `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
-	Audits           []Audit         `codec:"audits" json:"audits"`
-	PreProbes        map[Seqno]Probe `codec:"preProbes" json:"preProbes"`
-	PostProbes       map[Seqno]Probe `codec:"postProbes" json:"postProbes"`
+	ID               TeamID           `codec:"ID" json:"ID"`
+	Public           bool             `codec:"public" json:"public"`
+	PriorMerkleSeqno Seqno            `codec:"priorMerkleSeqno" json:"priorMerkleSeqno"`
+	Version          AuditVersion     `codec:"version" json:"version"`
+	Audits           []Audit          `codec:"audits" json:"audits"`
+	PreProbes        map[Seqno]Probe  `codec:"preProbes" json:"preProbes"`
+	PostProbes       map[Seqno]Probe  `codec:"postProbes" json:"postProbes"`
+	Tails            map[Seqno]LinkID `codec:"tails" json:"tails"`
 }
 
 func (o AuditHistory) DeepCopy() AuditHistory {
@@ -868,6 +899,7 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 		ID:               o.ID.DeepCopy(),
 		Public:           o.Public,
 		PriorMerkleSeqno: o.PriorMerkleSeqno.DeepCopy(),
+		Version:          o.Version.DeepCopy(),
 		Audits: (func(x []Audit) []Audit {
 			if x == nil {
 				return nil
@@ -903,6 +935,18 @@ func (o AuditHistory) DeepCopy() AuditHistory {
 			}
 			return ret
 		})(o.PostProbes),
+		Tails: (func(x map[Seqno]LinkID) map[Seqno]LinkID {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[Seqno]LinkID, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.Tails),
 	}
 }
 
@@ -1167,7 +1211,7 @@ type TeamSigChainState struct {
 	ObsoleteInvites  map[TeamInviteID]TeamInvite                       `codec:"obsoleteInvites" json:"obsoleteInvites"`
 	Open             bool                                              `codec:"open" json:"open"`
 	OpenTeamJoinAs   TeamRole                                          `codec:"openTeamJoinAs" json:"openTeamJoinAs"`
-	TlfID            TLFID                                             `codec:"tlfID" json:"tlfID"`
+	TlfIDs           []TLFID                                           `codec:"tlfIDs" json:"tlfIDs"`
 	TlfLegacyUpgrade map[TeamApplication]TeamLegacyTLFUpgradeChainInfo `codec:"tlfLegacyUpgrade" json:"tlfLegacyUpgrade"`
 	HeadMerkle       *MerkleRootV2                                     `codec:"headMerkle,omitempty" json:"headMerkle,omitempty"`
 }
@@ -1309,7 +1353,17 @@ func (o TeamSigChainState) DeepCopy() TeamSigChainState {
 		})(o.ObsoleteInvites),
 		Open:           o.Open,
 		OpenTeamJoinAs: o.OpenTeamJoinAs.DeepCopy(),
-		TlfID:          o.TlfID.DeepCopy(),
+		TlfIDs: (func(x []TLFID) []TLFID {
+			if x == nil {
+				return nil
+			}
+			ret := make([]TLFID, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.TlfIDs),
 		TlfLegacyUpgrade: (func(x map[TeamApplication]TeamLegacyTLFUpgradeChainInfo) map[TeamApplication]TeamLegacyTLFUpgradeChainInfo {
 			if x == nil {
 				return nil

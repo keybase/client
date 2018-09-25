@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, SectionList, Text} from '../../common-adapters'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
-import {globalColors, globalMargins, styleSheetCreate} from '../../styles'
 
 type Props = {
   accountID: Types.AccountID,
@@ -14,19 +14,21 @@ type Props = {
 }
 
 const HistoryPlaceholder = () => (
-  <Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.historyPlaceholder}>
-    <Text type="BodySmall" style={styles.historyPlaceholderText}>
+  <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.historyPlaceholder}>
+    <Kb.Text type="BodySmall" style={styles.historyPlaceholderText}>
       You don’t have any history with this account.
-    </Text>
-  </Box2>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 const Wallet = (props: Props) => {
   const renderItem = ({item, index, section}) => {
     const children = []
-    if (section.title === 'Your assets') {
+    if (item === 'notLoadedYet') {
+      children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+    } else if (section.title === 'Your assets') {
       children.push(<Asset accountID={props.accountID} index={item} key={`${props.accountID}:${item}`} />)
-    } else if (item === 'historyPlaceholder') {
+    } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'History' || section.title === 'Pending') {
       children.push(
@@ -40,40 +42,45 @@ const Wallet = (props: Props) => {
     }
     if (index !== section.data.length - 1) {
       // don't put divider after last thing in section
-      children.push(<Divider key={`${props.accountID}:${item}:divider`} />)
+      children.push(<Kb.Divider key={`${props.accountID}:${item}:divider`} />)
     }
     // TODO
     return children
   }
 
   const renderSectionHeader = ({section}) => (
-    <Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
-      <Text type="BodySmallSemibold">{section.title}</Text>
-    </Box2>
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.assetHeader}>
+      <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+    </Kb.Box2>
   )
 
   return (
-    <Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
+    <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true} gap="small">
       <Header navigateAppend={props.navigateAppend} />
-      <SectionList
+      <Kb.SectionList
         sections={props.sections}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
       />
-    </Box2>
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   assetHeader: {
-    backgroundColor: globalColors.blue5,
-    padding: globalMargins.xtiny,
+    backgroundColor: Styles.globalColors.blue5,
+    padding: Styles.globalMargins.xtiny,
   },
   historyPlaceholder: {
     marginTop: 36,
   },
   historyPlaceholderText: {
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_40,
+  },
+  spinner: {
+    height: 46,
+    padding: Styles.globalMargins.tiny,
+    width: 46,
   },
 })
 

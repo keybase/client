@@ -204,3 +204,9 @@ func (f *FeatureFlagGate) ErrorIfFlagged(m MetaContext) (err error) {
 	}
 	return f.lastError
 }
+
+func (f *FeatureFlagGate) Clear() {
+	f.Lock()
+	defer f.Unlock()
+	f.lastError = nil
+}

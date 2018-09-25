@@ -14,7 +14,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {switchTo, putActionIfOnPath, navigateAppend} from '../route-tree'
+import {switchTo, putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -74,25 +74,6 @@ const filePreview = (state: TypedState, action) =>
       })
     )
     .catch(makeRetriableErrorHandler(action))
-
-const loadUserFileEdits = (state: TypedState, action) => Saga.call(function*() {
-  try {
-    const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
-    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-    const updateSet = tlfUpdates.reduce((acc: I.Set<Types.Path>, u) =>
-      Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-        if (i < 2) return acc
-        const path = Types.getPathFromElements(a.slice(0, i + 1))
-        return acc.add(path)
-      }, acc), I.Set()).toArray()
-    yield Saga.sequentially([
-      ...(updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path})))),
-      Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
-    ])
-  } catch (ex) {
-    yield makeRetriableErrorHandler(action)
-  }
-})
 
 // See constants/types/fs.js on what this is for.
 // We intentionally keep this here rather than in the redux store.
@@ -207,6 +188,14 @@ function* folderList(
       ...entries.map(direntToPathAndPathItem),
     ]
     yield Saga.put(FsGen.createFolderListLoaded({pathItems: I.Map(pathItems), path: rootPath}))
+    if (action.type === FsGen.editSuccess) {
+      // Note that we discard the Edit metadata here rather than immediately
+      // after an FsGen.editSuccess event, so that if we hear about journal
+      // uploading the new folder before we hear from the folder list result,
+      // fs/footer/upload-container.js can determine this is a newly created
+      // folder instead of a file upload based on state.fs.edits.
+      yield Saga.put(FsGen.createDiscardEdit({editID: action.payload.editID}))
+    }
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
   }
@@ -394,7 +383,6 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
 
       yield Saga.sequentially([
         Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: true})),
-        Saga.put(FsGen.createSetFlags({syncing: true})),
         Saga.delay(getWaitDuration(endEstimate, 100, 4000)), // 0.1s to 4s
       ])
     }
@@ -402,10 +390,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
     yield Saga.put(makeUnretriableErrorHandler(action)(error))
   } finally {
     polling = false
-    yield Saga.sequentially([
-      Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false})),
-      Saga.put(FsGen.createSetFlags({syncing: false})),
-    ])
+    yield Saga.put(NotificationsGen.createBadgeApp({key: 'kbfsUploading', on: false}))
   }
 }
 
@@ -604,54 +589,88 @@ const commitEdit = (state: TypedState, action: FsGen.CommitEditPayload) => {
   }
 }
 
-function* openPathItem(action: FsGen.OpenPathItemPayload): Saga.SagaGenerator<any, any> {
-  const {path, routePath} = action.payload
-  const state: TypedState = yield Saga.select()
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
-    yield Saga.put(
-      putActionIfOnPath(
-        routePath,
-        navigateAppend([{
-          props: {path},
-          selected: 'folder',
-        }])
-      )
-    )
-    return
-  }
-
-  let bare = false
-  if (pathItem.type === 'file') {
-    let mimeType = pathItem.mimeType
-    if (mimeType === '') {
-      mimeType = yield Saga.call(_loadMimeType, path)
-    }
-    bare = isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image'
-  }
-
-  yield Saga.put(
-    putActionIfOnPath(
-      routePath,
-      navigateAppend([{
-        props: {path},
-        selected: bare ? 'barePreview' : 'preview',
-      }])
-    )
-  )
+const _getRouteChangeActionForOpen = (
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload,
+  route: any
+) => {
+  const routeChange =
+    action.type === FsGen.openPathItem ? navigateAppend([route]) : navigateTo([Tabs.fsTab, route])
+  return action.payload.routePath ? putActionIfOnPath(action.payload.routePath, routeChange) : routeChange
 }
+
+const openPathItem = (
+  state: TypedState,
+  action: FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload
+) =>
+  Saga.call(function*() {
+    const {path} = action.payload
+
+    if (Types.getPathLevel(path) < 3) {
+      // We are in either /keybase or a TLF list. So treat it as a folder.
+      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
+      return
+    }
+
+    let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
+    // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
+    // (PathItem), as the type of the entry could have changed before last time
+    // we heard about it from SimpleFS. Technically this is possible for
+    // FsGen.openPathItem too, but generally it's shortly after user has
+    // interacted with its parent folder, where we'd have just refreshed the
+    // PathItem for the entry.
+    if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
+      const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+        path: {
+          PathType: RPCTypes.simpleFSPathType.kbfs,
+          kbfs: Constants.fsPathToRpcPathString(path),
+        },
+      })
+      pathItem = makeEntry(dirent)
+      yield Saga.put(
+        FsGen.createFilePreviewLoaded({
+          meta: pathItem,
+          path,
+        })
+      )
+    }
+
+    if (pathItem.type === 'unknown' || pathItem.type === 'folder') {
+      yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected: 'folder'}))
+      return
+    }
+
+    let selected = 'preview'
+    if (pathItem.type === 'file') {
+      let mimeType = pathItem.mimeType
+      if (mimeType === '') {
+        mimeType = yield Saga.call(_loadMimeType, path)
+      }
+      if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {
+        selected = 'barePreview'
+      }
+    }
+
+    // This covers both 'file' and 'symlink'
+    yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
+  })
 
 const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
   const pathItem = path ? state.fs.pathItems.get(path) : undefined
-  const selected = (pathItem && pathItem.type !== 'folder') ? 'preview' : 'folder'
+  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
   return Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
     Saga.put(switchTo([Tabs.fsTab])),
     ...(path
-      ? [Saga.put(navigateAppend([{
-          props: {path},
-          selected,
-        }]))]
+      ? [
+          Saga.put(
+            navigateAppend([
+              {
+                props: {path},
+                selected,
+              },
+            ])
+          ),
+        ]
       : []),
   ])
 }
@@ -669,14 +688,13 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery([FsGen.folderListLoad, FsGen.editSuccess], folderList)
   yield Saga.actionToPromise(FsGen.filePreviewLoad, filePreview)
   yield Saga.actionToPromise(FsGen.favoritesLoad, loadFavorites)
-  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield Saga.safeTakeEvery(FsGen.favoriteIgnore, ignoreFavoriteSaga)
   yield Saga.safeTakeEvery(FsGen.mimeTypeLoad, loadMimeType)
   yield Saga.safeTakeEveryPure(FsGen.letResetUserBackIn, letResetUserBackIn, letResetUserBackInResult)
   yield Saga.actionToPromise(FsGen.commitEdit, commitEdit)
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
-  yield Saga.safeTakeEvery(FsGen.openPathItem, openPathItem)
+  yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
   yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 

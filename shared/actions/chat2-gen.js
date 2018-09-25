@@ -26,6 +26,7 @@ export const createConversation = 'chat2:createConversation'
 export const desktopNotification = 'chat2:desktopNotification'
 export const filePickerError = 'chat2:filePickerError'
 export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
+export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
 export const leaveConversation = 'chat2:leaveConversation'
@@ -80,9 +81,11 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
+export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -137,6 +140,7 @@ type _DesktopNotificationPayload = $ReadOnly<{|
 |}>
 type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _HandleSeeingExplodingMessagesPayload = void
+type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
 type _LeaveConversationPayload = $ReadOnly<{|
@@ -330,6 +334,7 @@ type _SetPendingModePayload = $ReadOnly<{|
   noneDestination?: 'inbox' | 'thread',
 |}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleLocalReactionPayload = $ReadOnly<{|
   conversationIDKey: Types.ConversationIDKey,
@@ -342,6 +347,7 @@ type _ToggleMessageReactionPayload = $ReadOnly<{|
   emoji: string,
   ordinal: Types.Ordinal,
 |}>
+type _ToggleSmallTeamsExpandedPayload = void
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -391,6 +397,10 @@ export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({err
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({error: false, payload, type: setExplodingModeLock})
 /**
+ * Set that wallets in chat is not new.
+ */
+export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({error: false, payload, type: setWalletsOld})
+/**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
 export const createSetMinWriterRole = (payload: _SetMinWriterRolePayload) => ({error: false, payload, type: setMinWriterRole})
@@ -422,6 +432,10 @@ export const createToggleMessageReaction = (payload: _ToggleMessageReactionPaylo
  * The service sent us an update for the reaction map of a message.
  */
 export const createUpdateReactions = (payload: _UpdateReactionsPayload) => ({error: false, payload, type: updateReactions})
+/**
+ * The user has interacted with wallets in chat.
+ */
+export const createHandleSeeingWallets = (payload: _HandleSeeingWalletsPayload) => ({error: false, payload, type: handleSeeingWallets})
 /**
  * Toggle a reaction in the store.
  */
@@ -496,6 +510,7 @@ export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({error: false, payload, type: setPendingStatus})
+export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({error: false, payload, type: toggleSmallTeamsExpanded})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
@@ -514,6 +529,7 @@ export type CreateConversationPayload = $Call<typeof createCreateConversation, _
 export type DesktopNotificationPayload = $Call<typeof createDesktopNotification, _DesktopNotificationPayload>
 export type FilePickerErrorPayload = $Call<typeof createFilePickerError, _FilePickerErrorPayload>
 export type HandleSeeingExplodingMessagesPayload = $Call<typeof createHandleSeeingExplodingMessages, _HandleSeeingExplodingMessagesPayload>
+export type HandleSeeingWalletsPayload = $Call<typeof createHandleSeeingWallets, _HandleSeeingWalletsPayload>
 export type InboxRefreshPayload = $Call<typeof createInboxRefresh, _InboxRefreshPayload>
 export type JoinConversationPayload = $Call<typeof createJoinConversation, _JoinConversationPayload>
 export type LeaveConversationPayload = $Call<typeof createLeaveConversation, _LeaveConversationPayload>
@@ -568,9 +584,11 @@ export type SetPendingConversationExistingConversationIDKeyPayload = $Call<typeo
 export type SetPendingConversationUsersPayload = $Call<typeof createSetPendingConversationUsers, _SetPendingConversationUsersPayload>
 export type SetPendingModePayload = $Call<typeof createSetPendingMode, _SetPendingModePayload>
 export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetPendingStatusPayload>
+export type SetWalletsOldPayload = $Call<typeof createSetWalletsOld, _SetWalletsOldPayload>
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
+export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -595,6 +613,7 @@ export type Actions =
   | DesktopNotificationPayload
   | FilePickerErrorPayload
   | HandleSeeingExplodingMessagesPayload
+  | HandleSeeingWalletsPayload
   | InboxRefreshPayload
   | JoinConversationPayload
   | LeaveConversationPayload
@@ -649,9 +668,11 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetWalletsOldPayload
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
+  | ToggleSmallTeamsExpandedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload

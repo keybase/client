@@ -74,7 +74,7 @@ class NoteAndMemo extends React.Component<Props, State> {
             {this.state.emojiPickerOpen &&
               !Styles.isMobile && (
                 <Kb.Overlay
-                  attachTo={this._emojiIcon.current}
+                  attachTo={() => this._emojiIcon.current}
                   position="bottom right"
                   onHidden={() => this.setState({emojiPickerOpen: false})}
                 >

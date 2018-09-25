@@ -35,15 +35,20 @@ func getTeamCryptKey(ctx context.Context, team *teams.Team, generation keybase1.
 
 // shouldFallbackToSlowLoadAfterFTLError returns trues if the given error should result
 // in a retry via slow loading. Right now, it only happens if the server tells us
-// that our FTL is outdated.
+// that our FTL is outdated, or FTL is feature-flagged off on the server.
 func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool {
 	if err == nil {
 		return false
 	}
-	switch err.(type) {
+	switch tErr := err.(type) {
 	case libkb.TeamFTLOutdatedError:
 		m.CDebugf("Our FTL implementation is too old; falling back to slow loader (%v)", err)
 		return true
+	case libkb.FeatureFlagError:
+		if tErr.Feature() == libkb.FeatureFTL {
+			m.CDebugf("FTL feature-flagged off on the server, falling back to regular loader")
+			return true
+		}
 	}
 	return false
 }
@@ -60,9 +65,10 @@ func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID) (r
 	return ftlRes.ApplicationKeys[0], ni, nil
 }
 
-func decryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGeneration int) (res types.CryptKey, err error) {
+func decryptionKeyViaFTL(m libkb.MetaContext, tlfID chat1.TLFID, keyGeneration int) (res types.CryptKey, err error) {
 
-	ftlRes, err := getKeyViaFTL(m, name, tlfID, keyGeneration)
+	// We don't pass a `name` during decryption.
+	ftlRes, err := getKeyViaFTL(m, "" /*name*/, tlfID, keyGeneration)
 	if err != nil {
 		return nil, err
 	}
@@ -76,16 +82,21 @@ func getKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID, keyGenera
 	if err != nil {
 		return res, err
 	}
-
-	teamName, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		return res, err
+	// The `name` parameter is optional since subteams can be renamed and
+	// messages with the old name must be successfully decrypted.
+	var teamNamePtr *keybase1.TeamName
+	if name != "" {
+		teamName, err := keybase1.TeamNameFromString(name)
+		if err != nil {
+			return res, err
+		}
+		teamNamePtr = &teamName
 	}
 	arg := keybase1.FastTeamLoadArg{
 		ID:             teamID,
 		Public:         false,
 		Applications:   []keybase1.TeamApplication{keybase1.TeamApplication_CHAT},
-		AssertTeamName: &teamName,
+		AssertTeamName: teamNamePtr,
 	}
 
 	if keyGeneration > 0 {
@@ -160,6 +171,16 @@ func NewTeamLoader(g *libkb.GlobalContext) *TeamLoader {
 	}
 }
 
+func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
+	tlfIDs := team.KBFSTLFIDs()
+	for _, id := range tlfIDs {
+		if tlfID.EqString(id) {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	tlfName string, membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
@@ -195,9 +216,9 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 			if err != nil {
 				return err
 			}
-			if !tlfID.EqString(team.KBFSTLFID()) {
+			if !t.validKBFSTLFID(tlfID, team) {
 				return ImpteamUpgradeBadteamError{
-					Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+					Msg: fmt.Sprintf("TLF ID not found in team: %s", tlfID),
 				}
 			}
 			return nil
@@ -270,21 +291,22 @@ func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string
 
 func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		Name:        name, // Loading by name is a last resort and will always cause an extra roundtrip.
-		Public:      public,
-		ForceRepoll: true,
-	})
+
+	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
 		return nil, err
 	}
-	tlfID, err := chat1.TeamIDToTLFID(team.ID)
+	id, err := teams.ResolveNameToIDForceRefresh(ctx, t.G().ExternalG(), teamName)
+	if err != nil {
+		return nil, err
+	}
+	tlfID, err := chat1.TeamIDToTLFID(id)
 	if err != nil {
 		return nil, err
 	}
 	return &types.NameInfo{
 		ID:            tlfID,
-		CanonicalName: team.Name().String(),
+		CanonicalName: teamName.String(),
 	}, nil
 }
 
@@ -294,17 +316,20 @@ func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID,
 	if err != nil {
 		return nil, err
 	}
-	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      public,
-		ForceRepoll: true,
+
+	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
+	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
+		ID:           teamID,
+		Public:       teamID.IsPublic(),
+		ForceRefresh: true,
 	})
 	if err != nil {
 		return nil, err
 	}
+
 	return &types.NameInfo{
 		ID:            tlfID,
-		CanonicalName: team.Name().String(),
+		CanonicalName: loadRes.Name.String(),
 	}, nil
 }
 
@@ -357,7 +382,7 @@ func (t *TeamsNameInfoSource) DecryptionKey(ctx context.Context, name string, te
 
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	if !kbfsEncrypted && !public && membersType == chat1.ConversationMembersType_TEAM && m.G().FeatureFlags.Enabled(m, libkb.FeatureFTL) {
-		res, err = decryptionKeyViaFTL(m, name, teamID, keyGeneration)
+		res, err = decryptionKeyViaFTL(m, teamID, keyGeneration)
 		if shouldFallbackToSlowLoadAfterFTLError(m, err) {
 			// See comment above in EncryptionKey()
 			err = nil
@@ -578,7 +603,15 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 
 	var tlfID chat1.TLFID
 	if t.lookupUpgraded {
-		tlfID = chat1.TLFID(team.KBFSTLFID().ToBytes())
+		tlfIDs := team.KBFSTLFIDs()
+		if len(tlfIDs) > 0 {
+			// We pull the first TLF ID here for this lookup since it has the highest chance of being
+			// correct. The upgrade wrote a bunch of TLF IDs in over the last months, but it is possible
+			// that KBFS can add more. All the upgrade TLFs should be ahead of them though, since if the
+			// upgrade process encounters a team with a TLF ID already in there, it will abort if they
+			// don't match.
+			tlfID = tlfIDs[0].ToBytes()
+		}
 	} else {
 		tlfID, err = chat1.TeamIDToTLFID(team.ID)
 		if err != nil {
