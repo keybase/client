@@ -74,7 +74,7 @@ const Username = (props: {username: string, prettyName: string, followingState: 
 const Services = ({services}: {services: {[key: ServiceIdWithContact]: string}}) => (
   <Kb.Box2 direction="horizontal" style={styles.services}>
     {Object.keys(services).map(service => (
-      <Kb.WithTooltip key={service} text={services[service]} position={'top center'}>
+      <Kb.WithTooltip key={service} text={services[service]} position="top center">
         <Kb.Icon type={serviceIdToLogo14(service)} style={Kb.iconCastPlatformStyles(styles.serviceIcon)} />
       </Kb.WithTooltip>
     ))}
@@ -93,7 +93,7 @@ const ActionButton = (props: {
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
       <Kb.Box2
         className="actionButton"
-        direction={'vertical'}
+        direction="vertical"
         centerChildren={true}
         style={Styles.collapseStyles([
           styles.actionButton,
@@ -116,22 +116,22 @@ const ActionButton = (props: {
   )
 }
 
-const AddButton = () => <Kb.Icon type={'iconfont-new'} fontSize={19} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={19} color={Styles.globalColors.black_75} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
-    <Kb.Icon type={'iconfont-arrow-right'} fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-arrow-right" fontSize={19} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const RemoveButton = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.removeButton}>
-    <Kb.Icon type={'iconfont-close'} fontSize={19} color={Styles.globalColors.white} />
+    <Kb.Icon type="iconfont-close" fontSize={19} color={Styles.globalColors.white} />
   </Kb.Box2>
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type={'iconfont-check'} fontSize={19} color={Styles.globalColors.black_75} />
+  <Kb.Icon type="iconfont-check" fontSize={19} color={Styles.globalColors.black_75} />
 )
 
 const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)

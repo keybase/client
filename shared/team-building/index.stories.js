@@ -156,17 +156,17 @@ const load = () => {
     .addDecorator(provider)
     .add('Plain', () => (
       <UserBubble
-        username={'max'}
-        prettyName={'max (Max Krohn)'}
-        service={'keybase'}
+        username="max"
+        prettyName="max (Max Krohn)"
+        service="keybase"
         onRemove={Sb.action('onRemove')}
       />
     ))
     .add('GitHub', () => (
       <UserBubble
-        username={'marcopolo'}
-        prettyName={'marcopolo (GitHub)'}
-        service={'github'}
+        username="marcopolo"
+        prettyName="marcopolo (GitHub)"
+        service="github"
         onRemove={Sb.action('onRemove')}
       />
     ))
@@ -204,7 +204,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={false}
-        followingState={'Following'}
+        followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         p={true}
@@ -225,7 +225,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         onMouseOver={Sb.action('onMouseOver')}
@@ -244,7 +244,7 @@ const load = () => {
           twitter: 'malgorithms on Twitter',
         }}
         inTeam={true}
-        followingState={'Following'}
+        followingState="Following"
         onAdd={Sb.action('onAdd')}
         onRemove={Sb.action('onRemove')}
         highlight={true}
