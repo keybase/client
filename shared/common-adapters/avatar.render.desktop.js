@@ -4,55 +4,30 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import type {Props} from './avatar.render'
 
-type ImageProps = {
-  opacity: ?number,
-  className: string,
-  url: string,
-}
-
-// The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
-const Background = ({className}) => <div className={`avatar-background ${className}`} />
-
-// The actual image
-class UserImage extends React.PureComponent<ImageProps> {
-  render() {
-    const {opacity = 1, url, className} = this.props
-    const style: Object = {
-      backgroundImage: url,
-    }
-    if (opacity !== 1) {
-      style.opacity = opacity
-    }
-    return <div className={`avatar-user-image ${className}`} style={style} />
-  }
-}
-
-// Layer on top to extend outside of the image
-const Border = ({borderColor, isTeam, className}) => {
-  const style = {
-    boxShadow: `0px 0px 0px ${isTeam ? 1 : 2}px ${
-      !borderColor ? (isTeam ? Styles.globalColors.black_10 : '') : borderColor
-    } ${isTeam ? 'inset' : ''}`,
-  }
-  const cn = `${isTeam ? 'avatar-border-team' : 'avatar-border'} ${className}`
-  return <div className={cn} style={style} />
-}
-
 class AvatarRender extends React.PureComponent<Props> {
   render() {
     const avatarSizeClasName = `avatar-${this.props.isTeam ? 'team' : 'user'}-size-${this.props.size}`
 
     return (
       <div className={`avatar ${avatarSizeClasName}`} onClick={this.props.onClick} style={this.props.style}>
-        {!this.props.skipBackground && <Background className={avatarSizeClasName} />}
-        {this.props.url && (
-          <UserImage opacity={this.props.opacity} className={avatarSizeClasName} url={this.props.url} />
+        {!this.props.skipBackground && <div className={'avatar-background ' + avatarSizeClasName} />}
+        {!!this.props.url && (
+          <div
+            className={'avatar-user-image ' + avatarSizeClasName}
+            style={{
+              backgroundImage: this.props.url,
+              opacity:
+                this.props.opacity === undefined || this.props.opacity === 1 ? undefined : this.props.opacity,
+            }}
+          />
         )}
         {(!!this.props.borderColor || this.props.isTeam) && (
-          <Border
-            isTeam={this.props.isTeam}
-            borderColor={this.props.borderColor || Styles.globalColors.black_10}
-            className={avatarSizeClasName}
+          <div
+            style={{
+              boxShadow: `0px 0px 0px ${this.props.isTeam ? 1 : 2}px ${this.props.borderColor ||
+                Styles.globalColors.black_10} ${this.props.isTeam ? 'inset' : ''}`,
+            }}
+            className={(this.props.isTeam ? 'avatar-border-team ' : 'avatar-border ') + avatarSizeClasName}
           />
         )}
         {this.props.followIconType && (
