@@ -26,13 +26,13 @@ type Props = PropsWithTimer<{
   style?: any,
 }>
 
-type State = {iconStatus: IconStatus, visible: boolean, lastFailed: boolean, lastSent: boolean}
+type State = {iconStatus: IconStatus, visible: boolean}
 class SendIndicator extends React.Component<Props, State> {
   state: State
 
   constructor(props: Props) {
     super(props)
-    this.state = {iconStatus: 'encrypting', visible: !props.sent, lastFailed: false, lastSent: false}
+    this.state = {iconStatus: 'encrypting', visible: !props.sent}
   }
 
   encryptingTimeoutID: TimeoutID
@@ -47,14 +47,21 @@ class SendIndicator extends React.Component<Props, State> {
   }
 
   _onSent() {
+    this._setStatus('sent')
     this.props.clearTimeout(this.sentTimeoutID)
     this.sentTimeoutID = this.props.setTimeout(() => this._setVisible(false), sentTimeout)
     this.props.clearTimeout(this.encryptingTimeoutID)
   }
 
   _onFailed() {
+    this._setStatus('error')
     this.props.clearTimeout(this.encryptingTimeoutID)
     this.props.clearTimeout(this.sentTimeoutID)
+  }
+
+  _onResend() {
+    this._setVisible(true)
+    this._setStatus('sending')
   }
 
   componentDidMount() {
@@ -69,33 +76,10 @@ class SendIndicator extends React.Component<Props, State> {
     } else if (this.props.failed) {
       // previously failed message
       this._onFailed()
-      this._setStatus('error')
     } else if (this.props.sent) {
       // previously sent message
       this._setVisible(false)
     }
-  }
-
-  static getDerivedStateFromProps(props, state) {
-    let iconStatus = state.iconStatus
-    if (props.failed && !state.lastFailed) {
-      iconStatus = 'error'
-    } else if (props.sent && !state.lastSent) {
-      iconStatus = 'sent'
-    } else if (!props.failed && state.lastfailed) {
-      iconStatus = 'sending'
-    }
-
-    if (props.failed !== state.lastFailed || props.sent !== state.lastSent) {
-      return {
-        ...state,
-        iconStatus,
-        lastFailed: props.failed,
-        lastSent: props.sent,
-      }
-    }
-    // Return null to indicate no change to state.
-    return null
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -103,7 +87,9 @@ class SendIndicator extends React.Component<Props, State> {
       this._onFailed()
     } else if (this.props.sent && !prevProps.sent) {
       this._onSent()
-    }
+    } else if (!this.props.failed && prevProps.failed) {
+      this._onResend()
+    }    
   }
 
   componentWillUnmount() {

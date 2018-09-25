@@ -39,8 +39,6 @@ type State = {
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
   showMenu: boolean,
-  prevPolicy: RetentionPolicy,
-  prevTeamPolicy?: RetentionPolicy,
 }
 
 class RetentionPicker extends React.Component<Props, State> {
@@ -49,8 +47,6 @@ class RetentionPicker extends React.Component<Props, State> {
     selected: retentionPolicies.policyRetain,
     items: [],
     showMenu: false,
-    prevPolicy: retentionPolicies.policyRetain,
-    prevTeamPolicy: retentionPolicies.policyRetain,
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
@@ -145,33 +141,18 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  static getDerivedStateFromProps(props, state) {
-    if (
-      !policyEquals(props.policy, state.prevPolicy) ||
-      !policyEquals(props.teamPolicy, state.prevTeamPolicy)
-    ) {
-      let saving = state.saving
-      if (policyEquals(props.policy, state.selected)) {
-        // we just got updated retention policy matching the selected one
-        saving = false
-      } // we could show a notice that we received a new value in an else block
-      return {
-        ...state,
-        items: null, // to be populated in componentDidUpdate
-        saving,
-        prevPolicy: props.policy,
-        prevTeamPolicy: props.teamPolicy,
-      }
-    }
-    // Return null to indicate no change to state.
-    return null
-  }
-
   componentDidUpdate(prevProps, prevState) {
-    if (this.state.items === null) {
+  if (
+      !policyEquals(this.props.policy, prevProps.policy) ||
+      !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)
+    ) {
+      if (policyEquals(this.props.policy, this.state.selected)) {
+        // we just got updated retention policy matching the selected one
+        this._setSaving(false)
+      } // we could show a notice that we received a new value in an else block
       this._makeItems()
       this._setInitialSelected(this.props.policy)
-    }
+    }  
   }
 
   render() {
