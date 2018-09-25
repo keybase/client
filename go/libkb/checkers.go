@@ -72,7 +72,7 @@ var CheckDeviceName = Checker{
 func MakeCheckKex2SecretPhrase(g *GlobalContext) Checker {
 	return Checker{
 		F: func(s string) bool {
-			if err := validPhrase(s, Kex2PhraseEntropy); err != nil {
+			if err := validPhrase(s, []int{Kex2PhraseEntropy, Kex2PhraseEntropy2}); err != nil {
 				g.Log.Debug("invalid kex2 phrase: %s", err)
 				return false
 			}

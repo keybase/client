@@ -8,7 +8,13 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
 // We keep track of sessionID to response objects since this is initiated by the daemon
-const sessionIDToResponse: {[key: string]: any} = {}
+type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+const sessionIDToResponse: {
+  [key: string]: {
+    error: IncomingErrorCallback,
+    result: ({+passphrase: string, +storeSecret: boolean}) => void,
+  },
+} = {}
 
 function setupEngineListeners() {
   engine().actionOnConnect('registerSecretUI', () => {
@@ -21,7 +27,7 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingCallMap({
+  engine().setCustomResponseIncomingCallMap({
     'keybase.1.secretUi.getPassphrase': (param, response) => {
       logger.info('Asked for passphrase')
       const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry

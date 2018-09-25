@@ -347,6 +347,7 @@ export const commonGetThreadReason = {
   fixretry: 4,
   prepare: 5,
   searcher: 6,
+  indexedSearch: 7,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -613,6 +614,7 @@ export type ChatActivityType =
   | 10 // EPHEMERAL_PURGE_10
   | 11 // REACTION_UPDATE_11
 
+export type ChatConvSearchHit = $ReadOnly<{convID: ConversationID, hits?: ?Array<ChatSearchHit>}>
 export type ChatSearchHit = $ReadOnly<{beforeMessages?: ?Array<UIMessage>, hitMessage: UIMessage, afterMessages?: ?Array<UIMessage>, matches?: ?Array<String>}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
@@ -726,6 +728,7 @@ export type GetThreadReason =
   | 4 // FIXRETRY_4
   | 5 // PREPARE_5
   | 6 // SEARCHER_6
+  | 7 // INDEXED_SEARCH_7
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 export type GlobalAppNotificationSetting =
@@ -919,6 +922,7 @@ export type RpInherit = $ReadOnly<{}>
 export type RpRetain = $ReadOnly<{}>
 export type S3Params = $ReadOnly<{bucket: String, objectKey: String, accessKey: String, acl: String, regionName: String, regionEndpoint: String, regionBucketEndpoint: String}>
 export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
+export type SearchOpts = $ReadOnly<{sentBy: String, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int}>
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
 export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>

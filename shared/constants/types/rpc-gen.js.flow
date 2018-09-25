@@ -1440,6 +1440,7 @@ export const proveCommonProofType = {
   coinbase: 5,
   hackernews: 6,
   facebook: 8,
+  genericSocial: 9,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
@@ -2214,6 +2215,7 @@ export type ProofType =
   | 5 // COINBASE_5
   | 6 // HACKERNEWS_6
   | 8 // FACEBOOK_8
+  | 9 // GENERIC_SOCIAL_9
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
   | 1002 // PGP_1002

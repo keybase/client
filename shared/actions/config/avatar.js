@@ -3,7 +3,6 @@ import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import shallowEqual from 'shallowequal'
 import {type TypedState} from '../../constants/reducer'
 
 const maxAvatarsPerLoad = 50
@@ -39,21 +38,20 @@ function* avatarCallAndHandle(names: Array<string>, method: Function) {
 
     const state: TypedState = yield Saga.select()
     const old = state.config.avatars
-    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, name) => {
-      const vals = avatarSizes.reduce((map, s) => {
-        map[s] = resp.picmap[name][`square_${s}`] || null
-        return map
-      }, {})
+    const vals = []
+    Object.keys(resp.picmap).forEach(name => {
+      const map = resp.picmap[name] || {}
+      const sizes = I.Map(avatarSizes.map(size => [size, map[`square_${size}`]]))
 
       // only send if it changed
-      if (!old[name] || !shallowEqual(old[name], vals)) {
-        nameToUrlMap[name] = vals
+      if (!sizes.equals(old.get(name))) {
+        vals.push([name, sizes])
       }
+    })
 
-      return nameToUrlMap
-    }, {})
-
-    yield Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
+    if (vals.length) {
+      yield Saga.put(ConfigGen.createLoadedAvatars({avatars: I.Map(vals)}))
+    }
   } catch (error) {
     if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
       yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
