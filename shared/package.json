@@ -11,8 +11,10 @@
     "local-visdiff": "yarn run _helper local-visdiff",
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
-    "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
-    "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
+    "prettier-check":
+      "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
+    "prettier-write-all":
+      "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=test BABEL_PLATFORM=Electron jest",
     "update-icon-constants": "yarn run _helper update-icon-constants",
@@ -39,11 +41,16 @@
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-build-android": "./react-native/buildAndroid.sh",
     "rn-push-android": "./react-native/pushAndroid.sh",
-    "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
-    "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
-    "rn-jsbuild-ios": "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
-    "rn-jsbuild-android": "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
-    "storybook": "cross-env-shell BABEL_ENV=yarn BABEL_PLATFORM=Electron start-storybook -s . -p 6006",
+    "rn-packager-wipe-cache":
+      "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
+    "rn-test-ios":
+      "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
+    "rn-jsbuild-ios":
+      "mkdir -p react-native/ios/dist && react-native bundle --platform ios --dev false --entry-file index.ios.js --bundle-output react-native/ios/dist/main.jsbundle --sourcemap-output react-native/ios/dist/main.jsbundle.sourcemap",
+    "rn-jsbuild-android":
+      "mkdir -p react-native/android/dist && react-native bundle --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/dist/main.jsbundle --sourcemap-output react-native/android/dist/main.jsbundle.sourcemap",
+    "storybook":
+      "cross-env-shell BABEL_ENV=yarn BABEL_PLATFORM=Electron start-storybook -s . -p 6006",
     "rn-storybook": "cross-env-shell BABEL_PLATFORM=Electron storybook start -p 7007",
     "build-storybook": "build-storybook",
     "modules": "yarn install --pure-lockfile",
@@ -53,10 +60,7 @@
   "flow-coverage-report": {
     "concurrentFiles": 50,
     "threshold": 10,
-    "globIncludePatterns": [
-      "**/*.js",
-      "**/*.js.flow"
-    ],
+    "globIncludePatterns": ["**/*.js", "**/*.js.flow"],
     "globExcludePatterns": [
       "node_modules/**",
       "markdown/parser.js",
@@ -74,22 +78,14 @@
   },
   "jest": {
     "coverageDirectory": "./coverage",
-    "modulePaths": [
-      "<rootDir>/desktop/node_modules"
-    ],
+    "modulePaths": ["<rootDir>/desktop/node_modules"],
     "transformIgnorePatterns": [
       "node_modules/(?!universalify|fs-extra|react-redux|@storybook|lodash-es).+\\.js"
     ],
-    "setupFiles": [
-      "raf/polyfill"
-    ],
+    "setupFiles": ["raf/polyfill"],
     "setupTestFrameworkScriptFile": "<rootDir>/test/setupTestFrameworkScriptFile.js",
-    "testPathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "snapshotSerializers": [
-      "jest-glamor-react"
-    ],
+    "testPathIgnorePatterns": ["/node_modules/"],
+    "snapshotSerializers": ["jest-glamor-react"],
     "timers": "fake",
     "testEnvironment": "jsdom",
     "moduleNameMapper": {
@@ -104,13 +100,7 @@
       "feature-flags": "<rootDir>/__mocks__/feature-flags.js",
       "engine/saga$": "<rootDir>/__mocks__/engine-saga.js"
     },
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "jsx",
-      "node",
-      "desktop.js"
-    ],
+    "moduleFileExtensions": ["js", "json", "jsx", "node", "desktop.js"],
     "globals": {
       "__DEV__": true,
       "__STORYBOOK__": true,
@@ -141,7 +131,8 @@
     "glamorous": "4.13.1",
     "glamorous-native": "1.4.0",
     "iced-runtime": "1.0.3",
-    "immutable": "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71",
+    "immutable":
+      "git://github.com/keybase/immutable-sorted#2a5895d4a5b36e632f833aec2cc84d2ad319bf71",
     "jsonfile": "4.0.0",
     "lodash-es": "4.17.11",
     "memoize-one": "^4.0.2",
@@ -163,12 +154,14 @@
     "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-570",
     "react-native-camera": "1.2.0",
     "react-native-contacts": "2.2.3",
-    "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
+    "react-native-image-picker":
+      "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "2.2.1",
-    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311",
+    "react-native-push-notification":
+      "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
-    "react-spring": "^5.6.7.",
+    "react-spring": "5.8.0",
     "react-transition-group": "2.4.0",
     "react-waypoint": "8.0.3",
     "recompose": "0.30.0",
