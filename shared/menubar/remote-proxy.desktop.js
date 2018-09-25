@@ -93,7 +93,7 @@ const mergeProps = stateProps => {
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,
-    fileRows: stateProps._tlfUpdates,
+    fileRows: {_tlfUpdates: stateProps._tlfUpdates, _uploads: stateProps._uploads},
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
     username: stateProps.username,
