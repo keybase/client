@@ -7,6 +7,19 @@ import * as Types from '../constants/types/fs'
 
 const initialState = Constants.makeState()
 
+const coalesceFolderUpdate = (
+  original: Types.FolderPathItem,
+  updated: Types.FolderPathItem
+): Types.FolderPathItem =>
+  // We don't want to override a loaded folder into pending, because otherwise
+  // next time user goes into that folder we'd show placeholders. We also don't
+  // want to simply use the original PathItem, since it's possible some
+  // metadata has updated. So use the new item, but reuse children and
+  // progress.
+  original.progress === 'loaded' && updated.progress === 'pending'
+    ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
+    : updated
+
 export default function(state: Types.State = initialState, action: FsGen.Actions) {
   switch (action.type) {
     case FsGen.resetStore:
@@ -14,7 +27,11 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
-        if (!original || original.type !== 'file' || meta.type !== 'file') {
+        if (original.type === 'folder' && meta.type === 'folder') {
+          const c = coalesceFolderUpdate(original, meta)
+          console.log({songgao: 'coalesce', original, meta, c})
+          return c
+        } else if (original.type !== 'file' || meta.type !== 'file') {
           return meta
         }
 
@@ -39,17 +56,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         const originalFolder: Types.FolderPathItem = original
         let newItem: Types.FolderPathItem = item
 
-        if (originalFolder.progress === 'loaded' && item.progress === 'pending') {
-          // We don't want to override a loaded folder into pending, because
-          // otherwise next time user goes into that folder we'd show
-          // placeholders. We also don't want to simply use the original
-          // PathItem, since it's possible some metadata has updated. So use
-          // the new item, but reuse children and progress.
-          if (originalFolder.type === 'folder' && item.type === 'folder') {
-            // make flow happy
-            newItem = item.set('children', originalFolder.children).set('progress', 'loaded')
-          }
-        }
+        newItem = coalesceFolderUpdate(originalFolder, newItem)
 
         originalFolder.children.forEach(
           name => !newItem.children.includes(name) && toRemove.add(Types.pathConcat(path, name))
