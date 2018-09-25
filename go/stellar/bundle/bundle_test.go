@@ -8,7 +8,7 @@ import (
 )
 
 func TestSetMobileOnly(t *testing.T) {
-	b, err := NewInitialBundle()
+	b, err := NewInitialBundle("primary")
 	require.NoError(t, err)
 	require.Len(t, b.Accounts, 1)
 	require.Equal(t, b.Accounts[0].Mode, stellar1.AccountMode_USER)
