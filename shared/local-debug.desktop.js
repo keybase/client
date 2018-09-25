@@ -91,7 +91,7 @@ if (PERF) {
   config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
-  config.userTimings = true
+  config.userTimings = false
 }
 
 export const {

@@ -37,7 +37,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -47,25 +47,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -75,34 +70,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-128"
+                className="avatar-border avatar-user-size-128"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -112,19 +101,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -143,7 +127,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -153,25 +137,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -181,19 +160,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -212,7 +186,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-user-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -222,19 +196,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-user-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -253,7 +222,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-128"
+              className="avatar avatar-team-size-128"
               onClick={[Function]}
               style={
                 Object {
@@ -263,27 +232,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 16,
-                  }
-                }
+                className="avatar-background avatar-team-size-128"
               />
               <div
-                className="avatar-user-image avatar-size-128"
+                className="avatar-user-image avatar-team-size-128"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": 16,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-128"
+                className="avatar-border-team avatar-team-size-128"
                 style={
                   Object {
-                    "borderRadius": 16,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -308,7 +271,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -318,25 +281,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -346,34 +304,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-96"
+                className="avatar-border avatar-user-size-96"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -383,19 +335,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -414,7 +361,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -424,25 +371,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -452,19 +394,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -483,7 +420,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-user-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -493,19 +430,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-user-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -524,7 +456,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-96"
+              className="avatar avatar-team-size-96"
               onClick={[Function]}
               style={
                 Object {
@@ -534,27 +466,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 12,
-                  }
-                }
+                className="avatar-background avatar-team-size-96"
               />
               <div
-                className="avatar-user-image avatar-size-96"
+                className="avatar-user-image avatar-team-size-96"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-192.png') 1x, url('icons/icon-team-placeholder-avatar-192.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": 12,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-96"
+                className="avatar-border-team avatar-team-size-96"
                 style={
                   Object {
-                    "borderRadius": 12,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -579,7 +505,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -589,25 +515,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -617,34 +538,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-64"
+                className="avatar-border avatar-user-size-64"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -654,19 +569,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -685,7 +595,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -695,25 +605,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -723,19 +628,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -754,7 +654,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-user-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -764,19 +664,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-user-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -795,7 +690,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-64"
+              className="avatar avatar-team-size-64"
               onClick={[Function]}
               style={
                 Object {
@@ -805,27 +700,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 10,
-                  }
-                }
+                className="avatar-background avatar-team-size-64"
               />
               <div
-                className="avatar-user-image avatar-size-64"
+                className="avatar-user-image avatar-team-size-64"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": 10,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-64"
+                className="avatar-border-team avatar-team-size-64"
                 style={
                   Object {
-                    "borderRadius": 10,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -850,7 +739,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -860,25 +749,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -888,34 +772,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-48"
+                className="avatar-border avatar-user-size-48"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -925,19 +803,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -956,7 +829,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -966,25 +839,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -994,19 +862,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1025,7 +888,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-user-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -1035,19 +898,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-user-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1066,7 +924,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-48"
+              className="avatar avatar-team-size-48"
               onClick={[Function]}
               style={
                 Object {
@@ -1076,27 +934,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 8,
-                  }
-                }
+                className="avatar-background avatar-team-size-48"
               />
               <div
-                className="avatar-user-image avatar-size-48"
+                className="avatar-user-image avatar-team-size-48"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-192.png') 1x, url('icons/icon-team-placeholder-avatar-192.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
-                    "borderRadius": 8,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-48"
+                className="avatar-border-team avatar-team-size-48"
                 style={
                   Object {
-                    "borderRadius": 8,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -1121,7 +973,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1131,25 +983,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1159,34 +1006,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-32"
+                className="avatar-border avatar-user-size-32"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1196,19 +1037,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1224,7 +1060,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1234,25 +1070,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1262,19 +1093,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1290,7 +1116,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-user-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1300,19 +1126,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-user-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1328,7 +1149,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-32"
+              className="avatar avatar-team-size-32"
               onClick={[Function]}
               style={
                 Object {
@@ -1338,27 +1159,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 6,
-                  }
-                }
+                className="avatar-background avatar-team-size-32"
               />
               <div
-                className="avatar-user-image avatar-size-32"
+                className="avatar-user-image avatar-team-size-32"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": 6,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-32"
+                className="avatar-border-team avatar-team-size-32"
                 style={
                   Object {
-                    "borderRadius": 6,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -1383,7 +1198,7 @@ Array [
             }
           >
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1393,25 +1208,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1421,34 +1231,28 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border avatar-size-16"
+                className="avatar-border avatar-user-size-16"
                 style={
                   Object {
-                    "borderRadius": "50%",
                     "boxShadow": "0px 0px 0px 2px blue ",
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1458,19 +1262,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1486,7 +1285,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1496,25 +1295,20 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1524,19 +1318,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1552,7 +1341,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-user-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1562,19 +1351,14 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": "50%",
-                  }
-                }
+                className="avatar-background avatar-user-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-user-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": "50%",
+                    "opacity": undefined,
                   }
                 }
               />
@@ -1590,7 +1374,7 @@ Array [
               />
             </div>
             <div
-              className="avatar avatar-size-16"
+              className="avatar avatar-team-size-16"
               onClick={[Function]}
               style={
                 Object {
@@ -1600,27 +1384,21 @@ Array [
               }
             >
               <div
-                className="avatar-background"
-                style={
-                  Object {
-                    "borderRadius": 4,
-                  }
-                }
+                className="avatar-background avatar-team-size-16"
               />
               <div
-                className="avatar-user-image avatar-size-16"
+                className="avatar-user-image avatar-team-size-16"
                 style={
                   Object {
                     "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                    "borderRadius": 4,
+                    "opacity": undefined,
                   }
                 }
               />
               <div
-                className="avatar-border-team avatar-size-16"
+                className="avatar-border-team avatar-team-size-16"
                 style={
                   Object {
-                    "borderRadius": 4,
                     "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                   }
                 }
@@ -37953,7 +37731,7 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-32"
+            className="avatar avatar-user-size-32"
             style={
               Object {
                 "marginRight": 8,
@@ -37961,19 +37739,14 @@ Array [
             }
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": "50%",
-                }
-              }
+              className="avatar-background avatar-user-size-32"
             />
             <div
-              className="avatar-user-image avatar-size-32"
+              className="avatar-user-image avatar-user-size-32"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": "50%",
+                  "opacity": undefined,
                 }
               }
             />
@@ -38052,7 +37825,7 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-32"
+            className="avatar avatar-team-size-32"
             style={
               Object {
                 "marginRight": 8,
@@ -38060,27 +37833,21 @@ Array [
             }
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": 6,
-                }
-              }
+              className="avatar-background avatar-team-size-32"
             />
             <div
-              className="avatar-user-image avatar-size-32"
+              className="avatar-user-image avatar-team-size-32"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": 6,
+                  "opacity": undefined,
                 }
               }
             />
             <div
-              className="avatar-border-team avatar-size-32"
+              className="avatar-border-team avatar-team-size-32"
               style={
                 Object {
-                  "borderRadius": 6,
                   "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                 }
               }
@@ -38211,31 +37978,25 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-64"
+            className="avatar avatar-team-size-64"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": 10,
-                }
-              }
+              className="avatar-background avatar-team-size-64"
             />
             <div
-              className="avatar-user-image avatar-size-64"
+              className="avatar-user-image avatar-team-size-64"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": 10,
+                  "opacity": undefined,
                 }
               }
             />
             <div
-              className="avatar-border-team avatar-size-64"
+              className="avatar-border-team avatar-team-size-64"
               style={
                 Object {
-                  "borderRadius": 10,
                   "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                 }
               }
@@ -38327,23 +38088,18 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-96"
+            className="avatar avatar-user-size-96"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": "50%",
-                }
-              }
+              className="avatar-background avatar-user-size-96"
             />
             <div
-              className="avatar-user-image avatar-size-96"
+              className="avatar-user-image avatar-user-size-96"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                  "borderRadius": "50%",
+                  "opacity": undefined,
                 }
               }
             />
@@ -38422,31 +38178,25 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-64"
+            className="avatar avatar-team-size-64"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": 10,
-                }
-              }
+              className="avatar-background avatar-team-size-64"
             />
             <div
-              className="avatar-user-image avatar-size-64"
+              className="avatar-user-image avatar-team-size-64"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": 10,
+                  "opacity": undefined,
                 }
               }
             />
             <div
-              className="avatar-border-team avatar-size-64"
+              className="avatar-border-team avatar-team-size-64"
               style={
                 Object {
-                  "borderRadius": 10,
                   "boxShadow": "0px 0px 0px 1px rgba(0, 0, 0, 0.10) inset",
                 }
               }
@@ -38500,23 +38250,18 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-64"
+            className="avatar avatar-user-size-64"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": "50%",
-                }
-              }
+              className="avatar-background avatar-user-size-64"
             />
             <div
-              className="avatar-user-image avatar-size-64"
+              className="avatar-user-image avatar-user-size-64"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": "50%",
+                  "opacity": undefined,
                 }
               }
             />
@@ -38673,23 +38418,18 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-128"
+            className="avatar avatar-user-size-128"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": "50%",
-                }
-              }
+              className="avatar-background avatar-user-size-128"
             />
             <div
-              className="avatar-user-image avatar-size-128"
+              className="avatar-user-image avatar-user-size-128"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                  "borderRadius": "50%",
+                  "opacity": undefined,
                 }
               }
             />
@@ -38793,23 +38533,18 @@ Array [
           }
         >
           <div
-            className="avatar avatar-size-64"
+            className="avatar avatar-user-size-64"
             style={Object {}}
           >
             <div
-              className="avatar-background"
-              style={
-                Object {
-                  "borderRadius": "50%",
-                }
-              }
+              className="avatar-background avatar-user-size-64"
             />
             <div
-              className="avatar-user-image avatar-size-64"
+              className="avatar-user-image avatar-user-size-64"
               style={
                 Object {
                   "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
-                  "borderRadius": "50%",
+                  "opacity": undefined,
                 }
               }
             />
@@ -44617,7 +44352,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -44626,19 +44361,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -45805,7 +45535,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -45814,19 +45544,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -46402,7 +46127,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -46411,19 +46136,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -47731,7 +47451,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -47740,19 +47460,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -49074,7 +48789,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -49083,19 +48798,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -51723,7 +51433,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -51732,19 +51442,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -54336,7 +54041,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -54345,19 +54050,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -56973,7 +56673,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -56982,19 +56682,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -60469,7 +60164,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -60478,19 +60173,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -61103,7 +60793,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -61112,19 +60802,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -61691,7 +61376,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -61700,19 +61385,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -62403,7 +62083,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -62412,19 +62092,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -64985,7 +64660,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -64994,19 +64669,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -65805,7 +65475,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -65814,19 +65484,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />
@@ -68442,7 +68107,7 @@ Array [
               }
             >
               <div
-                className="avatar avatar-size-96"
+                className="avatar avatar-user-size-96"
                 onClick={[Function]}
                 style={
                   Object {
@@ -68451,19 +68116,14 @@ Array [
                 }
               >
                 <div
-                  className="avatar-background"
-                  style={
-                    Object {
-                      "borderRadius": "50%",
-                    }
-                  }
+                  className="avatar-background avatar-user-size-96"
                 />
                 <div
-                  className="avatar-user-image avatar-size-96"
+                  className="avatar-user-image avatar-user-size-96"
                   style={
                     Object {
                       "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
-                      "borderRadius": "50%",
+                      "opacity": undefined,
                     }
                   }
                 />

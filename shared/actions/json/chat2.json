@@ -7,6 +7,7 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
+    "toggleSmallTeamsExpanded": {},
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",

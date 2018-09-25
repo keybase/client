@@ -83,6 +83,7 @@ export const setPendingStatus = 'chat2:setPendingStatus'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
+export const toggleSmallTeamsExpanded = 'chat2:toggleSmallTeamsExpanded'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
@@ -342,6 +343,7 @@ type _ToggleMessageReactionPayload = $ReadOnly<{|
   emoji: string,
   ordinal: Types.Ordinal,
 |}>
+type _ToggleSmallTeamsExpandedPayload = void
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|
@@ -496,6 +498,7 @@ export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({error
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({error: false, payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({error: false, payload, type: setPendingMode})
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({error: false, payload, type: setPendingStatus})
+export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({error: false, payload, type: toggleSmallTeamsExpanded})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({error: false, payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({error: false, payload, type: updateNotificationSettings})
 export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({error: false, payload, type: updateTypers})
@@ -571,6 +574,7 @@ export type SetPendingStatusPayload = $Call<typeof createSetPendingStatus, _SetP
 export type StaticConfigLoadedPayload = $Call<typeof createStaticConfigLoaded, _StaticConfigLoadedPayload>
 export type ToggleLocalReactionPayload = $Call<typeof createToggleLocalReaction, _ToggleLocalReactionPayload>
 export type ToggleMessageReactionPayload = $Call<typeof createToggleMessageReaction, _ToggleMessageReactionPayload>
+export type ToggleSmallTeamsExpandedPayload = $Call<typeof createToggleSmallTeamsExpanded, _ToggleSmallTeamsExpandedPayload>
 export type UpdateConvExplodingModesPayload = $Call<typeof createUpdateConvExplodingModes, _UpdateConvExplodingModesPayload>
 export type UpdateConvRetentionPolicyPayload = $Call<typeof createUpdateConvRetentionPolicy, _UpdateConvRetentionPolicyPayload>
 export type UpdateMoreToLoadPayload = $Call<typeof createUpdateMoreToLoad, _UpdateMoreToLoadPayload>
@@ -652,6 +656,7 @@ export type Actions =
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload
   | ToggleMessageReactionPayload
+  | ToggleSmallTeamsExpandedPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMoreToLoadPayload
