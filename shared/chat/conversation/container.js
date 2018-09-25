@@ -15,7 +15,7 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
-const DONT_RENDER_CONVERSATION = __DEV__ && true
+const DONT_RENDER_CONVERSATION = __DEV__ && false
 
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
