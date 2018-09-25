@@ -2,6 +2,7 @@
 import * as React from 'react'
 export type Props = {|
   children?: Function,
+  config?: any,
   from?: any,
   to?: any,
 |}

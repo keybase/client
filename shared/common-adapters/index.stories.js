@@ -1,4 +1,5 @@
 // @flow
+import animated from './animated.stories'
 import avatar from './avatar.stories'
 import backButton from './back-button.stories'
 import badge from './badge.stories'
@@ -30,6 +31,7 @@ import tooltip from './tooltip.stories'
 
 const load = () => {
   ;[
+    animated,
     avatar,
     backButton,
     badge,
