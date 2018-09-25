@@ -19,7 +19,7 @@
 <PROJECT_ROOT>/node_modules/react-native/Libraries/EventEmitter/__mocks__
 <PROJECT_ROOT>/node_modules/react-navigation/src/views/CardStack/CardStackTransitioner.js
 <PROJECT_ROOT>/node_modules/electron-packager
-<PROJECT_ROOT>/node_modules/react-native-wkwebview-reborn/
+.*memoize-one.*
 <PROJECT_ROOT>/node_modules/react-native/Libraries/react-native/react-native-implementation.js
 .*[.]gif$
 .*[.]png$

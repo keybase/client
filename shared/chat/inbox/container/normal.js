@@ -16,8 +16,21 @@ const createShallowEqualSelector = createSelectorCreator(defaultMemoize, shallow
 const getMetaMap = (state: TypedState) => state.chat2.metaMap
 const smallTeamsCollapsedMaxShown = 5
 
-// Since the snippets are back in the meta we want to not have a ton of recalculation as the snippets are updating. especially when you're typing and updating
-// and the order isn't changing
+// Could make this faster by bookkeeping if this structure changed instead of if any item changed
+const splitMetas = memoize((metaMap: Types.MetaMap) => {
+  const bigMetas = []
+  const smallMetas = []
+  metaMap.forEach((meta, id) => {
+    if (Constants.isValidConversationIDKey(id)) {
+      if (meta.teamType === 'big') {
+        bigMetas.push(meta)
+      } else {
+        smallMetas.push(meta)
+      }
+    }
+  })
+  return {bigMetas, smallMetas}
+})
 
 // Get small/adhoc teams
 const getSmallMetas = createSelector([getMetaMap], metaMap =>
