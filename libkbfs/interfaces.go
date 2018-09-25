@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/kbfs/tlf"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 type dataVersioner interface {
@@ -226,6 +227,14 @@ type Node interface {
 	// Unwrap returns the initial, unwrapped Node that was used to
 	// create this Node.
 	Unwrap() Node
+	// GetFS returns a file system interface that, if non-nil, should
+	// be used to satisfy any directory-related calls on this Node,
+	// instead of the standard, block-based method of acessing data.
+	GetFS() billy.Filesystem
+	// GetFile returns a file interface that, if non-nil, should be
+	// used to satisfy any file-related calls on this Node, instead of
+	// the standard, block-based method of accessing data.
+	GetFile() billy.File
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect

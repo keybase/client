@@ -18,6 +18,7 @@ import (
 	tlf "github.com/keybase/kbfs/tlf"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
 	reflect "reflect"
 	time "time"
 )
@@ -1195,6 +1196,30 @@ func (m *MockNode) Unwrap() Node {
 // Unwrap indicates an expected call of Unwrap
 func (mr *MockNodeMockRecorder) Unwrap() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Unwrap", reflect.TypeOf((*MockNode)(nil).Unwrap))
+}
+
+// GetFS mocks base method
+func (m *MockNode) GetFS() go_billy_v4.Filesystem {
+	ret := m.ctrl.Call(m, "GetFS")
+	ret0, _ := ret[0].(go_billy_v4.Filesystem)
+	return ret0
+}
+
+// GetFS indicates an expected call of GetFS
+func (mr *MockNodeMockRecorder) GetFS() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFS", reflect.TypeOf((*MockNode)(nil).GetFS))
+}
+
+// GetFile mocks base method
+func (m *MockNode) GetFile() go_billy_v4.File {
+	ret := m.ctrl.Call(m, "GetFile")
+	ret0, _ := ret[0].(go_billy_v4.File)
+	return ret0
+}
+
+// GetFile indicates an expected call of GetFile
+func (mr *MockNodeMockRecorder) GetFile() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockNode)(nil).GetFile))
 }
 
 // MockKBFSOps is a mock of KBFSOps interface

@@ -8,6 +8,8 @@ import (
 	"context"
 	"fmt"
 	"runtime"
+
+	billy "gopkg.in/src-d/go-billy.v4"
 )
 
 // nodeCore holds info shared among one or more nodeStandard objects.
@@ -102,4 +104,12 @@ func (n *nodeStandard) WrapChild(child Node) Node {
 
 func (n *nodeStandard) Unwrap() Node {
 	return n
+}
+
+func (n *nodeStandard) GetFS() billy.Filesystem {
+	return nil
+}
+
+func (n *nodeStandard) GetFile() billy.File {
+	return nil
 }
