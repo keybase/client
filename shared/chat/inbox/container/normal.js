@@ -73,8 +73,6 @@ const getRowsAndMetadata = memoize((metaMap: Types.MetaMap, smallTeamsExpanded: 
   const smallTeamsBelowTheFold = smallMetas.length > smallRows.length
   const divider = bigRows.length !== 0 ? [{showButton: smallTeamsBelowTheFold, type: 'divider'}] : []
   const allowShowFloatingButton = smallRows.length > smallTeamsCollapsedMaxShown && !!bigMetas.length
-  // why is this getting called so much
-  //
   const rows: Array<RowItem> = [...smallRows, ...divider, ...bigRows]
 
   return {
