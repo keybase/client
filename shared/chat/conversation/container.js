@@ -15,8 +15,13 @@ type SwitchProps = {
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
+const DONT_RENDER_CONVERSATION = __DEV__ && true
+
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
+    if (DONT_RENDER_CONVERSATION) {
+      return <NoConversation />
+    }
     switch (this.props.type) {
       case 'error':
         return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
