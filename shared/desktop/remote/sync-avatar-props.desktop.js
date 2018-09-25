@@ -5,8 +5,8 @@ import * as ConfigGen from '../../actions/config-gen'
 import * as I from 'immutable'
 import * as React from 'react'
 import * as SafeElectron from '../../util/safe-electron.desktop'
-import {pick} from 'lodash-es'
 import {compose, connect, withStateHandlers, type TypedState} from '../../util/container'
+import memoize from 'memoize-one'
 
 type Props = {
   avatars: Object,
@@ -17,6 +17,48 @@ type Props = {
   usernames: I.Set<string>,
   windowComponent: string,
   windowParam: string,
+}
+
+export const serialize = {
+  avatars: (v: any, o: any) => {
+    if (!v) return undefined
+    const toSend = v.filter((sizes, name) => {
+      return !o || sizes !== o.get(name)
+    })
+    return toSend.isEmpty() ? undefined : toSend.toJS()
+  },
+  followers: (v: any) => v.toArray(),
+  following: (v: any) => v.toArray(),
+}
+
+const initialState = {
+  config: {
+    avatars: I.Map(),
+    followers: I.Set(),
+    following: I.Set(),
+  },
+}
+export const deserialize = (state: any = initialState, props: any) => {
+  if (!props) return state
+
+  const pa = props.avatars || {}
+  const arrs = Object.keys(pa).reduce((arr, name) => {
+    const sizes = Object.keys(pa[name]).reduce((arr, size) => {
+      arr.push([size, pa[name][size]])
+      return arr
+    }, [])
+    arr.push([name, I.Map(sizes)])
+    return arr
+  }, [])
+  return {
+    ...state,
+    config: {
+      ...state.config,
+      avatars: (state.config.avatars || I.Map()).merge(I.Map(arrs)),
+      followers: I.Set(props.followers),
+      following: I.Set(props.following),
+    },
+  }
 }
 
 function SyncAvatarProps(ComposedComponent: any) {
@@ -46,32 +88,24 @@ function SyncAvatarProps(ComposedComponent: any) {
     }
 
     render() {
-      // Don't send our internal props forward
-      const {avatars, following, followers, setUsernames, usernames, ...rest} = this.props
-      const config = {avatars, followers, following}
-      return <ComposedComponent {...rest} config={config} />
+      const {setUsernames, usernames, ...rest} = this.props
+      return <ComposedComponent {...rest} />
     }
   }
 
-  const mapStateToProps = (state: TypedState) => ({
-    _allAvatars: state.config.avatars,
-    _allFollowers: state.config.followers,
-    _allFollowing: state.config.following,
+  const mapStateToProps = (state: TypedState, ownProps) => ({
+    avatars: getRemoteAvatars(state.config.avatars, ownProps.usernames),
+    followers: getRemoteFollowers(state.config.followers, ownProps.usernames),
+    following: getRemoteFollowing(state.config.following, ownProps.usernames),
   })
 
-  const mergeProps = (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...dispatchProps,
-      ...ownProps,
-      avatars: pick(stateProps._allAvatars, ownProps.usernames.toArray()),
-      followers: stateProps._allFollowers.intersect(ownProps.usernames).toArray(),
-      following: stateProps._allFollowing.intersect(ownProps.usernames).toArray(),
-    }
-  }
+  const getRemoteAvatars = memoize((avatars, usernames) => avatars.filter((_, name) => usernames.has(name)))
+  const getRemoteFollowers = memoize((followers, usernames) => followers.intersect(usernames))
+  const getRemoteFollowing = memoize((following, usernames) => following.intersect(usernames))
 
   return compose(
     withStateHandlers({usernames: I.Set()}, {setUsernames: () => usernames => ({usernames})}),
-    connect(mapStateToProps, () => ({}), mergeProps)
+    connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))
   )(RemoteAvatarConnected)
 }
 
