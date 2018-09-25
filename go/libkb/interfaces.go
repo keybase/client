@@ -681,7 +681,6 @@ type TeamEKBoxStorage interface {
 }
 
 type EKLib interface {
-	SetForcePublish(forcePubilsh bool)
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
 	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)

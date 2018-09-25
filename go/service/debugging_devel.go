@@ -92,29 +92,6 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		})
 		log("%v", eldestSeqnos)
 		return "", nil
-	case "new_user_ek":
-		ekLib := t.G().GetEKLib()
-		ekLib.SetForcePublish(true)
-		defer func() { ekLib.SetForcePublish(false) }()
-		if err := ekLib.KeygenIfNeeded(ctx); err != nil {
-			return "", err
-		}
-		return "UserEK created\n", err
-	case "new_team_ek":
-		if len(args) != 1 {
-			return "", fmt.Errorf("require 1 arg: team id")
-		}
-		teamID, err := keybase1.TeamIDFromString(args[0])
-		if err != nil {
-			return "", err
-		}
-		ekLib := t.G().GetEKLib()
-		ekLib.SetForcePublish(true)
-		defer func() { ekLib.SetForcePublish(false) }()
-		if _, err := ekLib.GetOrCreateLatestTeamEK(ctx, teamID); err != nil {
-			return "", err
-		}
-		return "TeamEK created\n", err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

@@ -344,16 +344,20 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 
 	ekLib := NewEKLib(tc.G)
 	defer ekLib.Shutdown()
+	ch := make(chan bool, 1)
+	ekLib.setBackgroundDeleteTestCh(ch)
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 
 	// Even though we return an error, we charge through on the deletion
 	// successfully.
-	deviceEK, err := s.Get(context.Background(), 0)
-	require.Error(t, err)
-	require.Equal(t, keybase1.DeviceEk{}, deviceEK)
-
+	select {
+	case <-ch:
+		deviceEK, err := s.Get(context.Background(), 0)
+		require.Error(t, err)
+		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
+	}
 	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
