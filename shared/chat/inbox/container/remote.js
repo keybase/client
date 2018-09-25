@@ -22,7 +22,6 @@ const valuesCached = memoize((...vals) => vals.map(v => v))
 
 const metaMapToFirstValues = memoize(metaMap =>
   metaMap
-    .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
     .filter((meta, id) => {
       if (Constants.isValidConversationIDKey(id)) {
         if (meta.teamType === 'adhoc') {
@@ -47,6 +46,7 @@ const metaMapToFirstValues = memoize(metaMap =>
       }
       return false
     })
+    .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
     .valueSeq()
     .toArray()
 )
