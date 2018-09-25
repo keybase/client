@@ -200,7 +200,9 @@ type Node interface {
 	// as a context to use for the creation, the type of the new entry
 	// and the symbolic link contents if the entry is a Sym; the
 	// caller should then create this entry.  Otherwise it should
-	// return false.  An implementation that wraps another `Node`
+	// return false.  It may return the type `FakeDir` to indicate
+	// that the caller should pretend the entry exists, even if it
+	// really does not.  An implementation that wraps another `Node`
 	// (`inner`) must return `inner.ShouldCreateMissedLookup()` if it
 	// decides not to return `true` on its own.
 	ShouldCreateMissedLookup(ctx context.Context, name string) (

@@ -1503,6 +1503,25 @@ func (fbo *folderBlockOps) GetEntryEvenIfDeleted(
 	return fbo.getEntryLocked(ctx, lState, kmd, file, true)
 }
 
+func (fbo *folderBlockOps) getChildNodeLocked(
+	lState *lockState, dir Node, name string, de DirEntry) (Node, error) {
+	fbo.blockLock.AssertRLocked(lState)
+
+	if de.Type == Sym {
+		return nil, nil
+	}
+
+	return fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+}
+
+func (fbo *folderBlockOps) GetChildNode(
+	lState *lockState, dir Node, name string, de DirEntry) (
+	Node, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.getChildNodeLocked(lState, dir, name, de)
+}
+
 // Lookup returns the possibly-dirty DirEntry of the given file in its
 // parent DirBlock, and a Node for the file if it exists.  It has to
 // do all of this under the block lock to avoid races with
@@ -1524,11 +1543,7 @@ func (fbo *folderBlockOps) Lookup(
 		return nil, DirEntry{}, err
 	}
 
-	if de.Type == Sym {
-		return nil, de, nil
-	}
-
-	node, err := fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+	node, err := fbo.getChildNodeLocked(lState, dir, name, de)
 	if err != nil {
 		return nil, DirEntry{}, err
 	}

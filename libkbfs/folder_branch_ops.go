@@ -1900,6 +1900,29 @@ func (fbo *folderBranchOps) pathFromNodeForMDWriteLocked(
 
 func (fbo *folderBranchOps) getDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
+	fs := dir.GetFS(ctx)
+	if fs != nil {
+		fbo.log.CDebugf(ctx, "Getting children using an FS")
+		fis, err := fs.ReadDir("")
+		if err != nil {
+			return nil, err
+		}
+		children = make(map[string]EntryInfo, len(fis))
+		for _, fi := range fis {
+			name := fi.Name()
+			ei := EntryInfoFromFileInfo(fi)
+			if ei.Type == Sym {
+				target, err := fs.Readlink(name)
+				if err != nil {
+					return nil, err
+				}
+				ei.SymPath = target
+			}
+			children[name] = ei
+		}
+		return children, nil
+	}
+
 	lState := makeFBOLockState()
 
 	dirPath, err := fbo.pathFromNodeForRead(dir)
@@ -1963,13 +1986,53 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	return retChildren, nil
 }
 
+func (fbo *folderBranchOps) makeFakeDirEntry(
+	ctx context.Context, lState *lockState, dir Node, name string) (
+	de DirEntry, err error) {
+	fbo.log.CDebugf(ctx, "Faking directory entry for %s", name)
+	dirPath := fbo.nodeCache.PathFromNode(dir)
+	id, err := kbfsblock.MakePermanentID(
+		[]byte(dirPath.ChildPathNoPtr(name).String()))
+	if err != nil {
+		return DirEntry{}, err
+	}
+
+	now := fbo.nowUnixNano()
+	de = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID: id,
+			},
+		},
+		EntryInfo: EntryInfo{
+			Type:  Dir,
+			Size:  0,
+			Mtime: now,
+			Ctime: now,
+		},
+	}
+	return de, nil
+}
+
 func (fbo *folderBranchOps) processMissedLookup(
-	ctx context.Context, dir Node, name string, missErr error) (
-	node Node, ei EntryInfo, err error) {
+	ctx context.Context, lState *lockState, dir Node, name string,
+	missErr error) (node Node, ei EntryInfo, err error) {
 	// Check if the directory node wants to autocreate this.
 	autocreate, ctx, et, sympath := dir.ShouldCreateMissedLookup(ctx, name)
 	if !autocreate {
 		return nil, EntryInfo{}, missErr
+	}
+
+	if et == FakeDir {
+		de, err := fbo.makeFakeDirEntry(ctx, lState, dir, name)
+		if err != nil {
+			return nil, EntryInfo{}, missErr
+		}
+		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
+		return node, de.EntryInfo, nil
 	}
 
 	if (sympath != "" && et != Sym) || (sympath == "" && et == Sym) {
@@ -1994,6 +2057,62 @@ func (fbo *folderBranchOps) processMissedLookup(
 	}
 }
 
+func (fbo *folderBranchOps) statUsingFS(
+	ctx context.Context, lState *lockState, node Node, name string) (
+	de DirEntry, ok bool, err error) {
+	if node == nil {
+		return DirEntry{}, false, nil
+	}
+
+	// First check if this is needs to be a faked-out node.
+	autocreate, _, et, _ := node.ShouldCreateMissedLookup(ctx, name)
+	if autocreate && et == FakeDir {
+		de, err := fbo.makeFakeDirEntry(ctx, lState, node, name)
+		if err != nil {
+			return DirEntry{}, false, err
+		}
+		return de, true, nil
+	}
+
+	fs := node.GetFS(ctx)
+	if fs == nil {
+		return DirEntry{}, false, nil
+	}
+
+	fbo.log.CDebugf(ctx, "Using an FS to satisfy stat of %s", name)
+
+	fi, err := fs.Lstat(name)
+	if err != nil {
+		return DirEntry{}, false, err
+	}
+
+	// Convert the FileInfo to a DirEntry.  Using the path of the node
+	// to generate the node ID, which will be unique and deterministic
+	// within `fbo.nodeCache`.
+	nodePath := fbo.nodeCache.PathFromNode(node)
+	id, err := kbfsblock.MakePermanentID(
+		[]byte(nodePath.ChildPathNoPtr(name).String()))
+	if err != nil {
+		return DirEntry{}, false, err
+	}
+	de = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				ID: id,
+			},
+		},
+		EntryInfo: EntryInfoFromFileInfo(fi),
+	}
+	if de.Type == Sym {
+		target, err := fs.Readlink(name)
+		if err != nil {
+			return DirEntry{}, false, err
+		}
+		de.SymPath = target
+	}
+	return de, true, nil
+}
+
 func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 	node Node, de DirEntry, err error) {
 	if fbo.nodeCache.IsUnlinked(dir) {
@@ -2003,6 +2122,19 @@ func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 	}
 
 	lState := makeFBOLockState()
+
+	de, ok, err := fbo.statUsingFS(ctx, lState, dir, name)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+	if ok {
+		node, err := fbo.blocks.GetChildNode(lState, dir, name, de)
+		if err != nil {
+			return nil, DirEntry{}, err
+		}
+		return node, de, nil
+	}
+
 	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 	if err != nil {
 		return nil, DirEntry{}, err
@@ -2010,7 +2142,8 @@ func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 
 	node, de, err = fbo.blocks.Lookup(ctx, lState, md.ReadOnly(), dir, name)
 	if _, isMiss := errors.Cause(err).(NoSuchNameError); isMiss {
-		node, de.EntryInfo, err = fbo.processMissedLookup(ctx, dir, name, err)
+		node, de.EntryInfo, err = fbo.processMissedLookup(
+			ctx, lState, dir, name, err)
 		if _, exists := errors.Cause(err).(NameExistsError); exists {
 			// Someone raced us to create the entry, so return the
 			// new entry.
@@ -2079,19 +2212,33 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 		return DirEntry{}, err
 	}
 
-	lState := makeFBOLockState()
-
 	nodePath, err := fbo.pathFromNodeForRead(node)
 	if err != nil {
 		return DirEntry{}, err
 	}
 
+	lState := makeFBOLockState()
 	var md ImmutableRootMetadata
 	if nodePath.hasValidParent() {
+		// Look up the node for the parent, and see if it has an FS
+		// that can be used to stat `node`.
+		parentPath := nodePath.parentPath()
+		parentNode := fbo.nodeCache.Get(parentPath.tailPointer().Ref())
+		de, ok, err := fbo.statUsingFS(
+			ctx, lState, parentNode, node.GetBasename())
+		if err != nil {
+			return DirEntry{}, err
+		}
+		if ok {
+			return de, nil
+		}
+
+		// Otherwise, proceed with the usual way.
 		md, err = fbo.getMDForReadNeedIdentify(ctx, lState)
 	} else {
-		// If nodePath has no valid parent, it's just the TLF
-		// root, so we don't need an identify in this case.
+		// If nodePath has no valid parent, it's just the TLF root, so
+		// we don't need an identify in this case.  Note: we don't
+		// support FS-based stats for the root directory.
 		md, err = fbo.getMDForReadNoIdentify(ctx, lState)
 	}
 	if err != nil {
@@ -3816,6 +3963,14 @@ func (fbo *folderBranchOps) Read(
 	err = fbo.checkNode(file)
 	if err != nil {
 		return 0, err
+	}
+
+	fsFile := file.GetFile(ctx)
+	if fsFile != nil {
+		defer fsFile.Close()
+		fbo.log.CDebugf(ctx, "Reading from an FS file")
+		nInt, err := fsFile.ReadAt(dest, off)
+		return int64(nInt), err
 	}
 
 	{

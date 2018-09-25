@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -544,6 +545,10 @@ const (
 	Dir
 	// Sym is a symbolic link.
 	Sym
+
+	// FakeDir can be used to indicate a faked-out entry for a directory,
+	// that will be specially processed by folderBranchOps.
+	FakeDir EntryType = 0xffff
 )
 
 // String implements the fmt.Stringer interface for EntryType
@@ -615,6 +620,28 @@ func init() {
 			"Unexpected number of fields in EntryInfo; " +
 				"please update EntryInfo.Eq() for your " +
 				"new or removed field"))
+	}
+}
+
+// EntryInfoFromFileInfo converts an `os.FileInfo` into an
+// `EntryInfo`, to the best of our ability to do so.  The caller is
+// responsible for filling in `EntryInfo.SymPath`, if needed.
+func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
+	t := File
+	if fi.IsDir() {
+		t = Dir
+	} else if fi.Mode()&os.ModeSymlink != 0 {
+		t = Sym
+	} else if fi.Mode()&0100 != 0 {
+		t = Exec
+	}
+	mtime := fi.ModTime().UnixNano()
+	return EntryInfo{
+		Type:  t,
+		Size:  uint64(fi.Size()), // TODO: deal with overflow?
+		Mtime: mtime,
+		Ctime: mtime,
+		// Leave TeamWriter and PrevRevisions empty
 	}
 }
 

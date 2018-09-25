@@ -1068,6 +1068,12 @@
 			"revisionTime": "2018-08-28T14:57:48Z"
 		},
 		{
+			"checksumSHA1": "maO/huC11Uj3NtKjubLAxZ/b76M=",
+			"path": "gopkg.in/src-d/go-billy.v4/memfs",
+			"revision": "0aa82040a3fbb8e4e76847b33e122c5f4cad1837",
+			"revisionTime": "2017-09-13T19:37:46Z"
+		},
+		{
 			"checksumSHA1": "AogJvY1n1XZdmPaLnW9oENZfZrQ=",
 			"origin": "github.com/keybase/go-billy/osfs",
 			"path": "gopkg.in/src-d/go-billy.v4/osfs",

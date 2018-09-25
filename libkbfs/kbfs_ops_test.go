@@ -26,6 +26,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
+	billy "gopkg.in/src-d/go-billy.v4"
+	"gopkg.in/src-d/go-billy.v4/memfs"
 )
 
 type CheckBlockOps struct {
@@ -3743,4 +3745,151 @@ func TestKBFSOpsArchiveBranchType(t *testing.T) {
 	archiveFB := FolderBranch{fb.Tlf, MakeRevBranchName(1)}
 	require.Equal(t, archiveFB, rootNodeArchived.GetFolderBranch())
 	require.True(t, rootNodeArchived.Readonly(ctx))
+}
+
+type testKBFSOpsMemFileNode struct {
+	Node
+	fs   billy.Filesystem
+	name string
+}
+
+func (n testKBFSOpsMemFileNode) GetFile(_ context.Context) billy.File {
+	f, err := n.fs.Open(n.name)
+	if err != nil {
+		return nil
+	}
+	return f
+}
+
+type testKBFSOpsMemFSNode struct {
+	Node
+	fs billy.Filesystem
+}
+
+func (n testKBFSOpsMemFSNode) GetFS(_ context.Context) billy.Filesystem {
+	return n.fs
+}
+
+func (n testKBFSOpsMemFSNode) WrapChild(child Node) Node {
+	child = n.Node.WrapChild(child)
+	name := child.GetBasename()
+	fi, err := n.fs.Lstat(name)
+	if err != nil {
+		return child
+	}
+	if fi.IsDir() {
+		childFS, err := n.fs.Chroot(name)
+		if err != nil {
+			return child
+		}
+		return &testKBFSOpsMemFSNode{
+			Node: child,
+			fs:   childFS,
+		}
+	}
+	return &testKBFSOpsMemFileNode{
+		Node: child,
+		fs:   n.fs,
+		name: name,
+	}
+}
+
+type testKBFSOpsRootNode struct {
+	Node
+	fs billy.Filesystem
+}
+
+func (n testKBFSOpsRootNode) ShouldCreateMissedLookup(
+	ctx context.Context, name string) (
+	bool, context.Context, EntryType, string) {
+	if name == "memfs" {
+		return true, ctx, FakeDir, ""
+	}
+	return n.Node.ShouldCreateMissedLookup(ctx, name)
+}
+
+func (n testKBFSOpsRootNode) WrapChild(child Node) Node {
+	child = n.Node.WrapChild(child)
+	if child.GetBasename() == "memfs" {
+		return &testKBFSOpsMemFSNode{
+			Node: &ReadonlyNode{Node: child},
+			fs:   n.fs,
+		}
+	}
+	return child
+}
+
+type testKBFSOpsRootWrapper struct {
+	fs billy.Filesystem
+}
+
+func (w testKBFSOpsRootWrapper) wrap(node Node) Node {
+	return &testKBFSOpsRootNode{node, w.fs}
+}
+
+func TestKBFSOpsReadonlyFSNodes(t *testing.T) {
+	var u1 kbname.NormalizedUsername = "u1"
+	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
+	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+
+	fs := memfs.New()
+	rw := testKBFSOpsRootWrapper{fs}
+	config.AddRootNodeWrapper(rw.wrap)
+
+	t.Log("Populate a memory file system with a few dirs and files")
+	err := fs.MkdirAll("a/b", 0700)
+	require.NoError(t, err)
+	c, err := fs.Create("a/b/c")
+	require.NoError(t, err)
+	_, err = c.Write([]byte("cdata"))
+	require.NoError(t, err)
+	err = c.Close()
+	require.NoError(t, err)
+	d, err := fs.Create("d")
+	require.NoError(t, err)
+	_, err = d.Write([]byte("ddata"))
+	require.NoError(t, err)
+	err = d.Close()
+
+	name := "u1"
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), config.MDOps(), string(name), tlf.Private)
+	require.NoError(t, err)
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, MasterBranch)
+	require.NoError(t, err)
+
+	fsNode, _, err := kbfsOps.Lookup(ctx, rootNode, "memfs")
+	require.NoError(t, err)
+	children, err := kbfsOps.GetDirChildren(ctx, fsNode)
+	require.NoError(t, err)
+	require.Len(t, children, 2)
+
+	aNode, _, err := kbfsOps.Lookup(ctx, fsNode, "a")
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, aNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+
+	bNode, _, err := kbfsOps.Lookup(ctx, aNode, "b")
+	require.NoError(t, err)
+	children, err = kbfsOps.GetDirChildren(ctx, bNode)
+	require.NoError(t, err)
+	require.Len(t, children, 1)
+
+	cNode, _, err := kbfsOps.Lookup(ctx, bNode, "c")
+	require.NoError(t, err)
+	data := make([]byte, 5)
+	n, err := kbfsOps.Read(ctx, cNode, data, 0)
+	require.NoError(t, err)
+	require.Equal(t, int64(5), n)
+	require.Equal(t, "cdata", string(data))
+
+	dNode, _, err := kbfsOps.Lookup(ctx, fsNode, "d")
+	require.NoError(t, err)
+	data = make([]byte, 5)
+	n, err = kbfsOps.Read(ctx, dNode, data, 0)
+	require.NoError(t, err)
+	require.Equal(t, int64(5), n)
+	require.Equal(t, "ddata", string(data))
 }
