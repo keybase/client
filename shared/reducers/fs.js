@@ -28,9 +28,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
         if (original.type === 'folder' && meta.type === 'folder') {
-          const c = coalesceFolderUpdate(original, meta)
-          console.log({songgao: 'coalesce', original, meta, c})
-          return c
+          return coalesceFolderUpdate(original, meta)
         } else if (original.type !== 'file' || meta.type !== 'file') {
           return meta
         }
