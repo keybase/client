@@ -244,6 +244,10 @@ def runNixTest(prefix) {
     retry(5) {
         sh 'go get -u github.com/golang/lint/golint github.com/golang/mock/gomock github.com/golang/mock/mockgen'
     }
+
+    // Avoid build specific errors by compiling for production.
+    sh 'go build --tags=production ./...'
+
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
@@ -264,10 +268,6 @@ def runNixTest(prefix) {
             sh './gen_mocks.sh'
             sh 'git diff --exit-code'
         }
-    }
-    tests[prefix+'prod_build'] = {
-        // Avoid build specific errors by compiling for production.
-        sh 'go build --tags=production ./...'
     }
     parallel (tests)
     // Dependencies
