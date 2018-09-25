@@ -11,7 +11,7 @@ import type {RowItem} from '../index.types'
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize(metaMap => {
+const splitMetas = memoize((metaMap: Types.MetaMap) => {
   const bigMetas = []
   const smallMetas = []
   metaMap.forEach((meta, id) => {
