@@ -218,7 +218,7 @@ func (s *FileErasableKVStore) write(ctx context.Context, key string, data []byte
 	// we'd need to somehow call the ReplaceFile Win32 function (which Go
 	// doesn't expose anywhere as far as I know, so this would require CGO) to
 	// take advantage of its lpBackupFileName param.
-	s.erase(key)
+	s.erase(ctx, key)
 
 	if err := os.Rename(tmp.Name(), filepath); err != nil {
 		return err
@@ -278,22 +278,18 @@ func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error)
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
 	epick := libkb.FirstErrorPicker{}
-	epick.Push(s.erase(noiseKey))
-	epick.Push(s.erase(key))
+	epick.Push(s.erase(ctx, noiseKey))
+	epick.Push(s.erase(ctx, key))
 	return epick.Error()
 }
 
-func (s *FileErasableKVStore) erase(key string) error {
+func (s *FileErasableKVStore) erase(ctx context.Context, key string) (err error) {
+	defer s.G().CTraceTimed(ctx, "FileErasableKVStore#erase", func() error { return err })()
 	filepath := s.filepath(key)
-	exists, err := libkb.FileExists(filepath)
-	if err != nil {
+	if exists, err := libkb.FileExists(filepath); err != nil {
 		return err
-	}
-	if exists {
-		err = libkb.ShredFile(filepath)
-		if err != nil {
-			return err
-		}
+	} else if exists {
+		return libkb.ShredFile(filepath)
 	}
 	return nil
 }
@@ -316,7 +312,7 @@ func (s *FileErasableKVStore) AllKeys(ctx context.Context) (keys []string, err e
 		}
 		key, err := url.QueryUnescape(filename)
 		if err != nil {
-			return []string{}, err
+			return nil, err
 		}
 		keys = append(keys, key)
 	}
