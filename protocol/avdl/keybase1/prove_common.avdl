@@ -81,6 +81,7 @@ protocol proveCommon {
     // Reserved (in line with keybase/proofs) but not yet implemented.
     // BITBUCKET_7,
     FACEBOOK_8,
+    GENERIC_SOCIAL_9,
     GENERIC_WEB_SITE_1000,
     DNS_1001,
     PGP_1002,

@@ -16,13 +16,23 @@ import (
 // ResolveIDToName takes a team ID and resolves it to a name.
 // It can use server-assist but always cryptographically checks the result.
 func ResolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (name keybase1.TeamName, err error) {
+	return resolveIDToName(ctx, g, id, false)
+}
+
+// ResolveIDToNameForceRefresh is like ResolveIDToName but forces a refresh of
+// the FTL cache.
+func ResolveIDToNameForceRefresh(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID) (name keybase1.TeamName, err error) {
+	return resolveIDToName(ctx, g, id, true)
+}
+
+func resolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, forceRefresh bool) (name keybase1.TeamName, err error) {
 	m := libkb.NewMetaContext(ctx, g)
 	rres := g.Resolver.ResolveFullExpression(m, fmt.Sprintf("tid:%s", id))
 	if err = rres.GetError(); err != nil {
 		return keybase1.TeamName{}, err
 	}
 	name = rres.GetTeamName()
-	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamName{}, err
 	}
 
@@ -32,16 +42,24 @@ func ResolveIDToName(ctx context.Context, g *libkb.GlobalContext, id keybase1.Te
 // ResolveNameToID takes a team name and resolves it to a team ID.
 // It can use server-assist but always cryptographically checks the result.
 func ResolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (id keybase1.TeamID, err error) {
+	return resolveNameToID(ctx, g, name, false)
+}
+
+// ResolveNameToIDForceRefresh is just like ResolveNameToID but it forces a refresh.
+func ResolveNameToIDForceRefresh(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName) (id keybase1.TeamID, err error) {
+	return resolveNameToID(ctx, g, name, true)
+}
+
+func resolveNameToID(ctx context.Context, g *libkb.GlobalContext, name keybase1.TeamName, forceRefresh bool) (id keybase1.TeamID, err error) {
 	m := libkb.NewMetaContext(ctx, g)
 	rres := g.Resolver.ResolveFullExpression(m, fmt.Sprintf("team:%s", name))
 	if err = rres.GetError(); err != nil {
 		return keybase1.TeamID(""), err
 	}
 	id = rres.GetTeamID()
-	if err = g.GetTeamLoader().VerifyTeamName(ctx, id, name); err != nil {
+	if err = g.GetFastTeamLoader().VerifyTeamName(m, id, name, forceRefresh); err != nil {
 		return keybase1.TeamID(""), err
 	}
-
 	return id, nil
 }
 

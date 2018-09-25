@@ -24,11 +24,7 @@ type CmdChatSearch struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	query            string
-	sentBy           string
-	maxHits          int
-	maxMessages      int
-	beforeContext    int
-	afterContext     int
+	opts             chat1.SearchOpts
 	isRegex          bool
 	hasTTY           bool
 }
@@ -145,11 +141,7 @@ func (c *CmdChatSearch) Run() (err error) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		IsRegex:          c.isRegex,
-		SentBy:           c.sentBy,
-		MaxHits:          c.maxHits,
-		MaxMessages:      c.maxMessages,
-		BeforeContext:    c.beforeContext,
-		AfterContext:     c.afterContext,
+		Opts:             c.opts,
 	}
 
 	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
@@ -169,22 +161,22 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.query = ctx.Args().Get(1)
-	c.sentBy = ctx.String("sent-by")
-	c.maxHits = ctx.Int("max-hits")
-	if c.maxHits > chat.MaxAllowedSearchHits {
+	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.MaxHits = ctx.Int("max-hits")
+	if c.opts.MaxHits > chat.MaxAllowedSearchHits {
 		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
 	}
-	c.maxMessages = ctx.Int("max-messages")
-	if c.maxMessages > chat.MaxAllowedSearchMessages {
+	c.opts.MaxMessages = ctx.Int("max-messages")
+	if c.opts.MaxMessages > chat.MaxAllowedSearchMessages {
 		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
 	}
 
-	c.afterContext = ctx.Int("after-context")
-	c.beforeContext = ctx.Int("before-context")
-	if c.afterContext == 0 && c.beforeContext == 0 {
+	c.opts.AfterContext = ctx.Int("after-context")
+	c.opts.BeforeContext = ctx.Int("before-context")
+	if c.opts.AfterContext == 0 && c.opts.BeforeContext == 0 {
 		context := ctx.Int("context")
-		c.beforeContext = context
-		c.afterContext = context
+		c.opts.BeforeContext = context
+		c.opts.AfterContext = context
 	}
 
 	c.isRegex = ctx.Bool("regex")

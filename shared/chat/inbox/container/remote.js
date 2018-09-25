@@ -23,6 +23,7 @@ const valuesCached = memoize((...vals) => vals.map(v => v))
 const metaMapToFirstValues = memoize(metaMap =>
   metaMap
     .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
+    .filter((_, id) => Constants.isValidConversationIDKey(id))
     .valueSeq()
     .toArray()
 )
@@ -54,11 +55,7 @@ export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
     isSelected: false,
     // excluding onSelectConversation
     participantNeedToRekey,
-    participants: m.teamname
-      ? []
-      : Constants.getRowParticipants(m, _username)
-          .toArray()
-          .slice(0, 2),
+    participants: m.teamname ? [] : Constants.getRowParticipants(m, _username).toArray(),
     showBold: styles.showBold,
     snippet: m.snippet,
     snippetDecoration: m.snippetDecoration,

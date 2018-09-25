@@ -570,7 +570,8 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(MetaContext, *PostProofRes) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -630,6 +631,7 @@ type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	OnLogout()
 }
 

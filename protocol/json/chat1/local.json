@@ -3800,24 +3800,8 @@
           "type": "boolean"
         },
         {
-          "name": "sentBy",
-          "type": "string"
-        },
-        {
-          "name": "maxHits",
-          "type": "int"
-        },
-        {
-          "name": "maxMessages",
-          "type": "int"
-        },
-        {
-          "name": "beforeContext",
-          "type": "int"
-        },
-        {
-          "name": "afterContext",
-          "type": "int"
+          "name": "opts",
+          "type": "SearchOpts"
         },
         {
           "name": "identifyBehavior",

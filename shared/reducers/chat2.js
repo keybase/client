@@ -298,42 +298,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           )
         })
       })
-    case Chat2Gen.paymentInfoReceived: {
-      const {conversationIDKey, messageID, paymentInfo} = action.payload
-      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
-      if (!ordinal) {
-        return messageMap
-      }
-      return messageMap.update(conversationIDKey, messages => {
-        return messages.update(ordinal, msg => {
-          if (msg.type !== 'sendPayment') {
-            logger.error(
-              `Got paymentInfoNotif for non-payment message. convID: ${conversationIDKey}, msgID: ${messageID}`
-            )
-            return msg
-          }
-          return msg.set('paymentInfo', paymentInfo)
-        })
-      })
-    }
-    case Chat2Gen.requestInfoReceived: {
-      const {conversationIDKey, messageID, requestInfo} = action.payload
-      const ordinal = messageIDToOrdinal(messageMap, pendingOutboxToOrdinal, conversationIDKey, messageID)
-      if (!ordinal) {
-        return messageMap
-      }
-      return messageMap.update(conversationIDKey, messages => {
-        return messages.update(ordinal, msg => {
-          if (msg.type !== 'requestPayment') {
-            logger.error(
-              `Got requestInfoNotif for non-request message. convID: ${conversationIDKey}, msgID: ${messageID}`
-            )
-            return msg
-          }
-          return msg.set('requestInfo', requestInfo)
-        })
-      })
-    }
     default:
       return messageMap
   }
@@ -814,6 +778,14 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
         s.set('messageOrdinals', messageOrdinalsReducer(state.messageOrdinals, action))
       })
     }
+    case Chat2Gen.paymentInfoReceived: {
+      const {conversationIDKey, messageID, paymentInfo} = action.payload
+      return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], paymentInfo))
+    }
+    case Chat2Gen.requestInfoReceived: {
+      const {conversationIDKey, messageID, requestInfo} = action.payload
+      return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], requestInfo))
+    }
     // metaMap/messageMap/messageOrdinalsList only actions
     case Chat2Gen.messageDelete:
     case Chat2Gen.messageEdit:
@@ -834,8 +806,6 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
-    case Chat2Gen.paymentInfoReceived:
-    case Chat2Gen.requestInfoReceived:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))

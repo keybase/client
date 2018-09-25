@@ -9,6 +9,7 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
 import memoize from 'memoize-one'
+import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
 
@@ -53,12 +54,14 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 
 const mapStateToProps = (state: TypedState) => ({
   _badgeInfo: state.notifications.navBadges,
+  _edits: state.fs.edits,
   _externalRemoteWindowID: state.config.menubarWindowID,
   _following: state.config.following,
+  _pathItems: state.fs.pathItems,
   _tlfUpdates: state.fs.tlfUpdates,
+  _uploads: state.fs.uploads,
   broken: state.tracker.userTrackers,
   conversationsToSend: conversationsToSend(state),
-  isAsyncWriteHappening: state.fs.flags.syncing,
   loggedIn: state.config.loggedIn,
   username: state.config.username,
 })
@@ -92,13 +95,13 @@ const mergeProps = stateProps => {
       : null,
     fileRows: stateProps._tlfUpdates,
     following: stateProps._following,
-    isAsyncWriteHappening: stateProps.isAsyncWriteHappening,
     loggedIn: stateProps.loggedIn,
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
     windowParam: '',
     windowTitle: '',
+    ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
   }
 }
 

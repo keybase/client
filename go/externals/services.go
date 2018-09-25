@@ -6,7 +6,6 @@ package externals
 import (
 	"context"
 	"encoding/json"
-	"regexp"
 	"strings"
 	"sync"
 
@@ -65,6 +64,10 @@ type proofServices struct {
 }
 
 func NewProofServices(g *libkb.GlobalContext) libkb.ExternalServicesCollector {
+	return newProofServices(g)
+}
+
+func newProofServices(g *libkb.GlobalContext) *proofServices {
 	p := &proofServices{
 		Contextified: libkb.NewContextified(g),
 		collection:   make(map[string]libkb.ServiceType),
@@ -113,20 +116,20 @@ func (p *proofServices) loadParamProofServices() {
 		return
 	}
 
-	m := libkb.NewMetaContext(context.TODO(), p.G())
-	entry, err := p.G().GetParamProofStore().GetLatestEntry(m)
+	mctx := libkb.NewMetaContext(context.TODO(), p.G())
+	entry, err := p.G().GetParamProofStore().GetLatestEntry(mctx)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to load paramproofs: %v", err)
 		return
 	}
-	proofTypes, err := p.parseServices(entry)
+	serviceConfigs, err := p.parseServiceConfigs(entry)
 	if err != nil {
 		p.G().Log.CDebugf(context.TODO(), "unable to parse paramproofs: %v", err)
 		return
 	}
 	services := []libkb.ServiceType{}
-	for _, params := range proofTypes {
-		services = append(services, NewParamProofServiceType(params))
+	for _, config := range serviceConfigs {
+		services = append(services, NewGenericSocialProofServiceType(config))
 	}
 	p.register(services)
 }
@@ -135,7 +138,7 @@ type proofServicesT struct {
 	Services []keybase1.ParamProofServiceConfig `json:"services"`
 }
 
-func (p *proofServices) parseServices(entry keybase1.MerkleStoreEntry) ([]keybase1.ParamProofServiceConfig, error) {
+func (p *proofServices) parseServiceConfigs(entry keybase1.MerkleStoreEntry) (res []*GenericSocialProofConfig, err error) {
 	b := []byte(entry.Entry)
 	services := proofServicesT{}
 
@@ -144,13 +147,13 @@ func (p *proofServices) parseServices(entry keybase1.MerkleStoreEntry) ([]keybas
 	}
 
 	// Do some basic validation of what we parsed
-	configs := []keybase1.ParamProofServiceConfig{}
 	for _, config := range services.Services {
-		if _, err := regexp.Compile(config.Username.Re); err != nil {
-			p.G().Log.CDebugf(context.TODO(), "usernameRe %s does not compile for %s: %v", config.DisplayName, config.Username.Re, err)
+		validConf, err := NewGenericSocialProofConfig(config)
+		if err != nil {
+			p.G().Log.CDebugf(context.TODO(), "Unable to validate config for %s: %v", config.DisplayName, err)
 			continue
 		}
-		configs = append(configs, config)
+		res = append(res, validConf)
 	}
-	return configs, nil
+	return res, nil
 }
