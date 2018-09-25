@@ -492,13 +492,11 @@ let teamsEmpty = false
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   ChatInboxHeaderContainer: p => {
-    const showNewChat = !(p.rows.length || p.filter)
     return {
       focusFilter: () => {},
       filterFocusCount: p.filterFocusCount,
       onNewChat: Sb.action('onNewChat'),
       rows: p.rows,
-      showNewChat,
     }
   },
   ChatFilterRow: p => ({
@@ -529,7 +527,7 @@ const provider = Sb.createPropProviderWithCommon({
   TeamsDivider: p => ({
     badgeCount: 2,
     showButton: p.showButton,
-    hiddenCount: p.smallIDsHidden.length,
+    hiddenCount: 4,
     style: {marginBottom: globalMargins.tiny},
     toggle: Sb.action('onToggle'),
   }),
