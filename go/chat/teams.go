@@ -171,6 +171,16 @@ func NewTeamLoader(g *libkb.GlobalContext) *TeamLoader {
 	}
 }
 
+func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
+	tlfIDs := team.KBFSTLFIDs()
+	for _, id := range tlfIDs {
+		if tlfID.EqString(id) {
+			return true
+		}
+	}
+	return false
+}
+
 func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 	tlfName string, membersType chat1.ConversationMembersType, public bool,
 	loadTeamArgOverride func(keybase1.TeamID) keybase1.LoadTeamArg) (team *teams.Team, err error) {
@@ -206,9 +216,9 @@ func (t *TeamLoader) loadTeam(ctx context.Context, tlfID chat1.TLFID,
 			if err != nil {
 				return err
 			}
-			if !tlfID.EqString(team.KBFSTLFID()) {
+			if !t.validKBFSTLFID(tlfID, team) {
 				return ImpteamUpgradeBadteamError{
-					Msg: fmt.Sprintf("mismatch TLFID to team: %s != %s", team.KBFSTLFID(), tlfID),
+					Msg: fmt.Sprintf("TLF ID not found in team: %s", tlfID),
 				}
 			}
 			return nil
@@ -593,7 +603,10 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 
 	var tlfID chat1.TLFID
 	if t.lookupUpgraded {
-		tlfID = chat1.TLFID(team.KBFSTLFID().ToBytes())
+		tlfIDs := team.KBFSTLFIDs()
+		if len(tlfIDs) > 0 {
+			tlfID = tlfIDs[0].ToBytes()
+		}
 	} else {
 		tlfID, err = chat1.TeamIDToTLFID(team.ID)
 		if err != nil {

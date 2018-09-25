@@ -107,8 +107,16 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
-func (t *Team) KBFSTLFID() keybase1.TLFID {
-	return t.chain().inner.TlfID
+func (t *Team) KBFSTLFIDs() []keybase1.TLFID {
+	return t.chain().inner.TlfIDs
+}
+
+func (t *Team) LatestKBFSTLFID() (res keybase1.TLFID) {
+	ids := t.KBFSTLFIDs()
+	if len(ids) > 0 {
+		res = ids[len(ids)-1]
+	}
+	return res
 }
 
 func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
@@ -1859,12 +1867,12 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 	}
 
 	// Associate the imp team with the TLF ID
-	if team.KBFSTLFID().IsNil() {
+	if team.LatestKBFSTLFID().IsNil() {
 		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
 			return err
 		}
 	} else {
-		if team.KBFSTLFID().String() != tlfID.String() {
+		if team.LatestKBFSTLFID().String() != tlfID.String() {
 			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
 				team.ID, tlfID)
 		}

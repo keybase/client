@@ -1077,8 +1077,11 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          },
+          "name": "tlfIDs"
         },
         {
           "type": {
