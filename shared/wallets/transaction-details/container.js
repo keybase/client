@@ -49,7 +49,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
-      dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
+      dispatchProps._onLoadPaymentDetail(
+        ownProps.routeProps.get('accountID'),
+        ownProps.routeProps.get('paymentID')
+      ),
     onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),
     recipientAccountID: tx.targetAccountID ? Types.stringToAccountID(tx.targetAccountID) : null,

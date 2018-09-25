@@ -5,7 +5,9 @@ import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as WalletTypes from '../../../../../constants/types/wallets'
 import * as WalletGen from '../../../../../actions/wallets-gen'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Styles from '../../../../../styles'
+import {walletsTab} from '../../../../../constants/tabs'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
@@ -55,7 +57,12 @@ const sendMapStateToProps = (state: Container.TypedState, ownProps: SendOwnProps
 
 const sendMapDispatchToProps = dispatch => ({
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    // TODO
+    dispatch(WalletGen.createSelectAccount({accountID}))
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        path: [walletsTab, 'wallet', {selected: 'transactionDetails', props: {accountID, paymentID}}],
+      })
+    )
   },
 })
 
