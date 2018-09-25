@@ -23,29 +23,9 @@ func (t *Team) ExportToTeamPlusApplicationKeys(ctx context.Context, idTime keyba
 
 	var applicationKeys []keybase1.TeamApplicationKey
 	if loadKeys {
-		teamKeys, err := t.AllApplicationKeys(ctx, application)
+		applicationKeys, err = t.AllApplicationKeysWithKBFS(ctx, application)
 		if err != nil {
 			return ret, err
-		}
-		kbfsKeys := t.KBFSCryptKeys(ctx, application)
-		if len(kbfsKeys) > 0 {
-			latestKBFSGen := kbfsKeys[len(kbfsKeys)-1].Generation()
-			for _, k := range kbfsKeys {
-				applicationKeys = append(applicationKeys, keybase1.TeamApplicationKey{
-					Application:   application,
-					KeyGeneration: keybase1.PerTeamKeyGeneration(k.KeyGeneration),
-					Key:           k.Key,
-				})
-			}
-			for _, tk := range teamKeys {
-				applicationKeys = append(applicationKeys, keybase1.TeamApplicationKey{
-					Application:   application,
-					KeyGeneration: keybase1.PerTeamKeyGeneration(tk.Generation() + latestKBFSGen),
-					Key:           tk.Key,
-				})
-			}
-		} else {
-			applicationKeys = teamKeys
 		}
 	}
 
