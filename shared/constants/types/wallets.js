@@ -81,6 +81,7 @@ export type _BuildingPayment = {
 export type _BuiltPayment = {
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  from: string,
   publicMemoErrMsg: HiddenString,
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,

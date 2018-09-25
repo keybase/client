@@ -14,8 +14,8 @@ type PaymentNotificationArg struct {
 }
 
 type PaymentStatusNotificationArg struct {
-	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
-	TxID   TransactionID        `codec:"txID" json:"txID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
 type RequestStatusNotificationArg struct {

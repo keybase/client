@@ -131,7 +131,7 @@ const _sharedAskForUserData = new SharedAskForUserData()
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
   const name = ownProps.username || ownProps.teamname
   return {
-    _urlMap: name ? state.config.avatars[name] : null,
+    _urlMap: name ? state.config.avatars.get(name) : null,
     following: ownProps.showFollowingStatus ? state.config.following.has(ownProps.username || '') : false,
     followsYou: ownProps.showFollowingStatus ? state.config.followers.has(ownProps.username || '') : false,
   }
@@ -166,7 +166,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onClick && platformStyles({isElectron: desktopStyles.clickable}),
   ])
 
-  let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap, ownProps.size) : null
+  let url = stateProps._urlMap ? urlsToImgSet(stateProps._urlMap.toObject(), ownProps.size) : null
   if (!url) {
     url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
   }

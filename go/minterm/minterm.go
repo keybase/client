@@ -75,17 +75,35 @@ func (m *MinTerm) PromptPassword(prompt string) (string, error) {
 
 func (m *MinTerm) fdIn() int { return int(m.termIn.Fd()) }
 
+func (m *MinTerm) getNewTerminal(prompt string) (*terminal.Terminal, error) {
+	term := terminal.NewTerminal(m.getReadWriter(), prompt)
+	a, b := m.Size()
+	err := term.SetSize(a, b)
+	if err != nil {
+		return nil, err
+	}
+	return term, nil
+}
+
 func (m *MinTerm) readLine(prompt string) (string, error) {
 	m.makeRaw()
 	defer m.restore()
-	ret, err := terminal.NewTerminal(m.getReadWriter(), prompt).ReadLine()
+	term, err := m.getNewTerminal(prompt)
+	if err != nil {
+		return "", convertErr(err)
+	}
+	ret, err := term.ReadLine()
 	return ret, convertErr(err)
 }
 
 func (m *MinTerm) readSecret(prompt string) (string, error) {
 	m.makeRaw()
 	defer m.restore()
-	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadPassword(prompt)
+	term, err := m.getNewTerminal("")
+	if err != nil {
+		return "", convertErr(err)
+	}
+	ret, err := term.ReadPassword(prompt)
 	return ret, convertErr(err)
 }
 

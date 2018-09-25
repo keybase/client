@@ -74,6 +74,7 @@ function _addProof(action: ProfileGen.AddProofPayload) {
     // flow needs this for some reason
     case 'http':
     case 'https':
+    case 'web':
     case 'twitter':
     case 'facebook':
     case 'reddit':

@@ -14,6 +14,8 @@ func getStaticProofServices() []libkb.ServiceType {
 		RedditServiceType{},
 		TwitterServiceType{},
 		WebServiceType{},
+		WebServiceType{scheme: "http"},
+		WebServiceType{scheme: "https"},
 	}
 	return append(services, getBuildSpecificStaticProofServices()...)
 }

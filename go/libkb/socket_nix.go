@@ -103,10 +103,10 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 		return nil, fmt.Errorf("Can't dial empty path")
 	}
 
-	// Path can't be longer than 108 characters.
+	// Path can't be longer than 103 characters.
 	// In this case Chdir to the file directory first.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
-	if len(dialFile) >= 108 {
+	if len(dialFile) >= 103 {
 		prevWd, err := os.Getwd()
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)

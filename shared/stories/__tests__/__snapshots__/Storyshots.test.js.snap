@@ -329,7 +329,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -357,7 +357,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -394,7 +394,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -435,7 +435,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -463,7 +463,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -504,7 +504,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -545,7 +545,7 @@ Array [
                 className="avatar-user-image avatar-size-96"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-192.png') 1x, url('icons/icon-team-placeholder-avatar-192.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
                     "borderRadius": 12,
                   }
                 }
@@ -600,7 +600,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -628,7 +628,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -665,7 +665,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -706,7 +706,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -734,7 +734,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -775,7 +775,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -816,7 +816,7 @@ Array [
                 className="avatar-user-image avatar-size-64"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                     "borderRadius": 10,
                   }
                 }
@@ -871,7 +871,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -899,7 +899,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -936,7 +936,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -977,7 +977,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1005,7 +1005,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1046,7 +1046,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1087,7 +1087,7 @@ Array [
                 className="avatar-user-image avatar-size-48"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-192.png') 1x, url('icons/icon-team-placeholder-avatar-192.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
                     "borderRadius": 8,
                   }
                 }
@@ -1142,7 +1142,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1170,7 +1170,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1207,7 +1207,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1245,7 +1245,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1273,7 +1273,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1311,7 +1311,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1349,7 +1349,7 @@ Array [
                 className="avatar-user-image avatar-size-32"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                     "borderRadius": 6,
                   }
                 }
@@ -1404,7 +1404,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1432,7 +1432,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1469,7 +1469,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1507,7 +1507,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1535,7 +1535,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1573,7 +1573,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                     "borderRadius": "50%",
                   }
                 }
@@ -1611,7 +1611,7 @@ Array [
                 className="avatar-user-image avatar-size-16"
                 style={
                   Object {
-                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                    "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                     "borderRadius": 4,
                   }
                 }
@@ -37972,7 +37972,7 @@ Array [
               className="avatar-user-image avatar-size-32"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                   "borderRadius": "50%",
                 }
               }
@@ -38071,7 +38071,7 @@ Array [
               className="avatar-user-image avatar-size-32"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                   "borderRadius": 6,
                 }
               }
@@ -38226,7 +38226,7 @@ Array [
               className="avatar-user-image avatar-size-64"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                   "borderRadius": 10,
                 }
               }
@@ -38342,7 +38342,7 @@ Array [
               className="avatar-user-image avatar-size-96"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                   "borderRadius": "50%",
                 }
               }
@@ -38437,7 +38437,7 @@ Array [
               className="avatar-user-image avatar-size-64"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-team-placeholder-avatar-256.png') 1x, url('icons/icon-team-placeholder-avatar-256.png') 2x, url('icons/icon-team-placeholder-avatar-192.png') 3x)",
                   "borderRadius": 10,
                 }
               }
@@ -38515,7 +38515,7 @@ Array [
               className="avatar-user-image avatar-size-64"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                   "borderRadius": "50%",
                 }
               }
@@ -38808,7 +38808,7 @@ Array [
               className="avatar-user-image avatar-size-64"
               style={
                 Object {
-                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                  "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-192.png') 3x)",
                   "borderRadius": "50%",
                 }
               }
@@ -44637,7 +44637,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -45825,7 +45825,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -46422,7 +46422,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -47751,7 +47751,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -49094,7 +49094,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -51743,7 +51743,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -54356,7 +54356,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -56993,7 +56993,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -60489,7 +60489,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -61123,7 +61123,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -61711,7 +61711,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -62423,7 +62423,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -65005,7 +65005,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -65825,7 +65825,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }
@@ -68462,7 +68462,7 @@ Array [
                   className="avatar-user-image avatar-size-96"
                   style={
                     Object {
-                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-256.png') 1x, url('icons/icon-placeholder-avatar-256.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
+                      "backgroundImage": "-webkit-image-set(url('icons/icon-placeholder-avatar-192.png') 1x, url('icons/icon-placeholder-avatar-192.png') 2x, url('icons/icon-placeholder-avatar-960.png') 3x)",
                       "borderRadius": "50%",
                     }
                   }

@@ -537,6 +537,7 @@ export const proveCommonProofType = {
   coinbase: 5,
   hackernews: 6,
   facebook: 8,
+  genericSocial: 9,
   genericWebSite: 1000,
   dns: 1001,
   pgp: 1002,
