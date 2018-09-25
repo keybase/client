@@ -1,6 +1,8 @@
 // @flow
 // The filtered inbox rows. No dividers or headers, just smallbig row items
-import {createSelector, type TypedState} from '../../../util/container'
+import * as Types from '../../../constants/types/chat2'
+import memoize from 'memoize-one'
+import type {RowItem} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
   // special case, looking for yourself
@@ -59,80 +61,57 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-let _metaMap
-// Note: This is NOT a real selector. Instead this fires and stashes into _metaMap a cached copy.
-// If the other things change (inboxFilter, username, etc) then they'll just grab the cached value.
-// This serves 2 purposes. 1. No thrashing as people are chatting (since we don't show snippets / use the ordering of timestamps)
-// and 2. We don't want the results to move around
-const fakeGetMetaMap = createSelector([(state: TypedState) => state.chat2.metaMap], metaMap => {
-  _metaMap = metaMap
-  return null
-})
+const makeSmallItem = (meta, filter, you) => {
+  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray())
+  return s > 0
+    ? {
+        data: {conversationIDKey: meta.conversationIDKey, type: 'small'},
+        score: s,
+        timestamp: meta.timestamp,
+      }
+    : null
+}
+
+const makeBigItem = (meta, filter) => {
+  const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean))
+  return s > 0
+    ? {
+        data: {
+          channelname: meta.channelname,
+          conversationIDKey: meta.conversationIDKey,
+          teamname: meta.teamname,
+          type: 'big',
+        },
+        score: s,
+        timestamp: 0,
+      }
+    : null
+}
 
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = createSelector(
-  [
-    fakeGetMetaMap,
-    (state: TypedState) => state.chat2.inboxFilter,
-    (state: TypedState) => state.config.username || '',
-  ],
-  (_, filter, username) => {
-    const metas = _metaMap.valueSeq().toArray()
-    const lcFilter = filter.toLowerCase()
-    const lcYou = username.toLowerCase()
-    const smallRows = metas
-      .map(meta => {
-        if (meta.teamType !== 'big') {
-          const s = score(lcFilter, lcYou, meta.teamname ? [meta.teamname] : meta.participants.toArray())
-          return s > 0
-            ? {
-                conversationIDKey: meta.conversationIDKey,
-                score: s,
-                timestamp: meta.timestamp,
-              }
-            : null
-        } else {
-          return null
-        }
-      })
-      .filter(Boolean)
-      .sort((a, b) => (a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score))
-      .map(({conversationIDKey}) => ({conversationIDKey, type: 'small'}))
+const getFilteredRowsAndMetadata = memoize((metaMap: Types.MetaMap, filter: string, username: string) => {
+  const metas = metaMap.valueSeq().toArray()
+  const lcFilter = filter.toLowerCase()
+  const lcYou = username.toLowerCase()
+  const rows: Array<RowItem> = metas
+    .map(
+      meta => (meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter))
+    )
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a.data.type !== b.data.type) {
+        return a.data.type === 'small' ? -1 : 1
+      }
+      return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
+    })
+    .map(({data}) => (data: RowItem))
 
-    const bigRows = metas
-      .map(meta => {
-        if (meta.teamType === 'big') {
-          const s = score(lcFilter, '', [meta.teamname, meta.channelname].filter(Boolean))
-          return s > 0
-            ? {
-                channelname: meta.channelname,
-                conversationIDKey: meta.conversationIDKey,
-                score: s,
-                teamname: meta.teamname,
-              }
-            : null
-        } else {
-          return null
-        }
-      })
-      .filter(Boolean)
-      .sort((a, b) => b.score - a.score)
-      .map(({conversationIDKey, channelname, teamname}) => ({
-        channelname,
-        conversationIDKey,
-        teamname,
-        type: 'big',
-      }))
-
-    return {
-      rows: [...smallRows, ...bigRows],
-      showBuildATeam: false,
-      showSmallTeamsExpandDivider: false,
-      smallIDsHidden: [],
-      smallTeamsExpanded: true,
-    }
+  return {
+    allowShowFloatingButton: false,
+    rows,
+    smallTeamsExpanded: true,
   }
-)
+})
 
 export default getFilteredRowsAndMetadata
 
