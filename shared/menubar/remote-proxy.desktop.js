@@ -6,9 +6,10 @@ import SyncProps from '../desktop/remote/sync-props.desktop'
 import {sendLoad} from '../desktop/remote/sync-browser-window.desktop'
 import {NullComponent, connect, type TypedState, compose, renderNothing, branch} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import GetNewestConvMetas from '../chat/inbox/container/remote'
+import {conversationsToSend} from '../chat/inbox/container/remote'
+import {serialize} from './remote-serializer.desktop'
+import memoize from 'memoize-one'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
-import GetFileRows from '../fs/remote-container'
 
 const windowOpts = {}
 
@@ -52,36 +53,57 @@ function RemoteMenubarWindow(ComposedComponent: any) {
 }
 
 const mapStateToProps = (state: TypedState) => ({
-  broken: state.tracker.userTrackers,
-  _following: state.config.following,
   _badgeInfo: state.notifications.navBadges,
-  _externalRemoteWindowID: state.config.menubarWindowID,
   _edits: state.fs.edits,
+  _externalRemoteWindowID: state.config.menubarWindowID,
+  _following: state.config.following,
   _pathItems: state.fs.pathItems,
+  _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
+  broken: state.tracker.userTrackers,
+  conversationsToSend: conversationsToSend(state),
   loggedIn: state.config.loggedIn,
   username: state.config.username,
-  conversations: GetNewestConvMetas(state),
-  _tlfUpdates: state.fs.tlfUpdates,
 })
 
-const mergeProps = stateProps => ({
-  badgeInfo: stateProps._badgeInfo.toJS(),
-  externalRemoteWindow: stateProps._externalRemoteWindowID
-    ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
-    : null,
-  loggedIn: stateProps.loggedIn,
-  username: stateProps.username,
-  fileRows: GetFileRows(stateProps._tlfUpdates),
-  conversations: stateProps.conversations,
-  broken: stateProps.broken,
-  following: stateProps._following.toArray(),
-  windowComponent: 'menubar',
-  windowOpts,
-  windowParam: '',
-  windowTitle: '',
-  ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
-})
+// TODO we should just send a Set like structure over, for now just extract trackerState
+const getBrokenSubset = memoize(userTrackers =>
+  Object.keys(userTrackers).reduce((map, name) => {
+    map[name] = {
+      trackerState: userTrackers[name].trackerState,
+    }
+    return map
+  }, {})
+)
+
+let _lastUsername
+let _lastClearCacheTrigger = 0
+const mergeProps = stateProps => {
+  if (_lastUsername !== stateProps.username) {
+    _lastUsername = stateProps.username
+    _lastClearCacheTrigger++
+  }
+  return {
+    badgeKeys: stateProps._badgeInfo,
+    badgeMap: stateProps._badgeInfo,
+    broken: getBrokenSubset(stateProps.broken),
+    clearCacheTrigger: _lastClearCacheTrigger,
+    conversationIDs: stateProps.conversationsToSend,
+    conversationMap: stateProps.conversationsToSend,
+    externalRemoteWindow: stateProps._externalRemoteWindowID
+      ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
+      : null,
+    fileRows: stateProps._tlfUpdates,
+    following: stateProps._following,
+    loggedIn: stateProps.loggedIn,
+    username: stateProps.username,
+    windowComponent: 'menubar',
+    windowOpts,
+    windowParam: '',
+    windowTitle: '',
+    ...uploadsToUploadCountdownHOCProps(stateProps._edits, stateProps._pathItems, stateProps._uploads),
+  }
+}
 
 // Actions are handled by remote-container
 export default compose(
@@ -91,5 +113,5 @@ export default compose(
   branch(props => !props.externalRemoteWindow, renderNothing),
   RemoteMenubarWindow,
   SyncAvatarProps,
-  SyncProps
+  SyncProps(serialize)
 )(NullComponent)
