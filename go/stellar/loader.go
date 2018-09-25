@@ -257,17 +257,19 @@ func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
 
 func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLocal, msg chatMsg) *chat1.UIPaymentInfo {
 	info := chat1.UIPaymentInfo{
+		AccountID:         &summary.FromAccountID,
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
 		Delta:             summary.Delta,
 		Note:              summary.Note,
+		PaymentID:         summary.Id,
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
 	}
 
 	info.Delta = stellar1.BalanceDelta_NONE
 
-	// Calculate the payment delta
+	// Calculate the payment delta & relevant accountID
 	if summary.FromType == stellar1.ParticipantType_OWNACCOUNT && summary.ToType == stellar1.ParticipantType_OWNACCOUNT {
 		// This is a transfer between the user's own accounts.
 		info.Delta = stellar1.BalanceDelta_NONE
@@ -275,6 +277,8 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		info.Delta = stellar1.BalanceDelta_INCREASE
 		if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
 			info.Delta = stellar1.BalanceDelta_DECREASE
+		} else {
+			info.AccountID = summary.ToAccountID
 		}
 	}
 
