@@ -26,6 +26,16 @@ const splitMetas = memoize((metaMap: Types.MetaMap) => {
   return {bigMetas, smallMetas}
 })
 
+const smallMetasEqual = (la, lb) => {
+  if (typeof la === 'boolean') return la === lb
+  return (
+    la.length === lb.length &&
+    la.every((a, idx) => {
+      const b = lb[idx]
+      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
+    })
+  )
+}
 const sortByTimestsamp = (a, b) => b.timestamp - a.timestamp
 const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
   let metas
@@ -37,7 +47,7 @@ const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
       .toArray()
   }
   return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
-}, shallowEqual)
+}, smallMetasEqual)
 
 const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname
