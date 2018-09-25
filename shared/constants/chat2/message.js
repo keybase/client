@@ -222,9 +222,11 @@ export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageReq
 })
 
 export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo> = I.Record({
+  accountID: WalletTypes.noAccountID,
   amountDescription: '',
   delta: 'none',
   note: new HiddenString(''),
+  paymentID: WalletTypes.noPaymentID,
   status: 'none',
   statusDescription: '',
   type: 'paymentInfo',
@@ -354,9 +356,11 @@ export const uiPaymentInfoToChatPaymentInfo = (
     return null
   }
   return makeChatPaymentInfo({
+    accountID: p.accountID ? WalletTypes.stringToAccountID(p.accountID) : WalletTypes.noAccountID,
     amountDescription: p.amountDescription,
     delta: WalletConstants.balanceDeltaToString[p.delta],
     note: new HiddenString(p.note),
+    paymentID: WalletTypes.rpcPaymentIDToPaymentID(p.paymentID),
     status: WalletConstants.statusSimplifiedToString[p.status],
     statusDescription: p.statusDescription,
     worth: p.worth,

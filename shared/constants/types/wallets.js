@@ -40,6 +40,10 @@ export const noAccountID = stringToAccountID('NOACCOUNTID')
 
 export const isValidAccountID = (accountID: AccountID) => accountID && accountID !== noAccountID
 
+export opaque type PaymentID = StellarRPCTypes.PaymentID
+export const noPaymentID: PaymentID = {txID: ''}
+export const rpcPaymentIDToPaymentID = (id: StellarRPCTypes.PaymentID): PaymentID => id
+
 export type _Account = {
   accountID: AccountID,
   balanceDescription: string,
