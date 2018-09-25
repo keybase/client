@@ -195,12 +195,15 @@ func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGene
 	if err != nil {
 		return err
 	}
-	delete(cache, generation)
 	key, err := s.key(ctx, generation)
 	if err != nil {
 		return err
 	}
-	return s.storage.Erase(ctx, key)
+	if err = s.storage.Erase(ctx, key); err != nil {
+		return err
+	}
+	delete(cache, generation)
+	return nil
 }
 
 func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, err error) {

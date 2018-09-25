@@ -346,7 +346,7 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 	defer ekLib.Shutdown()
 	ch := make(chan bool, 1)
 	ekLib.setBackgroundDeleteTestCh(ch)
-	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 
@@ -358,7 +358,7 @@ func TestCleanupStaleUserAndDeviceEKsOffline(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, keybase1.DeviceEk{}, deviceEK)
 	}
-	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{})
+	err = ekLib.keygenIfNeeded(context.Background(), libkb.MerkleRoot{}, true /* shouldCleanup */)
 	require.Error(t, err)
 	require.Equal(t, SkipKeygenNilMerkleRoot, err.Error())
 }

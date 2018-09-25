@@ -152,7 +152,7 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 	// error before reaching that call.
 	defer func() {
 		if err != nil {
-			go e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot)
+			e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot)
 		}
 	}()
 
@@ -165,13 +165,16 @@ func (e *EKLib) KeygenIfNeeded(ctx context.Context) (err error) {
 		e.G().Log.CDebugf(ctx, "Unable to fetch merkle root: %v, attempting keygenIfNeeded with nil root", err)
 		merkleRootPtr = &libkb.MerkleRoot{}
 	}
-	return e.keygenIfNeeded(ctx, *merkleRootPtr)
+	return e.keygenIfNeeded(ctx, *merkleRootPtr, true /* shouldCleanup */)
 }
 
-func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot) (err error) {
+func (e *EKLib) keygenIfNeeded(ctx context.Context, merkleRoot libkb.MerkleRoot, shouldCleanup bool) (err error) {
 	defer e.G().CTraceTimed(ctx, "keygenIfNeeded", func() error { return err })()
-	// always try to cleanup expired keys
-	defer func() { go e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
+	defer func() {
+		if shouldCleanup {
+			e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot)
+		}
+	}()
 
 	// Abort. We only care about calling `cleanupStaleUserAndDeviceEKs.
 	if merkleRoot.IsNil() {
@@ -238,7 +241,7 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKs(ctx context.Context, merkleRoot lib
 func (e *EKLib) cleanupStaleUserAndDeviceEKsInBackground(ctx context.Context, merkleRoot libkb.MerkleRoot) {
 	go func() {
 		if err := e.cleanupStaleUserAndDeviceEKs(ctx, merkleRoot); err != nil {
-			e.G().Log.CDebugf(ctx, "Unable to cleanupStaleUserAndDeviceEKs: %v", err)
+			e.G().Log.CDebugf(ctx, "Unable to cleanupStaleUserAndDeviceEKsInBackground: %v", err)
 		}
 
 		if e.backgroundDeletionTestCh != nil {
@@ -246,6 +249,7 @@ func (e *EKLib) cleanupStaleUserAndDeviceEKsInBackground(ctx context.Context, me
 		}
 	}()
 }
+
 func (e *EKLib) NewDeviceEKNeeded(ctx context.Context) (needed bool, err error) {
 	e.Lock()
 	defer e.Unlock()
@@ -443,9 +447,13 @@ func (e *EKLib) GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.Tea
 
 func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase1.TeamID) (teamEK keybase1.TeamEk, err error) {
 	defer e.G().CTraceTimed(ctx, "getOrCreateLatestTeamEKInner", func() error { return err })()
-
 	e.Lock()
 	defer e.Unlock()
+
+	// This can be done with a nil merkleRoot for deviceEKs, otherwise the root
+	// will be updated when if we fetch it.
+	var merkleRoot libkb.MerkleRoot
+	defer func() { e.cleanupStaleUserAndDeviceEKsInBackground(ctx, merkleRoot) }()
 
 	if err = e.checkLoginAndPUK(ctx); err != nil {
 		return teamEK, err
@@ -470,12 +478,14 @@ func (e *EKLib) getOrCreateLatestTeamEKInner(ctx context.Context, teamID keybase
 	if err != nil {
 		return teamEK, err
 	}
-	merkleRoot := *merkleRootPtr
+	merkleRoot = *merkleRootPtr
 	// always try to deleteExpired
 	defer teamEKBoxStorage.DeleteExpired(ctx, teamID, merkleRoot)
 
-	// First publish new device or userEKs if we need to.
-	if err = e.keygenIfNeeded(ctx, merkleRoot); err != nil {
+	// First publish new device or userEKs if we need to. We pass shouldCleanup
+	// = false so we can run deletion in the background ourselves and not block
+	// this call.
+	if err = e.keygenIfNeeded(ctx, merkleRoot, false /* shouldCleanup */); err != nil {
 		return teamEK, err
 	}
 
