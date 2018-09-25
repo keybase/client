@@ -10,7 +10,7 @@ const mapStateToProps = (state: TypedState) => {
   return {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
-    keybaseUser: state.config.username || '',
+    keybaseUser: state.config.username,
     walletName: Constants.getAccountName(selectedAccount),
   }
 }
