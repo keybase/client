@@ -18,7 +18,7 @@ export type Props = {
 
 const KeybaseUserBubble = (props: Props) => (
   <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-    <Kb.Avatar size={BUBBLE_SIZE} username={props.username} />
+    <Kb.Avatar size={bubbleSize} username={props.username} />
   </Kb.Box2>
 )
 
@@ -54,7 +54,7 @@ const UserBubble = (props: Props) => {
 }
 
 // TODO update mobile bubble size
-const BUBBLE_SIZE = isMobile ? 32 : 28
+const bubbleSize = 32
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
@@ -65,8 +65,8 @@ const styles = Styles.styleSheetCreate({
 
   bubble: Styles.platformStyles({
     common: {
-      height: BUBBLE_SIZE,
-      width: BUBBLE_SIZE,
+      height: bubbleSize,
+      width: bubbleSize,
     },
   }),
 
@@ -74,8 +74,8 @@ const styles = Styles.styleSheetCreate({
     common: {
       backgroundColor: Styles.globalColors.red,
       borderRadius: 100,
-      height: BUBBLE_SIZE,
-      width: BUBBLE_SIZE,
+      height: bubbleSize,
+      width: bubbleSize,
     },
     isElectron: {
       cursor: 'pointer',
@@ -85,8 +85,8 @@ const styles = Styles.styleSheetCreate({
   generalService: {
     backgroundColor: 'grey',
     borderRadius: 100,
-    height: BUBBLE_SIZE,
-    width: BUBBLE_SIZE,
+    height: bubbleSize,
+    width: bubbleSize,
   },
 })
 

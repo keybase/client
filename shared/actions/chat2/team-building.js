@@ -14,17 +14,17 @@ type RawSearchResult = {
   keybase: ?{
     username: string,
     uid: string,
-    picture_url: ?string,
-    full_name: ?string,
+    picture_url: string,
+    full_name: string,
     is_followee: boolean,
   },
   service: ?{
     service_name: TeamBuildingTypes.ServiceIdWithContact,
     username: string,
-    picture_url: ?string,
-    bio: ?string,
-    location: ?string,
-    full_name: ?string,
+    picture_url: string,
+    bio: string,
+    location: string,
+    full_name: string,
   },
   services_summary: {
     [key: TeamBuildingTypes.ServiceIdWithContact]: {

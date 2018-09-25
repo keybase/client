@@ -3,6 +3,7 @@ import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import {serviceIdToLogo16} from './shared'
+import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
@@ -10,8 +11,6 @@ import type {ServiceIdWithContact} from '../constants/types/team-building'
 // * Add contact icon
 // * Add tooltip
 // * Add highlighted underline
-
-const SERVICE_LIST = ['keybase', 'contact', 'twitter', 'facebook', 'github', 'reddit', 'hackernews']
 
 type Props = {
   selectedService: ServiceIdWithContact,
@@ -56,7 +55,7 @@ const ServiceIcon = (props: IconProps) => (
 
 const ServiceTabBar = (props: Props) => (
   <Kb.Box2 direction="horizontal">
-    {SERVICE_LIST.map(service => (
+    {Constants.services.map(service => (
       <ServiceIcon
         key={service}
         service={service}

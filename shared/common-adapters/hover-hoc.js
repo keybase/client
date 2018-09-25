@@ -23,13 +23,13 @@ export default (
   `
 
   return (
-    <Box2 direction={'vertical'} className={'hoverContainer'} style={props.containerStyle}>
+    <Box2 direction="vertical" className="hoverContainer" style={props.containerStyle}>
       <DesktopStyle style={realCSS} />
-      <Box2 direction={'horizontal'} className={'defaultComponent'}>
+      <Box2 direction="horizontal" className="defaultComponent">
         <DefaultComponent />
       </Box2>
       {!isMobile && (
-        <Box2 direction={'horizontal'} className={'hoverComponent'}>
+        <Box2 direction="horizontal" className="hoverComponent">
           <HoverComponent />
         </Box2>
       )}
