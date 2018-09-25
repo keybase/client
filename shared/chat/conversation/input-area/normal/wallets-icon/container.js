@@ -15,8 +15,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onClick: (to: string) => {
-    dispatch(Chat2Gen.createHandleSeeingWallets())
+  _onClick: (to: string, wasNew: boolean) => {
+    if (wasNew) {
+      dispatch(Chat2Gen.createHandleSeeingWallets())
+    }
     dispatch(WalletsGen.createAbandonPayment())
     dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
     dispatch(WalletsGen.createSetBuildingTo({to}))
@@ -41,7 +43,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const to = stateProps._meta.participants.find(u => u !== stateProps._you)
   return {
     isNew: stateProps.isNew,
-    onClick: () => dispatchProps._onClick(to), // TODO
+    onClick: () => dispatchProps._onClick(to, stateProps.isNew),
     shouldRender: true,
     size: ownProps.size,
     style: ownProps.style,
