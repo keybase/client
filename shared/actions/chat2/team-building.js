@@ -99,9 +99,14 @@ const parseRawResultToUser = (
       result.service.full_name ||
       kbPrettyName ||
       `${result.service.username} on ${result.service.service_name}`
+
+    const id = result.keybase
+      ? result.keybase.username
+      : `${result.service.username}@${result.service.service_name}`
+
     return {
       serviceMap,
-      id: `${result.service.username}@${result.service.service_name}`,
+      id,
       prettyName,
     }
   } else {
