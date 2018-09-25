@@ -8,11 +8,6 @@ type ImageProps = {
   opacity: ?number,
   className: string,
   url: string,
-  borderRadius: any,
-}
-
-type State = {
-  loaded: boolean,
 }
 
 // The background is a separate layer due to a chrome bug where if you keep it as a background of an img (for example) it'll bleed the edges
@@ -43,7 +38,7 @@ const Border = ({borderColor, isTeam, className}) => {
   return <div className={cn} style={style} />
 }
 
-class AvatarRender extends React.PureComponent<Props, State> {
+class AvatarRender extends React.PureComponent<Props> {
   render() {
     const avatarSizeClasName = `avatar-${this.props.isTeam ? 'team' : 'user'}-size-${this.props.size}`
 
