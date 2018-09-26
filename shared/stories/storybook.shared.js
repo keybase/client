@@ -181,7 +181,7 @@ class PerfBox extends React.Component<{copiesToRender: number, children: React.N
   }
 }
 
-const perfDecorator = (copiesToRender = 100) => (story: any) => (
+const perfDecorator = (copiesToRender: number = 100) => (story: any) => (
   <PerfBox copiesToRender={copiesToRender}>{story()} </PerfBox>
 )
 

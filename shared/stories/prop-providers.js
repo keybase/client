@@ -3,7 +3,8 @@ import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
 import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
-import * as _TeamDropdownMenu from '../chat/conversation/info-panel/menu/container'
+import type {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
+import type {Props as TeamDropdownMenuProps} from '../chat/conversation/info-panel/menu'
 import * as _CopyText from '../common-adapters/copy-text'
 import type {NameWithIconProps} from '../common-adapters/name-with-icon'
 import type {ConnectedNameWithIconProps} from '../common-adapters/name-with-icon/container'
@@ -59,8 +60,9 @@ export const Avatar = (following: string[] = defaultFollowing, followers: string
 })
 
 export const TeamDropdownMenu = (adminTeams?: string[], teamMemberCounts?: {[key: string]: number}) => ({
-  TeamDropdownMenu: (ownProps: _TeamDropdownMenu.OwnProps): _TeamDropdownMenu.Props => ({
-    _loadOperations: action('_loadOperations'),
+  TeamDropdownMenu: (ownProps: TeamDropdownMenuOwnProps): TeamDropdownMenuProps => ({
+    loadOperations: action('_loadOperations'),
+    hasCanPerform: true,
     attachTo: ownProps.attachTo,
     badgeSubscribe: false,
     canAddPeople: (adminTeams && adminTeams.includes(ownProps.teamname)) || true,

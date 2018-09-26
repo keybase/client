@@ -181,7 +181,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
+    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
       this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
