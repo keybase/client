@@ -136,6 +136,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flex: 1,
+    marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
   avatarContainer: {

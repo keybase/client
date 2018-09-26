@@ -30115,7 +30115,7 @@ Array [
             Object {
               "color": "#4C8EFF",
               "display": "block",
-              "minHeight": undefined,
+              "minHeight": "16px",
               "textAlign": "center",
             }
           }
@@ -30138,10 +30138,10 @@ Array [
               "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
               "fontFamily": "OpenSans",
-              "fontSize": undefined,
-              "fontWeight": undefined,
+              "fontSize": 16,
+              "fontWeight": 600,
               "height": 28,
-              "lineHeight": undefined,
+              "lineHeight": "20px",
               "maxWidth": 460,
               "minWidth": 333,
               "outlineWidth": 0,
@@ -30339,7 +30339,7 @@ Array [
             Object {
               "color": "#4C8EFF",
               "display": "block",
-              "minHeight": undefined,
+              "minHeight": "16px",
               "textAlign": "center",
             }
           }
@@ -30362,10 +30362,10 @@ Array [
               "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
               "fontFamily": "OpenSans",
-              "fontSize": undefined,
-              "fontWeight": undefined,
+              "fontSize": 16,
+              "fontWeight": 600,
               "height": 28,
-              "lineHeight": undefined,
+              "lineHeight": "20px",
               "maxWidth": 460,
               "minWidth": 333,
               "outlineWidth": 0,
@@ -30504,7 +30504,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -30527,10 +30527,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -30599,7 +30599,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -30622,10 +30622,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -30694,7 +30694,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -30717,10 +30717,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -30789,7 +30789,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -30812,10 +30812,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -30884,7 +30884,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -30907,10 +30907,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -30989,7 +30989,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -31013,10 +31013,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "minHeight": 41,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -31152,7 +31152,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -31175,10 +31175,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": 28,
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxWidth": 460,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -31299,7 +31299,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -31324,10 +31324,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -31410,7 +31410,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -31435,10 +31435,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -31518,7 +31518,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -31543,10 +31543,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": 28,
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxWidth": 460,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -31627,7 +31627,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -31652,10 +31652,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": 28,
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxWidth": 460,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -31725,7 +31725,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -31750,10 +31750,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -31823,7 +31823,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -31848,10 +31848,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -31920,7 +31920,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -31944,10 +31944,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32016,7 +32016,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32040,10 +32040,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32117,7 +32117,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32143,10 +32143,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32220,7 +32220,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32246,10 +32246,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32325,7 +32325,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32348,10 +32348,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32420,7 +32420,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32445,10 +32445,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32517,7 +32517,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32542,10 +32542,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32626,7 +32626,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32651,10 +32651,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32728,7 +32728,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32751,10 +32751,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32823,7 +32823,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32849,10 +32849,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -32926,7 +32926,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -32952,10 +32952,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxHeight": 21,
                 "minHeight": 21,
                 "minWidth": 333,
@@ -33029,7 +33029,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33055,10 +33055,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxHeight": 41,
                 "minHeight": 41,
                 "minWidth": 333,
@@ -33132,7 +33132,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33158,10 +33158,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxHeight": 81,
                 "minHeight": 41,
                 "minWidth": 333,
@@ -33235,7 +33235,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33261,10 +33261,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 21,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -33338,7 +33338,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33364,10 +33364,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -33441,7 +33441,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33467,10 +33467,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxHeight": 81,
                 "minHeight": 41,
                 "minWidth": 333,
@@ -33544,7 +33544,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33570,10 +33570,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxHeight": 81,
                 "minHeight": 41,
                 "minWidth": 333,
@@ -33647,7 +33647,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33673,10 +33673,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 81,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -33750,7 +33750,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33777,10 +33777,10 @@ Array [
                 "color": "blue",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -33854,7 +33854,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33880,10 +33880,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": "initial",
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "minHeight": 41,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -33969,7 +33969,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -33992,10 +33992,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -34064,7 +34064,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -34087,10 +34087,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -34159,7 +34159,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -34182,10 +34182,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -34254,7 +34254,7 @@ Array [
                 "WebkitFontSmoothing": "antialiased",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34281,10 +34281,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34352,7 +34352,7 @@ Array [
                 "WebkitFontSmoothing": "antialiased",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34379,10 +34379,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34450,7 +34450,7 @@ Array [
                 "WebkitFontSmoothing": "antialiased",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34478,10 +34478,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34549,7 +34549,7 @@ Array [
                 "WebkitFontSmoothing": "antialiased",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34577,10 +34577,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34659,10 +34659,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34731,7 +34731,7 @@ Array [
                 "backgroundColor": "blue",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34759,10 +34759,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34830,7 +34830,7 @@ Array [
                 "WebkitFontSmoothing": "antialiased",
                 "color": "#4C8EFF",
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
+                "fontSize": 12,
                 "fontWeight": 600,
                 "lineHeight": "20px",
                 "marginRight": 8,
@@ -34857,10 +34857,10 @@ Array [
                 "color": "blue",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 13,
+                "fontWeight": 400,
                 "height": 18,
-                "lineHeight": undefined,
+                "lineHeight": "17px",
                 "maxWidth": 460,
                 "outlineWidth": 0,
                 "textAlign": "left",
@@ -34928,7 +34928,7 @@ Array [
               Object {
                 "color": "#4C8EFF",
                 "display": "block",
-                "minHeight": undefined,
+                "minHeight": "16px",
                 "textAlign": "center",
               }
             }
@@ -34953,10 +34953,10 @@ Array [
                 "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
                 "fontFamily": "OpenSans",
-                "fontSize": undefined,
-                "fontWeight": undefined,
+                "fontSize": 16,
+                "fontWeight": 600,
                 "height": 28,
-                "lineHeight": undefined,
+                "lineHeight": "20px",
                 "maxWidth": 460,
                 "minWidth": 333,
                 "outlineWidth": 0,
@@ -38687,11 +38687,17 @@ Array [
           onKeyUp={[Function]}
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -38763,6 +38769,7 @@ Array [
               style={
                 Object {
                   "display": "flex",
+                  "fontSize": 13,
                 }
               }
             >
@@ -38785,11 +38792,17 @@ Array [
           placeholder="Search"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -38862,11 +38875,17 @@ Array [
           placeholder="Error"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -38938,11 +38957,17 @@ Array [
           onKeyUp={[Function]}
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 16,
+              "fontWeight": 800,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39036,11 +39061,17 @@ Array [
           placeholder="Search"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 16,
+              "fontWeight": 800,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39113,15 +39144,21 @@ Array [
           rows={3}
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "height": "initial",
-              "lineHeight": "unset",
-              "maxHeight": 200,
-              "minHeight": 60,
+              "lineHeight": "17px",
+              "maxHeight": 170,
+              "minHeight": 39,
               "outline": "none",
               "paddingBottom": 0,
               "paddingTop": 0,
               "resize": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39195,11 +39232,17 @@ Array [
           placeholder="Type here to see actions"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39272,11 +39315,17 @@ Array [
           placeholder="Decor"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39362,6 +39411,7 @@ Array [
               style={
                 Object {
                   "display": "flex",
+                  "fontSize": 13,
                 }
               }
             >
@@ -39384,11 +39434,17 @@ Array [
           placeholder="Search"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39461,11 +39517,17 @@ Array [
           placeholder="Enter name here"
           style={
             Object {
+              "WebkitFontSmoothing": "antialiased",
               "borderWidth": 0,
+              "color": "rgba(0, 0, 0, 0.75)",
               "flex": 1,
+              "fontFamily": "OpenSans",
+              "fontSize": 13,
+              "fontWeight": 600,
               "lineHeight": "unset",
               "minWidth": 0,
               "outline": "none",
+              "textRendering": "optimizeLegibility",
               "width": "100%",
             }
           }
@@ -39519,11 +39581,17 @@ Array [
         onKeyUp={[Function]}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
       />
@@ -39575,11 +39643,17 @@ Array [
         onKeyUp={[Function]}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 800,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
       />
@@ -39655,13 +39729,19 @@ Array [
             onKeyUp={[Function]}
             style={
               Object {
+                "WebkitFontSmoothing": "antialiased",
                 "borderColor": "rgba(0, 0, 0, 0.10)",
                 "borderStyle": "solid",
                 "borderWidth": 1,
+                "color": "rgba(0, 0, 0, 0.75)",
                 "flex": 1,
+                "fontFamily": "OpenSans",
+                "fontSize": 13,
+                "fontWeight": 400,
                 "lineHeight": "unset",
                 "minWidth": 0,
                 "outline": "none",
+                "textRendering": "optimizeLegibility",
                 "width": "100%",
               }
             }
@@ -39746,11 +39826,17 @@ Array [
         onKeyUp={[Function]}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 24,
+            "fontWeight": 700,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
       />
@@ -39803,17 +39889,23 @@ Array [
         rows={2}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "height": "initial",
-            "lineHeight": "unset",
-            "minHeight": 40,
+            "lineHeight": "17px",
+            "minHeight": 26,
             "outline": "none",
             "overflowY": "hidden",
             "paddingBottom": 0,
             "paddingTop": 0,
             "resize": "none",
+            "textRendering": "optimizeLegibility",
             "width": "100%",
           }
         }
@@ -39867,17 +39959,23 @@ Array [
         rows={4}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "height": "initial",
-            "lineHeight": "unset",
-            "maxHeight": 160,
-            "minHeight": 80,
+            "lineHeight": "17px",
+            "maxHeight": 136,
+            "minHeight": 52,
             "outline": "none",
             "paddingBottom": 0,
             "paddingTop": 0,
             "resize": "none",
+            "textRendering": "optimizeLegibility",
             "width": "100%",
           }
         }
@@ -39930,11 +40028,17 @@ Array [
         onKeyUp={[Function]}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
         type="number"
@@ -39987,11 +40091,17 @@ Array [
         onKeyUp={[Function]}
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
         type="password"
@@ -40045,11 +40155,17 @@ Array [
         placeholder="I'm blue!"
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "borderColor": "rgba(0, 0, 0, 0.10)",
             "borderStyle": "solid",
             "borderWidth": 1,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "lineHeight": "unset",
             "outline": "none",
+            "textRendering": "optimizeLegibility",
           }
         }
       />
@@ -40840,6 +40956,331 @@ Array [
         </div>
       </div>
     </div>
+    <div
+      id="modal-root"
+    />
+  </div>,
+  <div
+    pointerEvents="box-none"
+    style={
+      Object {
+        "position": "absolute",
+      }
+    }
+  />,
+]
+`;
+
+exports[`Storyshots Menubar FileUpdate 1`] = `
+Array [
+  <div
+    style={
+      Object {
+        "height": "100%",
+        "width": "100%",
+      }
+    }
+  >
+    <div
+      style={
+        Object {
+          "alignItems": "stretch",
+          "alignSelf": "center",
+          "display": "flex",
+          "flexDirection": "column",
+          "justifyContent": "flex-start",
+        }
+      }
+    >
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginTop": 4,
+              "width": "100%",
+            }
+          }
+        >
+          <img
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+            style={
+              Object {
+                "height": 16,
+                "marginRight": 4,
+                "userSelect": "none",
+                "width": 16,
+              }
+            }
+          />
+          <span
+            className="text_BodySecondaryLink hover-underline"
+            style={
+              Object {
+                "wordBreak": "break-all",
+              }
+            }
+          >
+            foo
+          </span>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginTop": 4,
+              "width": "100%",
+            }
+          }
+        >
+          <img
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+            style={
+              Object {
+                "height": 16,
+                "marginRight": 4,
+                "userSelect": "none",
+                "width": 16,
+              }
+            }
+          />
+          <div
+            style={
+              Object {
+                "marginLeft": -12,
+                "marginRight": 12,
+                "marginTop": 12,
+                "width": 0,
+                "zIndex": 100,
+              }
+            }
+          >
+            <img
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-addon-file-uploading.png 1x, icons/icon-addon-file-uploading@2x.png 2x"
+              style={
+                Object {
+                  "height": 12,
+                  "userSelect": "none",
+                  "width": 12,
+                }
+              }
+            />
+          </div>
+          <span
+            className="text_BodySecondaryLink hover-underline"
+            style={
+              Object {
+                "wordBreak": "break-all",
+              }
+            }
+          >
+            bar
+          </span>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginTop": 4,
+              "width": "100%",
+            }
+          }
+        >
+          <img
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+            style={
+              Object {
+                "height": 16,
+                "marginRight": 4,
+                "userSelect": "none",
+                "width": 16,
+              }
+            }
+          />
+          <div
+            style={
+              Object {
+                "marginLeft": -12,
+                "marginRight": 12,
+                "marginTop": 12,
+                "width": 0,
+                "zIndex": 100,
+              }
+            }
+          >
+            <img
+              draggable="false"
+              onClick={null}
+              srcSet="icons/icon-addon-file-uploading.png 1x, icons/icon-addon-file-uploading@2x.png 2x"
+              style={
+                Object {
+                  "height": 12,
+                  "userSelect": "none",
+                  "width": 12,
+                }
+              }
+            />
+          </div>
+          <span
+            className="text_BodySecondaryLink hover-underline"
+            style={
+              Object {
+                "wordBreak": "break-all",
+              }
+            }
+          >
+            cow
+          </span>
+        </div>
+      </div>
+      <div
+        onClick={[Function]}
+        onMouseDown={[Function]}
+        onMouseUp={[Function]}
+        style={
+          Object {
+            "alignItems": "stretch",
+            "borderRadius": 0,
+            "cursor": "pointer",
+            "display": "flex",
+            "flexDirection": "column",
+            "height": undefined,
+            "lineHeight": 0,
+            "minWidth": undefined,
+            "position": "relative",
+            "textAlign": "left",
+            "transform": "none",
+            "transition": "none",
+          }
+        }
+      >
+        <div
+          style={
+            Object {
+              "alignItems": "center",
+              "display": "flex",
+              "flexDirection": "row",
+              "justifyContent": "flex-start",
+              "marginTop": 4,
+              "width": "100%",
+            }
+          }
+        >
+          <img
+            draggable="false"
+            onClick={null}
+            srcSet="icons/icon-file-private-32.png 1x, icons/icon-file-private-32@2x.png 2x"
+            style={
+              Object {
+                "height": 16,
+                "marginRight": 4,
+                "userSelect": "none",
+                "width": 16,
+              }
+            }
+          />
+          <span
+            className="text_BodySecondaryLink hover-underline"
+            style={
+              Object {
+                "wordBreak": "break-all",
+              }
+            }
+          >
+            poo
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      pointerEvents="box-none"
+      style={
+        Object {
+          "position": "absolute",
+        }
+      }
+    />
     <div
       id="modal-root"
     />
@@ -41646,6 +42087,7 @@ body {
             "alignItems": "center",
             "display": "flex",
             "flexDirection": "column",
+            "height": 40,
             "justifyContent": "center",
             "maxHeight": 40,
             "position": "relative",
@@ -42848,7 +43290,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -42872,10 +43314,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": 28,
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxWidth": 460,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -43164,7 +43606,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -43188,10 +43630,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": 28,
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxWidth": 460,
                   "minWidth": 333,
                   "outlineWidth": 0,
@@ -43480,7 +43922,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -43505,10 +43947,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxHeight": 41,
                   "minHeight": 41,
                   "minWidth": 333,
@@ -43802,7 +44244,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -43827,10 +44269,10 @@ Array [
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxHeight": 41,
                   "minHeight": 41,
                   "minWidth": 333,
@@ -44030,8 +44472,15 @@ Array [
         placeholder=""
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "border": "none",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
+            "lineHeight": "17px",
             "padding": 0,
+            "textRendering": "optimizeLegibility",
           }
         }
         value="here is some long text"
@@ -44046,10 +44495,17 @@ input.lighterPlaceholder::placeholder {
       <div
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "border": "none",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "left": -9999,
+            "lineHeight": "17px",
             "padding": 0,
             "position": "absolute",
+            "textRendering": "optimizeLegibility",
             "top": -9999,
             "whiteSpace": "pre",
           }
@@ -44099,8 +44555,15 @@ Array [
         placeholder="Type here..."
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "border": "none",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
+            "lineHeight": "17px",
             "padding": 0,
+            "textRendering": "optimizeLegibility",
           }
         }
         value=""
@@ -44115,10 +44578,17 @@ input.lighterPlaceholder::placeholder {
       <div
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "border": "none",
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
+            "fontSize": 13,
+            "fontWeight": 400,
             "left": -9999,
+            "lineHeight": "17px",
             "padding": 0,
             "position": "absolute",
+            "textRendering": "optimizeLegibility",
             "top": -9999,
             "whiteSpace": "pre",
           }
@@ -44168,11 +44638,17 @@ Array [
         placeholder=""
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "backgroundColor": "papayawhip",
             "border": "none",
             "borderWidth": 2,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
             "fontSize": 20,
+            "fontWeight": 400,
+            "lineHeight": "17px",
             "padding": 10,
+            "textRendering": "optimizeLegibility",
           }
         }
         value="styled inputs work too!"
@@ -44187,13 +44663,19 @@ input.lighterPlaceholder::placeholder {
       <div
         style={
           Object {
+            "WebkitFontSmoothing": "antialiased",
             "backgroundColor": "papayawhip",
             "border": "none",
             "borderWidth": 2,
+            "color": "rgba(0, 0, 0, 0.75)",
+            "fontFamily": "OpenSans",
             "fontSize": 20,
+            "fontWeight": 400,
             "left": -9999,
+            "lineHeight": "17px",
             "padding": 10,
             "position": "absolute",
+            "textRendering": "optimizeLegibility",
             "top": -9999,
             "whiteSpace": "pre",
           }
@@ -71538,7 +72020,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -71563,10 +72045,10 @@ ruril globil cose"
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxHeight": 61,
                   "minHeight": 41,
                   "minWidth": 333,
@@ -71846,7 +72328,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -71871,10 +72353,10 @@ ruril globil cose"
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxHeight": 61,
                   "minHeight": 41,
                   "minWidth": 333,
@@ -72181,7 +72663,7 @@ Array [
                 Object {
                   "color": "#4C8EFF",
                   "display": "block",
-                  "minHeight": undefined,
+                  "minHeight": "16px",
                   "textAlign": "center",
                 }
               }
@@ -72206,10 +72688,10 @@ ruril globil cose"
                   "color": "rgba(0, 0, 0, 0.75)",
                   "flex": 1,
                   "fontFamily": "OpenSans",
-                  "fontSize": undefined,
-                  "fontWeight": undefined,
+                  "fontSize": 16,
+                  "fontWeight": 600,
                   "height": "initial",
-                  "lineHeight": undefined,
+                  "lineHeight": "20px",
                   "maxHeight": 61,
                   "minHeight": 41,
                   "minWidth": 333,

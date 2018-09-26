@@ -6048,13 +6048,14 @@ fragment-cache@^0.2.1:
   dependencies:
     map-cache "^0.2.2"
 
-framed-msgpack-rpc@1.1.13:
-  version "1.1.13"
-  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.13.tgz#2ca09bd7adbb5f61c09ee7175f26dea2b97044e6"
+framed-msgpack-rpc@1.1.15:
+  version "1.1.15"
+  resolved "https://registry.yarnpkg.com/framed-msgpack-rpc/-/framed-msgpack-rpc-1.1.15.tgz#6018505ae7b89a0d99bfa03c34cc16b964bbf6db"
   dependencies:
     iced-error "0.0.9"
     iced-lock "^1.0.2"
     iced-runtime "^1.0.1"
+    path-parse "^1.0.6"
     purepack ">=1"
 
 fresh@0.5.2:
@@ -9975,7 +9976,7 @@ path-key@^2.0.0, path-key@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/path-key/-/path-key-2.0.1.tgz#411cadb574c5a140d3a4b1910d40d80cc9f40b40"
 
-path-parse@1.0.6:
+path-parse@1.0.6, path-parse@^1.0.6:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/path-parse/-/path-parse-1.0.6.tgz#d62dbb5679405d72c4737ec58600e9ddcf06d24c"
 

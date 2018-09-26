@@ -26,6 +26,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   inboxHasLoaded: false,
   inboxFilter: '',
   isExplodingNew: true,
+  isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -176,6 +177,10 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+// When user clicks wallets icon in chat input, set seenWalletsGregorKey with
+// body of 'true'
+export const seenWalletsGregorKey = 'chat.seenWallets'
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>

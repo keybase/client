@@ -341,6 +341,7 @@ const maybeNavigateAwayFromSendForm = (state: TypedState, action: WalletsGen.Aba
 const setupEngineListeners = () => {
   getEngine().setIncomingCallMap({
     'stellar.1.notify.paymentNotification': refreshPayments,
+    'stellar.1.notify.paymentStatusNotification': refreshPayments,
   })
 }
 
