@@ -40,7 +40,7 @@ type StellarPublicKeyProps = {|
 const StellarPublicKey = (props: StellarPublicKeyProps) => {
   const key = props.publicKey
   return (
-    <Text type={props.textType} title={key}>
+    <Text type={props.textType} selectable={props.showFullKey} title={key}>
       {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
     </Text>
   )
@@ -81,11 +81,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'otherAccount':
-      return props.large ? (
-        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
-      ) : (
-        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
-      )
+      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any

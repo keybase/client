@@ -106,6 +106,20 @@
       ],
       "response": "KBFSTeamSettings",
       "doc": "getKBFSTeamSettings gets the settings written for the team in the team's sigchain."
+    },
+    "upgradeTLF": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "public",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "upgradeTLF upgrades a TLF to use implicit team keys"
     }
   },
   "namespace": "keybase.1"

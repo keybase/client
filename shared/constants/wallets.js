@@ -24,7 +24,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   amount: '0',
   currency: 'XLM', // FIXME: Use default currency?
-  from: '',
+  from: Types.noAccountID,
   publicMemo: new HiddenString(''),
   recipientType: null,
   secretNote: new HiddenString(''),
@@ -34,6 +34,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
   amountErrMsg: '',
   banners: null,
+  from: Types.noAccountID,
   publicMemoErrMsg: new HiddenString(''),
   readyToSend: false,
   secretNoteErrMsg: new HiddenString(''),
@@ -71,6 +72,7 @@ const buildPaymentResultToBuiltPayment = (b: RPCTypes.BuildPaymentResLocal) =>
   makeBuiltPayment({
     amountErrMsg: b.amountErrMsg,
     banners: b.banners,
+    from: b.from,
     publicMemoErrMsg: new HiddenString(b.publicMemoErrMsg),
     readyToSend: b.readyToSend,
     secretNoteErrMsg: new HiddenString(b.secretNoteErrMsg),
@@ -334,6 +336,7 @@ const requestPaymentWaitingKey = 'wallets:requestPayment'
 const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 const deleteAccountWaitingKey = 'wallets:deleteAccount'
 const searchKey = 'walletSearch'
+const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
 
 const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
@@ -365,8 +368,7 @@ const getAccount = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.accountMap.get(accountID || getSelectedAccount(state), makeAccount())
 
 const getAccountName = (account: Types.Account) =>
-  account.name ||
-  (account.accountID !== Types.noAccountID ? Types.accountIDToString(account.accountID) : null)
+  account.name || (account.accountID !== Types.noAccountID ? 'unnamed account' : null)
 
 const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
@@ -386,6 +388,11 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
   accountID === state.wallets.exportedSecretKeyAccountID
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
+
+const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+
+const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.accountMap.has(accountID)
 
 export {
   accountResultToAccount,
@@ -413,7 +420,9 @@ export {
   getRequest,
   getSecretKey,
   getSelectedAccount,
+  isAccountLoaded,
   linkExistingWaitingKey,
+  loadAccountWaitingKey,
   loadEverythingWaitingKey,
   makeAccount,
   makeAssetDescription,
@@ -434,5 +443,6 @@ export {
   sendReceiveFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
+  shortenAccountID,
   statusSimplifiedToString,
 }

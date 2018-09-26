@@ -10,7 +10,7 @@ import {remoteConnect, compose} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash'
 
-const mapStateToProps = (state) => ({
+const mapStateToProps = state => ({
   _username: state.username,
   _userTlfUpdates: state.fileRows,
 })
@@ -36,9 +36,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
       teamname: teamname || '',
       iconSpec,
       timestamp: TimestampUtil.formatTimeForConversationList(c.timestamp),
-      updates: c.updates.map(u => ({
-        name: FsTypes.getPathName(u),
-        onClick: () => dispatchProps._onSelectPath(u),
+      updates: c.updates.map(({path, uploading}) => ({
+        name: FsTypes.getPathName(path),
+        uploading,
+        onClick: () => dispatchProps._onSelectPath(path),
       })),
     }
   }),
@@ -62,7 +63,6 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(
-  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
-  TlfUpdateHoc,
-)(FilesPreview)
+export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps), TlfUpdateHoc)(
+  FilesPreview
+)

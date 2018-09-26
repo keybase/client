@@ -11,6 +11,7 @@ import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
 import {connect, type TypedState, compose} from '../util/container'
+import {serialize} from './remote-serializer.desktop'
 
 const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
@@ -104,7 +105,7 @@ const RemoteTracker = compose(
   connect(trackerMapStateToProps, () => ({}), trackerMergeProps),
   SyncBrowserWindow,
   SyncAvatarProps,
-  SyncProps
+  SyncProps(serialize)
 )(Empty)
 
 type Props = {

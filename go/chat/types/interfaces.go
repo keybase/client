@@ -103,8 +103,14 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
-		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, convID chat1.ConversationID,
+		re *regexp.Regexp, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+}
+
+type Indexer interface {
+	Search(ctx context.Context, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
+	Add(ctx context.Context, convID chat1.ConversationID, msg chat1.MessageUnboxed) error
+	Remove(ctx context.Context, convID chat1.ConversationID, msg chat1.MessageUnboxed) error
 }
 
 type Sender interface {

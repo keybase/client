@@ -188,7 +188,6 @@ type _SetFlagsPayload = $ReadOnly<{|
   kextPermissionError?: boolean,
   securityPrefsPropmted?: boolean,
   showBanner?: boolean,
-  syncing?: boolean,
 |}>
 type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,

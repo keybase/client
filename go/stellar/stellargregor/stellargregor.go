@@ -73,14 +73,14 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 		mctx.CDebugf("error unmarshaling %s item: %s", category, err)
 		return err
 	}
-	mctx.CDebugf("%s unmarshaled: %+v", category, msg)
 
-	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.KbTxID, msg.TxID)
-	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), stellar1.PaymentID{TxID: msg.TxID})
+	paymentID := stellar1.PaymentID{TxID: msg.TxID}
+	h.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
+	stellar.DefaultLoader(h.G()).UpdatePayment(mctx.Ctx(), paymentID)
 
 	// We will locally dismiss for now so that each client only plays them once:
 	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
-		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
+		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_status: %s", err)
 	}
 
 	return nil

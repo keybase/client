@@ -101,8 +101,7 @@
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
       "securityPrefsPropmted?": "boolean",
-      "showBanner?": "boolean",
-      "syncing?": "boolean"
+      "showBanner?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {

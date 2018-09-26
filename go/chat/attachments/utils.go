@@ -33,6 +33,13 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 		em := first.Error().ErrMsg
 		return res, errors.New(em)
 	}
+	if st != chat1.MessageUnboxedState_VALID {
+		// given a message id that doesn't exist, msgs can come back
+		// with an empty message in it (and st == 0).
+		// this check prevents a panic, but perhaps the server needs
+		// a fix as well.
+		return res, libkb.NotFoundError{}
+	}
 
 	msg := first.Valid()
 	body := msg.MessageBody

@@ -22,6 +22,8 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 // Logs is the struct to specify the path of log files
@@ -535,8 +537,13 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 // mergeExtendedStatus adds the extended status to the given status json blob.
 // If any errors occur the original status is returned unmodified.
 func (l *LogSendContext) mergeExtendedStatus(status string) string {
+	err := jsonw.EnsureMaxDepthBytesDefault([]byte(status))
+	if err != nil {
+		return status
+	}
+
 	var statusObj map[string]interface{}
-	if err := json.Unmarshal([]byte(status), &statusObj); err != nil {
+	if err = json.Unmarshal([]byte(status), &statusObj); err != nil {
 		return status
 	}
 

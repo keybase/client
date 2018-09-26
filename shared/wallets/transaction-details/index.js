@@ -5,12 +5,13 @@ import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
+import {SmallAccountID} from '../common'
 
 export type Props = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
@@ -20,6 +21,8 @@ export type Props = {|
   onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  recipientAccountID: ?Types.AccountID,
+  senderAccountID: Types.AccountID,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -30,8 +33,9 @@ export type Props = {|
 |}
 
 type CounterpartyProps = {|
+  accountID: ?Types.AccountID,
   counterparty: string,
-  counterpartyMeta?: string,
+  counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
 |}
 
@@ -43,6 +47,7 @@ const Counterparty = (props: CounterpartyProps) => {
         horizontal={true}
         username={props.counterparty}
         metaOne={props.counterpartyMeta}
+        metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
       />
     )
   }
@@ -62,6 +67,8 @@ const Counterparty = (props: CounterpartyProps) => {
           showFullKey={true}
           textType="BodySemibold"
         />
+        {props.counterpartyType !== 'stellarPublicKey' &&
+          props.accountID && <SmallAccountID accountID={props.accountID} />}
       </Box2>
     </Box2>
   )
@@ -102,9 +109,21 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
 }
 
 const propsToParties = (props: Props) => {
-  const you = <NameWithIcon colorFollowing={true} horizontal={true} username={props.you} metaOne="You" />
+  const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
+  const counterpartyAccountID =
+    props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
+  const you = (
+    <NameWithIcon
+      colorFollowing={true}
+      horizontal={true}
+      username={props.you}
+      metaOne="You"
+      metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
+    />
+  )
   const counterparty = (
     <Counterparty
+      accountID={counterpartyAccountID}
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}

@@ -143,12 +143,16 @@ const handleLoudMessage = notification => {
     yield Saga.put(Chat2Gen.createNavigateToThread())
     if (unboxPayload && membersType) {
       logger.info('[Push] unboxing message')
-      yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
-        convID: conversationIDKey,
-        membersType,
-        payload: unboxPayload,
-        shouldAck: false,
-      })
+      try {
+        yield Saga.call(RPCChatTypes.localUnboxMobilePushNotificationRpcPromise, {
+          convID: conversationIDKey,
+          membersType,
+          payload: unboxPayload,
+          shouldAck: false,
+        })
+      } catch (e) {
+        logger.info('[Push] failed to unbox message form payload')
+      }
     }
   })
 }
