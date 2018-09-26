@@ -21,7 +21,7 @@ export default function(state: Types.State = initialState, action: Notifications
     case NotificationsGen.resetStore:
       return initialState
     case NotificationsGen.setAppBadgeState:
-      const newState = state.merge(action.payload)
+      const newState = state.mergeDeep(action.payload)
       return _updateWidgetBadge(newState)
     case NotificationsGen.badgeApp: {
       const newState = state.update('keyState', ks => ks.set(action.payload.key, action.payload.on))

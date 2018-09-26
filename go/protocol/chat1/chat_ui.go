@@ -851,6 +851,28 @@ func (o ChatSearchHit) DeepCopy() ChatSearchHit {
 	}
 }
 
+type ChatConvSearchHit struct {
+	ConvID ConversationID  `codec:"convID" json:"convID"`
+	Hits   []ChatSearchHit `codec:"hits" json:"hits"`
+}
+
+func (o ChatConvSearchHit) DeepCopy() ChatConvSearchHit {
+	return ChatConvSearchHit{
+		ConvID: o.ConvID.DeepCopy(),
+		Hits: (func(x []ChatSearchHit) []ChatSearchHit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ChatSearchHit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Hits),
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }

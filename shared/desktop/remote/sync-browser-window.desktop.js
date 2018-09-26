@@ -50,7 +50,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
   class RemoteWindowComponent extends React.PureComponent<Props, State> {
     _remoteWindow: ?SafeElectron.BrowserWindowType = null
     _remoteWindowId: ?number = null
-    _mounted: boolean = true
+    _mounted: boolean = false
 
     // We only have state to force re-renders and to pass down to the child. We usually want to just use the raw _remoteWindow to avoid races
     state = {
@@ -115,6 +115,7 @@ function SyncBrowserWindow(ComposedComponent: any) {
     }
 
     componentDidMount() {
+      this._mounted = true
       const remoteWindow = this._makeBrowserWindow()
 
       // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed

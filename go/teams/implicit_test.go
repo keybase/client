@@ -51,7 +51,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		createdTeam, _, impTeamName, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
 		require.NoError(t, err)
-		tlfid0 := createdTeam.KBFSTLFID()
+		tlfid0 := createdTeam.LatestKBFSTLFID()
 		require.Equal(t, public, impTeamName.IsPublic)
 		require.True(t, tlfid0.IsNil())
 
@@ -63,7 +63,7 @@ func TestLookupImplicitTeams(t *testing.T) {
 		createdTeam2, _, impTeamName2, err := LookupOrCreateImplicitTeam(context.TODO(), tc.G, displayName,
 			public)
 		require.NoError(t, err)
-		tlfid2 := createdTeam2.KBFSTLFID()
+		tlfid2 := createdTeam2.LatestKBFSTLFID()
 		require.Equal(t, createdTeam.ID, createdTeam2.ID)
 		require.Equal(t, impTeamName, impTeamName2, "public: %v", public)
 		require.Equal(t, tlfid1, tlfid2, "the right TLFID came back")

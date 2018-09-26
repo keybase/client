@@ -122,7 +122,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const metas = this.props.horizontal ? (
       <Box style={Styles.globalStyles.flexBoxRow}>
         {metaOne}
-        {!!this.props.metaTwo && this.props.horizontal && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
+        {!!(this.props.metaTwo && this.props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
         {metaTwo}
       </Box>
     ) : (

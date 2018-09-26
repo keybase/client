@@ -52,6 +52,7 @@ export const commonGetThreadReason = {
   fixretry: 4,
   prepare: 5,
   searcher: 6,
+  indexedSearch: 7,
 }
 
 export const commonGlobalAppNotificationSetting = {

@@ -5,6 +5,7 @@ package engine
 
 import (
 	"errors"
+
 	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -130,18 +131,16 @@ func (e *ResolveThenIdentify2) Run(m libkb.MetaContext) (err error) {
 	e.i2eng.trackOptions = e.trackOptions
 
 	if err = e.resolveUID(m); err != nil {
-		return
+		return err
 	}
 
 	// For testing
 	e.i2eng.testArgs = e.testArgs
-	err = RunEngine2(m, e.i2eng)
-	if err != nil {
+	if err = RunEngine2(m, e.i2eng); err != nil {
 		return err
 	}
 
-	err = e.nameResolutionPostAssertion(m)
-	if err != nil {
+	if err = e.nameResolutionPostAssertion(m); err != nil {
 		return err
 	}
 	return nil
@@ -200,8 +199,7 @@ func ResolveAndCheck(m libkb.MetaContext, s string, useTracking bool) (ret keyba
 		IdentifyBehavior:      keybase1.TLFIdentifyBehavior_RESOLVE_AND_CHECK,
 	}
 	eng := NewResolveThenIdentify2(m.G(), &arg)
-	err = RunEngine2(m, eng)
-	if err != nil {
+	if err = RunEngine2(m, eng); err != nil {
 		return ret, err
 	}
 	res, err := eng.Result()

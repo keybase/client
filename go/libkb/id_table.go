@@ -141,6 +141,7 @@ type RemoteProofChainLink interface {
 	ComputeTrackDiff(tl *TrackLookup) TrackDiff
 	GetProofType() keybase1.ProofType
 	ProofText() string
+	RequiresHint() bool
 }
 
 type WebProofChainLink struct {
@@ -155,6 +156,8 @@ type SocialProofChainLink struct {
 	service   string
 	username  string
 	proofText string
+	// signifies a GENERIC_SOCIAL link from a parameterized proof
+	isGeneric bool
 }
 
 func (w *WebProofChainLink) TableKey() string {
@@ -196,6 +199,7 @@ func (w *WebProofChainLink) GetRemoteUsername() string { return "" }
 func (w *WebProofChainLink) GetHostname() string       { return w.hostname }
 func (w *WebProofChainLink) GetProtocol() string       { return w.protocol }
 func (w *WebProofChainLink) ProofText() string         { return w.proofText }
+func (w *WebProofChainLink) RequiresHint() bool        { return true }
 
 func (w *WebProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 	ret := jsonw.NewDictionary()
@@ -247,26 +251,14 @@ func (s *SocialProofChainLink) GetRemoteUsername() string { return s.username }
 func (s *SocialProofChainLink) GetHostname() string       { return "" }
 func (s *SocialProofChainLink) GetProtocol() string       { return "" }
 func (s *SocialProofChainLink) ProofText() string         { return s.proofText }
-func (s *SocialProofChainLink) ToIDString() string        { return s.ToDisplayString() }
+func (s *SocialProofChainLink) RequiresHint() bool {
+	return !s.isGeneric
+}
+func (s *SocialProofChainLink) ToIDString() string { return s.ToDisplayString() }
 func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 	return s.service, s.username
 }
 func (s *SocialProofChainLink) GetService() string { return s.service }
-
-var _ RemoteProofChainLink = (*SocialProofChainLink)(nil)
-var _ RemoteProofChainLink = (*WebProofChainLink)(nil)
-
-func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofChainLink {
-	return &WebProofChainLink{b, p, h, proofText}
-}
-func NewSocialProofChainLink(b GenericChainLink, s, u, proofText string) *SocialProofChainLink {
-	return &SocialProofChainLink{
-		GenericChainLink: b,
-		service:          s,
-		username:         u,
-		proofText:        proofText,
-	}
-}
 
 func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	k, v := s.ToKeyValuePair()
@@ -291,11 +283,28 @@ func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
 }
 
 func (s *SocialProofChainLink) GetProofType() keybase1.ProofType {
-	ret, found := RemoteServiceTypes[s.service]
-	if !found {
-		ret = keybase1.ProofType_NONE
+	if s.isGeneric {
+		return keybase1.ProofType_GENERIC_SOCIAL
 	}
-	return ret
+	return RemoteServiceTypes[s.service]
+}
+
+var _ RemoteProofChainLink = (*SocialProofChainLink)(nil)
+var _ RemoteProofChainLink = (*WebProofChainLink)(nil)
+
+func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofChainLink {
+	return &WebProofChainLink{b, p, h, proofText}
+}
+
+func NewSocialProofChainLink(b GenericChainLink, s, u, proofText string) *SocialProofChainLink {
+	_, found := RemoteServiceTypes[s]
+	return &SocialProofChainLink{
+		GenericChainLink: b,
+		service:          s,
+		username:         u,
+		proofText:        proofText,
+		isGeneric:        !found,
+	}
 }
 
 //=========================================================================
@@ -371,21 +380,25 @@ func ParseServiceBlock(jw *jsonw.Wrapper, pt keybase1.ProofType) (sb *ServiceBlo
 }
 
 // To be used for signatures in a user's signature chain.
-func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e error) {
+func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, err error) {
 	jw := base.UnmarshalPayloadJSON().AtKey("body").AtKey("service")
 	sptf := base.unpacked.proofText
 
 	if jw.IsNil() {
-		ret, e = ParseSelfSigChainLink(base)
+		ret, err = ParseSelfSigChainLink(base)
+		if err != nil {
+			return nil, err
+		}
 	} else if sb, err := ParseServiceBlock(jw, keybase1.ProofType_NONE); err != nil {
-		e = fmt.Errorf("%s @%s", err, base.ToDebugString())
+		err = fmt.Errorf("%s @%s", err, base.ToDebugString())
+		return nil, err
 	} else if sb.social {
 		ret = NewSocialProofChainLink(base, sb.typ, sb.id, sptf)
 	} else {
 		ret = NewWebProofChainLink(base, sb.typ, sb.id, sptf)
 	}
 
-	return
+	return ret, nil
 }
 
 func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
@@ -1137,6 +1150,7 @@ func (s *SelfSigChainLink) GetRemoteUsername() string { return s.GetUsername() }
 func (s *SelfSigChainLink) GetHostname() string       { return "" }
 func (s *SelfSigChainLink) GetProtocol() string       { return "" }
 func (s *SelfSigChainLink) ProofText() string         { return "" }
+func (s *SelfSigChainLink) RequiresHint() bool        { return true }
 
 func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 
@@ -1307,6 +1321,7 @@ func (idt *IdentityTable) populate() (err error) {
 		if link.IsStubbed() {
 			continue
 		}
+
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
 			w.Warn(idt.G())
@@ -1583,7 +1598,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	pvlHashUsed = pvlU.Hash
 
 	res.hint = idt.sigHints.Lookup(sid)
-	if res.hint == nil {
+	if res.hint == nil && p.RequiresHint() {
 		res.err = NewProofError(keybase1.ProofStatus_NO_HINT, "No server-given hint for sig=%s", sid)
 		return
 	}
@@ -1625,7 +1640,11 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 	if (hasPreviousTrack && res.trackedProofState != keybase1.ProofState_NONE && res.trackedProofState != keybase1.ProofState_UNCHECKED) || itm == IdentifyTableModeActive {
 		pcm = ProofCheckerModeActive
 	}
-	res.err = pc.CheckStatus(m, *res.hint, pcm, pvlU)
+	var hint SigHint
+	if res.hint != nil {
+		hint = *res.hint
+	}
+	res.err = pc.CheckStatus(m, hint, pcm, pvlU)
 
 	// If no error than all good
 	if res.err == nil {

@@ -29,6 +29,42 @@ export const getMessageID = (m: RPCChatTypes.UIMessage) => {
   }
 }
 
+export const getRequestMessageInfo = (
+  state: TypedState,
+  message: Types.MessageRequestPayment
+): ?MessageTypes.ChatRequestInfo => {
+  const maybeRequestInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybeRequestInfo) {
+    return message.requestInfo
+  }
+  if (maybeRequestInfo.type === 'requestInfo') {
+    return maybeRequestInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybeRequestInfo.type} in info meant for requestPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
+}
+
+export const getPaymentMessageInfo = (
+  state: TypedState,
+  message: Types.MessageSendPayment
+): ?MessageTypes.ChatPaymentInfo => {
+  const maybePaymentInfo = state.chat2.getIn(['accountsInfoMap', message.conversationIDKey, message.id], null)
+  if (!maybePaymentInfo) {
+    return message.paymentInfo
+  }
+  if (maybePaymentInfo.type === 'paymentInfo') {
+    return maybePaymentInfo
+  }
+  throw new Error(
+    `Found impossible type ${maybePaymentInfo.type} in info meant for sendPayment message. convID: ${
+      message.conversationIDKey
+    } msgID: ${message.id}`
+  )
+}
+
 // Map service message types to our message types.
 export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): Array<Types.MessageType> => {
   switch (t) {
@@ -173,6 +209,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   amountDescription: '',
   asset: 'native',
   currencyCode: '',
+  type: 'requestInfo',
 })
 
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
@@ -190,6 +227,7 @@ export const makeChatPaymentInfo: I.RecordFactory<MessageTypes._ChatPaymentInfo>
   note: new HiddenString(''),
   status: 'none',
   statusDescription: '',
+  type: 'paymentInfo',
   worth: '',
 })
 
