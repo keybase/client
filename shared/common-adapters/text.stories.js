@@ -122,33 +122,18 @@ const mapText = (secondary: boolean) => {
   return items
 }
 
-// TODO this is going away in the next pr
-class WithRefresh extends React.Component<any, any> {
-  state = {k: 1}
-  inc = () => {
-    console.log('refreshint')
-    this.setState(old => ({
-      k: old.k + 1,
-    }))
-  }
-  render() {
-    return (
-      <Box key={this.state.k} style={outerStyle}>
-        <div onClick={this.inc}>Refresh: {this.state.k}</div>
+const load = () => {
+  Sb.storiesOf('Common', module)
+    .addDecorator(Sb.scrollViewDecorator)
+    .add('Text', () => (
+      <Box style={outerStyle}>
         <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
         <Container backgroundColor={globalColors.darkBlue3}>
           <SecondaryColorBox />
           {mapText(true)}
         </Container>
       </Box>
-    )
-  }
-}
-
-const load = () => {
-  Sb.storiesOf('Common', module)
-    .addDecorator(Sb.scrollViewDecorator)
-    .add('Text', () => <WithRefresh />)
+    ))
 }
 
 const outerStyle = isMobile

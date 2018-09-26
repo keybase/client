@@ -5,12 +5,11 @@ import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../..
 import {
   compose,
   connect,
-  lifecycle,
   setDisplayName,
   type TypedState,
   createCachedSelector,
 } from '../../../../util/container'
-import {type Props as _Props, InfoPanelMenu} from '.'
+import {InfoPanelMenu} from '.'
 import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
@@ -20,10 +19,6 @@ export type OwnProps = {
   isSmallTeam: boolean,
   teamname: string,
   visible: boolean,
-}
-
-export type Props = _Props & {
-  _loadOperations: () => void,
 }
 
 const moreThanOneSubscribedChannel = createCachedSelector(
@@ -45,7 +40,7 @@ const moreThanOneSubscribedChannel = createCachedSelector(
 const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
-  const _hasCanPerform = Constants.hasCanPerform(state, teamname)
+  const hasCanPerform = Constants.hasCanPerform(state, teamname)
   const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
 
   const manageChannelsTitle = isSmallTeam
@@ -55,7 +50,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
       : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
-    _hasCanPerform,
+    hasCanPerform,
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
     isSmallTeam,
@@ -67,7 +62,7 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
 }
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
-  _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
+  loadOperations: () => dispatch(createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
       navigateTo(
@@ -101,12 +96,5 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
 
 export default compose(
   connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  setDisplayName('TeamDropdownMenu'),
-  lifecycle({
-    componentDidMount() {
-      if (!this.props._hasCanPerform) {
-        this.props._loadOperations()
-      }
-    },
-  })
+  setDisplayName('TeamDropdownMenu')
 )(InfoPanelMenu)
