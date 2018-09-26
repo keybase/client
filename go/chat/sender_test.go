@@ -1328,6 +1328,8 @@ func TestPairwiseMACChecker(t *testing.T) {
 		g2 := globals.NewContext(tc2.G, tc2.ChatG)
 		blockingSender1 := NewBlockingSender(g1, boxer1, getRI1)
 		blockingSender2 := NewBlockingSender(g2, boxer2, getRI2)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
 
 		text := "hi"
 		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
@@ -1391,6 +1393,11 @@ func TestPairwiseMACChecker(t *testing.T) {
 		msg2.ClientHeader.EphemeralMetadata = ephemeralMetadata
 		_, _, err = blockingSender2.Send(ctx2, conv.Id, msg2, 0, nil)
 		require.NoError(t, err)
+		select {
+		case <-listener1.newMessageRemote:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 
 		tv, err := tc1.Context().ConvSource.Pull(ctx1, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
 		require.NoError(t, err)
