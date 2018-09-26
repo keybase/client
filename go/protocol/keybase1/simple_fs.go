@@ -567,20 +567,23 @@ func (e AsyncOps) String() string {
 type ListFilter int
 
 const (
-	ListFilter_NO_FILTER         ListFilter = 0
-	ListFilter_FILTER_ALL_HIDDEN ListFilter = 1
+	ListFilter_NO_FILTER            ListFilter = 0
+	ListFilter_FILTER_ALL_HIDDEN    ListFilter = 1
+	ListFilter_FILTER_SYSTEM_HIDDEN ListFilter = 2
 )
 
 func (o ListFilter) DeepCopy() ListFilter { return o }
 
 var ListFilterMap = map[string]ListFilter{
-	"NO_FILTER":         0,
-	"FILTER_ALL_HIDDEN": 1,
+	"NO_FILTER":            0,
+	"FILTER_ALL_HIDDEN":    1,
+	"FILTER_SYSTEM_HIDDEN": 2,
 }
 
 var ListFilterRevMap = map[ListFilter]string{
 	0: "NO_FILTER",
 	1: "FILTER_ALL_HIDDEN",
+	2: "FILTER_SYSTEM_HIDDEN",
 }
 
 func (e ListFilter) String() string {

@@ -107,7 +107,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
       })
     } else {
@@ -117,7 +117,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
         depth: 1,
       })
@@ -362,7 +362,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
         {
-          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+          filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         }
       )
       yield Saga.sequentially([
