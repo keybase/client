@@ -5,14 +5,11 @@
 package libgit
 
 import (
-	"context"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"github.com/keybase/kbfs/tlf"
@@ -20,15 +17,13 @@ import (
 	gogit "gopkg.in/src-d/go-git.v4"
 )
 
-func TestAutogitNodeWrappers(t *testing.T) {
+func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
 
-	kbCtx := env.NewContext()
-	kbfsInitParams := libkbfs.DefaultInitParams(kbCtx)
-	shutdown := StartAutogit(kbCtx, config, &kbfsInitParams, 1)
+	shutdown := StartAutogit(config)
 	defer shutdown()
 
 	h, err := libkbfs.ParseTlfHandle(
@@ -38,35 +33,16 @@ func TestAutogitNodeWrappers(t *testing.T) {
 		ctx, config, h, libkbfs.MasterBranch, "", "", keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 
-	t.Log("Looking at user1's autogit directory should succeed, and " +
-		"autocreate all the necessary directories")
-	fis, err := rootFS.ReadDir(rootFS.Join(autogitRoot, private, "user1"))
-	require.NoError(t, err)
-	require.Len(t, fis, 0)
-	fis, err = rootFS.ReadDir(rootFS.Join(autogitRoot, public, "user1"))
-	require.NoError(t, err)
-	require.Len(t, fis, 0)
-
-	t.Log("Looking up a non-existent user won't work")
-	_, err = rootFS.ReadDir(rootFS.Join(autogitRoot, private, "user2"))
-	require.NotNil(t, err)
-
-	t.Log("Looking up the wrong TLF type won't work")
-	_, err = rootFS.ReadDir(rootFS.Join(autogitRoot, "faketlftype", "user1"))
-	require.NotNil(t, err)
-
-	t.Log("Other autocreates in the root won't work")
-	_, err = rootFS.ReadDir("a")
-	require.NotNil(t, err)
+	t.Log("Looking at user1's autogit directory should fail if no git repos")
+	_, err = rootFS.ReadDir(AutogitRoot)
+	require.Error(t, err)
 }
 
-func checkAutogitOneFile(t *testing.T, rootFS *libfs.FS, tlfType string) {
-	fis, err := rootFS.ReadDir(
-		fmt.Sprintf(".kbfs_autogit/%s/user1/test", tlfType))
+func checkAutogitOneFile(t *testing.T, rootFS *libfs.FS) {
+	fis, err := rootFS.ReadDir(".kbfs_autogit/test")
 	require.NoError(t, err)
-	require.Len(t, fis, 2) // foo and .git
-	f, err := rootFS.Open(
-		fmt.Sprintf(".kbfs_autogit/%s/user1/test/foo", tlfType))
+	require.Len(t, fis, 1)
+	f, err := rootFS.Open(".kbfs_autogit/test/foo")
 	require.NoError(t, err)
 	defer f.Close()
 	data, err := ioutil.ReadAll(f)
@@ -74,20 +50,17 @@ func checkAutogitOneFile(t *testing.T, rootFS *libfs.FS, tlfType string) {
 	require.Equal(t, "hello", string(data))
 }
 
-func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS, tlfType string) {
-	fis, err := rootFS.ReadDir(
-		fmt.Sprintf(".kbfs_autogit/%s/user1/test", tlfType))
+func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS) {
+	fis, err := rootFS.ReadDir(".kbfs_autogit/test")
 	require.NoError(t, err)
-	require.Len(t, fis, 3) // foo, foo2 and .git
-	f, err := rootFS.Open(
-		fmt.Sprintf(".kbfs_autogit/%s/user1/test/foo", tlfType))
+	require.Len(t, fis, 2) // foo and foo2
+	f, err := rootFS.Open(".kbfs_autogit/test/foo")
 	require.NoError(t, err)
 	defer f.Close()
 	data, err := ioutil.ReadAll(f)
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
-	f2, err := rootFS.Open(
-		fmt.Sprintf(".kbfs_autogit/%s/user1/test/foo2", tlfType))
+	f2, err := rootFS.Open(".kbfs_autogit/test/foo2")
 	require.NoError(t, err)
 	defer f2.Close()
 	data2, err := ioutil.ReadAll(f2)
@@ -101,12 +74,8 @@ func TestAutogitRepoNode(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
 
-	kbCtx := env.NewContext()
-	kbfsInitParams := libkbfs.DefaultInitParams(kbCtx)
-	am := NewAutogitManager(config, kbCtx, &kbfsInitParams, 1)
+	am := NewAutogitManager(config)
 	defer am.Shutdown()
-	nc := &newConfigger{config: config, user: "user1"}
-	am.getNewConfig = nc.getNewConfigForTest
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 
@@ -132,7 +101,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Use autogit to clone it using ReadDir")
-	checkAutogitOneFile(t, rootFS, "private")
+	checkAutogitOneFile(t, rootFS)
 
 	t.Log("Update the source repo and make sure the autogit repos update too")
 	addFileToWorktreeAndCommit(
@@ -146,12 +115,6 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx, srcRootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	t.Log("Wait for the resets to finish")
-	err = am.updatingWG.Wait(ctx)
-	require.NoError(t, err)
-	err = am.resetsWG.Wait(ctx)
-	require.NoError(t, err)
-
 	t.Log("Update the dest repo")
 	dstRootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
@@ -160,16 +123,7 @@ func TestAutogitRepoNode(t *testing.T) {
 		ctx, dstRootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkAutogitTwoFiles(t, rootFS, "private")
-
-	// Delete the checkout.
-	err = rootFS.Remove(".kbfs_autogit/private/user1/test")
-	require.NoError(t, err)
-	err = config.KBFSOps().SyncFromServer(
-		ctx, dstRootNode.GetFolderBranch(), nil)
-	require.NoError(t, err)
-	fis, err := rootFS.ReadDir(".kbfs_autogit/private/user1")
-	require.Len(t, fis, 0)
+	checkAutogitTwoFiles(t, rootFS)
 }
 
 func TestAutogitRepoNodeReadonly(t *testing.T) {
@@ -178,12 +132,8 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
 
-	kbCtx := env.NewContext()
-	kbfsInitParams := libkbfs.DefaultInitParams(kbCtx)
-	am := NewAutogitManager(config, kbCtx, &kbfsInitParams, 1)
+	am := NewAutogitManager(config)
 	defer am.Shutdown()
-	nc := &newConfigger{config: config, user: "user1"}
-	am.getNewConfig = nc.getNewConfigForTest
 	rw := rootWrapper{am}
 	config.AddRootNodeWrapper(rw.wrap)
 
@@ -208,31 +158,18 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	addFileToWorktreeAndCommit(
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 
-	t.Log("Use autogit to open it in another user's TLF")
-	nc2 := &newConfigger{config: config, user: "user2"}
-	ctx2 := libkbfs.NewContextReplayable(
-		context.Background(), func(c context.Context) context.Context {
-			return c
-		})
-	ctx2, config2, tempdir2, err := nc2.getNewConfigForTestWithMode(
-		ctx2, libkbfs.InitDefault)
-	require.NoError(t, err)
-	defer libkbfs.CheckConfigAndShutdown(ctx2, t, config2)
-	defer os.RemoveAll(tempdir2)
-	am2 := NewAutogitManager(config2, kbCtx, &kbfsInitParams, 1)
+	t.Log("Use autogit to open it as another user.")
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+	am2 := NewAutogitManager(config2)
 	defer am2.Shutdown()
-	am2.getNewConfig = nc2.getNewConfigForTest
 	rw2 := rootWrapper{am2}
 	config2.AddRootNodeWrapper(rw2.wrap)
-
-	h2, err := libkbfs.ParseTlfHandle(
-		ctx2, config2.KBPKI(), config2.MDOps(), "user2", tlf.Private)
-	require.NoError(t, err)
 	rootFS2, err := libfs.NewFS(
-		ctx2, config2, h2, libkbfs.MasterBranch, "", "",
+		ctx, config2, h, libkbfs.MasterBranch, "", "",
 		keybase1.MDPriorityNormal)
 	require.NoError(t, err)
-	checkAutogitOneFile(t, rootFS2, "public")
+	checkAutogitOneFile(t, rootFS2)
 
 	addFileToWorktree(t, repo, worktreeFS, "foo2", "hello2")
 	t.Log("Repacking objects to more closely resemble a real kbfsgit push, " +
@@ -260,28 +197,13 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 		ctx, srcRootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	t.Log("Wait for the resets to finish")
-	err = am2.updatingWG.Wait(ctx2)
-	require.NoError(t, err)
-	err = am2.resetsWG.Wait(ctx2)
-	require.NoError(t, err)
-
 	t.Log("Update the dest repo")
 	dstRootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, h2, libkbfs.MasterBranch)
+		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
 	err = config2.KBFSOps().SyncFromServer(
 		ctx, dstRootNode2.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkAutogitTwoFiles(t, rootFS2, "public")
-
-	// Delete the checkout.
-	err = rootFS2.Remove(".kbfs_autogit/public/user1/test")
-	require.NoError(t, err)
-	err = config2.KBFSOps().SyncFromServer(
-		ctx, dstRootNode2.GetFolderBranch(), nil)
-	require.NoError(t, err)
-	fis, err = rootFS2.ReadDir(".kbfs_autogit/public/user1")
-	require.Len(t, fis, 0)
+	checkAutogitTwoFiles(t, rootFS2)
 }

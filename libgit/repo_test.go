@@ -144,17 +144,18 @@ func TestCreateDuplicateRepo(t *testing.T) {
 	defer os.RemoveAll(tempdir)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
-	nc := newConfigger{config: config, user: "user2"}
-	ctx2 := libkbfs.NewContextReplayable(
-		context.Background(), func(c context.Context) context.Context {
-			return c
-		})
-	ctx2, cancel2 := context.WithCancel(ctx2)
+	config2 := libkbfs.ConfigAsUser(config, "user2")
+	ctx2, cancel2 := context.WithCancel(context.Background())
 	defer cancel2()
-	ctx2, config2, tempdir2, err := nc.getNewConfigForTest(ctx2)
+	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
-	defer os.RemoveAll(tempdir2)
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
+	defer os.RemoveAll(tempdir)
+	err = config2.EnableDiskLimiter(tempdir)
+	require.NoError(t, err)
+	err = config2.EnableJournaling(
+		ctx2, tempdir, libkbfs.TLFJournalSingleOpBackgroundWorkEnabled)
+	require.NoError(t, err)
+	defer libkbfs.CheckConfigAndShutdown(ctx2, t, config2)
 
 	h, err := libkbfs.ParseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), "user1,user2", tlf.Private)

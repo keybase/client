@@ -28,7 +28,7 @@ type RPCHandler struct {
 // NewRPCHandlerWithCtx returns a new instance of a Git RPC handler.
 func NewRPCHandlerWithCtx(kbCtx libkbfs.Context, config libkbfs.Config,
 	kbfsInitParams *libkbfs.InitParams) (*RPCHandler, func()) {
-	shutdown := StartAutogit(kbCtx, config, kbfsInitParams, 10)
+	shutdown := StartAutogit(config)
 	return &RPCHandler{
 		kbCtx:          kbCtx,
 		config:         config,

@@ -6,7 +6,6 @@ package libpages
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -149,24 +148,15 @@ func (r *Root) MakeFS(
 		}
 		return cacheableFS, tlfHandle.TlfID(), cancel, nil
 	case GitRoot:
-		session, err := kbfsConfig.KeybaseService().CurrentSession(ctx, 0)
-		if err != nil {
-			return CacheableFS{}, tlf.ID{}, nil, err
-		}
 		tlfHandle, err := libkbfs.GetHandleFromFolderNameAndType(
 			ctx, kbfsConfig.KBPKI(), kbfsConfig.MDOps(),
-			// We'll just checkout to the bot's private TLF for now. Note that
-			// this means git remote is only supported by kbp servers that have
-			// logged into a bot account.
-			string(session.Name), tlf.Private)
+			r.TlfNameUnparsed, r.TlfType)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}
 		autogitTLFFS, err := libfs.NewFS(
 			fsCtx, kbfsConfig, tlfHandle, libkbfs.MasterBranch,
-			fmt.Sprintf("%s/%s", libgit.AutogitTLFListDir(r.TlfType),
-				r.TlfNameUnparsed), "",
-			keybase1.MDPriorityNormal)
+			libgit.AutogitRoot, "", keybase1.MDPriorityNormal)
 		if err != nil {
 			return CacheableFS{}, tlf.ID{}, nil, err
 		}

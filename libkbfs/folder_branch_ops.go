@@ -2001,7 +2001,8 @@ func (fbo *folderBranchOps) makeFakeDirEntry(
 	de = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: BlockPointer{
-				ID: id,
+				ID:      id,
+				DataVer: FirstValidDataVer,
 			},
 		},
 		EntryInfo: EntryInfo{
@@ -2098,7 +2099,8 @@ func (fbo *folderBranchOps) statUsingFS(
 	de = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: BlockPointer{
-				ID: id,
+				ID:      id,
+				DataVer: FirstValidDataVer,
 			},
 		},
 		EntryInfo: EntryInfoFromFileInfo(fi),
@@ -2115,12 +2117,6 @@ func (fbo *folderBranchOps) statUsingFS(
 
 func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 	node Node, de DirEntry, err error) {
-	if fbo.nodeCache.IsUnlinked(dir) {
-		fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
-			fbo.nodeCache.PathFromNode(dir).tailPointer())
-		return nil, DirEntry{}, NoSuchNameError{name}
-	}
-
 	lState := makeFBOLockState()
 
 	de, ok, err := fbo.statUsingFS(ctx, lState, dir, name)
@@ -2133,6 +2129,12 @@ func (fbo *folderBranchOps) lookup(ctx context.Context, dir Node, name string) (
 			return nil, DirEntry{}, err
 		}
 		return node, de, nil
+	}
+
+	if fbo.nodeCache.IsUnlinked(dir) {
+		fbo.log.CDebugf(ctx, "Refusing a lookup for unlinked directory %v",
+			fbo.nodeCache.PathFromNode(dir).tailPointer())
+		return nil, DirEntry{}, NoSuchNameError{name}
 	}
 
 	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)

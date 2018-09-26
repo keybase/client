@@ -258,8 +258,9 @@ func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
 		return nil, err
 	}
 	return &Browser{
-		tree: newTree,
-		root: b.Join(b.root, p),
+		tree:  newTree,
+		root:  b.Join(b.root, p),
+		mtime: b.mtime,
 	}, nil
 }
 

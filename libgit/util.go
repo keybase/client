@@ -14,6 +14,10 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 )
 
+const (
+	workTimeLimit = 1 * time.Hour
+)
+
 // commonTime computes the current time according to our estimate of
 // the mdserver's time.  It's a very crude way of normalizing the
 // local clock.

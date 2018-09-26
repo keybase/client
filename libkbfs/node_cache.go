@@ -76,23 +76,37 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 	}
 	return nodeStandard, nil
 }
-
-func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
-	entry *nodeCacheEntry) (n Node) {
-	entry.refCount++
-	n = makeNodeStandard(entry.core)
-	if entry.core.parent != nil {
-		return entry.core.parent.WrapChild(n)
+func (ncs *nodeCacheStandard) wrapNodeStandard(
+	n Node, rootWrappers []func(Node) Node) Node {
+	ns, ok := n.(*nodeStandard)
+	if !ok {
+		return n
 	}
-	for _, f := range ncs.rootWrappers {
+	if ns.core.parent != nil {
+		return ns.core.parent.WrapChild(n)
+	}
+	for _, f := range rootWrappers {
 		n = f(n)
 	}
 	return n
 }
 
+func (ncs *nodeCacheStandard) makeNodeStandardForEntryLocked(
+	entry *nodeCacheEntry) *nodeStandard {
+	entry.refCount++
+	return makeNodeStandard(entry.core)
+}
+
 // GetOrCreate implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) GetOrCreate(
-	ptr BlockPointer, name string, parent Node) (Node, error) {
+	ptr BlockPointer, name string, parent Node) (n Node, err error) {
+	var rootWrappers []func(Node) Node
+	defer func() {
+		if n != nil {
+			n = ncs.wrapNodeStandard(n, rootWrappers)
+		}
+	}()
+
 	if !ptr.IsValid() {
 		// Temporary code to track down bad block
 		// pointers. Remove when not needed anymore.
@@ -105,6 +119,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
+	rootWrappers = ncs.rootWrappers
 	entry, ok := ncs.nodes[ptr.Ref()]
 	if ok {
 		// If the entry happens to be unlinked, we may be in a
@@ -135,7 +150,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 }
 
 // Get implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
+func (ncs *nodeCacheStandard) Get(ref BlockRef) (n Node) {
 	if ref == (BlockRef{}) {
 		return nil
 	}
@@ -146,8 +161,16 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) Node {
 		panic(InvalidBlockRefError{ref})
 	}
 
+	var rootWrappers []func(Node) Node
+	defer func() {
+		if n != nil {
+			n = ncs.wrapNodeStandard(n, rootWrappers)
+		}
+	}()
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
+	rootWrappers = ncs.rootWrappers
 	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return nil
@@ -361,10 +384,18 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 }
 
 // AllNodes implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) AllNodes() []Node {
+func (ncs *nodeCacheStandard) AllNodes() (nodes []Node) {
+	var rootWrappers []func(Node) Node
+	defer func() {
+		for i, n := range nodes {
+			nodes[i] = ncs.wrapNodeStandard(n, rootWrappers)
+		}
+	}()
+
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	var nodes []Node
+	rootWrappers = ncs.rootWrappers
+	nodes = make([]Node, 0, len(ncs.nodes))
 	for _, entry := range ncs.nodes {
 		nodes = append(nodes, ncs.makeNodeStandardForEntryLocked(entry))
 	}

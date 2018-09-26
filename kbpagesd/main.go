@@ -97,7 +97,6 @@ func removeEmpty(strs []string) (ret []string) {
 	return ret
 }
 
-const autoGitNumWorkers = 10
 const activityStatsReportInterval = 5 * time.Minute
 const activityStatsPath = "./kbp-stats"
 
@@ -129,8 +128,7 @@ func main() {
 		rpc.Protocol, error) {
 		// Start autogit before the RPC connection to the service is
 		// fully initialized.
-		shutdownGit = libgit.StartAutogit(
-			kbCtx, config, &params, autoGitNumWorkers)
+		shutdownGit = libgit.StartAutogit(config)
 
 		return keybase1.SimpleFSProtocol(
 			simplefs.NewSimpleFS(libkbfsCtx, config)), nil
