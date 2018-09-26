@@ -11,6 +11,7 @@ type Role = 'sender' | 'receiver'
 
 type CounterpartyIconProps = {|
   large: boolean,
+  onShowProfile: string => void,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
 |}
@@ -19,7 +20,13 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <Avatar username={props.counterparty} size={size} />
+      return (
+        <Avatar
+          onClick={() => props.onShowProfile(props.counterparty)}
+          username={props.counterparty}
+          size={size}
+        />
+      )
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
@@ -52,6 +59,7 @@ type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
@@ -70,7 +78,9 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorFollowing={true}
           colorBroken={true}
           inline={true}
+          onUsernameClicked={props.onShowProfile}
           type={textTypeSemibold}
+          underline={true}
           usernames={[props.counterparty]}
         />
       )
@@ -106,6 +116,7 @@ type DetailProps = {|
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
   isXLM: boolean,
+  onShowProfile: string => void,
   selectableText: boolean,
 |}
 
@@ -119,6 +130,7 @@ const Detail = (props: DetailProps) => {
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
       large={props.large}
+      onShowProfile={props.onShowProfile}
       showFullKey={false}
       textType={textType}
       textTypeSemibold={textTypeSemibold}
@@ -235,6 +247,7 @@ export type Props = {|
   onCancelPayment?: () => void,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
+  onShowProfile: string => void,
   selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
@@ -262,6 +275,7 @@ export const Transaction = (props: Props) => {
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
             large={props.large}
+            onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
@@ -278,6 +292,7 @@ export const Transaction = (props: Props) => {
               counterpartyType={props.counterpartyType}
               amountUser={props.amountUser || props.amountXLM}
               isXLM={!props.amountUser}
+              onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
             />
             {// TODO: Consolidate memo display code below with

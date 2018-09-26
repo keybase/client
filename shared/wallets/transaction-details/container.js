@@ -4,6 +4,7 @@ import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
+import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import TransactionDetails from '.'
 
@@ -24,6 +25,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onLoadPaymentDetail: (accountID: Types.AccountID, paymentID: StellarRPCTypes.PaymentID) =>
     dispatch(WalletsGen.createLoadPaymentDetail({accountID, paymentID})),
   navigateUp: () => dispatch(navigateUp()),
+  onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -40,6 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
+    onShowProfile: dispatchProps.onShowProfile,
     publicMemo: tx.publicMemo.stringValue(),
     selectableText: true,
     status: tx.statusSimplified,
