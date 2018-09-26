@@ -100,6 +100,9 @@ if (nativeBridge.serverConfig) {
       if (userConfig.walletsEnabled) {
         config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
       }
+      if (userConfig.printRPCStats) {
+        config.printRPCStats = true
+      }
     }
   } catch (e) {}
 }
