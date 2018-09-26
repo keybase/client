@@ -24,7 +24,6 @@ import * as RowSizes from '../sizes'
 
 type Props = {
   badgeSubscribe: boolean,
-  memberCount: number,
   onClick: () => void,
   teamname: string,
 } & OverlayParentProps

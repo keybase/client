@@ -8,6 +8,7 @@ const mapStateToProps = (state: TypedState) => ({
   inputPlaceholder: '0.00',
   bottomLabel: '', // TODO
   topLabel: '', // TODO
+  value: state.wallets.buildingPayment.amount,
 })
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({

@@ -1,24 +1,15 @@
 // @flow
 import * as Shared from './icon.shared'
+import * as Styles from '../styles'
 import logger from '../logger'
 import React, {Component} from 'react'
 import shallowEqual from 'shallowequal'
-import {globalColors, glamorous, desktopStyles, collapseStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
-import Box from './box'
+import {invert} from 'lodash-es'
 import type {Props, IconType} from './icon'
 
-const StyledSpan = glamorous.span(props => ({
-  color: props.color,
-  ...(props.hoverColor
-    ? {
-        ':hover': {
-          color: props.hoverColor,
-        },
-      }
-    : null),
-}))
+const invertedColors = invert(Styles.globalColors)
 
 class Icon extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
@@ -45,15 +36,21 @@ class Icon extends Component<Props, void> {
       hoverColor = 'inherit'
     } else {
       color =
-        this.props.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
+        this.props.color ||
+        color ||
+        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_40)
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
-        (this.props.opacity ? globalColors.black : globalColors.black_75)
+        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black_75)
     }
 
-    const isFontIcon = iconType.startsWith('iconfont-')
-    const fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    const isFontIcon = iconMeta[iconType].isFont
+    let fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    // in style sheet, so don't apply
+    if (fontSizeHint && fontSizeHint.fontSize === 16) {
+      fontSizeHint = null
+    }
     const onClick = this.props.onClick
       ? e => {
           e.stopPropagation()
@@ -63,62 +60,73 @@ class Icon extends Component<Props, void> {
 
     const hasContainer = (this.props.onClick && this.props.style) || isFontIcon
 
-    const imgStyle = collapseStyles([
-      desktopStyles.noSelect,
-      !hasContainer ? this.props.style : {},
-      onClick ? desktopStyles.clickable : {},
-      this.props.color ? {color: color} : {},
-    ])
+    let iconElement
 
-    const iconElement = isFontIcon ? (
-      String.fromCharCode(iconMeta[iconType].charCode || 0)
-    ) : (
-      <img
-        className={this.props.className}
-        draggable="false"
-        title={this.props.hint}
-        style={imgStyle}
-        onClick={onClick}
-        srcSet={iconTypeToSrcSet(iconType)}
-      />
-    )
+    if (isFontIcon) {
+      iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
+    } else {
+      const imgStyle = Styles.collapseStyles([
+        Styles.desktopStyles.noSelect,
+        !hasContainer ? this.props.style : {},
+        onClick ? Styles.desktopStyles.clickable : {},
+        this.props.color ? {color: color} : {},
+      ])
+
+      iconElement = (
+        <img
+          className={this.props.className}
+          draggable="false"
+          title={this.props.hint}
+          style={imgStyle}
+          onClick={onClick}
+          srcSet={iconTypeToSrcSet(iconType)}
+        />
+      )
+    }
 
     if (hasContainer) {
-      const cleanStyle = collapseStyles([
-        {
-          fontFamily: 'kb',
-          speak: 'none',
-          fontStyle: 'normal',
-          fontWeight: 'normal',
-          fontVariant: 'normal',
-          textTransform: 'none',
-          lineHeight: 1,
-          WebkitFontSmoothing: 'antialiased',
-        },
+      let colorStyleName
+      let hoverStyleName
+      let inheritStyle
+
+      // TODO get rid of this concept
+      if (this.props.inheritColor) {
+        inheritStyle = {
+          color: 'inherit',
+          hoverColor: 'inherit',
+        }
+      } else {
+        const hoverColorName = this.props.onClick ? invertedColors[hoverColor] : null
+        hoverStyleName = hoverColorName ? `hover_color_${hoverColorName}` : ''
+        const colorName = invertedColors[color]
+        if (!colorName) {
+          throw new Error('Invalid color for icon, needs to be in stylesheet')
+        }
+        colorStyleName = `color_${colorName}`
+      }
+
+      const style = Styles.collapseStyles([
+        fontSizeHint,
+        onClick && Styles.desktopStyles.clickable,
+        inheritStyle,
         this.props.style,
       ])
 
       return (
-        <Box style={this.props.boxStyle}>
-          <StyledSpan
+        <div style={this.props.boxStyle}>
+          <span
             alt={this.props.hint}
-            color={color}
-            style={{
-              ...desktopStyles.noSelect,
-              ...styles.icon,
-              ...fontSizeHint,
-              ...(onClick ? desktopStyles.clickable : {}),
-              ...cleanStyle,
-            }}
-            className={this.props.className || ''}
+            style={style}
+            className={['icon', colorStyleName, hoverStyleName, this.props.className]
+              .filter(Boolean)
+              .join(' ')}
             onMouseEnter={this.props.onMouseEnter}
             onMouseLeave={this.props.onMouseLeave}
-            hoverColor={onClick ? hoverColor : null}
             onClick={onClick}
           >
             {iconElement}
-          </StyledSpan>
-        </Box>
+          </span>
+        </div>
       )
     } else {
       return iconElement
@@ -162,12 +170,6 @@ export function urlsToImgSet(imgMap: {[size: string]: string}, targetSize: numbe
     .filter(Boolean)
     .join(', ')
   return sets ? `-webkit-image-set(${sets})` : null
-}
-
-export const styles = {
-  icon: {
-    fontSize: 16,
-  },
 }
 
 export function castPlatformStyles(styles: any) {
