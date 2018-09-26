@@ -106,6 +106,7 @@ type DetailProps = {|
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
   isXLM: boolean,
+  selectableText: boolean,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -124,7 +125,7 @@ const Detail = (props: DetailProps) => {
     />
   )
   const amount = props.isXLM ? (
-    <Text selectable={true} type={textTypeExtrabold}>
+    <Text selectable={props.selectableText} type={textTypeExtrabold}>
       {props.amountUser}
     </Text>
   ) : (
@@ -175,6 +176,7 @@ type AmountXLMProps = {|
   yourRole: Role,
   amountXLM: string,
   pending: boolean,
+  selectableText: boolean,
 |}
 
 const AmountXLM = (props: AmountXLMProps) => {
@@ -185,7 +187,7 @@ const AmountXLM = (props: AmountXLMProps) => {
       : globalColors.green
   const amount = `${props.amountXLM}`
   return (
-    <Text selectable={true} style={{color, textAlign: 'right'}} type="BodyExtrabold">
+    <Text selectable={props.selectableText} style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {props.delta === 'increase' ? '+ ' : '- '}
       {amount}
     </Text>
@@ -195,9 +197,8 @@ const AmountXLM = (props: AmountXLMProps) => {
 type TimestampLineProps = {|
   error: string,
   status: Types.StatusSimplified,
-  timestamp: Date | null,
-  relative: boolean,
-  selectable: boolean,
+  timestamp: ?Date,
+  selectableText: boolean,
 |}
 
 export const TimestampLine = (props: TimestampLineProps) => {
@@ -209,16 +210,12 @@ export const TimestampLine = (props: TimestampLineProps) => {
     )
   }
   if (!props.timestamp) {
-    return (
-      <Text type="BodySmall">
-        {props.relative ? 'Pending' : "The Stellar network hasn't confirmed your transaction."}
-      </Text>
-    )
+    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
   }
   const human = formatTimeForMessages(props.timestamp)
   const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
-    <Text selectable={props.selectable} title={tooltip} type="BodySmall">
+    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
     </Text>
   )
@@ -238,6 +235,7 @@ export type Props = {|
   onCancelPayment?: () => void,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
+  selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -268,7 +266,7 @@ export const Transaction = (props: Props) => {
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
               error={props.statusDetail}
-              selectable={false}
+              selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
             />
@@ -280,6 +278,7 @@ export const Transaction = (props: Props) => {
               counterpartyType={props.counterpartyType}
               amountUser={props.amountUser || props.amountXLM}
               isXLM={!props.amountUser}
+              selectableText={props.selectableText}
             />
             {// TODO: Consolidate memo display code below with
             // chat/conversation/messages/wallet-payment/index.js.
@@ -299,6 +298,7 @@ export const Transaction = (props: Props) => {
               pending={pending}
               yourRole={props.yourRole}
               amountXLM={props.amountXLM}
+              selectableText={props.selectableText}
             />
           </Box2>
         </Box2>

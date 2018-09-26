@@ -105,7 +105,7 @@ export type _Payment = {
   target: string,
   targetAccountID: ?string,
   targetType: string,
-  time: number,
+  time: ?number,
   txID: string,
   worth: string,
   worthCurrency: string,

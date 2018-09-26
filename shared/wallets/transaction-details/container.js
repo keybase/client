@@ -41,9 +41,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onLoadPaymentDetail: () =>
       dispatchProps._onLoadPaymentDetail(ownProps.routeProps.get('accountID'), tx.id),
     publicMemo: tx.publicMemo.stringValue(),
+    selectableText: true,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
-    timestamp: new Date(tx.time),
+    timestamp: tx.time ? new Date(tx.time) : null,
     title: 'Transaction details',
     transactionID: tx.txID,
     yourRole,

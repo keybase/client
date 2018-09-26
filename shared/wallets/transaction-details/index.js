@@ -23,6 +23,7 @@ export type Props = {|
   onLoadPaymentDetail: () => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
+  selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -109,6 +110,7 @@ class TransactionDetails extends React.Component<Props> {
           delta={this.props.delta}
           large={true}
           memo={this.props.memo}
+          selectableText={true}
           status={this.props.status}
           statusDetail={this.props.statusDetail}
           timestamp={this.props.timestamp}
@@ -168,7 +170,7 @@ class TransactionDetails extends React.Component<Props> {
             <TimestampLine
               status={this.props.status}
               error={this.props.statusDetail}
-              selectable={true}
+              selectableText={true}
               timestamp={this.props.timestamp}
             />
           )}

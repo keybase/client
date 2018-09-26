@@ -49,6 +49,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onRetryPayment: undefined,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
+    selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,

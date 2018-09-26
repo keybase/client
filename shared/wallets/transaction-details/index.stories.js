@@ -39,6 +39,7 @@ const load = () => {
         you="cjb"
         status="completed"
         statusDetail=""
+        selectableText={false}
       />
     ))
     .add('Sending to Stellar public key', () => (
@@ -59,6 +60,7 @@ const load = () => {
         you="cjb"
         status="completed"
         statusDetail=""
+        selectableText={false}
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
@@ -80,6 +82,7 @@ const load = () => {
         you="cjb"
         status="completed"
         statusDetail=""
+        selectableText={false}
       />
     ))
     .add('Received from Keybase user', () => (
@@ -102,6 +105,7 @@ const load = () => {
         you="cjb"
         status="completed"
         statusDetail=""
+        selectableText={false}
       />
     ))
     .add('Received from Keybase user (pending)', () => (
@@ -121,6 +125,7 @@ const load = () => {
         you="cjb"
         status="pending"
         statusDetail=""
+        selectableText={false}
       />
     ))
     .add('Received from another account', () => (
@@ -141,6 +146,7 @@ const load = () => {
         you="cjb"
         status="completed"
         statusDetail=""
+        selectableText={false}
       />
     ))
 }
