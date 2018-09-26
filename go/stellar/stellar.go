@@ -1325,3 +1325,29 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 	}
 	return upak.Current.ToUserVersion(), libkb.NewNormalizedUsername(upak.Current.GetName()), err
 }
+
+// SetAccountMobileOnly changes an account so that its secret keys
+// are only available on mobile devices.
+func SetAccountMobileOnly(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) error {
+	prevBundle, _, err := remote.Fetch(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	// don't do anything if already mobile
+	isMobile, found := bundle.IsMobileOnly(&prevBundle, accountID)
+	if found && isMobile {
+		return nil
+	}
+
+	if !found {
+		return libkb.NotFoundError{}
+	}
+
+	// account exists and isn't mobile
+
+	nextBundle := bundle.Advance(prevBundle)
+	bundle.SetMobileOnly(&nextBundle, accountID)
+
+	return remote.Post(ctx, g, nextBundle)
+}

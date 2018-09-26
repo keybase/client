@@ -754,6 +754,9 @@ func TestRequestPaymentOutsideCurrency(t *testing.T) {
 	require.Equal(t, "$8.20 USD", details.AmountDescription)
 }
 
+// TestMobileBundle checks that after calling SetAccountMobileOnly on
+// an account, that the bundle will no longer contain the secret keys
+// for that account unless on a mobile device.
 func TestMobileBundle(t *testing.T) {
 	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingWalletless, usettingFull})
 	defer cleanup()
@@ -772,13 +775,13 @@ func TestMobileBundle(t *testing.T) {
 	require.Len(t, bundle.Accounts[0].Signers, 1)
 
 	// make the primary account mobile only
-	err = stellar.SetAccountMobileOnly(ctx, bundle.Accounts[0].AccountID)
+	err = stellar.SetAccountMobileOnly(context.Background(), tcs[0].G, bundle.Accounts[0].AccountID)
 	require.NoError(t, err)
 
 	// fetch the bundle again
-	bundle, _, err := remote.Fetch(context.Background(), tcs[0].G)
+	bundle, _, err = remote.Fetch(context.Background(), tcs[0].G)
 	require.NoError(t, err)
-	require.Equal(t, stellar1.BundleRevision(1), bundle.Revision)
+	require.Equal(t, stellar1.BundleRevision(2), bundle.Revision)
 	require.Len(t, bundle.Accounts, 1)
 	require.True(t, len(bundle.Accounts[0].AccountID) > 0)
 	require.Equal(t, stellar1.AccountMode_MOBILE, bundle.Accounts[0].Mode)

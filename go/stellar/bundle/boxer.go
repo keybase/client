@@ -248,23 +248,30 @@ func accountsSplit(accounts []stellar1.BundleEntry) (vis []stellar1.BundleVisibl
 }
 
 func merge(secret stellar1.BundleSecretV1, visible stellar1.BundleVisibleV1) (res stellar1.Bundle, err error) {
-	if len(secret.Accounts) != len(visible.Accounts) {
-		return res, fmt.Errorf("corrupted bundle: secret and visible have different counts")
-	}
-	var accounts []stellar1.BundleEntry
-	for i, sec := range secret.Accounts {
-		vis := visible.Accounts[i]
-		if sec.AccountID != vis.AccountID {
-			return res, fmt.Errorf("corrupted bundle: mismatched account ID")
+	// this doesn't make much sense now that the secret accounts might not contain
+	// all the accounts if some set to mobile-only.
+	/*
+		if len(secret.Accounts) != len(visible.Accounts) {
+			return res, fmt.Errorf("corrupted bundle: secret and visible have different counts")
 		}
-		accounts = append(accounts, stellar1.BundleEntry{
+	*/
+	accounts := make([]stellar1.BundleEntry, len(visible.Accounts))
+	for i, vis := range visible.Accounts {
+		accounts[i] = stellar1.BundleEntry{
 			AccountID: vis.AccountID,
 			Mode:      vis.Mode,
 			IsPrimary: vis.IsPrimary,
-			Signers:   sec.Signers,
-			Name:      sec.Name,
-		})
+		}
+
+		// TODO: map
+		for _, sec := range secret.Accounts {
+			if sec.AccountID == vis.AccountID {
+				accounts[i].Signers = sec.Signers
+				accounts[i].Name = sec.Name
+			}
+		}
 	}
+
 	return stellar1.Bundle{
 		Revision: visible.Revision,
 		Prev:     visible.Prev,
