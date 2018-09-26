@@ -147,11 +147,5 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 	}
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := RunEngine2(m, eng)
-	// TODO once CORE-8654 is in this will fail and we can condense to a
-	// single test that runs with promptPosted=true without error.
-	if promptPosted {
-		require.Error(tc.T, err)
-	} else {
-		require.NoError(tc.T, err)
-	}
+	require.NoError(tc.T, err)
 }
