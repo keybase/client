@@ -1,6 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
-import ReactList from 'react-list'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles'
 import {makeRow} from './row'
@@ -24,15 +25,21 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _mounted: boolean = false
-  _list: ?ReactList
+  _list: ?VariableSizeList
 
   componentDidUpdate(prevProps: Props) {
-    // If we click the expand button let's try and show the floater. Kinda tricky as we decide if we're showing it
-    // based on a callback the list gives us so there's a race. Let's just give it half a sec
+    let listRowsResized = false
     if (prevProps.smallTeamsExpanded !== this.props.smallTeamsExpanded) {
-      setTimeout(() => {
-        this._updateShowFloating()
-      }, 500)
+      listRowsResized = true
+    }
+
+    // filter / not filter
+    if (!!prevProps.filter !== !!this.props.filter) {
+      listRowsResized = true
+    }
+
+    if (listRowsResized) {
+      this._list && this._list.resetAfterIndex(0)
     }
   }
 
@@ -45,85 +52,75 @@ class Inbox extends PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
+    if (this.props.filter.length) {
+      return 56
+    }
     const row = this.props.rows[index]
     switch (row.type) {
       case 'small':
         return 56
+      case 'bigHeader':
+        return 32
       case 'bigTeamsLabel': // fallthrough
-      case 'bigHeader': // fallthrough
       case 'big': // fallthrough
         return 24
       case 'divider':
-        return 16
+        return row.showButton ? 68 : 41
     }
   }
 
-  _itemRenderer = index => {
+  _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
     if (row.type === 'divider') {
       return (
-        <TeamsDivider
-          key="divider"
-          toggle={this.props.toggleSmallTeamsExpanded}
-          showButton={row.showButton}
-          rows={this.props.rows}
-          style={{marginBottom: globalMargins.tiny}}
-        />
+        <div style={style}>
+          <TeamsDivider
+            key="divider"
+            toggle={this.props.toggleSmallTeamsExpanded}
+            showButton={row.showButton}
+            rows={this.props.rows}
+            style={{marginBottom: globalMargins.tiny}}
+          />
+        </div>
       )
     }
 
-    return makeRow({
-      channelname: row.channelname,
-      conversationIDKey: row.conversationIDKey,
-      filtered: !!this.props.filter,
-      teamname: row.teamname,
-      type: row.type,
-    })
+    return (
+      <div style={style}>
+        {makeRow({
+          channelname: row.channelname,
+          conversationIDKey: row.conversationIDKey,
+          filtered: !!this.props.filter,
+          teamname: row.teamname,
+          type: row.type,
+        })}
+      </div>
+    )
   }
 
-  _updateShowFloating = () => {
-    if (!this._mounted) {
+  _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
+    if (this.props.filter.length) {
       return
     }
-    let showFloating = true
-    if (this._list) {
-      const [, last] = this._list.getVisibleRange()
-      if (typeof last === 'number') {
-        const row = this.props.rows[last]
-
-        if (!row || row.type !== 'small') {
-          showFloating = false
-        }
+    const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
+      if (r.type === 'small' && r.conversationIDKey) {
+        arr.push(r.conversationIDKey)
       }
+      return arr
+    }, [])
+
+    let showFloating = true
+    const row = this.props.rows[visibleStopIndex]
+    if (!row || row.type !== 'small') {
+      showFloating = false
     }
 
     this.setState(old => (old.showFloating !== showFloating ? {showFloating} : null))
-  }
 
-  _onScroll = () => {
-    this._onScrollUnbox()
-    this._updateShowFloating()
-  }
-
-  _onScrollUnbox = debounce(() => {
-    if (!this._list) {
-      return
-    }
-
-    const [first, end] = this._list.getVisibleRange()
-    if (typeof first === 'number') {
-      const toUnbox = this.props.rows.slice(first, end).reduce((arr, r) => {
-        if (r.type === 'small' && r.conversationIDKey) {
-          arr.push(r.conversationIDKey)
-        }
-        return arr
-      }, [])
-
-      this.props.onUntrustedInboxVisible(toUnbox)
-    }
+    this.props.onUntrustedInboxVisible(toUnbox)
   }, 200)
 
-  _setRef = (list: ?ReactList) => {
+  _setRef = (list: ?VariableSizeList) => {
     this._list = list
   }
 
@@ -150,15 +147,22 @@ class Inbox extends PureComponent<Props, State> {
             onSelectDown={this._onSelectDown}
           />
           <NewConversation />
-          <div style={_scrollableStyle} onScroll={this._onScroll}>
-            <ReactList
-              ref={this._setRef}
-              useTranslate3d={false}
-              itemRenderer={this._itemRenderer}
-              length={this.props.rows.length}
-              type="variable"
-              itemSizeGetter={this._itemSizeGetter}
-            />
+          <div style={_listStyle}>
+            <AutoSizer>
+              {({height, width}) => (
+                <VariableSizeList
+                  height={height}
+                  width={width}
+                  ref={this._setRef}
+                  onItemsRendered={this._onItemsRendered}
+                  itemCount={this.props.rows.length}
+                  itemSize={this._itemSizeGetter}
+                  estimatedItemSize={56}
+                >
+                  {({index, style}) => this._itemRenderer(index, style)}
+                </VariableSizeList>
+              )}
+            </AutoSizer>
           </div>
           {owl}
           {floatingDivider || <BuildTeam />}
@@ -178,10 +182,7 @@ const _containerStyle = {
   position: 'relative',
 }
 
-const _scrollableStyle = {
-  flex: 1,
-  overflowY: 'auto',
-}
+const _listStyle = {flex: 1}
 
 export default Inbox
 export type {RowItem, RowItemSmall, RowItemBig, RouteState}
