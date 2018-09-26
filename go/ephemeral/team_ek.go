@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -288,8 +289,8 @@ func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID ke
 	return statement, latestGeneration, false, nil
 }
 
-func extractTeamEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.TeamEkStatement, err error) {
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+func extractTeamEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningKeyPublic, statement *keybase1.TeamEkStatement, err error) {
+	signerKey, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
 		return signerKey, nil, err
 	}
