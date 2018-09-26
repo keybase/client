@@ -349,7 +349,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
     }
   })
 
-const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
+const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) => {
   let navigation = () => []
   if (path) {
     const parentFolder = Types.getPathFromElements(Types.getPathElements(path).slice(0, -1))
@@ -367,7 +367,7 @@ const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFil
         navigateAppend([
           {
             props: {path},
-            selected: 'preview',
+            selected: type === 'folder' ? 'folder' : 'preview',
           },
         ])
       ),

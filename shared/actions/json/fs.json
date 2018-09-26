@@ -164,7 +164,8 @@
       "routePath?": "I.List<string>"
     },
     "openFilesFromWidget": {
-      "path?": "Types.Path"
+      "path": "Types.Path",
+      "type": "Types.PathType"
     },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
