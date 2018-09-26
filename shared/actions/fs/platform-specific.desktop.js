@@ -17,7 +17,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {switchTo, navigateTo} from '../route-tree'
+import {navigateTo, navigateAppend} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -342,9 +342,6 @@ const loadUserFileEdits = (state: TypedState, action) =>
         )
         .toArray()
       yield Saga.sequentially([
-        // TODO (songgao): make a new action that accepts an array of updates,
-        // so that we only need to trigger one update through store/rpc/widget
-        // for all these each time.
         ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
@@ -354,23 +351,33 @@ const loadUserFileEdits = (state: TypedState, action) =>
   })
 
 const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
-  const pathItem = path ? state.fs.pathItems.get(path) : undefined
-  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
+  const selected = 'preview'
+  let navigation = () => []
+  if (path) {
+    const parentFolder = Types.getPathFromElements(Types.getPathElements(path).slice(0, -1))
+    navigation = () => [
+      Saga.put(
+        navigateTo([
+          Tabs.fsTab,
+          {
+            props: {path: parentFolder},
+            selected: 'folder',
+          },
+        ])
+      ),
+      Saga.put(
+        navigateAppend([
+          {
+            props: {path},
+            selected: 'preview',
+          },
+        ])
+      ),
+    ]
+  }
   return Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(path
-      ? [
-          Saga.put(
-            navigateTo([
-              Tabs.fsTab,
-              {
-                props: {path},
-                selected,
-              },
-            ])
-          ),
-        ]
-      : []),
+    ...(navigation()),
   ])
 }
 
