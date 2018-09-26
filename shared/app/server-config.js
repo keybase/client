@@ -9,7 +9,6 @@ export async function updateServerConfigLastLoggedIn(username: string, serverCon
   }
 
   const oldConfig = await getServerConfig()
-  console.log('aaa old config', oldConfig)
 
   try {
     const data = JSON.stringify({
@@ -17,7 +16,6 @@ export async function updateServerConfigLastLoggedIn(username: string, serverCon
       lastLoggedInUser: username,
       [username]: serverConfig,
     })
-    console.log('aaa data', data)
     const ws = await File.writeStream(serverConfigFileName, 'utf8')
     ws.write(data)
     ws.close()
