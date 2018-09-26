@@ -102,19 +102,45 @@ const followIconHelper = (size: number, followsYou: boolean, following: boolean)
 
 // We keep one timer for all instances to reduce timer overhead
 class SharedAskForUserData {
+  _cacheTime = 1000 * 60 * 30 // cache for 30 mins
   _dispatch: any => void
   _teamQueue = {}
+  _teamLastReq = {}
   _userQueue = {}
+  _userLastReq = {}
+
   _makeCalls = throttle(() => {
     if (!this._dispatch) {
       return
     }
-    const usernames = Object.keys(this._userQueue)
-    const teamnames = Object.keys(this._teamQueue)
+    const now = Date.now()
+    const oldEnough = now - this._cacheTime
+    // $FlowIssue flow thinks array doens't have filter for some reason??
+    const usernames = Object.keys(this._userQueue).filter(k => {
+      const lr = this._userLastReq[k]
+      if (!lr || lr < oldEnough) {
+        this._userLastReq[k] = now
+        return true
+      }
+      return false
+    })
+    // $FlowIssue flow thinks array doens't have filter for some reason??
+    const teamnames = Object.keys(this._teamQueue).filter(k => {
+      const lr = this._teamLastReq[k]
+      if (!lr || lr < oldEnough) {
+        this._teamLastReq[k] = now
+        return true
+      }
+      return false
+    })
     this._teamQueue = {}
     this._userQueue = {}
-    this._dispatch(ConfigGen.createLoadAvatars({usernames}))
-    this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
+    if (Object.keys(usernames).length) {
+      this._dispatch(ConfigGen.createLoadAvatars({usernames}))
+    }
+    if (Object.keys(teamnames).length) {
+      this._dispatch(ConfigGen.createLoadTeamAvatars({teamnames}))
+    }
   }, 200)
   getTeam = name => {
     this._teamQueue[name] = true
@@ -265,9 +291,6 @@ const mockOwnToViewProps = (
   const url = iconTypeToImgSet(isTeam ? teamPlaceHolders : avatarPlaceHolders, ownProps.size)
 
   const name = isTeam ? ownProps.teamname : ownProps.username
-
-  const setInterval = action('setInterval')
-  const setTimeout = action('setTimeout')
 
   const iconInfo = followIconHelper(
     ownProps.size,
