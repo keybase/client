@@ -223,7 +223,9 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Transaction ID:</Text>
-          <Text type="Body">{this.props.transactionID}</Text>
+          <Text type="Body" selectable={true}>
+            {this.props.transactionID}
+          </Text>
           {this.props.onViewTransaction && (
             <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction
