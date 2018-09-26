@@ -16,7 +16,7 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     nameValidationState: state.wallets.accountNameValidationState,
     renameAccountError: state.wallets.createNewAccountError,
     waiting: anyWaiting(state, Constants.changeAccountNameWaitingKey),
-    startingName: Constants.getAccountName(selectedAccount),
+    initialName: Constants.getAccountName(selectedAccount),
   }
 }
 
@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   withStateHandlers(
-    {name: ''},
+    {name: '__INITIAL_PLACEHOLDER_NAME__'},
     {
       onNameChange: () => name => ({name}),
     }

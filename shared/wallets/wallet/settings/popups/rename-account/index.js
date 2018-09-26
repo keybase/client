@@ -7,7 +7,7 @@ type Props = {|
   renameAccountError: string,
   error: string,
   name: string,
-  startingName: string,
+  initialName: string,
   nameValidationState: ValidationState,
   onCancel: () => void,
   onCheckName: (name: string) => void,
@@ -23,7 +23,7 @@ class RenameAccountPopup extends React.Component<Props> {
     return (
       <EnterNamePopup
         error={this.props.error || this.props.renameAccountError}
-        name={this.props.name || this.props.startingName}
+        name={this.props.name === '__INITIAL_PLACEHOLDER_NAME__' ? this.props.initialName : this.props.name}
         onCancel={this.props.onCancel}
         onNameChange={this.props.onNameChange}
         onPrimaryClick={this.props.onDone}
