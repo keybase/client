@@ -74,5 +74,7 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<false/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Enabling Face ID allows you to protect a logged in Keybase account</string>
 </dict>
 </plist>

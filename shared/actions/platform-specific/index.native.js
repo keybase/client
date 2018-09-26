@@ -9,6 +9,7 @@ import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
+import TouchID from 'react-native-touch-id'
 // this CANNOT be an import *, totally screws up the packager
 import {
   NetInfo,
@@ -296,12 +297,132 @@ const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
   Clipboard.setString(action.payload.text)
 }
 
+// Dont re-enter this logic
+let inAskTouchID = false
+let wasBackgrounded = true
+const askTouchID = (state: TypedState, action) =>
+  Saga.call(function*() {
+    console.log('[TouchID]: checking', action.type)
+
+    if (state.config.daemonHandshakeState !== 'done') {
+      console.log('[TouchID]: still loading, bailing')
+      inAskTouchID = false
+      return
+    }
+
+    if (!state.config.touchIDAllowedBySystem || !state.config.touchIDEnabled) {
+      console.log('[TouchID]: not enabled, bailing')
+      wasBackgrounded = false
+      inAskTouchID = false
+      return
+    }
+
+    if (inAskTouchID) {
+      console.log('[TouchID]: already working, bailing')
+      return
+    }
+
+    inAskTouchID = true
+
+    // only care if we're logged in
+    if (!state.config.loggedIn) {
+      console.log('[TouchID]: loggedout, bailing')
+      inAskTouchID = false
+      return
+    }
+
+    const appState = state.config.mobileAppState
+    console.log('[TouchID]: current app state', appState)
+
+    if (appState === 'background') {
+      console.log('[TouchID]: background, bailing')
+      yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
+      wasBackgrounded = true
+      inAskTouchID = false
+      return
+    }
+
+    // opening app
+    if (appState === 'active' && wasBackgrounded) {
+      try {
+        console.log('[TouchID]: active')
+        yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
+        yield Saga.call(() => TouchID.authenticate(`Authentication is required to gain access`))
+        console.log('[TouchID]: active success')
+        yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
+      } catch (e) {
+        console.log('[TouchID]: active fail')
+        console.log('[TouchID]: logging out')
+        yield Saga.put(ConfigGen.createLogout())
+        yield Saga.take(ConfigGen.loggedOut)
+        yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
+      }
+    }
+
+    console.log('[TouchID]: checking done')
+    wasBackgrounded = false
+    inAskTouchID = false
+  })
+
+const loadTouchIDSettings = (_, action: ConfigGen.DaemonHandshakePayload) =>
+  Saga.call(function*() {
+    const loadTouchWaitKey = 'platform.specific.touchid'
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: true,
+        name: loadTouchWaitKey,
+        version: action.payload.version,
+      })
+    )
+    const touchIDAllowedTask = yield Saga.fork(TouchID.isSupported)
+    const touchIDEnabledTask = yield Saga.fork(() =>
+      RPCTypes.configGetValueRpcPromise({path: 'ui.touchIDEnabled'}).catch(() => null)
+    )
+    const [touchIDAllowed, touchIDEnabledConfigValue] = yield Saga.join(
+      touchIDAllowedTask,
+      touchIDEnabledTask
+    )
+
+    const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
+    const touchIDEnabled = !!(touchIDEnabledConfigValue && touchIDEnabledConfigValue.b)
+
+    console.log(
+      '[TouchID]: state allowed:',
+      touchIDAllowed,
+      ' enabled: ',
+      touchIDEnabled,
+      'enabled config value: ',
+      touchIDEnabledConfigValue
+    )
+    yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
+    yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled, writeToConfig: false}))
+
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: loadTouchWaitKey,
+        version: action.payload.version,
+      })
+    )
+  })
+
+const saveTouchIDEnabled = (_, action: ConfigGen.TouchIDEnabledPayload) => {
+  console.log('[TouchID]: saving pref', action.payload.enabled)
+  return Saga.spawn(RPCTypes.configSetValueRpcPromise, {
+    path: 'ui.touchIDEnabled',
+    value: {b: action.payload.enabled, isNull: false},
+  })
+}
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.actionToAction([ConfigGen.mobileAppState, ConfigGen.daemonHandshakeDone], askTouchID)
+  yield Saga.actionToAction(ConfigGen.touchIDEnabled, saveTouchIDEnabled)
   yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
   yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
   yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
   yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
+  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadTouchIDSettings)
   yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
 
   yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)

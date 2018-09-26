@@ -13,13 +13,12 @@ import com.dieam.reactnativepushnotification.ReactNativePushNotificationPackage;
 import com.facebook.soloader.SoLoader;
 import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
+import com.rnfingerprint.FingerprintAuthPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import org.reactnative.camera.RNCameraPackage;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import io.keybase.ossifrage.modules.StorybookConstants;
@@ -70,7 +69,8 @@ public class MainApplication extends Application implements ReactApplication {
           new RNCameraPackage(),
           new ImagePickerPackage(),
           new RNFetchBlobPackage(),
-          new ReactNativeContacts()
+          new ReactNativeContacts(),
+          new FingerprintAuthPackage()
         );
       }
 
@@ -81,7 +81,8 @@ public class MainApplication extends Application implements ReactApplication {
               new RNCameraPackage(),
               new ImagePickerPackage(),
               new RNFetchBlobPackage(),
-              new ReactNativeContacts()
+              new ReactNativeContacts(),
+              new FingerprintAuthPackage()
       );
     }
 

@@ -167,6 +167,7 @@
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#b70affdef548c355c4dc864cd72a2bc79666649e",
     "react-native-mime-types": "2.2.1",
     "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311",
+    "react-native-touch-id": "4.1.0",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "5.0.7",
     "react-transition-group": "2.4.0",

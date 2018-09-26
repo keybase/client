@@ -5,6 +5,9 @@ import {Box, Button, Checkbox, Divider, Text} from '../../common-adapters'
 import {isLinux} from '../../constants/platform'
 
 type Props = {
+  touchIDEnabled: boolean,
+  touchIDAllowedBySystem: string,
+  onSetTouchIDEnabled: boolean => void,
   openAtLogin: boolean,
   lockdownModeEnabled: ?boolean,
   onChangeLockdownMode: boolean => void,
@@ -37,6 +40,14 @@ const Advanced = (props: Props) => (
             onCheck={props.onSetOpenAtLogin}
           />
         </Box>
+      )}
+    {isMobile &&
+      !!props.touchIDAllowedBySystem && (
+        <Checkbox
+          label={`Require ${props.touchIDAllowedBySystem} on app start`}
+          onCheck={props.onSetTouchIDEnabled}
+          checked={props.touchIDEnabled}
+        />
       )}
     <Developer {...props} />
   </Box>

@@ -26,6 +26,9 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
         menubarWindowID: state.menubarWindowID,
         pushLoaded: state.pushLoaded,
         startupDetailsLoaded: state.startupDetailsLoaded,
+        touchIDAllowedBySystem: state.touchIDAllowedBySystem,
+        touchIDEnabled: state.touchIDEnabled,
+        touchIDState: state.touchIDState,
       })
     case ConfigGen.restartHandshake:
       return state.merge({
@@ -183,13 +186,20 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
+    case ConfigGen.mobileAppState:
+      return state.merge({mobileAppState: action.payload.nextAppState})
+    case ConfigGen.touchIDState:
+      return state.merge({touchIDState: action.payload.state})
+    case ConfigGen.touchIDEnabled:
+      return state.merge({touchIDEnabled: action.payload.enabled})
+    case ConfigGen.touchIDAllowedBySystem:
+      return state.merge({touchIDAllowedBySystem: action.payload.allowed})
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
     case ConfigGen.dumpLogs:
     case ConfigGen.logout:
     case ConfigGen.link:
-    case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
     case ConfigGen.setupEngineListeners:

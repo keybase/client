@@ -53,6 +53,7 @@
 		DB7539351D777E7100AFA61B /* Engine-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539341D777E7100AFA61B /* Engine-Test.m */; };
 		DB7539371D777E8400AFA61B /* LogSend-Test.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7539361D777E8400AFA61B /* LogSend-Test.m */; };
 		DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 374A785F2108C2000053E19E /* libRNCamera.a */; };
+		DB7EAF832159556300024DD8 /* libTouchID.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DB7EAF822159555100024DD8 /* libTouchID.a */; };
 		DBBCC6131D9C4A8100312652 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6121D9C4A8100312652 /* AppDelegate.m */; };
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
@@ -379,6 +380,13 @@
 			remoteGlobalIDString = 3D3CD9181DE5FBD800167DC4;
 			remoteInfo = "jschelpers-tvOS";
 		};
+		DB7EAF812159555100024DD8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DB7EAF512159555100024DD8 /* TouchID.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 134814201AA4EA6300B7C361;
+			remoteInfo = TouchID;
+		};
 		DBEE30641FE84EF40020EBA5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DB2BD17E1DE7D81C00BB7989 /* React.xcodeproj */;
@@ -481,6 +489,7 @@
 		DB7539311D77753600AFA61B /* Keybase_For_Tests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase_For_Tests-Bridging-Header.h"; sourceTree = "<group>"; };
 		DB7539341D777E7100AFA61B /* Engine-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "Engine-Test.m"; sourceTree = "<group>"; };
 		DB7539361D777E8400AFA61B /* LogSend-Test.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "LogSend-Test.m"; sourceTree = "<group>"; };
+		DB7EAF512159555100024DD8 /* TouchID.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = TouchID.xcodeproj; path = "../../node_modules/react-native-touch-id/TouchID.xcodeproj"; sourceTree = "<group>"; };
 		DBBCC6111D9C4A8100312652 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		DBBCC6121D9C4A8100312652 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		DBBCC6171D9C5C6A00312652 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -526,6 +535,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				2714DAA0215B1CAA00464F8E /* LocalAuthentication.framework in Frameworks */,
+				DB7EAF832159556300024DD8 /* libTouchID.a in Frameworks */,
 				DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */,
 				DB5E9BB2212A0CAC00F903B3 /* libRNFetchBlob.a in Frameworks */,
 				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
@@ -629,6 +639,7 @@
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
+				DB7EAF512159555100024DD8 /* TouchID.xcodeproj */,
 				DB5E9BAC212A0C9700F903B3 /* RNFetchBlob.xcodeproj */,
 				DB0500F31F10114D000B54AD /* RCTLinking.xcodeproj */,
 				A9BB30BC1E6A273A00E713E5 /* RCTCameraRoll.xcodeproj */,
@@ -848,6 +859,14 @@
 			children = (
 				DB6D0B7A1E5B9EB400410F3C /* libRCTAnimation.a */,
 				DB6D0B7C1E5B9EB400410F3C /* libRCTAnimation.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DB7EAF522159555100024DD8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DB7EAF822159555100024DD8 /* libTouchID.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1135,6 +1154,10 @@
 				{
 					ProductGroup = 27429AEA1E64A7A90058A4F9 /* Products */;
 					ProjectRef = FE98B29CDF6C4C4085FF2315 /* RNImagePicker.xcodeproj */;
+				},
+				{
+					ProductGroup = DB7EAF522159555100024DD8 /* Products */;
+					ProjectRef = DB7EAF512159555100024DD8 /* TouchID.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -1439,6 +1462,13 @@
 			fileType = archive.ar;
 			path = libjschelpers.a;
 			remoteRef = DB7417C01E1FFF1000CEC6B7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		DB7EAF822159555100024DD8 /* libTouchID.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libTouchID.a;
+			remoteRef = DB7EAF812159555100024DD8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		DBEE30651FE84EF40020EBA5 /* libprivatedata.a */ = {

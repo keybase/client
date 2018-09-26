@@ -46,6 +46,9 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const touchIDAllowedBySystem = 'config:touchIDAllowedBySystem'
+export const touchIDEnabled = 'config:touchIDEnabled'
+export const touchIDState = 'config:touchIDState'
 export const updateFollowing = 'config:updateFollowing'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 
@@ -120,6 +123,12 @@ type _SetStartupDetailsPayload = $ReadOnly<{|
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
+type _TouchIDAllowedBySystemPayload = $ReadOnly<{|allowed: string|}>
+type _TouchIDEnabledPayload = $ReadOnly<{|
+  enabled: boolean,
+  writeToConfig: boolean,
+|}>
+type _TouchIDStatePayload = $ReadOnly<{|state: 'asking' | 'done'|}>
 type _UpdateFollowingPayload = $ReadOnly<{|
   username: string,
   isTracking: boolean,
@@ -194,6 +203,9 @@ export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({error
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({error: false, payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({error: false, payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({error: false, payload, type: showMain})
+export const createTouchIDAllowedBySystem = (payload: _TouchIDAllowedBySystemPayload) => ({error: false, payload, type: touchIDAllowedBySystem})
+export const createTouchIDEnabled = (payload: _TouchIDEnabledPayload) => ({error: false, payload, type: touchIDEnabled})
+export const createTouchIDState = (payload: _TouchIDStatePayload) => ({error: false, payload, type: touchIDState})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({error: false, payload, type: updateFollowing})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({error: false, payload, type: updateMenubarWindowID})
 export const create_avatarQueue = (payload: __avatarQueuePayload) => ({error: false, payload, type: _avatarQueue})
@@ -232,6 +244,9 @@ export type SetStartupDetailsPayload = $Call<typeof createSetStartupDetails, _Se
 export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListeners, _SetupEngineListenersPayload>
 export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
 export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
+export type TouchIDAllowedBySystemPayload = $Call<typeof createTouchIDAllowedBySystem, _TouchIDAllowedBySystemPayload>
+export type TouchIDEnabledPayload = $Call<typeof createTouchIDEnabled, _TouchIDEnabledPayload>
+export type TouchIDStatePayload = $Call<typeof createTouchIDState, _TouchIDStatePayload>
 export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
 export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
 export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
@@ -272,6 +287,9 @@ export type Actions =
   | SetupEngineListenersPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | TouchIDAllowedBySystemPayload
+  | TouchIDEnabledPayload
+  | TouchIDStatePayload
   | UpdateFollowingPayload
   | UpdateMenubarWindowIDPayload
   | _avatarQueuePayload
