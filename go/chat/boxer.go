@@ -694,7 +694,15 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	}
 	senderEncryptionKID := senderUPAK.Current.FindEncryptionKIDFromDeviceID(senderDeviceID)
 	if senderEncryptionKID.IsNil() {
-		return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		for _, upk := range senderUPAK.PastIncarnations {
+			senderEncryptionKID = upk.FindEncryptionKIDFromDeviceID(senderDeviceID)
+			if !senderEncryptionKID.IsNil() {
+				break
+			}
+		}
+		if senderEncryptionKID.IsNil() {
+			return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		}
 	}
 	senderDeviceDHKeyNacl, err := libkb.ImportDHKeypairFromKID(senderEncryptionKID)
 	if err != nil {
