@@ -476,12 +476,29 @@ func (k *SimpleFS) updateWriteProgress(
 	}
 }
 
+var filesToIgnore = map[string]bool{
+	".Trashes":   true,
+	".fseventsd": true,
+	".DS_Store":  true,
+}
+var prefixesToIgnore = []string{"._"}
+
 func isFiltered(filter keybase1.ListFilter, name string) bool {
 	switch filter {
 	case keybase1.ListFilter_NO_FILTER:
 		return false
 	case keybase1.ListFilter_FILTER_ALL_HIDDEN:
 		return strings.HasPrefix(name, ".")
+	case keybase1.ListFilter_FILTER_SYSTEM_HIDDEN:
+		if filesToIgnore[name] {
+			return true
+		}
+		for _, prefix := range prefixesToIgnore {
+			if strings.HasPrefix(name, prefix) {
+				return true
+			}
+		}
+		return false
 	}
 	return false
 }
