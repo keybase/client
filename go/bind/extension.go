@@ -145,6 +145,7 @@ func ExtensionHasTouchID() (enabled bool, err error) {
 	if _, err := assertLoggedInUID(ctx, gc); err != nil {
 		return enabled, err
 	}
+	kbCtx.ConfigReload()
 	enabled, _ = kbCtx.GetEnv().GetConfig().GetBoolAtPath("ui.touchIDEnabled")
 	return enabled, nil
 }
