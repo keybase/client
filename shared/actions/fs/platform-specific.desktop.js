@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -352,7 +353,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEvery([ConfigGen.setupEngineListeners, FsGen.fuseStatus], fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
