@@ -157,7 +157,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetAccountID: '',
   targetType: '',
-  time: 0,
+  time: null,
   txID: '',
   worth: '',
   worthCurrency: '',
