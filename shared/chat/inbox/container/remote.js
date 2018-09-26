@@ -24,30 +24,31 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
   metaMap
     .filter((meta, id) => {
       if (Constants.isValidConversationIDKey(id)) {
-        if (meta.teamType === 'adhoc') {
-          // DM's
-          return !meta.isMuted
-        } else if (meta.teamType === 'big') {
-          // channels
-          if (!meta.notificationsGlobalIgnoreMentions) {
-            // @here and @mention not ignored
-            if (meta.notificationsDesktop === 'onAnyActivity') {
-              return true
-            } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
-              // check if user has been mentioned in the message
-              let snippet = meta.snippet.toLowerCase()
-              return (
-                (!!_lastState.config.username && snippet.indexOf(`@${_lastState.config.username}`) === 0) ||
-                snippet.indexOf('you') === 0
-              )
-            }
-            return false
-          }
-          return false
+        return false
+      }
+      if (meta.teamType === 'adhoc') {
+        // DM's
+        return !meta.isMuted
+      }
+      if (!meta.teamType === 'big') {
+        return false
+      }
+
+      // channels
+      if (!meta.notificationsGlobalIgnoreMentions) {
+        // @here and @mention not ignored
+        if (meta.notificationsDesktop === 'onAnyActivity') {
+          return true
+        } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
+          // check if user has been mentioned in the message
+          let snippet = meta.snippet.toLowerCase()
+          return (
+            (!!_lastState.config.username && snippet.indexOf(`@${_lastState.config.username}`) === 0) ||
+            snippet.indexOf('you') === 0
+          )
         }
         return false
       }
-      return false
     })
     .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
     .valueSeq()
