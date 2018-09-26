@@ -469,11 +469,6 @@ const teamMemberCounts = {
   stripe: 1337,
 }
 
-/* Define a teamsEmpty to be used by BuildTeam PropProvider to
- * determine if story is 'Empty' teams. This is done because showBuildATeam
- * can't de derived from ownProps.
- */
-
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   ChatInboxHeaderContainer: p => {
@@ -546,30 +541,12 @@ class Wrapper extends React.Component<any, any> {
 const load = () => {
   Sb.storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
-    .add('Empty', () => {
-      teamsEmpty = true
-      return <Inbox {...propsInboxEmpty} />
-    })
-    .add('Simple', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxSimple} />
-    })
-    .add('Big Teams', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxTeam} />
-    })
-    .add('Divider', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxDivider} />
-    })
-    .add('Expanded teams', () => {
-      teamsEmpty = false
-      return <Wrapper />
-    })
-    .add('Filter', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxFilter} />
-    })
+    .add('Empty', () => <Inbox {...propsInboxEmpty} />)
+    .add('Simple', () => <Inbox {...propsInboxSimple} />)
+    .add('Big Teams', () => <Inbox {...propsInboxTeam} />)
+    .add('Divider', () => <Inbox {...propsInboxDivider} />)
+    .add('Expanded teams', () => <Wrapper />)
+    .add('Filter', () => <Inbox {...propsInboxFilter} />)
 }
 
 export default load
