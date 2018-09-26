@@ -1016,7 +1016,7 @@ func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *json
 	}
 	results := []string{}
 	for _, object := range jsonResults {
-		s, err := libkb.JsonStringSimple(object)
+		s, err := libkb.JSONStringSimple(object)
 		if err != nil {
 			logger("JSON could not read object: %v (%v)", err, object)
 			continue

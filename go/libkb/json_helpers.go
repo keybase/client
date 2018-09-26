@@ -8,10 +8,10 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-// jsonStringSimple converts a simple json object into a string.  Simple
+// JSONStringSimple converts a simple json object into a string.  Simple
 // objects are those that are not arrays or objects.  Non-simple objects result
 // in an error.
-func JsonStringSimple(object *jsonw.Wrapper) (string, error) {
+func JSONStringSimple(object *jsonw.Wrapper) (string, error) {
 	x, err := object.GetInt()
 	if err == nil {
 		return fmt.Sprintf("%d", x), nil

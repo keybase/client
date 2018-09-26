@@ -36,7 +36,7 @@ var jsonStringSimpleTests = []jsonStringSimpleTest{
 
 func TestJSONStringSimple(t *testing.T) {
 	for _, test := range jsonStringSimpleTests {
-		out, err := JsonStringSimple(test.json)
+		out, err := JSONStringSimple(test.json)
 		if test.shouldWork {
 			require.NoError(t, err)
 			require.Equal(t, test.out, out)
