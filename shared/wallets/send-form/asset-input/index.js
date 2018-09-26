@@ -11,6 +11,7 @@ type Props = {|
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
+  value: string,
   warningAsset?: string,
   warningPayee?: string,
 |}
@@ -41,6 +42,7 @@ const AssetInput = (props: Props) => (
       placeholder={props.inputPlaceholder}
       placeholderColor={Styles.globalColors.purple2_40}
       error={!!props.warningAsset}
+      value={props.value}
     />
     {props.warningAsset &&
       !props.warningPayee && (
