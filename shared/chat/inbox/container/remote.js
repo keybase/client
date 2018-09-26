@@ -26,7 +26,7 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
       if (Constants.isValidConversationIDKey(id)) {
         if (meta.teamType === 'adhoc') {
           // DM's
-          return !meta.isMuted ? true : false
+          return !meta.isMuted
         } else if (meta.teamType === 'big') {
           // channels
           if (!meta.notificationsGlobalIgnoreMentions) {
