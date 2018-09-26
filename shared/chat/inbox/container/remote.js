@@ -36,7 +36,10 @@ const metaMapToFirstValues = memoize(metaMap =>
             } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
               // check if user has been mentioned in the message
               let snippet = meta.snippet.toLowerCase()
-              return snippet.indexOf(`@${_username}`) === 0 || snippet.indexOf('you') === 0
+              return (
+                (!!_laststate.config.username && snippet.indexOf(`@${_laststate.config.username}`) === 0) ||
+                snippet.indexOf('you') === 0
+              )
             }
             return false
           }
