@@ -7,7 +7,7 @@ import {type AccountID} from '../../../constants/types/wallets'
 
 const mapStateToProps = (state: TypedState, ownProps: {accountID: AccountID}) => {
   const account = getAccount(state, ownProps.accountID)
-  const name = account.name || ownProps.accountID
+  const name = account.name
   const me = state.config.username || ''
   const keybaseUser = account.isDefault ? me : ''
   return {

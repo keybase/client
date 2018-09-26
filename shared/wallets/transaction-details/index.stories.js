@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import {stringToAccountID} from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -25,13 +26,14 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -47,12 +49,14 @@ const load = () => {
         counterparty="G43289XXXXX34OPL"
         onBack={Sb.action('onBack')}
         title="Details"
+        counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
-        delta="decrease"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -68,13 +72,14 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="decrease"
         onBack={Sb.action('onBack')}
         title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="sender"
+        yourRole="senderOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
@@ -92,11 +97,12 @@ const load = () => {
         counterpartyType="keybaseUser"
         onBack={Sb.action('onBack')}
         title="Details"
-        delta="increase"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         publicMemo="Foo bar"
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
@@ -113,13 +119,14 @@ const load = () => {
         counterparty="yen"
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        delta="increase"
         amountUser="$12.50"
         onBack={Sb.action('onBack')}
         title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
         you="cjb"
@@ -132,11 +139,13 @@ const load = () => {
       <TransactionDetails
         counterparty="Second account"
         counterpartyType="otherAccount"
-        delta="increase"
+        counterpartyMeta={null}
         amountUser="$100"
         amountXLM="545.2562704 XLM"
-        yourRole="receiver"
+        yourRole="receiverOnly"
         memo={memo}
+        recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
+        senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         onBack={Sb.action('onBack')}
         title="Details"
         timestamp={yesterday}

@@ -23,7 +23,7 @@ class Inbox extends PureComponent<Props, State> {
     showFloating: false,
   }
 
-  _mounted: boolean = true
+  _mounted: boolean = false
   _list: ?ReactList
 
   componentDidUpdate(prevProps: Props) {
@@ -66,7 +66,7 @@ class Inbox extends PureComponent<Props, State> {
           key="divider"
           toggle={this.props.toggleSmallTeamsExpanded}
           showButton={row.showButton}
-          smallIDsHidden={this.props.smallIDsHidden}
+          rows={this.props.rows}
           style={{marginBottom: globalMargins.tiny}}
         />
       )
@@ -132,12 +132,13 @@ class Inbox extends PureComponent<Props, State> {
     this.props.onNewChat()
   }
 
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
+
   render() {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
-      this.props.showSmallTeamsExpandDivider && (
-        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-      )
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -145,7 +146,8 @@ class Inbox extends PureComponent<Props, State> {
             filterFocusCount={this.props.filterFocusCount}
             focusFilter={this.props.focusFilter}
             onNewChat={this._prepareNewChat}
-            rows={this.props.rows}
+            onSelectUp={this._onSelectUp}
+            onSelectDown={this._onSelectDown}
           />
           <NewConversation />
           <div style={_scrollableStyle} onScroll={this._onScroll}>

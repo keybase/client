@@ -84,8 +84,11 @@
       "totalSyncingBytes": "number",
       "endEstimate?": "?number"
     },
-    "openInFileUI": {
-      "path?": "string"
+    "openLocalPathInSystemFileManager": {
+      "path": "string"
+    },
+    "openPathInSystemFileManager": {
+      "path": "Types.Path"
     },
     "fuseStatus": {},
     "fuseStatusResult": {
@@ -98,8 +101,7 @@
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
       "securityPrefsPropmted?": "boolean",
-      "showBanner?": "boolean",
-      "syncing?": "boolean"
+      "showBanner?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -151,6 +153,10 @@
     "openPathItem": {
       "path": "Types.Path",
       "routePath": "I.List<string>"
+    },
+    "openPathInFilesTab": {
+      "path": "Types.Path",
+      "routePath?": "I.List<string>"
     },
     "openFilesFromWidget": {
       "path?": "Types.Path"

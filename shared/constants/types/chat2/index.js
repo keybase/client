@@ -35,11 +35,17 @@ export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
 export type _State = {
+  accountsInfoMap: I.Map<
+    Common.ConversationIDKey,
+    I.Map<RPCChatTypes.MessageID, Message.ChatRequestInfo | Message.ChatPaymentInfo>
+  >, // temp cache for requestPayment and sendPayment message data
   badgeMap: ConversationCountMap, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  smallTeamsExpanded: boolean, // if we're showing all small teams
   isExplodingNew: boolean, // controls the new-ness of exploding messages UI
+  isWalletsNew: boolean, // controls new-ness of wallets in chat UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.SortedSet<Message.Ordinal>>, // ordered ordinals in a thread
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation

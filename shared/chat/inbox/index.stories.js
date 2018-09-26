@@ -338,6 +338,7 @@ const getPropProviderProps = own => {
  * Inbox
  */
 const propsInboxCommon = {
+  allowShowFloatingButton: false,
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
@@ -347,12 +348,12 @@ const propsInboxCommon = {
   onHotkey: Sb.action('onHotkey'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
+  onSelectUp: Sb.action('onSelectUp'),
+  onSelectDown: Sb.action('onSelectDown'),
   rows: [],
-  showBuildATeam: false,
   showNewChat: false,
   showNewConversation: false,
   showSmallTeamsExpandDivider: false,
-  smallIDsHidden: [],
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
@@ -491,13 +492,11 @@ let teamsEmpty = false
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   ChatInboxHeaderContainer: p => {
-    const showNewChat = !(p.rows.length || p.filter)
     return {
       focusFilter: () => {},
       filterFocusCount: p.filterFocusCount,
       onNewChat: Sb.action('onNewChat'),
       rows: p.rows,
-      showNewChat,
     }
   },
   ChatFilterRow: p => ({
@@ -528,7 +527,7 @@ const provider = Sb.createPropProviderWithCommon({
   TeamsDivider: p => ({
     badgeCount: 2,
     showButton: p.showButton,
-    hiddenCount: p.smallIDsHidden.length,
+    hiddenCount: 4,
     style: {marginBottom: globalMargins.tiny},
     toggle: Sb.action('onToggle'),
   }),

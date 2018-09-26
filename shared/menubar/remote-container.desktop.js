@@ -58,10 +58,13 @@ const mapDispatchToProps = dispatch => ({
     closeWindow()
   },
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  showUser: () => dispatchProps._showUser(stateProps.username),
-  ...ownProps,
-})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    showUser: () => dispatchProps._showUser(stateProps.username),
+    ...ownProps,
+  }
+}
 export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

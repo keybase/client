@@ -15,7 +15,7 @@ type ParticipantsProps = {|
   recipientType: CounterpartyType,
   // Used for send to other account
   user: string,
-  fromAccount: Account,
+  fromAccount?: Account,
   toAccount?: Account,
   allAccounts: Account[],
   onChangeFromAccount: string => void,
@@ -35,14 +35,15 @@ type ParticipantsProps = {|
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.recipientType === 'otherAccount' && (
-      <FromField
-        initialAccount={props.fromAccount}
-        accounts={props.allAccounts}
-        onChangeSelectedAccount={props.onChangeFromAccount}
-        user={props.user}
-      />
-    )}
+    {props.recipientType === 'otherAccount' &&
+      props.fromAccount && (
+        <FromField
+          initialAccount={props.fromAccount}
+          accounts={props.allAccounts}
+          onChangeSelectedAccount={props.onChangeFromAccount}
+          user={props.user}
+        />
+      )}
     <ToField
       toAccount={props.toAccount}
       accounts={props.allAccounts}

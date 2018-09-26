@@ -49,6 +49,7 @@ func (c *cmdWalletImport) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletImport) Run() (err error) {
+	ctx := context.TODO()
 	secKey, accountID, err := c.promptSecretKey()
 	if err != nil {
 		return err
@@ -59,20 +60,26 @@ func (c *cmdWalletImport) Run() (err error) {
 		return err
 	}
 
-	own, err := cli.OwnAccountLocal(context.TODO(), accountID)
+	own, err := cli.OwnAccountLocal(ctx, accountID)
 	if err != nil {
 		return err
 	}
 	if own {
 		return fmt.Errorf("account has already been imported: %v", accountID)
 	}
+	c.G().UI.GetTerminalUI().Printf(fmt.Sprintf("Ready to import account: %v\n", accountID))
+	name, err := c.promptAccountName(ctx)
+	if err != nil {
+		return err
+	}
 	err = c.confirm(accountID)
 	if err != nil {
 		return err
 	}
-	err = cli.ImportSecretKeyLocal(context.TODO(), stellar1.ImportSecretKeyLocalArg{
+	err = cli.ImportSecretKeyLocal(ctx, stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   secKey,
 		MakePrimary: c.makePrimary,
+		Name:        name,
 	})
 	if err != nil {
 		return err
@@ -102,12 +109,13 @@ func (c *cmdWalletImport) promptSecretKey() (stellar1.SecretKey, stellar1.Accoun
 	return secKey, accountID, err
 }
 
+func (c *cmdWalletImport) promptAccountName(ctx context.Context) (string, error) {
+	return c.G().UI.GetTerminalUI().Prompt(PromptDescriptorImportStellarAccountName, "Enter a private name for this account: ")
+}
+
 func (c *cmdWalletImport) confirm(accountID stellar1.AccountID) error {
-	promptText := fmt.Sprintf(`
-Ready to import account: %v
-The stellar secret key will be encrypted, uploaded, and made available on all of your devices.
-Ready to import?`, accountID)
-	doIt, err := c.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorConfirmStellarImport, promptText, libkb.PromptDefaultYes)
+	c.G().UI.GetTerminalUI().Printf("The stellar secret key will be encrypted, uploaded, and made available on all of your devices.\n")
+	doIt, err := c.G().UI.GetTerminalUI().PromptYesNo(PromptDescriptorConfirmStellarImport, "Ready to import?", libkb.PromptDefaultYes)
 	if err != nil {
 		return err
 	}

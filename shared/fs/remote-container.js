@@ -2,17 +2,23 @@
 import * as Types from '../constants/types/fs'
 
 type RemoteTlfUpdates = {
-  tlf: Types.Path,
-  writer: string,
   timestamp: number,
-  updates: Array<Types.Path>,
+  tlf: Types.Path,
+  updates: Array<{path: Types.Path, uploading: boolean}>,
+  writer: string,
 }
 
-const GetRowsFromTlfUpdates = (tlfUpdates: Types.UserTlfUpdates): Array<RemoteTlfUpdates> => tlfUpdates.toArray().map(t => ({
-  tlf: t.path,
-  writer: t.writer,
+const GetRowsFromTlfUpdate = (t: Types.TlfUpdate, uploads: Types.Uploads): RemoteTlfUpdates => ({
   timestamp: t.serverTime,
-  updates: t.history.toArray().map(u => Types.stringToPath(u.filename)),
-}))
+  tlf: t.path,
+  updates: t.history.toArray().map(u => {
+    const path = Types.stringToPath(u.filename)
+    return {
+      path,
+      uploading: uploads.syncingPaths.has(path) || uploads.writingToJournal.has(path),
+    }
+  }),
+  writer: t.writer,
+})
 
-export default GetRowsFromTlfUpdates
+export default GetRowsFromTlfUpdate
