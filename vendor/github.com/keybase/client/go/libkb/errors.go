@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -412,20 +413,6 @@ func (e BadEmailError) Error() string {
 
 //=============================================================================
 
-type BadKeyError struct {
-	Msg string
-}
-
-func (p BadKeyError) Error() string {
-	msg := "Bad key found"
-	if len(p.Msg) != 0 {
-		msg = msg + ": " + p.Msg
-	}
-	return msg
-}
-
-//=============================================================================
-
 type BadFingerprintError struct {
 	fp1, fp2 PGPFingerprint
 }
@@ -666,6 +653,18 @@ func NewWebUnreachableError(h string) WebUnreachableError {
 
 //=============================================================================
 
+type ProtocolSchemeMismatch struct {
+	msg string
+}
+
+func (h ProtocolSchemeMismatch) Error() string {
+	return h.msg
+}
+func NewProtocolSchemeMismatch(msg string) ProtocolSchemeMismatch {
+	return ProtocolSchemeMismatch{msg: msg}
+}
+
+//=============================================================================
 type ProtocolDowngradeError struct {
 	msg string
 }
@@ -730,28 +729,6 @@ func (e NoUsernameError) Error() string {
 }
 
 func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
-
-//=============================================================================
-
-type UnmarshalError struct {
-	ExpectedTag PacketTag
-	Tag         PacketTag
-}
-
-func (u UnmarshalError) Error() string {
-	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
-}
-
-type VerificationError struct {
-	Cause error
-}
-
-func (e VerificationError) Error() string {
-	if e.Cause == nil {
-		return "Verification failed"
-	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
-}
 
 //=============================================================================
 
@@ -1068,7 +1045,7 @@ func (r KeyExpiredError) Error() string {
 //=============================================================================
 
 type UnknownKeyTypeError struct {
-	typ AlgoType
+	typ kbcrypto.AlgoType
 }
 
 func (e UnknownKeyTypeError) Error() string {
@@ -1200,11 +1177,8 @@ const (
 	merkleErrorNoLegacyUIDRoot
 	merkleErrorUIDMismatch
 	merkleErrorNoSkipSequence
-	merkleErrorSkipSequence
 	merkleErrorSkipMissing
 	merkleErrorSkipHashMismatch
-	merkleErrorNoLeftBookend
-	merkleErrorNoRightBookend
 	merkleErrorHashMeta
 	merkleErrorBadResetChain
 	merkleErrorNotFound
@@ -1218,6 +1192,8 @@ const (
 	merkleErrorBadRoot
 	merkleErrorOldTree
 	merkleErrorOutOfOrderCtime
+	merkleErrorWrongSkipSequence
+	merkleErrorWrongRootSkips
 )
 
 type MerkleClientError struct {
@@ -1252,20 +1228,6 @@ type MerkleClashError struct {
 
 func (m MerkleClashError) Error() string {
 	return fmt.Sprintf("Merkle tree clashed with server reply: %s", m.c)
-}
-
-//=============================================================================
-
-type PvlSourceError struct {
-	msg string
-}
-
-func (e PvlSourceError) Error() string {
-	return fmt.Sprintf("PvlSource: %s", e.msg)
-}
-
-func NewPvlSourceError(msgf string, a ...interface{}) PvlSourceError {
-	return PvlSourceError{msg: fmt.Sprintf(msgf, a...)}
 }
 
 //=============================================================================
@@ -1808,20 +1770,6 @@ func IsExecError(err error) bool {
 }
 
 //=============================================================================
-
-type BadSignaturePrefixError struct{}
-
-func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
-
-//=============================================================================
-
-type UnhandledSignatureError struct {
-	version int
-}
-
-func (e UnhandledSignatureError) Error() string {
-	return fmt.Sprintf("unhandled signature version: %d", e.version)
-}
 
 type UserDeletedError struct {
 	Msg string

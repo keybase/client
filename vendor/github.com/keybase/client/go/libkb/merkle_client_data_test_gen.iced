@@ -34,23 +34,23 @@ swap = (v, i, j) ->
 
 output "correct", "None", raw
 
-output "truncatedThisRoot", "NoLeftBookend", raw[1...]
+output "truncatedThisRoot", "WrongSkipSequence", raw[1...]
 
-output "truncatedLastRoot", "NoRightBookend", raw[0...(raw.length - 1)]
+output "truncatedLastRoot", "WrongSkipSequence", raw[0...(raw.length - 1)]
 
 swap raw, 2, 3
 
-output "swapped2and3", "SkipMissing", raw
+output "swapped2and3", "WrongSkipSequence", raw
 
 swap raw, 2, 3
 
 swap raw, 7,8
-output "swapped7and8", "SkipMissing", raw
+output "swapped7and8", "WrongSkipSequence", raw
 swap raw, 7,8
 
 copy = [].concat raw
 raw = raw[0...4].concat raw[5...]
-output "dropped4", "SkipMissing", raw
+output "dropped4", "WrongSkipSequence", raw
 
 raw = copy
 

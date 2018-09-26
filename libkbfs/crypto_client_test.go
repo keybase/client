@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -72,7 +73,7 @@ func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{},
 		var ed25519Signature keybase1.ED25519Signature
 		copy(ed25519Signature[:], sigInfo.Signature)
 		publicKey :=
-			libkb.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID().ToBytes())
+			kbcrypto.KIDToNaclSigningKeyPublic(sigInfo.VerifyingKey.KID().ToBytes())
 		*sigRes = keybase1.ED25519SignatureInfo{
 			Sig:       ed25519Signature,
 			PublicKey: keybase1.ED25519PublicKey(*publicKey),

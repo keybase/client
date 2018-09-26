@@ -7,6 +7,7 @@ package kbfscrypto
 import (
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -39,30 +40,30 @@ func TestVerifyFailures(t *testing.T) {
 	shortSigInfo := sigInfo.DeepCopy()
 	shortSigInfo.Signature = shortSigInfo.Signature[:len(shortSigInfo.Signature)-1]
 	err = Verify(msg, shortSigInfo)
-	assert.Equal(t, libkb.VerificationError{}, errors.Cause(err))
+	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 
 	longSigInfo := sigInfo.DeepCopy()
 	longSigInfo.Signature = append(longSigInfo.Signature, byte(0))
 	err = Verify(msg, longSigInfo)
-	assert.Equal(t, libkb.VerificationError{}, errors.Cause(err))
+	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 
 	// Corrupt signature.
 
 	corruptSigInfo := sigInfo.DeepCopy()
 	corruptSigInfo.Signature[0] = ^sigInfo.Signature[0]
 	err = Verify(msg, corruptSigInfo)
-	assert.Equal(t, libkb.VerificationError{}, errors.Cause(err))
+	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 
 	// Wrong key.
 
 	sigInfoWrongKey := sigInfo.DeepCopy()
 	sigInfoWrongKey.VerifyingKey = MakeFakeVerifyingKeyOrBust("wrong key")
 	err = Verify(msg, sigInfoWrongKey)
-	assert.Equal(t, libkb.VerificationError{}, errors.Cause(err))
+	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 
 	// Corrupt message.
 
 	corruptMsg := append(msg, []byte("corruption")...)
 	err = Verify(corruptMsg, sigInfo)
-	assert.Equal(t, libkb.VerificationError{}, errors.Cause(err))
+	assert.Equal(t, kbcrypto.VerificationError{}, errors.Cause(err))
 }

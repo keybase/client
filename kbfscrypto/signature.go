@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -88,16 +89,17 @@ func NewSigningKey(kp libkb.NaclSigningKeyPair) SigningKey {
 
 // Sign signs the given data and returns a SignatureInfo.
 func (k SigningKey) Sign(data []byte) SignatureInfo {
+	sig := k.kp.Private.Sign(data)
 	return SignatureInfo{
 		Version:      SigED25519,
-		Signature:    k.kp.Private.Sign(data)[:],
+		Signature:    sig[:],
 		VerifyingKey: k.GetVerifyingKey(),
 	}
 }
 
 // SignForKBFS signs the given data with the KBFS prefix and returns a SignatureInfo.
 func (k SigningKey) SignForKBFS(data []byte) (SignatureInfo, error) {
-	sigInfo, err := k.kp.SignV2(data, libkb.SignaturePrefixKBFS)
+	sigInfo, err := k.kp.SignV2(data, kbcrypto.SignaturePrefixKBFS)
 	if err != nil {
 		return SignatureInfo{}, errors.WithStack(err)
 	}
@@ -160,24 +162,24 @@ func Verify(msg []byte, sigInfo SignatureInfo) error {
 		return errors.WithStack(UnknownSigVer{sigInfo.Version})
 	}
 
-	publicKey := libkb.KIDToNaclSigningKeyPublic(
+	publicKey := kbcrypto.KIDToNaclSigningKeyPublic(
 		sigInfo.VerifyingKey.KID().ToBytes())
 	if publicKey == nil {
 		return errors.WithStack(libkb.KeyCannotVerifyError{})
 	}
 
-	var naclSignature libkb.NaclSignature
+	var naclSignature kbcrypto.NaclSignature
 	if len(sigInfo.Signature) != len(naclSignature) {
-		return errors.WithStack(libkb.VerificationError{})
+		return errors.WithStack(kbcrypto.VerificationError{})
 	}
 	copy(naclSignature[:], sigInfo.Signature)
 
 	if sigInfo.Version == SigED25519ForKBFS {
-		msg = libkb.SignaturePrefixKBFS.Prefix(msg)
+		msg = kbcrypto.SignaturePrefixKBFS.Prefix(msg)
 	}
 
-	if !publicKey.Verify(msg, &naclSignature) {
-		return errors.WithStack(libkb.VerificationError{})
+	if !publicKey.Verify(msg, naclSignature) {
+		return errors.WithStack(kbcrypto.VerificationError{})
 	}
 
 	return nil

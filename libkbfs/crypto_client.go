@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"time"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/kbfscrypto"
@@ -62,7 +62,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	return kbfscrypto.SignatureInfo{
 		Version:      kbfscrypto.SigED25519,
 		Signature:    ed25519SigInfo.Sig[:],
-		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
+		VerifyingKey: kbfscrypto.MakeVerifyingKey(kbcrypto.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
 	}, nil
 }
 
@@ -88,7 +88,7 @@ func (c *CryptoClient) SignForKBFS(ctx context.Context, msg []byte) (
 	return kbfscrypto.SignatureInfo{
 		Version:      kbfscrypto.SigED25519ForKBFS,
 		Signature:    ed25519SigInfo.Sig[:],
-		VerifyingKey: kbfscrypto.MakeVerifyingKey(libkb.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
+		VerifyingKey: kbfscrypto.MakeVerifyingKey(kbcrypto.NaclSigningKeyPublic(ed25519SigInfo.PublicKey).GetKID()),
 	}, nil
 }
 

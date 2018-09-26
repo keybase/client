@@ -38,6 +38,7 @@ type configGetter interface {
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
+	GetParamProofKitFilename() string
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -535,7 +536,7 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU PvlUnparsed) ProofError
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
 	GetTorError() ProofError
 }
 
@@ -569,7 +570,8 @@ type ServiceType interface {
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(MetaContext, *PostProofRes) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
@@ -581,8 +583,10 @@ type ExternalServicesCollector interface {
 	ListProofCheckers() []string
 }
 
-type PvlSource interface {
-	GetPVL(m MetaContext) (PvlUnparsed, error)
+// Generic store for data that is hashed into the merkle root. Used by pvl and
+// parameterized proofs.
+type MerkleStore interface {
+	GetLatestEntry(m MetaContext) (keybase1.MerkleStoreEntry, error)
 }
 
 // UserChangedHandler is a generic interface for handling user changed events.
@@ -617,6 +621,7 @@ type TeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(ctx context.Context, id keybase1.TeamID, seqno keybase1.Seqno) error
 	ResolveNameToIDUntrusted(ctx context.Context, teamName keybase1.TeamName, public bool, allowCache bool) (id keybase1.TeamID, err error)
+	ForceRepollUntil(ctx context.Context, t gregor.TimeOrOffset) error
 	OnLogout()
 	// Clear the in-memory cache. Does not affect the disk cache.
 	ClearMem()
@@ -626,6 +631,7 @@ type FastTeamLoader interface {
 	Load(MetaContext, keybase1.FastTeamLoadArg) (keybase1.FastTeamLoadRes, error)
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
+	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
 	OnLogout()
 }
 
@@ -746,19 +752,25 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
-	// a username and a fullname, and when the mapping was loaded from the server. It blocks
-	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
-	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
-	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
-	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
-	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
-	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
-	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username
+	// packages, which include a username and a fullname, and when the mapping
+	// was loaded from the server. It blocks on the network until all usernames
+	// are known. If the `forceNetworkForFullNames` flag is specified, it will
+	// block on the network too. If the flag is not specified, then stale
+	// values (or unknown values) are OK, we won't go to network if we lack
+	// them. All network calls are limited by the given timeBudget, or if 0 is
+	// specified, there is indefinite budget. In the response, a nil
+	// FullNamePackage means that the lookup failed. A non-nil FullNamePackage
+	// means that some previous lookup worked, but might be arbitrarily out of
+	// date (depending on the cachedAt time). A non-nil FullNamePackage with an
+	// empty fullName field means that the user just hasn't supplied a
+	// fullName.
 	//
-	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
-	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
-	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+	// *NOTE* that this function can return useful data and an error. In this
+	// regard, the error is more like a warning. But if, for instance, the
+	// mapper runs out of time budget, it will return the data
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+		networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*

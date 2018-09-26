@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -95,9 +94,9 @@ const (
 
 	// How old the merkle root must be to ask for a refresh.
 	// Measures time since the root was fetched, not time since published.
-	PvlSourceShouldRefresh time.Duration = 1 * time.Hour
+	MerkleStoreShouldRefresh time.Duration = 1 * time.Hour
 	// An older merkle root than this is too old to use. All identifies will fail.
-	PvlSourceRequireRefresh time.Duration = 24 * time.Hour
+	MerkleStoreRequireRefresh time.Duration = 24 * time.Hour
 
 	Identify2CacheLongTimeout   = 6 * time.Hour
 	Identify2CacheBrokenTimeout = 1 * time.Hour
@@ -168,7 +167,6 @@ const (
 )
 
 const (
-	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
 	SigExpireIn            = OneYearInSeconds * 16 // 16 years
@@ -309,10 +307,6 @@ const (
 )
 
 const (
-	IDSuffixKID = 0x0a
-)
-
-const (
 	MerkleTreeNode = 1
 	MerkleTreeLeaf = 2
 )
@@ -401,18 +395,21 @@ var PGPArmorHeaders = map[string]string{
 	"Comment": DownloadURL,
 }
 
+const GenericSocialWebServiceBinding = "web_service_binding.generic_social"
+
 var RemoteServiceTypes = map[string]keybase1.ProofType{
-	"keybase":    keybase1.ProofType_KEYBASE,
-	"twitter":    keybase1.ProofType_TWITTER,
-	"facebook":   keybase1.ProofType_FACEBOOK,
-	"github":     keybase1.ProofType_GITHUB,
-	"reddit":     keybase1.ProofType_REDDIT,
-	"coinbase":   keybase1.ProofType_COINBASE,
-	"hackernews": keybase1.ProofType_HACKERNEWS,
-	"https":      keybase1.ProofType_GENERIC_WEB_SITE,
-	"http":       keybase1.ProofType_GENERIC_WEB_SITE,
-	"dns":        keybase1.ProofType_DNS,
-	"rooter":     keybase1.ProofType_ROOTER,
+	"keybase":        keybase1.ProofType_KEYBASE,
+	"twitter":        keybase1.ProofType_TWITTER,
+	"facebook":       keybase1.ProofType_FACEBOOK,
+	"github":         keybase1.ProofType_GITHUB,
+	"reddit":         keybase1.ProofType_REDDIT,
+	"coinbase":       keybase1.ProofType_COINBASE,
+	"hackernews":     keybase1.ProofType_HACKERNEWS,
+	"https":          keybase1.ProofType_GENERIC_WEB_SITE,
+	"http":           keybase1.ProofType_GENERIC_WEB_SITE,
+	"dns":            keybase1.ProofType_DNS,
+	"rooter":         keybase1.ProofType_ROOTER,
+	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
 var RemoteServiceOrder = []keybase1.ProofType{
@@ -424,6 +421,7 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_COINBASE,
 	keybase1.ProofType_HACKERNEWS,
 	keybase1.ProofType_GENERIC_WEB_SITE,
+	keybase1.ProofType_GENERIC_SOCIAL,
 	keybase1.ProofType_ROOTER,
 }
 
@@ -442,63 +440,6 @@ const (
 	HTTPRetryInitialTimeout = 1 * time.Second
 	HTTPRetryMutliplier     = 1.5
 	HTTPRetryCount          = 6
-)
-
-type PacketVersion int
-
-const (
-	KeybasePacketV1 PacketVersion = 1
-)
-
-// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
-// be backwards compatible with older versions of codec that encoded
-// positive ints as uints.
-type PacketTag uint
-
-const (
-	TagP3skb      PacketTag = 513
-	TagSignature  PacketTag = 514
-	TagEncryption PacketTag = 515
-)
-
-func (t PacketTag) String() string {
-	switch t {
-	case TagP3skb:
-		return "PacketTag(P3skb)"
-	case TagSignature:
-		return "PacketTag(Signature)"
-	case TagEncryption:
-		return "PacketTag(Encryption)"
-	default:
-		return fmt.Sprintf("PacketTag(%d)", uint(t))
-	}
-}
-
-const (
-	KIDPGPBase    AlgoType = 0x00
-	KIDPGPRsa     AlgoType = 0x1
-	KIDPGPElgamal AlgoType = 0x10
-	KIDPGPDsa     AlgoType = 0x11
-	KIDPGPEcdh    AlgoType = 0x12
-	KIDPGPEcdsa   AlgoType = 0x13
-	KIDPGPEddsa   AlgoType = 0x16
-	KIDNaclEddsa  AlgoType = 0x20
-	KIDNaclDH     AlgoType = 0x21
-)
-
-// OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
-const (
-	HashPGPMd5       = 1
-	HashPGPSha1      = 2
-	HashPGPRipemd160 = 3
-	HashPGPSha256    = 8
-	HashPGPSha384    = 9
-	HashPGPSha512    = 10
-	HashPGPSha224    = 11
-)
-
-const (
-	SigKbEddsa = KIDNaclEddsa
 )
 
 const (
@@ -539,6 +480,7 @@ const (
 
 const (
 	Kex2PhraseEntropy  = 88
+	Kex2PhraseEntropy2 = 99 // we've upped the entropy to 99 bits after the 2018 NCC Audit
 	Kex2ScryptCost     = 1 << 17
 	Kex2ScryptLiteCost = 1 << 10
 	Kex2ScryptR        = 8
@@ -595,17 +537,6 @@ const (
 
 const (
 	PGPAssertionKey = "pgp"
-)
-
-const (
-	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
-	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
-	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
-	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
-	// Chat prefixes for each MessageBoxedVersion.
-	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
-	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
 )
 
 const (
@@ -674,20 +605,6 @@ func StringToAppType(s string) AppType {
 
 // UID of t_alice
 const TAliceUID = keybase1.UID("295a7eea607af32040647123732bc819")
-
-// Pvl kit hash, pegged to merkle tree.
-type PvlKitHash string
-
-// String containing a pvl kit.
-type PvlKitString string
-
-// String containing a pvl chunk.
-type PvlString string
-
-type PvlUnparsed struct {
-	Hash PvlKitHash
-	Pvl  PvlString
-}
 
 const SharedTeamKeyBoxVersion1 = 1
 

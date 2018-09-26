@@ -220,6 +220,7 @@ const (
 	ProofType_COINBASE         ProofType = 5
 	ProofType_HACKERNEWS       ProofType = 6
 	ProofType_FACEBOOK         ProofType = 8
+	ProofType_GENERIC_SOCIAL   ProofType = 9
 	ProofType_GENERIC_WEB_SITE ProofType = 1000
 	ProofType_DNS              ProofType = 1001
 	ProofType_PGP              ProofType = 1002
@@ -237,6 +238,7 @@ var ProofTypeMap = map[string]ProofType{
 	"COINBASE":         5,
 	"HACKERNEWS":       6,
 	"FACEBOOK":         8,
+	"GENERIC_SOCIAL":   9,
 	"GENERIC_WEB_SITE": 1000,
 	"DNS":              1001,
 	"PGP":              1002,
@@ -252,6 +254,7 @@ var ProofTypeRevMap = map[ProofType]string{
 	5:      "COINBASE",
 	6:      "HACKERNEWS",
 	8:      "FACEBOOK",
+	9:      "GENERIC_SOCIAL",
 	1000:   "GENERIC_WEB_SITE",
 	1001:   "DNS",
 	1002:   "PGP",
@@ -275,24 +278,36 @@ func (o ProofServiceGroup) DeepCopy() ProofServiceGroup {
 	}
 }
 
+type ParamProofUsernameConfig struct {
+	Re  string `codec:"re" json:"re"`
+	Min int    `codec:"min" json:"min"`
+	Max int    `codec:"max" json:"max"`
+}
+
+func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
+	return ParamProofUsernameConfig{
+		Re:  o.Re,
+		Min: o.Min,
+		Max: o.Max,
+	}
+}
+
 type ParamProofServiceConfig struct {
-	Enabled     bool               `codec:"enabled" json:"enabled"`
-	IsDevel     bool               `codec:"isDevel" json:"isDevel"`
-	DisplayName string             `codec:"displayName" json:"displayName"`
-	Domain      string             `codec:"domain" json:"domain"`
-	Group       *ProofServiceGroup `codec:"group,omitempty" json:"group,omitempty"`
-	UsernameRe  string             `codec:"usernameRe" json:"usernameRe"`
-	PrefillUrl  string             `codec:"prefillUrl" json:"prefillUrl"`
-	CheckUrl    string             `codec:"checkUrl" json:"checkUrl"`
-	CheckPath   []string           `codec:"checkPath" json:"checkPath"`
+	Version     int                      `codec:"version" json:"version"`
+	Domain      string                   `codec:"domain" json:"domain"`
+	DisplayName string                   `codec:"displayName" json:"display_name"`
+	Group       *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
+	Username    ParamProofUsernameConfig `codec:"username" json:"username"`
+	PrefillUrl  string                   `codec:"prefillUrl" json:"prefill_url"`
+	CheckUrl    string                   `codec:"checkUrl" json:"check_url"`
+	CheckPath   []string                 `codec:"checkPath" json:"check_path"`
 }
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 	return ParamProofServiceConfig{
-		Enabled:     o.Enabled,
-		IsDevel:     o.IsDevel,
-		DisplayName: o.DisplayName,
+		Version:     o.Version,
 		Domain:      o.Domain,
+		DisplayName: o.DisplayName,
 		Group: (func(x *ProofServiceGroup) *ProofServiceGroup {
 			if x == nil {
 				return nil
@@ -300,7 +315,7 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Group),
-		UsernameRe: o.UsernameRe,
+		Username:   o.Username.DeepCopy(),
 		PrefillUrl: o.PrefillUrl,
 		CheckUrl:   o.CheckUrl,
 		CheckPath: (func(x []string) []string {
