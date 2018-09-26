@@ -3,7 +3,6 @@ import React, {PureComponent} from 'react'
 import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
 import {
   collapseStyles,
-  glamorous,
   globalStyles,
   globalColors,
   globalMargins,
@@ -29,12 +28,6 @@ type State = {
   isHovered: boolean,
 }
 
-const HoverBox = isMobile
-  ? Box
-  : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blueGrey2},
-    })
-
 class BigTeamChannel extends PureComponent<Props, State> {
   state = {
     isHovered: false,
@@ -47,7 +40,8 @@ class BigTeamChannel extends PureComponent<Props, State> {
     return (
       <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
         <Box style={styles.rowContainer}>
-          <HoverBox
+          <Box
+            className="hover_color_blueGrey2"
             style={collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
@@ -75,7 +69,7 @@ class BigTeamChannel extends PureComponent<Props, State> {
               <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
             )}
             {this.props.hasBadge && <UnreadIcon />}
-          </HoverBox>
+          </Box>
         </Box>
       </ClickableBox>
     )

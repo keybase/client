@@ -6,10 +6,7 @@ import {Avatars, TeamAvatar} from '../avatars'
 import {
   collapseStyles,
   desktopStyles,
-  glamorous,
   globalStyles,
-  globalColors,
-  isMobile,
   platformStyles,
   styleSheetCreate,
 } from '../../../../styles'
@@ -31,12 +28,6 @@ type State = {
   isHovered: boolean,
 }
 
-const HoverBox = isMobile
-  ? Box
-  : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blueGrey2},
-    })
-
 class FilterSmallTeam extends PureComponent<Props, State> {
   state = {
     isHovered: false,
@@ -52,7 +43,8 @@ class FilterSmallTeam extends PureComponent<Props, State> {
         onClick={props.onSelectConversation}
         style={collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])}
       >
-        <HoverBox
+        <Box
+          className="hover_color_blueGrey2"
           style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
@@ -81,7 +73,7 @@ class FilterSmallTeam extends PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
           </Box>
-        </HoverBox>
+        </Box>
       </ClickableBox>
     )
   }
