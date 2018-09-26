@@ -39,6 +39,7 @@ type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -122,6 +123,8 @@ const propsToParties = (props: Props) => {
     <NameWithIcon
       colorFollowing={true}
       horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
       username={props.you}
       metaOne="You"
       metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
@@ -133,6 +136,7 @@ const propsToParties = (props: Props) => {
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}
+      onShowProfile={props.onShowProfile}
     />
   )
 
