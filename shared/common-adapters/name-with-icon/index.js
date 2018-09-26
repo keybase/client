@@ -31,6 +31,7 @@ export type NameWithIconProps = {|
   // for non-users
   title?: string,
   titleStyle?: Styles.StylesCrossPlatform,
+  underline?: boolean,
   username?: string,
 |}
 
@@ -91,6 +92,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
         }
         inline={!this.props.horizontal}
+        underline={this.props.underline}
         usernames={[this.props.username]}
         colorFollowing={this.props.colorFollowing}
       />

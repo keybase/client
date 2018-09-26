@@ -19,6 +19,7 @@ export type Props = {|
   onBack: () => void,
   title: string,
   onLoadPaymentDetail: () => void,
+  onShowProfile: string => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
   recipientAccountID: ?Types.AccountID,
@@ -38,6 +39,7 @@ type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -46,8 +48,10 @@ const Counterparty = (props: CounterpartyProps) => {
       <NameWithIcon
         colorFollowing={true}
         horizontal={true}
+        onClick={() => props.onShowProfile(props.counterparty)}
         username={props.counterparty}
         metaOne={props.counterpartyMeta}
+        underline={true}
         metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
       />
     )
@@ -59,12 +63,14 @@ const Counterparty = (props: CounterpartyProps) => {
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
         large={false}
+        onShowProfile={props.onShowProfile}
       />
       <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           large={false}
+          onShowProfile={props.onShowProfile}
           showFullKey={true}
           textType="BodySemibold"
         />
@@ -117,6 +123,8 @@ const propsToParties = (props: Props) => {
     <NameWithIcon
       colorFollowing={true}
       horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
       username={props.you}
       metaOne="You"
       metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
@@ -128,6 +136,7 @@ const propsToParties = (props: Props) => {
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}
+      onShowProfile={props.onShowProfile}
     />
   )
 
@@ -166,6 +175,7 @@ class TransactionDetails extends React.Component<Props> {
           counterpartyType={this.props.counterpartyType}
           large={true}
           memo={this.props.memo}
+          onShowProfile={this.props.onShowProfile}
           selectableText={true}
           status={this.props.status}
           statusDetail={this.props.statusDetail}

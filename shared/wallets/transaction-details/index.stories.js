@@ -37,6 +37,7 @@ const load = () => {
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -60,6 +61,7 @@ const load = () => {
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -83,6 +85,7 @@ const load = () => {
         timestamp={null}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -107,6 +110,7 @@ const load = () => {
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
@@ -128,6 +132,7 @@ const load = () => {
         recipientAccountID={stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF')}
         senderAccountID={stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F')}
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         timestamp={null}
         you="cjb"
         status="pending"
@@ -151,6 +156,7 @@ const load = () => {
         timestamp={yesterday}
         transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
+        onShowProfile={Sb.action('onShowProfile')}
         onViewTransaction={Sb.action('onViewTransaction')}
         you="cjb"
         status="completed"
