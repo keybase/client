@@ -342,26 +342,19 @@ const propsInboxCommon = {
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
-  isLoading: false,
+  neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
-  onBuildTeam: Sb.action('onBuildTeam'),
-  onHotkey: Sb.action('onHotkey'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
   onSelectDown: Sb.action('onSelectDown'),
   rows: [],
-  showNewChat: false,
-  showNewConversation: false,
-  showSmallTeamsExpandDivider: false,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
 
 const propsInboxEmpty = {
   ...propsInboxCommon,
-  showNewChat: true,
-  showBuildATeam: true,
 }
 
 const propsInboxSimple = {
@@ -401,12 +394,6 @@ const propsInboxTeam = {
 const propsInboxDivider = {
   ...propsInboxCommon,
   smallTeamsExpanded: false,
-  smallIDsHidden: [
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamC'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamD'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamE'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamF'].conversationIDKey),
-  ],
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -438,7 +425,6 @@ const propsInboxDivider = {
 const propsInboxExpanded = {
   ...propsInboxCommon,
   smallTeamsExpanded: false,
-  showSmallTeamsExpandDivider: true,
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -514,7 +500,6 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   BuildTeam: p => ({
     onBuildTeam: Sb.action('onBuildTeam'),
-    showBuildATeam: teamsEmpty,
     loaded: true,
   }),
   NewChooser: p => ({
