@@ -48,7 +48,7 @@ const AccountPayment = (props: Props) => {
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
             {props.action}{' '}
-            <Text type="BodySmallExtrabold" style={styles.purple}>
+            <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {props.amount}
             </Text>
             {props.pending ? '...' : '.'}
@@ -56,7 +56,7 @@ const AccountPayment = (props: Props) => {
         </Box2>
         {!!props.balanceChange && (
           <Box2 direction="horizontal">
-            <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
               {props.balanceChange}
             </Text>
           </Box2>

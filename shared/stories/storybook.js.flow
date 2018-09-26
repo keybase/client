@@ -7,6 +7,7 @@ export type SelectorMap = {
 
 declare export function storiesOf(name: string, module: any): any
 declare export function action(name: string): any
+declare export function perfDecorator(copiesToRender?: number): Function
 declare export function scrollViewDecorator(): Function
 declare export function createPropProvider(...maps: SelectorMap[]): (() => React.Node) => React.Node
 declare export function createPropProviderWithCommon(...maps: SelectorMap[]): (() => React.Node) => React.Node
