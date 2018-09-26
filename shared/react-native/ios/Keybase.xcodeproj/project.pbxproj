@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
+		2714DAA0215B1CAA00464F8E /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2714DA73215B1CAA00464F8E /* LocalAuthentication.framework */; };
 		272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
@@ -424,6 +425,7 @@
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* KeybaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeybaseTests.m; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2714DA73215B1CAA00464F8E /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
 		272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		279FB59C2139AB6A005E4864 /* KeybaseShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeybaseShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -523,6 +525,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2714DAA0215B1CAA00464F8E /* LocalAuthentication.framework in Frameworks */,
 				DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */,
 				DB5E9BB2212A0CAC00F903B3 /* libRNFetchBlob.a in Frameworks */,
 				3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */,
@@ -678,6 +681,7 @@
 		8B23D2F59C5F2B2FA28E899F /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2714DA73215B1CAA00464F8E /* LocalAuthentication.framework */,
 				279FB6F321403A49005E4864 /* MobileCoreServices.framework */,
 				279FB6F121403A2A005E4864 /* CoreMedia.framework */,
 				279FB6EE214039DA005E4864 /* AVFoundation.framework */,

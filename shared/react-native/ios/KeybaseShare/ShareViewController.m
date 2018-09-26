@@ -11,6 +11,7 @@
 #import "Pusher.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import <AVFoundation/AVFoundation.h>
+#import <LocalAuthentication/LocalAuthentication.h>
 #import "Fs.h"
 
 #if TARGET_OS_SIMULATOR
@@ -61,10 +62,20 @@ const BOOL isSimulator = NO;
         [self setConvTarget:conv];
       }
     }
-    dispatch_async(dispatch_get_main_queue(), ^{
-      [self validateContent];
-      [self reloadConfigurationItems];
-    });
+    
+    LAContext* context = [[LAContext alloc] init];
+    if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error]) {
+      [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
+                localizedReason:@"Unlock Keybase"
+                          reply:^(BOOL success, NSError *error) {
+                            if (success) {
+                              dispatch_async(dispatch_get_main_queue(), ^{
+                                [self validateContent];
+                                [self reloadConfigurationItems];
+                              });
+                            }
+                          }];
+    }
   });
 }
 
