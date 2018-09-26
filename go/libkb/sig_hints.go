@@ -23,14 +23,6 @@ func (sh SigHint) GetHumanURL() string  { return sh.humanURL }
 func (sh SigHint) GetAPIURL() string    { return sh.apiURL }
 func (sh SigHint) GetCheckText() string { return sh.checkText }
 
-type SigHints struct {
-	Contextified
-	uid     keybase1.UID
-	version int
-	hints   map[keybase1.SigID]*SigHint
-	dirty   bool
-}
-
 func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh = &SigHint{}
 	sh.sigID, err = GetSigID(jw.AtKey("sig_id"), true)
@@ -38,7 +30,8 @@ func NewSigHint(jw *jsonw.Wrapper) (sh *SigHint, err error) {
 	sh.apiURL, _ = jw.AtKey("api_url").GetString()
 	sh.humanURL, _ = jw.AtKey("human_url").GetString()
 	sh.checkText, _ = jw.AtKey("proof_text_check").GetString()
-	return
+	sh.isVerified, _ = jw.AtKey("isVerified").GetBool()
+	return sh, err
 }
 
 func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkText string) *SigHint {
@@ -52,9 +45,23 @@ func NewVerifiedSigHint(sigID keybase1.SigID, remoteID, apiURL, humanURL, checkT
 	}
 }
 
-func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
-	obj := sh.hints[i]
-	return obj
+func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
+	ret := jsonw.NewDictionary()
+	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
+	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
+	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
+	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
+	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
+	ret.SetKey("is_verified", jsonw.NewBool(sh.isVerified))
+	return ret
+}
+
+type SigHints struct {
+	Contextified
+	uid     keybase1.UID
+	version int
+	hints   map[keybase1.SigID]*SigHint
+	dirty   bool
 }
 
 func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalContext) (sh *SigHints, err error) {
@@ -69,6 +76,11 @@ func NewSigHints(jw *jsonw.Wrapper, uid keybase1.UID, dirty bool, g *GlobalConte
 		sh = nil
 	}
 	return
+}
+
+func (sh SigHints) Lookup(i keybase1.SigID) *SigHint {
+	obj := sh.hints[i]
+	return obj
 }
 
 func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
@@ -98,16 +110,6 @@ func (sh *SigHints) PopulateWith(jw *jsonw.Wrapper) (err error) {
 		}
 	}
 	return
-}
-
-func (sh SigHint) MarshalToJSON() *jsonw.Wrapper {
-	ret := jsonw.NewDictionary()
-	ret.SetKey("sig_id", jsonw.NewString(sh.sigID.ToString(true)))
-	ret.SetKey("remote_id", jsonw.NewString(sh.remoteID))
-	ret.SetKey("api_url", jsonw.NewString(sh.apiURL))
-	ret.SetKey("human_url", jsonw.NewString(sh.humanURL))
-	ret.SetKey("proof_text_check", jsonw.NewString(sh.checkText))
-	return ret
 }
 
 func (sh SigHints) MarshalToJSON() *jsonw.Wrapper {

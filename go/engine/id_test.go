@@ -172,6 +172,7 @@ func TestIdGenericSocialProof(t *testing.T) {
 	// create new user and have them prove a gubble.social account
 	fu := CreateAndSignupFakeUser(tc, "login")
 	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	proveGubbleCloud(tc, fu, libkb.KeybaseSignatureV2)
 	Logout(tc)
 
 	fu2 := CreateAndSignupFakeUser(tc, "login")
@@ -180,15 +181,18 @@ func TestIdGenericSocialProof(t *testing.T) {
 	idUI, result, err := runIdentify(&tc, fu.Username)
 	require.NoError(t, err)
 
-	// NOTE this will break once CORE-8658 is implemented
-	require.Equal(t, keybase1.ProofResult{
+	expectedResult := keybase1.ProofResult{
 		State:  keybase1.ProofState_OK,
 		Status: keybase1.ProofStatus_OK,
 		Desc:   "",
-	}, idUI.ProofResults["gubble.social"].ProofResult)
+	}
+
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.social"].ProofResult)
+	require.Equal(t, expectedResult, idUI.ProofResults["gubble.cloud"].ProofResult)
 
 	checkKeyedProfile(t, idUI, &result.Upk.Current, fu.Username, map[string]string{
 		"gubble.social": fu.Username,
+		"gubble.cloud":  fu.Username,
 	})
 }
 

@@ -215,12 +215,21 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 }
 
 func proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) keybase1.SigID {
+	return proveGubbleUniverse(tc, "gubble.social", "gubble_social", fu, sigVersion)
+}
+
+func proveGubbleCloud(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) keybase1.SigID {
+	return proveGubbleUniverse(tc, "gubble.cloud", "gubble_cloud", fu, sigVersion)
+}
+
+func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu *FakeUser, sigVersion libkb.SigVersion) keybase1.SigID {
+	tc.T.Logf("proof for %s", serviceName)
 	g := tc.G
 	sv := keybase1.SigVersion(sigVersion)
-	proofService := g.GetProofServices().GetServiceType("gubble.social")
+	proofService := g.GetProofServices().GetServiceType(serviceName)
 	require.NotNil(tc.T, proofService)
 
-	// Post a proof to the testing generic social service, gubble.social
+	// Post a proof to the testing generic social service
 	arg := keybase1.StartProofArg{
 		Service:      proofService.GetTypeName(),
 		Username:     fu.Username,
@@ -236,7 +245,7 @@ func proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigV
 		require.False(tc.T, sigID.IsNil())
 
 		apiArg := libkb.APIArg{
-			Endpoint:    "gubble_social",
+			Endpoint:    fmt.Sprintf("gubble_universe/%s", endpoint),
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"sig_hash":    libkb.S{Val: sigID.String()},
@@ -247,7 +256,7 @@ func proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigV
 		require.NoError(tc.T, err)
 
 		apiArg = libkb.APIArg{
-			Endpoint:    fmt.Sprintf("gubble_social/%s/proofs", fu.Username),
+			Endpoint:    fmt.Sprintf("gubble_universe/%s/%s/proofs", endpoint, fu.Username),
 			SessionType: libkb.APISessionTypeNONE,
 		}
 
@@ -272,7 +281,7 @@ func proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigV
 		require.True(tc.T, len(proofs) >= 1)
 		for _, proof := range proofs {
 			if proof.KbUsername == fu.Username && sigID.Equal(proof.SigHash) {
-				return true, proof.SigHash.String(), nil
+				return true, sigID.String(), nil
 			}
 		}
 		return false, "", fmt.Errorf("proof not found")

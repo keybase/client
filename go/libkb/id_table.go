@@ -1588,7 +1588,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 
 		if doCache {
 			m.CDebugf("| Caching results under key=%s pvlHash=%s", sid, pvlHashUsed)
-			if cacheErr := idt.G().ProofCache.Put(sid, res.err, pvlHashUsed); cacheErr != nil {
+			if cacheErr := idt.G().ProofCache.Put(sid, res, pvlHashUsed); cacheErr != nil {
 				m.CWarningf("proof cache put error: %s", cacheErr)
 			}
 		}
@@ -1635,6 +1635,7 @@ func (idt *IdentityTable) proofRemoteCheck(m MetaContext, hasPreviousTrack, forc
 		m.CDebugf("| Proof cache lookup for %s: %+v", sid, res.cached)
 		if res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
+			res.verifiedHint = res.cached.VerifiedHint
 			m.CDebugf("| Early exit after proofCache hit for %s", sid)
 			return
 		}

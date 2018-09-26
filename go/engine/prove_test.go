@@ -66,4 +66,5 @@ func TestProveGenericSocial(t *testing.T) {
 
 	fu := CreateAndSignupFakeUser(tc, "prove")
 	proveGubbleSocial(tc, fu, sigVersion)
+	proveGubbleCloud(tc, fu, sigVersion)
 }
