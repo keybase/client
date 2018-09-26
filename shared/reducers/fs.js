@@ -27,6 +27,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.filePreviewLoaded:
       return state.updateIn(['pathItems', action.payload.path], (original: Types.PathItem) => {
         const {meta} = action.payload
+
+        // Since updateIn passes `original` in as `any`, it may not be an
+        // actual PathItem.
+        if (!original) {
+          return meta
+        }
+
         if (original.type === 'folder' && meta.type === 'folder') {
           return coalesceFolderUpdate(original, meta)
         } else if (original.type !== 'file' || meta.type !== 'file') {

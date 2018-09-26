@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -292,8 +293,8 @@ func fetchUserEKStatement(ctx context.Context, g *libkb.GlobalContext, uid keyba
 	return statement, latestGeneration, false, nil
 }
 
-func extractUserEKStatementFromSig(sig string) (signerKey libkb.GenericKey, statement *keybase1.UserEkStatement, err error) {
-	signerKey, payload, _, err := libkb.NaclVerifyAndExtract(sig)
+func extractUserEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningKeyPublic, statement *keybase1.UserEkStatement, err error) {
+	signerKey, payload, _, err := kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
 		return signerKey, nil, err
 	}

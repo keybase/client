@@ -1547,6 +1547,7 @@ export const simpleFSKBFSArchivedType = {
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
+  filterSystemHidden: 2,
 }
 
 export const simpleFSOpenFlags = {
@@ -2033,6 +2034,7 @@ export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
   | 1 // FILTER_ALL_HIDDEN_1
+  | 2 // FILTER_SYSTEM_HIDDEN_2
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 export type ListToDepthArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, depth: Int}>
