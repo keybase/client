@@ -9,6 +9,13 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -101,6 +108,35 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
         return NAME;
     }
 
+    private String readFromFile(String path) {
+        String ret = "";
+
+        try {
+            FileInputStream inputStream = new FileInputStream(new File(path));
+
+            if ( inputStream != null ) {
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                String receiveString = "";
+                StringBuilder stringBuilder = new StringBuilder();
+
+                while ( (receiveString = bufferedReader.readLine()) != null ) {
+                    stringBuilder.append(receiveString);
+                }
+
+                inputStream.close();
+                ret = stringBuilder.toString();
+            }
+        }
+        catch (FileNotFoundException e) {
+            // ignore
+        } catch (IOException e) {
+            // ignore
+        }
+
+        return ret;
+    }
+
     @Override
     public Map<String, Object> getConstants() {
         String versionCode = String.valueOf(BuildConfig.VERSION_CODE);
@@ -114,12 +150,20 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
           NativeLogger.warn(NAME + ": Error reading keyguard secure state", e);
         }
 
+        String serverConfig = "";
+        try {
+            serverConfig = this.readFromFile(this.reactContext.getCacheDir().getAbsolutePath() + "/Keybase/keybase.app.serverConfig");
+        } catch (Exception e) {
+            NativeLogger.warn(NAME + ": Error reading server config", e);
+        }
+
         final Map<String, Object> constants = new HashMap<>();
         constants.put("eventName", RPC_EVENT_NAME);
         constants.put("appVersionName", versionName);
         constants.put("appVersionCode", versionCode);
         constants.put("version", version());
         constants.put("isDeviceSecure", isDeviceSecure);
+        constants.put("serverConfig", serverConfig);
         return constants;
     }
 
