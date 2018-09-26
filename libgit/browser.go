@@ -60,7 +60,7 @@ func NewBrowser(
 	}
 
 	if ref.Type() != plumbing.HashReference {
-		return nil, errors.Errorf("Can't browse reference type %s", ref.Type())
+		return nil, errors.Errorf("can't browse reference type %s", ref.Type())
 	}
 
 	c, err := repo.CommitObject(ref.Hash())
@@ -109,7 +109,7 @@ func (b *Browser) followSymlink(filename string) (string, error) {
 		return "", err
 	}
 	if path.IsAbs(link) {
-		return "", errors.Errorf("Can't follow absolute link: %s", link)
+		return "", errors.Errorf("can't follow absolute link: %s", link)
 	}
 
 	parts := strings.Split(filename, "/")
@@ -120,7 +120,7 @@ func (b *Browser) followSymlink(filename string) (string, error) {
 	newPath := path.Clean(path.Join(parentPath, link))
 	if strings.HasPrefix(newPath, "..") {
 		return "", errors.Errorf(
-			"Cannot follow symlink out of chroot: %s", newPath)
+			"cannot follow symlink out of chroot: %s", newPath)
 	}
 	return newPath, nil
 }
@@ -147,14 +147,14 @@ func (b *Browser) Open(filename string) (billy.File, error) {
 			return nil, err
 		}
 	}
-	return nil, errors.New("Cannot resolve deep symlink chain")
+	return nil, errors.New("cannot resolve deep symlink chain")
 }
 
 // OpenFile implements the billy.Filesystem interface for Browser.
 func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 	f billy.File, err error) {
 	if flag&os.O_CREATE != 0 {
-		return nil, errors.New("Browser can't create files")
+		return nil, errors.New("browser can't create files")
 	}
 
 	return b.Open(filename)
@@ -207,7 +207,7 @@ func (b *Browser) Stat(filename string) (fi os.FileInfo, err error) {
 			return nil, err
 		}
 	}
-	return nil, errors.New("Cannot resolve deep symlink chain")
+	return nil, errors.New("cannot resolve deep symlink chain")
 }
 
 // Join implements the billy.Filesystem interface for Browser.
@@ -245,7 +245,7 @@ func (b *Browser) Readlink(link string) (target string, err error) {
 	}
 	// If it's not a symlink, error right away.
 	if fi.Mode()&os.ModeSymlink == 0 {
-		return "", errors.New("Not a symlink")
+		return "", errors.New("not a symlink")
 	}
 
 	return b.readLink(link)
@@ -272,30 +272,30 @@ func (b *Browser) Root() string {
 
 // Create implements the billy.Filesystem interface for Browser.
 func (b *Browser) Create(_ string) (billy.File, error) {
-	return nil, errors.New("Browser cannot create files")
+	return nil, errors.New("browser cannot create files")
 }
 
 // Rename implements the billy.Filesystem interface for Browser.
 func (b *Browser) Rename(_, _ string) (err error) {
-	return errors.New("Browser cannot rename files")
+	return errors.New("browser cannot rename files")
 }
 
 // Remove implements the billy.Filesystem interface for Browser.
 func (b *Browser) Remove(_ string) (err error) {
-	return errors.New("Browser cannot remove files")
+	return errors.New("browser cannot remove files")
 }
 
 // TempFile implements the billy.Filesystem interface for Browser.
 func (b *Browser) TempFile(_, _ string) (billy.File, error) {
-	return nil, errors.New("Browser cannot make temp files")
+	return nil, errors.New("browser cannot make temp files")
 }
 
 // MkdirAll implements the billy.Filesystem interface for Browser.
 func (b *Browser) MkdirAll(_ string, _ os.FileMode) (err error) {
-	return errors.New("Browser cannot mkdir")
+	return errors.New("browser cannot mkdir")
 }
 
 // Symlink implements the billy.Filesystem interface for Browser.
 func (b *Browser) Symlink(_, _ string) (err error) {
-	return errors.New("Browser cannot make symlinks")
+	return errors.New("browser cannot make symlinks")
 }

@@ -41,7 +41,7 @@ func (bf *browserFile) Name() string {
 }
 
 func (bf *browserFile) Write(_ []byte) (n int, err error) {
-	return 0, errors.New("Browser files can't be written")
+	return 0, errors.New("browser files can't be written")
 }
 
 func (bf *browserFile) Read(p []byte) (n int, err error) {
@@ -83,7 +83,7 @@ func (bf *browserFile) ReadAt(p []byte, off int64) (n int, err error) {
 func (bf *browserFile) Seek(offset int64, whence int) (int64, error) {
 	// TODO if needed: we'd have to track the offset of `bf.r`
 	// manually, the same way we do in `libfs.File`.
-	return 0, errors.New("Browser files can't seek")
+	return 0, errors.New("browser files can't seek")
 }
 
 func (bf *browserFile) Close() error {
@@ -91,13 +91,13 @@ func (bf *browserFile) Close() error {
 }
 
 func (bf *browserFile) Lock() error {
-	return errors.New("Browser files can't be locked")
+	return errors.New("browser files can't be locked")
 }
 
 func (bf *browserFile) Unlock() error {
-	return errors.New("Browser files can't be unlocked")
+	return errors.New("browser files can't be unlocked")
 }
 
 func (bf *browserFile) Truncate(size int64) error {
-	return errors.New("Browser files can't be truncated")
+	return errors.New("browser files can't be truncated")
 }
