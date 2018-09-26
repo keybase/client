@@ -57,7 +57,7 @@ func TestKBFSUpgradeTeam(t *testing.T) {
 		resKeys := team.KBFSCryptKeys(ctx, appType)
 		require.Len(t, resKeys, len(cryptKeys))
 		require.Equal(t, cryptKeys, resKeys)
-		require.Equal(t, tlfID, team.KBFSTLFID())
+		require.Equal(t, tlfID, team.LatestKBFSTLFID())
 	}
 
 	chatCryptKeys := []keybase1.CryptKey{

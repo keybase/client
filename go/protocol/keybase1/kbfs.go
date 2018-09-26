@@ -49,6 +49,11 @@ type GetKBFSTeamSettingsArg struct {
 	TeamID TeamID `codec:"teamID" json:"teamID"`
 }
 
+type UpgradeTLFArg struct {
+	TlfName string `codec:"tlfName" json:"tlfName"`
+	Public  bool   `codec:"public" json:"public"`
+}
+
 type KbfsInterface interface {
 	// Idea is that kbfs would call the function below whenever these actions are
 	// performed on a file.
@@ -76,6 +81,8 @@ type KbfsInterface interface {
 	CreateTLF(context.Context, CreateTLFArg) error
 	// getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
 	GetKBFSTeamSettings(context.Context, TeamID) (KBFSTeamSettings, error)
+	// upgradeTLF upgrades a TLF to use implicit team keys
+	UpgradeTLF(context.Context, UpgradeTLFArg) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -194,6 +201,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"upgradeTLF": {
+				MakeArg: func() interface{} {
+					ret := make([]UpgradeTLFArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpgradeTLFArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpgradeTLFArg)(nil), args)
+						return
+					}
+					err = i.UpgradeTLF(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -257,5 +280,11 @@ func (c KbfsClient) CreateTLF(ctx context.Context, __arg CreateTLFArg) (err erro
 func (c KbfsClient) GetKBFSTeamSettings(ctx context.Context, teamID TeamID) (res KBFSTeamSettings, err error) {
 	__arg := GetKBFSTeamSettingsArg{TeamID: teamID}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.getKBFSTeamSettings", []interface{}{__arg}, &res)
+	return
+}
+
+// upgradeTLF upgrades a TLF to use implicit team keys
+func (c KbfsClient) UpgradeTLF(ctx context.Context, __arg UpgradeTLFArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.upgradeTLF", []interface{}{__arg}, nil)
 	return
 }

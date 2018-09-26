@@ -62,6 +62,12 @@ func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	}
 }
 
+func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdSimpleFSUpgrade(cl, g),
+	}
+}
+
 var restrictedSignupFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "p, passphrase",

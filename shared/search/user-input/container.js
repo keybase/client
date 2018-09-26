@@ -30,7 +30,7 @@ export type OwnProps = {|
   onSelectUser?: (id: string) => void,
   hideAddButton?: boolean,
   disableListBuilding?: boolean,
-  showServiceFilter?: boolean,
+  showServiceFilter: boolean,
   style?: StylesCrossPlatform,
   // Defaults to true. Desktop only, as clearSearch isn't used on mobile.
   // Note that the way that user input is super wonky with all these HOCs. If we ever refactor, we probably won't need this prop.
