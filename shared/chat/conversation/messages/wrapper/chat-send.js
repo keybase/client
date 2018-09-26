@@ -89,7 +89,7 @@ class SendIndicator extends React.Component<Props, State> {
       this._onSent()
     } else if (!this.props.failed && prevProps.failed) {
       this._onResend()
-    }    
+    }
   }
 
   componentWillUnmount() {

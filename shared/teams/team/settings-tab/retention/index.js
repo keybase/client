@@ -152,7 +152,7 @@ class RetentionPicker extends React.Component<Props, State> {
       } // we could show a notice that we received a new value in an else block
       this._makeItems()
       this._setInitialSelected(this.props.policy)
-    }  
+    }
   }
 
   render() {
