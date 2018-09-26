@@ -37,7 +37,7 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
               // check if user has been mentioned in the message
               let snippet = meta.snippet.toLowerCase()
               return (
-                (!!_laststate.config.username && snippet.indexOf(`@${_laststate.config.username}`) === 0) ||
+                (!!_lastState.config.username && snippet.indexOf(`@${_lastState.config.username}`) === 0) ||
                 snippet.indexOf('you') === 0
               )
             }
