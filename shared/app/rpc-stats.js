@@ -2,15 +2,12 @@
 // Component to help debug rpc issues. Shows counts of incoming/outgoing rpcs. Turned on by default for kb employees
 import * as React from 'react'
 import {ClickableBox, Box2, Text} from '../common-adapters'
-import {connect, type TypedState} from '../util/container'
 import {styleSheetCreate, platformStyles} from '../styles'
 import {printRPCStats} from '../local-debug'
 import * as Stats from '../engine/stats'
 import {isIPhoneX} from '../constants/platform'
 
-type Props = {
-  username: string,
-}
+type Props = {}
 type State = {
   // mark* means to make it bold for a single render cause it changed
   markIn: boolean,
@@ -24,41 +21,15 @@ type State = {
   visible: boolean,
 }
 
-// we should be seeing this all the time
-let whitelist = [
-  'adamjspooner',
-  'akalin',
-  'amarcedone',
-  'ayoubd',
-  'cecileb',
-  'chris',
-  'chrisnojima',
-  'cjb',
-  'jacobyoung',
-  'jinyang',
-  'joshblum',
-  'jzila',
-  'max',
-  'mikem',
-  'mlsteele',
-  'nathunsmitty',
-  'oconnor663',
-  'patrick',
-  'songgao',
-  'strib',
-  'zanderz',
-  'zapu',
-]
-
 class RpcStats extends React.Component<Props, State> {
   state = {
+    eofCount: 0,
+    inCount: 0,
+    markEOF: false,
     markIn: false,
     markOut: false,
-    markEOF: false,
-    inCount: 0,
     outCount: 0,
-    eofCount: 0,
-    visible: false,
+    visible: true,
   }
 
   _mounted = false
@@ -73,42 +44,29 @@ class RpcStats extends React.Component<Props, State> {
 
   _maybeStart = (userChanged: boolean) => {
     this._cleanup()
-    let visible = this.state.visible
+    this._intervalID = setInterval(() => {
+      this._mounted &&
+        this.setState(p => {
+          const inCount = this._iterateStats(['in'], s => s.count)
+          const outCount = this._iterateStats(['out'], s => s.count)
+          const eofCount = Stats.getStats()['eof']
 
-    // only check whitelist once
-    if (userChanged && this.props.username) {
-      if (printRPCStats || whitelist.indexOf(this.props.username) !== -1) {
-        visible = true
-        this._mounted && this.setState(p => (p.visible !== visible ? {visible} : undefined))
-      }
-      whitelist = []
-    }
-
-    if (visible) {
-      this._intervalID = setInterval(() => {
-        this._mounted &&
-          this.setState(p => {
-            const inCount = this._iterateStats(['in'], s => s.count)
-            const outCount = this._iterateStats(['out'], s => s.count)
-            const eofCount = Stats.getStats()['eof']
-
-            const inDiff = p.inCount !== inCount
-            const outDiff = p.outCount !== outCount
-            const eofDiff = p.eofCount !== eofCount
-            const markDiff = p.markIn || p.markOut || p.markEOF
-            if (inDiff || outDiff || eofDiff || markDiff) {
-              return {
-                markIn: inDiff,
-                markOut: outDiff,
-                markEOF: eofDiff,
-                inCount,
-                outCount,
-                eofCount,
-              }
+          const inDiff = p.inCount !== inCount
+          const outDiff = p.outCount !== outCount
+          const eofDiff = p.eofCount !== eofCount
+          const markDiff = p.markIn || p.markOut || p.markEOF
+          if (inDiff || outDiff || eofDiff || markDiff) {
+            return {
+              eofCount,
+              inCount,
+              markEOF: eofDiff,
+              markIn: inDiff,
+              markOut: outDiff,
+              outCount,
             }
-          })
-      }, 2000)
-    }
+          }
+        })
+    }, 2000)
   }
 
   componentWillUnmount() {
@@ -116,13 +74,6 @@ class RpcStats extends React.Component<Props, State> {
   }
   componentDidMount() {
     this._mounted = true
-    this._maybeStart(true)
-  }
-
-  componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.username !== prevProps.username || this.state.visible !== prevState.visible) {
-      this._maybeStart(this.props.username !== prevProps.username)
-    }
   }
 
   _iterateStats = (keys, f) => {
@@ -233,9 +184,5 @@ const styles = styleSheetCreate({
   },
 })
 
-// We only use username and pull stats on a timer. Don't want the stats gathering to affect redux at all
-const mapStateToProps = (state: TypedState) => ({
-  username: state.config.username,
-})
-
-export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RpcStats)
+const TheRPCStats = printRPCStats ? RpcStats : () => null
+export default TheRPCStats

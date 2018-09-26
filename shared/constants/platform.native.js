@@ -5,11 +5,12 @@ import {cachesDirectoryPath} from '../util/file.native'
 // Modules from the native part of the code. Differently named on Android/iOS
 const nativeBridge = NativeModules.KeybaseEngine ||
   NativeModules.ObjcEngine || {
-    version: 'fallback',
-    appVersionName: 'fallback',
     appVersionCode: 'fallback',
-    usingSimulator: 'fallback',
+    appVersionName: 'fallback',
     isDeviceSecure: 'fallback',
+    serverConfig: '',
+    usingSimulator: 'fallback',
+    version: 'fallback',
   }
 const version = nativeBridge.version
 const appVersionName = nativeBridge.appVersionName
@@ -56,6 +57,8 @@ function logFileName(): string {
 function pprofDir(): string {
   return _dir
 }
+
+export const serverConfigFileName = `${_dir}/keybase.app.serverConfig`
 
 export {
   appVersionCode,

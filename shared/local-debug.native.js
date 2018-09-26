@@ -2,7 +2,6 @@
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
-
 import {NativeModules, YellowBox} from 'react-native'
 import {noop} from 'lodash-es'
 // import MessageQueue from 'react-native/Libraries/BatchedBridge/MessageQueue.js'
@@ -31,7 +30,7 @@ let config = {
   allowMultipleInstances: false,
   enableActionLogging: true, // Log actions to the log
   enableStoreLogging: false, // Log full store changes
-  featureFlagsOverride: null, // Override feature flags
+  featureFlagsOverride: '', // Override feature flags
   filterActionLogs: null, // Filter actions in log
   forceImmediateLogging: false, // Don't wait for idle to log
   ignoreDisconnectOverlay: false,
@@ -91,6 +90,18 @@ if (PERF) {
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = true
+}
+
+if (nativeBridge.serverConfig) {
+  try {
+    const serverConfig = JSON.parse(nativeBridge.serverConfig)
+    if (serverConfig.lastLoggedInUser) {
+      const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
+      if (userConfig.walletsEnabled) {
+        config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
+      }
+    }
+  } catch (e) {}
 }
 
 export const {
