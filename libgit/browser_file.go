@@ -12,9 +12,14 @@ import (
 	"gopkg.in/src-d/go-git.v4/plumbing/object"
 )
 
+const (
+	browserFileDefaultMaxBufSize = 4 * 1024 * 1024 // 4 MB
+)
+
 type browserFile struct {
-	f *object.File
-	r io.ReadCloser
+	f          *object.File
+	r          io.ReadCloser
+	maxBufSize int64
 }
 
 var _ billy.File = (*browserFile)(nil)
@@ -25,8 +30,9 @@ func newBrowserFile(f *object.File) (*browserFile, error) {
 		return nil, err
 	}
 	return &browserFile{
-		f: f,
-		r: r,
+		f:          f,
+		r:          r,
+		maxBufSize: browserFileDefaultMaxBufSize,
 	}, nil
 }
 
@@ -43,10 +49,9 @@ func (bf *browserFile) Read(p []byte) (n int, err error) {
 }
 
 func (bf *browserFile) ReadAt(p []byte, off int64) (n int, err error) {
-	// Sadly go-git doesn't expose a `ReadAt` interface for this, but
-	// we can probably implement it if needed.  Instead, use a new
-	// Reader object and just scan starting from the beginning.
-	fullData := make([]byte, int64(len(p))+off)
+	// Sadly go-git doesn't expose a `ReadAt` or `Seek` interface for
+	// this, but we can probably implement it if needed.  Instead, use
+	// a new Reader object and just scan starting from the beginning.
 	r, err := bf.f.Reader()
 	if err != nil {
 		return 0, err
@@ -54,16 +59,25 @@ func (bf *browserFile) ReadAt(p []byte, off int64) (n int, err error) {
 	defer func() {
 		_ = r.Close()
 	}()
-	n, err = r.Read(fullData)
-	if err != nil {
-		if int64(n) > off {
-			copy(p, fullData[off:int64(n)-off])
-			return n, err
+
+	// Skip past the data we don't care about, one chunk at a time.
+	dataToSkip := off
+	for dataToSkip > 0 {
+		bufSize := dataToSkip
+		if bufSize > bf.maxBufSize {
+			bufSize = bf.maxBufSize
 		}
-		return 0, err
+
+		buf := make([]byte, dataToSkip)
+		// Throwaway data.
+		n, err := r.Read(buf)
+		if err != nil {
+			return 0, err
+		}
+		dataToSkip -= int64(n)
 	}
-	copy(p, fullData[off:])
-	return n - int(off), nil
+
+	return r.Read(p)
 }
 
 func (bf *browserFile) Seek(offset int64, whence int) (int64, error) {

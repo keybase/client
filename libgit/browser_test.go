@@ -59,6 +59,16 @@ func TestBrowser(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 
+	t.Log("Use ReadAt with a small buffer.")
+	bf, ok := f.(*browserFile)
+	require.True(t, ok)
+	bf.maxBufSize = 1
+	buf := make([]byte, 3)
+	n, err := f.ReadAt(buf, 2)
+	require.NoError(t, err)
+	require.Equal(t, 3, n)
+	require.Equal(t, "llo", string(buf))
+
 	addSymlink := func(target, link string) {
 		err = worktreeFS.Symlink(target, link)
 		require.NoError(t, err)
