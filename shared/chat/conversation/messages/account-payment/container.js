@@ -12,6 +12,7 @@ import AccountPayment from '.'
 
 // Props for rendering the loading indicator
 const loadingProps = {
+  _info: null,
   action: '',
   amount: '',
   balanceChange: '',
@@ -35,6 +36,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         return loadingProps
       }
       return {
+        _info: paymentInfo,
         action: paymentInfo.worth ? 'sent lumens worth' : 'sent',
         amount: paymentInfo.worth ? paymentInfo.worth : paymentInfo.amountDescription,
         balanceChange: `${paymentInfo.delta === 'increase' ? '+' : '-'}${paymentInfo.amountDescription}`,
@@ -65,6 +67,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
       return {
         ...sendProps,
+        _info: requestInfo,
         action: requestInfo.asset === 'currency' ? 'requested lumens worth' : 'requested',
         amount: requestInfo.amountDescription,
         balanceChange: '',
@@ -81,13 +84,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onSend: () => {
+  _onSend: (requestInfo: ?Types.ChatRequestInfo) => {
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
     }
-    const {requestInfo} = ownProps.message
-    if (requestInfo && ownProps.message.type === 'requestPayment') {
-      const message = ownProps.message
+    const message = ownProps.message
+    if (requestInfo) {
       if (requestInfo.currencyCode) {
         dispatch(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode}))
       }
@@ -109,7 +111,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   icon: stateProps.icon,
   loading: stateProps.loading,
   memo: stateProps.memo,
-  onSend: dispatchProps.onSend,
+  onSend: () =>
+    dispatchProps._onSend(
+      stateProps._info && stateProps._info.type === 'requestInfo' ? stateProps._info : null
+    ),
   pending: stateProps.pending,
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
