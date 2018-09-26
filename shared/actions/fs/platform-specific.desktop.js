@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
-import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -17,7 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {navigateTo, navigateAppend} from '../route-tree'
+import {navigateTo, navigateAppend, switchTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -351,7 +350,6 @@ const loadUserFileEdits = (state: TypedState, action) =>
   })
 
 const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
-  const selected = 'preview'
   let navigation = () => []
   if (path) {
     const parentFolder = Types.getPathFromElements(Types.getPathElements(path).slice(0, -1))
@@ -372,6 +370,12 @@ const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFil
             selected: 'preview',
           },
         ])
+      ),
+    ]
+  } else {
+    navigation = () => [
+      Saga.put(
+        switchTo([Tabs.fsTab])
       ),
     ]
   }
