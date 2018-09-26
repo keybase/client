@@ -172,7 +172,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   tlfs: makeTlfs(),
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
+  loadingPaths: I.Map(),
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
@@ -202,6 +202,20 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
 })
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+
+export const makeInProcessID = (() => {
+  const counters = {}
+  return (prefix: string): Types.InProcessID => {
+    let next = (counters[prefix] || 0) + 1
+    if (next >= Number.MAX_SAFE_INTEGER) {
+      logger.error('makeInProcessID: next >= Number.MAX_SAFE_INTEGER')
+      next = 1
+    }
+    counters[prefix] = next
+    return `${prefix}-${next.toString(16)}`
+  }
+})()
+
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
@@ -362,7 +376,7 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
+const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeInProcessID('dl')}`
 export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
   path,
   key: makeDownloadKey(path),

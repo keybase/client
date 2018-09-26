@@ -83,22 +83,25 @@ const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 function* folderList(
   action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload
 ): Saga.SagaGenerator<any, any> {
-  try {
-    const opID = Constants.makeUUID()
-    const {rootPath, refreshTag} =
-      action.type === FsGen.editSuccess
-        ? {rootPath: action.payload.parentPath, refreshTag: undefined}
-        : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const {rootPath, refreshTag} =
+    action.type === FsGen.editSuccess
+      ? {rootPath: action.payload.parentPath, refreshTag: undefined}
+      : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const loadingPathID = Constants.makeInProcessID('folderList')
 
-    if (refreshTag) {
-      if (folderListRefreshTags.get(refreshTag) === rootPath) {
-        // We are already subscribed; so don't fire RPC.
-        return
-      }
-
-      folderListRefreshTags.set(refreshTag, rootPath)
+  if (refreshTag) {
+    if (folderListRefreshTags.get(refreshTag) === rootPath) {
+      // We are already subscribed; so don't fire RPC.
+      return
     }
 
+    folderListRefreshTags.set(refreshTag, rootPath)
+  }
+
+  try {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: false}))
+
+    const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
@@ -198,6 +201,8 @@ function* folderList(
     }
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
+  } finally {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: true}))
   }
 }
 

@@ -9,6 +9,11 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
+    "loadingPath": {
+      "path": "Types.Path",
+      "id": "Types.InProcessID",
+      "done": "boolean"
+    },
     "favoritesLoad": {},
     "favoritesLoaded": {
       "private": "I.Map<string, Types.Tlf>",
