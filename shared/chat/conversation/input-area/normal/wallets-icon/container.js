@@ -6,6 +6,7 @@ import * as WalletsGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as WalletConstants from '../../../../../constants/wallets'
+import {isMobile} from '../../../../../constants/platform'
 import WalletsIconRender, {type WalletsIconProps as ViewProps} from '.'
 
 const mapStateToProps = state => ({
@@ -16,6 +17,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   _onClick: (to: string, wasNew: boolean) => {
+    if (isMobile) {
+      // Send form isn't ready on mobile yet
+      return
+    }
     if (wasNew) {
       dispatch(Chat2Gen.createHandleSeeingWallets())
     }
