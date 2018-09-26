@@ -75,7 +75,7 @@ func NewBrowser(
 	return &Browser{
 		tree:  tree,
 		root:  string(gitBranchName),
-		mtime: time.Now(),
+		mtime: c.Author.When,
 	}, nil
 }
 
@@ -185,8 +185,8 @@ func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
 		}
 	}
 
-	// Git doesn't keep track of the mtime anywhere, so just use the
-	// time this browser was created.
+	// Git doesn't keep track of the mtime of individual files
+	// anywhere, so just use the timestamp from the commit.
 	return &browserFileInfo{entry, size, b.mtime}, nil
 }
 
