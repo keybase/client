@@ -137,6 +137,18 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 	return nil
 }
 
+func ExtensionHasTouchID() (enabled bool, err error) {
+	defer kbCtx.Trace("ExtensionHasTouchID", func() error { return err })()
+	gc := globals.NewContext(kbCtx, kbChatCtx)
+	ctx := chat.Context(context.Background(), gc,
+		keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, chat.NewCachingIdentifyNotifier(gc))
+	if _, err := assertLoggedInUID(ctx, gc); err != nil {
+		return enabled, err
+	}
+	enabled, _ = kbCtx.GetEnv().GetConfig().GetBoolAtPath("ui.touchIDEnabled")
+	return enabled, nil
+}
+
 func assertLoggedInUID(ctx context.Context, gc *globals.Context) (uid gregor1.UID, err error) {
 	if !gc.ActiveDevice.HaveKeys() {
 		return uid, libkb.LoginRequiredError{}

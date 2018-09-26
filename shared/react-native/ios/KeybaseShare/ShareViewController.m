@@ -32,6 +32,21 @@ const BOOL isSimulator = NO;
     return self.hasInited && self.convTarget != nil;
 }
 
+- (void)refreshDisplay {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self validateContent];
+    [self reloadConfigurationItems];
+  });
+}
+
+- (void)showFailure {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    InitFailedViewController* initFailed = [[InitFailedViewController alloc] init];
+    [initFailed setDelegate:self];
+    [self pushConfigurationViewController:initFailed];
+  });
+}
+
 // presentationAnimationDidFinish is called after the screen has rendered, and is the recommended place for loading data.
 - (void)presentationAnimationDidFinish {
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
@@ -40,13 +55,8 @@ const BOOL isSimulator = NO;
     NSDictionary* fsPaths = [[FsHelper alloc] setupFs:skipLogFile setupSharedHome:NO];
     KeybaseExtensionInit(fsPaths[@"home"], fsPaths[@"sharedHome"], fsPaths[@"logFile"], @"prod", isSimulator, &error);
     if (error != nil) {
-      dispatch_async(dispatch_get_main_queue(), ^{
-        // If Init failed, then let's throw up our error screen.
-        NSLog(@"Failed to init: %@", error);
-        InitFailedViewController* initFailed = [InitFailedViewController alloc];
-        [initFailed setDelegate:self];
-        [self pushConfigurationViewController:initFailed];
-      });
+       NSLog(@"Failed to init: %@", error);
+      [self showFailure];
       return;
     }
     [self setHasInited:YES]; // Init is complete, we can use this to take down spinner on convo choice row
@@ -64,17 +74,26 @@ const BOOL isSimulator = NO;
     }
     
     LAContext* context = [[LAContext alloc] init];
-    if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error]) {
+    BOOL touchEnabled = NO;
+    KeybaseExtensionHasTouchID(&touchEnabled, &error);
+    if (error != nil) {
+      NSLog(@"failed to check touchID: %@", error);
+      [self showFailure];
+      return;
+    }
+    if (touchEnabled && [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&error]) {
       [context evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
                 localizedReason:@"Unlock Keybase"
                           reply:^(BOOL success, NSError *error) {
                             if (success) {
-                              dispatch_async(dispatch_get_main_queue(), ^{
-                                [self validateContent];
-                                [self reloadConfigurationItems];
-                              });
+                              [self refreshDisplay];
+                            } else {
+                              [self initFailedClosed];
                             }
-                          }];
+                          }
+       ];
+    } else {
+      [self refreshDisplay];
     }
   });
 }

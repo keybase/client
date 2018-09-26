@@ -9,16 +9,26 @@
 #import "InitFailedViewController.h"
 
 @interface InitFailedViewController ()
-
+@property NSString* message;
 @end
 
 @implementation InitFailedViewController
+
+- (InitFailedViewController*)init {
+  [self setMessage:@"Unable to initialize Keybase. Please open the main Keybase app and try again."];
+  return self;
+}
+
+- (InitFailedViewController*)initWithMessage:(NSString*)message {
+  [self setMessage:message];
+  return self;
+}
 
 - (void)viewDidLoad {
   [super viewDidLoad];
   
   UILabel* text = [[UILabel alloc] init];
-  [text setText:@"Unable to initialize Keybase. Please open the main Keybase app and try again."];
+  [text setText:self.message];
   [text setTextAlignment:NSTextAlignmentCenter];
   [text setNumberOfLines:0];
   [text setTranslatesAutoresizingMaskIntoConstraints:NO];

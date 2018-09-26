@@ -14,4 +14,6 @@
 
 @interface InitFailedViewController : UIViewController
 @property (weak) UIViewController<InitFailedViewDelegate> *delegate;
+- (InitFailedViewController*)init;
+- (InitFailedViewController*)initWithMessage:(NSString*)message;
 @end
