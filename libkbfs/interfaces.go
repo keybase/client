@@ -230,11 +230,15 @@ type Node interface {
 	// GetFS returns a file system interface that, if non-nil, should
 	// be used to satisfy any directory-related calls on this Node,
 	// instead of the standard, block-based method of acessing data.
-	GetFS() billy.Filesystem
+	// The provided context will be used, if possible, for any
+	// subsequent calls on the file system.
+	GetFS(ctx context.Context) billy.Filesystem
 	// GetFile returns a file interface that, if non-nil, should be
 	// used to satisfy any file-related calls on this Node, instead of
-	// the standard, block-based method of accessing data.
-	GetFile() billy.File
+	// the standard, block-based method of accessing data.  The
+	// provided context will be used, if possible, for any subsequent
+	// calls on the file.
+	GetFile(ctx context.Context) billy.File
 }
 
 // KBFSOps handles all file system operations.  Expands all indirect

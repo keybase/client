@@ -1199,27 +1199,27 @@ func (mr *MockNodeMockRecorder) Unwrap() *gomock.Call {
 }
 
 // GetFS mocks base method
-func (m *MockNode) GetFS() go_billy_v4.Filesystem {
-	ret := m.ctrl.Call(m, "GetFS")
+func (m *MockNode) GetFS(ctx context.Context) go_billy_v4.Filesystem {
+	ret := m.ctrl.Call(m, "GetFS", ctx)
 	ret0, _ := ret[0].(go_billy_v4.Filesystem)
 	return ret0
 }
 
 // GetFS indicates an expected call of GetFS
-func (mr *MockNodeMockRecorder) GetFS() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFS", reflect.TypeOf((*MockNode)(nil).GetFS))
+func (mr *MockNodeMockRecorder) GetFS(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFS", reflect.TypeOf((*MockNode)(nil).GetFS), ctx)
 }
 
 // GetFile mocks base method
-func (m *MockNode) GetFile() go_billy_v4.File {
-	ret := m.ctrl.Call(m, "GetFile")
+func (m *MockNode) GetFile(ctx context.Context) go_billy_v4.File {
+	ret := m.ctrl.Call(m, "GetFile", ctx)
 	ret0, _ := ret[0].(go_billy_v4.File)
 	return ret0
 }
 
 // GetFile indicates an expected call of GetFile
-func (mr *MockNodeMockRecorder) GetFile() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockNode)(nil).GetFile))
+func (mr *MockNodeMockRecorder) GetFile(ctx interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockNode)(nil).GetFile), ctx)
 }
 
 // MockKBFSOps is a mock of KBFSOps interface

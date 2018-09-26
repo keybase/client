@@ -106,10 +106,10 @@ func (n *nodeStandard) Unwrap() Node {
 	return n
 }
 
-func (n *nodeStandard) GetFS() billy.Filesystem {
+func (n *nodeStandard) GetFS(_ context.Context) billy.Filesystem {
 	return nil
 }
 
-func (n *nodeStandard) GetFile() billy.File {
+func (n *nodeStandard) GetFile(_ context.Context) billy.File {
 	return nil
 }
