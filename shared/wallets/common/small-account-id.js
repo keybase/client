@@ -10,7 +10,11 @@ type SmallAccountIDProps = {
 
 class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boolean}> {
   state = {expanded: false}
-  _expand = () => this.setState(s => (s.expanded ? null : {expanded: true}))
+  _text = React.createRef()
+  _expand = () => {
+    this.setState(s => (s.expanded ? null : {expanded: true}))
+    this._text.current && this._text.current.highlightText()
+  }
 
   componentDidUpdate(prevProps: SmallAccountIDProps) {
     if (prevProps.accountID !== this.props.accountID && this.state.expanded) {
@@ -21,7 +25,9 @@ class SmallAccountID extends React.Component<SmallAccountIDProps, {expanded: boo
   render() {
     return (
       <Kb.Text
+        allowHighlightText={true}
         type="BodySmall"
+        ref={this._text}
         className={this.state.expanded ? '' : 'hover-underline'}
         selectable={this.state.expanded}
         onClick={this.state.expanded ? null : () => this._expand()}
