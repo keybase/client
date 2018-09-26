@@ -93,7 +93,12 @@ const BOOL isSimulator = NO;
                           }
        ];
     } else {
-      [self refreshDisplay];
+      if (error != nil) {
+        NSLog(@"failed to check touch ID available");
+        [self initFailedClosed];
+      } else {
+        [self refreshDisplay];
+      }
     }
   });
 }
