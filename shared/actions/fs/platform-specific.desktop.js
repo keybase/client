@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
@@ -8,6 +9,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
@@ -15,6 +17,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {switchTo, navigateTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -350,6 +353,27 @@ const loadUserFileEdits = (state: TypedState, action) =>
     }
   })
 
+const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
+  const pathItem = path ? state.fs.pathItems.get(path) : undefined
+  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
+  return Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    ...(path
+      ? [
+          Saga.put(
+            navigateTo([
+              Tabs.fsTab,
+              {
+                props: {path},
+                selected,
+              },
+            ])
+          ),
+        ]
+      : []),
+  ])
+}
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
@@ -358,6 +382,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
     yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
