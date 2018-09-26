@@ -213,14 +213,12 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
-export type InProcessID = string
-
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Map<Path, I.Set<InProcessID>>,
+  loadingPaths: I.Map<Path, I.Set<string>>,
   downloads: I.Map<string, Download>,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,

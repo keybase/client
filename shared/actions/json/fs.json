@@ -11,7 +11,7 @@
     },
     "loadingPath": {
       "path": "Types.Path",
-      "id": "Types.InProcessID",
+      "id": "string",
       "done": "boolean"
     },
     "favoritesLoad": {},

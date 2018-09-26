@@ -87,7 +87,7 @@ function* folderList(
     action.type === FsGen.editSuccess
       ? {rootPath: action.payload.parentPath, refreshTag: undefined}
       : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
-  const loadingPathID = Constants.makeInProcessID('folderList')
+  const loadingPathID = Constants.makeUUID()
 
   if (refreshTag) {
     if (folderListRefreshTags.get(refreshTag) === rootPath) {

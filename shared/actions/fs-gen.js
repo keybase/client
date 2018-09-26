@@ -139,7 +139,7 @@ type _LetResetUserBackInPayload = $ReadOnly<{|
 |}>
 type _LoadingPathPayload = $ReadOnly<{|
   path: Types.Path,
-  id: Types.InProcessID,
+  id: string,
   done: boolean,
 |}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
