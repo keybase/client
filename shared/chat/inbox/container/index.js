@@ -1,21 +1,12 @@
 // @flow
-import {debounce} from 'lodash-es'
 import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Inbox from '..'
-import {
-  connect,
-  compose,
-  lifecycle,
-  setDisplayName,
-  withStateHandlers,
-  isMobile,
-} from '../../../util/container'
+import {connect, compose, setDisplayName} from '../../../util/container'
 import type {TypedState} from '../../../util/container'
-import type {RowItemSmall, RowItemBig} from '../index.types'
-import type {Props as _Props} from '../index.types'
+import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
 

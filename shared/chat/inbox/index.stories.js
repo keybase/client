@@ -473,7 +473,6 @@ const teamMemberCounts = {
  * determine if story is 'Empty' teams. This is done because showBuildATeam
  * can't de derived from ownProps.
  */
-let teamsEmpty = false
 
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
