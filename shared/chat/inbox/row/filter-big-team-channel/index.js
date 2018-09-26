@@ -35,7 +35,7 @@ class FilterBigTeamChannel extends PureComponent<Props, State> {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box
-          className="hover_color_blueGrey2"
+          className="hover_background_color_blueGrey2"
           style={collapseStyles([
             styles.filteredRow,
             this.props.isSelected && {backgroundColor: globalColors.blue},

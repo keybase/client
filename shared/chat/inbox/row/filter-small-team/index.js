@@ -3,13 +3,7 @@ import React, {PureComponent} from 'react'
 import {Box, ClickableBox} from '../../../../common-adapters'
 import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from '../avatars'
-import {
-  collapseStyles,
-  desktopStyles,
-  globalStyles,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import {desktopStyles, globalStyles, platformStyles, styleSheetCreate} from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
@@ -39,13 +33,10 @@ class FilterSmallTeam extends PureComponent<Props, State> {
   render() {
     const props = this.props
     return (
-      <ClickableBox
-        onClick={props.onSelectConversation}
-        style={collapseStyles([styles.container, {backgroundColor: props.backgroundColor}])}
-      >
+      <ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Box
-          className="hover_color_blueGrey2"
-          style={collapseStyles([styles.rowContainer, {backgroundColor: props.backgroundColor}])}
+          className="hover_background_color_blueGrey2"
+          style={styles.rowContainer}
           onMouseLeave={this._onMouseLeave}
           onMouseOver={this._onMouseOver}
         >
@@ -66,7 +57,7 @@ class FilterSmallTeam extends PureComponent<Props, State> {
               participants={props.participants}
             />
           )}
-          <Box style={collapseStyles([styles.conversationRow, {backgroundColor: props.backgroundColor}])}>
+          <Box style={styles.conversationRow}>
             <FilteredTopLine
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}

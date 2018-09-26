@@ -8664,6 +8664,10 @@ mem@^4.0.0:
     mimic-fn "^1.0.0"
     p-is-promise "^1.1.0"
 
+memoize-one@^3.1.1:
+  version "3.1.1"
+  resolved "http://registry.npmjs.org/memoize-one/-/memoize-one-3.1.1.tgz#ef609811e3bc28970eac2884eece64d167830d17"
+
 memoize-one@^4.0.2:
   version "4.0.2"
   resolved "https://registry.yarnpkg.com/memoize-one/-/memoize-one-4.0.2.tgz#3fb8db695aa14ab9c0f1644e1585a8806adc1aee"
@@ -11316,6 +11320,10 @@ react-transition-group@^1.1.2:
     prop-types "^15.5.6"
     warning "^3.0.0"
 
+react-virtualized-auto-sizer@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.2.tgz#a61dd4f756458bbf63bd895a92379f9b70f803bd"
+
 react-vis@^1.10.4:
   version "1.11.1"
   resolved "https://registry.yarnpkg.com/react-vis/-/react-vis-1.11.1.tgz#9dca99fd252aacf9a5674ed45b4c40f7c207f26f"
@@ -11345,6 +11353,12 @@ react-waypoint@8.0.3:
   dependencies:
     consolidated-events "^1.1.0 || ^2.0.0"
     prop-types "^15.0.0"
+
+react-window@1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/react-window/-/react-window-1.1.2.tgz#1909e5e9bc0158531c18044b1f06ad91b11291e8"
+  dependencies:
+    memoize-one "^3.1.1"
 
 react@15.5.4:
   version "15.5.4"
