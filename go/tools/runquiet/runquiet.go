@@ -251,7 +251,13 @@ func main() {
 	// RunWithPrivilege enables a single privilege for a function call.
 	// SeIncreaseQuotaPrivilege will only work when elevated
 	err := winio.RunWithPrivilege("SeIncreaseQuotaPrivilege", func() error {
-		return doRun(true)
+		result := doRun(true)
+		if result != nil {
+			// Print this failure but not the RunWithPrivilege result, since
+			// RunWithPrivilege failure is the normal case
+			fmt.Printf("De-elevation failure: %v\n", result)
+		}
+		return result
 	})
 	if err != nil {
 		// This means we weren't elevated, or de-elevation failed. Run without.
