@@ -29,9 +29,12 @@ const mergeProps = (stateProps, dispatchProps) => {
     stateProps.assets.count() > 0 ? stateProps.assets.map((a, index) => index).toArray() : ['notLoadedYet']
   sections.push({data: assets, title: 'Your assets'})
 
-  if (stateProps.pending && stateProps.pending.count() > 0) {
+  if (stateProps.pending && stateProps.pending.size > 0) {
     sections.push({
-      data: stateProps.pending.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray(),
+      data: stateProps.pending
+        .toList()
+        .map(p => ({paymentID: p.id, status: p.statusSimplified}))
+        .toArray(),
       title: 'Pending',
     })
   }
@@ -48,13 +51,14 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const paymentsFromState = memoize((payments: ?I.List<Types.Payment>) => {
-  if (!payments) {
+const paymentsFromState = memoize((paymentsMap: ?I.Map<Types.PaymentID, Types.Payment>) => {
+  if (!paymentsMap) {
     return ['notLoadedYet']
   }
-  if (payments.count() === 0) {
+  if (paymentsMap.size === 0) {
     return ['noPayments']
   }
+  const payments = paymentsMap.toList()
   return payments // payments always have a time
     .sort((p1, p2) => (p2.time && p1.time && p2.time - p1.time) || 0)
     .map(p => ({paymentID: p.id, status: p.statusSimplified}))

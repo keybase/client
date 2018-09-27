@@ -382,12 +382,12 @@ const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) => {
   const map = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
-  return map && map.toList()
+  return map
 }
 
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) => {
   const map = state.wallets.pendingMap.get(accountID || getSelectedAccount(state), null)
-  return map && map.toList()
+  return map
 }
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
