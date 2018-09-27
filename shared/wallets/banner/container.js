@@ -8,12 +8,12 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps) => ({})
 
-// $FlowIssue TODO
 export default compose(
   connect(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
+  // $FlowIssue TODO
   setDisplayName('Banner')
 )(Banner)

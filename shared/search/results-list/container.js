@@ -56,9 +56,10 @@ const Chooser = (props: any) =>
   props.pending ? <Progress style={props.style} /> : <SearchResultsList {...props} />
 
 export default compose(
-  // $FlowIssue
   connect(
+    // $FlowIssue
     mapStateToProps,
+    // $FlowIssue
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
