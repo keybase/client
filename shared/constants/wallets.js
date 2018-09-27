@@ -380,11 +380,15 @@ const getDisplayCurrencies = (state: TypedState) => state.wallets.currencies
 const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
-const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.Map()).toList()
+const getPayments = (state: TypedState, accountID?: Types.AccountID) => {
+  const map = state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), null)
+  return map && map.toList()
+}
 
-const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.Map()).toList()
+const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) => {
+  const map = state.wallets.pendingMap.get(accountID || getSelectedAccount(state), null)
+  return map && map.toList()
+}
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
   state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())

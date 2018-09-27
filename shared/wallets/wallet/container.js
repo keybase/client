@@ -3,6 +3,7 @@ import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/wallets'
+import memoize from 'memoize-one'
 
 import Wallet from '.'
 
@@ -47,14 +48,17 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-const paymentsFromState = (payments: ?I.List<Types.Payment>) => {
+const paymentsFromState = memoize((payments: ?I.List<Types.Payment>) => {
   if (!payments) {
     return ['notLoadedYet']
   }
   if (payments.count() === 0) {
     return ['noPayments']
   }
-  return payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
-}
+  return payments // payments always have a time
+    .sort((p1, p2) => (p2.time && p1.time && p2.time - p1.time) || 0)
+    .map(p => ({paymentID: p.id, status: p.statusSimplified}))
+    .toArray()
+})
 
 export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)
