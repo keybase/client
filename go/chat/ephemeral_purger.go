@@ -207,6 +207,7 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	// Sanity check to force our timer to fire if it hasn't for some reason.
 	head = b.pq.Peek()
 	if head.purgeInfo.NextPurgeTime.Time().Before(b.clock.Now()) {
+		b.Debug(ctx, "Queue resetting timer, head is in the past.")
 		b.resetTimer(ctx, head.purgeInfo)
 	}
 	return nil
