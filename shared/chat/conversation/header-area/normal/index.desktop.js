@@ -4,9 +4,15 @@ import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import type {Props} from './index.types'
 
-const ShhIcon = (props) => (
+const ShhIcon = props => (
   <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} onClick={props.onClick} />
+    <Icon
+      type="iconfont-shh"
+      style={shhIconStyle}
+      color={shhIconColor}
+      fontSize={shhIconFontSize}
+      onClick={props.onClick}
+    />
   </Box>
 )
 

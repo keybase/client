@@ -25,4 +25,8 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(ConfirmSend)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ConfirmSend)

@@ -9,6 +9,8 @@ const mapDispatchToProps = (dispatch: Container.Dispatch, {navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  Screenprotector
-)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Screenprotector)

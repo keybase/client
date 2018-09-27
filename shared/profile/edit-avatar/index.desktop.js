@@ -185,10 +185,10 @@ class EditAvatar extends React.Component<_Props, State> {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
-    let width = AVATAR_SIZE * e.currentTarget.naturalWidth / e.currentTarget.naturalHeight
+    let width = (AVATAR_SIZE * e.currentTarget.naturalWidth) / e.currentTarget.naturalHeight
 
     if (width < AVATAR_SIZE) {
-      height = AVATAR_SIZE * e.currentTarget.naturalHeight / e.currentTarget.naturalWidth
+      height = (AVATAR_SIZE * e.currentTarget.naturalHeight) / e.currentTarget.naturalWidth
       width = AVATAR_SIZE
     }
 
@@ -342,7 +342,8 @@ class EditAvatar extends React.Component<_Props, State> {
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
             <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
               browse your computer for one
-            </Text>.
+            </Text>
+            .
           </Text>
           <HoverBox
             className={this.state.hasPreview ? 'filled' : ''}

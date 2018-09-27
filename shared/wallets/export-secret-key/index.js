@@ -19,7 +19,10 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
   render() {
     const header = (
       <React.Fragment>
-        <Text type="BodySmallSemibold">{this.props.username}’s account</Text>
+        <Text type="BodySmallSemibold">
+          {this.props.username}
+          ’s account
+        </Text>
         <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key
         </Text>

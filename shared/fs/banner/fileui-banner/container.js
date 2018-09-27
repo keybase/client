@@ -48,7 +48,11 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      connect(mapStateToProps, mapDispatchToProps, mergeProps),
+      connect(
+        mapStateToProps,
+        mapDispatchToProps,
+        mergeProps
+      ),
       setDisplayName('FilesBanner'),
       lifecycle({
         componentDidMount() {

@@ -98,9 +98,9 @@ const defaultNumFileOptionsShown = 3
 
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.updates
-      .slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown)
-      .map(u => <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />)}
+    {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
+      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
+    ))}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
       <FileUpdatesShowAll

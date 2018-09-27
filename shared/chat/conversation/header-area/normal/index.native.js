@@ -48,7 +48,7 @@ const Wrapper = (props: {
   </Box2>
 )
 
-const ShhIcon = (props) => (
+const ShhIcon = props => (
   <Icon
     type="iconfont-shh"
     style={iconCastPlatformStyles(styles.shhIcon)}
@@ -68,7 +68,8 @@ const ChannelHeader = (props: Props) => (
         ellipsizeMode="middle"
         style={{color: props.smallTeam ? globalColors.black_75 : globalColors.black_40}}
       >
-        &nbsp;{props.teamName}
+        &nbsp;
+        {props.teamName}
       </Text>
       {props.smallTeam && props.muted && <ShhIcon onClick={props.unMuteConversation} />}
     </Box2>

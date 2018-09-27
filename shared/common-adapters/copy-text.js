@@ -112,7 +112,11 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const CopyText = compose(
-  connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    () => ({}),
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   setDisplayName('CopyText'),
   HOCTimers
 )(_CopyText)

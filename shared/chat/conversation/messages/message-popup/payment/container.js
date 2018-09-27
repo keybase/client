@@ -89,7 +89,11 @@ const sendMergeProps = (stateProps, _, ownProps: SendOwnProps) => {
   }
 }
 
-const SendPaymentPopup = Container.connect(sendMapStateToProps, () => ({}), sendMergeProps)(PaymentPopup)
+const SendPaymentPopup = Container.connect(
+  sendMapStateToProps,
+  () => ({}),
+  sendMergeProps
+)(PaymentPopup)
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state: Container.TypedState, ownProps: RequestOwnProps) => ({

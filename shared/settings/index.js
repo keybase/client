@@ -31,4 +31,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 // $FlowIssue fix badgeNumbers
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SettingsContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SettingsContainer)

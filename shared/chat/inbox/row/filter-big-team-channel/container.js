@@ -27,4 +27,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: stateProps.teamname || '',
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(FilterBigTeamChannel)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(FilterBigTeamChannel)

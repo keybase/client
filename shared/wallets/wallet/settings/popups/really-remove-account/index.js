@@ -73,7 +73,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
           One last thing! Make sure you keep a copy of your secret key before removing{' '}
           <Kb.Text type="HeaderItalic" style={styles.warningText}>
             {this.props.name}
-          </Kb.Text>.
+          </Kb.Text>
+          .
         </Kb.Text>
         <Kb.Text type="BodySmall" style={styles.warningText}>
           Paste it in a 100% safe place.

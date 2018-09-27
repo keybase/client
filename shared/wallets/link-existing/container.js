@@ -53,4 +53,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onBack: ownProps.routeProps.get('backButton') ? dispatchProps.onCancel : undefined,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LinkExisting)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(LinkExisting)

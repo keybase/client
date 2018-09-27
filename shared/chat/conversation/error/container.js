@@ -22,4 +22,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   text: stateProps.text,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Error)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Error)

@@ -114,7 +114,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   sendButtonLabel: stateProps.sendButtonLabel || '',
 })
 
-const ConnectedAccountPayment = Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(
-  AccountPayment
-)
+const ConnectedAccountPayment = Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(AccountPayment)
 export default ConnectedAccountPayment

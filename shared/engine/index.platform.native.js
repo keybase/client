@@ -16,8 +16,7 @@ const nativeBridge: {
   eventName: string,
   start: () => void,
   reset: () => void,
-} =
-  NativeModules.KeybaseEngine
+} = NativeModules.KeybaseEngine
 const RNEmitter: {
   addListener: (string, (string) => void) => void,
 } = new NativeEventEmitter(nativeBridge)

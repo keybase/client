@@ -183,6 +183,10 @@ export default compose(
   SecurityPrefsPromptingHoc,
   FilesLoadingHoc,
   // $FlowIssue @jzila lots of exposed flow issues here
-  connect(mapStateToProps, () => ({}), mergeProps),
+  connect(
+    mapStateToProps,
+    () => ({}),
+    mergeProps
+  ),
   setDisplayName('Files')
 )(Files)

@@ -84,7 +84,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
-      const usedPercent = Math.round(100 * usageBytes / limitBytes)
+      const usedPercent = Math.round((100 * usageBytes) / limitBytes)
       if (notification.errorType === kbfsCommonFSErrorType.overQuota) {
         return {
           title: 'Keybase: Out of space',

@@ -29,6 +29,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   safeSubmitPerMount(['onSelect', 'onBack'])
 )(SelectOtherDevice)

@@ -64,4 +64,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ProveEnterUsernameContainer)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ProveEnterUsernameContainer)

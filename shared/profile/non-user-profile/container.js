@@ -39,4 +39,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onStartChat: () => dispatchProps._onStartChat(stateProps.fullUsername),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(NonUserProfile)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(NonUserProfile)

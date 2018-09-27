@@ -108,4 +108,11 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
 }
 
 // $FlowIssue this type is messed up, TODO cleanup
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), HeaderHoc)(TeamMember)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  HeaderHoc
+)(TeamMember)
