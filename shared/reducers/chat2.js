@@ -577,7 +577,10 @@ const rootReducer = (state: Types.State = initialState, action: Chat2Gen.Actions
 
       return state.withMutations(s => {
         s.set('messageMap', messageMap)
-        s.set('messageOrdinals', messageOrdinals)
+        // only if different
+        if (!state.messageOrdinals.equals(messageOrdinals)) {
+          s.set('messageOrdinals', messageOrdinals)
+        }
         s.set('pendingOutboxToOrdinal', pendingOutboxToOrdinal)
       })
     }
