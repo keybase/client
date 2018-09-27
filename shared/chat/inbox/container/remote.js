@@ -51,7 +51,7 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
         return false
       }
     })
-    .slice(maxShownConversations)
+    .slice(0, maxShownConversations)
     .valueSeq()
     .toArray()
 )
