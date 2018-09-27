@@ -1324,35 +1324,30 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
-	// Only do this check if there is a chance the TLF name might be an SBS
-	// name. Only attempt this if we are online
-	if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-		infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
-		var info *types.NameInfo
-		var ierr error
-		// If we are of type TEAM, it's possible that our subteam has been
-		// renamed so we have to rely on the Tlfid, not the TLFName to get the
-		// latest info.
-		switch conversationRemote.GetMembersType() {
-		case chat1.ConversationMembersType_TEAM:
-			info, ierr = infoSource.LookupName(ctx,
-				conversationLocal.Info.Triple.Tlfid,
-				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
-		default:
+	infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
+	var info *types.NameInfo
+	var ierr error
+	switch conversationRemote.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		info, ierr = infoSource.LookupName(ctx,
+			conversationLocal.Info.Triple.Tlfid,
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
+	default:
+		if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
 			info, ierr = infoSource.LookupID(ctx,
 				conversationLocal.Info.TLFNameExpanded(),
 				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 		}
-		if ierr != nil {
-			errMsg := ierr.Error()
-			conversationLocal.Error = chat1.NewConversationErrorLocal(
-				errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT,
-				nil)
-			return conversationLocal
-		}
-		// Not sure about the utility of this TlfName assignment, but the previous code did this:
-		conversationLocal.Info.TlfName = info.CanonicalName
 	}
+	if ierr != nil {
+		errMsg := ierr.Error()
+		conversationLocal.Error = chat1.NewConversationErrorLocal(
+			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT,
+			nil)
+		return conversationLocal
+	}
+	// Not sure about the utility of this TlfName assignment, but the previous code did this:
+	conversationLocal.Info.TlfName = info.CanonicalName
 
 	// Form the writers name list, either from the active list + TLF name, or from the
 	// channel information for a team chat
