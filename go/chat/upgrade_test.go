@@ -151,5 +151,5 @@ func TestChatKBFSUpgradeBadteam(t *testing.T) {
 	_, err = loader.loadTeam(context.TODO(), chat1.TLFID(tlfID.ToBytes()), conv.TlfName,
 		chat1.ConversationMembersType_IMPTEAMUPGRADE, false, nil)
 	require.Error(t, err)
-	require.IsType(t, ImpteamUpgradeBadteamError{}, err)
+	require.IsType(t, ImpteamBadteamError{}, err)
 }
