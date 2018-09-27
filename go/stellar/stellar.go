@@ -1170,7 +1170,7 @@ func ChatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 	name := strings.Join([]string{m.CurrentUsername().String(), recipient.User.Username.String()}, ",")
 
 	msg := chat1.MessageSendPayment{
-		PaymentID: stellar1.PaymentID{TxID: txID},
+		PaymentID: stellar1.NewPaymentID(txID),
 	}
 
 	body := chat1.NewMessageBodyWithSendpayment(msg)

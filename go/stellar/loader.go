@@ -203,9 +203,9 @@ func (p *Loader) runRequests() {
 func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	ctx := context.Background()
 	s := getGlobal(p.G())
-	details, err := s.remoter.PaymentDetails(ctx, id.TxID.String())
+	details, err := s.remoter.PaymentDetails(ctx, id.String())
 	if err != nil {
-		p.G().GetLog().CDebugf(ctx, "error getting payment details for %s: %s", id.TxID, err)
+		p.G().GetLog().CDebugf(ctx, "error getting payment details for %s: %s", id, err)
 		return
 	}
 
@@ -213,7 +213,7 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	oc := NewOwnAccountLookupCache(ctx, m.G())
 	summary, err := TransformPaymentSummaryGeneric(m, details.Summary, oc)
 	if err != nil {
-		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id.TxID, err)
+		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id, err)
 		return
 	}
 
@@ -291,11 +291,11 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	p.Unlock()
 
 	if !ok {
-		m.CDebugf("not sending payment chat notification for %s (no associated convID, msgID)", id.TxID)
+		m.CDebugf("not sending payment chat notification for %s (no associated convID, msgID)", id)
 		return
 	}
 
-	m.CDebugf("sending chat notification for payment %s to %s, %s", id.TxID, msg.convID, msg.msgID)
+	m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)

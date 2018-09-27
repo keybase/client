@@ -69,8 +69,8 @@ func (v conversationInfoListView) show(g *libkb.GlobalContext) error {
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		8, // vis
+		5,                                 // visualIndex
+		8,                                 // vis
 		flexibletable.ExpandableWrappable, // participants
 		flexibletable.ExpandableWrappable, // reset
 	}); err != nil {
@@ -314,8 +314,8 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 	}
 
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		1, // unread
+		5,                                     // visualIndex
+		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // convName
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
@@ -411,8 +411,8 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 		})
 	}
 	if err := table.Render(ui.OutputWriter(), " ", w, []flexibletable.ColumnConstraint{
-		5, // visualIndex
-		1, // unread
+		5,                                     // visualIndex
+		1,                                     // unread
 		flexibletable.ColumnConstraint(w / 5), // authorAndTime
 		flexibletable.ColumnConstraint(w / 5), // ephemeralInfo
 		flexibletable.ColumnConstraint(w / 5), // reactionInfo
@@ -510,7 +510,7 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.TxID.String())
+	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.String())
 	if err != nil {
 		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"

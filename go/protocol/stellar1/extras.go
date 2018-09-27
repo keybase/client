@@ -40,6 +40,10 @@ func (k KeybaseTransactionID) IsNil() bool {
 	return len(k) == 0
 }
 
+func TransactionIDFromPaymentID(p PaymentID) TransactionID {
+	return TransactionID(p)
+}
+
 func (t TransactionID) String() string {
 	return string(t)
 }
@@ -222,9 +226,17 @@ func (t TransactionStatus) Details(errMsg string) (status, detail string) {
 
 func NewPaymentLocal(txid TransactionID, ctime TimeMs) *PaymentLocal {
 	return &PaymentLocal{
-		Id:   PaymentID{TxID: txid},
+		Id:   NewPaymentID(txid),
 		Time: ctime,
 	}
+}
+
+func NewPaymentID(txid TransactionID) PaymentID {
+	return PaymentID(txid)
+}
+
+func (p PaymentID) String() string {
+	return string(p)
 }
 
 func (p *PaymentSummary) ToDetails() *PaymentDetails {

@@ -258,10 +258,7 @@
           "name": "cursor"
         },
         {
-          "type": [
-            null,
-            "PaymentID"
-          ],
+          "type": "PaymentID",
           "name": "oldestUnread"
         }
       ]
