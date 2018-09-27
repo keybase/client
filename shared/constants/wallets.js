@@ -22,7 +22,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 })
 
 const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
-  amount: '0',
+  amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   publicMemo: new HiddenString(''),
@@ -157,7 +157,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetAccountID: '',
   targetType: '',
-  time: 0,
+  time: null,
   txID: '',
   worth: '',
   worthCurrency: '',
@@ -389,6 +389,8 @@ const getSecretKey = (state: TypedState, accountID: Types.AccountID) =>
     ? state.wallets.exportedSecretKey
     : new HiddenString('')
 
+const shortenAccountID = (id: Types.AccountID) => id.substring(0, 8) + '...' + id.substring(48)
+
 const isAccountLoaded = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.accountMap.has(accountID)
 
@@ -441,5 +443,6 @@ export {
   sendReceiveFormRoutes,
   setAccountAsDefaultWaitingKey,
   searchKey,
+  shortenAccountID,
   statusSimplifiedToString,
 }

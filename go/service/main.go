@@ -63,6 +63,7 @@ type Service struct {
 	backgroundIdentifier *BackgroundIdentifier
 	home                 *home.Home
 	tlfUpgrader          *tlfupgrade.BackgroundTLFUpdater
+	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 }
 
@@ -85,6 +86,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		gregor:           newGregorHandler(allG),
 		home:             home.NewHome(g),
 		tlfUpgrader:      tlfupgrade.NewBackgroundTLFUpdater(g),
+		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 	}
 }
@@ -352,6 +354,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runBackgroundWalletInit()
 	d.runBackgroundWalletUpkeep()
 	d.runTLFUpgrade()
+	d.runTeamUpgrader(ctx)
 	go d.identifySelf()
 }
 
@@ -504,6 +507,11 @@ func (d *Service) identifySelf() {
 
 func (d *Service) runTLFUpgrade() {
 	d.tlfUpgrader.Run()
+}
+
+func (d *Service) runTeamUpgrader(ctx context.Context) {
+	d.teamUpgrader.Run(libkb.NewMetaContext(ctx, d.G()))
+	return
 }
 
 func (d *Service) runBackgroundIdentifier() {

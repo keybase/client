@@ -3,6 +3,7 @@ package teams
 import (
 	"encoding/base64"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -30,7 +31,7 @@ func (t *TeamBox) Open(encKey *libkb.NaclDHKeyPair) (keybase1.PerTeamKeySeed, er
 	}
 	nei := &libkb.NaclEncryptionInfo{
 		Ciphertext:     ctext,
-		EncryptionType: libkb.KIDNaclDH,
+		EncryptionType: kbcrypto.KIDNaclDH,
 		Nonce:          nonce,
 		Receiver:       encKey.GetKID().ToBytes(),
 		Sender:         t.SenderKID.ToBytes(),

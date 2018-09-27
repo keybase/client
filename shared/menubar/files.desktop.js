@@ -9,6 +9,7 @@ import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 type FileUpdateProps = {|
   name: string,
   tlfType: FsTypes.TlfType,
+  uploading: boolean,
   onClick: () => void,
 |}
 
@@ -33,10 +34,18 @@ type FilesPreviewProps = {|
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
-const FileUpdate = (props: FileUpdateProps) => (
+export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-      <Kb.Icon type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
+      <Kb.Icon
+        type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'}
+        style={Kb.iconCastPlatformStyles(styles.iconStyle)}
+      />
+      {props.uploading && (
+        <Kb.Box style={styles.iconBadgeBox}>
+          <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
+        </Kb.Box>
+      )}
       <Kb.Text type="BodySecondaryLink" style={styles.fileUpdateName}>
         {props.name}
       </Kb.Text>
@@ -54,7 +63,13 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
       isShowingAll: false,
     }
     render() {
-      return <ComposedComponent {...this.props} onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})} isShowingAll={this.state.isShowingAll} />
+      return (
+        <ComposedComponent
+          {...this.props}
+          onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})}
+          isShowingAll={this.state.isShowingAll}
+        />
+      )
     }
   }
 
@@ -71,7 +86,9 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false}>
     <Kb.ClickableBox onClick={props.onShowAll} className="toggleButtonClass" style={styles.toggleButton}>
       <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
-        {props.isShowingAll ? 'Collapse' : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
+        {props.isShowingAll
+          ? 'Collapse'
+          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       </Kb.Text>
     </Kb.ClickableBox>
   </Kb.Box2>
@@ -79,14 +96,18 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
 
 const defaultNumFileOptionsShown = 3
 
-const FileUpdates = (props: (FileUpdatesProps & FileUpdatesHocProps)) => (
+const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
-    ))}
+    {props.updates
+      .slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown)
+      .map(u => <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />)}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
-      <FileUpdatesShowAll onShowAll={props.onShowAll} isShowingAll={props.isShowingAll} numUpdates={props.updates.length} />
+      <FileUpdatesShowAll
+        onShowAll={props.onShowAll}
+        isShowingAll={props.isShowingAll}
+        numUpdates={props.updates.length}
+      />
     )}
   </Kb.Box2>
 )
@@ -200,4 +221,15 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
+  iconBadge: {
+    width: 12,
+    height: 12,
+  },
+  iconBadgeBox: {
+    marginLeft: -12,
+    marginRight: 12,
+    marginTop: 12,
+    width: 0,
+    zIndex: 100,
+  },
 })

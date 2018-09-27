@@ -878,7 +878,7 @@ func identifyRecipient(m libkb.MetaContext, assertion string, isCLI bool) (keyba
 	if err != nil {
 		return keybase1.TLFIdentifyFailure{}, err
 	}
-	m.CDebugf("identifyRecipient: resp: %+v", *resp)
+	m.CDebugf("identifyRecipient: uv: %v", resp.Upk.Current.ToUserVersion())
 
 	var frep keybase1.TLFIdentifyFailure
 	frep.User = keybase1.User{

@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,12 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/clockwork"
-
-	"github.com/keybase/client/go/teams"
-
-	"encoding/hex"
-
 	"github.com/keybase/client/go/chat/attachments"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -27,6 +22,8 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
+	"github.com/keybase/clockwork"
 	"golang.org/x/net/context"
 )
 

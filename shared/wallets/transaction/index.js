@@ -9,6 +9,7 @@ import {formatTimeForMessages, formatTimeForStellarTooltip} from '../../util/tim
 
 type CounterpartyIconProps = {|
   large: boolean,
+  onShowProfile: string => void,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
 |}
@@ -17,7 +18,13 @@ export const CounterpartyIcon = (props: CounterpartyIconProps) => {
   const size = props.large ? 48 : 32
   switch (props.counterpartyType) {
     case 'keybaseUser':
-      return <Avatar username={props.counterparty} size={size} />
+      return (
+        <Avatar
+          onClick={() => props.onShowProfile(props.counterparty)}
+          username={props.counterparty}
+          size={size}
+        />
+      )
     case 'stellarPublicKey':
       return <Icon type="icon-placeholder-secret-user-48" style={{height: size, width: size}} />
     case 'otherAccount':
@@ -40,7 +47,7 @@ type StellarPublicKeyProps = {|
 const StellarPublicKey = (props: StellarPublicKeyProps) => {
   const key = props.publicKey
   return (
-    <Text type={props.textType} title={key}>
+    <Text type={props.textType} selectable={props.showFullKey} title={key}>
       {props.showFullKey ? key : key.substr(0, 6) + '...' + key.substr(-5)}
     </Text>
   )
@@ -50,6 +57,7 @@ type CounterpartyTextProps = {|
   large: boolean,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
   showFullKey: boolean,
   textType?: 'Body' | 'BodySmall' | 'BodySemibold',
   textTypeSemibold?: 'BodySemibold' | 'BodySmallSemibold',
@@ -68,7 +76,9 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
           colorFollowing={true}
           colorBroken={true}
           inline={true}
+          onUsernameClicked={props.onShowProfile}
           type={textTypeSemibold}
+          underline={true}
           usernames={[props.counterparty]}
         />
       )
@@ -81,11 +91,7 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
         />
       )
     case 'otherAccount':
-      return props.large ? (
-        <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
-      ) : (
-        <Text type={'BodySmallSemiboldItalic'}>{props.counterparty}</Text>
-      )
+      return <Text type={textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
       /*::
       declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
@@ -104,6 +110,8 @@ type DetailProps = {|
   counterpartyType: Types.CounterpartyType,
   amountUser: string,
   isXLM: boolean,
+  onShowProfile: string => void,
+  selectableText: boolean,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -112,13 +120,13 @@ const Detail = (props: DetailProps) => {
   const textTypeExtrabold = props.large ? 'BodyExtrabold' : 'BodySmallExtrabold'
 
   const amount = props.isXLM ? (
-    <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+    <Text selectable={props.selectableText} type={textTypeExtrabold}>
       {props.amountUser}
     </Text>
   ) : (
     <React.Fragment>
       Lumens worth{' '}
-      <Text onClick={event => event.stopPropagation()} selectable={true} type={textTypeExtrabold}>
+      <Text selectable={true} type={textTypeExtrabold}>
         {props.amountUser}
       </Text>
     </React.Fragment>
@@ -129,6 +137,7 @@ const Detail = (props: DetailProps) => {
       counterparty={props.counterparty}
       counterpartyType={props.counterpartyType}
       large={props.large}
+      onShowProfile={props.onShowProfile}
       showFullKey={false}
       textType={textType}
       textTypeSemibold={textTypeSemibold}
@@ -188,6 +197,7 @@ type AmountXLMProps = {|
   yourRole: Types.Role,
   amountXLM: string,
   pending: boolean,
+  selectableText: boolean,
 |}
 
 const roleToColor = (role: Types.Role): string => {
@@ -229,12 +239,7 @@ const AmountXLM = (props: AmountXLMProps) => {
 
   const amount = getAmount(props.yourRole, props.amountXLM)
   return (
-    <Text
-      onClick={event => event.stopPropagation()}
-      selectable={true}
-      style={{color, textAlign: 'right'}}
-      type="BodyExtrabold"
-    >
+    <Text selectable={props.selectableText} style={{color, textAlign: 'right'}} type="BodyExtrabold">
       {amount}
     </Text>
   )
@@ -243,8 +248,8 @@ const AmountXLM = (props: AmountXLMProps) => {
 type TimestampLineProps = {|
   error: string,
   status: Types.StatusSimplified,
-  timestamp: Date | null,
-  relative: boolean,
+  timestamp: ?Date,
+  selectableText: boolean,
 |}
 
 export const TimestampLine = (props: TimestampLineProps) => {
@@ -256,16 +261,12 @@ export const TimestampLine = (props: TimestampLineProps) => {
     )
   }
   if (!props.timestamp) {
-    return (
-      <Text type="BodySmall">
-        {props.relative ? 'Pending' : "The Stellar network hasn't confirmed your transaction."}
-      </Text>
-    )
+    return <Text type="BodySmall">The Stellar network hasn't confirmed your transaction.</Text>
   }
   const human = formatTimeForMessages(props.timestamp)
   const tooltip = props.timestamp ? formatTimeForStellarTooltip(props.timestamp) : ''
   return (
-    <Text title={tooltip} type="BodySmall">
+    <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
     </Text>
   )
@@ -283,6 +284,8 @@ export type Props = {|
   onCancelPayment?: () => void,
   onRetryPayment?: () => void,
   onSelectTransaction?: () => void,
+  onShowProfile: string => void,
+  selectableText: boolean,
   status: Types.StatusSimplified,
   statusDetail: string,
   // A null timestamp means the transaction is still pending.
@@ -309,11 +312,12 @@ export const Transaction = (props: Props) => {
             counterparty={props.counterparty}
             counterpartyType={props.counterpartyType}
             large={props.large}
+            onShowProfile={props.onShowProfile}
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
               error={props.statusDetail}
-              relative={true}
+              selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
             />
@@ -325,6 +329,8 @@ export const Transaction = (props: Props) => {
               counterpartyType={props.counterpartyType}
               amountUser={props.amountUser || props.amountXLM}
               isXLM={!props.amountUser}
+              onShowProfile={props.onShowProfile}
+              selectableText={props.selectableText}
             />
             {// TODO: Consolidate memo display code below with
             // chat/conversation/messages/wallet-payment/index.js.
@@ -339,7 +345,12 @@ export const Transaction = (props: Props) => {
                 <Markdown allowFontScaling={true}>{props.memo}</Markdown>
               </Box2>
             )}
-            <AmountXLM pending={pending} yourRole={props.yourRole} amountXLM={props.amountXLM} />
+            <AmountXLM
+              selectableText={props.selectableText}
+              pending={pending}
+              yourRole={props.yourRole}
+              amountXLM={props.amountXLM}
+            />
           </Box2>
         </Box2>
       </ClickableBox>

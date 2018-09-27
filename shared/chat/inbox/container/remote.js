@@ -20,10 +20,38 @@ export type RemoteConvMeta = $Diff<
 // To cache the list
 const valuesCached = memoize((...vals) => vals.map(v => v))
 
-const metaMapToFirstValues = memoize(metaMap =>
+const metaMapToFirstValues = memoize((metaMap, _lastState) =>
   metaMap
-    .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
-    .filter((_, id) => Constants.isValidConversationIDKey(id))
+    .partialSort(maxShownConversations * 10, (a, b) => b.timestamp - a.timestamp)
+    .filter((meta, id) => {
+      if (Constants.isValidConversationIDKey(id)) {
+        return false
+      }
+      if (meta.teamType === 'adhoc') {
+        // DM's
+        return !meta.isMuted
+      }
+      if (!meta.teamType === 'big') {
+        return false
+      }
+
+      // channels
+      if (!meta.notificationsGlobalIgnoreMentions) {
+        // @here and @mention not ignored
+        if (meta.notificationsDesktop === 'onAnyActivity') {
+          return true
+        } else if (meta.notificationsDesktop === 'onWhenAtMentioned') {
+          // check if user has been mentioned in the message
+          let snippet = meta.snippet.toLowerCase()
+          return (
+            (!!_lastState.config.username && snippet.indexOf(`@${_lastState.config.username}`) === 0) ||
+            snippet.indexOf('you') === 0
+          )
+        }
+        return false
+      }
+    })
+    .slice(0, maxShownConversations)
     .valueSeq()
     .toArray()
 )
@@ -32,7 +60,7 @@ const metaMapToFirstValues = memoize(metaMap =>
 let _lastState: TypedState
 export const conversationsToSend = (state: TypedState) => {
   _lastState = state
-  return valuesCached(...metaMapToFirstValues(state.chat2.metaMap))
+  return valuesCached(...metaMapToFirstValues(state.chat2.metaMap, _lastState))
 }
 
 export const serialize = (m: ChatTypes.ConversationMeta): RemoteConvMeta => {
