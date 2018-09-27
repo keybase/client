@@ -20,8 +20,8 @@ import (
 func TestAutogitNodeWrappersNoRepos(t *testing.T) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	shutdown := StartAutogit(config)
 	defer shutdown()
@@ -71,8 +71,8 @@ func checkAutogitTwoFiles(t *testing.T, rootFS *libfs.FS) {
 func TestAutogitRepoNode(t *testing.T) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	am := NewAutogitManager(config)
 	defer am.Shutdown()
@@ -124,13 +124,40 @@ func TestAutogitRepoNode(t *testing.T) {
 	require.NoError(t, err)
 
 	checkAutogitTwoFiles(t, rootFS)
+
+	t.Log("Switch to branch, check in more files.")
+	wt, err := repo.Worktree()
+	require.NoError(t, err)
+	err = wt.Checkout(&gogit.CheckoutOptions{
+		Branch: "refs/heads/dir/test-branch",
+		Create: true,
+	})
+	require.NoError(t, err)
+	addFileToWorktreeAndCommit(
+		t, ctx, config, h, repo, worktreeFS, "foo3", "hello3")
+	err = wt.Checkout(&gogit.CheckoutOptions{Branch: "refs/heads/master"})
+	require.NoError(t, err)
+	checkAutogitTwoFiles(t, rootFS)
+
+	t.Logf("Check the third file that's only on the branch")
+	f3, err := rootFS.Open(
+		".kbfs_autogit/test/.kbfs_autogit_branch_dir/" +
+			".kbfs_autogit_branch_test-branch/foo3")
+	require.NoError(t, err)
+	defer f3.Close()
+	data3, err := ioutil.ReadAll(f3)
+	require.NoError(t, err)
+	require.Equal(t, "hello3", string(data3))
+
+	err = dotgitFS.SyncAll()
+	require.NoError(t, err)
 }
 
 func TestAutogitRepoNodeReadonly(t *testing.T) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	am := NewAutogitManager(config)
 	defer am.Shutdown()

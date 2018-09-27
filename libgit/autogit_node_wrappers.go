@@ -7,6 +7,7 @@ package libgit
 import (
 	"context"
 	"path"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -49,6 +50,9 @@ const (
 	// AutogitRoot is the subdirectory name within a TLF where autogit
 	// can be accessed.
 	AutogitRoot = ".kbfs_autogit"
+	// AutogitBranchPrefix is a prefix of a subdirectory name
+	// containing one element of a git reference name.
+	AutogitBranchPrefix = ".kbfs_autogit_branch_"
 )
 
 type repoFileNode struct {
@@ -88,6 +92,26 @@ type repoDirNode struct {
 
 var _ libkbfs.Node = (*repoDirNode)(nil)
 
+// ShouldCreateMissedLookup implements the Node interface for
+// repoDirNode.
+func (rdn *repoDirNode) ShouldCreateMissedLookup(
+	ctx context.Context, name string) (
+	bool, context.Context, libkbfs.EntryType, string) {
+	if !strings.HasPrefix(name, AutogitBranchPrefix) {
+		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
+	}
+
+	branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
+	if len(branchName) == 0 {
+		return rdn.Node.ShouldCreateMissedLookup(ctx, name)
+	}
+
+	// It's difficult to tell if a given name is a legitimate prefix
+	// to a branch name or not, so just accept everything.  If it's
+	// not legit, trying to read the data will error out.
+	return true, ctx, libkbfs.FakeDir, ""
+}
+
 func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 	// Make a new Browser for every request, for the sole purpose of
 	// using the appropriate debug tags.
@@ -112,6 +136,19 @@ func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 	child = rdn.Node.WrapChild(child)
 	name := child.GetBasename()
+
+	if rdn.subdir == "" && strings.HasPrefix(name, AutogitBranchPrefix) {
+		branchName := strings.TrimPrefix(name, AutogitBranchPrefix)
+		return &repoDirNode{
+			Node:   child,
+			am:     rdn.am,
+			repoFS: rdn.repoFS,
+			subdir: "",
+			branch: plumbing.ReferenceName(
+				path.Join(string(rdn.branch), branchName)),
+		}
+	}
+
 	// Wrap this child so that it will show all the
 	// repos. TODO(KBFS-3429): fill in context.
 	ctx := context.TODO()
@@ -167,7 +204,7 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		am:     arn.am,
 		repoFS: repoFS.(*libfs.FS),
 		subdir: "",
-		branch: "refs/heads/master",
+		branch: "",
 	}
 }
 

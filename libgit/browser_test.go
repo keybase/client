@@ -22,8 +22,8 @@ import (
 func TestBrowser(t *testing.T) {
 	ctx, config, cancel, tempdir := initConfigForAutogit(t)
 	defer cancel()
-	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 
 	h, err := libkbfs.ParseTlfHandle(
 		ctx, config.KBPKI(), config.MDOps(), "user1", tlf.Private)
@@ -47,7 +47,7 @@ func TestBrowser(t *testing.T) {
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 
 	t.Log("Browse the repo and verify the data.")
-	b, err := NewBrowser(dotgitFS, config.Clock(), "refs/heads/master")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "")
 	require.NoError(t, err)
 	fis, err := b.ReadDir("")
 	require.NoError(t, err)
@@ -84,7 +84,7 @@ func TestBrowser(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		b, err = NewBrowser(dotgitFS, config.Clock(), "refs/heads/master")
+		b, err = NewBrowser(dotgitFS, config.Clock(), "")
 		require.NoError(t, err)
 		fi, err := b.Lstat(link)
 		require.NoError(t, err)

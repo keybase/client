@@ -32,7 +32,10 @@ type Browser struct {
 var _ billy.Filesystem = (*Browser)(nil)
 
 // NewBrowser makes a new Browser instance, browsing the given branch
-// of the given repo.
+// of the given repo.  If `gitBranchName` is empty,
+// "refs/heads/master" is used.  If `gitBranchName` is not empty, but
+// it doesn't begin with "refs/", then "refs/heads/" is prepended to
+// it.
 func NewBrowser(
 	repoFS *libfs.FS, clock libkbfs.Clock,
 	gitBranchName plumbing.ReferenceName) (*Browser, error) {
@@ -52,6 +55,12 @@ func NewBrowser(
 	}
 	if err != nil {
 		return nil, err
+	}
+
+	if gitBranchName == "" {
+		gitBranchName = "refs/heads/master"
+	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
+		gitBranchName = "refs/heads/" + gitBranchName
 	}
 
 	ref, err := repo.Reference(gitBranchName, true)
