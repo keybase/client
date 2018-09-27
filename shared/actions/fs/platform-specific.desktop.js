@@ -341,6 +341,9 @@ const loadUserFileEdits = (state: TypedState, action) =>
         )
         .toArray()
       yield Saga.sequentially([
+        // TODO (songgao): make a new action that accepts an array of updates,
+        // so that we only need to trigger one update through store/rpc/widget
+        // for all these each time.
         ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
@@ -349,41 +352,25 @@ const loadUserFileEdits = (state: TypedState, action) =>
     }
   })
 
-const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) => {
-  let navigation = () => []
-  if (path) {
-    const parentFolder = Types.getPathFromElements(Types.getPathElements(path).slice(0, -1))
-    navigation = () => [
-      Saga.put(
-        navigateTo([
-          Tabs.fsTab,
-          {
-            props: {path: parentFolder},
-            selected: 'folder',
-          },
-        ])
-      ),
-      Saga.put(
-        navigateAppend([
-          {
-            props: {path},
-            selected: type === 'folder' ? 'folder' : 'preview',
-          },
-        ])
-      ),
-    ]
-  } else {
-    navigation = () => [
-      Saga.put(
-        switchTo([Tabs.fsTab])
-      ),
-    ]
-  }
-  return Saga.sequentially([
+const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
+  Saga.sequentially([
     Saga.put(ConfigGen.createShowMain()),
-    ...(navigation()),
+    ...(path
+      ? [Saga.put(
+          navigateTo([
+            Tabs.fsTab,
+            {
+              props: {path: Types.getPathParent(path)},
+              selected: 'folder',
+            },
+            {
+              props: {path},
+              selected: type === 'folder' ? 'folder' : 'preview',
+            },
+          ])
+        )]
+      : [Saga.put(switchTo([Tabs.fsTab]))]),
   ])
-}
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
