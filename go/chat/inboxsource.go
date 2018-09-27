@@ -1344,7 +1344,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			nil)
 		return conversationLocal
 	}
-	// Not sure about the utility of this TlfName assignment, but the previous code did this:
 	conversationLocal.Info.TlfName = info.CanonicalName
 
 	// Form the writers name list, either from the active list + TLF name, or from the
