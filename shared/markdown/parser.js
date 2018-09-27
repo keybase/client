@@ -253,9 +253,9 @@ function peg$parse(input, options) {
           }
           /* ============ */
 
-          /* 
-            From now on we're just deciding what to take off the beginnings / ends 
-            and what to keep. We keep track of what we've trimmed in `trailing` and 
+          /*
+            From now on we're just deciding what to take off the beginnings / ends
+            and what to keep. We keep track of what we've trimmed in `trailing` and
             `leading` and add it back in as plaintext at the end
           */
 
@@ -3331,29 +3331,28 @@ function peg$parse(input, options) {
 
     // Instead of encoding all the bad cases into a more complicated regexp lets just add some simple code here
     // Note: We aren't trying to be 100% perfect here, just getting something that works pretty good and pretty quickly
+    function visit(x, result, strs) {
+      if (Array.isArray(x) ) {
+        for (const y of x) {
+          if (y) {
+            visit(y, result, strs)
+          }
+        }
+      } else if (typeof x === 'string') {
+        strs.push(x)
+      } else {
+        if (strs.length) {
+          result.push(strs.join(''))
+          strs.splice(0)
+        }
+        result.push(x)
+      }
+    }
+
     function flatten (input) {
       const result = []
-      let strs = []
-
-      function visit(x) {
-        if (Array.isArray(x) ) {
-          for (const y of x) {
-            if (y) {
-              visit(y)
-            }
-          }
-        } else if (typeof x === 'string') {
-          strs.push(x)
-        } else {
-          if (strs.length) {
-            result.push(strs.join(''))
-            strs = []
-          }
-          result.push(x)
-        }
-      }
-
-      visit(input)
+      const strs = []
+      visit(input, result, strs)
       if (strs.length) {
         result.push(strs.join(''))
       }
