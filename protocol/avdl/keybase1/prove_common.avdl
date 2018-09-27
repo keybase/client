@@ -122,7 +122,8 @@ protocol proveCommon {
     @jsonkey("display_name")
     string displayName;
     union { null, ProofServiceGroup } group;
-    ParamProofUsernameConfig username;
+    @jsonkey("username")
+    ParamProofUsernameConfig usernameConfig;
     @jsonkey("brand_color")
     string brandColor;
     @jsonkey("prefill_url")

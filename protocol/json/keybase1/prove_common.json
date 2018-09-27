@@ -186,7 +186,8 @@
         },
         {
           "type": "ParamProofUsernameConfig",
-          "name": "username"
+          "name": "usernameConfig",
+          "jsonkey": "username"
         },
         {
           "type": "string",

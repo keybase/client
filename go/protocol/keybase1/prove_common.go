@@ -325,16 +325,16 @@ func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
 }
 
 type ParamProofServiceConfig struct {
-	Version     int                      `codec:"version" json:"version"`
-	Domain      string                   `codec:"domain" json:"domain"`
-	DisplayName string                   `codec:"displayName" json:"display_name"`
-	Group       *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
-	Username    ParamProofUsernameConfig `codec:"username" json:"username"`
-	BrandColor  string                   `codec:"brandColor" json:"brand_color"`
-	PrefillUrl  string                   `codec:"prefillUrl" json:"prefill_url"`
-	ProfileUrl  string                   `codec:"profileUrl" json:"profile_url"`
-	CheckUrl    string                   `codec:"checkUrl" json:"check_url"`
-	CheckPath   []SelectorEntry          `codec:"checkPath" json:"check_path"`
+	Version        int                      `codec:"version" json:"version"`
+	Domain         string                   `codec:"domain" json:"domain"`
+	DisplayName    string                   `codec:"displayName" json:"display_name"`
+	Group          *ProofServiceGroup       `codec:"group,omitempty" json:"group,omitempty"`
+	UsernameConfig ParamProofUsernameConfig `codec:"usernameConfig" json:"username"`
+	BrandColor     string                   `codec:"brandColor" json:"brand_color"`
+	PrefillUrl     string                   `codec:"prefillUrl" json:"prefill_url"`
+	ProfileUrl     string                   `codec:"profileUrl" json:"profile_url"`
+	CheckUrl       string                   `codec:"checkUrl" json:"check_url"`
+	CheckPath      []SelectorEntry          `codec:"checkPath" json:"check_path"`
 }
 
 func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
@@ -349,11 +349,11 @@ func (o ParamProofServiceConfig) DeepCopy() ParamProofServiceConfig {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Group),
-		Username:   o.Username.DeepCopy(),
-		BrandColor: o.BrandColor,
-		PrefillUrl: o.PrefillUrl,
-		ProfileUrl: o.ProfileUrl,
-		CheckUrl:   o.CheckUrl,
+		UsernameConfig: o.UsernameConfig.DeepCopy(),
+		BrandColor:     o.BrandColor,
+		PrefillUrl:     o.PrefillUrl,
+		ProfileUrl:     o.ProfileUrl,
+		CheckUrl:       o.CheckUrl,
 		CheckPath: (func(x []SelectorEntry) []SelectorEntry {
 			if x == nil {
 				return nil

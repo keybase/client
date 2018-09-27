@@ -11,11 +11,13 @@ import (
 )
 
 type SigHint struct {
-	sigID      keybase1.SigID
-	remoteID   string
-	apiURL     string
-	humanURL   string
-	checkText  string
+	sigID     keybase1.SigID
+	remoteID  string
+	apiURL    string
+	humanURL  string
+	checkText string
+	// `isVerified` indicates if the client generated the values or they were
+	// received from the server and are trusted but not verified.
 	isVerified bool
 }
 

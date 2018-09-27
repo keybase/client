@@ -42,7 +42,7 @@ func TestLoadParamServices(t *testing.T) {
 		Re:  "^([a-zA-Z0-9_])+$",
 		Min: 1,
 		Max: 20,
-	}, gubbleConf.Username)
+	}, gubbleConf.UsernameConfig)
 	require.Equal(t, "#33A0FF", gubbleConf.BrandColor)
 
 	serverURI := tc.G.Env.GetServerURI()
