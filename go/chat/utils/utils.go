@@ -1526,9 +1526,10 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+			logger.LogOutputWithDepthAdder{Logger: g.Log},
+			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{})
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
