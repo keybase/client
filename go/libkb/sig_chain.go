@@ -276,7 +276,7 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 	jsonparser.ArrayEach(body, func(value []byte, dataType jsonparser.ValueType, offset int, inErr error) {
 
 		var link *ChainLink
-		if link, err = ImportLinkFromServer(sc.G(), sc, value, selfUID); err != nil {
+		if link, err = ImportLinkFromServer(m, sc, value, selfUID); err != nil {
 			m.CDebugf("ImportLinkFromServer error: %s", err)
 			return
 		}
@@ -446,25 +446,27 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 // Some users (6) managed to reuse eldest keys after a sigchain reset, without
 // using the "eldest" link type, before the server prohibited this. To clients,
 // that means their chains don't appear to reset. We hardcode these cases.
-var hardcodedResets = map[keybase1.SigID]bool{
-	"11111487aa193b9fafc92851176803af8ed005983cad1eaf5d6a49a459b8fffe0f": true,
-	"df0005f6c61bd6efd2867b320013800781f7f047e83fd44d484c2cb2616f019f0f": true,
-	"32eab86aa31796db3200f42f2553d330b8a68931544bbb98452a80ad2b0003d30f": true,
-	"5ed7a3356fd0f759a4498fc6fed1dca7f62611eb14f782a2a9cda1b836c58db50f": true,
-	"d5fe2c5e31958fe45a7f42b325375d5bd8916ef757f736a6faaa66a6b18bec780f": true,
-	"1e116e81bc08b915d9df93dc35c202a75ead36c479327cdf49a15f3768ac58f80f": true,
+const resetReason = "hardcoded reset"
+
+var hardcodedResets = map[keybase1.LinkID]SpecialChainLink{
+	"f6dae096194690cfee8974b0e10a99ecac2cc8e4f9383516a1f626f614e566e0": SpecialChainLink{UID: keybase1.UID("2d5c41137d7d9108dbdaa2160ba7e200"), Seqno: keybase1.Seqno(11), Reason: resetReason},
+	"8d7c1a0c99186f972afc5d3624aca2f88ddc3a5dbf84e826ef0b520c31a78aa3": SpecialChainLink{UID: keybase1.UID("f1c263462dd526695c458af924977719"), Seqno: keybase1.Seqno(18), Reason: resetReason},
+	"b489635b4243ef80836a0c4515ed7e30e146f0041704931df280c72e28e9d0fe": SpecialChainLink{UID: keybase1.UID("8dbf0f1617e285befa93d3da54b68419"), Seqno: keybase1.Seqno(8), Reason: resetReason},
+	"bc898feeb7a2717e23dc1f457dc18902fb9157bf86374b2a0b1aaba4f2831bee": SpecialChainLink{UID: keybase1.UID("372c1cbd72e4f851a74d232478a72319"), Seqno: keybase1.Seqno(2), Reason: resetReason},
+	"91cb1b2c3c76d2ad54be47b034a3f544da9ea8405f6eb68a929ef5fb98914436": SpecialChainLink{UID: keybase1.UID("12e124d5d1ff6179f3aab88100b93d19"), Seqno: keybase1.Seqno(5), Reason: resetReason},
+	"af381fd3a43e22edc2ac1f271e3270b92038e4a820de335d179d34eb780f8796": SpecialChainLink{UID: keybase1.UID("a07089770463db10994c8727177eef19"), Seqno: keybase1.Seqno(12), Reason: resetReason},
 }
 
 // GetCurrentSubchain takes the given sigchain and walks backward until it
 // finds the start of the current subchain, returning all the links in the
 // subchain. See isSubchainStart for the details of the logic here.
-func (sc *SigChain) GetCurrentSubchain(eldest keybase1.KID) (ChainLinks, error) {
-	return cropToRightmostSubchain(sc.chainLinks, eldest)
+func (sc *SigChain) GetCurrentSubchain(m MetaContext, eldest keybase1.KID) (ChainLinks, error) {
+	return cropToRightmostSubchain(m, sc.chainLinks, eldest, sc.uid)
 }
 
 // cropToRightmostSubchain takes the given set of chain links, and then limits the tail
 // of the chain to just those that correspond to the eldest key given by `eldest`.
-func cropToRightmostSubchain(links []*ChainLink, eldest keybase1.KID) (ChainLinks, error) {
+func cropToRightmostSubchain(m MetaContext, links []*ChainLink, eldest keybase1.KID, uid keybase1.UID) (ChainLinks, error) {
 	// Check for a totally empty chain (that is, a totally new account).
 	if len(links) == 0 {
 		return nil, nil
@@ -487,7 +489,7 @@ func cropToRightmostSubchain(links []*ChainLink, eldest keybase1.KID) (ChainLink
 	for i := len(links) - 1; i > 0; i-- {
 		curr := links[i]
 		prev := links[i-1]
-		if isSubchainStart(curr, prev) {
+		if isSubchainStart(m, curr, prev, uid) {
 			return links[i:], nil
 		}
 	}
@@ -522,7 +524,7 @@ func cropToRightmostSubchain(links []*ChainLink, eldest keybase1.KID) (ChainLink
 // Different callers handle those cases differently. (Loading the sigchain from
 // local cache happens before we get the merkle leaf, for example, and so it
 // punts reset-after-latest-link detection to the server loading step).
-func isSubchainStart(currentLink *ChainLink, prevLink *ChainLink) bool {
+func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink, uid keybase1.UID) bool {
 	// case 1 -- unlikely to be hit in practice, because prevLink would be nil
 	if currentLink.GetSeqno() == 1 {
 		return true
@@ -542,8 +544,17 @@ func isSubchainStart(currentLink *ChainLink, prevLink *ChainLink) bool {
 	if !currentLink.ToEldestKID().Equal(prevLink.ToEldestKID()) {
 		return true
 	}
+
 	// case 4
-	return hardcodedResets[currentLink.unpacked.sigID]
+	found, _, err := currentLink.checkSpecialLinksTable(hardcodedResets, uid, "harcoded resets")
+	if err != nil {
+		m.CWarningf("Error in isSubchainStart, will be ignored: %s", err.Error())
+		return false
+	}
+	if found {
+		m.CDebugf("Sigchain playback hit hardcoded reset at %s for %s", currentLink.LinkID(), uid)
+	}
+	return found
 }
 
 // Dump prints the sigchain to the writer arg.
@@ -746,7 +757,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 		return cached, 0, err
 	}
 
-	links, err := cropToRightmostSubchain(sc.chainLinks, eldest)
+	links, err := cropToRightmostSubchain(m, sc.chainLinks, eldest, sc.uid)
 	if err != nil {
 		return cached, 0, err
 	}
@@ -841,7 +852,7 @@ func (sc *SigChain) verifySigsAndComputeKeysHistorical(m MetaContext, allLinks C
 		m.CDebugf("Examining subchain that ends at %d with eldest %s", seqno, eldest)
 
 		var links ChainLinks
-		links, err = cropToRightmostSubchain(allLinks, eldest)
+		links, err = cropToRightmostSubchain(m, allLinks, eldest, sc.uid)
 		if err != nil {
 			m.CInfof("Error backtracking all links from %d: %s", seqno, err)
 			break
@@ -1011,7 +1022,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		}
 
 		links = append(links, prevLink)
-		if l.currentSubchainStart == 0 && isSubchainStart(currentLink, prevLink) {
+		if l.currentSubchainStart == 0 && isSubchainStart(l.M(), currentLink, prevLink, uid) {
 			l.currentSubchainStart = currentLink.GetSeqno()
 		}
 		currentLink = prevLink
