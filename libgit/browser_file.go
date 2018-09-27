@@ -60,17 +60,22 @@ func (bf *browserFile) ReadAt(p []byte, off int64) (n int, err error) {
 		_ = r.Close()
 	}()
 
-	// Skip past the data we don't care about, one chunk at a time.
 	dataToSkip := off
+	bufSize := dataToSkip
+	if bufSize > bf.maxBufSize {
+		bufSize = bf.maxBufSize
+	}
+	buf := make([]byte, bufSize)
+
+	// Skip past the data we don't care about, one chunk at a time.
 	for dataToSkip > 0 {
-		bufSize := dataToSkip
-		if bufSize > bf.maxBufSize {
-			bufSize = bf.maxBufSize
+		toRead := int64(len(buf))
+		if dataToSkip < toRead {
+			toRead = dataToSkip
 		}
 
-		buf := make([]byte, dataToSkip)
 		// Throwaway data.
-		n, err := r.Read(buf)
+		n, err := r.Read(buf[:toRead])
 		if err != nil {
 			return 0, err
 		}
