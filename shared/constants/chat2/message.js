@@ -976,6 +976,7 @@ export const isSpecialMention = (s: string) => ['here', 'channel', 'everyone'].i
 export const upgradeMessage = (_old: ?Types.Message, m: Types.Message, merge: boolean) => {
   if (merge) {
     if (_old) {
+      // $FlowIssue doens't understand mergeWith
       return _old.mergeWith((oldVal, newVal, key) => {
         if (key === 'mentionsAt' || key === 'reactions') {
           return shallowEqual(oldVal, newVal) ? oldVal : newVal
