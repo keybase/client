@@ -5,11 +5,15 @@ import * as Sb from '../../stories/storybook'
 import FollowNotification, {type Props} from '.'
 import moment from 'moment'
 
+// Mock moment.now(), since moment uses this for everything
+// $ForceType
+moment.now = () => 1538066670959
+
 const singleFollowProps1: Props = {
   type: 'notification',
   newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   badged: true,
-  notificationTime: new Date(),
+  notificationTime: moment().toDate(),
   onClickUser: Sb.action('onClickUser'),
 }
 
