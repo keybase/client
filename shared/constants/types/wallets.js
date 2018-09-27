@@ -38,10 +38,10 @@ export const isValidAccountID = (accountID: AccountID) => accountID && accountID
 
 // We treat PaymentIDs from the service as opaque
 export opaque type PaymentID = StellarRPCTypes.PaymentID
-export const noPaymentID: PaymentID = {txID: ''}
+export const noPaymentID: PaymentID = 'NOPAYMENTID'
 export const rpcPaymentIDToPaymentID = (id: StellarRPCTypes.PaymentID): PaymentID => id
 export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentID => id
-export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1.txID === p2.txID
+export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
 export type _Account = {
   accountID: AccountID,
@@ -176,8 +176,8 @@ export type _State = {
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
-  paymentsMap: I.Map<AccountID, I.List<Payment>>,
-  pendingMap: I.Map<AccountID, I.List<Payment>>,
+  paymentsMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
+  pendingMap: I.Map<AccountID, I.Map<PaymentID, Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
   currencies: I.List<Currency>,

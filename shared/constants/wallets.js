@@ -348,18 +348,16 @@ const getDisplayCurrency = (state: TypedState, accountID?: Types.AccountID) =>
   state.wallets.currencyMap.get(accountID || getSelectedAccount(state), makeCurrency())
 
 const getPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state))
+  state.wallets.paymentsMap.get(accountID || getSelectedAccount(state), I.Map()).toList()
 
 const getPendingPayments = (state: TypedState, accountID?: Types.AccountID) =>
-  state.wallets.pendingMap.get(accountID || getSelectedAccount(state))
+  state.wallets.pendingMap.get(accountID || getSelectedAccount(state), I.Map()).toList()
 
 const getPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  state.wallets.paymentsMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
-  makePayment()
+  state.wallets.paymentsMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
 const getPendingPayment = (state: TypedState, accountID: Types.AccountID, paymentID: Types.PaymentID) =>
-  state.wallets.pendingMap.get(accountID, I.List()).find(p => Types.paymentIDIsEqual(p.id, paymentID)) ||
-  makePayment()
+  state.wallets.pendingMap.get(accountID, I.Map()).get(paymentID, makePayment())
 
 const getRequest = (state: TypedState, requestID: RPCTypes.KeybaseRequestID) =>
   state.wallets.requests.get(requestID, null)

@@ -26,22 +26,19 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], I.List(), payments =>
-        payments.update(
-          payments.findIndex(p => Types.paymentIDIsEqual(p.id, action.payload.paymentID)),
-          Constants.makePayment(),
-          payment =>
-            payment.merge({
-              publicMemo: action.payload.publicMemo,
-              publicMemoType: action.payload.publicMemoType,
-              txID: action.payload.txID,
-            })
+      return state.updateIn(['paymentsMap', action.payload.accountID], I.Map(), payments =>
+        payments.update(action.payload.paymentID, Constants.makePayment(), payment =>
+          payment.merge({
+            publicMemo: action.payload.publicMemo,
+            publicMemoType: action.payload.publicMemoType,
+            txID: action.payload.txID,
+          })
         )
       )
     case WalletsGen.paymentsReceived:
       return state
-        .setIn(['paymentsMap', action.payload.accountID], I.List(action.payload.payments))
-        .setIn(['pendingMap', action.payload.accountID], I.List(action.payload.pending))
+        .setIn(['paymentsMap', action.payload.accountID], I.Map(action.payload.payments.map(p => [p.id, p])))
+        .setIn(['pendingMap', action.payload.accountID], I.Map(action.payload.pending.map(p => [p.id, p])))
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:
