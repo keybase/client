@@ -42,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 export default compose(
   withStateHandlers(
-    {name: '__INITIAL_PLACEHOLDER_NAME__'},
+    {name: null},
     {
       onNameChange: () => name => ({name}),
     }
