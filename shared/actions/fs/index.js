@@ -470,23 +470,24 @@ function* ignoreFavoriteSaga(action: FsGen.FavoriteIgnorePayload): Saga.SagaGene
 //   Text/HTML;Charset="utf-8"
 //   text/html; charset="utf-8"
 // The last part is optional, so if `;` is missing, it'd be just the mimetype.
-const extractMimeTypeFromContentType = (contentType: string): string => {
+const extractMimeTypeFromContentType = (contentType, disposition: string): Types.Mime => {
   const ind = contentType.indexOf(';')
-  return (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+  const mimeType = (ind > -1 ? contentType.slice(0, ind) : contentType).toLowerCase()
+  return Constants.makeMime({mimeType, displayPreview: disposition !== 'attachment'})
 }
 
 const getMimeTypePromise = (localHTTPServerInfo: Types._LocalHTTPServer, path: Types.Path) =>
   new Promise((resolve, reject) =>
     getContentTypeFromURL(
       Constants.generateFileURL(path, localHTTPServerInfo),
-      ({error, statusCode, contentType}) => {
+      ({error, statusCode, contentType, disposition}) => {
         if (error) {
           reject(error)
           return
         }
         switch (statusCode) {
           case 200:
-            resolve(extractMimeTypeFromContentType(contentType || ''))
+            resolve(extractMimeTypeFromContentType(contentType || '', disposition || ''))
             return
           case 403:
             reject(Constants.invalidTokenError)
@@ -650,7 +651,7 @@ const openPathItem = (
     let selected = 'preview'
     if (pathItem.type === 'file') {
       let mimeType = pathItem.mimeType
-      if (mimeType === '') {
+      if (mimeType === null) {
         mimeType = yield Saga.call(_loadMimeType, path)
       }
       if (isMobile && Constants.viewTypeFromMimeType(mimeType) === 'image') {

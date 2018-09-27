@@ -155,7 +155,7 @@ type _MimeTypeLoadPayload = $ReadOnly<{|
 |}>
 type _MimeTypeLoadedPayload = $ReadOnly<{|
   path: Types.Path,
-  mimeType: string,
+  mimeType: Types.Mime,
 |}>
 type _NewFolderNamePayload = $ReadOnly<{|
   editID: Types.EditID,

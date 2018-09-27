@@ -60,16 +60,19 @@ function clearAllNotifications() {
 
 const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
   const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
   req.on('response', response => {
     let contentType = ''
+    let disposition = ''
     if (response.statusCode === 200) {
       const contentTypeHeader = response.headers['content-type']
       contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+      const dispositionHeader = response.headers['content-disposition']
+      disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType})
+    cb({statusCode: response.statusCode, contentType, disposition})
   })
   req.on('error', error => cb({error}))
   req.end()
