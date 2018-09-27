@@ -18,7 +18,7 @@ type Props = {
   teamSoFar: Array<{userId: string, prettyName: string, username: string, service: ServiceIdWithContact}>,
   onRemove: (userId: string) => void,
   onBackspace: () => void,
-  clearTextTrigger: number,
+  searchString: string,
 }
 
 const TeamBox = (props: Props) => (
@@ -37,8 +37,8 @@ const TeamBox = (props: Props) => (
       onEnterKeyDown={props.onEnterKeyDown}
       onDownArrowKeyDown={props.onDownArrowKeyDown}
       onUpArrowKeyDown={props.onUpArrowKeyDown}
-      clearTextTrigger={props.clearTextTrigger}
       onBackspace={props.onBackspace}
+      searchString={props.searchString}
     />
   </Kb.Box2>
 )

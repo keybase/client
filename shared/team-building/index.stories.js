@@ -35,10 +35,10 @@ const load = () => {
     .add('Team Building', () => (
       <OutlineWrapper style={{marginTop: 20, width: 460, height: 434}}>
         <TeamBuilding
+          searchString=""
           selectedService="keybase"
           onChangeService={Sb.action('onChangeService')}
           onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
-          clearTextTrigger={0}
           onChangeText={Sb.action('onChangeText')}
           onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
           onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
@@ -117,7 +117,7 @@ const load = () => {
 
     .add('Input', () => (
       <Input
-        clearTextTrigger={0}
+        searchString=""
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
@@ -127,13 +127,13 @@ const load = () => {
     ))
     .add('TeamBox', () => (
       <TeamBox
+        searchString=""
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
         onBackspace={Sb.action('onBackspace')}
         onRemove={Sb.action('onRemove')}
-        clearTextTrigger={0}
         teamSoFar={[
           {
             username: 'max',

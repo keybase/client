@@ -38,7 +38,7 @@ export type Props = {
   searchResults: ?Array<SearchResult>,
   highlightedIndex: ?number,
   onAdd: (userId: string) => void,
-  clearTextTrigger: number,
+  searchString: string,
 }
 
 const TeamBuilding = (props: Props) => (
@@ -46,13 +46,13 @@ const TeamBuilding = (props: Props) => (
     <Kb.Box2 direction="horizontal" fullWidth={true}>
       <TeamBox
         onChangeText={props.onChangeText}
-        clearTextTrigger={props.clearTextTrigger}
         onDownArrowKeyDown={props.onDownArrowKeyDown}
         onUpArrowKeyDown={props.onUpArrowKeyDown}
         onEnterKeyDown={props.onEnterKeyDown}
         onRemove={props.onRemove}
         teamSoFar={props.teamSoFar}
         onBackspace={props.onBackspace}
+        searchString={props.searchString}
       />
       {!!props.teamSoFar.length && <GoButton onClick={props.onFinishTeamBuilding} />}
     </Kb.Box2>

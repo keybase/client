@@ -9,7 +9,7 @@ type Props = {
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
   onBackspace: () => void,
-  clearTextTrigger: number,
+  searchString: string,
 }
 
 const handleKeyDown = (e: any, key: string, props: Props) => {
@@ -30,26 +30,27 @@ const handleKeyDown = (e: any, key: string, props: Props) => {
 
 const Input = (props: Props) => (
   <Kb.Box2 direction="horizontal" style={styles.container}>
-    <Kb.Input
-      hintText={'Find people by name, email, or phone'}
+    <Kb.PlainInput
+      style={styles.input}
+      placeholder={'Find people by name, email, or phone'}
       onChangeText={props.onChangeText}
-      onEnterKeyDown={e => {
-        e.preventDefault()
-        props.onEnterKeyDown()
-      }}
+      value={props.searchString}
+      onEnterKeyDown={props.onEnterKeyDown}
       onKeyDown={e => {
         handleKeyDown(e, e.key, props)
       }}
-      uncontrolled={true}
-      clearTextCounter={props.clearTextTrigger}
-      small={true}
-      hideUnderline={true}
     />
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.tiny,
+      flex: 1,
+    },
+  }),
+  input: Styles.platformStyles({
     common: {
       marginLeft: Styles.globalMargins.tiny,
       flex: 1,

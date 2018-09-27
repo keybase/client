@@ -18,29 +18,25 @@ import type {ServiceIdWithContact, User} from '../constants/types/team-building'
 
 type OwnProps = {
   // Supplied by StateComponent
-  searchString: ?string,
+  searchString: string,
   selectedService: ServiceIdWithContact,
   highlightedIndex: ?number,
-  clearTextTrigger: number,
   onChangeText: (newText: string) => void,
   onChangeService: (newService: ServiceIdWithContact) => void,
   onDownArrowKeyDown: () => void,
   onUpArrowKeyDown: () => void,
-  incClearTextTrigger: () => void,
 }
 
 type LocalState = {
-  searchString: ?string,
+  searchString: string,
   selectedService: ServiceIdWithContact,
   highlightedIndex: ?number,
-  clearTextTrigger: number,
 }
 
 const initialState: LocalState = {
-  searchString: null,
+  searchString: '',
   selectedService: 'keybase',
   highlightedIndex: 0,
-  clearTextTrigger: 0,
 }
 
 const deriveSearchResults = memoizeOne(
@@ -177,7 +173,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ownProps.selectedService
   )
 
-  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.incClearTextTrigger)
+  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, () => ownProps.onChangeText(''))
 
   const onEnterKeyDown = deriveOnEnterKeyDown(
     searchResults,
@@ -188,9 +184,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   )
 
   return {
-    clearTextTrigger: ownProps.clearTextTrigger,
     highlightedIndex: ownProps.highlightedIndex,
     onAdd,
+    searchString: ownProps.searchString,
     onBackspace: deriveOnBackspace(ownProps.searchString, teamSoFar, dispatchProps.onRemove),
     onChangeService: ownProps.onChangeService,
     onChangeText,
@@ -231,9 +227,6 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       highlightedIndex: !state.highlightedIndex ? 0 : state.highlightedIndex - 1,
     }))
 
-  incClearTextTrigger = () =>
-    this.setState((state: LocalState) => ({clearTextTrigger: state.clearTextTrigger + 1, searchString: ''}))
-
   render() {
     return (
       <Connected
@@ -241,11 +234,9 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
         onChangeText={this.onChangeText}
         onDownArrowKeyDown={this.onDownArrowKeyDown}
         onUpArrowKeyDown={this.onUpArrowKeyDown}
-        incClearTextTrigger={this.incClearTextTrigger}
         searchString={this.state.searchString}
         selectedService={this.state.selectedService}
         highlightedIndex={this.state.highlightedIndex}
-        clearTextTrigger={this.state.clearTextTrigger}
       />
     )
   }
