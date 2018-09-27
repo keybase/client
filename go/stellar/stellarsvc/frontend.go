@@ -331,9 +331,13 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 	m := libkb.NewMetaContext(ctx, s.G())
+
+	// TODO: get rate for arg.AccountID
+	var exchRate stellar1.OutsideExchangeRate
+
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
+		page.Payments[i].Payment, err = stellar.TransformPaymentSummaryAccount(m, p, oc, arg.AccountID, exchRate)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -366,10 +370,13 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
+	// TODO: get rate for arg.AccountID
+	var exchRate stellar1.OutsideExchangeRate
+
 	m := libkb.NewMetaContext(ctx, s.G())
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
+		payment, err := stellar.TransformPaymentSummaryAccount(m, p, oc, arg.AccountID, exchRate)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -398,14 +405,18 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	// AccountID argument is optional. We use "" internally, but for
-	// API consumers we expose nullable type.
-	var acctID stellar1.AccountID
-	if arg.AccountID != nil {
-		acctID = *arg.AccountID
-	}
 	m := libkb.NewMetaContext(ctx, s.G())
-	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary, oc)
+	var summary *stellar1.PaymentLocal
+
+	// AccountID argument is optional.
+	if arg.AccountID != nil {
+		// TODO: get rate for arg.AccountID
+		var exchRate stellar1.OutsideExchangeRate
+
+		summary, err = stellar.TransformPaymentSummaryAccount(m, details.Summary, oc, *arg.AccountID, exchRate)
+	} else {
+		summary, err = stellar.TransformPaymentSummaryGeneric(m, details.Summary, oc)
+	}
 	if err != nil {
 		return payment, err
 	}

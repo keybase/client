@@ -11,7 +11,29 @@ import (
 	"github.com/keybase/client/go/stellar/relays"
 )
 
-func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p stellar1.PaymentSummary, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
+// TransformPaymentSummaryGeneric converts a stellar1.PaymentSummary (p) into a
+// stellar1.PaymentLocal, without any modifications based on who is viewing the transaction.
+func TransformPaymentSummaryGeneric(m libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache) (*stellar1.PaymentLocal, error) {
+	var emptyAccountID stellar1.AccountID
+	return transformPaymentSummary(m, p, oc, emptyAccountID, nil /* exchange rate */)
+}
+
+// TransformPaymentSummaryAccount converts a stellar1.PaymentSummary (p) into a
+// stellar1.PaymentLocal, from the perspective of an owner of accountID.
+//
+// exchRate is the current exchange rate from XLM to the "outside" currency
+// that is the preference for accountID.
+func TransformPaymentSummaryAccount(m libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
+	return transformPaymentSummary(m, p, oc, accountID, &exchRate)
+}
+
+// transformPaymentSummary converts a stellar1.PaymentSummary (p) into a stellar1.PaymentLocal.
+// accountID can be empty ("") and exchRate can be nil, if a generic response that isn't tied
+// to an account is necessary.
+//
+// exchRate is the current exchange rate from XLM to the "outside" currency
+// that is the preference for accountID.
+func transformPaymentSummary(m libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
 	typ, err := p.Typ()
 	if err != nil {
 		return nil, err
@@ -19,11 +41,11 @@ func TransformPaymentSummary(m libkb.MetaContext, acctID stellar1.AccountID, p s
 
 	switch typ {
 	case stellar1.PaymentSummaryType_STELLAR:
-		return transformPaymentStellar(m, acctID, p.Stellar(), oc)
+		return transformPaymentStellar(m, accountID, p.Stellar(), oc)
 	case stellar1.PaymentSummaryType_DIRECT:
-		return transformPaymentDirect(m, acctID, p.Direct(), oc)
+		return transformPaymentDirect(m, accountID, p.Direct(), oc)
 	case stellar1.PaymentSummaryType_RELAY:
-		return transformPaymentRelay(m, acctID, p.Relay(), oc)
+		return transformPaymentRelay(m, accountID, p.Relay(), oc)
 	default:
 		return nil, fmt.Errorf("unrecognized payment type: %s", typ)
 	}
