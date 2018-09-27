@@ -41,11 +41,24 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
+  if (!tx.txID || !tx.sourceAccountID) {
+    return {
+      loading: true,
+      onBack: dispatchProps.navigateUp,
+      onLoadPaymentDetail: () =>
+        dispatchProps._onLoadPaymentDetail(
+          ownProps.routeProps.get('accountID'),
+          ownProps.routeProps.get('paymentID')
+        ),
+      title: 'Transaction details',
+    }
+  }
   return {
     ...stateProps.yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
     counterpartyMeta: stateProps.counterpartyMeta,
+    loading: false,
     memo: tx.note.stringValue(),
     onBack: dispatchProps.navigateUp,
     onLoadPaymentDetail: () =>

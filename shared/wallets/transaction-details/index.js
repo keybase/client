@@ -1,18 +1,19 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, Divider, Icon, NameWithIcon, Text} from '../../common-adapters'
+import {Box2, Divider, Icon, NameWithIcon, ProgressIndicator, Text} from '../../common-adapters'
 import {capitalize} from 'lodash-es'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import Transaction, {CounterpartyIcon, CounterpartyText, TimestampLine} from '../transaction'
 import {SmallAccountID} from '../common'
 
-export type Props = {|
+export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  loading: false,
   // Ignored if yourRole is receiver and counterpartyType is
   // stellarPublicKey.
   memo: string,
@@ -33,6 +34,9 @@ export type Props = {|
   you: string,
   yourRole: Types.Role,
 |}
+export type Props =
+  | NotLoadingProps
+  | {|loading: true, onBack: () => void, onLoadPaymentDetail: () => void, title: string|}
 
 type CounterpartyProps = {|
   accountID: ?Types.AccountID,
@@ -115,7 +119,7 @@ const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Ro
   }
 }
 
-const propsToParties = (props: Props) => {
+const propsToParties = (props: NotLoadingProps) => {
   const yourAccountID = props.yourRole === 'senderOnly' ? props.senderAccountID : props.recipientAccountID
   const counterpartyAccountID =
     props.yourRole === 'senderOnly' ? props.recipientAccountID : props.senderAccountID
@@ -164,23 +168,31 @@ class TransactionDetails extends React.Component<Props> {
   }
 
   render() {
-    const {sender, receiver} = propsToParties(this.props)
+    if (this.props.loading) {
+      return (
+        <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <ProgressIndicator style={{width: 50, height: 50}} />
+        </Box2>
+      )
+    }
+    const props: NotLoadingProps = this.props
+    const {sender, receiver} = propsToParties(props)
 
     return (
       <Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
-          amountUser={this.props.amountUser}
-          amountXLM={this.props.amountXLM}
-          counterparty={this.props.counterparty}
-          counterpartyType={this.props.counterpartyType}
+          amountUser={props.amountUser}
+          amountXLM={props.amountXLM}
+          counterparty={props.counterparty}
+          counterpartyType={props.counterpartyType}
           large={true}
-          memo={this.props.memo}
-          onShowProfile={this.props.onShowProfile}
+          memo={props.memo}
+          onShowProfile={props.onShowProfile}
           selectableText={true}
-          status={this.props.status}
-          statusDetail={this.props.statusDetail}
-          timestamp={this.props.timestamp}
-          yourRole={this.props.yourRole}
+          status={props.status}
+          statusDetail={props.statusDetail}
+          timestamp={props.timestamp}
+          yourRole={props.yourRole}
         />
         <Divider />
 
@@ -198,12 +210,12 @@ class TransactionDetails extends React.Component<Props> {
           <Text type="BodySmallSemibold">Status:</Text>
           <Box2 direction="horizontal" fullHeight={true} fullWidth={true} style={styles.statusBox}>
             <Icon
-              color={colorForStatus(this.props.status)}
+              color={colorForStatus(props.status)}
               fontSize={16}
               type={
-                this.props.status === 'error'
+                props.status === 'error'
                   ? 'iconfont-close'
-                  : this.props.status === 'completed'
+                  : props.status === 'completed'
                     ? 'iconfont-success'
                     : 'icon-transaction-pending-16'
               }
@@ -211,19 +223,19 @@ class TransactionDetails extends React.Component<Props> {
             <Text
               style={collapseStyles([
                 styles.statusText,
-                {color: colorForStatus(this.props.status), marginLeft: globalMargins.xtiny},
+                {color: colorForStatus(props.status), marginLeft: globalMargins.xtiny},
               ])}
               type="Body"
             >
-              {descriptionForStatus(this.props.status, this.props.yourRole)}
+              {descriptionForStatus(props.status, props.yourRole)}
             </Text>
           </Box2>
-          {this.props.status !== 'error' && (
+          {props.status !== 'error' && (
             <TimestampLine
-              status={this.props.status}
-              error={this.props.statusDetail}
+              status={props.status}
+              error={props.statusDetail}
               selectableText={true}
-              timestamp={this.props.timestamp}
+              timestamp={props.timestamp}
             />
           )}
         </Box2>
@@ -231,17 +243,17 @@ class TransactionDetails extends React.Component<Props> {
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Public memo:</Text>
           <Text selectable={true} type="Body">
-            {this.props.publicMemo}
+            {props.publicMemo}
           </Text>
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Transaction ID:</Text>
           <Text selectable={true} type="Body">
-            {this.props.transactionID}
+            {props.transactionID}
           </Text>
-          {this.props.onViewTransaction && (
-            <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
+          {props.onViewTransaction && (
+            <Text onClick={props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction
             </Text>
           )}
