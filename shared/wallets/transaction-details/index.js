@@ -171,7 +171,7 @@ class TransactionDetails extends React.Component<Props> {
     if (this.props.loading) {
       return (
         <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-          <ProgressIndicator style={{width: 50, height: 50}} />
+          <ProgressIndicator style={styles.progressIndicator} />
         </Box2>
       )
     }
@@ -273,6 +273,7 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
     marginLeft: globalMargins.tiny,
   },
+  progressIndicator: {height: 50, width: 50},
   rightContainer: {
     flex: 1,
     marginLeft: globalMargins.tiny,
