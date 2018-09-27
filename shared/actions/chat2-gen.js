@@ -63,6 +63,7 @@ export const notificationSettingsUpdated = 'chat2:notificationSettingsUpdated'
 export const openChatFromWidget = 'chat2:openChatFromWidget'
 export const openFolder = 'chat2:openFolder'
 export const paymentInfoReceived = 'chat2:paymentInfoReceived'
+export const prepareFulfillRequestForm = 'chat2:prepareFulfillRequestForm'
 export const previewConversation = 'chat2:previewConversation'
 export const requestInfoReceived = 'chat2:requestInfoReceived'
 export const resetChatWithoutThem = 'chat2:resetChatWithoutThem'
@@ -273,6 +274,10 @@ type _PaymentInfoReceivedPayload = $ReadOnly<{|
   messageID: RPCChatTypes.MessageID,
   paymentInfo: Types.ChatPaymentInfo,
 |}>
+type _PrepareFulfillRequestFormPayload = $ReadOnly<{|
+  conversationIDKey: Types.ConversationIDKey,
+  ordinal: Types.Ordinal,
+|}>
 type _PreviewConversationPayload = $ReadOnly<{|
   participants?: Array<string>,
   teamname?: string,
@@ -388,6 +393,10 @@ export const createMessagesExploded = (payload: _MessagesExplodedPayload) => ({e
  * Handle an update to our conversation exploding modes.
  */
 export const createUpdateConvExplodingModes = (payload: _UpdateConvExplodingModesPayload) => ({error: false, payload, type: updateConvExplodingModes})
+/**
+ * Prime data to fulfill this message's request and navigate to the send form.
+ */
+export const createPrepareFulfillRequestForm = (payload: _PrepareFulfillRequestFormPayload) => ({error: false, payload, type: prepareFulfillRequestForm})
 /**
  * Sent whenever the mobile file picker encounters an error.
  */
@@ -566,6 +575,7 @@ export type NotificationSettingsUpdatedPayload = $Call<typeof createNotification
 export type OpenChatFromWidgetPayload = $Call<typeof createOpenChatFromWidget, _OpenChatFromWidgetPayload>
 export type OpenFolderPayload = $Call<typeof createOpenFolder, _OpenFolderPayload>
 export type PaymentInfoReceivedPayload = $Call<typeof createPaymentInfoReceived, _PaymentInfoReceivedPayload>
+export type PrepareFulfillRequestFormPayload = $Call<typeof createPrepareFulfillRequestForm, _PrepareFulfillRequestFormPayload>
 export type PreviewConversationPayload = $Call<typeof createPreviewConversation, _PreviewConversationPayload>
 export type RequestInfoReceivedPayload = $Call<typeof createRequestInfoReceived, _RequestInfoReceivedPayload>
 export type ResetChatWithoutThemPayload = $Call<typeof createResetChatWithoutThem, _ResetChatWithoutThemPayload>
@@ -650,6 +660,7 @@ export type Actions =
   | OpenChatFromWidgetPayload
   | OpenFolderPayload
   | PaymentInfoReceivedPayload
+  | PrepareFulfillRequestFormPayload
   | PreviewConversationPayload
   | RequestInfoReceivedPayload
   | ResetChatWithoutThemPayload

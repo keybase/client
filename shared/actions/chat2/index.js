@@ -10,12 +10,15 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as RPCGregorTypes from '../../constants/types/rpc-gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as WalletsGen from '../wallets-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
 import * as SearchGen from '../search-gen'
 import * as TeamsGen from '../teams-gen'
 import * as Types from '../../constants/types/chat2'
 import * as FsTypes from '../../constants/types/fs'
+import * as WalletTypes from '../../constants/types/wallets'
+import * as WalletConstants from '../../constants/wallets'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
@@ -30,6 +33,7 @@ import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
+import HiddenString from '../../util/hidden-string'
 import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
@@ -2531,6 +2535,47 @@ const gregorPushState = (state: TypedState, action: GregorGen.PushStatePayload) 
   return Saga.sequentially(actions)
 }
 
+const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFulfillRequestFormPayload) => {
+  const {conversationIDKey, ordinal} = action.payload
+  const message = Constants.getMessage(state, conversationIDKey, ordinal)
+  if (!message) {
+    logger.error(
+      `prepareFulfillRequestForm: couldn't find message. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
+        ordinal
+      )}`
+    )
+    return
+  }
+  if (message.type !== 'requestPayment') {
+    logger.error(
+      `prepareFulfillRequestForm: got message with incorrect type '${
+        message.type
+      }', expected 'requestPayment'. convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(ordinal)}`
+    )
+    return
+  }
+  const requestInfo = Constants.getRequestMessageInfo(state, message)
+  if (!requestInfo) {
+    // This message shouldn't even be rendered; we shouldn't be here, throw error
+    throw new Error(
+      `Couldn't find request info for message in convID=${conversationIDKey} ordinal=${Types.ordinalToNumber(
+        ordinal
+      )}`
+    )
+  }
+  const actions = []
+  if (requestInfo.currencyCode) {
+    actions.push(Saga.put(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})))
+  }
+  actions.push(Saga.put(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount})))
+  actions.push(Saga.put(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}))) // Meaning default account
+  actions.push(Saga.put(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'})))
+  actions.push(Saga.put(WalletsGen.createSetBuildingTo({to: message.author})))
+  actions.push(Saga.put(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)})))
+  actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]})))
+  return Saga.sequentially(actions)
+}
+
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
   // Platform specific actions
   if (isMobile) {
@@ -2677,6 +2722,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
   yield Saga.safeTakeEveryPure(Chat2Gen.setMinWriterRole, setMinWriterRole)
   yield Saga.actionToAction(GregorGen.pushState, gregorPushState)
+  yield Saga.actionToAction(Chat2Gen.prepareFulfillRequestForm, prepareFulfillRequestForm)
 }
 
 export default chat2Saga
