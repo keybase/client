@@ -12,7 +12,7 @@
     "postinstall": "yarn run _helper postinstall",
     "prettier": "./node_modules/.bin/prettier --write ",
     "prettier-check": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier --debug-check",
-    "prettier-write-all": "git ls-files | grep \"\\.js\\(.flow\\)\\?\\$\" | xargs yarn run prettier ",
+    "prettier-write-all": "yarn run _helper prettier-write-all",
     "render-screenshots": "yarn run _helper render-screenshots",
     "test": "cross-env-shell BABEL_ENV=test BABEL_PLATFORM=Electron jest",
     "update-icon-constants": "yarn run _helper update-icon-constants",
