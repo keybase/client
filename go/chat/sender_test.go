@@ -1381,6 +1381,11 @@ func TestPairwiseMACChecker(t *testing.T) {
 		msg.ClientHeader.EphemeralMetadata = ephemeralMetadata
 		_, _, err = blockingSender1.Send(ctx1, conv.Id, msg, 0, nil)
 		require.NoError(t, err)
+		select {
+		case <-listener1.newMessageRemote:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
 
 		// send from user2
 		text2 := "hi2"
