@@ -82,10 +82,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   onSend: () => {
-    if (Styles.isMobile) {
-      // Send form isn't ready on mobile yet
-      return
-    }
     if (ownProps.message.type !== 'requestPayment') {
       throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
     }
