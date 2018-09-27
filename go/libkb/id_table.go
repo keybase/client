@@ -551,7 +551,7 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	w := l.RemoteKeyProofs()
 	ln, err := w.Len()
 	if err != nil {
-		return
+		return nil
 	}
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")

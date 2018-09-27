@@ -23,31 +23,37 @@ type GenericSocialProofConfig struct {
 	usernameRe *regexp.Regexp
 }
 
-func NewGenericSocialProofConfig(config keybase1.ParamProofServiceConfig) (*GenericSocialProofConfig, error) {
+func NewGenericSocialProofConfig(g *libkb.GlobalContext, config keybase1.ParamProofServiceConfig) (*GenericSocialProofConfig, error) {
 	gsConfig := &GenericSocialProofConfig{
 		ParamProofServiceConfig: config,
 	}
-	if err := gsConfig.parseAndValidate(); err != nil {
+	if err := gsConfig.parseAndValidate(g); err != nil {
 		return nil, err
 	}
 	return gsConfig, nil
 }
 
-func (c *GenericSocialProofConfig) parseAndValidate() (err error) {
-	c.usernameRe, err = regexp.Compile(c.Username.Re)
-	if err != nil {
+func (c *GenericSocialProofConfig) parseAndValidate(g *libkb.GlobalContext) (err error) {
+	if c.usernameRe, err = regexp.Compile(c.Username.Re); err != nil {
 		return err
 	}
-
 	if err = c.validatePrefillURL(); err != nil {
 		return err
 	}
-
 	if err = c.validateCheckURL(); err != nil {
 		return err
 	}
 	if err = c.validateProfileURL(); err != nil {
 		return err
+	}
+
+	// In devel, we need to update the config url with the IP for the CI
+	// container.
+	if g.Env.GetRunMode() == libkb.DevelRunMode {
+		serverURI := g.Env.GetServerURI()
+		c.ProfileUrl = strings.Replace(c.ProfileUrl, libkb.DevelServerURI, serverURI, 1)
+		c.PrefillUrl = strings.Replace(c.PrefillUrl, libkb.DevelServerURI, serverURI, 1)
+		c.CheckUrl = strings.Replace(c.CheckUrl, libkb.DevelServerURI, serverURI, 1)
 	}
 
 	return nil
