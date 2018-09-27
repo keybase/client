@@ -33,7 +33,6 @@ import {NotifyPopup} from '../../native/notifications'
 import {saveAttachmentToCameraRoll, downloadAndShowShareActionSheet} from '../platform-specific'
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
-import HiddenString from '../../util/hidden-string'
 import flags from '../../util/feature-flags'
 
 // Ask the service to refresh the inbox
@@ -2571,7 +2570,7 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
   actions.push(Saga.put(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}))) // Meaning default account
   actions.push(Saga.put(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'})))
   actions.push(Saga.put(WalletsGen.createSetBuildingTo({to: message.author})))
-  actions.push(Saga.put(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)})))
+  actions.push(Saga.put(WalletsGen.createSetBuildingSecretNote({secretNote: message.note})))
   actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]})))
   return Saga.sequentially(actions)
 }

@@ -67,7 +67,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: message.note,
+        memo: message.note.stringValue(),
         pending: false,
       }
     }
