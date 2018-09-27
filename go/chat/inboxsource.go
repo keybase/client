@@ -1328,16 +1328,14 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	var info *types.NameInfo
 	var ierr error
 	switch conversationRemote.GetMembersType() {
-	case chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE:
 		info, ierr = infoSource.LookupName(ctx,
 			conversationLocal.Info.Triple.Tlfid,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	default:
-		if !s.offline && s.needsCanonicalize(conversationLocal.Info.TlfName) {
-			info, ierr = infoSource.LookupID(ctx,
-				conversationLocal.Info.TLFNameExpanded(),
-				conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
-		}
+		info, ierr = infoSource.LookupID(ctx,
+			conversationLocal.Info.TLFNameExpanded(),
+			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	}
 	if ierr != nil {
 		errMsg := ierr.Error()
