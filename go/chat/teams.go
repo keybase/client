@@ -437,7 +437,7 @@ func batchLoadEncryptionKIDs(ctx context.Context, g *libkb.GlobalContext, uvs []
 		if i >= len(uvs) {
 			return nil
 		}
-		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid)
+		tmp := libkb.NewLoadUserByUIDArg(ctx, g, uvs[i].Uid).WithPublicKeyOptional()
 		return &tmp
 	}
 
