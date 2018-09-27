@@ -27,18 +27,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
       return state.updateIn(['paymentsMap', action.payload.accountID], I.Map(), payments =>
-        payments.update(action.payload.paymentID, Constants.makePayment(), payment =>
-          payment.merge({
-            publicMemo: action.payload.publicMemo,
-            publicMemoType: action.payload.publicMemoType,
-            txID: action.payload.txID,
-          })
-        )
+        Constants.updatePaymentMap(payments, [action.payload.payment])
       )
     case WalletsGen.paymentsReceived:
       return state
-        .setIn(['paymentsMap', action.payload.accountID], I.Map(action.payload.payments.map(p => [p.id, p])))
-        .setIn(['pendingMap', action.payload.accountID], I.Map(action.payload.pending.map(p => [p.id, p])))
+        .updateIn(['paymentsMap', action.payload.accountID], I.Map(), paymentsMap =>
+          Constants.updatePaymentMap(paymentsMap, action.payload.payments)
+        )
+        .updateIn(['pendingMap', action.payload.accountID], I.Map(), pendingMap =>
+          Constants.updatePaymentMap(pendingMap, action.payload.pending)
+        )
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))
     case WalletsGen.displayCurrencyReceived:

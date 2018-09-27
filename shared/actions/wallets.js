@@ -205,10 +205,7 @@ const loadPaymentDetail = (state: TypedState, action: WalletsGen.LoadPaymentDeta
   }).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
-      paymentID: action.payload.paymentID,
-      publicMemo: new HiddenString(res.publicNote),
-      publicMemoType: res.publicNoteType,
-      txID: res.txID,
+      payment: Constants.paymentDetailResultToPayment(res),
     })
   )
 

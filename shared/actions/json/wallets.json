@@ -135,10 +135,7 @@
     "paymentDetailReceived": {
       "_description": "Update a payment with additional detail",
       "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID",
-      "publicMemo": "HiddenString",
-      "publicMemoType": "string",
-      "txID": "string",
+      "payment": "Types.Payment",
     },
     "paymentsReceived": {
       "_description": "Update our store of payments data",

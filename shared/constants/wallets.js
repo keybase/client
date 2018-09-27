@@ -190,7 +190,19 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
   if (!w.payment) {
     return makePayment({error: w.err})
   }
-  const p = w.payment
+  return makePayment(rpcPaymentToPaymentCommon(w.payment))
+}
+
+const paymentDetailResultToPayment = (p: RPCTypes.PaymentDetailsLocal) => {
+  return makePayment({
+    ...rpcPaymentToPaymentCommon(p),
+    publicMemo: new HiddenString(p.publicNote),
+    publicMemoType: p.publicNoteType,
+    txID: p.txID,
+  })
+}
+
+const rpcPaymentToPaymentCommon = (p: RPCTypes.PaymentLocal | RPCTypes.PaymentDetailsLocal) => {
   const sourceType = partyTypeToString[p.fromType]
   const targetType = partyTypeToString[p.toType]
   const source = partyToDescription(sourceType, p.fromUsername, '', p.fromAccountName, p.fromAccountID)
@@ -201,7 +213,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     p.toAccountName,
     p.toAccountID || ''
   )
-  return makePayment({
+  return {
     amountDescription: p.amountDescription,
     delta: balanceDeltaToString[p.delta],
     error: '',
@@ -220,7 +232,7 @@ const paymentResultToPayment = (w: RPCTypes.PaymentOrErrorLocal) => {
     time: p.time,
     worth: p.worth,
     worthCurrency: p.worthCurrency,
-  })
+  }
 }
 
 const makeAssetDescription: I.RecordFactory<Types._AssetDescription> = I.Record({
@@ -324,6 +336,27 @@ const paymentToYourRoleAndCounterparty = (
       */
       throw new Error(`Unexpected delta ${p.delta}`)
   }
+}
+
+// Update payment, take all new fields except any that contain the default value
+const emptyPayment = makePayment()
+// $FlowIssue thinks we don't have toJS()
+const keys = Object.keys(emptyPayment.toJS())
+const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Types.Payment => {
+  const res = oldPayment.withMutations(paymentMutable => {
+    keys.forEach(
+      key =>
+        newPayment.get(key) === emptyPayment.get(key) ? null : paymentMutable.set(key, newPayment.get(key))
+    )
+  })
+  return res
+}
+const updatePaymentMap = (map: I.Map<Types.PaymentID, Types.Payment>, newPayments: Array<Types.Payment>) => {
+  return map.withMutations(mapMutable =>
+    newPayments.forEach(newPayment =>
+      mapMutable.update(newPayment.id, makePayment(), oldPayment => updatePayment(oldPayment, newPayment))
+    )
+  )
 }
 
 const changeAccountNameWaitingKey = 'wallets:changeAccountName'
@@ -432,6 +465,7 @@ export {
   makeRequest,
   makeReserve,
   makeState,
+  paymentDetailResultToPayment,
   paymentResultToPayment,
   paymentToYourRoleAndCounterparty,
   requestResultToRequest,
@@ -443,4 +477,6 @@ export {
   searchKey,
   shortenAccountID,
   statusSimplifiedToString,
+  updatePayment,
+  updatePaymentMap,
 }
