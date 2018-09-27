@@ -1146,6 +1146,26 @@ func (l *TeamLoader) satisfiesNeedApplicationsAtGenerations(ctx context.Context,
 	return nil
 }
 
+func (l *TeamLoader) satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx context.Context,
+	needApplicationsAtGenerations map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication,
+	state *keybase1.TeamData) error {
+	if len(needApplicationsAtGenerations) == 0 {
+		return nil
+	}
+	if state == nil {
+		return fmt.Errorf("nil team does not contain applications: %v", needApplicationsAtGenerations)
+	}
+	for ptkGen, apps := range needApplicationsAtGenerations {
+		for _, app := range apps {
+			if _, err := ApplicationKeyAtGenerationWithKBFS(libkb.NewMetaContext(ctx, l.G()), state, app,
+				ptkGen); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Whether the snapshot has each of `wantMembers` as a member.
 func (l *TeamLoader) satisfiesWantMembers(ctx context.Context,
 	wantMembers []keybase1.UserVersion, wantMembersRole keybase1.TeamRole, state *keybase1.TeamData) error {

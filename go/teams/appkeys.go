@@ -22,6 +22,35 @@ func AllApplicationKeys(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 
 }
 
+func AllApplicationKeysWithKBFS(mctx libkb.MetaContext, teamData *keybase1.TeamData,
+	application keybase1.TeamApplication, latestGen keybase1.PerTeamKeyGeneration) (res []keybase1.TeamApplicationKey, err error) {
+	teamKeys, err := AllApplicationKeys(mctx, teamData, application, latestGen)
+	if err != nil {
+		return res, err
+	}
+	kbfsKeys := teamData.TlfCryptKeys[application]
+	if len(kbfsKeys) > 0 {
+		latestKBFSGen := kbfsKeys[len(kbfsKeys)-1].Generation()
+		for _, k := range kbfsKeys {
+			res = append(res, keybase1.TeamApplicationKey{
+				Application:   application,
+				KeyGeneration: keybase1.PerTeamKeyGeneration(k.KeyGeneration),
+				Key:           k.Key,
+			})
+		}
+		for _, tk := range teamKeys {
+			res = append(res, keybase1.TeamApplicationKey{
+				Application:   application,
+				KeyGeneration: keybase1.PerTeamKeyGeneration(tk.Generation() + latestKBFSGen),
+				Key:           tk.Key,
+			})
+		}
+	} else {
+		res = teamKeys
+	}
+	return res, nil
+}
+
 func ApplicationKeyAtGeneration(mctx libkb.MetaContext, teamData *keybase1.TeamData,
 	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
 
@@ -48,6 +77,26 @@ func ApplicationKeyAtGeneration(mctx libkb.MetaContext, teamData *keybase1.TeamD
 	}
 
 	return applicationKeyForMask(*rkm, item.Seed)
+}
+
+func ApplicationKeyAtGenerationWithKBFS(mctx libkb.MetaContext, teamData *keybase1.TeamData,
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+
+	kbfsKeys := teamData.TlfCryptKeys[application]
+	if len(kbfsKeys) > 0 {
+		latestKBFSGen := keybase1.PerTeamKeyGeneration(kbfsKeys[len(kbfsKeys)-1].Generation())
+		for _, k := range kbfsKeys {
+			if k.Generation() == int(generation) {
+				return keybase1.TeamApplicationKey{
+					Application:   application,
+					KeyGeneration: generation,
+					Key:           k.Key,
+				}, nil
+			}
+		}
+		return ApplicationKeyAtGeneration(mctx, teamData, application, generation-latestKBFSGen)
+	}
+	return ApplicationKeyAtGeneration(mctx, teamData, application, generation)
 }
 
 func UseRKMForApp(application keybase1.TeamApplication) bool {
