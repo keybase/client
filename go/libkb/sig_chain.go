@@ -339,13 +339,10 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 }
 
 func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
-	m.CDebugf("+ SigChain#VerifyChain()")
-	defer func() {
-		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
-	}()
+	defer m.CTrace("SigChain#VerifyChain", func() error { return err })()
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
-		m.G().VDL.CLogf(m.Ctx(), VLog1, "| verify link %d (%s)", i, curr.id)
+		m.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
 			m.CDebugf("| short-circuit at link %d", i)
 			break
@@ -593,8 +590,12 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 	seenInflatedWalletStellarLink := false
 
 	for linkIndex, link := range links {
-		if isBad, reason := link.IsBad(); isBad {
-			m.CDebugf("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+		isBad, reason, err := link.IsBad()
+		if err != nil {
+			return cached, cki, err
+		}
+		if isBad {
+			m.CDebugf("Ignoring bad chain link with link ID %s: %s", link.LinkID(), reason)
 			continue
 		}
 

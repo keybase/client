@@ -1314,8 +1314,12 @@ func (idt *IdentityTable) populate() (err error) {
 	}
 
 	for _, link := range links {
-		if isBad, reason := link.IsBad(); isBad {
-			idt.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+		isBad, reason, err := link.IsBad()
+		if err != nil {
+			return err
+		}
+		if isBad {
+			idt.G().Log.Debug("Ignoring bad chain link with linkID %s: %s", link.LinkID(), reason)
 			continue
 		}
 		if link.IsStubbed() {
