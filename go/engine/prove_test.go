@@ -101,7 +101,7 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 		require.False(tc.T, sigID.IsNil())
 
 		apiArg := libkb.APIArg{
-			Endpoint:    "gubble_social",
+			Endpoint:    "gubble_universe/gubble_social",
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"sig_hash":    libkb.S{Val: sigID.String()},
@@ -113,7 +113,7 @@ func _proveGubbleSocial(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.Sig
 
 		// TODO in CORE-8658 can we check this directly from GenericSocialProofChecker?
 		apiArg = libkb.APIArg{
-			Endpoint:    fmt.Sprintf("gubble_social/%s/proofs", fu.Username),
+			Endpoint:    fmt.Sprintf("gubble_universe/gubble_social/%s/proofs", fu.Username),
 			SessionType: libkb.APISessionTypeNONE,
 		}
 
