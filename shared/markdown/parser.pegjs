@@ -168,20 +168,20 @@ LinkChar
 
 Link
   = url:( [([]* ("http"i "s"i? ":")? (LinkChar+) ) & {
-    let URL = [].concat.apply([], url).join('')
-    if (URL.length < 4) { // 4 chars is the shortest a URL can be (i.e. t.co)
+    // All words basically go into this function so lets not make it slow
+    const maybeQuote = url[0] || []
+    const maybeProtocol = url[1] || []
+    const maybeLink = [] = url[2] || []
+    if (maybeLink.length < 4) { // 4 chars is the shortest a URL can be (i.e. t.co)
       return null
     }
-
-    /* Make sure this is a real TLD */
-    const tldMatch = URL.match(tldExp)
-    if (tldMatch) {
-      const tld = tldMatch[4]
-      if (!tlds.includes(tld)) { // tlds is an array of all valid TLDs
+    const link = maybeLink.join('')
+    if (!tldExp.test(link)) { // includes a valid tld?
+      if (!ipExp.test(link)) { // ip?
         return null
       }
     }
-    /* ============ */
+    let URL = maybeQuote.join('') + maybeProtocol.join('') + link
 
     /*
       From now on we're just deciding what to take off the beginnings / ends
