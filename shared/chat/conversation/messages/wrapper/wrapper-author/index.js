@@ -272,7 +272,7 @@ const styles = styleSheetCreate({
   },
   username: {
     alignSelf: 'flex-start',
-    marginBottom: 3,
+    marginBottom: 2,
   },
 })
 
