@@ -50,7 +50,7 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
         return false
       }
     })
-    .partialSort(maxShownConversations, (a, b) => b.timestamp - a.timestamp)
+    .partialSort(maxShownConversations * 10, (a, b) => b.timestamp - a.timestamp)
     .valueSeq()
     .toArray()
 )
