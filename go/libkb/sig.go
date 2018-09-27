@@ -5,21 +5,17 @@ package libkb
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"strings"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	"github.com/keybase/go-crypto/openpgp/armor"
 	jsonw "github.com/keybase/go-jsonw"
 )
-
-func ComputeSigIDFromSigBody(body []byte) keybase1.SigID {
-	return keybase1.SigIDFromBytes(sha256.Sum256(body))
-}
 
 func GetSigID(w *jsonw.Wrapper, suffix bool) (keybase1.SigID, error) {
 	s, err := w.GetString()
@@ -62,7 +58,7 @@ func OpenSig(armored string) (ret []byte, id keybase1.SigID, err error) {
 		}
 	} else {
 		if ret, err = KbOpenSig(armored); err == nil {
-			id = ComputeSigIDFromSigBody(ret)
+			id = kbcrypto.ComputeSigIDFromSigBody(ret)
 		}
 	}
 	return
@@ -182,5 +178,5 @@ func (ps *ParsedSig) Verify(k PGPKeyBundle) (err error) {
 }
 
 func (ps *ParsedSig) ID() keybase1.SigID {
-	return ComputeSigIDFromSigBody(ps.SigBody)
+	return kbcrypto.ComputeSigIDFromSigBody(ps.SigBody)
 }

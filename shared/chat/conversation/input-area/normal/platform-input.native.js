@@ -12,7 +12,14 @@ import {
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalMargins,
+  globalStyles,
+  globalColors,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
 import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
@@ -272,22 +279,28 @@ const Action = ({
       </Text>
     </Box2>
   ) : (
-    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
+    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
       {flags.explodingMessagesEnabled && (
-        <ExplodingIcon
-          explodingModeSeconds={explodingModeSeconds}
-          isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
-          openExplodingPicker={openExplodingPicker}
-        />
+        <>
+          <ExplodingIcon
+            explodingModeSeconds={explodingModeSeconds}
+            isExploding={isExploding}
+            isExplodingNew={isExplodingNew}
+            openExplodingPicker={openExplodingPicker}
+          />
+          {smallGap}
+        </>
       )}
-      {flags.walletsEnabled && <WalletsIcon size={22} style={styles.actionButton} />}
+      {flags.walletsEnabled && (
+        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
+      )}
       <Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
+      {smallGap}
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
@@ -364,12 +377,19 @@ const styles = styleSheetCreate({
           marginTop: -4, // android has a bug where the lineheight isn't respected
         }),
   },
+  marginRightSmall: {
+    marginRight: globalMargins.small,
+  },
   mentionHud: {
     borderColor: globalColors.black_20,
     borderTopWidth: 1,
     flex: 1,
     height: 160,
     width: '100%',
+  },
+  smallGap: {
+    height: globalMargins.small,
+    width: globalMargins.small,
   },
   typing: {
     ...globalStyles.flexBoxRow,
@@ -386,6 +406,9 @@ const styles = styleSheetCreate({
     width: 20,
   },
 })
+
+// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Box style={styles.smallGap} />
 
 const explodingIconContainer = platformStyles({
   common: {

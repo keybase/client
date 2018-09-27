@@ -5,6 +5,7 @@ package libkb
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -62,7 +63,7 @@ func checkKIDKeybase(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID
 }
 
 func CheckKID(u *keybase1.UserPlusKeysV2AllIncarnations, kid keybase1.KID) (found bool, revokedAt *keybase1.KeybaseTime, deleted bool) {
-	if IsPGPAlgo(AlgoType(kid.GetKeyType())) {
+	if IsPGPAlgo(kbcrypto.AlgoType(kid.GetKeyType())) {
 		found = checkKIDPGP(u, kid)
 		return found, nil, false
 	}

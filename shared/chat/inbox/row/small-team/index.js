@@ -58,6 +58,9 @@ class SmallTeam extends React.PureComponent<Props, State> {
     isHovered: false,
   }
 
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   _backgroundColor = () =>
     // props.backgroundColor should always override hover styles, otherwise, there's a
     // moment when the conversation is loading that the selected inbox row is styled
@@ -73,8 +76,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
     return (
       <SmallTeamBox
         onClick={props.onSelectConversation}
-        onMouseLeave={() => this.setState({isHovered: false})}
-        onMouseOver={() => this.setState({isHovered: true})}
+        onMouseLeave={this._onMouseLeave}
+        onMouseOver={this._onMouseOver}
         style={collapseStyles([
           {
             backgroundColor: this._backgroundColor(),
@@ -88,10 +91,12 @@ class SmallTeam extends React.PureComponent<Props, State> {
               teamname={props.teamname}
               isMuted={props.isMuted}
               isSelected={this.props.isSelected}
+              isHovered={this.state.isHovered}
             />
           ) : (
             <Avatars
               backgroundColor={this._backgroundColor()}
+              isHovered={this.state.isHovered}
               isMuted={props.isMuted}
               isLocked={props.youNeedToRekey || props.participantNeedToRekey || props.isFinalized}
               isSelected={props.isSelected}

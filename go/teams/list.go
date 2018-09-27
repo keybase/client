@@ -21,7 +21,8 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 	return &r.Status
 }
 
-func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool, countMembers bool, includeImplicitTeams bool) ([]keybase1.MemberInfo, error) {
+func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool,
+	countMembers bool, includeImplicitTeams bool) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -57,7 +58,8 @@ func memberNeedAdmin(member keybase1.MemberInfo, meUID keybase1.UID) bool {
 // what team chain says. Nothing is checked when MemberInfo's role is
 // NONE, in this context it means that user has implied membership in
 // the team and no role given in sigchain.
-func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole, team *Team) (res keybase1.UserVersion, err error) {
+func verifyMemberRoleInTeam(ctx context.Context, userID keybase1.UID, expectedRole keybase1.TeamRole,
+	team *Team) (res keybase1.UserVersion, err error) {
 	if expectedRole == keybase1.TeamRole_NONE {
 		return res, nil
 	}
@@ -91,7 +93,8 @@ func newLocalLoadedTeams(g *libkb.GlobalContext) localLoadedTeams {
 // getTeamForMember tries to return *Team in a recent enough state to
 // contain member with correct role as set in MemberInfo. It might
 // trigger a reload with ForceRepoll if cached state does not match.
-func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1.MemberInfo, needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
+func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1.MemberInfo,
+	needAdmin bool) (team *Team, uv keybase1.UserVersion, err error) {
 	teamID := member.TeamID
 	team = l.teams[teamID]
 	if team == nil {
@@ -133,7 +136,8 @@ func (l *localLoadedTeams) getTeamForMember(ctx context.Context, member keybase1
 	return team, memberUV, nil
 }
 
-func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID) (username libkb.NormalizedUsername, fullName string, err error) {
+func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext,
+	uid keybase1.UID) (username libkb.NormalizedUsername, fullName string, err error) {
 	username, err = g.GetUPAKLoader().LookupUsername(ctx, uid)
 	if err != nil {
 		return "", "", err
@@ -146,7 +150,8 @@ func getUsernameAndFullName(ctx context.Context, g *libkb.GlobalContext, uid key
 	return username, fullName, err
 }
 
-func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
+func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
+	arg keybase1.TeamListVerifiedArg) (*keybase1.AnnotatedTeamList, error) {
 	tracer := g.CTimeTracer(ctx, "TeamList.ListTeamsVerified", true)
 	defer tracer.Finish()
 	m := libkb.NewMetaContext(ctx, g)
@@ -167,7 +172,8 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext, arg keybase1
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, queryUID, false /* all */, false /* countMembers */, arg.IncludeImplicitTeams)
+	teams, err := getTeamsListFromServer(ctx, g, queryUID, false, /* all */
+		false /* countMembers */, arg.IncludeImplicitTeams)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +363,8 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 		uids = append(uids, invite.Inviter.Uid)
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
+	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids,
+		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
 		g.Log.CDebugf(ctx, "| MapUIDsReturnMap returned: %v", err)
@@ -393,7 +400,8 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	return res, nil
 }
 
-func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext, parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {
+func ListSubteamsRecursive(ctx context.Context, g *libkb.GlobalContext,
+	parentTeamName string, forceRepoll bool) (res []keybase1.TeamIDAndName, err error) {
 	parent, err := Load(ctx, g, keybase1.LoadTeamArg{
 		Name:        parentTeamName,
 		NeedAdmin:   true,
@@ -506,8 +514,9 @@ func AnnotateInvites(ctx context.Context, g *libkb.GlobalContext, team *Team) (A
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			name, err = AnnotateSeitanInvite(ctx, team, invite)
 			if err != nil {
-				// There are seitan invites in the wild from before https://github.com/keybase/client/pull/9816
-				// These can no longer be decrypted, we hide them.
+				// There are seitan invites in the wild from before
+				// https://github.com/keybase/client/pull/9816 These can no
+				// longer be decrypted, we hide them.
 				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
 				continue
 			}
@@ -543,7 +552,8 @@ func addKeybaseInviteToRes(ctx context.Context, memb keybase1.TeamMemberDetails,
 // UIDMapper, so it's fast but may be wrong. It also puts any keybase
 // invites to members set which reference should be passed as argument.
 // PUKless members also will not be present in returned AnnotatedInviteMap.
-func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team *Team, members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
+func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team *Team,
+	members *keybase1.TeamMembersDetails) (AnnotatedInviteMap, error) {
 	invites := team.chain().inner.ActiveInvites
 	annotatedInvites := make(map[keybase1.TeamInviteID]keybase1.AnnotatedTeamInvite, len(invites))
 	if len(invites) == 0 {
@@ -569,7 +579,8 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 		}
 	}
 
-	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids, 0, 0, true)
+	namePkgs, err := uidmap.MapUIDsReturnMap(ctx, g.UIDMapper, g, uids,
+		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
 	if err != nil {
 		// UIDMap returned an error, but there may be useful data in the result.
 		g.Log.CDebugf(ctx, "AnnotateInvitesUIDMapper: MapUIDsReturnMap returned: %v", err)
@@ -604,13 +615,6 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 				fullName = pkg.FullName.FullName
 			}
 
-			if !status.IsActive() {
-				// Skip inactive puk-less members for now. Causes
-				// duplicate usernames in team list which we don't
-				// want.
-				continue
-			}
-
 			details := keybase1.TeamMemberDetails{
 				Uv:       uv,
 				Username: pkg.NormalizedUsername.String(),
@@ -635,8 +639,9 @@ func AnnotateInvitesUIDMapper(ctx context.Context, g *libkb.GlobalContext, team 
 		} else if category == keybase1.TeamInviteCategory_SEITAN {
 			name, err = AnnotateSeitanInvite(ctx, team, invite)
 			if err != nil {
-				// There are seitan invites in the wild from before https://github.com/keybase/client/pull/9816
-				// These can no longer be decrypted, we hide them.
+				// There are seitan invites in the wild from before
+				// https://github.com/keybase/client/pull/9816 These can no
+				// longer be decrypted, we hide them.
 				g.Log.CDebugf(ctx, "error annotating seitan invite (%v): %v", id, err)
 				continue
 			}
@@ -702,7 +707,8 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 }
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
-	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false /* all */, false /* countMembers */, false /* includeImplicitTeams */)
+	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false, /* all */
+		false /* countMembers */, false /* includeImplicitTeams */)
 	if err != nil {
 		return res, err
 	}
@@ -743,10 +749,10 @@ func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTree
 		}
 	}
 
-	// Add all parent names (recursively)
-	// So that if only A.B.C is in the list, we add A.B and A as well.
-	// Adding map entries while iterating is safe.
-	// "If map entries are created during iteration, that entry may be produced during the iteration or may be skipped."
+	// Add all parent names (recursively) So that if only A.B.C is in the list,
+	// we add A.B and A as well.  Adding map entries while iterating is safe.
+	// "If map entries are created during iteration, that entry may be produced
+	// during the iteration or may be skipped."
 	for _, entry := range entryMap {
 		name := entry.Name.DeepCopy()
 		for name.Depth() > 0 {

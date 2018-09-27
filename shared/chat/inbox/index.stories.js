@@ -342,26 +342,19 @@ const propsInboxCommon = {
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
-  isLoading: false,
+  neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
-  onBuildTeam: Sb.action('onBuildTeam'),
-  onHotkey: Sb.action('onHotkey'),
   onNewChat: Sb.action('onNewChat'),
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
   onSelectDown: Sb.action('onSelectDown'),
   rows: [],
-  showNewChat: false,
-  showNewConversation: false,
-  showSmallTeamsExpandDivider: false,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
 
 const propsInboxEmpty = {
   ...propsInboxCommon,
-  showNewChat: true,
-  showBuildATeam: true,
 }
 
 const propsInboxSimple = {
@@ -401,12 +394,6 @@ const propsInboxTeam = {
 const propsInboxDivider = {
   ...propsInboxCommon,
   smallTeamsExpanded: false,
-  smallIDsHidden: [
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamC'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamD'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamE'].conversationIDKey),
-    Constants.stringToConversationIDKey(mapPropProviderProps['smallTeamF'].conversationIDKey),
-  ],
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -438,7 +425,6 @@ const propsInboxDivider = {
 const propsInboxExpanded = {
   ...propsInboxCommon,
   smallTeamsExpanded: false,
-  showSmallTeamsExpandDivider: true,
   rows: [
     // Small
     makeRowItemSmall('smallTeamA'),
@@ -483,12 +469,6 @@ const teamMemberCounts = {
   stripe: 1337,
 }
 
-/* Define a teamsEmpty to be used by BuildTeam PropProvider to
- * determine if story is 'Empty' teams. This is done because showBuildATeam
- * can't de derived from ownProps.
- */
-let teamsEmpty = false
-
 const provider = Sb.createPropProviderWithCommon({
   ...Sb.PropProviders.TeamDropdownMenu(undefined, teamMemberCounts),
   ChatInboxHeaderContainer: p => {
@@ -514,7 +494,6 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   BuildTeam: p => ({
     onBuildTeam: Sb.action('onBuildTeam'),
-    showBuildATeam: teamsEmpty,
     loaded: true,
   }),
   NewChooser: p => ({
@@ -562,30 +541,12 @@ class Wrapper extends React.Component<any, any> {
 const load = () => {
   Sb.storiesOf('Chat/Inbox', module)
     .addDecorator(provider)
-    .add('Empty', () => {
-      teamsEmpty = true
-      return <Inbox {...propsInboxEmpty} />
-    })
-    .add('Simple', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxSimple} />
-    })
-    .add('Big Teams', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxTeam} />
-    })
-    .add('Divider', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxDivider} />
-    })
-    .add('Expanded teams', () => {
-      teamsEmpty = false
-      return <Wrapper />
-    })
-    .add('Filter', () => {
-      teamsEmpty = false
-      return <Inbox {...propsInboxFilter} />
-    })
+    .add('Empty', () => <Inbox {...propsInboxEmpty} />)
+    .add('Simple', () => <Inbox {...propsInboxSimple} />)
+    .add('Big Teams', () => <Inbox {...propsInboxTeam} />)
+    .add('Divider', () => <Inbox {...propsInboxDivider} />)
+    .add('Expanded teams', () => <Wrapper />)
+    .add('Filter', () => <Inbox {...propsInboxFilter} />)
 }
 
 export default load

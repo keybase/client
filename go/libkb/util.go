@@ -6,7 +6,6 @@ package libkb
 import (
 	"bufio"
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
@@ -28,6 +27,7 @@ import (
 	"time"
 	"unicode"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -88,11 +88,11 @@ func MakeParentDirs(log SkinnyLogger, filename string) error {
 }
 
 func FastByteArrayEq(a, b []byte) bool {
-	return bytes.Equal(a, b)
+	return kbcrypto.FastByteArrayEq(a, b)
 }
 
 func SecureByteArrayEq(a, b []byte) bool {
-	return hmac.Equal(a, b)
+	return kbcrypto.SecureByteArrayEq(a, b)
 }
 
 func FormatTime(tm time.Time) string {

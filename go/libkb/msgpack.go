@@ -6,16 +6,17 @@ package libkb
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/go-codec/codec"
 )
 
 func MsgpackDecode(dst interface{}, src []byte) (err error) {
-	ch := codecHandle()
+	ch := kbcrypto.CodecHandle()
 	return codec.NewDecoderBytes(src, ch).Decode(dst)
 }
 
 func MsgpackEncode(src interface{}) (dst []byte, err error) {
-	ch := codecHandle()
+	ch := kbcrypto.CodecHandle()
 	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
 	return dst, err
 }

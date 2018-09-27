@@ -335,7 +335,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}
-          {flags.walletsEnabled && <WalletsIcon size={16} style={styles.marginRightTiny} />}
+          {flags.walletsEnabled && <WalletsIcon size={16} style={styles.walletsIcon} />}
           <Kb.Icon
             color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
             onClick={this._emojiPickerToggle}
@@ -545,7 +545,9 @@ const styles = styleSheetCreate({
     marginLeft: 58,
     textAlign: 'left',
   },
-  marginRightTiny: {
+  walletsIcon: {
+    alignSelf: 'flex-end',
+    marginBottom: 6,
     marginRight: globalMargins.tiny,
   },
   mentionCatcher: {

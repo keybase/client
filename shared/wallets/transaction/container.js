@@ -3,6 +3,7 @@ import {connect, type TypedState} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
+import * as ProfileGen from '../../actions/profile-gen'
 import Transaction from '.'
 import {navigateAppend} from '../../actions/route-tree'
 
@@ -30,6 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
         },
       ])
     ),
+  _onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -46,6 +48,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onRetryPayment: undefined,
     onSelectTransaction: () =>
       dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
+    onShowProfile: dispatchProps._onShowProfile,
+    selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
