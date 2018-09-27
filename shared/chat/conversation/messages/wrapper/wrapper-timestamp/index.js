@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Types from '../../../../../constants/types/chat2'
 import {Box, Box2, Icon, OverlayParentHOC, type OverlayParentProps} from '../../../../../common-adapters'
+import {dismiss as dismissKeyboard} from '../../../../../util/keyboard'
 import Timestamp from '../timestamp'
 import * as Styles from '../../../../../styles'
 import WrapperAuthor from '../wrapper-author/container'
@@ -40,8 +41,8 @@ export type Props = {|
 const HoverBox = Styles.isMobile
   ? LongPressable
   : Styles.glamorous(Box2)(props => ({
-      paddingTop: 2,
-      paddingBottom: 2,
+      paddingBottom: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xtiny,
       '& .menu-button': {
         flexShrink: 0,
         height: 17,
@@ -85,7 +86,11 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
         <HoverBox
           className={props.showingMenu || this.state.showingPicker ? 'active' : ''}
           {...(Styles.isMobile && props.decorate
-            ? {onLongPress: props.toggleShowingMenu, underlayColor: Styles.globalColors.blue5}
+            ? {
+                onPress: () => dismissKeyboard(),
+                onLongPress: props.toggleShowingMenu,
+                underlayColor: Styles.globalColors.blue5,
+              }
             : {})}
           direction="column"
           decorate={props.decorate}

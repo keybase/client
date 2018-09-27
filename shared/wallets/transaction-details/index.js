@@ -19,9 +19,11 @@ export type Props = {|
   onBack: () => void,
   title: string,
   onLoadPaymentDetail: () => void,
+  onShowProfile: string => void,
   onViewTransaction?: () => void,
   publicMemo?: string,
   recipientAccountID: ?Types.AccountID,
+  selectableText: boolean,
   senderAccountID: Types.AccountID,
   status: Types.StatusSimplified,
   statusDetail: string,
@@ -37,6 +39,7 @@ type CounterpartyProps = {|
   counterparty: string,
   counterpartyMeta: ?string,
   counterpartyType: Types.CounterpartyType,
+  onShowProfile: string => void,
 |}
 
 const Counterparty = (props: CounterpartyProps) => {
@@ -45,8 +48,10 @@ const Counterparty = (props: CounterpartyProps) => {
       <NameWithIcon
         colorFollowing={true}
         horizontal={true}
+        onClick={() => props.onShowProfile(props.counterparty)}
         username={props.counterparty}
         metaOne={props.counterpartyMeta}
+        underline={true}
         metaTwo={props.accountID && <SmallAccountID accountID={props.accountID} />}
       />
     )
@@ -58,12 +63,14 @@ const Counterparty = (props: CounterpartyProps) => {
         counterparty={props.counterparty}
         counterpartyType={props.counterpartyType}
         large={false}
+        onShowProfile={props.onShowProfile}
       />
       <Box2 direction="vertical" fullWidth={true} style={styles.counterPartyText}>
         <CounterpartyText
           counterparty={props.counterparty}
           counterpartyType={props.counterpartyType}
           large={false}
+          onShowProfile={props.onShowProfile}
           showFullKey={true}
           textType="BodySemibold"
         />
@@ -116,6 +123,8 @@ const propsToParties = (props: Props) => {
     <NameWithIcon
       colorFollowing={true}
       horizontal={true}
+      onClick={() => props.onShowProfile(props.you)}
+      underline={true}
       username={props.you}
       metaOne="You"
       metaTwo={yourAccountID ? <SmallAccountID accountID={yourAccountID} /> : null}
@@ -127,6 +136,7 @@ const propsToParties = (props: Props) => {
       counterparty={props.counterparty}
       counterpartyMeta={props.counterpartyMeta}
       counterpartyType={props.counterpartyType}
+      onShowProfile={props.onShowProfile}
     />
   )
 
@@ -165,6 +175,8 @@ class TransactionDetails extends React.Component<Props> {
           counterpartyType={this.props.counterpartyType}
           large={true}
           memo={this.props.memo}
+          onShowProfile={this.props.onShowProfile}
+          selectableText={true}
           status={this.props.status}
           statusDetail={this.props.statusDetail}
           timestamp={this.props.timestamp}
@@ -210,7 +222,7 @@ class TransactionDetails extends React.Component<Props> {
             <TimestampLine
               status={this.props.status}
               error={this.props.statusDetail}
-              relative={false}
+              selectableText={true}
               timestamp={this.props.timestamp}
             />
           )}
@@ -218,12 +230,16 @@ class TransactionDetails extends React.Component<Props> {
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Public memo:</Text>
-          <Text type="Body">{this.props.publicMemo}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.publicMemo}
+          </Text>
         </Box2>
 
         <Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Text type="BodySmallSemibold">Transaction ID:</Text>
-          <Text type="Body">{this.props.transactionID}</Text>
+          <Text selectable={true} type="Body">
+            {this.props.transactionID}
+          </Text>
           {this.props.onViewTransaction && (
             <Text onClick={this.props.onViewTransaction} type="BodySmallPrimaryLink">
               View transaction

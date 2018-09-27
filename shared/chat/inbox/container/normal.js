@@ -11,7 +11,7 @@ import type {RowItem} from '../index.types'
 const smallTeamsCollapsedMaxShown = 5
 
 // Could make this faster by bookkeeping if this structure changed instead of if any item changed
-const splitMetas = memoize(metaMap => {
+const splitMetas = memoize((metaMap: Types.MetaMap) => {
   const bigMetas = []
   const smallMetas = []
   metaMap.forEach((meta, id) => {
@@ -26,6 +26,16 @@ const splitMetas = memoize(metaMap => {
   return {bigMetas, smallMetas}
 })
 
+const smallMetasEqual = (la, lb) => {
+  if (typeof la === 'boolean') return la === lb
+  return (
+    la.length === lb.length &&
+    la.every((a, idx) => {
+      const b = lb[idx]
+      return a.conversationIDKey === b.conversationIDKey && a.inboxVersion === b.inboxVersion
+    })
+  )
+}
 const sortByTimestsamp = (a, b) => b.timestamp - a.timestamp
 const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
   let metas
@@ -37,7 +47,7 @@ const getSmallRows = memoize((smallMetas, showAllSmallRows) => {
       .toArray()
   }
   return metas.map(m => ({conversationIDKey: m.conversationIDKey, type: 'small'}))
-}, shallowEqual)
+}, smallMetasEqual)
 
 const sortByTeamChannel = (a, b) =>
   a.teamname === b.teamname

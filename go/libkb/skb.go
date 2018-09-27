@@ -20,6 +20,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -39,9 +40,9 @@ func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 }
 
 type SKB struct {
-	Priv SKBPriv  `codec:"priv"`
-	Pub  []byte   `codec:"pub"`
-	Type AlgoType `codec:"type,omitempty"`
+	Priv SKBPriv           `codec:"priv"`
+	Pub  []byte            `codec:"pub"`
+	Type kbcrypto.AlgoType `codec:"type,omitempty"`
 
 	decodedPub      GenericKey
 	decryptedSecret GenericKey
@@ -131,8 +132,8 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 	return NewLKSec(pps, s.uid)
 }
 
-func (s *SKB) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagP3skb, KeybasePacketV1
+func (s *SKB) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
+	return kbcrypto.TagP3skb, kbcrypto.KeybasePacketV1
 }
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {
@@ -141,9 +142,9 @@ func (s *SKB) ReadKey() (g GenericKey, err error) {
 		var w *Warnings
 		g, w, err = ReadOneKeyFromBytes(s.Pub)
 		w.Warn(s.G())
-	case s.Type == KIDNaclEddsa:
+	case s.Type == kbcrypto.KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
-	case s.Type == KIDNaclDH:
+	case s.Type == kbcrypto.KIDNaclDH:
 		g, err = ImportNaclDHKeyPairFromBytes(s.Pub, nil)
 	default:
 		err = UnknownKeyTypeError{s.Type}
@@ -183,7 +184,7 @@ func (s *SKB) HumanDescription(owner *User) (string, error) {
 func (s *SKB) pgpHumanDescription(key GenericKey) (string, error) {
 	pgpKey, ok := key.(*PGPKeyBundle)
 	if !ok {
-		return "", BadKeyError{Msg: "not pgp key despite skb algo type"}
+		return "", kbcrypto.BadKeyError{Msg: "not pgp key despite skb algo type"}
 	}
 
 	return pgpKey.HumanDescription(), nil
@@ -220,7 +221,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(m MetaContext, secretRetriever 
 	case LKSecVersion:
 		unlocked, err = s.lksUnlockWithSecretRetriever(m, secretRetriever)
 	default:
-		err = BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
 	}
 
 	if err == nil {
@@ -275,7 +276,7 @@ func (s *SKB) UnlockSecretKey(m MetaContext, passphrase string, tsec Triplesec, 
 			m.ActiveDevice().CachePassphraseStream(NewPassphraseStreamCache(tsec, pps))
 		}
 	default:
-		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
 		return nil, err
 	}
 	key, err = s.parseUnlocked(unlocked)
@@ -289,14 +290,14 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 		var w *Warnings
 		key, w, err = ReadOneKeyFromBytes(unlocked)
 		w.Warn(s.G())
-	case s.Type == KIDNaclEddsa:
+	case s.Type == kbcrypto.KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
-	case s.Type == KIDNaclDH:
+	case s.Type == kbcrypto.KIDNaclDH:
 		key, err = ImportNaclDHKeyPairFromBytes(s.Pub, unlocked)
 	}
 
 	if key == nil {
-		err = BadKeyError{"can't parse secret key after unlock"}
+		err = kbcrypto.BadKeyError{Msg: "can't parse secret key after unlock"}
 	}
 	if err != nil {
 		return
@@ -375,7 +376,7 @@ func (s *SKB) SetUID(uid keybase1.UID) {
 }
 
 func (s *SKB) ArmoredEncode() (ret string, err error) {
-	return EncodePacketToArmoredString(s)
+	return kbcrypto.EncodePacketToArmoredString(s)
 }
 
 func (s *SKB) UnlockWithStoredSecret(m MetaContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {

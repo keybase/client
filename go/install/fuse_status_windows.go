@@ -40,8 +40,8 @@ func isDokanCurrent(log Log, path string) (bool, error) {
 	patch := version & 0x00000000FFFF0000 >> 16
 	build := version & 0x000000000000FFFF
 
-	// we're looking for 1.1.0.1000
-	result := major > 1 || (major == 1 && (minor > 1 || (minor == 1 && (patch > 0 || (patch == 0 && build >= 1000)))))
+	// we're looking for 1.1.0.2000
+	result := major > 1 || (major == 1 && (minor > 1 || (minor == 1 && (patch > 0 || (patch == 0 && build >= 2000)))))
 	log.Info("dokan1.dll version: %d.%d.%d.%d, result %v\n", major, minor, patch, build, result)
 
 	return result, nil

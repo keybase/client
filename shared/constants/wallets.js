@@ -22,7 +22,7 @@ const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
 })
 
 const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
-  amount: '0',
+  amount: '',
   currency: 'XLM', // FIXME: Use default currency?
   from: Types.noAccountID,
   publicMemo: new HiddenString(''),
@@ -157,7 +157,7 @@ const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   target: '',
   targetAccountID: '',
   targetType: '',
-  time: 0,
+  time: null,
   txID: '',
   worth: '',
   worthCurrency: '',

@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as FsGen from '../fs-gen'
+import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as Config from '../../constants/config'
 import * as RPCTypes from '../../constants/types/rpc-gen'
@@ -338,6 +339,9 @@ const loadUserFileEdits = (state: TypedState, action) =>
         )
         .toArray()
       yield Saga.sequentially([
+        // TODO (songgao): make a new action that accepts an array of updates,
+        // so that we only need to trigger one update through store/rpc/widget
+        // for all these each time.
         ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
@@ -349,7 +353,7 @@ const loadUserFileEdits = (state: TypedState, action) =>
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEvery([ConfigGen.setupEngineListeners, FsGen.fuseStatus], fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
