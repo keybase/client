@@ -2562,17 +2562,19 @@ const prepareFulfillRequestForm = (state: TypedState, action: Chat2Gen.PrepareFu
       )}`
     )
   }
-  const actions = []
-  if (requestInfo.currencyCode) {
-    actions.push(Saga.put(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})))
-  }
-  actions.push(Saga.put(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount})))
-  actions.push(Saga.put(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}))) // Meaning default account
-  actions.push(Saga.put(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'})))
-  actions.push(Saga.put(WalletsGen.createSetBuildingTo({to: message.author})))
-  actions.push(Saga.put(WalletsGen.createSetBuildingSecretNote({secretNote: message.note})))
-  actions.push(Saga.put(RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]})))
-  return Saga.sequentially(actions)
+  return Saga.sequentially(
+    [
+      ...(requestInfo.currencyCode
+        ? [WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode})]
+        : []),
+      WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}),
+      WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID}), // Meaning default account
+      WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}),
+      WalletsGen.createSetBuildingTo({to: message.author}),
+      WalletsGen.createSetBuildingSecretNote({secretNote: message.note}),
+      RouteTreeGen.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}),
+    ].map(action => Saga.put(action))
+  )
 }
 
 function* chat2Saga(): Saga.SagaGenerator<any, any> {
