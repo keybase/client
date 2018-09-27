@@ -26,15 +26,15 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.clearBuiltPayment:
       return state.set('builtPayment', Constants.makeBuiltPayment())
     case WalletsGen.paymentDetailReceived:
-      return state.updateIn(['paymentsMap', action.payload.accountID], I.Map(), payments =>
+      return state.updateIn(['paymentsMap', action.payload.accountID], (payments = I.Map()) =>
         Constants.updatePaymentMap(payments, [action.payload.payment])
       )
     case WalletsGen.paymentsReceived:
       return state
-        .updateIn(['paymentsMap', action.payload.accountID], I.Map(), paymentsMap =>
+        .updateIn(['paymentsMap', action.payload.accountID], (paymentsMap = I.Map()) =>
           Constants.updatePaymentMap(paymentsMap, action.payload.payments)
         )
-        .updateIn(['pendingMap', action.payload.accountID], I.Map(), pendingMap =>
+        .updateIn(['pendingMap', action.payload.accountID], (pendingMap = I.Map()) =>
           Constants.updatePaymentMap(pendingMap, action.payload.pending)
         )
     case WalletsGen.displayCurrenciesReceived:
