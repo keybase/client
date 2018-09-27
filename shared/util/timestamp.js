@@ -100,6 +100,31 @@ export function daysToLabel(days: number): string {
   return label
 }
 
+moment.defineLocale('shortTime', {
+  parentLocale: 'en',
+  relativeTime: {
+    future: 'in %s',
+    past: '%s ago',
+    s: 'now',
+    ss: '%ds',
+    m: '1m',
+    mm: '%dm',
+    h: '1h',
+    hh: '%dh',
+    d: '1d',
+    dd: '%dd',
+    M: '1mo',
+    MM: '%dmo',
+    y: '1y',
+    yy: '%dy',
+  },
+})
+const peopleItemFormatter = moment().locale('shortTime')
+
+export function formatTimeForPeopleItem(time: number): string {
+  return peopleItemFormatter.set(moment(time)).fromNow(true)
+}
+
 const oneMinuteInMs = 60 * 1000
 const oneHourInMs = oneMinuteInMs * 60
 const oneDayInMs = oneHourInMs * 24
