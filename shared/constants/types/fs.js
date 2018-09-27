@@ -218,7 +218,7 @@ export type _State = {
   tlfs: Tlfs,
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Set<Path>,
+  loadingPaths: I.Map<Path, I.Set<string>>,
   downloads: I.Map<string, Download>,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,

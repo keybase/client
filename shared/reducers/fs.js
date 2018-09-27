@@ -69,15 +69,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
 
         return newItem
       })
-      return state
-        .set(
-          'pathItems',
-          state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
-        )
-        .update('loadingPaths', loadingPaths => loadingPaths.delete(action.payload.path))
+      return state.set(
+        'pathItems',
+        state.pathItems.withMutations(pathItems => pathItems.deleteAll(toRemove).merge(toMerge))
+      )
     }
-    case FsGen.folderListLoad:
-      return state.update('loadingPaths', loadingPaths => loadingPaths.add(action.payload.path))
+    case FsGen.loadingPath:
+      return state.updateIn(
+        ['loadingPaths', action.payload.path],
+        set =>
+          action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
+      )
     case FsGen.favoritesLoaded:
       return state.set(
         'tlfs',
@@ -256,6 +258,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
       return state.removeIn(['errors', action.payload.key])
+    case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
     case FsGen.cancelDownload:

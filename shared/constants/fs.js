@@ -172,7 +172,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   tlfs: makeTlfs(),
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
+  loadingPaths: I.Map(),
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
@@ -202,6 +202,7 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
 })
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 

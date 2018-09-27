@@ -35,6 +35,7 @@ export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const journalUpdate = 'fs:journalUpdate'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
@@ -136,6 +137,11 @@ type _LetResetUserBackInPayload = $ReadOnly<{|
   id: RPCTypes.TeamID,
   username: string,
 |}>
+type _LoadingPathPayload = $ReadOnly<{|
+  path: Types.Path,
+  id: string,
+  done: boolean,
+|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
@@ -234,6 +240,7 @@ export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => (
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({error: false, payload, type: journalUpdate})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({error: false, payload, type: letResetUserBackIn})
+export const createLoadingPath = (payload: _LoadingPathPayload) => ({error: false, payload, type: loadingPath})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
@@ -289,6 +296,7 @@ export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _In
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type JournalUpdatePayload = $Call<typeof createJournalUpdate, _JournalUpdatePayload>
 export type LetResetUserBackInPayload = $Call<typeof createLetResetUserBackIn, _LetResetUserBackInPayload>
+export type LoadingPathPayload = $Call<typeof createLoadingPath, _LoadingPathPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
@@ -346,6 +354,7 @@ export type Actions =
   | InstallKBFSPayload
   | JournalUpdatePayload
   | LetResetUserBackInPayload
+  | LoadingPathPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
