@@ -130,6 +130,7 @@ func CreateProcessWithTokenW(hToken syscall.Token, argv []string, attr *syscall.
 
 // Protection against running elevated: attempt to run as regular user instead.
 // Assume an error means we weren't elevated, which should be the normal case.
+// see https://blogs.msdn.microsoft.com/aaron_margosis/2009/06/06/faq-how-do-i-start-a-program-as-the-desktop-user-from-an-elevated-app/
 func getUserToken() (syscall.Token, error) {
 	var err error
 	var shellWindow uintptr
