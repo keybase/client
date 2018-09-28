@@ -363,13 +363,28 @@ const allowLogoutWaiters = (_, action: ConfigGen.LogoutHandshakePayload) =>
 
 const updateServerConfig = (state: TypedState) =>
   Saga.call(function*() {
-    // TODO
-    // const serverConfig = yield Saga.call(RPCTypes.API)
-    const serverConfig = {
-      walletsEnabled: true,
-      printRPCStats: true,
+    try {
+      const str = yield Saga.call(RPCTypes.apiserverGetWithSessionRpcPromise, {
+        endpoint: 'user/features',
+      })
+
+      const obj = JSON.parse(str.body)
+      const features = Object.keys(obj.features).reduce((map, key) => {
+        map[key] = obj.features[key].value
+        return map
+      }, {})
+
+      const serverConfig = {
+        printRPCStats: !!features.admin,
+        walletsEnabled: !!features.stellar,
+      }
+
+      console.log('updateServerConfig', serverConfig)
+
+      updateServerConfigLastLoggedIn(state.config.username, serverConfig)
+    } catch (e) {
+      logger.info('updateServerConfig fail', e)
     }
-    updateServerConfigLastLoggedIn(state.config.username, serverConfig)
   })
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
