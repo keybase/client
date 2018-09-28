@@ -43,16 +43,6 @@ const HoverBox = Styles.isMobile
   : Styles.glamorous(Box2)(props => ({
       paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.xtiny,
-      // '& .menu-button': {
-      // flexShrink: 0,
-      // height: 17,
-      // opacity: 0,
-      // visibility: 'hidden',
-      // },
-      // '&.active .menu-button, &:hover .menu-button': {
-      // opacity: 1,
-      // visibility: 'visible',
-      // },
       '&.active, &:hover': props.decorate
         ? {
             backgroundColor: Styles.globalColors.blue5,
