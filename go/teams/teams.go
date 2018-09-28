@@ -400,6 +400,11 @@ func (t *Team) ApplicationKeyAtGeneration(ctx context.Context,
 	return ApplicationKeyAtGeneration(t.MetaContext(ctx), t.Data, application, generation)
 }
 
+func (t *Team) ApplicationKeyAtGenerationWithKBFS(ctx context.Context,
+	application keybase1.TeamApplication, generation keybase1.PerTeamKeyGeneration) (res keybase1.TeamApplicationKey, err error) {
+	return ApplicationKeyAtGenerationWithKBFS(t.MetaContext(ctx), t.Data, application, generation)
+}
+
 func (t *Team) Rotate(ctx context.Context) (err error) {
 
 	// initialize key manager

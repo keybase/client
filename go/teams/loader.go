@@ -902,7 +902,7 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	}
 
 	if len(arg.needApplicationsAtGenerationsWithKBFS) > 0 {
-		if l.satisfiesNeedApplicationsAtGenerations(ctx,
+		if l.satisfiesNeedApplicationsAtGenerationsWithKBFS(ctx,
 			arg.needApplicationsAtGenerationsWithKBFS, fromCache) != nil {
 			repoll = true
 		}

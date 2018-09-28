@@ -94,7 +94,11 @@ func ApplicationKeyAtGenerationWithKBFS(mctx libkb.MetaContext, teamData *keybas
 				}, nil
 			}
 		}
-		return ApplicationKeyAtGeneration(mctx, teamData, application, generation-latestKBFSGen)
+		if res, err = ApplicationKeyAtGeneration(mctx, teamData, application, generation-latestKBFSGen); err != nil {
+			return res, err
+		}
+		res.KeyGeneration += latestKBFSGen
+		return res, nil
 	}
 	return ApplicationKeyAtGeneration(mctx, teamData, application, generation)
 }
