@@ -317,7 +317,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			topicName := utils.GetTopicName(convLocal)
 			snippet, snippetDecoration := utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String())
 			rcm := &types.RemoteConversationMetadata{
-				Name:              convLocal.Info.TlfName,
+				Name:              convLocal.Info.TLFNameExpanded(),
 				TopicName:         topicName,
 				Headline:          utils.GetHeadline(convLocal),
 				Snippet:           snippet,
