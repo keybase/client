@@ -53,9 +53,9 @@ func (am *AutogitManager) registerRepoNode(
 	am.registryLock.Lock()
 	defer am.registryLock.Unlock()
 	am.repoNodesForWatchedIDs[nodeToWatch.GetID()] = rdn
-	am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 	fb := nodeToWatch.GetFolderBranch()
 	if !am.registeredFBs[fb] {
+		am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 		err := am.config.Notifier().RegisterForChanges(
 			[]libkbfs.FolderBranch{fb}, am)
 		if err != nil {
@@ -72,14 +72,31 @@ func (am *AutogitManager) LocalChange(
 	// Do nothing.
 }
 
+func (am *AutogitManager) getNodesToInvalidate(
+	affectedNodeIDs []libkbfs.NodeID) (nodes []libkbfs.Node) {
+	am.registryLock.RLock()
+	defer am.registryLock.RUnlock()
+	for _, nodeID := range affectedNodeIDs {
+		node, ok := am.repoNodesForWatchedIDs[nodeID]
+		if ok {
+			nodes = append(nodes, node)
+		}
+	}
+	return nodes
+}
+
 // BatchChanges implements the libkbfs.Observer interface for AutogitManager.
 func (am *AutogitManager) BatchChanges(
 	ctx context.Context, _ []libkbfs.NodeChange,
 	affectedNodeIDs []libkbfs.NodeID) {
-	am.registryLock.RLock()
-	defer am.registryLock.RUnlock()
-	for range affectedNodeIDs {
-		// TODO(KBFS-3428).
+	nodes := am.getNodesToInvalidate(affectedNodeIDs)
+	for _, node := range nodes {
+		node := node
+		go func() {
+			// TODO(KBFS-3429): fill in context.
+			ctx := context.TODO()
+			am.config.KBFSOps().InvalidateNodeAndChildren(ctx, node)
+		}()
 	}
 }
 

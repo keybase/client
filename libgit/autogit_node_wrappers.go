@@ -203,13 +203,17 @@ func (arn autogitRootNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		arn.am.log.CDebugf(nil, "Error getting repo: %+v", err)
 		return child
 	}
-	return &repoDirNode{
+	rdn := &repoDirNode{
 		Node:   child,
 		am:     arn.am,
 		repoFS: repoFS.(*libfs.FS),
 		subdir: "",
 		branch: "",
 	}
+	if fs, ok := repoFS.(*libfs.FS); ok {
+		arn.am.registerRepoNode(fs.RootNode(), rdn)
+	}
+	return rdn
 }
 
 // rootNode is a Node wrapper around a TLF root node, that causes the
