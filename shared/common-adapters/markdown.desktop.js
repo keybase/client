@@ -8,6 +8,7 @@ import Box from './box'
 import Emoji from './emoji'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
+import SimpleMarkdown from 'simple-markdown'
 
 import type {Props} from './markdown'
 
@@ -187,18 +188,60 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
+const rules = {
+  ...SimpleMarkdown.defaultRules,
+  inlineCode: {
+    ...SimpleMarkdown.defaultRules.inlineCode,
+    react: (node, output, state) => {
+      // console.log('inlineCode', node, output, state)
+      return (
+        <Text type="Body" key={state.key} style={codeSnippetStyle}>
+          {node.content}
+        </Text>
+      )
+    },
+  },
+  codeBlock: {
+    ...SimpleMarkdown.defaultRules.codeBlock,
+    react: (node, output, state) => {
+      // console.log('code block ', node, output, state)
+      return (
+        <Text type="Body" style={codeSnippetBlockStyle}>
+          {node.content}
+        </Text>
+      )
+    },
+  },
+  paragraph: {
+    ...SimpleMarkdown.defaultRules.paragraph,
+    react: (node, output, state) => {
+      // console.log('paragraph', node, output, state)
+      return (
+        <Text key={state.key} type="Body">
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+}
+
+const parser = SimpleMarkdown.parserFor(rules)
+const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 'react'))
+
 class Markdown extends PureComponent<Props> {
   render() {
-    const content = parseMarkdown(
-      this.props.children,
-      this.props.preview ? previewCreateComponent : messageCreateComponent,
-      this.props.meta
-    )
-    return (
-      <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
-        {content}
-      </Text>
-    )
+    const parseTree = parser(this.props.children, {inline: false})
+    return reactOutput(parseTree)
+    // const content = parseMarkdown(
+    // this.props.children,
+    // this.props.preview ? previewCreateComponent : messageCreateComponent,
+    // this.props.meta
+    // )
+    // return (
+    // <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
+    // {content}
+    // </Text>
+    // )
   }
 }
 
