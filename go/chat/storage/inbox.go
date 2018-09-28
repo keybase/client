@@ -23,7 +23,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-const inboxVersion = 21
+const inboxVersion = 22
 
 type queryHash []byte
 
@@ -317,6 +317,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			topicName := utils.GetTopicName(convLocal)
 			snippet, snippetDecoration := utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String())
 			rcm := &types.RemoteConversationMetadata{
+				Name:              convLocal.Info.TlfName,
 				TopicName:         topicName,
 				Headline:          utils.GetHeadline(convLocal),
 				Snippet:           snippet,

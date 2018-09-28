@@ -70,6 +70,7 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 }
 
 type RemoteConversationMetadata struct {
+	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
 	SnippetDecoration string   `codec:"d"`

@@ -945,6 +945,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
+		res.Name = rc.LocalMetadata.Name
 	}
 	return res
 }
