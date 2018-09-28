@@ -1325,3 +1325,15 @@ func LookupUserByAccountID(m libkb.MetaContext, accountID stellar1.AccountID) (u
 	}
 	return upak.Current.ToUserVersion(), libkb.NewNormalizedUsername(upak.Current.GetName()), err
 }
+
+// AccountExchangeRate returns the exchange rate for an account for the logged in user.
+// Note that it is possible that multiple users can own the same account and have
+// different display currency preferences.
+func AccountExchangeRate(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.OutsideExchangeRate, error) {
+	currency, err := GetCurrencySetting(mctx, remoter, accountID)
+	if err != nil {
+		return stellar1.OutsideExchangeRate{}, err
+	}
+
+	return remoter.ExchangeRate(mctx.Ctx(), string(currency.Code))
+}
