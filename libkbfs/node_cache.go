@@ -385,16 +385,8 @@ func (ncs *nodeCacheStandard) PathFromNode(node Node) (p path) {
 
 // AllNodes implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) AllNodes() (nodes []Node) {
-	var rootWrappers []func(Node) Node
-	defer func() {
-		for i, n := range nodes {
-			nodes[i] = ncs.wrapNodeStandard(n, rootWrappers)
-		}
-	}()
-
-	ncs.lock.Lock()
-	defer ncs.lock.Unlock()
-	rootWrappers = ncs.rootWrappers
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
 	nodes = make([]Node, 0, len(ncs.nodes))
 	for _, entry := range ncs.nodes {
 		nodes = append(nodes, ncs.makeNodeStandardForEntryLocked(entry))
@@ -404,16 +396,8 @@ func (ncs *nodeCacheStandard) AllNodes() (nodes []Node) {
 
 // AllNodeChildren implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) AllNodeChildren(n Node) (nodes []Node) {
-	var rootWrappers []func(Node) Node
-	defer func() {
-		for i, n := range nodes {
-			nodes[i] = ncs.wrapNodeStandard(n, rootWrappers)
-		}
-	}()
-
 	ncs.lock.RLock()
 	defer ncs.lock.RUnlock()
-	rootWrappers = ncs.rootWrappers
 	nodes = make([]Node, 0, len(ncs.nodes))
 	entryIDs := make(map[NodeID]bool)
 	for _, entry := range ncs.nodes {

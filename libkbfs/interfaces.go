@@ -2248,11 +2248,15 @@ type NodeCache interface {
 	UpdateUnlinkedDirEntry(node Node, newDe DirEntry)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
-	// AllNodes returns the complete set of nodes currently in the cache.
+	// AllNodes returns the complete set of nodes currently in the
+	// cache.  The returned Nodes are not wrapped, and shouldn't be
+	// used for data access.
 	AllNodes() []Node
 	// AllNodeChildren returns the complete set of nodes currently in
 	// the cache, for which the given node `n` is a parent (direct or
 	// indirect).  The returned slice does not include `n` itself.
+	// The returned Nodes are not wrapped, and shouldn't be used for
+	// data access.
 	AllNodeChildren(n Node) []Node
 	// AddRootWrapper adds a new wrapper function that will be applied
 	// whenever a root Node is created.
