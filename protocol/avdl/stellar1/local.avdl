@@ -109,7 +109,7 @@ protocol local {
   record PaymentsPageLocal {
     array<PaymentOrErrorLocal> payments;
     union { null, PageCursor } cursor;
-    PaymentID oldestUnread;  // draw orange line underneath this payment
+    union { null, PaymentID } oldestUnread;  // draw orange line underneath this payment
   }
 
   PaymentsPageLocal getPaymentsLocal(int sessionID, AccountID accountID, union { null, PageCursor } cursor);

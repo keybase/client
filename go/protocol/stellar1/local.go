@@ -255,7 +255,7 @@ func (o PaymentOrErrorLocal) DeepCopy() PaymentOrErrorLocal {
 type PaymentsPageLocal struct {
 	Payments     []PaymentOrErrorLocal `codec:"payments" json:"payments"`
 	Cursor       *PageCursor           `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	OldestUnread PaymentID             `codec:"oldestUnread" json:"oldestUnread"`
+	OldestUnread *PaymentID            `codec:"oldestUnread,omitempty" json:"oldestUnread,omitempty"`
 }
 
 func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
@@ -278,7 +278,13 @@ func (o PaymentsPageLocal) DeepCopy() PaymentsPageLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Cursor),
-		OldestUnread: o.OldestUnread.DeepCopy(),
+		OldestUnread: (func(x *PaymentID) *PaymentID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.OldestUnread),
 	}
 }
 

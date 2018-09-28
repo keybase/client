@@ -344,7 +344,8 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	page.Cursor = srvPayments.Cursor
 
 	if srvPayments.OldestUnread != nil {
-		page.OldestUnread = stellar1.NewPaymentID(*srvPayments.OldestUnread)
+		oldestUnread := stellar1.NewPaymentID(*srvPayments.OldestUnread)
+		page.OldestUnread = &oldestUnread
 	}
 
 	return page, nil

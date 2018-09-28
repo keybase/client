@@ -270,7 +270,7 @@ export type PaymentSummaryType =
   | 3 // RELAY_3
 
 export type PaymentsPage = $ReadOnly<{payments?: ?Array<PaymentSummary>, cursor?: ?PageCursor, oldestUnread?: ?TransactionID}>
-export type PaymentsPageLocal = $ReadOnly<{payments?: ?Array<PaymentOrErrorLocal>, cursor?: ?PageCursor, oldestUnread: PaymentID}>
+export type PaymentsPageLocal = $ReadOnly<{payments?: ?Array<PaymentOrErrorLocal>, cursor?: ?PageCursor, oldestUnread?: ?PaymentID}>
 export type RelayClaimPost = $ReadOnly<{keybaseID: KeybaseTransactionID, dir: RelayDirection, signedTransaction: String, autoClaimToken?: ?String}>
 export type RelayClaimResult = $ReadOnly<{claimStellarID: TransactionID}>
 export type RelayContents = $ReadOnly<{stellarID: TransactionID, sk: SecretKey, note: String}>
