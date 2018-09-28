@@ -24,7 +24,8 @@ func TestLinkCacheBasics(t *testing.T) {
 	defer c.Shutdown()
 
 	link := randChainLink()
-	c.Put(link.id, link)
+	var m MetaContext
+	c.Put(m, link.id, link)
 
 	if c.Len() != 1 {
 		t.Errorf("c.cache len: %d, expected 1", c.Len())
@@ -37,7 +38,7 @@ func TestLinkCacheBasics(t *testing.T) {
 
 	for i := 0; i < 50; i++ {
 		nlink := randChainLink()
-		c.Put(nlink.id, nlink)
+		c.Put(m, nlink.id, nlink)
 	}
 
 	if c.Len() != 51 {
@@ -60,9 +61,10 @@ func TestLinkCacheBasics(t *testing.T) {
 func TestLinkCacheAtime(t *testing.T) {
 	c := NewLinkCache(10, time.Hour)
 	defer c.Shutdown()
+	var m MetaContext
 
 	link := randChainLink()
-	c.Put(link.id, link)
+	c.Put(m, link.id, link)
 
 	if c.Len() != 1 {
 		t.Errorf("c.cache len: %d, expected 1", c.Len())
@@ -75,7 +77,7 @@ func TestLinkCacheAtime(t *testing.T) {
 
 	for i := 0; i < 50; i++ {
 		nlink := randChainLink()
-		c.Put(nlink.id, nlink)
+		c.Put(m, nlink.id, nlink)
 	}
 
 	// get the first inserted one to make it LRU
@@ -105,6 +107,7 @@ func TestLinkCacheAtime(t *testing.T) {
 func TestLinkCacheConcurrent(t *testing.T) {
 	c := NewLinkCache(10, time.Hour)
 	defer c.Shutdown()
+	var m MetaContext
 
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
@@ -112,7 +115,7 @@ func TestLinkCacheConcurrent(t *testing.T) {
 		go func() {
 			for x := 0; x < 100; x++ {
 				link := randChainLink()
-				c.Put(link.id, link)
+				c.Put(m, link.id, link)
 				_, ok := c.Get(link.id)
 				if !ok {
 					t.Errorf("concurrent Get failed")
