@@ -72,6 +72,16 @@
   font-weight: 600;
 }
 
+.text_BodyBigExtrabold {
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 800;
+}
+
 .text_BodyBigLink {
   font-size: 14px;
   line-height: 18px;
@@ -91,6 +101,17 @@
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
   font-weight: 400;
+}
+
+.text_BodyItalic {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: OpenSans;
+  font-weight: 400;
+  font-style: italic;
 }
 
 .text_BodySemibold {
