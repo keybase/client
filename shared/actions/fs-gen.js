@@ -165,7 +165,10 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
-type _OpenFilesFromWidgetPayload = $ReadOnly<{|path?: Types.Path|}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|
+  path: Types.Path,
+  type: Types.PathType,
+|}>
 type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
 type _OpenPathInFilesTabPayload = $ReadOnly<{|
   path: Types.Path,
