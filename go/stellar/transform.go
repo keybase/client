@@ -23,8 +23,8 @@ func TransformPaymentSummaryGeneric(m libkb.MetaContext, p stellar1.PaymentSumma
 //
 // exchRate is the current exchange rate from XLM to the "outside" currency
 // that is the preference for accountID.
-func TransformPaymentSummaryAccount(m libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
-	return transformPaymentSummary(m, p, oc, accountID, &exchRate)
+func TransformPaymentSummaryAccount(m libkb.MetaContext, p stellar1.PaymentSummary, oc OwnAccountLookupCache, accountID stellar1.AccountID, exchRate *stellar1.OutsideExchangeRate) (*stellar1.PaymentLocal, error) {
+	return transformPaymentSummary(m, p, oc, accountID, exchRate)
 }
 
 // transformPaymentSummary converts a stellar1.PaymentSummary (p) into a stellar1.PaymentLocal.
