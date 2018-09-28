@@ -56,6 +56,13 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
     if (this.props.nameValidationState === 'valid' && this.state.view === 'name') {
       this.props.onClearErrors()
       this.props.onDone()
+      // This is for when we are showing this from a SendForm.
+      //
+      // songgao: Note that we are switching back to the root of SendForm
+      // before we have finished creating the account, but the critical point
+      // is in Saga and it doesn't seem like a good idea to plumb onBack into
+      // Saga.
+      this.props.onBack && this.props.onBack()
     }
   }
 

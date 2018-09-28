@@ -12,6 +12,8 @@ type Props = {
   isRequest: boolean,
   bannerInfo?: string,
   isProcessing?: boolean,
+  onLinkAccount: () => void,
+  onCreateNewAccount: () => void,
 }
 
 const Spinner = () => (
@@ -20,17 +22,19 @@ const Spinner = () => (
   </Box2>
 )
 
-const Body = ({bannerInfo, isProcessing, isRequest}: Props) => (
-  <Box2 fullWidth={true} fullHeight={true} direction="vertical">
-    {isProcessing && <Spinner />}
-    {bannerInfo && <Banner />}
-    <Participants />
-    <AssetInput />
-    <Divider />
-    <NoteAndMemo />
-    <Footer isRequest={isRequest} />
-  </Box2>
-)
+const Body = (props: Props) => {
+  return (
+    <Box2 fullWidth={true} fullHeight={true} direction="vertical">
+      {props.isProcessing && <Spinner />}
+      {props.bannerInfo && <Banner />}
+      <Participants onLinkAccount={props.onLinkAccount} onCreateNewAccount={props.onCreateNewAccount} />
+      <AssetInput />
+      <Divider />
+      <NoteAndMemo />
+      <Footer isRequest={props.isRequest} />
+    </Box2>
+  )
+}
 
 const styles = styleSheetCreate({
   spinnerContainer: {...globalStyles.fillAbsolute},

@@ -10,7 +10,6 @@ type Props = {|
   nameValidationState: ValidationState,
   onBack?: () => void,
   onCancel: () => void,
-  onCheckName: (name: string) => void,
   onClearErrors: () => void,
   onCreateAccount: () => void,
   onDone: () => void,
@@ -33,10 +32,6 @@ class CreateAccount extends React.Component<Props> {
     )
   }
 
-  _onCheckName = () => {
-    this.props.onCheckName(this.props.name)
-  }
-
   componentDidMount() {
     this.props.onClearErrors()
   }
@@ -47,6 +42,13 @@ class CreateAccount extends React.Component<Props> {
     if (this.props.nameValidationState === 'valid' && prevProps.nameValidationState !== 'valid') {
       this.props.onClearErrors()
       this.props.onCreateAccount()
+      // This is for when we are showing this from a SendForm.
+      //
+      // songgao: Note that we are switching back to the root of SendForm
+      // before we have finished creating the account, but the critical point
+      // is in Saga and it doesn't seem like a good idea to plumb onBack into
+      // Saga.
+      this.props.onBack && this.props.onBack()
     }
   }
 }
