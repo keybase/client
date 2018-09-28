@@ -132,6 +132,8 @@ func (i *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid greg
 func (i *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msg chat1.MessageUnboxed) (err error) {
 	defer i.Trace(ctx, func() error { return err }, "Indexer.Remove")()
+	i.Lock()
+	defer i.Unlock()
 
 	msgText := i.getMsgText(msg)
 	tokens := tokenize(msgText)
