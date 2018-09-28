@@ -240,8 +240,8 @@ func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLi
 
 	// The combination of hashVerified and chainVerified should ensure that this link
 	// is only considered here after all prevs have been successfully checked.
-	if !c.hashVerified { // !(c.hashVerified && c.chainVerified) {
-		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (hash=%v, chain=%v)", why, c.hashVerified, c.chainVerified)}
+	if !(c.hashVerified && c.chainVerified) {
+		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v)", why, c.id, uid, c.hashVerified, c.chainVerified)}
 	}
 
 	scl, found = tab[c.LinkID().Export()]
@@ -899,6 +899,11 @@ func (c *ChainLink) verifyHashV1() error {
 	return nil
 }
 
+func (c *ChainLink) markChainVerified() {
+	c.chainVerified = true
+	c.G().LinkCache().Mutate(c.id, func(c *ChainLink) { c.chainVerified = true })
+}
+
 // getFixedPayload usually just returns c.unpacked.Payload(), but sometimes
 // it adds extra whitespace to work around server-side bugs.
 func (c ChainLink) getFixedPayload() []byte {
@@ -1233,11 +1238,11 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) (ret key
 	return verifyKID, nil
 }
 
-func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
+func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 
-	g.VDL.Log(VLog1, "| Storing Link %s...", c.id)
+	m.VLogf(VLog1, "| Storing Link %s...", c.id)
 	if c.storedLocally && !c.dirty {
-		g.VDL.Log(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
+		m.VLogf(VLog1, "| Bailed on link %s since wasn't dirty...", c.id)
 		return didStore, nil
 	}
 
@@ -1258,10 +1263,10 @@ func (c *ChainLink) Store(g *GlobalContext) (didStore bool, err error) {
 	key := DbKey{Typ: DBLink, Key: c.id.String()}
 
 	// Don't write with any aliases
-	if err = g.LocalDb.Put(key, nil, packed); err != nil {
+	if err = m.G().LocalDb.Put(key, nil, packed); err != nil {
 		return false, err
 	}
-	g.VDL.Log(VLog1, "| Store Link %s", c.id)
+	m.VLogf(VLog1, "| Store Link %s", c.id)
 
 	c.storedLocally = true
 	c.dirty = false

@@ -364,7 +364,7 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 		if err = curr.CheckNameAndID(sc.username, sc.uid); err != nil {
 			return err
 		}
-		curr.chainVerified = true
+		curr.markChainVerified()
 	}
 
 	return err
@@ -431,7 +431,7 @@ func (sc *SigChain) Store(m MetaContext) (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		link := sc.chainLinks[i]
 		var didStore bool
-		if didStore, err = link.Store(sc.G()); err != nil || !didStore {
+		if didStore, err = link.Store(m); err != nil || !didStore {
 			return err
 		}
 		select {
@@ -978,15 +978,14 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 	var mt *MerkleTriple
 
 	if mt, err = l.LoadLastLinkIDFromStorage(); err != nil || mt == nil || mt.LinkID == nil {
-		l.M().CDebugf("| Failed to load last link ID")
-		if err == nil {
-			l.M().CDebugf("| no error loading last link ID from storage")
-		} else if mt == nil {
+		l.M().CDebugf("| short-circuting LoadLinksFromStorage: LoadLastLinkIDFromStorage returned err=%v", err)
+		if mt == nil {
 			l.M().CDebugf("| mt (MerkleTriple) nil result from load last link ID from storage")
-		} else if mt.LinkID == nil {
+		}
+		if mt != nil && mt.LinkID == nil {
 			l.M().CDebugf("| mt (MerkleTriple) from storage has a nil link ID")
 		}
-		return
+		return nil
 	}
 
 	currentLink, err := ImportLinkFromStorage(l.M(), mt.LinkID, l.selfUID())
