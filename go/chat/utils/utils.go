@@ -731,6 +731,25 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	return summaries[len(summaries)-1].Ctime
 }
 
+func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
+	// nil means all
+	if typs == nil {
+		for typ := range chat1.MessageTypeRevMap {
+			typs = append(typs, typ)
+		}
+	}
+	for _, typ := range typs {
+		msg, err := conv.GetMaxMessage(typ)
+		if err == nil && msg.Ctime.After(res.Ctime) {
+			res = msg
+		}
+	}
+	if res.GetMessageID() == 0 {
+		return res, errors.New("no message summary found")
+	}
+	return res, nil
+}
+
 // PickLatestMessageUnboxed gets the latest message with one `typs`.
 // This method can return deleted messages which have a blank body.
 func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
@@ -893,10 +912,17 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	var tlfName string
 	rawConv := rc.Conv
+	latest, err := PickLatestMessageSummary(rawConv, nil)
+	if err != nil {
+		tlfName = ""
+	} else {
+		tlfName = latest.TlfName
+	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
-	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
 	res.Visibility = rawConv.Metadata.Visibility
@@ -919,6 +945,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
+		res.Name = rc.LocalMetadata.Name
 	}
 	return res
 }
