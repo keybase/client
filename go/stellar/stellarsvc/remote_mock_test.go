@@ -481,6 +481,11 @@ func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stell
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
+const (
+	defaultExchangeRate   = "0.318328"
+	alternateExchangeRate = "0.212133"
+)
+
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
 // Threadsafe.
@@ -491,6 +496,7 @@ type BackendMock struct {
 	accounts map[stellar1.AccountID]*FakeAccount
 	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
+	exchRate string
 }
 
 func NewBackendMock(t testing.TB) *BackendMock {
@@ -500,6 +506,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		accounts: make(map[stellar1.AccountID]*FakeAccount),
 		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
+		exchRate: defaultExchangeRate,
 	}
 }
 
@@ -911,8 +918,16 @@ func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestCon
 func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
 	return stellar1.OutsideExchangeRate{
 		Currency: stellar1.OutsideCurrencyCode(currency),
-		Rate:     "0.318328",
+		Rate:     r.exchRate,
 	}, nil
+}
+
+func (r *BackendMock) UseDefaultExchangeRate() {
+	r.exchRate = defaultExchangeRate
+}
+
+func (r *BackendMock) UseAlternateExchangeRate() {
+	r.exchRate = alternateExchangeRate
 }
 
 func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
