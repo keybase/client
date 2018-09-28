@@ -233,6 +233,17 @@ func (fs *KBFSOpsStandard) ForceFastForward(ctx context.Context) {
 	}
 }
 
+// InvalidateNodeAndChildren implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) InvalidateNodeAndChildren(
+	ctx context.Context, node Node) error {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	ops := fs.getOpsByNode(ctx, node)
+	return ops.InvalidateNodeAndChildren(ctx, node)
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (

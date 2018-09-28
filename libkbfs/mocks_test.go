@@ -1703,6 +1703,18 @@ func (mr *MockKBFSOpsMockRecorder) ForceFastForward(ctx interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceFastForward", reflect.TypeOf((*MockKBFSOps)(nil).ForceFastForward), ctx)
 }
 
+// InvalidateNodeAndChildren mocks base method
+func (m *MockKBFSOps) InvalidateNodeAndChildren(ctx context.Context, node Node) error {
+	ret := m.ctrl.Call(m, "InvalidateNodeAndChildren", ctx, node)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InvalidateNodeAndChildren indicates an expected call of InvalidateNodeAndChildren
+func (mr *MockKBFSOpsMockRecorder) InvalidateNodeAndChildren(ctx, node interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InvalidateNodeAndChildren", reflect.TypeOf((*MockKBFSOps)(nil).InvalidateNodeAndChildren), ctx, node)
+}
+
 // TeamNameChanged mocks base method
 func (m *MockKBFSOps) TeamNameChanged(ctx context.Context, tid keybase1.TeamID) {
 	m.ctrl.Call(m, "TeamNameChanged", ctx, tid)

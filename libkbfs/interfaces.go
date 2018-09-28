@@ -484,6 +484,13 @@ type KBFSOps interface {
 	// newest version.  It works asynchronously, so no error is
 	// returned.
 	ForceFastForward(ctx context.Context)
+	// InvalidateNodeAndChildren sends invalidation messages for the
+	// given node and all of its children that are currently in the
+	// NodeCache.  It's useful if the caller has outside knowledge of
+	// data changes to thae node or its children that didn't come
+	// through the usual MD update channels (e.g., autogit nodes need
+	// invalidation when the corresponding git repo is updated).
+	InvalidateNodeAndChildren(ctx context.Context, node Node) error
 	// TeamNameChanged indicates that a team has changed its name, and
 	// we should clean up any outstanding handle info associated with
 	// the team ID.

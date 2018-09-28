@@ -6,7 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
-	"path/filepath"
+	pathlib "path"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -3402,8 +3402,34 @@ func (fbo *folderBlockOps) unlinkDuringFastForwardLocked(ctx context.Context,
 	fbo.nodeCache.Unlink(ref, oldPath, de)
 }
 
+type nodeChildrenMap map[string]map[pathNode]bool
+
+func (ncm nodeChildrenMap) addDirChange(
+	node Node, p path, changes []NodeChange, affectedNodeIDs []NodeID) (
+	[]NodeChange, []NodeID) {
+	change := NodeChange{Node: node}
+	for subchild := range ncm[p.String()] {
+		change.DirUpdated = append(change.DirUpdated, subchild.Name)
+	}
+	changes = append(changes, change)
+	affectedNodeIDs = append(affectedNodeIDs, node.GetID())
+	return changes, affectedNodeIDs
+}
+
+func (nodeChildrenMap) addFileChange(
+	node Node, changes []NodeChange, affectedNodeIDs []NodeID) (
+	[]NodeChange, []NodeID) {
+	// Invalidate the entire file contents.
+	changes = append(changes, NodeChange{
+		Node:        node,
+		FileUpdated: []WriteRange{{Len: 0, Off: 0}},
+	})
+	affectedNodeIDs = append(affectedNodeIDs, node.GetID())
+	return changes, affectedNodeIDs
+}
+
 func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
-	lState *lockState, currDir path, children map[string]map[pathNode]bool,
+	lState *lockState, currDir path, children nodeChildrenMap,
 	kmd KeyMetadataWithRootDirEntry) (
 	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
 	fbo.blockLock.AssertLocked(lState)
@@ -3437,12 +3463,8 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 		newPath := fbo.nodeCache.PathFromNode(node)
 		if entry.Type == Dir {
 			if node != nil {
-				change := NodeChange{Node: node}
-				for subchild := range children[newPath.String()] {
-					change.DirUpdated = append(change.DirUpdated, subchild.Name)
-				}
-				changes = append(changes, change)
-				affectedNodeIDs = append(affectedNodeIDs, node.GetID())
+				changes, affectedNodeIDs = children.addDirChange(
+					node, newPath, changes, affectedNodeIDs)
 			}
 
 			childChanges, childAffectedNodeIDs, err :=
@@ -3455,15 +3477,39 @@ func (fbo *folderBlockOps) fastForwardDirAndChildrenLocked(ctx context.Context,
 			affectedNodeIDs = append(affectedNodeIDs, childAffectedNodeIDs...)
 		} else if node != nil {
 			// File -- invalidate the entire file contents.
-			changes = append(changes, NodeChange{
-				Node:        node,
-				FileUpdated: []WriteRange{{Len: 0, Off: 0}},
-			})
-			affectedNodeIDs = append(affectedNodeIDs, node.GetID())
+			changes, affectedNodeIDs = children.addFileChange(
+				node, changes, affectedNodeIDs)
 		}
 	}
 	delete(children, prefix)
 	return changes, affectedNodeIDs, nil
+}
+
+func (fbo *folderBlockOps) makeChildrenTreeFromNodesLocked(
+	lState *lockState, nodes []Node) (rootPath path, children nodeChildrenMap) {
+	fbo.blockLock.AssertLocked(lState)
+
+	// Build a "tree" representation for each interesting path prefix.
+	children = make(nodeChildrenMap)
+	for _, n := range nodes {
+		p := fbo.nodeCache.PathFromNode(n)
+		if len(p.path) == 1 {
+			rootPath = p
+		}
+		prevPath := ""
+		for _, pn := range p.path {
+			if prevPath != "" {
+				childPNs := children[prevPath]
+				if childPNs == nil {
+					childPNs = make(map[pathNode]bool)
+					children[prevPath] = childPNs
+				}
+				childPNs[pn] = true
+			}
+			prevPath = pathlib.Join(prevPath, pn.Name)
+		}
+	}
+	return rootPath, children
 }
 
 // FastForwardAllNodes attempts to update the block pointers
@@ -3494,28 +3540,7 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 	fbo.log.CDebugf(ctx, "Fast-forwarding %d nodes", len(nodes))
 	defer func() { fbo.log.CDebugf(ctx, "Fast-forward complete: %v", err) }()
 
-	// Build a "tree" representation for each interesting path prefix.
-	children := make(map[string]map[pathNode]bool)
-	var rootPath path
-	for _, n := range nodes {
-		p := fbo.nodeCache.PathFromNode(n)
-		if len(p.path) == 1 {
-			rootPath = p
-		}
-		prevPath := ""
-		for _, pn := range p.path {
-			if prevPath != "" {
-				childPNs := children[prevPath]
-				if childPNs == nil {
-					childPNs = make(map[pathNode]bool)
-					children[prevPath] = childPNs
-				}
-				childPNs[pn] = true
-			}
-			prevPath = filepath.Join(prevPath, pn.Name)
-		}
-	}
-
+	rootPath, children := fbo.makeChildrenTreeFromNodesLocked(lState, nodes)
 	if !rootPath.isValid() {
 		return nil, nil, errors.New("Couldn't find the root path")
 	}
@@ -3549,6 +3574,43 @@ func (fbo *folderBlockOps) FastForwardAllNodes(ctx context.Context,
 		for child := range childPNs {
 			fbo.unlinkDuringFastForwardLocked(
 				ctx, lState, md, child.BlockPointer.Ref())
+		}
+	}
+	return changes, affectedNodeIDs, nil
+}
+
+func (fbo *folderBlockOps) GetInvalidationChanges(
+	ctx context.Context, lState *lockState, node Node) (
+	changes []NodeChange, affectedNodeIDs []NodeID, err error) {
+	if fbo.nodeCache == nil {
+		// Nothing needs to be done!
+		return nil, nil, nil
+	}
+
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.log.CDebugf(ctx, "About to get all children for node %p", node)
+	childNodes := fbo.nodeCache.AllNodeChildren(node)
+	fbo.log.CDebugf(ctx, "Found %d children for node %p", len(childNodes), node)
+
+	_, children := fbo.makeChildrenTreeFromNodesLocked(lState, childNodes)
+	for _, node := range append(childNodes, node) {
+		p := fbo.nodeCache.PathFromNode(node)
+		prefix := p.String()
+		childNodes := children[prefix]
+		if len(childNodes) > 0 {
+			// This must be a directory.  Invalidate all children.
+			changes, affectedNodeIDs = children.addDirChange(
+				node, p, changes, affectedNodeIDs)
+			fbo.log.CDebugf(ctx, "Invalidating dir node %p/%s", node, prefix)
+		} else {
+			// This might be a file.  In any case, it doesn't have any
+			// children that need invalidation, so just send the file
+			// change.
+			changes, affectedNodeIDs = children.addFileChange(
+				node, changes, affectedNodeIDs)
+			fbo.log.CDebugf(
+				ctx, "Invalidating possible file node %p/%s", node, prefix)
 		}
 	}
 	return changes, affectedNodeIDs, nil

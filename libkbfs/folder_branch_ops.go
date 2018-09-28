@@ -7145,6 +7145,29 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 	}()
 }
 
+// InvalidateNodeAndChildren implements the KBFSOps interface for
+// folderBranchOps.
+func (fbo *folderBranchOps) InvalidateNodeAndChildren(
+	ctx context.Context, node Node) (err error) {
+	fbo.log.CDebugf(ctx, "InvalidateNodeAndChildren %p", node)
+	defer func() {
+		fbo.log.CDebugf(ctx,
+			"InvalidateNodeAndChildren %p done: %+v", node, err)
+	}()
+
+	lState := makeFBOLockState()
+	changes, affectedNodeIDs, err := fbo.blocks.GetInvalidationChanges(
+		ctx, lState, node)
+	if err != nil {
+		return err
+	}
+
+	if len(changes) > 0 {
+		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
+	}
+	return nil
+}
+
 // KickoffAllOutstandingRekeys (does not) implement the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
