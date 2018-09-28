@@ -22,6 +22,7 @@ import nameWithIcon from './name-with-icon/index.stories'
 import newInput from './new-input.stories'
 import plainInput from './plain-input.stories'
 import popupDialog from './popup-dialog.stories'
+import multiPopupDialog from './multi-popup-dialog.stories'
 import radiobutton from './radio-button.stories'
 import saveIndicator from './save-indicator.stories'
 import standardScreen from './standard-screen.stories'
@@ -53,6 +54,7 @@ const load = () => {
     newInput,
     plainInput,
     popupDialog,
+    multiPopupDialog,
     radiobutton,
     saveIndicator,
     standardScreen,

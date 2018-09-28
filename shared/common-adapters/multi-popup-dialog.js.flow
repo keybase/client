@@ -1,0 +1,21 @@
+// @flow
+import * as React from 'react'
+import * as I from 'immutable'
+import {type Props as PopupDialogProps} from './popup-dialog'
+
+
+export type ChildKey = string
+
+export type Props = $Rest<PopupDialogProps, {children?: React.Node}> & {
+  childrenMap: I.Map<ChildKey, React.Node>,
+  initialChildKey: ChildKey,
+}
+
+export type Context = {
+  multiPopupDialogAppend: (key: ChildKey) => void,
+  multiPopupDialogBack: () => void,
+}
+
+
+export class Dialog extends React.Component<Props> {}
+declare export class Consumer extends React.Component<any>{}
