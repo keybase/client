@@ -14,7 +14,7 @@ import (
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
-	cl, err := libkb.ImportLinkFromServer(g, nil, []byte(trackingServerReply), trackingUID)
+	cl, err := libkb.ImportLinkFromServer(libkb.NewMetaContextBackground(g), nil, []byte(trackingServerReply), trackingUID)
 	if err != nil {
 		t.Fatal(err)
 	}

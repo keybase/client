@@ -1290,32 +1290,36 @@ func NewTypedChainLink(cl *ChainLink) (ret TypedChainLink, w Warning) {
 	return ret, w
 }
 
-func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
+func NewIdentityTable(m MetaContext, eldest keybase1.KID, sc *SigChain, h *SigHints) (*IdentityTable, error) {
 	ret := &IdentityTable{
-		Contextified:     NewContextified(g),
+		Contextified:     NewContextified(m.G()),
 		sigChain:         sc,
 		revocations:      make(map[keybase1.SigID]bool),
 		links:            make(map[keybase1.SigID]TypedChainLink),
-		remoteProofLinks: NewRemoteProofLinks(g),
+		remoteProofLinks: NewRemoteProofLinks(m.G()),
 		tracks:           make(map[NormalizedUsername][]*TrackChainLink),
 		sigHints:         h,
 		eldest:           eldest,
 	}
-	err := ret.populate()
+	err := ret.populate(m)
 	return ret, err
 }
 
-func (idt *IdentityTable) populate() (err error) {
-	defer idt.G().Trace("IdentityTable::populate", func() error { return err })()
+func (idt *IdentityTable) populate(m MetaContext) (err error) {
+	defer m.CTrace("IdentityTable#populate", func() error { return err })()
 
 	var links []*ChainLink
-	if links, err = idt.sigChain.GetCurrentSubchain(idt.eldest); err != nil {
+	if links, err = idt.sigChain.GetCurrentSubchain(m, idt.eldest); err != nil {
 		return err
 	}
 
 	for _, link := range links {
-		if isBad, reason := link.IsBad(); isBad {
-			idt.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+		isBad, reason, err := link.IsBad()
+		if err != nil {
+			return err
+		}
+		if isBad {
+			idt.G().Log.Debug("Ignoring bad chain link with linkID %s: %s", link.LinkID(), reason)
 			continue
 		}
 		if link.IsStubbed() {
