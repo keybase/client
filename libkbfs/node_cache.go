@@ -402,6 +402,50 @@ func (ncs *nodeCacheStandard) AllNodes() (nodes []Node) {
 	return nodes
 }
 
+// AllNodeChildren implements the NodeCache interface for nodeCacheStandard.
+func (ncs *nodeCacheStandard) AllNodeChildren(n Node) (nodes []Node) {
+	var rootWrappers []func(Node) Node
+	defer func() {
+		for i, n := range nodes {
+			nodes[i] = ncs.wrapNodeStandard(n, rootWrappers)
+		}
+	}()
+
+	ncs.lock.Lock()
+	defer ncs.lock.Unlock()
+	rootWrappers = ncs.rootWrappers
+	nodes = make([]Node, 0, len(ncs.nodes))
+	entryIDs := make(map[NodeID]bool)
+	for _, entry := range ncs.nodes {
+		var pathIDs []NodeID
+		parent := entry.core.parent
+		for parent != nil {
+			// If the node's parent is what we're looking for (or on
+			// the path to what we're looking for), include it in the
+			// list.
+			parentID := parent.GetID()
+			if parentID == n.GetID() || entryIDs[parentID] {
+				nodes = append(nodes, ncs.makeNodeStandardForEntryLocked(entry))
+				for _, id := range pathIDs {
+					entryIDs[id] = true
+				}
+				entryIDs[entry.core] = true
+				break
+			}
+
+			// Otherwise, remember this parent and continue back
+			// toward the root.
+			pathIDs = append(pathIDs, parentID)
+			ns, ok := parent.Unwrap().(*nodeStandard)
+			if !ok {
+				break
+			}
+			parent = ns.core.parent
+		}
+	}
+	return nodes
+}
+
 func (ncs *nodeCacheStandard) AddRootWrapper(f func(Node) Node) {
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()

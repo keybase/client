@@ -510,3 +510,44 @@ func TestNodeCacheWrapChild(t *testing.T) {
 	require.True(t, wtn1.wrapChildCalled)
 	require.True(t, wtn2.wrapChildCalled)
 }
+
+func TestNodeCacheAllNodeChildren(t *testing.T) {
+	ncs, parentNode, childNode1, childNode2, _, _ :=
+		setupNodeCache(t, tlf.FakeID(0, tlf.Private), MasterBranch, false)
+
+	// Structure:
+	// parent:
+	//   child1:
+	//      child2
+	//      child3
+	//   child4
+
+	childPtr3 := BlockPointer{ID: kbfsblock.FakeID(3)}
+	childName3 := "child3"
+	_, err := ncs.GetOrCreate(childPtr3, childName3, childNode1)
+	require.NoError(t, err)
+
+	childPtr4 := BlockPointer{ID: kbfsblock.FakeID(4)}
+	childName4 := "child4"
+	_, err = ncs.GetOrCreate(childPtr4, childName4, parentNode)
+	require.NoError(t, err)
+
+	parentChildren := ncs.AllNodeChildren(parentNode)
+	require.Len(t, parentChildren, 4)
+
+	child1Children := ncs.AllNodeChildren(childNode1)
+	require.Len(t, child1Children, 2)
+
+	child2Children := ncs.AllNodeChildren(childNode2)
+	require.Len(t, child2Children, 0)
+
+	t.Log("Move child3 under the parent node.")
+	_, err = ncs.Move(childPtr3.Ref(), parentNode, "child3")
+	require.NoError(t, err)
+
+	parentChildren = ncs.AllNodeChildren(parentNode)
+	require.Len(t, parentChildren, 4)
+
+	child1Children = ncs.AllNodeChildren(childNode1)
+	require.Len(t, child1Children, 1)
+}

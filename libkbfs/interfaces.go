@@ -2243,6 +2243,10 @@ type NodeCache interface {
 	PathFromNode(node Node) path
 	// AllNodes returns the complete set of nodes currently in the cache.
 	AllNodes() []Node
+	// AllNodeChildren returns the complete set of nodes currently in
+	// the cache, for which the given node `n` is a parent (direct or
+	// indirect).  The returned slice does not include `n` itself.
+	AllNodeChildren(n Node) []Node
 	// AddRootWrapper adds a new wrapper function that will be applied
 	// whenever a root Node is created.
 	AddRootWrapper(func(Node) Node)

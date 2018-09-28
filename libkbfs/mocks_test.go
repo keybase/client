@@ -8150,6 +8150,18 @@ func (mr *MockNodeCacheMockRecorder) AllNodes() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllNodes", reflect.TypeOf((*MockNodeCache)(nil).AllNodes))
 }
 
+// AllNodeChildren mocks base method
+func (m *MockNodeCache) AllNodeChildren(n Node) []Node {
+	ret := m.ctrl.Call(m, "AllNodeChildren", n)
+	ret0, _ := ret[0].([]Node)
+	return ret0
+}
+
+// AllNodeChildren indicates an expected call of AllNodeChildren
+func (mr *MockNodeCacheMockRecorder) AllNodeChildren(n interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllNodeChildren", reflect.TypeOf((*MockNodeCache)(nil).AllNodeChildren), n)
+}
+
 // AddRootWrapper mocks base method
 func (m *MockNodeCache) AddRootWrapper(arg0 func(Node) Node) {
 	m.ctrl.Call(m, "AddRootWrapper", arg0)
