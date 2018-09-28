@@ -1334,7 +1334,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	default:
 		info, ierr = infoSource.LookupID(ctx,
-			conversationLocal.Info.TLFNameExpanded(),
+			conversationLocal.Info.TlfName,
 			conversationLocal.Info.Visibility == keybase1.TLFVisibility_PUBLIC)
 	}
 	if ierr != nil {
