@@ -43,16 +43,16 @@ const HoverBox = Styles.isMobile
   : Styles.glamorous(Box2)(props => ({
       paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.xtiny,
-      '& .menu-button': {
-        flexShrink: 0,
-        height: 17,
-        opacity: 0,
-        visibility: 'hidden',
-      },
-      '&.active .menu-button, &:hover .menu-button': {
-        opacity: 1,
-        visibility: 'visible',
-      },
+      // '& .menu-button': {
+      // flexShrink: 0,
+      // height: 17,
+      // opacity: 0,
+      // visibility: 'hidden',
+      // },
+      // '&.active .menu-button, &:hover .menu-button': {
+      // opacity: 1,
+      // visibility: 'visible',
+      // },
       '&.active, &:hover': props.decorate
         ? {
             backgroundColor: Styles.globalColors.blue5,
@@ -62,9 +62,10 @@ const HoverBox = Styles.isMobile
 
 type State = {
   showingPicker: boolean,
+  showingMenuButton: boolean,
 }
 class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, State> {
-  state = {showingPicker: false}
+  state = {showingPicker: false, showingMenuButton: false}
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
       if (
@@ -75,8 +76,15 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
       }
     }
   }
+  _onMouseLeave = () => {
+    this.setState(o => (o.showingMenuButton ? {showingMenuButton: false} : null))
+  }
+  _onMouseOver = () => {
+    this.setState(o => (o.showingMenuButton ? null : {showingMenuButton: true}))
+  }
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+
   render() {
     const props = this.props
     return (
@@ -92,6 +100,13 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 underlayColor: Styles.globalColors.blue5,
               }
             : {})}
+          {...(Styles.isMobile
+            ? {}
+            : {
+                onMouseLeave: this._onMouseLeave,
+                onMouseOver: this._onMouseOver,
+                onMouseOut: this._onMouseLeave,
+              })}
           direction="vertical"
           decorate={props.decorate}
           fullWidth={true}
@@ -114,18 +129,21 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                     toggleMessageMenu={props.toggleShowingMenu}
                   />
                 )}
-              {props.decorate && (
-                <MenuButtons
-                  conversationIDKey={props.conversationIDKey}
-                  exploded={props.exploded}
-                  isRevoked={props.isRevoked}
-                  message={props.message}
-                  ordinal={props.ordinal}
-                  setAttachmentRef={props.setAttachmentRef}
-                  setShowingPicker={this._setShowingPicker}
-                  toggleShowingMenu={props.toggleShowingMenu}
-                />
-              )}
+              {props.decorate &&
+                this.state.showingMenuButton && (
+                  <MenuButtons
+                    conversationIDKey={props.conversationIDKey}
+                    exploded={props.exploded}
+                    isRevoked={props.isRevoked}
+                    message={props.message}
+                    ordinal={props.ordinal}
+                    setAttachmentRef={props.setAttachmentRef}
+                    setShowingPicker={this._setShowingPicker}
+                    toggleShowingMenu={props.toggleShowingMenu}
+                  />
+                )}
+              {props.decorate &&
+                !this.state.showingMenuButton && <Box style={styles.menuButtonsPlaceholder} />}
             </Box2>
             <ReactionsRow conversationIDKey={props.conversationIDKey} ordinal={props.ordinal} />
           </Box>
@@ -208,6 +226,7 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
     },
   }),
+  menuButtonsPlaceholder: {flexShrink: 0, minHeight: 19, minWidth: 69},
   orangeLine: {backgroundColor: Styles.globalColors.orange, height: 1, width: '100%'},
   reactButton: {
     marginTop: -3,
