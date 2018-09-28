@@ -25,7 +25,6 @@ import (
 )
 
 const AccountNameMaxRunes = 24
-const DefaultCurrencySetting = "USD"
 
 // CreateWallet creates and posts an initial stellar bundle for a user.
 // Only succeeds if they do not already have one.
@@ -59,14 +58,6 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 		return false, err
 	default:
 		return false, err
-	}
-	primary, err := clearBundle.PrimaryAccount()
-	if err != nil {
-		g.Log.CErrorf(ctx, "We've just posted a bundle that's missing PrimaryAccount: %s", err)
-		return false, err
-	}
-	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, DefaultCurrencySetting); err != nil {
-		g.Log.CWarningf(ctx, "Error during setting display currency for %q: %s", primary.AccountID, err)
 	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, nil
@@ -1110,6 +1101,8 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	}
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
+
+const DefaultCurrencySetting = "USD"
 
 // GetAccountDisplayCurrency gets currency setting from the server, and it
 // returned currency is empty (NULL in database), then default "USD" is used.
