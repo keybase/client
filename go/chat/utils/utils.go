@@ -918,7 +918,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	if err != nil {
 		tlfName = ""
 	} else {
-		tlfName = latest.TLFNameExpanded(rawConv.GetFinalizeInfo())
+		tlfName = latest.TlfName
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
