@@ -85,6 +85,10 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 	defer libkbfs.Shutdown()
 
 	if options.RuntimeDir != "" {
+		err := os.MkdirAll(options.RuntimeDir, libkb.PermDir)
+		if err != nil {
+			return libfs.InitError(err.Error())
+		}
 		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
