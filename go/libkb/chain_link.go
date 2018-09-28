@@ -238,12 +238,6 @@ type ChainLink struct {
 func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLink, uid keybase1.UID, why string) (found bool, reason string, err error) {
 	var scl SpecialChainLink
 
-	// The combination of hashVerified and chainVerified should ensure that this link
-	// is only considered here after all prevs have been successfully checked.
-	if !(c.hashVerified && c.chainVerified) {
-		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (linkID=%s, uid=%s, hash=%v, chain=%v)", why, c.id, uid, c.hashVerified, c.chainVerified)}
-	}
-
 	scl, found = tab[c.LinkID().Export()]
 	if !found {
 		return false, "", nil
