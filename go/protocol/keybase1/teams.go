@@ -2782,10 +2782,11 @@ type TeamReAddMemberAfterResetArg struct {
 }
 
 type LoadTeamPlusApplicationKeysArg struct {
-	SessionID   int             `codec:"sessionID" json:"sessionID"`
-	Id          TeamID          `codec:"id" json:"id"`
-	Application TeamApplication `codec:"application" json:"application"`
-	Refreshers  TeamRefreshers  `codec:"refreshers" json:"refreshers"`
+	SessionID       int             `codec:"sessionID" json:"sessionID"`
+	Id              TeamID          `codec:"id" json:"id"`
+	Application     TeamApplication `codec:"application" json:"application"`
+	Refreshers      TeamRefreshers  `codec:"refreshers" json:"refreshers"`
+	IncludeKBFSKeys bool            `codec:"includeKBFSKeys" json:"includeKBFSKeys"`
 }
 
 type GetTeamRootIDArg struct {

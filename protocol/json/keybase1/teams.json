@@ -2873,6 +2873,10 @@
         {
           "name": "refreshers",
           "type": "TeamRefreshers"
+        },
+        {
+          "name": "includeKBFSKeys",
+          "type": "boolean"
         }
       ],
       "response": "TeamPlusApplicationKeys",
