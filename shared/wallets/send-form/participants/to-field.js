@@ -146,6 +146,7 @@ class ToField extends React.Component<ToFieldProps> {
               multiline={true}
               rowsMin={2}
               rowsMax={3}
+              value={this.props.toFieldInput}
             />
           </Kb.Box2>
           {!!this.props.incorrect && (

@@ -77,6 +77,7 @@ class Wrapper extends React.Component<WrapperProps, WrapperState> {
           placeholder="Search"
           icon="iconfont-search"
           onChangeText={filter => this.setState({filter})}
+          value={this.state.filter}
           textType="BodySemibold"
         />
         <EmojiPicker

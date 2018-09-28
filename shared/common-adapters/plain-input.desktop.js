@@ -61,8 +61,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
       n.style.height = `${n.scrollHeight}px`
     } else {
       // see if we went back down in height
-      if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-        this._smartAutoresize.pivotLength = -1
+      if (value.length <= this._smartAutoresize.pivotLength) {
+        this._smartAutoresize.pivotLength = value.length
         n.style.height = '1px'
         n.style.height = `${n.scrollHeight}px`
       }
