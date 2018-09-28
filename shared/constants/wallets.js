@@ -13,6 +13,7 @@ const partyTypeToString = invert(RPCTypes.localParticipantType)
 const requestStatusToString = invert(RPCTypes.commonRequestStatus)
 
 const sendReceiveFormRouteKey = 'sendReceiveForm'
+const chooseAssetFormRouteKey = 'chooseAssetForm'
 const confirmFormRouteKey = 'confirmForm'
 const sendReceiveFormRoutes = [sendReceiveFormRouteKey, confirmFormRouteKey]
 
@@ -402,6 +403,7 @@ export {
   changeAccountNameWaitingKey,
   balanceDeltaToString,
   buildPaymentResultToBuiltPayment,
+  chooseAssetFormRouteKey,
   confirmFormRouteKey,
   createNewAccountWaitingKey,
   deleteAccountWaitingKey,

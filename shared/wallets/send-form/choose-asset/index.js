@@ -6,6 +6,7 @@ import {
   Divider,
   Icon,
   iconCastPlatformStyles,
+  MaybePopup,
   SectionList,
   Text,
 } from '../../../common-adapters'
@@ -14,8 +15,8 @@ import Header from '../header'
 
 const unexpandedNumDisplayOptions = 4
 
-type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
-type OtherItem = {
+export type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
+export type OtherItem = {
   code: string,
   selected: boolean,
   disabledExplanation: string,
@@ -28,7 +29,7 @@ type ExpanderItem = {
   type: 'expander',
 }
 
-type Props = {
+export type Props = {
   displayChoices: Array<DisplayItem>,
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
@@ -105,10 +106,10 @@ class ChooseAsset extends React.Component<Props, State> {
   }
 
   render() {
-    const displayChoicesData = this.props.displayChoices
+    const displayChoicesData = this.props.displayChoices && this.props.displayChoices
       .slice(0, this.state.expanded ? this.props.displayChoices.length : unexpandedNumDisplayOptions)
       .map(dc => ({...dc, key: dc.currencyCode}))
-    if (!this.state.expanded) {
+    if (this.props.displayChoices && !this.state.expanded) {
       displayChoicesData.push({
         key: 'expander',
         onClick: () => this.setState({expanded: true}),
@@ -135,16 +136,18 @@ class ChooseAsset extends React.Component<Props, State> {
           ]),
     ]
     return (
-      <Box2 direction="vertical" style={styles.container}>
-        <Header onBack={this.props.onBack} whiteBackground={true} />
-        <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
-          <SectionList
-            sections={sections}
-            renderItem={this._renderItem}
-            renderSectionHeader={this._renderSectionHeader}
-          />
+      <MaybePopup onClose={this.props.onClose}>
+        <Box2 direction="vertical" style={styles.container}>
+          <Header onBack={this.props.onBack} whiteBackground={true} />
+          <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
+            <SectionList
+              sections={sections}
+              renderItem={this._renderItem}
+              renderSectionHeader={this._renderSectionHeader}
+            />
+          </Box2>
         </Box2>
-      </Box2>
+      </MaybePopup>
     )
   }
 }
@@ -273,6 +276,7 @@ const styles = styleSheetCreate({
   },
   container: platformStyles({
     isElectron: {
+      height: 525,
       width: 360,
     },
     isMobile: {
