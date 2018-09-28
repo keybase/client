@@ -489,7 +489,11 @@ func cropToRightmostSubchain(m MetaContext, links []*ChainLink, eldest keybase1.
 	for i := len(links) - 1; i > 0; i-- {
 		curr := links[i]
 		prev := links[i-1]
-		if isSubchainStart(m, curr, prev, uid) {
+		isStart, err := isSubchainStart(m, curr, prev, uid)
+		if err != nil {
+			return nil, err
+		}
+		if isStart {
 			return links[i:], nil
 		}
 	}
@@ -524,37 +528,37 @@ func cropToRightmostSubchain(m MetaContext, links []*ChainLink, eldest keybase1.
 // Different callers handle those cases differently. (Loading the sigchain from
 // local cache happens before we get the merkle leaf, for example, and so it
 // punts reset-after-latest-link detection to the server loading step).
-func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink, uid keybase1.UID) bool {
+func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink, uid keybase1.UID) (bool, error) {
 	// case 1 -- unlikely to be hit in practice, because prevLink would be nil
 	if currentLink.GetSeqno() == 1 {
-		return true
+		return true, nil
 	}
 	// case 2
 	if currentLink.IsEldest() {
-		return true
+		return true, nil
 	}
 	// case 2.5: The signatures in cases 3 and 4 are very old, from long before
 	// v2 sigs were introduced. If either the current or previous sig is v2,
 	// short circuit here. This is important because stubbed links (introduced
 	// with v2) break the eldest_kid check for case 3.
 	if currentLink.unpacked.sigVersion > 1 || prevLink.unpacked.sigVersion > 1 {
-		return false
+		return false, nil
 	}
 	// case 3
 	if !currentLink.ToEldestKID().Equal(prevLink.ToEldestKID()) {
-		return true
+		return true, nil
 	}
 
 	// case 4
 	found, _, err := currentLink.checkSpecialLinksTable(hardcodedResets, uid, "harcoded resets")
 	if err != nil {
-		m.CWarningf("Error in isSubchainStart, will be ignored: %s", err.Error())
-		return false
+		m.CWarningf("Error in isSubchainStart: %s", err.Error())
+		return false, err
 	}
 	if found {
 		m.CDebugf("Sigchain playback hit hardcoded reset at %s for %s", currentLink.LinkID(), uid)
 	}
-	return found
+	return found, nil
 }
 
 // Dump prints the sigchain to the writer arg.
@@ -1022,8 +1026,14 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		}
 
 		links = append(links, prevLink)
-		if l.currentSubchainStart == 0 && isSubchainStart(l.M(), currentLink, prevLink, uid) {
-			l.currentSubchainStart = currentLink.GetSeqno()
+		if l.currentSubchainStart == 0 {
+			isStart, err := isSubchainStart(l.M(), currentLink, prevLink, uid)
+			if err != nil {
+				return err
+			}
+			if isStart {
+				l.currentSubchainStart = currentLink.GetSeqno()
+			}
 		}
 		currentLink = prevLink
 	}
