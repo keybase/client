@@ -121,7 +121,7 @@ func (k *KBFSService) registerProtocols(
 
 // handle creates a server on an established connection.
 func (k *KBFSService) handle(c net.Conn) {
-	xp := rpc.NewTransport(c, k.kbCtx.NewRPCLogFactory(), libkb.WrapError)
+	xp := rpc.NewTransport(c, k.kbCtx.NewRPCLogFactory(), libkb.WrapError, rpc.DefaultMaxFrameLength)
 
 	server := rpc.NewServer(xp, libkb.WrapError)
 

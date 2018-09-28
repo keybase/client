@@ -55,6 +55,7 @@ type connTransport struct {
 	uri             *FMPURI
 	l               LogFactory
 	wef             WrapErrorFunc
+	maxFrameLength  int32
 	conn            net.Conn
 	transport       Transporter
 	stagedTransport Transporter
@@ -63,11 +64,12 @@ type connTransport struct {
 var _ ConnectionTransport = (*connTransport)(nil)
 
 // NewConnectionTransport creates a ConnectionTransport for a given FMPURI.
-func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc) ConnectionTransport {
+func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc, maxFrameLength int32) ConnectionTransport {
 	return &connTransport{
-		uri: uri,
-		l:   l,
-		wef: wef,
+		uri:            uri,
+		l:              l,
+		wef:            wef,
+		maxFrameLength: maxFrameLength,
 	}
 }
 
@@ -98,7 +100,7 @@ func (t *connTransport) Dial(context.Context) (Transporter, error) {
 	if t.stagedTransport != nil {
 		t.stagedTransport.Close()
 	}
-	t.stagedTransport = NewTransport(t.conn, t.l, t.wef)
+	t.stagedTransport = NewTransport(t.conn, t.l, t.wef, t.maxFrameLength)
 	return t.stagedTransport, nil
 }
 
@@ -162,9 +164,10 @@ type ConnectionHandler interface {
 // ConnectionTransportTLS is a ConnectionTransport implementation that
 // uses TLS+rpc.
 type ConnectionTransportTLS struct {
-	rootCerts []byte
-	srvRemote Remote
-	tlsConfig *tls.Config
+	rootCerts      []byte
+	srvRemote      Remote
+	tlsConfig      *tls.Config
+	maxFrameLength int32
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -185,68 +188,65 @@ const keepAlive = 10 * time.Second
 // Dial is an implementation of the ConnectionTransport interface.
 func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	Transporter, error) {
-	var conn net.Conn
-	err := runUnlessCanceled(ctx, func() error {
-		addr := ct.srvRemote.GetAddress()
-		config := ct.tlsConfig
-		host, _, err := net.SplitHostPort(addr)
-		if err != nil {
-			return err
-		}
+	addr := ct.srvRemote.GetAddress()
+	config := ct.tlsConfig
+	host, _, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
 
-		// If we didn't specify a tls.Config, but we did specify
-		// explicit rootCerts, then populate a new tls.Config here.
-		// Otherwise, we're using the defaults via `nil` tls.Config.
-		if config == nil && ct.rootCerts != nil {
-			// load CA certificate
-			certs := x509.NewCertPool()
-			if !certs.AppendCertsFromPEM(ct.rootCerts) {
-				return errors.New("Unable to load root certificates")
-			}
-			config = &tls.Config{
-				RootCAs:    certs,
-				ServerName: host,
-			}
+	// If we didn't specify a tls.Config, but we did specify
+	// explicit rootCerts, then populate a new tls.Config here.
+	// Otherwise, we're using the defaults via `nil` tls.Config.
+	if config == nil && ct.rootCerts != nil {
+		// load CA certificate
+		certs := x509.NewCertPool()
+		if !certs.AppendCertsFromPEM(ct.rootCerts) {
+			return nil, errors.New("Unable to load root certificates")
 		}
-		// Final check to make sure we have a TLS config since tls.Client requires
-		// either ServerName or InsecureSkipVerify to be set.
-		if config == nil {
-			config = &tls.Config{ServerName: host}
+		config = &tls.Config{
+			RootCAs:    certs,
+			ServerName: host,
 		}
+	}
+	// Final check to make sure we have a TLS config since tls.Client requires
+	// either ServerName or InsecureSkipVerify to be set.
+	if config == nil {
+		config = &tls.Config{ServerName: host}
+	}
 
-		ct.log.Debug("%s %s",
-			LogField{Key: ConnectionLogMsgKey, Value: "Dialing"},
-			LogField{Key: "remote-addr", Value: addr})
-		// connect
-		dialer := net.Dialer{
-			Timeout:   ct.dialerTimeout,
-			KeepAlive: keepAlive,
-		}
-		baseConn, err := dialer.Dial("tcp", addr)
-		if err != nil {
-			// If we get a DNS error, it could be because glibc has cached an
-			// old version of /etc/resolv.conf. The res_init() libc function
-			// busts that cache and keeps us from getting stuck in a state
-			// where DNS requests keep failing even though the network is up.
-			// This is similar to what the Rust standard library does:
-			// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
-			// Note that we still propagate the error here, and we expect
-			// callers to retry.
-			resinit.ResInitIfDNSError(err)
-			return err
-		}
-		ct.log.Debug("baseConn: %s; Calling %s",
-			LogField{Key: "local-addr", Value: baseConn.LocalAddr()},
-			LogField{Key: ConnectionLogMsgKey, Value: "Handshake"})
-		conn = tls.Client(baseConn, config)
-		if err := conn.(*tls.Conn).Handshake(); err != nil {
-			return err
-		}
-		ct.log.Debug("%s", LogField{Key: ConnectionLogMsgKey, Value: "Handshaken"})
+	ct.log.Debug("%s %s",
+		LogField{Key: ConnectionLogMsgKey, Value: "Dialing"},
+		LogField{Key: "remote-addr", Value: addr})
+	// connect
+	dialer := net.Dialer{
+		Timeout:   ct.dialerTimeout,
+		KeepAlive: keepAlive,
+	}
+	baseConn, err := dialer.DialContext(ctx, "tcp", addr)
+	if err != nil {
+		// If we get a DNS error, it could be because glibc has cached an
+		// old version of /etc/resolv.conf. The res_init() libc function
+		// busts that cache and keeps us from getting stuck in a state
+		// where DNS requests keep failing even though the network is up.
+		// This is similar to what the Rust standard library does:
+		// https://github.com/rust-lang/rust/blob/028569ab1b/src/libstd/sys_common/net.rs#L186-L190
+		// Note that we still propagate the error here, and we expect
+		// callers to retry.
+		resinit.ResInitIfDNSError(err)
+		return nil, err
+	}
+	ct.log.Debug("baseConn: %s; Calling %s",
+		LogField{Key: "local-addr", Value: baseConn.LocalAddr()},
+		LogField{Key: ConnectionLogMsgKey, Value: "Handshake"})
+	conn := tls.Client(baseConn, config)
+	if err := conn.Handshake(); err != nil {
+		return nil, err
+	}
+	ct.log.Debug("%s", LogField{Key: ConnectionLogMsgKey, Value: "Handshaken"})
 
-		// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
-		return DisableSigPipe(baseConn)
-	})
+	// Disable SIGPIPE on platforms that require it (Darwin). See sigpipe_bsd.go.
+	err = DisableSigPipe(baseConn)
 	if err != nil {
 		return nil, err
 	}
@@ -256,7 +256,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	if ct.conn != nil {
 		ct.conn.Close()
 	}
-	transport := NewTransport(conn, ct.logFactory, ct.wef)
+	transport := NewTransport(conn, ct.logFactory, ct.wef, ct.maxFrameLength)
 	ct.conn = conn
 	if ct.stagedTransport != nil {
 		ct.stagedTransport.Close()
@@ -357,8 +357,8 @@ type ConnectionOpts struct {
 	DialerTimeout time.Duration
 }
 
-// NewTLSConnectionWithLogrus is like NewTLSConnection, but with a custom
-// logger.
+// NewTLSConnectionWithConnectionLogFactory is like NewTLSConnection,
+// but with a custom logger.
 func NewTLSConnectionWithConnectionLogFactory(
 	srvRemote Remote,
 	rootCerts []byte,
@@ -366,15 +366,17 @@ func NewTLSConnectionWithConnectionLogFactory(
 	handler ConnectionHandler,
 	logFactory LogFactory,
 	connectionLogFactory ConnectionLogFactory,
+	maxFrameLength int32,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:     rootCerts,
-		srvRemote:     srvRemote,
-		logFactory:    logFactory,
-		wef:           opts.WrapErrorFunc,
-		dialerTimeout: opts.DialerTimeout,
-		log:           connectionLogFactory.Make("conn_tspt"),
+		rootCerts:      rootCerts,
+		srvRemote:      srvRemote,
+		maxFrameLength: maxFrameLength,
+		logFactory:     logFactory,
+		wef:            opts.WrapErrorFunc,
+		dialerTimeout:  opts.DialerTimeout,
+		log:            connectionLogFactory.Make("conn_tspt"),
 	}
 	connLog := connectionLogFactory.Make("conn")
 	return newConnectionWithTransportAndProtocolsWithLog(
@@ -390,15 +392,17 @@ func NewTLSConnection(
 	handler ConnectionHandler,
 	logFactory LogFactory,
 	logOutput LogOutputWithDepthAdder,
+	maxFrameLength int32,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		rootCerts:     rootCerts,
-		srvRemote:     srvRemote,
-		logFactory:    logFactory,
-		wef:           opts.WrapErrorFunc,
-		dialerTimeout: opts.DialerTimeout,
-		log:           newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		rootCerts:      rootCerts,
+		srvRemote:      srvRemote,
+		maxFrameLength: maxFrameLength,
+		logFactory:     logFactory,
+		wef:            opts.WrapErrorFunc,
+		dialerTimeout:  opts.DialerTimeout,
+		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }
@@ -412,15 +416,17 @@ func NewTLSConnectionWithTLSConfig(
 	handler ConnectionHandler,
 	logFactory LogFactory,
 	logOutput LogOutputWithDepthAdder,
+	maxFrameLength int32,
 	opts ConnectionOpts,
 ) *Connection {
 	transport := &ConnectionTransportTLS{
-		srvRemote:     srvRemote,
-		tlsConfig:     copyTLSConfig(tlsConfig),
-		logFactory:    logFactory,
-		wef:           opts.WrapErrorFunc,
-		dialerTimeout: opts.DialerTimeout,
-		log:           newConnectionLogUnstructured(logOutput, "CONNTSPT"),
+		srvRemote:      srvRemote,
+		tlsConfig:      copyTLSConfig(tlsConfig),
+		maxFrameLength: maxFrameLength,
+		logFactory:     logFactory,
+		wef:            opts.WrapErrorFunc,
+		dialerTimeout:  opts.DialerTimeout,
+		log:            newConnectionLogUnstructured(logOutput, "CONNTSPT"),
 	}
 	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper, logOutput, opts)
 }

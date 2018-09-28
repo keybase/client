@@ -95,7 +95,8 @@ func (b *blockServerRemoteClientHandler) initNewConnection() {
 		b.srvRemote, kbfscrypto.GetRootCerts(
 			b.srvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsblock.ServerErrorUnwrapper{}, b, b.rpcLogFactory,
-		logger.LogOutputWithDepthAdder{Logger: b.log}, b.connOpts)
+		logger.LogOutputWithDepthAdder{Logger: b.log},
+		rpc.DefaultMaxFrameLength, b.connOpts)
 	b.client = keybase1.BlockClient{Cli: b.conn.GetClient()}
 }
 

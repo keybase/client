@@ -607,7 +607,7 @@ func (u *CachedUPAKLoader) LoadDeviceKey(ctx context.Context, uid keybase1.UID, 
 // If the user exists but the device doesn't, will force a load in case the device is very new.
 func (u *CachedUPAKLoader) LoadUPAKWithDeviceID(ctx context.Context, uid keybase1.UID, deviceID keybase1.DeviceID) (*keybase1.UserPlusKeysV2AllIncarnations, error) {
 	var info CachedUserLoadInfo
-	larg := NewLoadUserByUIDArg(ctx, u.G(), uid)
+	larg := NewLoadUserByUIDArg(ctx, u.G(), uid).WithPublicKeyOptional()
 	upakV2, _, err := u.loadWithInfo(larg, &info, nil, false)
 	if err != nil {
 		return nil, err

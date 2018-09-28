@@ -152,7 +152,7 @@ func (md *MDServerRemote) initNewConnection() {
 		md.mdSrvRemote.Peek(), libkb.GetBundledCAsFromHost),
 		kbfsmd.ServerErrorUnwrapper{}, md, md.rpcLogFactory,
 		logger.LogOutputWithDepthAdder{Logger: md.config.MakeLogger("")},
-		md.connOpts)
+		rpc.DefaultMaxFrameLength, md.connOpts)
 	md.client = keybase1.MetadataClient{Cli: md.conn.GetClient()}
 }
 
