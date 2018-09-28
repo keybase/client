@@ -3,6 +3,7 @@ package search
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
@@ -34,6 +35,7 @@ type convIndex map[string]msgMetadataIndex
 // filter the search such as sender username or creation time.  The workload is
 // expected to be write heavy with keeping the index up to date.
 type Indexer struct {
+	sync.Mutex
 	globals.Contextified
 	utils.DebugLabeler
 	encryptedDB *encrypteddb.EncryptedDB
@@ -94,6 +96,8 @@ func (i *Indexer) getConvIndex(ctx context.Context, dbKey libkb.DbKey) (convInde
 func (i *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msg chat1.MessageUnboxed) (err error) {
 	defer i.Trace(ctx, func() error { return err }, "Indexer.Add")()
+	i.Lock()
+	defer i.Unlock()
 
 	msgText := i.getMsgText(msg)
 	tokens := tokenize(msgText)
