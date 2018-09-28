@@ -15,6 +15,17 @@ import (
 type getNewConfigFn func(context.Context) (
 	context.Context, libkbfs.Config, string, error)
 
+const (
+	// Debug tag ID for an individual autogit operation
+	ctxAutogitOpID = "AGID"
+)
+
+type ctxAutogitTagKey int
+
+const (
+	ctxAutogitIDKey ctxAutogitTagKey = iota
+)
+
 // AutogitManager can clone and pull source git repos into a
 // destination folder, potentially across different TLFs.  New
 // requests for an operation in a destination repo are blocked by any
@@ -93,8 +104,8 @@ func (am *AutogitManager) BatchChanges(
 	for _, node := range nodes {
 		node := node
 		go func() {
-			// TODO(KBFS-3429): fill in context.
-			ctx := context.TODO()
+			ctx := libkbfs.CtxWithRandomIDReplayable(
+				context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
 			am.config.KBFSOps().InvalidateNodeAndChildren(ctx, node)
 		}()
 	}

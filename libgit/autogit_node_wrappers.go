@@ -71,6 +71,8 @@ var _ libkbfs.Node = (*repoFileNode)(nil)
 func (rfn repoFileNode) GetFile(ctx context.Context) billy.File {
 	// Make a new Browser for every request, for the sole purpose of
 	// using the appropriate debug tags.
+	ctx = libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rfn.am.log)
 	repoFS := rfn.repoFS.WithContext(ctx)
 	b, err := NewBrowser(repoFS, rfn.am.config.Clock(), rfn.branch)
 	if err != nil {
@@ -118,6 +120,8 @@ func (rdn *repoDirNode) ShouldCreateMissedLookup(
 func (rdn repoDirNode) GetFS(ctx context.Context) billy.Filesystem {
 	// Make a new Browser for every request, for the sole purpose of
 	// using the appropriate debug tags.
+	ctx = libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 	repoFS := rdn.repoFS.WithContext(ctx)
 	b, err := NewBrowser(repoFS, rdn.am.config.Clock(), rdn.branch)
 	if err != nil {
@@ -153,9 +157,8 @@ func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 		}
 	}
 
-	// Wrap this child so that it will show all the
-	// repos. TODO(KBFS-3429): fill in context.
-	ctx := context.TODO()
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rdn.am.log)
 	fs := rdn.GetFS(ctx)
 	fi, err := fs.Lstat(name)
 	if err != nil {
@@ -191,7 +194,8 @@ type autogitRootNode struct {
 var _ libkbfs.Node = (*autogitRootNode)(nil)
 
 func (arn autogitRootNode) GetFS(ctx context.Context) billy.Filesystem {
-	arn.am.log.CDebugf(ctx, "autogit root node GetFS() called")
+	ctx = libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, arn.am.log)
 	return arn.fs.WithContext(ctx)
 }
 
@@ -244,18 +248,18 @@ func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 
 		h, err := rn.am.config.KBFSOps().GetTLFHandle(ctx, rn)
 		if err != nil {
-			rn.am.log.CDebugf(nil, "Error getting handle: %+v", err)
+			rn.am.log.CDebugf(ctx, "Error getting handle: %+v", err)
 			return rn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
 
-		// Wrap this child so that it will show all the
-		// repos. TODO(KBFS-3429): fill in context.
-		ctx := context.TODO()
+		// Wrap this child so that it will show all the repos.
+		ctx := libkbfs.CtxWithRandomIDReplayable(
+			context.Background(), ctxAutogitIDKey, ctxAutogitOpID, rn.am.log)
 		fs, err := libfs.NewFS(
 			ctx, rn.am.config, h, rn.GetFolderBranch().Branch, kbfsRepoDir, "",
 			keybase1.MDPriorityNormal)
 		if err != nil {
-			rn.am.log.CDebugf(nil, "Error making repo FS: %+v", err)
+			rn.am.log.CDebugf(ctx, "Error making repo FS: %+v", err)
 			return rn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
 		rn.fs = fs
