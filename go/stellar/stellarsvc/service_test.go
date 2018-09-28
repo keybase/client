@@ -298,7 +298,7 @@ func TestGetWalletAccountsCLILocal(t *testing.T) {
 	require.Equal(t, account.Balance[0].Amount, "0")
 	require.True(t, account.IsPrimary)
 	require.NotNil(t, account.ExchangeRate)
-	require.EqualValues(t, defaultOutsideCurrency, account.ExchangeRate.Currency)
+	require.EqualValues(t, stellar.DefaultCurrencySetting, account.ExchangeRate.Currency)
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
