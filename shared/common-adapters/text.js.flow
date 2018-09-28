@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import type {StylesCrossPlatform} from '../styles'
+import {allTextTypes} from './text.shared'
 
 type Background =
   | 'Announcements'
@@ -11,44 +12,7 @@ type Background =
   | 'Success'
   | 'Terminal'
 
-type TextType =
-  | 'Body'
-  | 'BodyItalic'
-  | 'BodyBig'
-  | 'BodyBigExtrabold'
-  | 'BodyBigLink'
-  | 'BodyExtrabold'
-  | 'BodyPrimaryLink'
-  | 'BodySecondaryLink'
-  | 'BodySemibold'
-  | 'BodySemiboldLink'
-  | 'BodySemiboldItalic'
-  | 'BodySmall'
-  | 'BodySmallExtrabold'
-  | 'BodySmallExtraboldSecondaryLink'
-  | 'BodySmallError'
-  | 'BodySmallItalic'
-  | 'BodySmallPrimaryLink'
-  | 'BodySmallSecondaryLink'
-  | 'BodySmallSemibold'
-  | 'BodySmallSemiboldItalic'
-  | 'BodySmallSemiboldSecondaryLink'
-  | 'BodySmallSemiboldPrimaryLink'
-  | 'BodySmallSuccess'
-  | 'BodySmallWallet'
-  | 'BodyTiny'
-  | 'BodyTinySemibold'
-  | 'BodyTinyBold'
-  | 'Header'
-  | 'HeaderItalic'
-  | 'HeaderExtrabold'
-  | 'HeaderBig'
-  | 'HeaderBigExtrabold'
-  | 'HeaderLink'
-  | 'Terminal'
-  | 'TerminalComment'
-  | 'TerminalEmpty'
-  | 'TerminalInline'
+type TextType = $Keys<typeof allTextTypes>
 
 type Props = {
   allowFontScaling?: boolean,
@@ -88,8 +52,6 @@ declare function getStyle(
   clickable?: ?boolean
 ): Object
 
-export {getStyle}
-
+export {getStyle, allTextTypes}
 export type {Background, MetaType, Props, TextType}
-
 export default Text
