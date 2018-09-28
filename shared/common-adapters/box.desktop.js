@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, collapseStyles, globalMargins} from '../styles'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
@@ -10,15 +9,15 @@ class Box extends React.Component<any> {
   }
 }
 
-const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
+const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   let children = _children
   if (gap) {
-    children = intersperseFn(index => <Component key={index} gap={gap} />, React.Children.toArray(_children))
+    children = intersperseFn(index => component(index, gap), React.Children.toArray(_children))
     if (gapStart) {
-      children.unshift(<Component key="gapStart" gap={gap} />)
+      children.unshift(component('gapStart', gap))
     }
     if (gapEnd) {
-      children.push(<Component key="gapEnd" gap={gap} />)
+      children.push(component('gapEnd', gap))
     }
   }
 
@@ -28,42 +27,22 @@ const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
 class Box2 extends React.Component<Box2Props> {
   render() {
     let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
-    let directionStyle
-    switch (this.props.direction) {
-      case 'horizontal':
-        directionStyle = styles.hbox
-        break
-      case 'horizontalReverse':
-        directionStyle = styles.hrbox
-        break
-      case 'verticalReverse':
-        directionStyle = styles.vrbox
-        break
-      case 'vertical':
-      default:
-        directionStyle = styles.vbox
-        break
-    }
 
-    const style = collapseStyles([
-      directionStyle,
-      this.props.fullHeight && styles.fullHeight,
-      this.props.fullWidth && styles.fullWidth,
-      !this.props.fullHeight && !this.props.fullWidth && styles.centered,
-      this.props.centerChildren && styles.centeredChildren,
-      // uncomment this to get debugging colors
-      // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
+    const className = [
+      `box2_${this.props.direction}`,
+      this.props.fullHeight && 'box2_fullHeight',
+      this.props.fullWidth && 'box2_fullWidth',
+      !this.props.fullHeight && !this.props.fullWidth && 'box2_centered',
+      this.props.centerChildren && 'box2_centeredChildren',
       this.props.style,
-    ])
+      this.props.className,
+    ]
+      .filter(Boolean)
+      .join(' ')
     return (
-      <div
-        onMouseLeave={this.props.onMouseLeave}
-        onMouseOver={this.props.onMouseOver}
-        style={style}
-        className={this.props.className}
-      >
+      <div onMouseLeave={this.props.onMouseLeave} onMouseOver={this.props.onMouseOver} className={className}>
         {injectGaps(
-          horizontal ? HBoxGap : VBoxGap,
+          horizontal ? hBoxGap : vBoxGap,
           this.props.children,
           this.props.gap,
           this.props.gapStart,
@@ -73,38 +52,9 @@ class Box2 extends React.Component<Box2Props> {
     )
   }
 }
-const VBoxGap = ({gap}) => <div style={{flexShrink: 0, height: globalMargins[gap]}} />
-const HBoxGap = ({gap}) => <div style={{flexShrink: 0, width: globalMargins[gap]}} />
 
-const styles = {
-  centered: {alignSelf: 'center'},
-  centeredChildren: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fullHeight: {height: '100%'},
-  fullWidth: {width: '100%'},
-  vbox: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  vrbox: {
-    ...globalStyles.flexBoxColumnReverse,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  hbox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  hrbox: {
-    ...globalStyles.flexBoxRowReverse,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-}
+const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap}`} />
+const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
 
 export default Box
 export {Box, Box2}
