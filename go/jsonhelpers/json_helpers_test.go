@@ -1,4 +1,4 @@
-package libkb
+package jsonhelpers
 
 import (
 	"fmt"

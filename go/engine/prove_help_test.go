@@ -8,6 +8,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -262,7 +263,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 
 		res, err := g.GetAPI().Get(apiArg)
 		require.NoError(tc.T, err)
-		objects, err := libkb.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
+		objects, err := jsonhelpers.AtSelectorPath(res.Body, []keybase1.SelectorEntry{
 			keybase1.SelectorEntry{
 				IsKey: true,
 				Key:   "res",

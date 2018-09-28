@@ -1,9 +1,10 @@
-package libkb
+package jsonhelpers
 
 import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -93,7 +94,7 @@ func jsonGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 // ([], nil) will be returned.  This is because a selector may descend into
 // many subtrees and fail in all but one.
 func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.SelectorEntry,
-	logger func(format string, arg ...interface{})) ([]*jsonw.Wrapper, ProofError) {
+	logger func(format string, arg ...interface{})) ([]*jsonw.Wrapper, libkb.ProofError) {
 	// The terminating condition is when we've consumed all the selectors.
 	if len(selectors) == 0 {
 		return []*jsonw.Wrapper{selectedObject}, nil
@@ -145,7 +146,7 @@ func AtSelectorPath(selectedObject *jsonw.Wrapper, selectors []keybase1.Selector
 		}
 		return results, nil
 	default:
-		return nil, NewProofError(keybase1.ProofStatus_INVALID_PVL,
+		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"JSON selector entry must be a string, int, or 'all' %v", selector)
 	}
 }

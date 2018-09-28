@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -178,7 +179,7 @@ func (rc *GenericSocialProofChecker) CheckStatus(mctx libkb.MetaContext, _ libkb
 	}
 
 	// We expect a single result to match which contains an array of proofs.
-	results, perr := libkb.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf)
+	results, perr := jsonhelpers.AtSelectorPath(res.Body, rc.config.CheckPath, mctx.CDebugf)
 	if perr != nil {
 		return nil, perr
 	}

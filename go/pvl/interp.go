@@ -14,6 +14,7 @@ import (
 	"net"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -1010,13 +1011,13 @@ func runSelectorJSONInner(m metaContext, state scriptState, selectedObject *json
 	logger := func(format string, args ...interface{}) {
 		debugWithState(m, state, format, args)
 	}
-	jsonResults, perr := libkb.AtSelectorPath(selectedObject, selectors, logger)
+	jsonResults, perr := jsonhelpers.AtSelectorPath(selectedObject, selectors, logger)
 	if perr != nil {
 		return nil, perr
 	}
 	results := []string{}
 	for _, object := range jsonResults {
-		s, err := libkb.JSONStringSimple(object)
+		s, err := jsonhelpers.JSONStringSimple(object)
 		if err != nil {
 			logger("JSON could not read object: %v (%v)", err, object)
 			continue
