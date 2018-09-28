@@ -398,7 +398,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(ctx, s.G())
-	details, err := s.remoter.PaymentDetails(ctx, arg.Id.String())
+	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}

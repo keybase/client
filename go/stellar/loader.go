@@ -203,7 +203,7 @@ func (p *Loader) runRequests() {
 func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	ctx := context.Background()
 	s := getGlobal(p.G())
-	details, err := s.remoter.PaymentDetails(ctx, id.String())
+	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
 		p.G().GetLog().CDebugf(ctx, "error getting payment details for %s: %s", id, err)
 		return
