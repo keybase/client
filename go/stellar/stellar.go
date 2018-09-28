@@ -1110,8 +1110,29 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+const defaultCurrencySetting = "USD"
+
+// GetAccountDisplayCurrency gets currency setting from the server, and it
+// returned currency is empty (NULL in database), then default "USD" is used.
+// When creating a wallet, client always sets default currency setting. Also
+// when a new account in existing wallet is created, it will inherit currency
+// setting from primary account (this happens serverside). Empty currency
+// settings should only happen in very old accounts or when wallet generation
+// was interrupted in precise moment.
+func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.AccountID) (res string, err error) {
 	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
+	if err != nil {
+		return res, err
+	}
+	if codeStr == "" {
+		codeStr = defaultCurrencySetting
+		mctx.CDebugf("Using default display currency %s for account %s", codeStr, accountID)
+	}
+	return codeStr, nil
+}
+
+func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+	codeStr, err := GetAccountDisplayCurrency(mctx, accountID)
 	if err != nil {
 		return res, err
 	}
