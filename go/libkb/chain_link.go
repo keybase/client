@@ -240,8 +240,8 @@ func (c ChainLink) checkSpecialLinksTable(tab map[keybase1.LinkID]SpecialChainLi
 
 	// The combination of hashVerified and chainVerified should ensure that this link
 	// is only considered here after all prevs have been successfully checked.
-	if !(c.hashVerified && c.chainVerified) {
-		return false, "", ChainLinkError{fmt.Sprintf("cannot check of a link is %q without a verified link ID", why)}
+	if c.hashVerified { // !(c.hashVerified && c.chainVerified) {
+		return false, "", ChainLinkError{fmt.Sprintf("cannot check if a link is %q without a verified link ID (hash=%v, chain=%v)", why, c.hashVerified, c.chainVerified)}
 	}
 
 	scl, found = tab[c.LinkID().Export()]
