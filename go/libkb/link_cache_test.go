@@ -24,7 +24,10 @@ func TestLinkCacheBasics(t *testing.T) {
 	defer c.Shutdown()
 
 	link := randChainLink()
+
+	// Dangerous, but as long as it works for now, go with it...
 	var m MetaContext
+
 	c.Put(m, link.id, link)
 
 	if c.Len() != 1 {
@@ -61,6 +64,8 @@ func TestLinkCacheBasics(t *testing.T) {
 func TestLinkCacheAtime(t *testing.T) {
 	c := NewLinkCache(10, time.Hour)
 	defer c.Shutdown()
+
+	// Dangerous, but as long as it works for now, go with it...
 	var m MetaContext
 
 	link := randChainLink()
@@ -107,6 +112,8 @@ func TestLinkCacheAtime(t *testing.T) {
 func TestLinkCacheConcurrent(t *testing.T) {
 	c := NewLinkCache(10, time.Hour)
 	defer c.Shutdown()
+
+	// Dangerous, but as long as it works for now, go with it...
 	var m MetaContext
 
 	var wg sync.WaitGroup

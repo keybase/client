@@ -985,7 +985,7 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		if mt != nil && mt.LinkID == nil {
 			l.M().CDebugf("| mt (MerkleTriple) from storage has a nil link ID")
 		}
-		return nil
+		return err
 	}
 
 	currentLink, err := ImportLinkFromStorage(l.M(), mt.LinkID, l.selfUID())
