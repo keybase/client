@@ -59,14 +59,6 @@ func CreateWallet(ctx context.Context, g *libkb.GlobalContext) (created bool, er
 	default:
 		return false, err
 	}
-	primary, err := clearBundle.PrimaryAccount()
-	if err != nil {
-		g.Log.CErrorf(ctx, "We've just posted a bundle that's missing PrimaryAccount: %s", err)
-		return false, err
-	}
-	if err := remote.SetAccountDefaultCurrency(ctx, g, primary.AccountID, "USD"); err != nil {
-		g.Log.CWarningf(ctx, "Error during setting display currency for %q: %s", primary.AccountID, err)
-	}
 	getGlobal(g).InformHasWallet(ctx, meUV)
 	return true, nil
 }
@@ -1110,8 +1102,29 @@ func DeleteAccount(m libkb.MetaContext, accountID stellar1.AccountID) error {
 	return remote.Post(m.Ctx(), m.G(), nextBundle)
 }
 
-func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+const DefaultCurrencySetting = "USD"
+
+// GetAccountDisplayCurrency gets currency setting from the server, and it
+// returned currency is empty (NULL in database), then default "USD" is used.
+// When creating a wallet, client always sets default currency setting. Also
+// when a new account in existing wallet is created, it will inherit currency
+// setting from primary account (this happens serverside). Empty currency
+// settings should only happen in very old accounts or when wallet generation
+// was interrupted in precise moment.
+func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.AccountID) (res string, err error) {
 	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
+	if err != nil {
+		return res, err
+	}
+	if codeStr == "" {
+		codeStr = DefaultCurrencySetting
+		mctx.CDebugf("Using default display currency %s for account %s", codeStr, accountID)
+	}
+	return codeStr, nil
+}
+
+func GetCurrencySetting(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (res stellar1.CurrencyLocal, err error) {
+	codeStr, err := GetAccountDisplayCurrency(mctx, accountID)
 	if err != nil {
 		return res, err
 	}
