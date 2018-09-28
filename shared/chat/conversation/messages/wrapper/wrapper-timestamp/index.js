@@ -92,7 +92,7 @@ class _WrapperTimestamp extends React.Component<Props & OverlayParentProps, Stat
                 underlayColor: Styles.globalColors.blue5,
               }
             : {})}
-          direction="column"
+          direction="vertical"
           decorate={props.decorate}
           fullWidth={true}
         >
