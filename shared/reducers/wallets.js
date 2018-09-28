@@ -35,7 +35,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           Constants.updatePaymentMap(paymentsMap, action.payload.payments)
         )
         .updateIn(['pendingMap', action.payload.accountID], (pendingMap = I.Map()) =>
-          Constants.updatePaymentMap(pendingMap, action.payload.pending)
+          Constants.updatePaymentMap(pendingMap, action.payload.pending, true)
         )
     case WalletsGen.displayCurrenciesReceived:
       return state.set('currencies', I.List(action.payload.currencies))

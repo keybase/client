@@ -351,8 +351,13 @@ const updatePayment = (oldPayment: Types.Payment, newPayment: Types.Payment): Ty
   })
   return res
 }
-const updatePaymentMap = (map: I.Map<Types.PaymentID, Types.Payment>, newPayments: Array<Types.Payment>) => {
-  return map.withMutations(mapMutable =>
+const updatePaymentMap = (
+  map: I.Map<Types.PaymentID, Types.Payment>,
+  newPayments: Array<Types.Payment>,
+  clearExisting: boolean = false
+) => {
+  const baseMap = clearExisting ? map.clear() : map
+  return baseMap.withMutations(mapMutable =>
     newPayments.forEach(newPayment =>
       mapMutable.update(newPayment.id, makePayment(), oldPayment => updatePayment(oldPayment, newPayment))
     )
