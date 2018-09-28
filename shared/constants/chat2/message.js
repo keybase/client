@@ -978,7 +978,9 @@ export const upgradeMessage = (_old: ?Types.Message, m: Types.Message, merge: bo
     if (_old) {
       // $FlowIssue doens't understand mergeWith
       return _old.mergeWith((oldVal, newVal, key) => {
-        if (key === 'text') {
+        if (key === 'mentionsAt' || key === 'reactions' || key === 'mentionsChannelName') {
+          return oldVal.equals(newVal) ? oldVal : newVal
+        } else if (key === 'text') {
           return oldVal.stringValue() === newVal.stringValue() ? oldVal : newVal
         }
         return newVal === oldVal ? oldVal : newVal
