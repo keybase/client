@@ -1250,8 +1250,9 @@ func (c *ChainLink) Store(m MetaContext) (didStore bool, err error) {
 		return false, err
 	}
 
-	if !c.IsStubbed() && (!c.hashVerified || !c.payloadVerified) {
-		err = fmt.Errorf("Internal error; should have been verified in Store()")
+	if !c.hashVerified || (!c.IsStubbed() && !c.payloadVerified) || !c.chainVerified {
+		err = fmt.Errorf("Internal error; should have been verified in Store(); hashVerified=%v, isStubbed=%v, payloadVerified=%v, chainVerified=%v",
+			c.hashVerified, c.IsStubbed(), c.payloadVerified, c.chainVerified)
 		return false, err
 	}
 
