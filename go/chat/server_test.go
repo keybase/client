@@ -23,6 +23,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
+	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -333,6 +334,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	// Force small pages during tests to ensure we fetch context from new pages
 	searcher.pageSize = 3
 	g.Searcher = searcher
+	g.Indexer = search.NewIndexer(g)
 
 	h.setTestRemoteClient(ri)
 
@@ -5248,10 +5250,10 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		search := func(query string, isRegex bool, opts chat1.SearchOpts) chat1.GetSearchRegexpRes {
 			res, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-				ConversationID: conv.Id,
-				Query:          query,
-				IsRegex:        isRegex,
-				Opts:           opts,
+				ConvID:  conv.Id,
+				Query:   query,
+				IsRegex: isRegex,
+				Opts:    opts,
 			})
 			require.NoError(t, err)
 			return res
@@ -5358,11 +5360,187 @@ func TestChatSrvGetSearchRegexp(t *testing.T) {
 
 		// Test invalid regex
 		_, err := tc1.chatLocalHandler().GetSearchRegexp(tc1.startCtx, chat1.GetSearchRegexpArg{
-			ConversationID: conv.Id,
-			Query:          "(",
-			IsRegex:        true,
+			ConvID:  conv.Id,
+			Query:   "(",
+			IsRegex: true,
 		})
 		require.Error(t, err)
+	})
+}
+
+func TestChatSrvFullInboxSearch(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+
+		// Only test against IMPTEAMNATIVE. There is a bug in ChatRemoteMock
+		// with using Pagination Next/Prev and we don't need to triple test
+		// here.
+		switch mt {
+		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM:
+			return
+		}
+
+		ctc := makeChatTestContext(t, "FullInboxSearch", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		u1 := users[0]
+		u2 := users[1]
+
+		conv := mustCreateConversationForTest(t, ctc, u1, chat1.TopicType_CHAT,
+			mt, ctc.as(t, u2).user())
+		convID := conv.Id
+
+		tc1 := ctc.as(t, u1)
+		tc2 := ctc.as(t, u2)
+
+		listener1 := newServerChatListener()
+		tc1.h.G().NotifyRouter.SetListener(listener1)
+		listener2 := newServerChatListener()
+		tc2.h.G().NotifyRouter.SetListener(listener2)
+
+		sendMessage := func(msgBody string, user *kbtest.FakeUser) chat1.MessageID {
+			msgID := mustPostLocalForTest(t, ctc, user, conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: msgBody}))
+			consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
+			consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
+
+			// TODO remove this once the indexer is integrated into conv source
+			// CORE-8900
+			msgRes, err := tc1.chatLocalHandler().GetMessagesLocal(tc1.startCtx, chat1.GetMessagesLocalArg{
+				ConversationID: convID,
+				MessageIDs:     []chat1.MessageID{msgID},
+			})
+			require.NoError(t, err)
+			require.Equal(t, 1, len(msgRes.Messages))
+			msg := msgRes.Messages[0]
+			chatG := ctc.world.Tcs[u1.Username].ChatG
+			err = chatG.Indexer.Add(tc1.startCtx, convID,
+				u1.User.GetUID().ToBytes(), msg)
+			require.NoError(t, err)
+			chatG2 := ctc.world.Tcs[u2.Username].ChatG
+			err = chatG2.Indexer.Add(tc2.startCtx, convID,
+				u2.User.GetUID().ToBytes(), msg)
+			require.NoError(t, err)
+			return msgID
+		}
+
+		verifyHit := func(convID chat1.ConversationID, beforeMsgIDs []chat1.MessageID, hitMessageID chat1.MessageID,
+			afterMsgIDs []chat1.MessageID, matches []string, searchHit chat1.ChatSearchHit) {
+			if beforeMsgIDs == nil {
+				require.Nil(t, searchHit.BeforeMessages)
+			} else {
+				require.Equal(t, len(beforeMsgIDs), len(searchHit.BeforeMessages))
+				for i, msgID := range beforeMsgIDs {
+					msg := searchHit.BeforeMessages[i]
+					require.True(t, msg.IsValid())
+					require.Equal(t, msgID, msg.GetMessageID())
+				}
+			}
+			require.EqualValues(t, hitMessageID, searchHit.HitMessage.Valid().MessageID)
+			require.Equal(t, matches, searchHit.Matches)
+
+			if afterMsgIDs == nil {
+				require.Nil(t, searchHit.AfterMessages)
+			} else {
+				require.Equal(t, len(afterMsgIDs), len(searchHit.AfterMessages))
+				for i, msgID := range afterMsgIDs {
+					msg := searchHit.AfterMessages[i]
+					require.True(t, msg.IsValid())
+					require.Equal(t, msgID, msg.GetMessageID())
+				}
+			}
+		}
+
+		search := func(query string, opts chat1.SearchOpts) chat1.FullInboxSearchRes {
+			res, err := tc1.chatLocalHandler().FullInboxSearch(tc1.startCtx, chat1.FullInboxSearchArg{
+				Query: query,
+				Opts:  opts,
+			})
+			require.NoError(t, err)
+			return res
+		}
+
+		opts := chat1.SearchOpts{
+			SentBy:        "",
+			MaxHits:       5,
+			BeforeContext: 2,
+			AfterContext:  2,
+			MaxMessages:   1000,
+		}
+
+		// Test basic equality match
+		query := "hi"
+		msgBody := "hi"
+		messageID1 := sendMessage(msgBody, u1)
+		res := search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit := res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, nil, []string{msgBody}, convHit.Hits[0])
+
+		// Test basic no results
+		query = "hey"
+		res = search(query, opts)
+		require.Equal(t, 0, len(res.Hits))
+
+		// Test maxHits
+		opts.MaxHits = 1
+		query = "hi"
+		messageID2 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{msgBody}, convHit.Hits[0])
+
+		opts.MaxHits = 5
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 2, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, nil, []string{msgBody}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2}, []string{msgBody}, convHit.Hits[1])
+
+		messageID3 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 3, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID1, messageID2}, messageID3, nil, []string{msgBody}, convHit.Hits[0])
+		verifyHit(convID, []chat1.MessageID{1, messageID1}, messageID2, []chat1.MessageID{messageID3}, []string{msgBody}, convHit.Hits[1])
+		verifyHit(convID, []chat1.MessageID{1}, messageID1, []chat1.MessageID{messageID2, messageID3}, []string{msgBody}, convHit.Hits[2])
+
+		// test sentBy
+		// invalid username
+		opts.SentBy = u1.Username + "foo"
+		res = search(query, opts)
+		require.Zero(t, len(res.Hits))
+
+		// send from user2 and make sure we can filter
+		opts.SentBy = u2.Username
+		msgBody = "hi"
+		query = "hi"
+		messageID4 := sendMessage(msgBody, u2)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID2, messageID3}, messageID4, nil, []string{msgBody}, convHit.Hits[0])
+		opts.SentBy = ""
+
+		// Test utf8
+		msgBody = `约书亚和约翰屌爆了`
+		query = `约书亚和约翰屌爆了`
+		messageID5 := sendMessage(msgBody, u1)
+		res = search(query, opts)
+		require.Equal(t, 1, len(res.Hits))
+		convHit = res.Hits[0]
+		require.Equal(t, convID, convHit.ConvID)
+		require.Equal(t, 1, len(convHit.Hits))
+		verifyHit(convID, []chat1.MessageID{messageID3, messageID4}, messageID5, nil, []string{msgBody}, convHit.Hits[0])
 	})
 }
 

@@ -1353,6 +1353,12 @@ func (c ByMsgUnboxedMsgID) Less(i, j int) bool {
 	return c[i].GetMessageID() > c[j].GetMessageID()
 }
 
+type ByMsgID []chat1.MessageID
+
+func (m ByMsgID) Len() int           { return len(m) }
+func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByMsgID) Less(i, j int) bool { return m[i] > m[j] }
+
 func GetTopicName(conv chat1.ConversationLocal) string {
 	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 	if err != nil {
