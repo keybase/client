@@ -34,13 +34,17 @@ class Box2 extends React.Component<Box2Props> {
       this.props.fullWidth && 'box2_fullWidth',
       !this.props.fullHeight && !this.props.fullWidth && 'box2_centered',
       this.props.centerChildren && 'box2_centeredChildren',
-      this.props.style,
       this.props.className,
     ]
       .filter(Boolean)
       .join(' ')
     return (
-      <div onMouseLeave={this.props.onMouseLeave} onMouseOver={this.props.onMouseOver} className={className}>
+      <div
+        onMouseLeave={this.props.onMouseLeave}
+        onMouseOver={this.props.onMouseOver}
+        className={className}
+        style={this.props.style}
+      >
         {injectGaps(
           horizontal ? hBoxGap : vBoxGap,
           this.props.children,

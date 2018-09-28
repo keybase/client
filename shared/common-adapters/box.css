@@ -24,13 +24,13 @@
     flex-direction: row-reverse;
     justify-content: flex-start;
 }
-.box2_center {
-  lign-self: center;
+.box2_centered {
+     align-self: center;
 }
-.box2_centeredChildren: {
-    alignt_items: center;
+.box2_centeredChildren {
+    alignt-items: center;
     justify-content: center;
-  },
+}
 .box2_fullHeight {
     height: 100%;
 }
