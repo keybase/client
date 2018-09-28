@@ -61,8 +61,16 @@ func (c *LinkCache) Get(id LinkID) (link ChainLink, ok bool) {
 	return link, false
 }
 
+func (c *LinkCache) Put(m MetaContext, id LinkID, link ChainLink) {
+	c.put(m, id, link, true)
+}
+
+func (c *LinkCache) PutNoOverwrite(m MetaContext, id LinkID, link ChainLink) {
+	c.put(m, id, link, false)
+}
+
 // Put inserts a ChainLink into the cache.
-func (c *LinkCache) Put(id LinkID, link ChainLink) {
+func (c *LinkCache) put(m MetaContext, id LinkID, link ChainLink, overwriteOK bool) {
 	c.Lock()
 	defer c.Unlock()
 	var linkID linkIDFixed
@@ -70,6 +78,10 @@ func (c *LinkCache) Put(id LinkID, link ChainLink) {
 
 	elt, ok := c.cache[linkID]
 	if ok {
+		if !overwriteOK {
+			m.CDebugf("Not putting %s into LinkCache since it's already there and NoOverwrite specified", id)
+			return
+		}
 		// if this link already exists, remove it from
 		// the accessOrder list.
 		c.accessOrder.Remove(elt)

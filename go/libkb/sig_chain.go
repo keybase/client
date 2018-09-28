@@ -639,7 +639,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 			w.Warn(sc.G())
 		}
 
-		sc.G().VDL.Log(VLog1, "| Verify link: %s", link.id)
+		sc.G().VDL.Log(VLog1, "| Verify link: %s %v %v", link.id, link.chainVerified, link.hashVerified)
 
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {

@@ -1100,7 +1100,11 @@ func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID 
 		return nil, err
 	}
 
-	m.G().LinkCache().Put(id, ret.Copy())
+	// Let's only put this to our link cache if we don't already have it. There is a current
+	// off-by-one-server error where the server comes back and sends us low, which we then
+	// skip right over in the client. But that means we'll trample a verified object with an
+	// unverified object.
+	m.G().LinkCache().PutNoOverwrite(m, id, ret.Copy())
 
 	return ret, nil
 }
@@ -1130,7 +1134,7 @@ func ImportLinkFromStorage(m MetaContext, id LinkID, selfUID keybase1.UID) (*Cha
 		}
 		ret.storedLocally = true
 
-		m.G().LinkCache().Put(id, ret.Copy())
+		m.G().LinkCache().Put(m, id, ret.Copy())
 	}
 	return ret, err
 }
