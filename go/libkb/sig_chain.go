@@ -283,6 +283,10 @@ func (sc *SigChain) LoadServerBody(m MetaContext, body []byte, low keybase1.Seqn
 		if link.GetSeqno() <= low {
 			return
 		}
+
+		// After we know it's not a dupe, let's put the link to cache.
+		putLinkToCache(m, link)
+
 		if selfUID.Equal(link.GetUID()) {
 			m.CDebugf("| Setting isOwnNewLinkFromServer=true for seqno %d", link.GetSeqno())
 			link.isOwnNewLinkFromServer = true

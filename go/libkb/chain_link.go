@@ -1100,13 +1100,11 @@ func ImportLinkFromServer(m MetaContext, parent *SigChain, data []byte, selfUID 
 		return nil, err
 	}
 
-	// Let's only put this to our link cache if we don't already have it. There is a current
-	// off-by-one-server error where the server comes back and sends us low, which we then
-	// skip right over in the client. But that means we'll trample a verified object with an
-	// unverified object.
-	m.G().LinkCache().PutNoOverwrite(m, id, ret.Copy())
-
 	return ret, nil
+}
+
+func putLinkToCache(m MetaContext, link *ChainLink) {
+	m.G().LinkCache().Put(m, link.id, link.Copy())
 }
 
 func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID) *ChainLink {
