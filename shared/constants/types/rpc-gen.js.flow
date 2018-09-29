@@ -164,7 +164,7 @@ export type MessageTypes = {|
     outParam: SimpleFSListResult,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
-    inParam: $ReadOnly<{|path: Path|}>,
+    inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior|}>,
     outParam: Dirent,
   |},
   'keybase.1.SimpleFS.simpleFSSyncStatus': {|
