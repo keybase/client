@@ -193,7 +193,6 @@ const rules = {
   inlineCode: {
     ...SimpleMarkdown.defaultRules.inlineCode,
     react: (node, output, state) => {
-      // console.log('inlineCode', node, output, state)
       return (
         <Text type="Body" key={state.key} style={codeSnippetStyle}>
           {node.content}
@@ -204,9 +203,8 @@ const rules = {
   codeBlock: {
     ...SimpleMarkdown.defaultRules.codeBlock,
     react: (node, output, state) => {
-      // console.log('code block ', node, output, state)
       return (
-        <Text type="Body" style={codeSnippetBlockStyle}>
+        <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
           {node.content}
         </Text>
       )
@@ -215,11 +213,76 @@ const rules = {
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
     react: (node, output, state) => {
-      // console.log('paragraph', node, output, state)
       return (
         <Text key={state.key} type="Body">
           {output(node.content, state)}
         </Text>
+      )
+    },
+  },
+  // link: {
+  // ...SimpleMarkdown.defaultRules.link,
+  // react: (node, output, state) => {
+  // return (
+  // <Text
+  // className="hover-underline"
+  // type="BodyPrimaryLink"
+  // key={state.key}
+  // style={linkStyle}
+  // onClickURL={state.href}
+  // >
+  // {node.content}
+  // </Text>
+  // )
+  // },
+  // },
+  // textBlock: {
+  // ...SimpleMarkdown.defaultRules.textBlock,
+  // react: (node, output, state) => {
+  // return (
+  // <Text type="Body" key={state.key} style={textBlockStyle}>
+  // {node.content && node.content.length ? node.content : '\u200b'}
+  // </Text>
+  // )
+  // },
+  // },
+  strong: {
+    ...SimpleMarkdown.defaultRules.strong,
+    react: (node, output, state) => {
+      return (
+        <Text type="BodySemibold" key={state.key} style={boldStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+  em: {
+    ...SimpleMarkdown.defaultRules.em,
+    react: (node, output, state) => {
+      return (
+        <Text type="Body" key={state.key} style={italicStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+  del: {
+    ...SimpleMarkdown.defaultRules.del,
+    react: (node, output, state) => {
+      return (
+        <Text type="Body" key={state.key} style={strikeStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+  blockQuote: {
+    ...SimpleMarkdown.defaultRules.blockQuote,
+    react: (node, output, state) => {
+      return (
+        <Box key={state.key} style={quoteStyle}>
+          {output(node.content, state)}
+        </Box>
       )
     },
   },
@@ -230,8 +293,10 @@ const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 're
 
 class Markdown extends PureComponent<Props> {
   render() {
-    const parseTree = parser(this.props.children, {inline: false})
+    // if (this.props.simple) {
+    const parseTree = parser(this.props.children || '', {inline: false})
     return reactOutput(parseTree)
+    // } else {
     // const content = parseMarkdown(
     // this.props.children,
     // this.props.preview ? previewCreateComponent : messageCreateComponent,
@@ -242,6 +307,7 @@ class Markdown extends PureComponent<Props> {
     // {content}
     // </Text>
     // )
+    // }
   }
 }
 
