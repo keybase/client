@@ -32,11 +32,14 @@ function followStateHelperWithId(
   return 'NoState'
 }
 
-const makeSubState = (): Types.TeamBuildingSubState => ({
+const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
   teamBuildingTeamSoFar: I.Set(),
   teamBuildingSearchResults: I.Map(),
   teamBuildingServiceResultCount: I.Map(),
   teamBuildingFinishedTeam: I.Set(),
+  teamBuildingSearchQuery: '',
+  teamBuildingSelectedService: 'keybase',
+  teamBuildingSearchLimit: 11,
 })
 
 export {followStateHelperWithId, makeSubState, services}

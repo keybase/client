@@ -2,7 +2,7 @@
 import logger from '../logger'
 import React from 'react'
 import * as I from 'immutable'
-import {debounce} from 'lodash-es'
+import {debounce, trim} from 'lodash-es'
 import TeamBuilding from '.'
 import * as TeamBuildingGen from '../actions/team-building-gen'
 import {type TypedState, compose, connect, setDisplayName} from '../util/container'
@@ -10,7 +10,7 @@ import {PopupDialogHoc} from '../common-adapters'
 import {parseUserId} from '../util/platforms'
 import {followStateHelperWithId} from '../constants/team-building'
 import memoizeOne from 'memoize-one'
-import type {ServiceIdWithContact, User} from '../constants/types/team-building'
+import type {ServiceIdWithContact, User, SearchResults} from '../constants/types/team-building'
 
 // TODO
 // * there's a lot of render thrashing going on. using keyboard arrows is kinda slow becuase of it.
@@ -69,18 +69,28 @@ const deriveTeamSoFar = memoizeOne((teamSoFar: I.Set<User>) =>
   })
 )
 
-// TODO
-const deriveServiceResultCount = memoizeOne(() => ({}))
-const deriveShowServiceResultCount = memoizeOne(() => false)
+const deriveServiceResultCount: (
+  searchResults: SearchResults,
+  query: string
+) => {[key: ServiceIdWithContact]: ?number} = memoizeOne((searchResults: SearchResults, query) =>
+  // $FlowIssue toObject looses typing
+  searchResults
+    .get(trim(query), I.Map())
+    .map(results => results.length)
+    .toObject()
+)
+
+const deriveShowServiceResultCount = memoizeOne(searchString => !!searchString)
 
 const deriveUserFromUserIdFn = memoizeOne((searchResults: ?Array<User>) => (userId: string): ?User =>
   (searchResults || []).filter(u => u.id === userId)[0] || null
 )
 
 const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
-  const userResults = state.chat2.teamBuildingSearchResults.get(
-    I.List([ownProps.searchString, ownProps.selectedService])
-  )
+  const userResults = state.chat2.teamBuildingSearchResults.getIn([
+    trim(ownProps.searchString),
+    ownProps.selectedService,
+  ])
 
   return {
     userFromUserId: deriveUserFromUserIdFn(userResults),
@@ -91,8 +101,11 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
       state.config.following
     ),
     teamSoFar: deriveTeamSoFar(state.chat2.teamBuildingTeamSoFar),
-    serviceResultCount: deriveServiceResultCount(),
-    showServiceResultCount: deriveShowServiceResultCount(),
+    serviceResultCount: deriveServiceResultCount(
+      state.chat2.teamBuildingSearchResults,
+      ownProps.searchString
+    ),
+    showServiceResultCount: deriveShowServiceResultCount(ownProps.searchString),
   }
 }
 

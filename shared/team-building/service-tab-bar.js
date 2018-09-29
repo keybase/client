@@ -34,7 +34,7 @@ const ServiceIcon = (props: IconProps) => (
         type={serviceIdToLogo16(props.service, props.isActive)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
-          styles[props.isActive ? 'activeIcon' : 'inactiveIcon'],
+          props.isActive ? styles.activeIcon : styles.inactiveIcon,
         ])}
       />
       {!!props.showCount &&

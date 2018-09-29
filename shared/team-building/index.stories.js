@@ -180,6 +180,17 @@ const load = () => {
         showServiceResultCount={false}
       />
     ))
+    .add('With Service Results counts', () => (
+      <ServiceTabBar
+        selectedService="keybase"
+        onChangeService={Sb.action('onChangeService')}
+        serviceResultCount={{
+          reddit: 10,
+          hackernews: 10,
+        }}
+        showServiceResultCount={true}
+      />
+    ))
     .add('Pending results', () => (
       <ServiceTabBar
         selectedService="keybase"

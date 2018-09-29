@@ -28,7 +28,8 @@ export type User = {
 export type SearchKey = I.List<SearchString | ServiceIdWithContact>
 // This is what should be kept in the reducer
 // Keyed so that we never get results that don't match the user's input (e.g. outdated results)
-export type SearchResults = I.Map<SearchKey, Array<User>>
+type Query = string
+export type SearchResults = I.Map<Query, I.Map<ServiceIdWithContact, Array<User>>>
 export type ServiceResultCount = I.Map<SearchString, I.Map<ServiceIdWithContact, number>>
 
 export type TeamBuildingSubState = {
@@ -36,4 +37,7 @@ export type TeamBuildingSubState = {
   teamBuildingSearchResults: SearchResults,
   teamBuildingServiceResultCount: ServiceResultCount,
   teamBuildingFinishedTeam: I.Set<User>,
+  teamBuildingSearchQuery: Query,
+  teamBuildingSelectedService: ServiceIdWithContact,
+  teamBuildingSearchLimit: number,
 }

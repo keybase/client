@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Constants from '../constants/team-building'
 import * as Types from '../constants/types/team-building'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import {trim} from 'lodash-es'
 
 export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
   state: S,
@@ -14,21 +15,19 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
     case TeamBuildingGen.cancelTeamBuilding:
       return state.merge(Constants.makeSubState())
     case TeamBuildingGen.addUsersToTeamSoFar:
-      return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.merge(action.payload.users))
+      return state.mergeIn(['teamBuildingTeamSoFar'], action.payload.users)
     case TeamBuildingGen.removeUsersFromTeamSoFar: {
       const setToRemove = I.Set(action.payload.users)
       return state.update('teamBuildingTeamSoFar', teamSoFar => teamSoFar.filter(u => !setToRemove.has(u.id)))
     }
     case TeamBuildingGen.searchResultsLoaded: {
       const {query, service, users} = action.payload
-      return state.update('teamBuildingSearchResults', searchResults =>
-        searchResults.set(I.List([query, service]), users)
-      )
+      return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
     case TeamBuildingGen.searchResultCountsLoaded: {
       const {query, counts} = action.payload
       return state.update('teamBuildingServiceResultCount', serviceResultCount =>
-        serviceResultCount.set(query, I.Map(counts))
+        serviceResultCount.update(query, I.Map(), m => m.merge(counts))
       )
     }
     case TeamBuildingGen.finishedTeamBuilding:
@@ -37,9 +36,14 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
         teamBuildingTeamSoFar: I.Set(),
       })
 
-    // Saga only actions
-    case TeamBuildingGen.search:
-      return state
+    case TeamBuildingGen.search: {
+      const {query, service, limit = state.teamBuildingSearchLimit} = action.payload
+      return state.merge({
+        teamBuildingSearchQuery: trim(query),
+        teamBuildingSelectedService: service,
+        teamBuildingSearchLimit: limit,
+      })
+    }
 
     default:
       /*::

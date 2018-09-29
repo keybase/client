@@ -62,25 +62,27 @@ const mockApiserverGetWithSessionRpcPromise = ({args, endpoint}) => {
 
 const parsedSearchResults = {
   marcopolo: {
-    keybase: I.Map().set(I.List(['marcopolo', 'keybase']), [
-      {
-        id: 'marcopolo',
-        prettyName: 'Marco Munizaga',
-        serviceMap: {
-          twitter: 'open_sourcery',
-          facebook: 'mmunizaga1337',
-          github: 'marcopolo',
-          keybase: 'marcopolo',
+    keybase: I.Map().mergeIn(['marcopolo'], {
+      keybase: [
+        {
+          id: 'marcopolo',
+          prettyName: 'Marco Munizaga',
+          serviceMap: {
+            twitter: 'open_sourcery',
+            facebook: 'mmunizaga1337',
+            github: 'marcopolo',
+            keybase: 'marcopolo',
+          },
         },
-      },
-      {
-        id: 'rustybot',
-        prettyName: 'rustybot',
-        serviceMap: {
-          keybase: 'rustybot',
+        {
+          id: 'rustybot',
+          prettyName: 'rustybot',
+          serviceMap: {
+            keybase: 'rustybot',
+          },
         },
-      },
-    ]),
+      ],
+    }),
   },
 }
 
@@ -116,7 +118,7 @@ describe('Search Actions', () => {
 
   it('Adds users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     return Testing.flushPromises().then(() => {
       expect(getState().chat2.teamBuildingTeamSoFar).toEqual(I.Set([userToAdd]))
@@ -125,7 +127,7 @@ describe('Search Actions', () => {
 
   it('Remove users to the team so far', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createRemoveUsersFromTeamSoFar({users: ['marcopolo']}))
     return Testing.flushPromises().then(() => {
@@ -135,7 +137,7 @@ describe('Search Actions', () => {
 
   it('Moves finished team over and clears the teamSoFar on finished', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createFinishedTeamBuilding())
     return Testing.flushPromises().then(() => {
@@ -146,7 +148,7 @@ describe('Search Actions', () => {
 
   it('Cancel team building clears the state', () => {
     const {dispatch, getState} = init
-    const userToAdd = parsedSearchResults['marcopolo']['keybase'].get(I.List(['marcopolo', 'keybase']), [])[0]
+    const userToAdd = parsedSearchResults['marcopolo']['keybase'].getIn(['marcopolo', 'keybase'], [])[0]
     dispatch(TeamBuildingGen.createAddUsersToTeamSoFar({users: [userToAdd]}))
     dispatch(TeamBuildingGen.createCancelTeamBuilding())
     return Testing.flushPromises().then(() => {
