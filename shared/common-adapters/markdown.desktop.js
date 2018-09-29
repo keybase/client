@@ -189,7 +189,14 @@ function messageCreateComponent(type, key, children, options) {
 }
 
 const rules = {
-  ...SimpleMarkdown.defaultRules,
+  newline: {
+    ...SimpleMarkdown.defaultRules.newline,
+    match: SimpleMarkdown.blockRegex(/^\n/),
+    react: function(node, output, state) {
+      return <Box />
+    },
+  },
+  // ...SimpleMarkdown.defaultRules,
   inlineCode: {
     ...SimpleMarkdown.defaultRules.inlineCode,
     react: (node, output, state) => {
@@ -248,6 +255,7 @@ const rules = {
   // },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
+    match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
     react: (node, output, state) => {
       return (
         <Text type="BodySemibold" key={state.key} style={boldStyle}>
@@ -258,6 +266,7 @@ const rules = {
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
+    match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={italicStyle}>
@@ -268,6 +277,7 @@ const rules = {
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
+    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={strikeStyle}>
@@ -286,6 +296,10 @@ const rules = {
       )
     },
   },
+  text: {
+    ...SimpleMarkdown.defaultRules.text,
+    // match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n| {2,}\n|\w+:\S|$)/),
+  },
 }
 
 const parser = SimpleMarkdown.parserFor(rules)
@@ -293,21 +307,22 @@ const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 're
 
 class Markdown extends PureComponent<Props> {
   render() {
-    // if (this.props.simple) {
-    const parseTree = parser(this.props.children || '', {inline: false})
-    return reactOutput(parseTree)
-    // } else {
-    // const content = parseMarkdown(
-    // this.props.children,
-    // this.props.preview ? previewCreateComponent : messageCreateComponent,
-    // this.props.meta
-    // )
-    // return (
-    // <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
-    // {content}
-    // </Text>
-    // )
-    // }
+    if (this.props.simple) {
+      const parseTree = parser((this.props.children || '') + '\n', {inline: false})
+      console.log(parseTree)
+      return reactOutput(parseTree)
+    } else {
+      const content = parseMarkdown(
+        this.props.children,
+        this.props.preview ? previewCreateComponent : messageCreateComponent,
+        this.props.meta
+      )
+      return (
+        <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
+          {content}
+        </Text>
+      )
+    }
   }
 }
 
