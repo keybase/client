@@ -30,6 +30,7 @@ const makeBuildingPayment: I.RecordFactory<Types._BuildingPayment> = I.Record({
   recipientType: null,
   secretNote: new HiddenString(''),
   to: '',
+  sendAssetChoices: null,
 })
 
 const makeBuiltPayment: I.RecordFactory<Types._BuiltPayment> = I.Record({
@@ -140,7 +141,7 @@ const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
     name: w.name,
   })
 
-const makePayment: I.RecordFactory<Types._Payment> = I.Record({
+  const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',

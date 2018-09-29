@@ -68,6 +68,7 @@ export type _LocalCurrency = {
   symbol: string,
   name: string,
 }
+
 export type _BuildingPayment = {
   amount: string,
   currency: string,
@@ -76,6 +77,7 @@ export type _BuildingPayment = {
   recipientType: ?CounterpartyType,
   secretNote: HiddenString,
   to: string,
+  sendAssetChoices: ?Array<StellarRPCTypes.SendAssetChoiceLocal>,
 }
 
 export type _BuiltPayment = {

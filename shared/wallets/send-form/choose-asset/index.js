@@ -34,6 +34,7 @@ export type Props = {
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
   otherChoices: Array<OtherItem>,
+  selected: String,
 }
 
 type State = {
@@ -115,6 +116,15 @@ class ChooseAsset extends React.Component<Props, State> {
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
         type: 'expander',
+      })
+    }
+    if (!displayChoicesData.find(c => c.currencyCode === 'XLM')) {
+      displayChoicesData.unshift({
+        key: 'XLM',
+        currencyCode: 'XLM',
+        selected: this.props.selected === 'XLM',
+        symbol: 'XLM',
+        type: 'display choice',
       })
     }
     const sections = [
