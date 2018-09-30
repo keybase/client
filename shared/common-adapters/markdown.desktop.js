@@ -189,14 +189,29 @@ function messageCreateComponent(type, key, children, options) {
 }
 
 const rules = {
-  newline: {
-    ...SimpleMarkdown.defaultRules.newline,
-    match: SimpleMarkdown.blockRegex(/^\n/),
-    react: function(node, output, state) {
-      return <Box />
+  // ...SimpleMarkdown.defaultRules,
+  fence: {
+    ...SimpleMarkdown.defaultRules.fence,
+    order: SimpleMarkdown.defaultRules.paragraph.order,
+    // original:
+    // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
+    // ours: three ticks (anywhere) and remove any newlines in front
+    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)*((?:\\[\s\S]|[^\\])+?)```(?!`)/),
+    parse: function(capture, parse, state) {
+      return {
+        content: capture[1],
+        lang: undefined,
+        type: 'codeBlock',
+      }
     },
   },
-  // ...SimpleMarkdown.defaultRules,
+  // newline: {
+  // ...SimpleMarkdown.defaultRules.newline,
+  // match: SimpleMarkdown.blockRegex(/^\n/),
+  // react: function(node, output, state) {
+  // return <Box />
+  // },
+  // },
   inlineCode: {
     ...SimpleMarkdown.defaultRules.inlineCode,
     react: (node, output, state) => {
@@ -219,83 +234,88 @@ const rules = {
   },
   paragraph: {
     ...SimpleMarkdown.defaultRules.paragraph,
+    // original:
+    // match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)(?:\n *)+\n/),
+    // ours: allow simple empty blocks
+    match: SimpleMarkdown.blockRegex(/^((?:[^\n]|\n(?! *\n))+)\n/),
     react: (node, output, state) => {
       return (
-        <Text key={state.key} type="Body">
+        <Text type="Body" key={state.key} style={textBlockStyle}>
           {output(node.content, state)}
         </Text>
       )
     },
   },
-  // link: {
-  // ...SimpleMarkdown.defaultRules.link,
+  // },
+  // // link: {
+  // // ...SimpleMarkdown.defaultRules.link,
+  // // react: (node, output, state) => {
+  // // return (
+  // // <Text
+  // // className="hover-underline"
+  // // type="BodyPrimaryLink"
+  // // key={state.key}
+  // // style={linkStyle}
+  // // onClickURL={state.href}
+  // // >
+  // // {node.content}
+  // // </Text>
+  // // )
+  // // },
+  // // },
+  // // textBlock: {
+  // // ...SimpleMarkdown.defaultRules.textBlock,
+  // // react: (node, output, state) => {
+  // // return (
+  // // <Text type="Body" key={state.key} style={textBlockStyle}>
+  // // {node.content && node.content.length ? node.content : '\u200b'}
+  // // </Text>
+  // // )
+  // // },
+  // // },
+  // strong: {
+  // ...SimpleMarkdown.defaultRules.strong,
+  // match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
   // react: (node, output, state) => {
   // return (
-  // <Text
-  // className="hover-underline"
-  // type="BodyPrimaryLink"
-  // key={state.key}
-  // style={linkStyle}
-  // onClickURL={state.href}
-  // >
-  // {node.content}
+  // <Text type="BodySemibold" key={state.key} style={boldStyle}>
+  // {output(node.content, state)}
   // </Text>
   // )
   // },
   // },
-  // textBlock: {
-  // ...SimpleMarkdown.defaultRules.textBlock,
+  // em: {
+  // ...SimpleMarkdown.defaultRules.em,
+  // match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
   // react: (node, output, state) => {
   // return (
-  // <Text type="Body" key={state.key} style={textBlockStyle}>
-  // {node.content && node.content.length ? node.content : '\u200b'}
+  // <Text type="Body" key={state.key} style={italicStyle}>
+  // {output(node.content, state)}
   // </Text>
   // )
   // },
   // },
-  strong: {
-    ...SimpleMarkdown.defaultRules.strong,
-    match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
-    react: (node, output, state) => {
-      return (
-        <Text type="BodySemibold" key={state.key} style={boldStyle}>
-          {output(node.content, state)}
-        </Text>
-      )
-    },
-  },
-  em: {
-    ...SimpleMarkdown.defaultRules.em,
-    match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
-    react: (node, output, state) => {
-      return (
-        <Text type="Body" key={state.key} style={italicStyle}>
-          {output(node.content, state)}
-        </Text>
-      )
-    },
-  },
-  del: {
-    ...SimpleMarkdown.defaultRules.del,
-    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
-    react: (node, output, state) => {
-      return (
-        <Text type="Body" key={state.key} style={strikeStyle}>
-          {output(node.content, state)}
-        </Text>
-      )
-    },
-  },
-  blockQuote: {
-    ...SimpleMarkdown.defaultRules.blockQuote,
-    react: (node, output, state) => {
-      return (
-        <Box key={state.key} style={quoteStyle}>
-          {output(node.content, state)}
-        </Box>
-      )
-    },
-  },
+  // del: {
+  // ...SimpleMarkdown.defaultRules.del,
+  // match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
+  // react: (node, output, state) => {
+  // return (
+  // <Text type="Body" key={state.key} style={strikeStyle}>
+  // {output(node.content, state)}
+  // </Text>
+  // )
+  // },
+  // },
+  // blockQuote: {
+  // ...SimpleMarkdown.defaultRules.blockQuote,
+  // react: (node, output, state) => {
+  // return (
+  // <Box key={state.key} style={quoteStyle}>
+  // {output(node.content, state)}
+  // </Box>
+  // )
+  // },
+  // },
   text: {
     ...SimpleMarkdown.defaultRules.text,
     // match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n| {2,}\n|\w+:\S|$)/),
@@ -310,7 +330,13 @@ class Markdown extends PureComponent<Props> {
     if (this.props.simple) {
       const parseTree = parser((this.props.children || '') + '\n', {inline: false})
       console.log(parseTree)
-      return reactOutput(parseTree)
+      return (
+        <div>
+          {reactOutput(parseTree)}
+          <pre>{this.props.children}</pre>
+          <pre>{JSON.stringify(parseTree, null, 2)}</pre>
+        </div>
+      )
     } else {
       const content = parseMarkdown(
         this.props.children,

@@ -6,6 +6,15 @@ import Markdown from './markdown'
 const load = () => {
   Sb.storiesOf('Common/Markdown', module)
     .addDecorator(Sb.scrollViewDecorator)
+    .add('Paragraphs', () => (
+      <Markdown simple={true}>
+        {`this is a sentence.
+this is the next line
+and another with two below
+
+this is the one below.`}
+      </Markdown>
+    ))
     .add('Normal/S', () => (
       <Markdown simple={true}>
         {`I think we should try to use \`if else\` statements \`\`\`
