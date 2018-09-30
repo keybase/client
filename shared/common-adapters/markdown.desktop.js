@@ -306,16 +306,16 @@ const rules = {
       )
     },
   },
-  // blockQuote: {
-  // ...SimpleMarkdown.defaultRules.blockQuote,
-  // react: (node, output, state) => {
-  // return (
-  // <Box key={state.key} style={quoteStyle}>
-  // {output(node.content, state)}
-  // </Box>
-  // )
-  // },
-  // },
+  blockQuote: {
+    ...SimpleMarkdown.defaultRules.blockQuote,
+    react: (node, output, state) => {
+      return (
+        <Box key={state.key} style={quoteStyle}>
+          {output(node.content, state)}
+        </Box>
+      )
+    },
+  },
   text: {
     ...SimpleMarkdown.defaultRules.text,
     // match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n| {2,}\n|\w+:\S|$)/),
