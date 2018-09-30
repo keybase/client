@@ -190,6 +190,9 @@ function messageCreateComponent(type, key, children, options) {
 
 const rules = {
   // ...SimpleMarkdown.defaultRules,
+  escape: {
+    ...SimpleMarkdown.defaultRules.escape,
+  },
   fence: {
     ...SimpleMarkdown.defaultRules.fence,
     order: SimpleMarkdown.defaultRules.paragraph.order,
@@ -214,6 +217,10 @@ const rules = {
   // },
   inlineCode: {
     ...SimpleMarkdown.defaultRules.inlineCode,
+    // original:
+    // match: inlineRegex(/^(`+)\s*([\s\S]*?[^`])\s*\1(?!`)/),
+    // ours: onlyh allow a single backtick
+    match: SimpleMarkdown.inlineRegex(/^(`)(?!`)\s*([\s\S]*?[^`\n])\s*\1(?!`)/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={codeSnippetStyle}>
@@ -333,6 +340,7 @@ class Markdown extends PureComponent<Props> {
       return (
         <div>
           {reactOutput(parseTree)}
+          <pre>{'\n\n\n'}</pre>
           <pre>{this.props.children}</pre>
           <pre>{JSON.stringify(parseTree, null, 2)}</pre>
         </div>
