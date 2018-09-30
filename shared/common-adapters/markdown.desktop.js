@@ -273,39 +273,39 @@ const rules = {
   // // )
   // // },
   // // },
-  // strong: {
-  // ...SimpleMarkdown.defaultRules.strong,
-  // match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
-  // react: (node, output, state) => {
-  // return (
-  // <Text type="BodySemibold" key={state.key} style={boldStyle}>
-  // {output(node.content, state)}
-  // </Text>
-  // )
-  // },
-  // },
-  // em: {
-  // ...SimpleMarkdown.defaultRules.em,
-  // match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
-  // react: (node, output, state) => {
-  // return (
-  // <Text type="Body" key={state.key} style={italicStyle}>
-  // {output(node.content, state)}
-  // </Text>
-  // )
-  // },
-  // },
-  // del: {
-  // ...SimpleMarkdown.defaultRules.del,
-  // match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
-  // react: (node, output, state) => {
-  // return (
-  // <Text type="Body" key={state.key} style={strikeStyle}>
-  // {output(node.content, state)}
-  // </Text>
-  // )
-  // },
-  // },
+  strong: {
+    ...SimpleMarkdown.defaultRules.strong,
+    match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
+    react: (node, output, state) => {
+      return (
+        <Text type="BodySemibold" key={state.key} style={boldStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+  em: {
+    ...SimpleMarkdown.defaultRules.em,
+    match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
+    react: (node, output, state) => {
+      return (
+        <Text type="Body" key={state.key} style={italicStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
+  del: {
+    ...SimpleMarkdown.defaultRules.del,
+    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
+    react: (node, output, state) => {
+      return (
+        <Text type="Body" key={state.key} style={strikeStyle}>
+          {output(node.content, state)}
+        </Text>
+      )
+    },
+  },
   // blockQuote: {
   // ...SimpleMarkdown.defaultRules.blockQuote,
   // react: (node, output, state) => {
