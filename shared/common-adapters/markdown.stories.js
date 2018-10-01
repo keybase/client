@@ -68,6 +68,9 @@ line
 code in quote
 \`\`\`
 `,
+  'NOJIMACode block': `\`\`\`
+
+this is a code block with two newline above\`\`\``,
   'Code block': `
         \`\`\`this is a code block\`\`\`
 \`\`\`

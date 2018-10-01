@@ -195,11 +195,11 @@ const rules = {
   },
   fence: {
     ...SimpleMarkdown.defaultRules.fence,
-    order: SimpleMarkdown.defaultRules.paragraph.order,
+    // order: SimpleMarkdown.defaultRules.paragraph.order,
     // original:
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
     // ours: three ticks (anywhere) and remove any newlines in front
-    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)*((?:\\[\s\S]|[^\\])+?)```(?!`)/),
+    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)/),
     parse: function(capture, parse, state) {
       return {
         content: capture[1],
@@ -231,6 +231,10 @@ const rules = {
   },
   codeBlock: {
     ...SimpleMarkdown.defaultRules.codeBlock,
+    // original:
+    // match: blockRegex(/^(?:    [^\n]+\n*)+(?:\n *)+\n/),
+    // ours:
+    match: SimpleMarkdown.blockRegex(/^(?: {4}[^\n]+\n*)+(?:\n *)+\n/),
     react: (node, output, state) => {
       return (
         <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
@@ -335,7 +339,7 @@ const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 're
 class Markdown extends PureComponent<Props> {
   render() {
     if (this.props.simple) {
-      const parseTree = parser((this.props.children || '') + '\n', {inline: false})
+      const parseTree = parser(this.props.children || '', {inline: false})
       console.log(parseTree)
       return (
         <div>
