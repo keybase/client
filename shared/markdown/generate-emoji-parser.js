@@ -152,4 +152,14 @@ $1
   fs.writeFileSync(parserPath, fullParserJS, {encoding: 'utf8'})
 }
 
-buildParser()
+function buildEmojiFile() {
+  const p = path.join(__dirname, '..', 'markdown', 'emoji.js')
+  const {emojiLiterals, emojiIndexByName} = genEmojiData()
+  const data = `// @noflow
+export const emojiRegex = /^(${emojiLiterals.join('|')}|${Object.keys(emojiIndexByName).join('|')})/`
+  fs.writeFileSync(p, data, {encoding: 'utf8'})
+}
+
+// TODO deprecate this one
+// buildParser()
+buildEmojiFile()

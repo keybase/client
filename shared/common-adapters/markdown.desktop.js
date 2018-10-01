@@ -8,6 +8,7 @@ import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
+import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
 
 import type {Props} from './markdown'
@@ -331,6 +332,17 @@ const rules = {
   },
   text: {
     ...SimpleMarkdown.defaultRules.text,
+  },
+  emoji: {
+    order: SimpleMarkdown.defaultRules.text.order - 0.5,
+    match: SimpleMarkdown.inlineRegex(emojiRegex),
+    parse: function(capture, parse, state) {
+      return {content: capture[0]}
+    },
+    react: (node, output, state) => {
+      // TODO support big emoji
+      return <EmojiIfExists emojiName={String(node.content)} size={16} key={state.key} />
+    },
   },
 }
 

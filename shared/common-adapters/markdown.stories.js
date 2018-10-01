@@ -13,6 +13,8 @@ this is the one below.`,
 if (var == "foo")
   echo "foo";
 else echo "bar";\`\`\` How about *bold* and _italic?_ nice. :smile:
+a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
+a whole bunch of string emojis :thumbsup: :cry: :fireworks:
 Now youre thinking with ~portals~ crypto.
 how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
   'special chars in code block': `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
