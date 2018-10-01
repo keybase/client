@@ -1500,7 +1500,7 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		}
 		basepath := body.Attachment().Object.Filename
 		basename := path.Base(basepath)
-		f, err := os.OpenFile(filepath.Join(os.TempDir(), basename), os.O_RDWR, 0644)
+		f, err := os.OpenFile(filepath.Join(os.TempDir(), basename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 		if err != nil {
 			return res, err
 		}
