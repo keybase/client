@@ -19,8 +19,6 @@ type Props = {
 const secretNoteMaxLength = 500
 const publicMemoMaxLength = 28
 
-const capLength = (s: string, maxLength: number) => s.substring(0, maxLength)
-
 type State = {
   emojiPickerOpen: boolean,
   publicMemo: string,
@@ -38,13 +36,11 @@ class NoteAndMemo extends React.Component<Props, State> {
   _emojiIcon = React.createRef()
   _note = React.createRef()
 
-  _onChangeSecretNote = (_secretNote: string) => {
-    const secretNote = capLength(_secretNote, secretNoteMaxLength)
+  _onChangeSecretNote = (secretNote: string) => {
     this.props.onChangeSecretNote(secretNote)
     this.setState(s => (s.secretNote === secretNote ? null : {secretNote}))
   }
-  _onChangePublicMemo = (_publicMemo: string) => {
-    const publicMemo = capLength(_publicMemo, publicMemoMaxLength)
+  _onChangePublicMemo = (publicMemo: string) => {
     this.props.onChangePublicMemo(publicMemo)
     this.setState(s => (s.publicMemo === publicMemo ? null : {publicMemo}))
   }
@@ -84,16 +80,8 @@ class NoteAndMemo extends React.Component<Props, State> {
               ref={!Styles.isMobile ? this._note : undefined}
               onChangeText={this._onChangeSecretNote}
               value={this.state.secretNote}
+              maxLength={secretNoteMaxLength}
             />
-            {!Styles.isMobile && (
-              <Kb.Icon
-                boxStyle={styles.emojiIcon}
-                onClick={this._emojiPickerToggle}
-                style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
-                type="iconfont-emoji"
-                ref={this._emojiIcon}
-              />
-            )}
             {this.state.emojiPickerOpen &&
               !Styles.isMobile && (
                 <Kb.Overlay
@@ -111,11 +99,24 @@ class NoteAndMemo extends React.Component<Props, State> {
                 </Kb.Overlay>
               )}
           </Kb.Box2>
-          {!!this.state.secretNote && (
-            <Kb.Text type="BodySmall">
-              {secretNoteMaxLength - this.state.secretNote.length} characters left
-            </Kb.Text>
-          )}
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsCenter}>
+            <Kb.Box2 direction="horizontal" style={styles.flexOne}>
+              {!!this.state.secretNote && (
+                <Kb.Text type="BodySmall">
+                  {secretNoteMaxLength - this.state.secretNote.length} characters left
+                </Kb.Text>
+              )}
+            </Kb.Box2>
+            {!Styles.isMobile && (
+              <Kb.Icon
+                boxStyle={styles.emojiIcon}
+                onClick={this._emojiPickerToggle}
+                style={Kb.iconCastPlatformStyles(styles.emojiIcon)}
+                type="iconfont-emoji"
+                ref={this._emojiIcon}
+              />
+            )}
+          </Kb.Box2>
           {!!this.props.secretNoteError && (
             <Kb.Text type="BodySmallError">{this.props.secretNoteError}</Kb.Text>
           )}
@@ -137,6 +138,7 @@ class NoteAndMemo extends React.Component<Props, State> {
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
             value={this.state.publicMemo}
+            maxLength={publicMemoMaxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodySmall">
@@ -161,19 +163,25 @@ class NoteAndMemo extends React.Component<Props, State> {
 const placeholderColor = Styles.globalColors.black_20
 
 const styles = Styles.styleSheetCreate({
+  alignItemsCenter: {
+    alignItems: 'center',
+  },
   container: {
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.tiny,
-  },
-  emojiIcon: {
-    alignSelf: 'flex-end',
   },
   divider: {
     marginTop: Styles.globalMargins.tiny,
   },
   dividerError: {
     backgroundColor: Styles.globalColors.red,
+  },
+  emojiIcon: {
+    alignSelf: 'flex-end',
+  },
+  flexOne: {
+    flex: 1,
   },
   input: {
     color: Styles.globalColors.black_75,
