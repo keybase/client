@@ -103,8 +103,8 @@ type IncomingMessage struct {
 
 func (o IncomingMessage) DeepCopy() IncomingMessage {
 	return IncomingMessage{
-		Message: o.Message.DeepCopy(),
-		ConvID:  o.ConvID.DeepCopy(),
+		Message:                    o.Message.DeepCopy(),
+		ConvID:                     o.ConvID.DeepCopy(),
 		DisplayDesktopNotification: o.DisplayDesktopNotification,
 		DesktopNotificationSnippet: o.DesktopNotificationSnippet,
 		Conv: (func(x *InboxUIItem) *InboxUIItem {
