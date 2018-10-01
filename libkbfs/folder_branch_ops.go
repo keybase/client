@@ -6837,6 +6837,34 @@ func (fbo *folderBranchOps) TeamAbandoned(
 	fbo.locallyFinalizeTLF(ctx)
 }
 
+func (fbo *folderBranchOps) getMDForMigrationLocked(
+	ctx context.Context, lState *lockState) (
+	ImmutableRootMetadata, error) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
+	md, err := fbo.getMDForWriteOrRekeyLocked(ctx, lState, mdRekey)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
+	// Only writers may migrate TLFs.
+	session, err := fbo.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	isWriter, err := md.IsWriter(
+		ctx, fbo.config.KBPKI(), session.UID, session.VerifyingKey)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	if !isWriter {
+		return ImmutableRootMetadata{}, NewWriteAccessError(
+			md.GetTlfHandle(), session.Name, "")
+	}
+
+	return md, nil
+}
+
 // MigrateToImplicitTeam implements the KBFSOps interface for folderBranchOps.
 func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	ctx context.Context, id tlf.ID) (err error) {
@@ -6860,7 +6888,7 @@ func (fbo *folderBranchOps) MigrateToImplicitTeam(
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	md, err := fbo.getMDForWriteLockedForFilename(ctx, lState, "")
+	md, err := fbo.getMDForMigrationLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
