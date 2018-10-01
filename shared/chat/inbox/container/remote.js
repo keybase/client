@@ -24,7 +24,7 @@ const metaMapToFirstValues = memoize((metaMap, _lastState) =>
   metaMap
     .partialSort(maxShownConversations * 10, (a, b) => b.timestamp - a.timestamp)
     .filter((meta, id) => {
-      if (Constants.isValidConversationIDKey(id)) {
+      if (!Constants.isValidConversationIDKey(id)) {
         return false
       }
       if (meta.teamType === 'adhoc') {

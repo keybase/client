@@ -143,3 +143,4 @@ function getStyle(
 export default Text
 export {getStyle}
 export {Text as TextMixed}
+export {allTextTypes} from './text.shared'
