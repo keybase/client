@@ -155,7 +155,7 @@ const loadDisplayCurrencies = (state: TypedState, action: WalletsGen.LoadDisplay
 
   const loadSendAssetChoices = (state: TypedState, action: WalletsGen.LoadSendAssetChoicesPayload) =>
   RPCTypes.localGetSendAssetChoicesLocalRpcPromise({
-    from: action.payload.accountID,
+    from: action.payload.from,
     to: action.payload.to,
   }).then(res => {
     res && WalletsGen.createSendAssetChoicesReceived({sendAssetChoices: res})

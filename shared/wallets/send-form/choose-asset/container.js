@@ -21,7 +21,7 @@ const mapStateToProps = (state: TypedState) => {
       type: 'display choice',
       })),
     otherChoices: (sendAssets || []).map(a => ({
-      code: a.asset.code,
+      currencyCode: a.asset.code,
       selected: a.asset.code === selected,
       disabledExplanation: a.subtext,
       issuer: a.asset.issuer,
@@ -34,7 +34,7 @@ const mapStateToProps = (state: TypedState) => {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _refresh: (accountID: Types.AccountID, to: String) => {
+  _refresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
     dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
@@ -42,7 +42,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _onClose: () => {
     dispatch(navigateUp())
   },
-  _onChoose: (currency: String) => {
+  _onChoose: (currency: string) => {
       dispatch(WalletsGen.createSetBuildingCurrency({currency}))
       dispatch(navigateUp())
   },

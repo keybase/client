@@ -17,7 +17,7 @@ const unexpandedNumDisplayOptions = 4
 
 export type DisplayItem = {currencyCode: string, selected: boolean, symbol: string, type: 'display choice'}
 export type OtherItem = {
-  code: string,
+  currencyCode: string,
   selected: boolean,
   disabledExplanation: string,
   issuer: string,
@@ -34,7 +34,7 @@ export type Props = {
   onBack: () => void,
   onChoose: (item: DisplayItem | OtherItem) => void,
   otherChoices: Array<OtherItem>,
-  selected: String,
+  selected: string,
 }
 
 type State = {
@@ -64,7 +64,7 @@ class ChooseAsset extends React.Component<Props, State> {
         return (
           <OtherChoice
             key={item.key}
-            code={item.code}
+            currencyCode={item.currencyCode}
             disabledExplanation={item.disabledExplanation}
             issuer={item.issuer}
             onClick={() => this.props.onChoose(item)}
@@ -113,6 +113,7 @@ class ChooseAsset extends React.Component<Props, State> {
     if (this.props.displayChoices && !this.state.expanded) {
       displayChoicesData.push({
         key: 'expander',
+        currencyCode: 'expander',
         onClick: () => this.setState({expanded: true}),
         text: `+${this.props.displayChoices.length - unexpandedNumDisplayOptions} display currencies`,
         type: 'expander',
@@ -139,14 +140,14 @@ class ChooseAsset extends React.Component<Props, State> {
             {
               data: this.props.otherChoices.map(oc => ({
                 ...oc,
-                key: `${oc.code}:${oc.issuer}`,
+                key: `${oc.currencyCode}:${oc.issuer}`,
               })),
               key: 'other choices',
             },
           ]),
     ]
     return (
-      <MaybePopup onClose={this.props.onClose}>
+      <MaybePopup onClose={this.props.onBack}>
         <Box2 direction="vertical" style={styles.container}>
           <Header onBack={this.props.onBack} whiteBackground={true} />
           <Box2 direction="vertical" fullWidth={true} style={styles.listContainer}>
@@ -215,7 +216,7 @@ const DisplayChoice = (props: DisplayChoiceProps) => (
 )
 
 type OtherChoiceProps = {
-  code: string,
+  currencyCode: string,
   disabledExplanation: string,
   issuer: string,
   onClick: () => void,
@@ -246,7 +247,7 @@ const OtherChoice = (props: OtherChoiceProps) => (
               !!props.disabledExplanation && styles.grey,
             ])}
           >
-            {props.code}
+            {props.currencyCode}
           </Text>/{props.issuer}
         </Text>
         {!!props.disabledExplanation && (
