@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/keybase/kbfs/tlf"
 	"github.com/pkg/errors"
 )
 
@@ -44,8 +45,10 @@ type AutogitManager struct {
 	registeredFBs          map[libkbfs.FolderBranch]bool
 	repoNodesForWatchedIDs map[libkbfs.NodeID]*repoDirNode
 	watchedNodes           []libkbfs.Node // preventing GC on the watched nodes
-	deleteCancels          []context.CancelFunc
+	deleteCancels          map[string]context.CancelFunc
 	shutdown               bool
+
+	doRemoveSelfCheckouts sync.Once
 }
 
 // NewAutogitManager constructs a new AutogitManager instance.
@@ -57,6 +60,7 @@ func NewAutogitManager(config libkbfs.Config) *AutogitManager {
 		deferLog:               log.CloneWithAddedDepth(1),
 		registeredFBs:          make(map[libkbfs.FolderBranch]bool),
 		repoNodesForWatchedIDs: make(map[libkbfs.NodeID]*repoDirNode),
+		deleteCancels:          make(map[string]context.CancelFunc),
 	}
 }
 
@@ -70,21 +74,12 @@ func (am *AutogitManager) Shutdown() {
 	}
 }
 
-func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
-	ctx := libkbfs.CtxWithRandomIDReplayable(
-		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
-
-	h, err := am.config.KBFSOps().GetTLFHandle(ctx, node)
-	if err != nil {
-		am.log.CDebugf(ctx, "Error getting handle: %+v", err)
-		return
-	}
-
+func (am *AutogitManager) removeOldCheckoutsForHandle(
+	ctx context.Context, h *libkbfs.TlfHandle, branch libkbfs.BranchName) {
 	// Make an "unwrapped" FS, so we don't end up recursively entering
 	// the virtual autogit nodes again.
 	fs, err := libfs.NewUnwrappedFS(
-		ctx, am.config, h, node.GetFolderBranch().Branch, "", "",
-		keybase1.MDPriorityNormal)
+		ctx, am.config, h, branch, "", "", keybase1.MDPriorityNormal)
 	if err != nil {
 		am.log.CDebugf(ctx, "Error making unwrapped FS for TLF %s: %+v",
 			h.GetCanonicalPath(), err)
@@ -108,9 +103,13 @@ func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
 		if am.shutdown {
 			return nil, false
 		}
+		p := h.GetCanonicalPath()
+		if _, ok := am.deleteCancels[p]; ok {
+			return nil, false
+		}
 
 		ctx, cancel := context.WithCancel(ctx)
-		am.deleteCancels = append(am.deleteCancels, cancel)
+		am.deleteCancels[p] = cancel
 		return ctx, true
 	}()
 	if !ok {
@@ -121,8 +120,48 @@ func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
 		h.GetCanonicalPath())
 	defer func() {
 		am.log.CDebugf(ctx, "Recursive delete of autogit done: %+v", err)
+		am.registryLock.Lock()
+		defer am.registryLock.Unlock()
+		delete(am.deleteCancels, h.GetCanonicalPath())
 	}()
 	err = recursiveDelete(ctx, fs, fi)
+}
+
+func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
+
+	h, err := am.config.KBFSOps().GetTLFHandle(ctx, node)
+	if err != nil {
+		am.log.CDebugf(ctx, "Error getting handle: %+v", err)
+		return
+	}
+
+	am.removeOldCheckoutsForHandle(ctx, h, node.GetFolderBranch().Branch)
+}
+
+func (am *AutogitManager) removeSelfCheckouts() {
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
+
+	session, err := am.config.KBPKI().GetCurrentSession(ctx)
+	if err != nil {
+		am.log.CDebugf(ctx,
+			"Unable to get session; ignoring self-autogit delete: +%v", err)
+		return
+	}
+
+	h, err := libkbfs.GetHandleFromFolderNameAndType(
+		ctx, am.config.KBPKI(), am.config.MDOps(),
+		string(session.Name), tlf.Private)
+	if err != nil {
+		am.log.CDebugf(ctx,
+			"Unable to get private handle; ignoring self-autogit delete: +%v",
+			err)
+		return
+	}
+
+	am.removeOldCheckoutsForHandle(ctx, h, libkbfs.MasterBranch)
 }
 
 func (am *AutogitManager) registerRepoNode(
@@ -133,6 +172,7 @@ func (am *AutogitManager) registerRepoNode(
 	fb := nodeToWatch.GetFolderBranch()
 	if !am.registeredFBs[fb] {
 		go am.removeOldCheckouts(rdn)
+		am.doRemoveSelfCheckouts.Do(func() { go am.removeSelfCheckouts() })
 		am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 		err := am.config.Notifier().RegisterForChanges(
 			[]libkbfs.FolderBranch{fb}, am)
