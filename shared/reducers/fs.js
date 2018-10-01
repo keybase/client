@@ -175,7 +175,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.updateIn(
         ['pathItems', action.payload.path],
         pathItem =>
-          pathItem && pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
+          pathItem
+            ? pathItem.type === 'file' ? pathItem.set('mimeType', action.payload.mimeType) : pathItem
+            : Constants.makeFile({mimeType: action.payload.mimeType, name: Types.getPathName(action.payload.path)}),
       )
     case FsGen.newFolderRow:
       const {parentPath} = action.payload

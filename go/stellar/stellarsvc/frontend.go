@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 )
 
 const WorthCurrencyErrorCode = "ERR"
@@ -121,6 +120,8 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		return nil, err
 	}
 
+	mctx := libkb.NewMetaContext(ctx, s.G())
+
 	details, err := s.remoter.Details(ctx, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
@@ -138,15 +139,11 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		}
 	}
 
-	displayCurrency, err := remote.GetAccountDisplayCurrency(ctx, s.G(), arg.AccountID)
+	displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, arg.AccountID)
 	if err != nil {
 		return nil, err
 	}
 	s.G().Log.CDebugf(ctx, "Display currency for account %q is %q", arg.AccountID, displayCurrency)
-	if displayCurrency == "" {
-		displayCurrency = defaultOutsideCurrency
-		s.G().Log.CDebugf(ctx, "Using default display currency %s for account %s", displayCurrency, arg.AccountID)
-	}
 	rate, rateErr := s.remoter.ExchangeRate(ctx, displayCurrency)
 	if rateErr != nil {
 		s.G().Log.CDebugf(ctx, "exchange rate error: %s", rateErr)
@@ -330,10 +327,14 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 	if err != nil {
 		return page, err
 	}
-	m := libkb.NewMetaContext(ctx, s.G())
+
+	mctx := libkb.NewMetaContext(ctx, s.G())
+
+	exchRate := s.accountExchangeRate(mctx, arg.AccountID)
+
 	page.Payments = make([]stellar1.PaymentOrErrorLocal, len(srvPayments.Payments))
 	for i, p := range srvPayments.Payments {
-		page.Payments[i].Payment, err = stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
+		page.Payments[i].Payment, err = stellar.TransformPaymentSummaryAccount(mctx, p, oc, arg.AccountID, exchRate)
 		if err != nil {
 			s := err.Error()
 			page.Payments[i].Err = &s
@@ -366,10 +367,13 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 		return nil, err
 	}
 
-	m := libkb.NewMetaContext(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G())
+
+	exchRate := s.accountExchangeRate(mctx, arg.AccountID)
+
 	payments = make([]stellar1.PaymentOrErrorLocal, len(pending))
 	for i, p := range pending {
-		payment, err := stellar.TransformPaymentSummary(m, arg.AccountID, p, oc)
+		payment, err := stellar.TransformPaymentSummaryAccount(mctx, p, oc, arg.AccountID, exchRate)
 		if err != nil {
 			s := err.Error()
 			payments[i].Err = &s
@@ -398,42 +402,46 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 		return payment, err
 	}
 
-	// AccountID argument is optional. We use "" internally, but for
-	// API consumers we expose nullable type.
-	var acctID stellar1.AccountID
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	var summary *stellar1.PaymentLocal
+
+	// AccountID argument is optional.
 	if arg.AccountID != nil {
-		acctID = *arg.AccountID
+		exchRate := s.accountExchangeRate(mctx, *arg.AccountID)
+		summary, err = stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, *arg.AccountID, exchRate)
+	} else {
+		summary, err = stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	}
-	m := libkb.NewMetaContext(ctx, s.G())
-	summary, err := stellar.TransformPaymentSummary(m, acctID, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
 
 	payment = stellar1.PaymentDetailsLocal{
-		Id:                summary.Id,
-		TxID:              summary.Id.TxID,
-		Time:              summary.Time,
-		StatusSimplified:  summary.StatusSimplified,
-		StatusDescription: summary.StatusDescription,
-		StatusDetail:      summary.StatusDetail,
-		AmountDescription: summary.AmountDescription,
-		Delta:             summary.Delta,
-		Worth:             summary.Worth,
-		WorthCurrency:     summary.WorthCurrency,
-		FromType:          summary.FromType,
-		ToType:            summary.ToType,
-		FromAccountID:     summary.FromAccountID,
-		FromAccountName:   summary.FromAccountName,
-		FromUsername:      summary.FromUsername,
-		ToAccountID:       summary.ToAccountID,
-		ToAccountName:     summary.ToAccountName,
-		ToUsername:        summary.ToUsername,
-		ToAssertion:       summary.ToAssertion,
-		Note:              summary.Note,
-		NoteErr:           summary.NoteErr,
-		PublicNote:        details.Memo,
-		PublicNoteType:    details.MemoType,
+		Id:                   summary.Id,
+		TxID:                 summary.Id.TxID,
+		Time:                 summary.Time,
+		StatusSimplified:     summary.StatusSimplified,
+		StatusDescription:    summary.StatusDescription,
+		StatusDetail:         summary.StatusDetail,
+		AmountDescription:    summary.AmountDescription,
+		Delta:                summary.Delta,
+		Worth:                summary.Worth,
+		WorthCurrency:        summary.WorthCurrency,
+		FromType:             summary.FromType,
+		ToType:               summary.ToType,
+		FromAccountID:        summary.FromAccountID,
+		FromAccountName:      summary.FromAccountName,
+		FromUsername:         summary.FromUsername,
+		ToAccountID:          summary.ToAccountID,
+		ToAccountName:        summary.ToAccountName,
+		ToUsername:           summary.ToUsername,
+		ToAssertion:          summary.ToAssertion,
+		Note:                 summary.Note,
+		NoteErr:              summary.NoteErr,
+		PublicNote:           details.Memo,
+		PublicNoteType:       details.MemoType,
+		CurrentWorth:         summary.CurrentWorth,
+		CurrentWorthCurrency: summary.CurrentWorthCurrency,
 	}
 
 	return payment, nil
@@ -995,7 +1003,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		if arg.Amount == "" {
 			// No amount given. Still convert for 0.
 		} else {
-			amount, err := stellarnet.ParseDecimalStrict(arg.Amount)
+			amount, err := stellarnet.ParseAmount(arg.Amount)
 			if err != nil || amount.Sign() < 0 {
 				// Invalid or negative amount.
 				res.amountErrMsg = "Invalid amount."
@@ -1044,7 +1052,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		// Amount is of asset.
 		useAmount := "0"
 		if arg.Amount != "" {
-			amountInt64, err := stellaramount.ParseInt64(arg.Amount)
+			amountInt64, err := stellarnet.ParseStellarAmount(arg.Amount)
 			if err != nil || amountInt64 <= 0 {
 				res.amountErrMsg = "Invalid amount."
 				return res
@@ -1294,11 +1302,25 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 	return s.remoter.SetAccountMobileOnly(ctx, arg.AccountID)
 }
 
+// accountExchangeRate gets the exchange rate for the logged in user's currency
+// preference for accountID.  If any errors occur, it logs them and returns a
+// nil result.
+func (s *Server) accountExchangeRate(mctx libkb.MetaContext, accountID stellar1.AccountID) *stellar1.OutsideExchangeRate {
+	exchRate, err := stellar.AccountExchangeRate(mctx, s.remoter, accountID)
+	if err != nil {
+		// this shouldn't be fatal, just a temporary inconvenience
+		mctx.CInfof("error getting exchange rate for %s: %s", accountID, err)
+		return nil
+	}
+
+	return &exchRate
+}
+
 // Subtract a 100 stroop fee from the available balance.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.
 func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
-	available, err := stellaramount.ParseInt64(availableStr)
+	available, err := stellarnet.ParseStellarAmount(availableStr)
 	if err != nil {
 		mctx.CDebugf("error parsing available balance: %v", err)
 		return availableStr
@@ -1307,5 +1329,5 @@ func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
 	if available < 0 {
 		available = 0
 	}
-	return stellaramount.StringFromInt64(available)
+	return stellarnet.StringFromStellarAmount(available)
 }

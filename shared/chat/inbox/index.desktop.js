@@ -56,6 +56,9 @@ class Inbox extends PureComponent<Props, State> {
       return 56
     }
     const row = this.props.rows[index]
+    if (!row) {
+      return 0
+    }
     switch (row.type) {
       case 'small':
         return 56
