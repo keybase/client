@@ -6,8 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -1482,10 +1483,29 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 	}
 	filename := arg.Filename
 	if filename == "" {
-		// No filename means we will create on in the OS temp dir
-		if darg.Sink, err = ioutil.TempFile(os.TempDir(), "df"); err != nil {
+		// No filename means we will create one in the OS temp dir
+		// Get the sent file name first
+		unboxed, err := h.G().ChatHelper.GetMessages(ctx, uid, arg.ConversationID,
+			[]chat1.MessageID{arg.MessageID}, true)
+		if err != nil {
 			return res, err
 		}
+		if !unboxed[0].IsValid() {
+			return res, errors.New("unable to download attachment from invalid message")
+		}
+		body := unboxed[0].Valid().MessageBody
+		typ, err := body.MessageType()
+		if err != nil || typ != chat1.MessageType_ATTACHMENT {
+			return res, fmt.Errorf("invalid message type for download: %v", typ)
+		}
+		basepath := body.Attachment().Object.Filename
+		basename := path.Base(basepath)
+		f, err := os.OpenFile(filepath.Join(os.TempDir(), basename), os.O_RDWR, 0644)
+		if err != nil {
+			return res, err
+		}
+		filename = f.Name()
+		darg.Sink = f
 	} else {
 		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
 			return res, err

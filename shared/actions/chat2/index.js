@@ -1670,7 +1670,7 @@ function* downloadAttachment(fileName: string, conversationIDKey: any, message: 
       }
     }
 
-    yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
+    const rpcRes = yield RPCChatTypes.localDownloadFileAttachmentLocalRpcSaga({
       incomingCallMap: {
         'chat.1.chatUi.chatAttachmentDownloadDone': () => {},
         'chat.1.chatUi.chatAttachmentDownloadProgress': onDownloadProgress,
@@ -2076,20 +2076,7 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
   if (!message || message.type !== 'attachment') {
     throw new Error('Invalid share message')
   }
-  if (!message.fileURLCached) {
-    yield Saga.put(
-      Chat2Gen.createAttachmentDownload({
-        conversationIDKey: message.conversationIDKey,
-        ordinal: message.ordinal,
-      })
-    )
-  }
-  yield Saga.put(
-    Chat2Gen.createAttachmentMobileSave({
-      conversationIDKey: message.conversationIDKey,
-      ordinal: message.ordinal,
-    })
-  )
+  yield Saga.call(downloadAttachment, '', conversationIDKey, message, message.ordinal)
   try {
     logger.info('Trying to save chat attachment to camera roll')
     yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
