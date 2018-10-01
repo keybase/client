@@ -155,7 +155,7 @@ func testRevokePaperDevice(t *testing.T, upgradePerUserKey bool) {
 		nextSeqno = 5
 		postedSeqno = 3
 	}
-	nextExpected, err := user.GetExpectedNextHighSkip()
+	nextExpected, err := user.GetExpectedNextHighSkip(libkb.NewMetaContextForTest(tc))
 	require.NoError(t, err)
 	require.Equal(t, nextExpected.Seqno, keybase1.Seqno(nextSeqno))
 	assertPostedHighSkipSeqno(t, tc, user.GetName(), postedSeqno)
