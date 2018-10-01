@@ -2084,6 +2084,12 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
       })
     )
   }
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSave({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
   try {
     logger.info('Trying to save chat attachment to camera roll')
     yield Saga.call(saveAttachmentToCameraRoll, message.fileURL, message.fileType)
@@ -2091,6 +2097,12 @@ function* mobileMessageAttachmentSave(action: Chat2Gen.MessageAttachmentNativeSa
     logger.error('Failed to save attachment: ' + err)
     throw new Error('Failed to save attachment: ' + err)
   }
+  yield Saga.put(
+    Chat2Gen.createAttachmentMobileSaved({
+      conversationIDKey: message.conversationIDKey,
+      ordinal: message.ordinal,
+    })
+  )
 }
 
 const joinConversation = (action: Chat2Gen.JoinConversationPayload) =>

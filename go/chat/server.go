@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"regexp"
 	"sort"
@@ -1461,18 +1462,8 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
-type discardWriterCloser struct{}
-
-func (discardWriterCloser) Write(b []byte) (int, error) {
-	return len(b), nil
-}
-
-func (discardWriterCloser) Close() error {
-	return nil
-}
-
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
-func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadAttachmentLocalRes, err error) {
+func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "DownloadFileAttachmentLocal")()
@@ -1489,19 +1480,26 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		Preview:          arg.Preview,
 		IdentifyBehavior: arg.IdentifyBehavior,
 	}
-	var sink io.WriteCloser
-	if h.G().GetAppType() == libkb.MobileAppType {
-		// We never want to actually download anything on mobile, just get it in our cache
-		sink = discardWriterCloser{}
+	filename := arg.Filename
+	if filename == "" {
+		// No filename means we will create on in the OS temp dir
+		if darg.Sink, err = ioutil.TempFile(os.TempDir(), "df"); err != nil {
+			return res, err
+		}
 	} else {
-		sink, err = os.OpenFile(arg.Filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-		if err != nil {
-			return chat1.DownloadAttachmentLocalRes{}, err
+		if darg.Sink, err = os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600); err != nil {
+			return res, err
 		}
 	}
-	darg.Sink = sink
 
-	return h.downloadAttachmentLocal(ctx, uid, darg)
+	ires, err := h.downloadAttachmentLocal(ctx, uid, darg)
+	if err != nil {
+		return res, err
+	}
+	return chat1.DownloadFileAttachmentLocalRes{
+		Filename:         filename,
+		IdentifyFailures: ires.IdentifyFailures,
+	}, nil
 }
 
 type downloadAttachmentArg struct {
