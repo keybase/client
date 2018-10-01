@@ -68,7 +68,9 @@ async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): P
     }
   }
   try {
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
     await CameraRoll.saveToCameraRoll(fileURL, saveType)
+    logger.info(logPrefix + 'Success')
   } catch (e) {
     // This can fail if the user backgrounds too quickly, so throw up a local notification
     // just in case to get their attention.
