@@ -69,7 +69,7 @@ func (c *CmdSimpleFSWrite) Run() error {
 
 	// if we're appending, we'll need the size
 	if c.flags&keybase1.OpenFlags_APPEND != 0 {
-		e, err := cli.SimpleFSStat(context.TODO(), c.path)
+		e, err := cli.SimpleFSStat(context.TODO(), keybase1.SimpleFSStatArg{Path: c.path})
 		if err != nil {
 			return err
 		}

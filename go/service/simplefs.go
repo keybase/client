@@ -162,7 +162,7 @@ func (s *SimpleFSHandler) SimpleFSRemove(ctx context.Context, arg keybase1.Simpl
 }
 
 // SimpleFSStat - Get info about file
-func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.Path) (keybase1.Dirent, error) {
+func (s *SimpleFSHandler) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (keybase1.Dirent, error) {
 	cli, err := s.client()
 	if err != nil {
 		return keybase1.Dirent{}, err
