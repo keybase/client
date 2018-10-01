@@ -1615,6 +1615,17 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerationsWithKBFS"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },
@@ -2862,6 +2873,10 @@
         {
           "name": "refreshers",
           "type": "TeamRefreshers"
+        },
+        {
+          "name": "includeKBFSKeys",
+          "type": "boolean"
         }
       ],
       "response": "TeamPlusApplicationKeys",
