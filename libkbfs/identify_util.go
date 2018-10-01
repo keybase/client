@@ -111,7 +111,8 @@ func (e ExtendedIdentifyAlreadyExists) Error() string {
 	return "extendedIdentify already exists"
 }
 
-func makeExtendedIdentify(ctx context.Context,
+// MakeExtendedIdentify populates a context with an extendedIdentify directive.
+func MakeExtendedIdentify(ctx context.Context,
 	behavior keybase1.TLFIdentifyBehavior) (context.Context, error) {
 	if _, ok := ctx.Value(ctxExtendedIdentifyKey).(*extendedIdentify); ok {
 		return nil, ExtendedIdentifyAlreadyExists{}
