@@ -649,7 +649,7 @@ func readRemoteFile(ctx context.Context, t *testing.T, sfs *SimpleFS, path keyba
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
 	require.NoError(t, err)
 
-	de, err := sfs.SimpleFSStat(ctx, path)
+	de, err := sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{Path: path})
 	require.NoError(t, err)
 	t.Logf("Stat remote %q %d bytes", path, de.Size)
 
