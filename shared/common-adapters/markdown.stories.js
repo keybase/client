@@ -32,16 +32,16 @@ Ignore:
   mailto:blah@blah.com
   nytimes.json
 Include:
-  http://keybase.io
-  http://keybase.io/
-  *http://keybase.io*
-  *http://keybase.io/~test*
-  _http://keybase.io_
-  ~http://keybase.io~
-  \`http://keybase.io\`
-  (https://keybase.io)
-  https://keybase.io
-  HTTP://cnn.com
+  http://abc.io
+  http://cbs.io/
+  *http://cnn.io*
+  *http://fox.io/~test*
+  _http://dog.io_
+  ~http://cat.io~
+  \`http://orange.io\`
+  (https://yellow.io)
+  https://green.io
+  HTTP://blue.com
   http://twitter.com
   http://t.co
   t.co
