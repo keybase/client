@@ -211,7 +211,6 @@
 		},
 		{
 			"checksumSHA1": "AzpolYksuMdnqRhFpzPm1bEztJ0=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-codec/codec",
 			"path": "github.com/keybase/go-codec/codec",
 			"revision": "1643975621235e11516b5722dd9475e342465adf",
 			"revisionTime": "2018-09-28T23:00:36Z"
@@ -426,10 +425,10 @@
 			"revisionTime": "2018-03-22T21:11:54Z"
 		},
 		{
-			"checksumSHA1": "zdyg2NMqEzg9lxg9PHWChXkc1FY=",
+			"checksumSHA1": "bg8RcFO37DEoancRfT03NALZuH4=",
 			"path": "github.com/keybase/stellarnet",
-			"revision": "66f411bee2255cd32002dbffa8ab9fd0a1afb009",
-			"revisionTime": "2018-06-19T21:14:21Z"
+			"revision": "7deb0aff7cbda790e464531614106b133e5ba04a",
+			"revisionTime": "2018-10-01T17:46:03Z"
 		},
 		{
 			"path": "github.com/kr/pty",

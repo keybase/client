@@ -2,7 +2,6 @@ package stellarnet
 
 import (
 	"fmt"
-	"math"
 	"math/big"
 	"regexp"
 
@@ -14,7 +13,7 @@ import (
 // But not "." or "".
 var decimalStrictRE = regexp.MustCompile(`^-?((\d+\.?\d*)|(\d*\.?\d+))$`)
 
-// parseDecimalStrict parses a decimal number into a big rational.
+// ParseDecimalStrict parses a decimal number into a big rational.
 // Used instead of big.Rat.SetString because the latter accepts
 // additional formats like "1/2" and "1e10".
 func ParseDecimalStrict(s string) (*big.Rat, error) {
@@ -92,7 +91,8 @@ func CompareStellarAmounts(amount1, amount2 string) (int, error) {
 	}
 }
 
-// Return whether two amounts are within a factor of `maxFactor` of each other.
+// WithinFactorStellarAmounts returns whether two amounts are within a factor of
+// `maxFactor` of each other.
 // For example maxFactor="0.01" returns whether they are within 1% of each other.
 // <- (abs((a - b) / a) < fac) || (abs((a - b) / b < fac)
 func WithinFactorStellarAmounts(amount1, amount2, maxFactor string) (bool, error) {
@@ -127,14 +127,6 @@ func WithinFactorStellarAmounts(amount1, amount2, maxFactor string) (bool, error
 	left.Abs(left)
 	right.Abs(right)
 	return (left.Cmp(fac) < 1) || (right.Cmp(fac) < 1), nil
-}
-
-func percentageAmountChange(a, b int64) float64 {
-	if a == 0 && b == 0 {
-		return 0.0
-	}
-	mid := 0.5 * float64(a+b)
-	return math.Abs(100.0 * float64(a-b) / mid)
 }
 
 func parseExchangeRate(rate string) (*big.Rat, error) {
