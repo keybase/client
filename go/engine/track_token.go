@@ -226,7 +226,6 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 
 	sigVersion := libkb.SigVersion(*e.arg.Options.SigVersion)
 	sig, sigID, linkID, err := libkb.MakeSig(
-		m,
 		signingKey,
 		libkb.LinkTypeTrack,
 		e.trackStatementBytes,
@@ -265,7 +264,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 		return err
 	}
 
-	me.SigChainBump(linkID, sigID, false)
+	me.SigChainBump(linkID, sigID)
 
 	return err
 }
