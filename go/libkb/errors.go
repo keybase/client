@@ -1385,26 +1385,6 @@ func NewChainLinkWrongSeqnoError(s string) error {
 
 //=============================================================================
 
-type ChainLinkHighSkipHashMismatchError struct {
-	Msg string
-}
-
-func (e ChainLinkHighSkipHashMismatchError) Error() string {
-	return fmt.Sprintf("Chain link HighSkipHash mismatch error: %s", e.Msg)
-}
-
-//=============================================================================
-
-type ChainLinkWrongHighSkipSeqnoError struct {
-	Msg string
-}
-
-func (e ChainLinkWrongHighSkipSeqnoError) Error() string {
-	return fmt.Sprintf("Chain link wrong HighSkipSeqno error: %s", e.Msg)
-}
-
-//=============================================================================
-
 type CtimeMismatchError struct {
 	Msg string
 }
@@ -2504,17 +2484,3 @@ func (f FeatureFlagError) Error() string {
 }
 
 var _ error = FeatureFlagError{}
-
-//=============================================================================
-
-type UserReverifyNeededError struct {
-	msg string
-}
-
-func NewUserReverifyNeededError(s string) error {
-	return UserReverifyNeededError{s}
-}
-
-func (e UserReverifyNeededError) Error() string {
-	return fmt.Sprintf("User green link error: %s", e.msg)
-}
