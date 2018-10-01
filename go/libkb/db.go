@@ -196,6 +196,7 @@ const (
 	DBChatActive               = 0xea
 	DBUserEKBox                = 0xeb
 	DBTeamEKBox                = 0xec
+	DBChatIndex                = 0xed
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2
