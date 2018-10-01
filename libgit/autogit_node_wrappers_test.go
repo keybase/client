@@ -149,6 +149,15 @@ func TestAutogitRepoNode(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "hello3", string(data3))
 
+	t.Logf("Use colons instead of slashes in the branch name")
+	f4, err := rootFS.Open(
+		".kbfs_autogit/test/.kbfs_autogit_branch_dir:test-branch/foo3")
+	require.NoError(t, err)
+	defer f4.Close()
+	data4, err := ioutil.ReadAll(f4)
+	require.NoError(t, err)
+	require.Equal(t, "hello3", string(data4))
+
 	err = dotgitFS.SyncAll()
 	require.NoError(t, err)
 }

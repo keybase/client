@@ -53,6 +53,9 @@ const (
 	// AutogitBranchPrefix is a prefix of a subdirectory name
 	// containing one element of a git reference name.
 	AutogitBranchPrefix = ".kbfs_autogit_branch_"
+	// branchSlash can substitute for slashes in branch names,
+	// following `AutogitBranchPrefix`.
+	branchSlash = ":"
 )
 
 type repoFileNode struct {
@@ -144,8 +147,9 @@ func (rdn repoDirNode) WrapChild(child libkbfs.Node) libkbfs.Node {
 			am:     rdn.am,
 			repoFS: rdn.repoFS,
 			subdir: "",
-			branch: plumbing.ReferenceName(
-				path.Join(string(rdn.branch), branchName)),
+			branch: plumbing.ReferenceName(path.Join(
+				string(rdn.branch),
+				strings.Replace(branchName, branchSlash, "/", -1))),
 		}
 	}
 
