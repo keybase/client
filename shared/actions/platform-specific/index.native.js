@@ -22,6 +22,7 @@ import {
 } from 'react-native'
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'rn-fetch-blob'
+import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
 
@@ -49,7 +50,8 @@ function saveAttachmentDialog(filePath: string): Promise<NextURI> {
   return CameraRoll.saveToCameraRoll(goodPath)
 }
 
-async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  const fileURL = 'file://' + filePath
   const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
   const logPrefix = '[saveAttachmentToCameraRoll] '
   if (!isIOS) {
@@ -65,7 +67,19 @@ async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Pr
       throw new Error('Unable to acquire storage permissions')
     }
   }
-  await CameraRoll.saveToCameraRoll(fileURL, saveType)
+  try {
+    await CameraRoll.saveToCameraRoll(fileURL, saveType)
+  } catch (e) {
+    // This can fail if the user backgrounds too quickly, so throw up a local notification
+    // just in case to get their attention.
+    PushNotifications.localNotification({
+      message: `Failed to save ${saveType} to camera roll`,
+    })
+    logger.debug(logPrefix + 'failed to save: ' + e)
+    throw e
+  } finally {
+    RNFetchBlob.fs.unlink(filePath)
+  }
 }
 
 // Downloads a file, shows the shareactionsheet, and deletes the file afterwards

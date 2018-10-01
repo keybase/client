@@ -57,7 +57,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
             ? 'waiting...'
             : ''
   const buttonType = message.showPlayButton ? 'play' : null
-  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress =
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
 
   return {
     arrowColor,
