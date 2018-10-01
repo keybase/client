@@ -189,11 +189,12 @@ function messageCreateComponent(type, key, children, options) {
 }
 
 const rules = {
-  // ...SimpleMarkdown.defaultRules,
   escape: {
+    // handle escaped chars
     ...SimpleMarkdown.defaultRules.escape,
   },
   fence: {
+    // aka the ``` code blocks
     ...SimpleMarkdown.defaultRules.fence,
     order: 0,
     // original:
@@ -208,13 +209,6 @@ const rules = {
       }
     },
   },
-  // newline: {
-  // ...SimpleMarkdown.defaultRules.newline,
-  // match: SimpleMarkdown.blockRegex(/^\n/),
-  // react: function(node, output, state) {
-  // return <Box />
-  // },
-  // },
   inlineCode: {
     ...SimpleMarkdown.defaultRules.inlineCode,
     // original:
@@ -286,6 +280,9 @@ const rules = {
   // // },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
+    // original
+    // match: inlineRegex(/^\*\*((?:\\[\s\S]|[^\\])+?)\*\*(?!\*)/),
+    // ours: single stars
     match: SimpleMarkdown.inlineRegex(/^\*((?:\\[\s\S]|[^\\])+?)\*(?!\*)/),
     react: (node, output, state) => {
       return (
@@ -297,6 +294,8 @@ const rules = {
   },
   em: {
     ...SimpleMarkdown.defaultRules.em,
+    // original is pretty long so not inlining it here
+    // ours: wrapped in _'s
     match: SimpleMarkdown.inlineRegex(/^_((?:\\[\s\S]|[^\\])+?)_(?!_)/),
     react: (node, output, state) => {
       return (
@@ -308,6 +307,9 @@ const rules = {
   },
   del: {
     ...SimpleMarkdown.defaultRules.del,
+    // original:
+    // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
+    // ours: single tidle
     match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
     react: (node, output, state) => {
       return (
@@ -329,7 +331,6 @@ const rules = {
   },
   text: {
     ...SimpleMarkdown.defaultRules.text,
-    // match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n| {2,}\n|\w+:\S|$)/),
   },
 }
 
