@@ -108,15 +108,9 @@ func (e ErrNotADirectory) Error() string {
 	return fmt.Sprintf("%s is not a directory", e.Name)
 }
 
-// NewFS returns a new FS instance, chroot'd to the given TLF and
-// subdir within that TLF.  `subdir` must exist, and point to a
-// directory, before this function is called.  `uniqID` needs to
-// uniquely identify this instance among all users of this TLF
-// globally; for example, a device ID combined with a local tempfile
-// name is recommended.
-func NewFS(ctx context.Context, config libkbfs.Config,
+func newFS(ctx context.Context, config libkbfs.Config,
 	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
-	uniqID string, priority keybase1.MDPriority) (*FS, error) {
+	uniqID string, priority keybase1.MDPriority, unwrap bool) (*FS, error) {
 	rootNodeGetter := config.KBFSOps().GetOrCreateRootNode
 	if branch != libkbfs.MasterBranch {
 		rootNodeGetter = config.KBFSOps().GetRootNode
@@ -125,6 +119,9 @@ func NewFS(ctx context.Context, config libkbfs.Config,
 	rootNode, ei, err := rootNodeGetter(ctx, tlfHandle, branch)
 	if err != nil {
 		return nil, err
+	}
+	if unwrap {
+		rootNode = rootNode.Unwrap()
 	}
 	if subdir != "" {
 		subdir = path.Clean(subdir)
@@ -196,6 +193,31 @@ outer:
 			events:        make(map[chan<- FSEvent]bool),
 		},
 	}, nil
+}
+
+// NewUnwrappedFS returns a new FS instance, chroot'd to the given TLF
+// and subdir within that TLF, but all the nodes are unwrapped.
+// `subdir` must exist, and point to a directory, before this function
+// is called.  `uniqID` needs to uniquely identify this instance among
+// all users of this TLF globally; for example, a device ID combined
+// with a local tempfile name is recommended.
+func NewUnwrappedFS(ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	uniqID string, priority keybase1.MDPriority) (*FS, error) {
+	return newFS(ctx, config, tlfHandle, branch, subdir, uniqID, priority, true)
+}
+
+// NewFS returns a new FS instance, chroot'd to the given TLF and
+// subdir within that TLF.  `subdir` must exist, and point to a
+// directory, before this function is called.  `uniqID` needs to
+// uniquely identify this instance among all users of this TLF
+// globally; for example, a device ID combined with a local tempfile
+// name is recommended.
+func NewFS(ctx context.Context, config libkbfs.Config,
+	tlfHandle *libkbfs.TlfHandle, branch libkbfs.BranchName, subdir string,
+	uniqID string, priority keybase1.MDPriority) (*FS, error) {
+	return newFS(
+		ctx, config, tlfHandle, branch, subdir, uniqID, priority, false)
 }
 
 // lookupOrCreateEntryNoFollow looks up the entry for a file in a
