@@ -1385,14 +1385,20 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 }
 
 // SimpleFSStat - Get info about file
-func (k *SimpleFS) SimpleFSStat(ctx context.Context, path keybase1.Path) (de keybase1.Dirent, err error) {
-	ctx, err = k.startSyncOp(ctx, "Stat", path)
+func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (de keybase1.Dirent, err error) {
+	if arg.IdentifyBehavior != nil {
+		ctx, err = libkbfs.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
+		if err != nil {
+			return keybase1.Dirent{}, err
+		}
+	}
+	ctx, err = k.startSyncOp(ctx, "Stat", arg.Path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}
 	defer func() { k.doneSyncOp(ctx, err) }()
 
-	fs, finalElem, err := k.getFS(ctx, path)
+	fs, finalElem, err := k.getFS(ctx, arg.Path)
 	if err != nil {
 		return keybase1.Dirent{}, err
 	}

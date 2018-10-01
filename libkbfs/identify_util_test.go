@@ -161,13 +161,13 @@ func TestIdentifyAlternativeBehaviors(t *testing.T) {
 		},
 	}
 
-	ctx, err := makeExtendedIdentify(context.Background(),
+	ctx, err := MakeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_CLI)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), tlf.Private)
 	require.Error(t, err)
 
-	ctx, err = makeExtendedIdentify(context.Background(),
+	ctx, err = MakeExtendedIdentify(context.Background(),
 		keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
 	err = identifyUsersForTLF(ctx, nug, ti, nug.uidMap(), tlf.Private)
