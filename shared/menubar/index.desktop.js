@@ -6,7 +6,7 @@ import * as Tabs from '../constants/tabs'
 import * as Styles from '../styles'
 import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
-import {isDarwin} from '../constants/platform'
+import {isDarwin, isWindows} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {throttle} from 'lodash-es'
 import Upload from '../fs/footer/upload'
@@ -125,6 +125,8 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _menuItems(countMap: Object) {
+    const fileUIName = isDarwin ? 'finder' : isWindows ? 'explorer' : 'file explorer'
+
     return [
       ...(Flags.walletsEnabled
         ? [
@@ -152,7 +154,7 @@ class MenubarRender extends React.Component<Props, State> {
       },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: 'Open folders in finder', onClick: () => this.props.showInFinder('/')},
+      {title: `Open folders in ${fileUIName}`, onClick: () => this.props.showInFinder('/')},
       'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
