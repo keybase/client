@@ -197,15 +197,15 @@ func (rn *rootNode) ShouldCreateMissedLookup(ctx context.Context, name string) (
 		// Make the FS once, in a place where we know the NodeCache
 		// won't be locked (to avoid deadlock).
 
-		// Wrap this child so that it will show all the
-		// repos. TODO(KBFS-3429): fill in context.
-		ctx := context.TODO()
 		h, err := rn.am.config.KBFSOps().GetTLFHandle(ctx, rn)
 		if err != nil {
 			rn.am.log.CDebugf(nil, "Error getting handle: %+v", err)
 			return rn.Node.ShouldCreateMissedLookup(ctx, name)
 		}
 
+		// Wrap this child so that it will show all the
+		// repos. TODO(KBFS-3429): fill in context.
+		ctx := context.TODO()
 		fs, err := libfs.NewFS(
 			ctx, rn.am.config, h, rn.GetFolderBranch().Branch, kbfsRepoDir, "",
 			keybase1.MDPriorityNormal)
