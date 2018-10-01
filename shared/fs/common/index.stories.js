@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import * as Constants from '../../constants/fs'
+import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
@@ -20,18 +21,25 @@ const pathItemActionPopupProps = (path: Types.Path) => {
     name: Types.getPathNameFromElems(pathElements),
     path,
     pathElements,
-    menuItems: [
-      {
-        title: 'menu item',
-        onClick: Sb.action('onClick'),
-      },
-    ],
+    ...(isMobile
+      ? {
+          saveMedia: Sb.action('saveMedia'),
+          shareNative: Sb.action('shareNative'),
+        }
+      : {}),
+    showInSystemFileManager: Sb.action('showInSystemFileManager'),
+    ignoreFolder: Sb.action('ignoreFolder'),
+    download: Sb.action('download'),
+    copyPath: Sb.action('copyPath'),
     onHidden: Sb.action('onHidden'),
   }
 }
 
 export const commonProvider = {
   ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
+  ConnectedDownloadTrackingHoc: () => ({
+    downloading: false,
+  }),
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
