@@ -411,8 +411,8 @@ func (ncs *nodeCacheStandard) AllNodeChildren(n Node) (nodes []Node) {
 		}
 	}()
 
-	ncs.lock.Lock()
-	defer ncs.lock.Unlock()
+	ncs.lock.RLock()
+	defer ncs.lock.RUnlock()
 	rootWrappers = ncs.rootWrappers
 	nodes = make([]Node, 0, len(ncs.nodes))
 	entryIDs := make(map[NodeID]bool)
