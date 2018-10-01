@@ -90,6 +90,12 @@ func castNoSuchNameError(err error, repoName string) error {
 
 func recursiveDelete(
 	ctx context.Context, fs *libfs.FS, fi os.FileInfo) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
 	if !fi.IsDir() {
 		// Delete regular files and symlinks directly.
 		return fs.Remove(fi.Name())

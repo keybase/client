@@ -6,10 +6,14 @@ package libgit
 
 import (
 	"context"
+	"os"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"github.com/pkg/errors"
 )
 
 type getNewConfigFn func(context.Context) (
@@ -40,6 +44,8 @@ type AutogitManager struct {
 	registeredFBs          map[libkbfs.FolderBranch]bool
 	repoNodesForWatchedIDs map[libkbfs.NodeID]*repoDirNode
 	watchedNodes           []libkbfs.Node // preventing GC on the watched nodes
+	deleteCancels          []context.CancelFunc
+	shutdown               bool
 }
 
 // NewAutogitManager constructs a new AutogitManager instance.
@@ -56,7 +62,67 @@ func NewAutogitManager(config libkbfs.Config) *AutogitManager {
 
 // Shutdown shuts down this manager.
 func (am *AutogitManager) Shutdown() {
-	// No-op.
+	am.registryLock.Lock()
+	defer am.registryLock.Unlock()
+	am.shutdown = true
+	for _, cancel := range am.deleteCancels {
+		cancel()
+	}
+}
+
+func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
+	ctx := libkbfs.CtxWithRandomIDReplayable(
+		context.Background(), ctxAutogitIDKey, ctxAutogitOpID, am.log)
+
+	h, err := am.config.KBFSOps().GetTLFHandle(ctx, node)
+	if err != nil {
+		am.log.CDebugf(ctx, "Error getting handle: %+v", err)
+		return
+	}
+
+	// Make an "unwrapped" FS, so we don't end up recursively entering
+	// the virtual autogit nodes again.
+	fs, err := libfs.NewUnwrappedFS(
+		ctx, am.config, h, node.GetFolderBranch().Branch, "", "",
+		keybase1.MDPriorityNormal)
+	if err != nil {
+		am.log.CDebugf(ctx, "Error making unwrapped FS for TLF %s: %+v",
+			h.GetCanonicalPath(), err)
+		return
+	}
+
+	fi, err := fs.Stat(AutogitRoot)
+	if os.IsNotExist(errors.Cause(err)) {
+		// No autogit repos to remove.
+		return
+	} else if err != nil {
+		am.log.CDebugf(ctx,
+			"Error checking autogit in unwrapped FS for TLF %s: %+v",
+			h.GetCanonicalPath(), err)
+		return
+	}
+
+	ctx, ok := func() (context.Context, bool) {
+		am.registryLock.Lock()
+		defer am.registryLock.Unlock()
+		if am.shutdown {
+			return nil, false
+		}
+
+		ctx, cancel := context.WithCancel(ctx)
+		am.deleteCancels = append(am.deleteCancels, cancel)
+		return ctx, true
+	}()
+	if !ok {
+		return
+	}
+
+	am.log.CDebugf(ctx, "Recursively deleting old autogit data in TLF %s",
+		h.GetCanonicalPath())
+	defer func() {
+		am.log.CDebugf(ctx, "Recursive delete of autogit done: %+v", err)
+	}()
+	err = recursiveDelete(ctx, fs, fi)
 }
 
 func (am *AutogitManager) registerRepoNode(
@@ -66,6 +132,7 @@ func (am *AutogitManager) registerRepoNode(
 	am.repoNodesForWatchedIDs[nodeToWatch.GetID()] = rdn
 	fb := nodeToWatch.GetFolderBranch()
 	if !am.registeredFBs[fb] {
+		go am.removeOldCheckouts(rdn)
 		am.watchedNodes = append(am.watchedNodes, nodeToWatch)
 		err := am.config.Notifier().RegisterForChanges(
 			[]libkbfs.FolderBranch{fb}, am)
