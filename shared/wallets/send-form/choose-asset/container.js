@@ -37,7 +37,6 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   _refresh: (accountID: Types.AccountID, to: string) => {
     dispatch(WalletsGen.createLoadDisplayCurrencies())
     dispatch(WalletsGen.createLoadSendAssetChoices({from: accountID, to}))
-    dispatch(WalletsGen.createLoadDisplayCurrency({accountID}))
   },
   _onClose: () => {
     dispatch(navigateUp())

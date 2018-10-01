@@ -141,7 +141,7 @@ const currenciesResultToCurrencies = (w: RPCTypes.CurrencyLocal) =>
     name: w.name,
   })
 
-  const makePayment: I.RecordFactory<Types._Payment> = I.Record({
+const makePayment: I.RecordFactory<Types._Payment> = I.Record({
   amountDescription: '',
   delta: 'none',
   error: '',
