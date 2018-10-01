@@ -790,13 +790,18 @@ func (k *KeybaseServiceBase) LoadTeamPlusKeys(
 	}
 
 	arg := keybase1.LoadTeamPlusApplicationKeysArg{
-		Id:          tid,
-		Application: keybase1.TeamApplication_KBFS,
+		Id:              tid,
+		Application:     keybase1.TeamApplication_KBFS,
+		IncludeKBFSKeys: true,
 	}
 
 	if desiredKeyGen >= kbfsmd.FirstValidKeyGen {
-		arg.Refreshers.NeedKeyGeneration =
-			keybase1.PerTeamKeyGeneration(desiredKeyGen)
+		arg.Refreshers.NeedApplicationsAtGenerationsWithKBFS =
+			map[keybase1.PerTeamKeyGeneration][]keybase1.TeamApplication{
+				keybase1.PerTeamKeyGeneration(desiredKeyGen): []keybase1.TeamApplication{
+					keybase1.TeamApplication_KBFS,
+				},
+			}
 	}
 
 	if desiredUser.Uid.Exists() && desiredKey.IsNil() {

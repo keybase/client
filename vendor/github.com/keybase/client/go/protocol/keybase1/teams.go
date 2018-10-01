@@ -1934,11 +1934,12 @@ func (o TeamKBFSKeyRefresher) DeepCopy() TeamKBFSKeyRefresher {
 // * TeamRefreshData are needed or wanted data requirements that, if unmet, will cause
 // * a refresh of the cache.
 type TeamRefreshers struct {
-	NeedKeyGeneration             PerTeamKeyGeneration                       `codec:"needKeyGeneration" json:"needKeyGeneration"`
-	NeedApplicationsAtGenerations map[PerTeamKeyGeneration][]TeamApplication `codec:"needApplicationsAtGenerations" json:"needApplicationsAtGenerations"`
-	WantMembers                   []UserVersion                              `codec:"wantMembers" json:"wantMembers"`
-	WantMembersRole               TeamRole                                   `codec:"wantMembersRole" json:"wantMembersRole"`
-	NeedKBFSKeyGeneration         TeamKBFSKeyRefresher                       `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
+	NeedKeyGeneration                     PerTeamKeyGeneration                       `codec:"needKeyGeneration" json:"needKeyGeneration"`
+	NeedApplicationsAtGenerations         map[PerTeamKeyGeneration][]TeamApplication `codec:"needApplicationsAtGenerations" json:"needApplicationsAtGenerations"`
+	NeedApplicationsAtGenerationsWithKBFS map[PerTeamKeyGeneration][]TeamApplication `codec:"needApplicationsAtGenerationsWithKBFS" json:"needApplicationsAtGenerationsWithKBFS"`
+	WantMembers                           []UserVersion                              `codec:"wantMembers" json:"wantMembers"`
+	WantMembersRole                       TeamRole                                   `codec:"wantMembersRole" json:"wantMembersRole"`
+	NeedKBFSKeyGeneration                 TeamKBFSKeyRefresher                       `codec:"needKBFSKeyGeneration" json:"needKBFSKeyGeneration"`
 }
 
 func (o TeamRefreshers) DeepCopy() TeamRefreshers {
@@ -1966,6 +1967,28 @@ func (o TeamRefreshers) DeepCopy() TeamRefreshers {
 			}
 			return ret
 		})(o.NeedApplicationsAtGenerations),
+		NeedApplicationsAtGenerationsWithKBFS: (func(x map[PerTeamKeyGeneration][]TeamApplication) map[PerTeamKeyGeneration][]TeamApplication {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[PerTeamKeyGeneration][]TeamApplication, len(x))
+			for k, v := range x {
+				kCopy := k.DeepCopy()
+				vCopy := (func(x []TeamApplication) []TeamApplication {
+					if x == nil {
+						return nil
+					}
+					ret := make([]TeamApplication, len(x))
+					for i, v := range x {
+						vCopy := v.DeepCopy()
+						ret[i] = vCopy
+					}
+					return ret
+				})(v)
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.NeedApplicationsAtGenerationsWithKBFS),
 		WantMembers: (func(x []UserVersion) []UserVersion {
 			if x == nil {
 				return nil
@@ -2759,10 +2782,11 @@ type TeamReAddMemberAfterResetArg struct {
 }
 
 type LoadTeamPlusApplicationKeysArg struct {
-	SessionID   int             `codec:"sessionID" json:"sessionID"`
-	Id          TeamID          `codec:"id" json:"id"`
-	Application TeamApplication `codec:"application" json:"application"`
-	Refreshers  TeamRefreshers  `codec:"refreshers" json:"refreshers"`
+	SessionID       int             `codec:"sessionID" json:"sessionID"`
+	Id              TeamID          `codec:"id" json:"id"`
+	Application     TeamApplication `codec:"application" json:"application"`
+	Refreshers      TeamRefreshers  `codec:"refreshers" json:"refreshers"`
+	IncludeKBFSKeys bool            `codec:"includeKBFSKeys" json:"includeKBFSKeys"`
 }
 
 type GetTeamRootIDArg struct {
