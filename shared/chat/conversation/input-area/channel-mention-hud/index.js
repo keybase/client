@@ -1,12 +1,14 @@
 // @flow
 import React from 'react'
 import {compose, lifecycle, withProps, withPropsOnChange, withStateHandlers} from '../../../../util/container'
-import {Box, ClickableBox, List, Text} from '../../../../common-adapters/index'
+import {Box, ClickableBox, List, ProgressIndicator, Text} from '../../../../common-adapters/index'
 import {globalColors, globalMargins, globalStyles, isMobile, collapseStyles} from '../../../../styles'
 
 type Props<D: {channelName: string, selected: boolean}> = {
   rowRenderer: (i: number, d: D) => React$Element<any>,
   data: Array<D>,
+  loadChannels: ?() => void,
+  loading: boolean,
   style: Object,
   selectedIndex: number,
 }
@@ -39,12 +41,23 @@ const MentionRowRenderer = ({channelName, selected, onClick, onHover}: MentionDa
 
 // We want to render Hud even if there's no data so we can still have lifecycle methods so we can still do things
 // This is important if you type a filter that gives you no results and you press enter for instance
-const Hud = ({style, data, rowRenderer, selectedIndex}: Props<any>) =>
-  data.length ? (
-    <Box style={collapseStyles([hudStyle, style])}>
-      <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
-    </Box>
-  ) : null
+const Hud = ({loading, style, data, rowRenderer, selectedIndex}: Props<any>) => {
+  if (data.length) {
+    return (
+      <Box style={collapseStyles([hudStyle, style])}>
+        <List items={data} renderItem={rowRenderer} selectedIndex={selectedIndex} fixedHeight={40} />
+      </Box>
+    )
+  }
+  if (loading) {
+    return (
+      <Box style={collapseStyles([hudStyle, style, {alignItems: 'center', justifyContent: 'center'}])}>
+        <ProgressIndicator style={{height: 40, width: 40}} />
+      </Box>
+    )
+  }
+  return null
+}
 
 const hudStyle = {
   ...globalStyles.flexBoxRow,
@@ -69,6 +82,11 @@ const MentionHud = compose(
     }
   }),
   lifecycle({
+    componentDidMount() {
+      if (this.props.channels.length === 0 && this.props.loadChannels && !this.props.loading) {
+        this.props.loadChannels()
+      }
+    },
     componentDidUpdate(prevProps, prevState) {
       if (this.props.data.length === 0) {
         if (prevProps.selectedIndex === 0) {
