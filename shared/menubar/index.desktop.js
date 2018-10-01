@@ -125,8 +125,6 @@ class MenubarRender extends React.Component<Props, State> {
   }
 
   _menuItems(countMap: Object) {
-    const fileUIName = isDarwin ? 'finder' : isWindows ? 'explorer' : 'file explorer'
-
     return [
       ...(Flags.walletsEnabled
         ? [
@@ -154,7 +152,7 @@ class MenubarRender extends React.Component<Props, State> {
       },
       'Divider',
       ...(this.props.loggedIn ? [{title: 'Open main app', onClick: () => this.props.openApp()}] : []),
-      {title: `Open folders in ${fileUIName}`, onClick: () => this.props.showInFinder('/')},
+      {title: `Open folders in ${Styles.fileUIName}`, onClick: () => this.props.showInFinder('/')},
       'Divider',
       {title: 'Keybase.io', onClick: () => this.props.showUser()},
       {title: 'Report a bug', onClick: this.props.showBug},
