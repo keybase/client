@@ -34,7 +34,7 @@ func TestLoadParamServices(t *testing.T) {
 	require.NotNil(t, gubbleConf)
 	require.Equal(t, 1, gubbleConf.Version)
 	require.Equal(t, "gubble.social", gubbleConf.Domain)
-	require.Equal(t, "GubbleSocial", gubbleConf.DisplayName)
+	require.Contains(t, []string{"GubbleSocial", "Gubble.social", "Gubble.Social"}, gubbleConf.DisplayName)
 	var group *keybase1.ProofServiceGroup
 	require.EqualValues(t, group, gubbleConf.Group)
 	require.Equal(t, keybase1.ParamProofUsernameConfig{
