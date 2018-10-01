@@ -6,26 +6,48 @@ import {backgroundImageFn} from '../../../common-adapters/emoji'
 import {Picker} from 'emoji-mart'
 
 type Props = {
-  memoError?: string,
-  noteError?: string,
+  publicMemo: string, // Initial value only
+  publicMemoError?: string,
+  secretNote: string, // Initial value only
+  secretNoteError?: string,
   onChangePublicMemo: string => void,
   onChangeSecretNote: string => void,
   toSelf: boolean,
 }
 
+// TODO use wallet staticConfig to keep in sync with the service
+const secretNoteMaxLength = 500
+const publicMemoMaxLength = 28
+
+const capLength = (s: string, maxLength: number) => s.substring(0, maxLength)
+
 type State = {
   emojiPickerOpen: boolean,
+  publicMemo: string,
+  secretNote: string,
 }
-
 class NoteAndMemo extends React.Component<Props, State> {
   static defaultProps = {
     toSelf: false,
   }
   state = {
     emojiPickerOpen: false,
+    publicMemo: this.props.publicMemo,
+    secretNote: this.props.secretNote,
   }
   _emojiIcon = React.createRef()
   _note = React.createRef()
+
+  _onChangeSecretNote = (_secretNote: string) => {
+    const secretNote = capLength(_secretNote, secretNoteMaxLength)
+    this.props.onChangeSecretNote(secretNote)
+    this.setState(s => (s.secretNote === secretNote ? null : {secretNote}))
+  }
+  _onChangePublicMemo = (_publicMemo: string) => {
+    const publicMemo = capLength(_publicMemo, publicMemoMaxLength)
+    this.props.onChangePublicMemo(publicMemo)
+    this.setState(s => (s.publicMemo === publicMemo ? null : {publicMemo}))
+  }
 
   _insertEmoji = (emoji: string) => {
     if (this._note.current) {
@@ -54,13 +76,14 @@ class NoteAndMemo extends React.Component<Props, State> {
           <Kb.Box2 direction="horizontal" fullWidth={true}>
             <Kb.PlainInput
               multiline={true}
-              onChangeText={this.props.onChangeSecretNote}
               placeholder={this.props.toSelf ? 'Add a note to yourself' : 'Add an encrypted note'}
               placeholderColor={placeholderColor}
               rowsMin={Styles.isMobile ? 2 : 3}
-              rowsMax={12}
+              rowsMax={8}
               style={styles.input}
               ref={!Styles.isMobile ? this._note : undefined}
+              onChangeText={this._onChangeSecretNote}
+              value={this.state.secretNote}
             />
             {!Styles.isMobile && (
               <Kb.Icon
@@ -88,31 +111,46 @@ class NoteAndMemo extends React.Component<Props, State> {
                 </Kb.Overlay>
               )}
           </Kb.Box2>
-          {!!this.props.noteError && <Kb.Text type="BodySmallError">{this.props.noteError}</Kb.Text>}
+          {!!this.state.secretNote && (
+            <Kb.Text type="BodySmall">
+              {secretNoteMaxLength - this.state.secretNote.length} characters left
+            </Kb.Text>
+          )}
+          {!!this.props.secretNoteError && (
+            <Kb.Text type="BodySmallError">{this.props.secretNoteError}</Kb.Text>
+          )}
         </Kb.Box2>
         <Kb.Divider
           style={Styles.collapseStyles([
             styles.divider,
-            this.props.noteError ? {backgroundColor: Styles.globalColors.red} : {},
+            this.props.secretNoteError ? {backgroundColor: Styles.globalColors.red} : {},
           ])}
         />
         {/* Public Memo */}
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
           <Kb.PlainInput
             multiline={true}
-            onChangeText={this.props.onChangePublicMemo}
             placeholder="Add a public memo"
             placeholderColor={placeholderColor}
             style={styles.input}
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}
+            onChangeText={this._onChangePublicMemo}
+            value={this.state.publicMemo}
           />
-          {!!this.props.memoError && <Kb.Text type="BodySmallError">{this.props.memoError}</Kb.Text>}
+          {!!this.state.publicMemo && (
+            <Kb.Text type="BodySmall">
+              {publicMemoMaxLength - this.state.publicMemo.length} characters left
+            </Kb.Text>
+          )}
+          {!!this.props.publicMemoError && (
+            <Kb.Text type="BodySmallError">{this.props.publicMemoError}</Kb.Text>
+          )}
         </Kb.Box2>
         <Kb.Divider
           style={Styles.collapseStyles([
             styles.divider,
-            this.props.memoError ? {backgroundColor: Styles.globalColors.red} : {},
+            this.props.publicMemoError ? {backgroundColor: Styles.globalColors.red} : {},
           ])}
         />
       </Kb.Box2>
