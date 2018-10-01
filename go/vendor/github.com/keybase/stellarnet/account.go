@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	samount "github.com/stellar/go/amount"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	snetwork "github.com/stellar/go/network"
@@ -160,7 +159,7 @@ func (a *Account) availableBalanceXLMLoaded() (string, error) {
 // be sent to another account (leaving enough XLM in the sender's
 // account to maintain the minimum balance).
 func AvailableBalance(balance string, subentryCount int) (string, error) {
-	balanceInt, err := samount.ParseInt64(balance)
+	balanceInt, err := ParseStellarAmount(balance)
 	if err != nil {
 		return "", err
 	}
@@ -172,7 +171,7 @@ func AvailableBalance(balance string, subentryCount int) (string, error) {
 		available = 0
 	}
 
-	return samount.StringFromInt64(available), nil
+	return StringFromStellarAmount(available), nil
 }
 
 // AccountDetails contains basic details about a stellar account.
@@ -444,7 +443,7 @@ func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32
 		return 0, "", errors.New("public memo is too long")
 	}
 	// this is checked in build.Transaction, but can't hurt to break out early
-	if _, err = samount.Parse(amount); err != nil {
+	if _, err = ParseStellarAmount(amount); err != nil {
 		return 0, "", err
 	}
 

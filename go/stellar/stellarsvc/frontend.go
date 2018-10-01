@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/client/go/stellar/stellarcommon"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 )
 
 const WorthCurrencyErrorCode = "ERR"
@@ -1004,7 +1003,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		if arg.Amount == "" {
 			// No amount given. Still convert for 0.
 		} else {
-			amount, err := stellarnet.ParseDecimalStrict(arg.Amount)
+			amount, err := stellarnet.ParseAmount(arg.Amount)
 			if err != nil || amount.Sign() < 0 {
 				// Invalid or negative amount.
 				res.amountErrMsg = "Invalid amount."
@@ -1053,7 +1052,7 @@ func (s *Server) buildPaymentAmountHelper(ctx context.Context, bpc stellar.Build
 		// Amount is of asset.
 		useAmount := "0"
 		if arg.Amount != "" {
-			amountInt64, err := stellaramount.ParseInt64(arg.Amount)
+			amountInt64, err := stellarnet.ParseStellarAmount(arg.Amount)
 			if err != nil || amountInt64 <= 0 {
 				res.amountErrMsg = "Invalid amount."
 				return res
@@ -1321,7 +1320,7 @@ func (s *Server) accountExchangeRate(mctx libkb.MetaContext, accountID stellar1.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.
 func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
-	available, err := stellaramount.ParseInt64(availableStr)
+	available, err := stellarnet.ParseStellarAmount(availableStr)
 	if err != nil {
 		mctx.CDebugf("error parsing available balance: %v", err)
 		return availableStr
@@ -1330,5 +1329,5 @@ func subtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
 	if available < 0 {
 		available = 0
 	}
-	return stellaramount.StringFromInt64(available)
+	return stellarnet.StringFromStellarAmount(available)
 }
