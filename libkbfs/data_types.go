@@ -638,7 +638,7 @@ func EntryInfoFromFileInfo(fi os.FileInfo) EntryInfo {
 	mtime := fi.ModTime().UnixNano()
 	return EntryInfo{
 		Type:  t,
-		Size:  uint64(fi.Size()), // TODO: deal with overflow?
+		Size:  uint64(fi.Size()), // TODO: deal with negatives?
 		Mtime: mtime,
 		Ctime: mtime,
 		// Leave TeamWriter and PrevRevisions empty
