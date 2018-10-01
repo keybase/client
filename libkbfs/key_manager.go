@@ -439,7 +439,7 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 
 	// Let the service know that we're doing the identifies because of
 	// a rekey, so they can suppress popups in some cases.
-	ctx, err := makeExtendedIdentify(
+	ctx, err := MakeExtendedIdentify(
 		ctx, keybase1.TLFIdentifyBehavior_KBFS_REKEY)
 	if err != nil {
 		return err

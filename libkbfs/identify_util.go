@@ -103,7 +103,7 @@ const (
 	ctxExtendedIdentifyKey ctxExtendedIdentifyKeyType = iota
 )
 
-// ExtendedIdentifyAlreadyExists is returned when makeExtendedIdentify is
+// ExtendedIdentifyAlreadyExists is returned when MakeExtendedIdentify is
 // called on a context already with extendedIdentify.
 type ExtendedIdentifyAlreadyExists struct{}
 
