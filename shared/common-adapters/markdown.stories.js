@@ -4,6 +4,13 @@ import * as Sb from '../stories/storybook'
 import Markdown from './markdown'
 
 const cases = {
+  debugging: `
+  keybase.io/a/user/lookup?one=1&two=2
+  keybase.io/a/user/path_with_underscore
+  keybase.io?blah=true
+  keybase.io/~user/cool
+  http://keybase.io/blah/../up-one/index.html
+  `,
   paragraphs: `this is a sentence.
 this is the next line
 and another with two below

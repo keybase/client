@@ -192,7 +192,7 @@ function messageCreateComponent(type, key, children, options) {
 
 // https://gist.github.com/dperini/729294
 // const linkRegex = /^(?:(?:(?:https?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?/i
-const linkRegex = /^(\s)*((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/i
+const linkRegex = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 
 // const tldExp = new RegExp(`^(http:\\/\\/|https:\\/\\/|\\w)+\\.(${tlds.join('|')})\\b`, 'i')
 // const ipExp = new RegExp(/^\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)
@@ -209,18 +209,30 @@ const linkRegex = /^(\s)*((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)/i
 // return match
 // }
 
-// var debugAnyScopeRegex = function(regex) {
-// var match = function(source, state) {
-// console.log('[debug]: ', source, state, regex.exec(source))
-// return regex.exec(source)
-// }
-// match.regex = regex
-// return match
+var debugAnyScopeRegex = function(regex) {
+  var match = function(source, state) {
+    console.log('[debug]: ', source, state, regex.exec(source))
+    return regex.exec(source)
+  }
+  match.regex = regex
+  return match
+}
+
+// const rules = {
+// ...SimpleMarkdown.defaultRules,
 // }
 
 const rules = {
+  newline: {
+    // handle newlines, keep this to handle \n w/ other matchers
+    ...SimpleMarkdown.defaultRules.newline,
+    // original
+    // match: blockRegex(/^(?:\n *)*\n/),
+    // ours: handle \n inside text also
+    match: debugAnyScopeRegex(/^\n/), // SimpleMarkdown.anyScopeRegex(/^\n/),
+  },
   escape: {
-    // handle escaped chars
+    // handle escaped chars, keep this to handle escapes globally
     ...SimpleMarkdown.defaultRules.escape,
   },
   fence: {
@@ -339,8 +351,9 @@ const rules = {
     ...SimpleMarkdown.defaultRules.del,
     // original:
     // match: inlineRegex(/^~~(?=\S)([\s\S]*?\S)~~/),
-    // ours: single tidle
-    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
+    // ours: single tidle doesn't cross a newline
+    // match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\])+?)~(?!~)/),
+    match: SimpleMarkdown.inlineRegex(/^~((?:\\[\s\S]|[^\\\n])+?)~(?!~)/),
     react: (node, output, state) => {
       return (
         <Text type="Body" key={state.key} style={strikeStyle}>
@@ -374,22 +387,26 @@ const rules = {
     },
   },
   link: {
-    order: SimpleMarkdown.defaultRules.text.order - 0.2,
+    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
     match: SimpleMarkdown.inlineRegex(linkRegex),
     parse: function(capture, parse, state) {
-      return {content: capture[0]}
+      return {spaceInFront: capture[1], content: capture[2]}
     },
     react: (node, output, state) => {
       return (
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          key={state.key}
-          style={linkStyle}
-          onClickURL={node.content}
-        >
-          {node.content}
-        </Text>
+        <>
+          {node.spaceInFront}
+          <Text
+            className="hover-underline"
+            type="BodyPrimaryLink"
+            key={state.key}
+            style={linkStyle}
+            title={node.content}
+            onClickURL={node.content}
+          >
+            {node.content}
+          </Text>
+        </>
       )
     },
   },
