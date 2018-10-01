@@ -756,10 +756,6 @@ type teamMembershipChecker interface {
 	// kbfsmd.TeamMembershipChecker.IsTeamWriter.
 	IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid keybase1.UID) (
 		bool, error)
-	// ListResolvedTeamMembers returns the lists of resolved writers
-	// and readers.
-	ListResolvedTeamMembers(ctx context.Context, tid keybase1.TeamID) (
-		writers, readers []keybase1.UID, err error)
 }
 
 type teamKeysGetter interface {

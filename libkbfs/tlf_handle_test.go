@@ -869,7 +869,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err :=
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h1)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h1)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -882,7 +882,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -901,7 +901,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -917,7 +917,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h2.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -943,7 +943,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -967,7 +967,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	h1.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -984,7 +984,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, nil, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2)
 	require.Error(t, err)
 
 	// Test positive resolution cases.
@@ -1014,7 +1014,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, nil, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h2)
 		require.NoError(t, err)
 		assert.True(t, resolvesTo, tc.name2)
 		require.Equal(t, h2, partialResolvedH1, tc.name2)
@@ -1038,7 +1038,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, nil, *h2)
+			h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h2)
 		require.NoError(t, err)
 		assert.False(t, resolvesTo, tc.name2)
 
@@ -1087,7 +1087,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	h2 := makeImplicitHandle(name1, tlf.Private, id)
 
 	resolvesTo, partialResolvedH1, err :=
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h2)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h2)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -1101,7 +1101,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	h2Pub := makeImplicitHandle(name1, tlf.Public, idPub)
 
 	resolvesTo, partialResolvedH1, err =
-		h1Pub.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, kbpki, *h2Pub)
+		h1Pub.ResolvesTo(ctx, codec, kbpki, constIDGetter{idPub}, *h2Pub)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1Pub, partialResolvedH1)
@@ -1110,7 +1110,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	name2 := "u1,u2,u3"
 	h3 := makeImplicitHandle(name2, tlf.Private, id)
 	resolvesTo, _, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h3)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h3)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -1118,7 +1118,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	name3 := "u1"
 	h4 := makeImplicitHandle(name3, tlf.Private, id)
 	resolvesTo, _, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h4)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h4)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -1126,7 +1126,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	name4 := "u1,u2#u3"
 	h5 := makeImplicitHandle(name4, tlf.Private, id)
 	resolvesTo, _, err =
-		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h5)
+		h1.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h5)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
@@ -1138,7 +1138,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 	h7 := makeImplicitHandle(name5, tlf.Private, id)
 	resolvesTo, partialResolvedH6, err :=
-		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h7)
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h7)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h6, partialResolvedH6)
@@ -1148,14 +1148,14 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	name6 := "u1,u2,u3@twitter,u4@twitter"
 	h8 := makeImplicitHandle(name6, tlf.Private, id)
 	resolvesTo, _, err =
-		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h8)
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h8)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 
 	t.Log("Private team migration with newly-resolved user")
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
 	resolvesTo, partialResolvedH6, err =
-		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h3)
+		h6.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h3)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Len(t, partialResolvedH6.UnresolvedWriters(), 0)
@@ -1167,7 +1167,7 @@ func TestTlfHandleMigrationResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 	h10 := makeImplicitHandle(name7, tlf.Private, id)
 	resolvesTo, partialResolvedH9, err :=
-		h9.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, kbpki, *h10)
+		h9.ResolvesTo(ctx, codec, kbpki, constIDGetter{id}, *h10)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h9, partialResolvedH9)

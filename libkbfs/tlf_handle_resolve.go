@@ -449,9 +449,8 @@ func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
 // equal other if and only if true is returned.
 func (h TlfHandle) ResolvesTo(
 	ctx context.Context, codec kbfscodec.Codec, resolver resolver,
-	idGetter tlfIDGetter, teamChecker teamMembershipChecker, other TlfHandle) (
-	resolvesTo bool, partialResolvedH *TlfHandle,
-	err error) {
+	idGetter tlfIDGetter, other TlfHandle) (
+	resolvesTo bool, partialResolvedH *TlfHandle, err error) {
 	// Check the conflict extension.
 	var conflictAdded, finalizedAdded bool
 	if !h.IsConflict() && other.IsConflict() {
@@ -494,46 +493,18 @@ func (h TlfHandle) ResolvesTo(
 			return false, nil, err
 		}
 
-		// If we're migrating, make sure the handles map to the same
-		// set of users.
-		if other.TypeForKeying() == tlf.TeamKeying && teamChecker != nil {
+		// If we're migrating, use the partially-resolved handle's
+		// list of writers, readers, and conflict info, rather than
+		// explicitly checking team membership.  This is assuming that
+		// we've already validated the migrating folder's name against
+		// the user list in the current MD head (done via
+		// `MDOps.GetIDForHandle()`).
+		if other.TypeForKeying() == tlf.TeamKeying {
 			if h.IsFinal() {
 				return false, nil,
 					errors.New("Can't migrate a finalized folder")
 			}
 
-			teamID := other.FirstResolvedWriter().AsTeamOrBust()
-			writers, readers, err := teamChecker.ListResolvedTeamMembers(
-				ctx, teamID)
-			if err != nil {
-				return false, nil, err
-			}
-
-			bareHandle, err := partialResolvedH.ToBareHandle()
-			if err != nil {
-				return false, nil, err
-			}
-
-			wUsers := make([]keybase1.UserOrTeamID, len(writers))
-			for i, w := range writers {
-				wUsers[i] = w.AsUserOrTeam()
-			}
-			var rUsers []keybase1.UserOrTeamID
-			if h.Type() == tlf.Public {
-				rUsers = append(rUsers, keybase1.PUBLIC_UID)
-			} else {
-				rUsers = make([]keybase1.UserOrTeamID, len(readers))
-				for i, r := range readers {
-					rUsers[i] = r.AsUserOrTeam()
-				}
-			}
-			if !bareHandle.ResolvedUsersEqual(wUsers, rUsers) {
-				return false, partialResolvedH, nil
-			}
-			// Set other's writers/readers to be equal to h's, since
-			// we already checked the team membership.  If the
-			// unresolved writers/readers differ, it'll cause the name
-			// to be different.
 			other.resolvedWriters = partialResolvedH.resolvedWriters
 			other.resolvedReaders = partialResolvedH.resolvedReaders
 			other.unresolvedWriters = partialResolvedH.unresolvedWriters
@@ -561,14 +532,14 @@ func (h TlfHandle) MutuallyResolvesTo(
 	resolver resolver, idGetter tlfIDGetter, other TlfHandle,
 	rev kbfsmd.Revision, tlfID tlf.ID, log logger.Logger) error {
 	handleResolvesToOther, partialResolvedHandle, err :=
-		h.ResolvesTo(ctx, codec, resolver, idGetter, nil, other)
+		h.ResolvesTo(ctx, codec, resolver, idGetter, other)
 	if err != nil {
 		return err
 	}
 
 	// TODO: If h has conflict info, other should, too.
 	otherResolvesToHandle, partialResolvedOther, err :=
-		other.ResolvesTo(ctx, codec, resolver, idGetter, nil, h)
+		other.ResolvesTo(ctx, codec, resolver, idGetter, h)
 	if err != nil {
 		return err
 	}

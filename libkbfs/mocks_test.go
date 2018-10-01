@@ -2486,20 +2486,6 @@ func (mr *MockteamMembershipCheckerMockRecorder) IsTeamReader(ctx, tid, uid inte
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockteamMembershipChecker)(nil).IsTeamReader), ctx, tid, uid)
 }
 
-// ListResolvedTeamMembers mocks base method
-func (m *MockteamMembershipChecker) ListResolvedTeamMembers(ctx context.Context, tid keybase1.TeamID) ([]keybase1.UID, []keybase1.UID, error) {
-	ret := m.ctrl.Call(m, "ListResolvedTeamMembers", ctx, tid)
-	ret0, _ := ret[0].([]keybase1.UID)
-	ret1, _ := ret[1].([]keybase1.UID)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// ListResolvedTeamMembers indicates an expected call of ListResolvedTeamMembers
-func (mr *MockteamMembershipCheckerMockRecorder) ListResolvedTeamMembers(ctx, tid interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResolvedTeamMembers", reflect.TypeOf((*MockteamMembershipChecker)(nil).ListResolvedTeamMembers), ctx, tid)
-}
-
 // MockteamKeysGetter is a mock of teamKeysGetter interface
 type MockteamKeysGetter struct {
 	ctrl     *gomock.Controller
@@ -2778,20 +2764,6 @@ func (m *MockKBPKI) IsTeamReader(ctx context.Context, tid keybase1.TeamID, uid k
 // IsTeamReader indicates an expected call of IsTeamReader
 func (mr *MockKBPKIMockRecorder) IsTeamReader(ctx, tid, uid interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsTeamReader", reflect.TypeOf((*MockKBPKI)(nil).IsTeamReader), ctx, tid, uid)
-}
-
-// ListResolvedTeamMembers mocks base method
-func (m *MockKBPKI) ListResolvedTeamMembers(ctx context.Context, tid keybase1.TeamID) ([]keybase1.UID, []keybase1.UID, error) {
-	ret := m.ctrl.Call(m, "ListResolvedTeamMembers", ctx, tid)
-	ret0, _ := ret[0].([]keybase1.UID)
-	ret1, _ := ret[1].([]keybase1.UID)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
-}
-
-// ListResolvedTeamMembers indicates an expected call of ListResolvedTeamMembers
-func (mr *MockKBPKIMockRecorder) ListResolvedTeamMembers(ctx, tid interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListResolvedTeamMembers", reflect.TypeOf((*MockKBPKI)(nil).ListResolvedTeamMembers), ctx, tid)
 }
 
 // GetTeamTLFCryptKeys mocks base method

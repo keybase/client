@@ -341,26 +341,6 @@ func (k *KBPKIClient) IsTeamReader(
 	return tid.IsPublic() || teamInfo.Writers[uid] || teamInfo.Readers[uid], nil
 }
 
-// ListResolvedTeamMembers implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) ListResolvedTeamMembers(
-	ctx context.Context, tid keybase1.TeamID) (
-	writers, readers []keybase1.UID, err error) {
-	teamInfo, err := k.serviceOwner.KeybaseService().LoadTeamPlusKeys(
-		ctx, tid, tlf.Unknown, kbfsmd.UnspecifiedKeyGen, keybase1.UserVersion{},
-		kbfscrypto.VerifyingKey{}, keybase1.TeamRole_NONE)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	for w := range teamInfo.Writers {
-		writers = append(writers, w)
-	}
-	for r := range teamInfo.Readers {
-		readers = append(readers, r)
-	}
-	return writers, readers, nil
-}
-
 // GetTeamRootID implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) GetTeamRootID(ctx context.Context, tid keybase1.TeamID) (
 	keybase1.TeamID, error) {
