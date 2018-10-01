@@ -210,10 +210,11 @@
 			"revisionTime": "2016-12-09T16:02:51-05:00"
 		},
 		{
-			"checksumSHA1": "cchIEYEFHSeFdJuRtgk0lV6NHz4=",
+			"checksumSHA1": "AzpolYksuMdnqRhFpzPm1bEztJ0=",
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-codec/codec",
 			"path": "github.com/keybase/go-codec/codec",
-			"revision": "a7011fe42ddcc32e5b55a8a09dd03e3431a533e5",
-			"revisionTime": "2018-09-21T19:50:28Z"
+			"revision": "1643975621235e11516b5722dd9475e342465adf",
+			"revisionTime": "2018-09-28T23:00:36Z"
 		},
 		{
 			"checksumSHA1": "VJk3rOWfxEV9Ilig5lgzH1qg8Ss=",
