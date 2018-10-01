@@ -351,11 +351,11 @@ func (sc *SigChain) getFirstSeqno() (ret keybase1.Seqno) {
 	return ret
 }
 
-func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
-	defer m.CTrace("SigChain#VerifyChain", func() error { return err })()
-	m.CDebugf("+ SigChain#VerifyChain()")
+func (sc *SigChain) VerifyChain(mctx MetaContext, uid keybase1.UID) (err error) {
+	defer mctx.CTrace("SigChain#VerifyChain", func() error { return err })()
+	mctx.CDebugf("+ SigChain#VerifyChain()")
 	defer func() {
-		m.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
+		mctx.CDebugf("- SigChain#VerifyChain() -> %s", ErrToOk(err))
 	}()
 
 	expectedNextHighSkip := NewInitialHighSkip()
@@ -363,15 +363,15 @@ func (sc *SigChain) VerifyChain(m MetaContext) (err error) {
 outer:
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
-		m.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
+		mctx.VLogf(VLog1, "| verify link %d (%s)", i, curr.id)
 		if curr.chainVerified {
-			expectedNextHighSkipPre, err := curr.ExpectedNextHighSkip()
+			expectedNextHighSkipPre, err := curr.ExpectedNextHighSkip(mctx, uid)
 
 			switch err.(type) {
 			case UserReverifyNeededError:
-				m.CDebugf("Continuing verification at link %d due to uncomputed high skip.", i)
+				mctx.CDebugf("Continuing verification at link %d due to uncomputed high skip.", i)
 			case nil:
-				m.CDebugf("| short-circuit at link %d", i)
+				mctx.CDebugf("| short-circuit at link %d", i)
 				expectedNextHighSkip = expectedNextHighSkipPre
 				firstUnverifiedChainIdx = i + 1
 				break outer
@@ -411,11 +411,10 @@ outer:
 				return err
 			}
 		}
-		expectedNextHighSkip, err = curr.ExpectedNextHighSkip()
+		expectedNextHighSkip, err = curr.ExpectedNextHighSkip(mctx, uid)
 		if err != nil {
 			return err
 		}
->>>>>>> add support for reading and writing user high links
 	}
 
 	return err
@@ -446,14 +445,14 @@ func (sc SigChain) GetLastKnownID() (ret LinkID) {
 
 // GetExpectedNextHighSkip returns the HighSkip expected for a new link to be
 // added to the chain.  It can only be called after VerifyChain is completed.
-func (sc SigChain) GetExpectedNextHighSkip() (HighSkip, error) {
+func (sc SigChain) GetExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
 	if sc.localChainNextHighSkipOverride != nil {
 		return *sc.localChainNextHighSkipOverride, nil
 	}
 	if len(sc.chainLinks) == 0 {
 		return NewInitialHighSkip(), nil
 	}
-	return sc.GetLastLink().ExpectedNextHighSkip()
+	return sc.GetLastLink().ExpectedNextHighSkip(mctx, uid)
 }
 
 func (sc SigChain) GetFirstLink() *ChainLink {
@@ -785,7 +784,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 	return cached, cki, err
 }
 
-func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (cached bool, linksConsumed int, err error) {
+func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily, uid keybase1.UID) (cached bool, linksConsumed int, err error) {
 
 	cached = false
 	m.CDebugf("+ verifySigsAndComputeKeysCurrent for user %s (eldest = %s)", sc.uid, eldest)
@@ -793,7 +792,7 @@ func (sc *SigChain) verifySigsAndComputeKeysCurrent(m MetaContext, eldest keybas
 		m.CDebugf("- verifySigsAndComputeKeysCurrent for user %s -> %s", sc.uid, ErrToOk(err))
 	}()
 
-	if err = sc.VerifyChain(m); err != nil {
+	if err = sc.VerifyChain(m, uid); err != nil {
 		return cached, 0, err
 	}
 
@@ -868,9 +867,9 @@ func (c ChainLinks) omittingNRightmostLinks(n int) ChainLinks {
 
 // VerifySigsAndComputeKeys iterates over all potentially all incarnations of the user, trying to compute
 // multiple subchains. It returns (bool, error), where bool is true if the load hit the cache, and false otherwise.
-func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily) (bool, error) {
+func (sc *SigChain) VerifySigsAndComputeKeys(m MetaContext, eldest keybase1.KID, ckf *ComputedKeyFamily, uid keybase1.UID) (bool, error) {
 	// First consume the currently active sigchain.
-	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(m, eldest, ckf)
+	cached, numLinksConsumed, err := sc.verifySigsAndComputeKeysCurrent(m, eldest, ckf, uid)
 	if err != nil || ckf.kf == nil {
 		return cached, err
 	}
@@ -1238,7 +1237,9 @@ func (l *SigChainLoader) VerifySigsAndComputeKeys() (err error) {
 	if l.ckf.kf == nil {
 		return nil
 	}
-	_, err = l.chain.VerifySigsAndComputeKeys(l.M(), l.leaf.eldest, &l.ckf)
+
+	uid := l.user.GetUID()
+	_, err = l.chain.VerifySigsAndComputeKeys(l.M(), l.leaf.eldest, &l.ckf, uid)
 	if err != nil {
 		return err
 	}
@@ -1321,7 +1322,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 	ret = l.chain
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
+	if err = l.chain.VerifyChain(l.M(), uid); err != nil {
 		return nil, err
 	}
 	stage("CheckFreshness")
@@ -1361,7 +1362,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("VerifyChain")
-	if err = l.chain.VerifyChain(l.M()); err != nil {
+	if err = l.chain.VerifyChain(l.M(), uid); err != nil {
 		return nil, err
 	}
 

@@ -1445,7 +1445,7 @@ func (c ChainLink) AllowStubbing() bool {
 // IsHighUserLink determines whether a chainlink counts as "high" in a user's chain,
 // which is defined as an Eldest link, a link with seqno=1, a link that is Sibkey,
 // PGPUpdate, Revoke, or any link that is revoking.
-func (c ChainLink) IsHighUserLink() (bool, error) {
+func (c ChainLink) IsHighUserLink(mctx MetaContext, uid keybase1.UID) (bool, error) {
 	v2Type, err := c.GetSigchainV2Type()
 	if err != nil {
 		return false, err
@@ -1457,7 +1457,10 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 		if prevLink == nil {
 			return false, ChainLinkWrongSeqnoError{}
 		}
-		hardcodedEldest = isSubchainStart(&c, prevLink)
+		hardcodedEldest, err = isSubchainStart(mctx, &c, prevLink, uid)
+		if err != nil {
+			return false, err
+		}
 	}
 
 	isFirstLink := v2Type == SigchainV2TypeEldest || c.GetSeqno() == 1 || hardcodedEldest
@@ -1474,8 +1477,8 @@ func (c ChainLink) IsHighUserLink() (bool, error) {
 // subsequent link in the chain (which may not exist yet). This function can
 // only be called after VerifyChain has processed the chainLink, and set
 // c.computedHighSkip.
-func (c ChainLink) ExpectedNextHighSkip() (HighSkip, error) {
-	isHigh, err := c.IsHighUserLink()
+func (c ChainLink) ExpectedNextHighSkip(mctx MetaContext, uid keybase1.UID) (HighSkip, error) {
+	isHigh, err := c.IsHighUserLink(mctx, uid)
 	if err != nil {
 		return HighSkip{}, err
 	}

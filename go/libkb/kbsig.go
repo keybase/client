@@ -365,7 +365,7 @@ func (arg ProofMetadata) ToJSON(m MetaContext) (ret *jsonw.Wrapper, err error) {
 		if (arg.Me != nil) && (arg.HighSkipFallback != nil) {
 			return nil, fmt.Errorf("arg.Me and arg.HighSkipFallback can't both be non-nil.")
 		} else if arg.Me != nil {
-			highSkipPre, err := arg.Me.GetExpectedNextHighSkip()
+			highSkipPre, err := arg.Me.GetExpectedNextHighSkip(m)
 			if err != nil {
 				return nil, err
 			}
@@ -586,7 +586,7 @@ func MakeSig(
 	case KeybaseSignatureV2:
 		prevSeqno := me.GetSigChainLastKnownSeqno()
 		prevLinkID := me.GetSigChainLastKnownID()
-		highSkip, highSkipErr := me.GetExpectedNextHighSkip()
+		highSkip, highSkipErr := me.GetExpectedNextHighSkip(m)
 		if highSkipErr != nil {
 			return sig, sigID, linkID, highSkipErr
 		}
