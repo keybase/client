@@ -534,6 +534,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				2714DAA0215B1CAA00464F8E /* LocalAuthentication.framework in Frameworks */,
 				DB7EAF832159556300024DD8 /* libTouchID.a in Frameworks */,
 				DB788EF32152F47400699A23 /* libRNCamera.a in Frameworks */,
@@ -552,7 +553,6 @@
 				DB2BD1EB1DE7D9A600BB7989 /* libRCTSettings.a in Frameworks */,
 				DB2BD1EC1DE7D9A600BB7989 /* libRCTText.a in Frameworks */,
 				DB2BD1EF1DE7D9A600BB7989 /* libReact.a in Frameworks */,
-				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

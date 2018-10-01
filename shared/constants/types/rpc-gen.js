@@ -644,6 +644,7 @@ export const simpleFSKBFSArchivedType = {
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
+  filterSystemHidden: 2,
 }
 
 export const simpleFSOpenFlags = {

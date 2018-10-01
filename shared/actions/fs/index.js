@@ -14,7 +14,7 @@ import platformSpecificSaga from './platform-specific'
 import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../util/container'
-import {switchTo, putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
+import {putActionIfOnPath, navigateAppend, navigateTo} from '../route-tree'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state: TypedState, action) =>
@@ -83,22 +83,25 @@ const mimeTypeRefreshTags: Map<Types.RefreshTag, Types.Path> = new Map()
 function* folderList(
   action: FsGen.FolderListLoadPayload | FsGen.EditSuccessPayload
 ): Saga.SagaGenerator<any, any> {
-  try {
-    const opID = Constants.makeUUID()
-    const {rootPath, refreshTag} =
-      action.type === FsGen.editSuccess
-        ? {rootPath: action.payload.parentPath, refreshTag: undefined}
-        : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const {rootPath, refreshTag} =
+    action.type === FsGen.editSuccess
+      ? {rootPath: action.payload.parentPath, refreshTag: undefined}
+      : {rootPath: action.payload.path, refreshTag: action.payload.refreshTag}
+  const loadingPathID = Constants.makeUUID()
 
-    if (refreshTag) {
-      if (folderListRefreshTags.get(refreshTag) === rootPath) {
-        // We are already subscribed; so don't fire RPC.
-        return
-      }
-
-      folderListRefreshTags.set(refreshTag, rootPath)
+  if (refreshTag) {
+    if (folderListRefreshTags.get(refreshTag) === rootPath) {
+      // We are already subscribed; so don't fire RPC.
+      return
     }
 
+    folderListRefreshTags.set(refreshTag, rootPath)
+  }
+
+  try {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: false}))
+
+    const opID = Constants.makeUUID()
     const pathElems = Types.getPathElements(rootPath)
     if (pathElems.length < 3) {
       yield Saga.call(RPCTypes.SimpleFSSimpleFSListRpcPromise, {
@@ -107,7 +110,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
       })
     } else {
@@ -117,7 +120,7 @@ function* folderList(
           PathType: RPCTypes.simpleFSPathType.kbfs,
           kbfs: Constants.fsPathToRpcPathString(rootPath),
         },
-        filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+        filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         refreshSubscription: !!refreshTag,
         depth: 1,
       })
@@ -198,6 +201,8 @@ function* folderList(
     }
   } catch (error) {
     yield Saga.put(makeRetriableErrorHandler(action)(error))
+  } finally {
+    yield Saga.put(FsGen.createLoadingPath({path: rootPath, id: loadingPathID, done: true}))
   }
 }
 
@@ -362,7 +367,7 @@ function* pollSyncStatusUntilDone(action: FsGen.NotifySyncActivityPayload): Saga
       let {syncingPaths, totalSyncingBytes, endEstimate}: RPCTypes.FSSyncStatus = yield Saga.call(
         RPCTypes.SimpleFSSimpleFSSyncStatusRpcPromise,
         {
-          filter: RPCTypes.simpleFSListFilter.filterAllHidden,
+          filter: RPCTypes.simpleFSListFilter.filterSystemHidden,
         }
       )
       yield Saga.sequentially([
@@ -654,27 +659,6 @@ const openPathItem = (
     yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path}, selected}))
   })
 
-const openFilesFromWidget = (state: TypedState, {payload: {path}}: FsGen.OpenFilesFromWidgetPayload) => {
-  const pathItem = path ? state.fs.pathItems.get(path) : undefined
-  const selected = pathItem && pathItem.type !== 'folder' ? 'preview' : 'folder'
-  return Saga.sequentially([
-    Saga.put(ConfigGen.createShowMain()),
-    Saga.put(switchTo([Tabs.fsTab])),
-    ...(path
-      ? [
-          Saga.put(
-            navigateAppend([
-              {
-                props: {path},
-                selected,
-              },
-            ])
-          ),
-        ]
-      : []),
-  ])
-}
-
 const letResetUserBackIn = ({payload: {id, username}}: FsGen.LetResetUserBackInPayload) =>
   Saga.call(RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise, {id, username})
 
@@ -695,7 +679,6 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.safeTakeEvery(FsGen.notifySyncActivity, pollSyncStatusUntilDone)
   yield Saga.actionToAction(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield Saga.actionToAction([FsGen.openPathItem, FsGen.openPathInFilesTab], openPathItem)
-  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
 
   yield Saga.fork(platformSpecificSaga)

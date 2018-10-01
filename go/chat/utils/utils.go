@@ -731,6 +731,25 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	return summaries[len(summaries)-1].Ctime
 }
 
+func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
+	// nil means all
+	if typs == nil {
+		for typ := range chat1.MessageTypeRevMap {
+			typs = append(typs, typ)
+		}
+	}
+	for _, typ := range typs {
+		msg, err := conv.GetMaxMessage(typ)
+		if err == nil && msg.Ctime.After(res.Ctime) {
+			res = msg
+		}
+	}
+	if res.GetMessageID() == 0 {
+		return res, errors.New("no message summary found")
+	}
+	return res, nil
+}
+
 // PickLatestMessageUnboxed gets the latest message with one `typs`.
 // This method can return deleted messages which have a blank body.
 func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
@@ -893,10 +912,17 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 }
 
 func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+	var tlfName string
 	rawConv := rc.Conv
+	latest, err := PickLatestMessageSummary(rawConv, nil)
+	if err != nil {
+		tlfName = ""
+	} else {
+		tlfName = latest.TlfName
+	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
-	res.Name = rawConv.MaxMsgSummaries[0].TlfName
+	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
 	res.Visibility = rawConv.Metadata.Visibility
@@ -919,6 +945,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 			WriterNames:       rc.LocalMetadata.WriterNames,
 			ResetParticipants: rc.LocalMetadata.ResetParticipants,
 		}
+		res.Name = rc.LocalMetadata.Name
 	}
 	return res
 }
@@ -1000,7 +1027,7 @@ func computeOutboxOrdinal(obr chat1.OutboxRecord) float64 {
 	return float64(obr.Msg.ClientHeader.OutboxInfo.Prev) + float64(obr.Ordinal)/1000.0
 }
 
-func presentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
+func PresentChannelNameMentions(ctx context.Context, crs []chat1.ChannelNameMention) (res []chat1.UIChannelNameMention) {
 	for _, cr := range crs {
 		res = append(res, chat1.UIChannelNameMention{
 			Name:   cr.TopicName,
@@ -1186,7 +1213,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Superseded:            valid.ServerHeader.SupersededBy != 0,
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
-			ChannelNameMentions:   presentChannelNameMentions(ctx, valid.ChannelNameMentions),
+			ChannelNameMentions:   PresentChannelNameMentions(ctx, valid.ChannelNameMentions),
 			AssetUrlInfo:          presentAttachmentAssetInfo(ctx, g, rawMsg, convID),
 			IsEphemeral:           valid.IsEphemeral(),
 			IsEphemeralExpired:    valid.IsEphemeralExpired(time.Now()),
@@ -1526,9 +1553,10 @@ func GetGregorConn(ctx context.Context, g *globals.Context, log DebugLabeler,
 		conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 			[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			handler(nist), libkb.NewRPCLogFactory(g.ExternalG()),
-			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})
+			logger.LogOutputWithDepthAdder{Logger: g.Log},
+			rpc.DefaultMaxFrameLength, rpc.ConnectionOpts{})
 	} else {
-		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()))
+		t := rpc.NewConnectionTransport(uri, nil, libkb.MakeWrapError(g.ExternalG()), rpc.DefaultMaxFrameLength)
 		conn = rpc.NewConnectionWithTransport(handler(nist), t,
 			libkb.NewContextifiedErrorUnwrapper(g.ExternalG()),
 			logger.LogOutputWithDepthAdder{Logger: g.Log}, rpc.ConnectionOpts{})

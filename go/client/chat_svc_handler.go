@@ -21,6 +21,7 @@ import (
 type ChatServiceHandler interface {
 	ListV1(context.Context, listOptionsV1) Reply
 	ReadV1(context.Context, readOptionsV1) Reply
+	GetV1(context.Context, getOptionsV1) Reply
 	SendV1(context.Context, sendOptionsV1) Reply
 	EditV1(context.Context, editOptionsV1) Reply
 	ReactionV1(context.Context, reactionOptionsV1) Reply
@@ -124,6 +125,98 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	return Reply{Result: cl}
 }
 
+func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
+	conv chat1.ConversationLocal, selfUID keybase1.UID, readMsgID chat1.MessageID, unreadOnly bool) (ret []Message, err error) {
+	for _, m := range messages {
+		st, err := m.State()
+		if err != nil {
+			return nil, errors.New("invalid message: unknown state")
+		}
+
+		if st == chat1.MessageUnboxedState_ERROR {
+			em := m.Error().ErrMsg
+			ret = append(ret, Message{
+				Error: &em,
+			})
+			continue
+		}
+
+		// skip any PLACEHOLDER or OUTBOX messages
+		if st != chat1.MessageUnboxedState_VALID {
+			continue
+		}
+
+		mv := m.Valid()
+
+		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
+			// skip TLFNAME messages
+			continue
+		}
+
+		unread := mv.ServerHeader.MessageID > readMsgID
+		if unreadOnly && !unread {
+			continue
+		}
+		if !selfUID.IsNil() {
+			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
+			unread = unread && (!fromSelf)
+			if unreadOnly && fromSelf {
+				continue
+			}
+		}
+
+		prev := mv.ClientHeader.Prev
+		// Avoid having null show up in the output JSON.
+		if prev == nil {
+			prev = []chat1.MessagePreviousPointer{}
+		}
+
+		msg := MsgSummary{
+			ID: mv.ServerHeader.MessageID,
+			Channel: ChatChannel{
+				Name:        conv.Info.TlfName,
+				Public:      mv.ClientHeader.TlfPublic,
+				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
+				MembersType: strings.ToLower(conv.GetMembersType().String()),
+				TopicName:   utils.GetTopicName(conv),
+			},
+			Sender: MsgSender{
+				UID:      mv.ClientHeader.Sender.String(),
+				DeviceID: mv.ClientHeader.SenderDevice.String(),
+			},
+			SentAt:              mv.ServerHeader.Ctime.UnixSeconds(),
+			SentAtMs:            mv.ServerHeader.Ctime.UnixMilliseconds(),
+			Prev:                prev,
+			Unread:              unread,
+			RevokedDevice:       mv.SenderDeviceRevokedAt != nil,
+			KBFSEncrypted:       mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
+			IsEphemeral:         mv.IsEphemeral(),
+			IsEphemeralExpired:  mv.IsEphemeralExpired(time.Now()),
+			ETime:               mv.Etime(),
+			HasPairwiseMacs:     mv.HasPairwiseMacs(),
+			AtMentionUsernames:  mv.AtMentionUsernames,
+			ChannelMention:      strings.ToLower(mv.ChannelMention.String()),
+			ChannelNameMentions: utils.PresentChannelNameMentions(ctx, mv.ChannelNameMentions),
+		}
+		if mv.Reactions.Reactions != nil {
+			msg.Reactions = &mv.Reactions
+		}
+		msg.Content = c.convertMsgBody(mv.MessageBody)
+		msg.Sender.Username = mv.SenderUsername
+		msg.Sender.DeviceName = mv.SenderDeviceName
+
+		ret = append(ret, Message{
+			Msg: &msg,
+		})
+	}
+
+	if ret == nil {
+		// Avoid having null show up in the output JSON.
+		ret = []Message{}
+	}
+	return ret, nil
+}
+
 // ReadV1 implements ChatServiceHandler.ReadV1.
 func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Reply {
 	var rlimits []chat1.RateLimit
@@ -165,96 +258,66 @@ func (c *chatServiceHandler) ReadV1(ctx context.Context, opts readOptionsV1) Rep
 		c.G().Log.Warning("Could not get self UID for api")
 	}
 
+	messages, err := c.formatMessages(ctx, threadView.Thread.Messages, conv, selfUID, readMsgID, opts.UnreadOnly)
+	if err != nil {
+		return c.errReply(err)
+	}
+
 	thread := Thread{
 		Offline:          threadView.Offline,
 		IdentifyFailures: threadView.IdentifyFailures,
 		Pagination:       threadView.Thread.Pagination,
-	}
-	for _, m := range threadView.Thread.Messages {
-		st, err := m.State()
-		if err != nil {
-			return c.errReply(errors.New("invalid message: unknown state"))
-		}
-
-		if st == chat1.MessageUnboxedState_ERROR {
-			em := m.Error().ErrMsg
-			thread.Messages = append(thread.Messages, Message{
-				Error: &em,
-			})
-			continue
-		}
-
-		// skip any PLACEHOLDER or OUTBOX messages
-		if st != chat1.MessageUnboxedState_VALID {
-			continue
-		}
-
-		mv := m.Valid()
-
-		if mv.ClientHeader.MessageType == chat1.MessageType_TLFNAME {
-			// skip TLFNAME messages
-			continue
-		}
-
-		unread := mv.ServerHeader.MessageID > readMsgID
-		if opts.UnreadOnly && !unread {
-			continue
-		}
-		if !selfUID.IsNil() {
-			fromSelf := (mv.ClientHeader.Sender.String() == selfUID.String())
-			unread = unread && (!fromSelf)
-			if opts.UnreadOnly && fromSelf {
-				continue
-			}
-		}
-
-		prev := mv.ClientHeader.Prev
-		// Avoid having null show up in the output JSON.
-		if prev == nil {
-			prev = []chat1.MessagePreviousPointer{}
-		}
-
-		msg := MsgSummary{
-			ID: mv.ServerHeader.MessageID,
-			Channel: ChatChannel{
-				Name:        conv.Info.TlfName,
-				Public:      mv.ClientHeader.TlfPublic,
-				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
-				MembersType: strings.ToLower(conv.GetMembersType().String()),
-				TopicName:   utils.GetTopicName(conv),
-			},
-			Sender: MsgSender{
-				UID:      mv.ClientHeader.Sender.String(),
-				DeviceID: mv.ClientHeader.SenderDevice.String(),
-			},
-			SentAt:             mv.ServerHeader.Ctime.UnixSeconds(),
-			SentAtMs:           mv.ServerHeader.Ctime.UnixMilliseconds(),
-			Prev:               prev,
-			Unread:             unread,
-			RevokedDevice:      mv.SenderDeviceRevokedAt != nil,
-			KBFSEncrypted:      mv.ClientHeader.KbfsCryptKeysUsed == nil || *mv.ClientHeader.KbfsCryptKeysUsed,
-			IsEphemeral:        mv.IsEphemeral(),
-			IsEphemeralExpired: mv.IsEphemeralExpired(time.Now()),
-			ETime:              mv.Etime(),
-			HasPairwiseMacs:    mv.HasPairwiseMacs(),
-		}
-		if mv.Reactions.Reactions != nil {
-			msg.Reactions = &mv.Reactions
-		}
-		msg.Content = c.convertMsgBody(mv.MessageBody)
-		msg.Sender.Username = mv.SenderUsername
-		msg.Sender.DeviceName = mv.SenderDeviceName
-
-		thread.Messages = append(thread.Messages, Message{
-			Msg: &msg,
-		})
+		Messages:         messages,
 	}
 
-	// Avoid having null show up in the output JSON.
-	if thread.Messages == nil {
-		thread.Messages = []Message{}
+	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
+	return Reply{Result: thread}
+}
+
+// GetV1 implements ChatServiceHandler.GetV1.
+func (c *chatServiceHandler) GetV1(ctx context.Context, opts getOptionsV1) Reply {
+	var rlimits []chat1.RateLimit
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
 	}
 
+	conv, rlimits, err := c.findConversation(ctx, opts.ConversationID, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	arg := chat1.GetMessagesLocalArg{
+		ConversationID:   conv.Info.Id,
+		MessageIDs:       opts.MessageIDs,
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	}
+
+	res, err := client.GetMessagesLocal(ctx, arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	// Check to see if this was fetched offline and we should fail
+	if opts.FailOffline && res.Offline {
+		return c.errReply(chat.OfflineError{})
+	}
+
+	selfUID := c.G().Env.GetUID()
+	if selfUID.IsNil() {
+		c.G().Log.Warning("Could not get self UID for api")
+	}
+
+	messages, err := c.formatMessages(ctx, res.Messages, conv, selfUID, 0 /* readMsgID */, false /* unreadOnly */)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	thread := Thread{
+		Offline:          res.Offline,
+		IdentifyFailures: res.IdentifyFailures,
+		Messages:         messages,
+	}
 	thread.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: thread}
 }
@@ -992,22 +1055,25 @@ type MsgContent struct {
 
 // MsgSummary is used to display JSON details for a message.
 type MsgSummary struct {
-	ID                 chat1.MessageID                `json:"id"`
-	Channel            ChatChannel                    `json:"channel"`
-	Sender             MsgSender                      `json:"sender"`
-	SentAt             int64                          `json:"sent_at"`
-	SentAtMs           int64                          `json:"sent_at_ms"`
-	Content            MsgContent                     `json:"content"`
-	Prev               []chat1.MessagePreviousPointer `json:"prev"`
-	Unread             bool                           `json:"unread"`
-	RevokedDevice      bool                           `json:"revoked_device,omitempty"`
-	Offline            bool                           `json:"offline,omitempty"`
-	KBFSEncrypted      bool                           `json:"kbfs_encrypted,omitempty"`
-	IsEphemeral        bool                           `json:"is_ephemeral,omitempty"`
-	IsEphemeralExpired bool                           `json:"is_ephemeral_expired,omitempty"`
-	ETime              gregor1.Time                   `json:"etime,omitempty"`
-	Reactions          *chat1.ReactionMap             `json:"reactions,omitempty"`
-	HasPairwiseMacs    bool                           `json:"has_pairwise_macs,omitempty"`
+	ID                  chat1.MessageID                `json:"id"`
+	Channel             ChatChannel                    `json:"channel"`
+	Sender              MsgSender                      `json:"sender"`
+	SentAt              int64                          `json:"sent_at"`
+	SentAtMs            int64                          `json:"sent_at_ms"`
+	Content             MsgContent                     `json:"content"`
+	Prev                []chat1.MessagePreviousPointer `json:"prev"`
+	Unread              bool                           `json:"unread"`
+	RevokedDevice       bool                           `json:"revoked_device,omitempty"`
+	Offline             bool                           `json:"offline,omitempty"`
+	KBFSEncrypted       bool                           `json:"kbfs_encrypted,omitempty"`
+	IsEphemeral         bool                           `json:"is_ephemeral,omitempty"`
+	IsEphemeralExpired  bool                           `json:"is_ephemeral_expired,omitempty"`
+	ETime               gregor1.Time                   `json:"etime,omitempty"`
+	Reactions           *chat1.ReactionMap             `json:"reactions,omitempty"`
+	HasPairwiseMacs     bool                           `json:"has_pairwise_macs,omitempty"`
+	AtMentionUsernames  []string                       `json:"at_mention_usernames,omitempty"`
+	ChannelMention      string                         `json:"channel_mention,omitempty"`
+	ChannelNameMentions []chat1.UIChannelNameMention   `json:"channel_name_mentions,omitempty"`
 }
 
 // Message contains either a MsgSummary or an Error.  Used for JSON output.

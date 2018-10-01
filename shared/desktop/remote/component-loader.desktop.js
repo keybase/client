@@ -18,7 +18,7 @@ import {globalColors, globalStyles} from '../../styles'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import ErrorBoundary from '../../common-adapters/error-boundary'
-
+import {initDesktopStyles} from '../../styles/index.desktop'
 disableDragDrop()
 
 module.hot && module.hot.accept()
@@ -130,6 +130,7 @@ const styles = {
 }
 
 function load(options) {
+  initDesktopStyles()
   const node = document.getElementById('root')
   if (node) {
     ReactDOM.render(

@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Box from './box'
-import Text from './text'
+import Text, {allTextTypes} from './text'
 import {globalColors, globalStyles, isMobile, platformStyles} from '../styles'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
@@ -133,6 +133,15 @@ const load = () => {
           {mapText(true)}
         </Container>
       </Box>
+    ))
+    .add('TextAll', () => (
+      <>
+        {Object.keys(allTextTypes).map(t => (
+          <Box key={t}>
+            <Text type={t}>{t}</Text>
+          </Box>
+        ))}
+      </>
     ))
 }
 

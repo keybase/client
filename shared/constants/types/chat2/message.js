@@ -171,7 +171,7 @@ export type _MessageRequestPayment = {
   deviceType: DeviceType,
   errorReason: ?string,
   id: MessageID,
-  note: string,
+  note: HiddenString,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,

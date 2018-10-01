@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
+import assetInput, {props4 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'

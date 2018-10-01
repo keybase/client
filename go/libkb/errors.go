@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -412,20 +413,6 @@ func (e BadEmailError) Error() string {
 
 //=============================================================================
 
-type BadKeyError struct {
-	Msg string
-}
-
-func (p BadKeyError) Error() string {
-	msg := "Bad key found"
-	if len(p.Msg) != 0 {
-		msg = msg + ": " + p.Msg
-	}
-	return msg
-}
-
-//=============================================================================
-
 type BadFingerprintError struct {
 	fp1, fp2 PGPFingerprint
 }
@@ -745,28 +732,6 @@ func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
 
 //=============================================================================
 
-type UnmarshalError struct {
-	ExpectedTag PacketTag
-	Tag         PacketTag
-}
-
-func (u UnmarshalError) Error() string {
-	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
-}
-
-type VerificationError struct {
-	Cause error
-}
-
-func (e VerificationError) Error() string {
-	if e.Cause == nil {
-		return "Verification failed"
-	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
-}
-
-//=============================================================================
-
 type NoKeyringsError struct{}
 
 func (k NoKeyringsError) Error() string {
@@ -1080,7 +1045,7 @@ func (r KeyExpiredError) Error() string {
 //=============================================================================
 
 type UnknownKeyTypeError struct {
-	typ AlgoType
+	typ kbcrypto.AlgoType
 }
 
 func (e UnknownKeyTypeError) Error() string {
@@ -1412,6 +1377,10 @@ type ChainLinkWrongSeqnoError struct {
 
 func (e ChainLinkWrongSeqnoError) Error() string {
 	return fmt.Sprintf("Chain link wrong seqno error: %s", e.Msg)
+}
+
+func NewChainLinkWrongSeqnoError(s string) error {
+	return ChainLinkWrongSeqnoError{s}
 }
 
 //=============================================================================
@@ -1805,20 +1774,6 @@ func IsExecError(err error) bool {
 }
 
 //=============================================================================
-
-type BadSignaturePrefixError struct{}
-
-func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
-
-//=============================================================================
-
-type UnhandledSignatureError struct {
-	version int
-}
-
-func (e UnhandledSignatureError) Error() string {
-	return fmt.Sprintf("unhandled signature version: %d", e.version)
-}
 
 type UserDeletedError struct {
 	Msg string
