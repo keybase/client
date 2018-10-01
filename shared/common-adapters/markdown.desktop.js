@@ -1,18 +1,18 @@
 // @flow
 import React, {PureComponent} from 'react'
 import Text from './text'
+import * as Styles from '../styles'
 import * as Types from '../constants/types/chat2'
 import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../styles'
 import {parseMarkdown, EmojiIfExists} from './markdown.shared'
 import SimpleMarkdown from 'simple-markdown'
 
 import type {Props} from './markdown'
 
-const wrapStyle = platformStyles({
+const wrapStyle = Styles.platformStyles({
   isElectron: {
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
@@ -20,56 +20,56 @@ const wrapStyle = platformStyles({
 })
 
 const codeSnippetStyle = {
-  ...globalStyles.fontTerminal,
-  ...globalStyles.rounded,
+  ...Styles.globalStyles.fontTerminal,
+  ...Styles.globalStyles.rounded,
   ...wrapStyle,
-  backgroundColor: globalColors.beige,
-  color: globalColors.blue,
+  backgroundColor: Styles.globalColors.beige,
+  color: Styles.globalColors.blue,
   fontSize: 12,
-  paddingLeft: globalMargins.xtiny,
-  paddingRight: globalMargins.xtiny,
+  paddingLeft: Styles.globalMargins.xtiny,
+  paddingRight: Styles.globalMargins.xtiny,
 }
 
-const codeSnippetBlockStyle = platformStyles({
+const codeSnippetBlockStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
     ...codeSnippetStyle,
-    backgroundColor: globalColors.beige,
-    color: globalColors.black_75,
-    marginBottom: globalMargins.xtiny,
-    marginTop: globalMargins.xtiny,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-    paddingTop: globalMargins.xtiny,
+    backgroundColor: Styles.globalColors.beige,
+    color: Styles.globalColors.black_75,
+    marginBottom: Styles.globalMargins.xtiny,
+    marginTop: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
   },
   isElectron: {
     display: 'block',
   },
 })
 
-const textBlockStyle = platformStyles({
+const textBlockStyle = Styles.platformStyles({
   common: {...wrapStyle},
   isElectron: {display: 'block', color: 'inherit', fontWeight: 'inherit'},
 })
-const linkStyle = platformStyles({
+const linkStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
   },
   isElectron: {fontWeight: 'inherit'},
 })
-const neutralPreviewStyle = platformStyles({
+const neutralPreviewStyle = Styles.platformStyles({
   isElectron: {color: 'inherit', fontWeight: 'inherit'},
 })
 const boldStyle = {...wrapStyle, color: 'inherit'}
-const italicStyle = platformStyles({
+const italicStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
   },
   isElectron: {color: 'inherit', fontStyle: 'italic', fontWeight: 'inherit'},
 })
 
-const strikeStyle = platformStyles({
+const strikeStyle = Styles.platformStyles({
   common: {
     ...wrapStyle,
   },
@@ -80,8 +80,8 @@ const strikeStyle = platformStyles({
   },
 })
 const quoteStyle = {
-  borderLeft: `3px solid ${globalColors.lightGrey2}`,
-  paddingLeft: globalMargins.small,
+  borderLeft: `3px solid ${Styles.globalColors.lightGrey2}`,
+  paddingLeft: Styles.globalMargins.small,
 }
 
 function previewCreateComponent(type, key, children, options) {
@@ -195,11 +195,11 @@ const rules = {
   },
   fence: {
     ...SimpleMarkdown.defaultRules.fence,
-    // order: SimpleMarkdown.defaultRules.paragraph.order,
+    order: 0,
     // original:
     // match: SimpleMarkdown.blockRegex(/^ *(`{3,}|~{3,}) *(\S+)? *\n([\s\S]+?)\s*\1 *(?:\n *)+\n/),
-    // ours: three ticks (anywhere) and remove any newlines in front
-    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)/),
+    // ours: three ticks (anywhere) and remove any newlines in front and one in back
+    match: SimpleMarkdown.anyScopeRegex(/^```(?:\n)?((?:\\[\s\S]|[^\\])+?)```(?!`)(\n)?/),
     parse: function(capture, parse, state) {
       return {
         content: capture[1],
@@ -233,8 +233,8 @@ const rules = {
     ...SimpleMarkdown.defaultRules.codeBlock,
     // original:
     // match: blockRegex(/^(?:    [^\n]+\n*)+(?:\n *)+\n/),
-    // ours:
-    match: SimpleMarkdown.blockRegex(/^(?: {4}[^\n]+\n*)+(?:\n *)+\n/),
+    // ours: we only want code blocks from fences (```) and not from spaces
+    match: () => false,
     react: (node, output, state) => {
       return (
         <Text key={state.key} type="Body" style={codeSnippetBlockStyle}>
@@ -343,8 +343,10 @@ class Markdown extends PureComponent<Props> {
       console.log(parseTree)
       return (
         <div>
-          {reactOutput(parseTree)}
-          <pre>{'\n\n\n'}</pre>
+          <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
+            {reactOutput(parseTree)}
+          </Text>
+          <pre>{'\n\n\n--------'}</pre>
           <pre>{this.props.children}</pre>
           <pre>{JSON.stringify(parseTree, null, 2)}</pre>
         </div>
@@ -356,12 +358,23 @@ class Markdown extends PureComponent<Props> {
         this.props.meta
       )
       return (
-        <Text type="Body" style={platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}>
+        <Text
+          type="Body"
+          style={Styles.platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}
+        >
           {content}
         </Text>
       )
     }
   }
 }
+
+const styles = Styles.styleSheetCreate({
+  rootWrapper: Styles.platformStyles({
+    isElectron: {
+      whiteSpace: 'pre',
+    },
+  }),
+})
 
 export default Markdown

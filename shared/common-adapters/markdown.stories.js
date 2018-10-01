@@ -71,8 +71,7 @@ code in quote
   'NOJIMACode block': `\`\`\`
 
 this is a code block with two newline above\`\`\``,
-  'Code block': `
-        \`\`\`this is a code block\`\`\`
+  'Code block': `\`\`\`this is a code block\`\`\`
 \`\`\`
 this is a code block that starts with a newline\`\`\`
 \`\`\`
