@@ -180,6 +180,7 @@ type TestParameters struct {
 	RuntimeDir               string
 	DisableUpgradePerUserKey bool
 	DisableAutoWallet        bool
+	EnvironmentFeatureFlags  FeatureFlags
 
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
@@ -1048,6 +1049,9 @@ func (e *Env) GetFeatureFlags() FeatureFlags {
 		if ret.Empty() && err == nil {
 			ret = f
 		}
+	}
+	if e.Test.EnvironmentFeatureFlags != nil {
+		pick(e.Test.EnvironmentFeatureFlags, nil)
 	}
 	pick(e.cmd.GetFeatureFlags())
 	pick(StringToFeatureFlags(os.Getenv("KEYBASE_FEATURES")), nil)
