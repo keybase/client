@@ -545,7 +545,7 @@ func isSubchainStart(m MetaContext, currentLink *ChainLink, prevLink *ChainLink,
 	// v2 sigs were introduced. If either the current or previous sig is v2,
 	// short circuit here. This is important because stubbed links (introduced
 	// with v2) break the eldest_kid check for case 3.
-	if currentLink.unpacked.sigVersion > 1 || prevLink.unpacked.sigVersion > 1 {
+	if currentLink.unpacked.sigVersion > KeybaseSignatureV1 || prevLink.unpacked.sigVersion > KeybaseSignatureV1 {
 		return false, nil
 	}
 	// case 3
@@ -697,7 +697,7 @@ func (sc *SigChain) verifySubchain(m MetaContext, kf KeyFamily, links ChainLinks
 		if _, ok := tcl.(*WalletStellarChainLink); ok {
 			// Assert that wallet chain links are be >= v2.
 			// They must be v2 in order to be stubbable later for privacy.
-			if link.unpacked.sigVersion < 2 {
+			if link.unpacked.sigVersion < KeybaseSignatureV2 {
 				return cached, cki, SigchainV2Required{}
 			}
 			seenInflatedWalletStellarLink = true
