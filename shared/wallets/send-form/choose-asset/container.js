@@ -1,5 +1,5 @@
 // @flow
-import ChooseAsset, {type Props, type DisplayItem, type OtherItem} from '.'
+import ChooseAsset, {type DisplayItem, type OtherItem} from '.'
 import {compose, connect, lifecycle, setDisplayName, type TypedState} from '../../../util/container'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'

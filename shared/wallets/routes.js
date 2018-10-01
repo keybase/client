@@ -18,7 +18,7 @@ import {
 import SendForm from './send-form/container'
 import ConfirmForm from './confirm-form/container'
 import Wallet from './wallet/container'
-import ChooseAsset from './send-form/choose-asset/container';
+import ChooseAsset from './send-form/choose-asset/container'
 
 const createNewAccount = {
   children: {},
