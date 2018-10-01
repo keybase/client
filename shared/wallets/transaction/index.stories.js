@@ -22,7 +22,7 @@ const longMemo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
 const addConfigs = (stories, namePrefix, storyFn) => {
-  const roles = [{yourRole: 'sender', delta: 'decrease'}, {yourRole: 'receiver', delta: 'increase'}]
+  const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
   const sizes = [{large: true}, {large: false}]
   const memosAndTimes = [
     {memo: shortMemo, timestamp: yesterday},
@@ -44,6 +44,8 @@ const addConfigs = (stories, namePrefix, storyFn) => {
               ...s,
               ...t,
               onSelectTransaction: Sb.action('onSelectTransaction'),
+              onShowProfile: Sb.action('onShowProfile'),
+              selectableText: false,
             })
           )
         })

@@ -98,7 +98,7 @@ type Renderer struct {
 }
 
 func NewRenderer(g *libkb.GlobalContext, out io.Writer) *Renderer {
-	width, _ := GlobUI.GetTerminalSize()
+	width, _ := g.UI.GetTerminalUI().TerminalSize()
 	if width == 0 {
 		width = 80
 	}
@@ -200,9 +200,9 @@ func (r *Renderer) RenderNode(node *html.Node) {
 	}
 }
 
-func getWriter(w io.Writer) io.Writer {
+func getWriter(g *libkb.GlobalContext, w io.Writer) io.Writer {
 	if w == nil {
-		w = GlobUI.OutputWriter()
+		w = g.UI.GetTerminalUI().OutputWriter()
 	}
 	return w
 }
@@ -211,10 +211,10 @@ func Render(g *libkb.GlobalContext, w io.Writer, m *libkb.Markup) {
 	if m == nil {
 		return
 	}
-	w = getWriter(w)
+	w = getWriter(g, w)
 	doc, err := Q.NewDocumentFromReader(m.ToReader())
 	if err != nil {
-		GlobUI.Printf("Cannot render markup: %s\n", err)
+		g.UI.GetTerminalUI().Printf("Cannot render markup: %s\n", err)
 		return
 	}
 	renderer := NewRenderer(g, w)
@@ -222,7 +222,7 @@ func Render(g *libkb.GlobalContext, w io.Writer, m *libkb.Markup) {
 }
 
 func RenderText(g *libkb.GlobalContext, w io.Writer, txt keybase1.Text) {
-	w = getWriter(w)
+	w = getWriter(g, w)
 	if !txt.Markup {
 		w.Write([]byte(txt.Data))
 	} else {

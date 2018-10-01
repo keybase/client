@@ -8,14 +8,17 @@ import {
   FollowButton,
   ButtonBar,
   Icon,
+  Meta,
+  Text,
   OverlayParentHOC,
   type OverlayParentProps,
 } from '../common-adapters'
 import {normal as proofNormal} from '../constants/tracker'
 import {globalColors, isMobile, platformStyles, styleSheetCreate} from '../styles'
 import type {SimpleProofState} from '../constants/types/tracker'
+import flags from '../util/feature-flags'
 
-type Props = {
+type Props = {|
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   style: Object,
@@ -25,10 +28,11 @@ type Props = {
   onFollow: () => void,
   onOpenPrivateFolder: () => void,
   onRefresh: () => void,
+  onSendOrRequestLumens: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
   waiting: boolean,
-}
+|}
 
 function UserActions({
   trackerState,
@@ -40,6 +44,7 @@ function UserActions({
   onFollow,
   onOpenPrivateFolder,
   onRefresh,
+  onSendOrRequestLumens,
   onUnfollow,
   onAcceptProofs,
   waiting,
@@ -50,18 +55,13 @@ function UserActions({
         <ButtonBar style={style}>
           <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
           <Button type="Primary" label="Chat" onClick={onChat}>
-            <Icon
-              type="iconfont-chat"
-              style={{
-                marginRight: 8,
-              }}
-              color={globalColors.white}
-            />
+            <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
           </Button>
           <DropdownButton
             onAddToTeam={onAddToTeam}
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
+            onSendOrRequestLumens={onSendOrRequestLumens}
           />
         </ButtonBar>
       )
@@ -75,6 +75,7 @@ function UserActions({
             onOpenPrivateFolder={onOpenPrivateFolder}
             onBrowsePublicFolder={onBrowsePublicFolder}
             onUnfollow={onUnfollow}
+            onSendOrRequestLumens={onSendOrRequestLumens}
           />
         </ButtonBar>
       )
@@ -84,18 +85,13 @@ function UserActions({
       <ButtonBar style={style}>
         <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
         <Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
-          <Icon
-            type="iconfont-chat"
-            style={{
-              marginRight: 8,
-            }}
-            color={globalColors.white}
-          />
+          <Icon type="iconfont-chat" style={{marginRight: 8}} color={globalColors.white} />
         </Button>
         <DropdownButton
           onAddToTeam={onAddToTeam}
           onOpenPrivateFolder={onOpenPrivateFolder}
           onBrowsePublicFolder={onBrowsePublicFolder}
+          onSendOrRequestLumens={onSendOrRequestLumens}
         />
       </ButtonBar>
     )
@@ -106,6 +102,7 @@ type DropdownProps = {
   onAddToTeam: () => void,
   onBrowsePublicFolder: () => void,
   onOpenPrivateFolder: () => void,
+  onSendOrRequestLumens: () => void,
   onUnfollow?: () => void,
 }
 
@@ -118,6 +115,19 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
   ]
 
   componentDidMount() {
+    if (flags.walletsEnabled) {
+      this._menuItems.push({
+        onClick: () => this.props.onSendOrRequestLumens(),
+        title: 'Send or request Lumens (XLM)',
+        view: (
+          <Box2 direction="horizontal" centerChildren={true} gap="xtiny">
+            <Text type="Body">Send or request Lumens (XLM)</Text>
+            <Meta title="New" backgroundColor={globalColors.blue} style={{alignSelf: undefined}} />
+          </Box2>
+        ),
+      })
+    }
+
     if (!isMobile) {
       this._menuItems = this._menuItems.concat([
         {
@@ -160,7 +170,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & OverlayParentP
         </Box2>
         <FloatingMenu
           closeOnSelect={true}
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           containerStyle={styles.floatingMenu}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}

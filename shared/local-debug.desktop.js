@@ -3,7 +3,7 @@ import {jsonDebugFileName} from './constants/platform.desktop'
 import {noop} from 'lodash-es'
 
 // Set this to true if you want to turn off most console logging so you can profile easier
-const PERF = false
+let PERF = false
 
 let config = {
   allowMultipleInstances: false, // Multiple instances of the app
@@ -16,10 +16,10 @@ let config = {
   immediateStateLogging: false, // Don't wait for idle to log state
   isDevApplePushToken: false,
   isTesting: __STORYBOOK__, // Is running a unit test
-  printBridgeB64: false,
   printOutstandingRPCs: false, // Periodically print rpcs we're waiting for
   printOutstandingTimerListeners: false, // Periodically print listeners to the second clock
   printRPC: false, // Print rpc traffic
+  printRPCBytes: false, // Print raw bytes going over the wire
   printRPCStats: false, // Print more detailed stats about rpcs
   printRPCWaitingSession: false, // session / waiting info
   reduxSagaLogger: false, // Print saga debug info
@@ -54,6 +54,9 @@ if (!__STORYBOOK__) {
       const pathJson = JSON.parse(fs.readFileSync(jsonDebugFileName, 'utf-8'))
       console.log('Loaded', jsonDebugFileName, pathJson)
       config = {...config, ...pathJson}
+      if (pathJson.hasOwnProperty('PERF')) {
+        PERF = pathJson.PERF
+      }
     } catch (e) {
       console.warn('Invalid local debug file')
     }
@@ -88,7 +91,7 @@ if (PERF) {
   config.printRPC = false
   config.reduxSagaLogger = false
   config.reduxSagaLoggerMasked = false
-  config.userTimings = true
+  config.userTimings = false
 }
 
 export const {
@@ -100,12 +103,12 @@ export const {
   forceImmediateLogging,
   ignoreDisconnectOverlay,
   isDevApplePushToken,
-  printBridgeB64,
   immediateStateLogging,
   isTesting,
   printOutstandingRPCs,
   printOutstandingTimerListeners,
   printRPC,
+  printRPCBytes,
   printRPCWaitingSession,
   printRPCStats,
   reduxSagaLogger,

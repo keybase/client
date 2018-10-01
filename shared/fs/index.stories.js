@@ -4,7 +4,6 @@ import React from 'react'
 import * as Types from '../constants/types/fs'
 import * as Constants from '../constants/fs'
 import * as Sb from '../stories/storybook'
-import {type ConnectedProps as ConnectedUsernamesProps} from '../common-adapters/usernames'
 import {globalColors, globalMargins} from '../styles'
 import Files, {WrapRow} from '.'
 import ConnectedStillRow from './row/still-container'
@@ -32,7 +31,7 @@ const folderItemStyles = {
     iconType: 'icon-folder-private-32',
     iconColor: globalColors.darkBlue2,
   },
-  textColor: globalColors.darkBlue,
+  textColor: globalColors.black_75,
   textType: 'BodySemibold',
 }
 
@@ -42,7 +41,7 @@ const fileItemStyles = {
     iconType: 'icon-file-private-32',
     iconColor: globalColors.darkBlue2,
   },
-  textColor: globalColors.darkBlue,
+  textColor: globalColors.black_75,
   textType: 'Body',
 }
 
@@ -66,9 +65,9 @@ const rowProviders = {
     ...ownProps,
     onOpen: () => {},
   }),
-  ConnectedOpenInFileUI: () => ({
+  ConnectedOpenInSystemFileManager: () => ({
     kbfsEnabled: false,
-    openInFileUI: Sb.action('openInFileUI'),
+    openInSystemFileManager: Sb.action('openInSystemFileManager'),
     installFuse: Sb.action('installFuse'),
   }),
 }
@@ -141,7 +140,7 @@ const provider = Sb.createPropProviderWithCommon({
     }),
     itemStyles: Constants.getItemStyles(['keybase', 'private', 'foo', 'bar.jpg'], 'file', 'foo'),
     onDownload: () => {},
-    onShowInFileUI: () => {},
+    onShowInSystemFileManager: () => {},
     onShare: () => {},
     onSave: () => {},
   }),
@@ -153,7 +152,7 @@ const provider = Sb.createPropProviderWithCommon({
     }),
     onAction: () => {},
     onBack: () => {},
-    onShowInFileUI: () => {},
+    onShowInSystemFileManager: () => {},
     loadFilePreview: () => {},
     path: '/keybase/private/foo/bar.jpg',
   }),
@@ -174,10 +173,6 @@ const provider = Sb.createPropProviderWithCommon({
   Banner: ({path}: {path: Types.Path}) => ({
     path,
     shouldShowReset: Types.pathToString(path).includes('reset'),
-  }),
-  Usernames: (props: ConnectedUsernamesProps) => ({
-    ...props,
-    users: props.usernames.map(u => ({username: u})),
   }),
   ConnectedAddNew: () => ({
     pathElements: [],
@@ -622,7 +617,9 @@ const load = () => {
         />
       </Box>
     ))
-    .add('UploadBanner', () => <Upload files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />)
+    .add('UploadBanner', () => (
+      <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />
+    ))
     .add('ResetRows', () => (
       <Files
         path={Types.stringToPath('/keybase')}

@@ -27,7 +27,7 @@ const Overlay = (props: Props) => {
 const styles = styleSheetCreate({
   outerContainer: platformStyles({
     isElectron: {
-      zIndex: 1, // Put the floating box on top of any sticky section headers.
+      zIndex: 30, // Put the floating box on top of any profile components and popup dialogs.
     },
   }),
   innerContainer: platformStyles({

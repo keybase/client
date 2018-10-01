@@ -10,17 +10,18 @@ import {
   ProgressIndicator,
   Text,
   type PropsWithTimer,
+  PopupHeaderText,
 } from '../../../../../common-adapters/'
 import {collapseStyles, globalColors, globalMargins, isMobile, platformStyles} from '../../../../../styles'
 import {formatTimeForPopup, formatTimeForRevoked, msToDHMS} from '../../../../../util/timestamp'
 import {addTicker, removeTicker, type TickerID} from '../../../../../util/second-timer'
-import {PopupHeaderText, type MenuItem} from '../../../../../common-adapters/popup-menu'
+import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-layout'
 import {isAndroid} from '../../../../../constants/platform'
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 
 type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   author: string,
   deviceName: string,
   deviceRevokedAt: ?number,
@@ -43,21 +44,20 @@ type State = {
 class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State> {
   timer: TickerID
   state = {
-    secondsLeft: 0,
+    secondsLeft: this.secondsLeft(),
   }
 
-  componentWillMount() {
+  componentDidMount() {
     if (!__STORYBOOK__) {
       this.timer = addTicker(this.tick)
     }
-    this.tick()
   }
 
   componentWillUnmount() {
     this.timer && removeTicker(this.timer)
   }
 
-  tick = () => {
+  secondsLeft() {
     const now = __STORYBOOK__ ? 1999999999000 : Date.now()
     let secondsLeft = Math.floor((this.props.explodesAt - now) / 1000)
     if (secondsLeft < 0) {
@@ -65,7 +65,11 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
       this.props.onHidden()
       secondsLeft = 0
     }
-    this.setState({secondsLeft})
+    return secondsLeft
+  }
+
+  tick = () => {
+    this.setState({secondsLeft: this.secondsLeft()})
   }
 
   render() {
@@ -93,7 +97,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
           <Box2 direction="horizontal" gap="xtiny" gapStart={true} style={{alignItems: 'center'}}>
             <Avatar username={author} size={16} clickToProfile="tracker" />
             <ConnectedUsernames
-              clickable={true}
+              onUsernameClicked="profile"
               colorFollowing={true}
               colorYou={true}
               usernames={[author]}

@@ -23,7 +23,7 @@ const attachmentMessage = makeMessageAttachment({
 })
 
 const defaultProps = {
-  attachTo: null,
+  attachTo: () => null,
   onHidden: Sb.action('onHidden'),
   toggleChannelWide: Sb.action('onToggleChannelwide'),
   toggleMuted: Sb.action('toggleMuted'),
@@ -52,7 +52,7 @@ const explodingSoonAttachment = makeMessageAttachment({
 })
 
 const commonExplodingProps = {
-  attachTo: null,
+  attachTo: () => null,
   onHidden: Sb.action('onHidden'),
   position: 'top center',
   visible: true,
@@ -60,7 +60,7 @@ const commonExplodingProps = {
 
 const provider = Sb.createPropProviderWithCommon({
   ExplodingPopup: (props: ExplodingOwnProps) => ({
-    attachTo: null,
+    attachTo: () => null,
     author: props.message.author,
     deviceName: props.message.deviceName,
     deviceRevokedAt: props.message.deviceRevokedAt,

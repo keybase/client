@@ -7,7 +7,13 @@ import ServiceFilter from '../services-filter'
 import UserInput, {type Props as _Props} from '.'
 import {Box, Text} from '../../common-adapters'
 import {connect, createShallowEqualSelector, setDisplayName} from '../../util/container'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
+import {
+  globalStyles,
+  globalMargins,
+  globalColors,
+  collapseStyles,
+  type StylesCrossPlatform,
+} from '../../styles'
 import {parseUserId, serviceIdToIcon} from '../../util/platforms'
 import {withStateHandlers, withHandlers, withProps, compose, lifecycle} from 'recompose'
 
@@ -18,26 +24,36 @@ export type OwnProps = {|
   autoFocus?: boolean,
   focusInputCounter?: number,
   placeholder?: string,
+  onFocus?: () => void,
+  onChangeSearchText?: (searchText: string) => void,
   onExitSearch: ?() => void,
   onSelectUser?: (id: string) => void,
   hideAddButton?: boolean,
   disableListBuilding?: boolean,
-  showServiceFilter?: boolean,
+  showServiceFilter: boolean,
+  style?: StylesCrossPlatform,
+  // Defaults to true. Desktop only, as clearSearch isn't used on mobile.
+  // Note that the way that user input is super wonky with all these HOCs. If we ever refactor, we probably won't need this prop.
+  hideClearSearch?: boolean,
 |}
 
 const UserInputWithServiceFilter = props => (
   <Box
-    style={{
-      ...globalStyles.flexBoxColumn,
-      borderBottomColor: globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      paddingLeft: globalMargins.tiny,
-    }}
+    style={collapseStyles([
+      {
+        ...globalStyles.flexBoxColumn,
+        borderBottomColor: globalColors.black_10,
+        borderBottomWidth: 1,
+        borderStyle: 'solid',
+        paddingLeft: globalMargins.tiny,
+      },
+      props.style,
+    ])}
   >
     <UserInput
       ref={props.setInputRef}
       autoFocus={props.autoFocus}
+      onFocus={props.onFocus}
       userItems={props.userItems}
       onRemoveUser={props.onRemoveUser}
       onClickAddButton={props.onClickAddButton}
@@ -52,6 +68,7 @@ const UserInputWithServiceFilter = props => (
       onCancel={props.onExitSearch}
       selectedSearchId={props.selectedSearchId}
       hideAddButton={props.hideAddButton}
+      hideClearSearch={props.hideClearSearch}
     />
     {props.showServiceFilter && (
       <Box
@@ -102,7 +119,7 @@ const getUserItems = createShallowEqualSelector(
     })
 )
 
-const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
+const mapStateToProps = (state: TypedState, {searchKey, showServiceFilter}: OwnProps) => {
   const {entities} = state
   const searchResultTerm = getSearchResultTerm(state, {searchKey})
   const searchResultIds = Constants.getSearchResultIdsArray(state, {searchKey})
@@ -113,7 +130,8 @@ const mapStateToProps = (state: TypedState, {searchKey}: OwnProps) => {
   )
   const userItems = getUserItems(state, {searchKey})
   const clearSearchTextInput = Constants.getClearSearchTextInput(state, {searchKey})
-  const showServiceFilterIfInputEmpty = state.chat2.get('pendingMode') !== 'searchingForUsers'
+  const showServiceFilterIfInputEmpty =
+    state.chat2.get('pendingMode') !== 'searchingForUsers' && showServiceFilter
 
   return {
     clearSearchTextInput,
@@ -148,20 +166,25 @@ export type Props = _Props & {
 }
 
 const ConnectedUserInput = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(mapStateToProps, mapDispatchToProps, (s, d, o: OwnProps) => ({...o, ...s, ...d})),
   setDisplayName('UserInput'),
   withStateHandlers(
     {searchText: '', selectedService: 'Keybase'},
     {
       _onSelectService: () => selectedService => ({selectedService}),
-      onChangeSearchText: () => searchText => ({searchText}),
+      onChangeSearchText: (_, props) => searchText => {
+        if (props.onChangeSearchText) {
+          props.onChangeSearchText(searchText)
+        }
+        return {searchText}
+      },
     }
   ),
   HocHelpers.onChangeSelectedSearchResultHoc,
   HocHelpers.clearSearchHoc,
   HocHelpers.placeholderServiceHoc,
   withProps(props => ({
-    showServiceFilter: props.showServiceFilterIfInputEmpty || !!props.searchText,
+    showServiceFilter: (props.showServiceFilterIfInputEmpty || !!props.searchText) && props.showServiceFilter,
   })),
   withHandlers(() => {
     let input

@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -69,6 +70,7 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 }
 
 type RemoteConversationMetadata struct {
+	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
 	SnippetDecoration string   `codec:"d"`
@@ -92,6 +94,21 @@ func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 
 func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 	return rc.Conv.Metadata.Version
+}
+
+func (rc RemoteConversation) GetName() string {
+	switch rc.Conv.Metadata.TeamType {
+	case chat1.TeamType_COMPLEX:
+		if rc.LocalMetadata != nil && len(rc.Conv.MaxMsgSummaries) > 0 {
+			return fmt.Sprintf("%s#%s", rc.Conv.MaxMsgSummaries[0].TlfName, rc.LocalMetadata.TopicName)
+		}
+		fallthrough
+	default:
+		if len(rc.Conv.MaxMsgSummaries) == 0 {
+			return ""
+		}
+		return rc.Conv.MaxMsgSummaries[0].TlfName
+	}
 }
 
 type Inbox struct {
@@ -194,4 +211,14 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
+}
+
+type DummyStellarLoader struct{}
+
+func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
+	return nil
+}
+
+func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
+	return nil
 }

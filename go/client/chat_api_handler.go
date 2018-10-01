@@ -20,6 +20,7 @@ import (
 const (
 	methodList         = "list"
 	methodRead         = "read"
+	methodGet          = "get"
 	methodSend         = "send"
 	methodEdit         = "edit"
 	methodReaction     = "reaction"
@@ -46,6 +47,7 @@ type RateLimits struct {
 type ChatAPIHandler interface {
 	ListV1(context.Context, Call, io.Writer) error
 	ReadV1(context.Context, Call, io.Writer) error
+	GetV1(context.Context, Call, io.Writer) error
 	SendV1(context.Context, Call, io.Writer) error
 	EditV1(context.Context, Call, io.Writer) error
 	ReactionV1(context.Context, Call, io.Writer) error
@@ -185,6 +187,18 @@ type readOptionsV1 struct {
 
 func (r readOptionsV1) Check() error {
 	return checkChannelConv(methodRead, r.Channel, r.ConversationID)
+}
+
+type getOptionsV1 struct {
+	Channel        ChatChannel
+	ConversationID string            `json:"conversation_id"`
+	MessageIDs     []chat1.MessageID `json:"message_ids"`
+	Peek           bool
+	FailOffline    bool `json:"fail_offline"`
+}
+
+func (r getOptionsV1) Check() error {
+	return checkChannelConv(methodGet, r.Channel, r.ConversationID)
 }
 
 type editOptionsV1 struct {
@@ -328,6 +342,7 @@ type searchRegexpOptionsV1 struct {
 	ConversationID string `json:"conversation_id"`
 	Query          string `json:"query"`
 	IsRegex        bool   `json:"is_regex"`
+	SentBy         string `json:"sent_by"`
 	MaxHits        int    `json:"max_hits"`
 	MaxMessages    int    `json:"max_messages"`
 	BeforeContext  int    `json:"before_context"`
@@ -383,6 +398,22 @@ func (a *ChatAPI) ReadV1(ctx context.Context, c Call, w io.Writer) error {
 	// opts are valid for read v1
 
 	return a.encodeReply(c, a.svcHandler.ReadV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) GetV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodRead, err: errors.New("empty options")}
+	}
+	var opts getOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+
+	// opts are valid for get v1
+	return a.encodeReply(c, a.svcHandler.GetV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) SendV1(ctx context.Context, c Call, w io.Writer) error {

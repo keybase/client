@@ -4,7 +4,7 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 
 export type Props = {
-  attachTo: ?React.Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   badgeSubscribe: boolean,
   canAddPeople: boolean,
   isSmallTeam: boolean,
@@ -13,6 +13,8 @@ export type Props = {
   memberCount: number,
   teamname: string,
   visible: boolean,
+  hasCanPerform: boolean,
+  loadOperations: () => void,
   onAddPeople: () => void,
   onHidden: () => void,
   onInvite: () => void,
@@ -33,61 +35,70 @@ const Header = ({teamname, memberCount}: {teamname: string, memberCount: number}
   </Kb.Box>
 )
 
-const InfoPanelMenu = (props: Props) => {
-  const addPeopleItems = [
-    {
-      title: 'Add someone by username',
-      subTitle: 'Keybase, Twitter, etc.',
-      onClick: props.onAddPeople,
-      style: {borderTopWidth: 0},
-    },
-    {
-      title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
-      onClick: props.onInvite,
-    },
-  ]
-  const channelItem = props.isSmallTeam
-    ? {
-        onClick: props.onManageChannels,
-        subTitle: props.manageChannelsSubtitle,
-        title: props.manageChannelsTitle,
-      }
-    : {
-        onClick: props.onManageChannels,
-        title: props.manageChannelsTitle,
-        view: (
-          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
-            <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-              {props.manageChannelsTitle}
-            </Kb.Text>
-            {props.badgeSubscribe && <Kb.Box style={styles.badge} />}
-          </Kb.Box>
-        ),
-      }
-
-  const items = [
-    ...(props.canAddPeople ? addPeopleItems : []),
-    {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
-    channelItem,
-    {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
-  ]
-
-  const header = {
-    title: 'header',
-    view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
+class InfoPanelMenu extends React.Component<Props> {
+  componentDidDUpdate(prevProps: Props) {
+    if (this.props.hasCanPerform && this.props.visible !== prevProps.visible) {
+      this.props.loadOperations()
+    }
   }
 
-  return (
-    <Kb.FloatingMenu
-      attachTo={props.attachTo}
-      visible={props.visible}
-      items={items}
-      header={header}
-      onHidden={props.onHidden}
-      position="bottom left"
-      closeOnSelect={true}
-    />
-  )
+  render() {
+    const props = this.props
+    const addPeopleItems = [
+      {
+        title: 'Add someone by username',
+        subTitle: 'Keybase, Twitter, etc.',
+        onClick: props.onAddPeople,
+        style: {borderTopWidth: 0},
+      },
+      {
+        title: Styles.isMobile ? 'Add someone from address book' : 'Add someone by email',
+        onClick: props.onInvite,
+      },
+    ]
+    const channelItem = props.isSmallTeam
+      ? {
+          onClick: props.onManageChannels,
+          subTitle: props.manageChannelsSubtitle,
+          title: props.manageChannelsTitle,
+        }
+      : {
+          onClick: props.onManageChannels,
+          title: props.manageChannelsTitle,
+          view: (
+            <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+              <Kb.Text style={styles.text} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+                {props.manageChannelsTitle}
+              </Kb.Text>
+              {props.badgeSubscribe && <Kb.Box style={styles.badge} />}
+            </Kb.Box>
+          ),
+        }
+
+    const items = [
+      ...(props.canAddPeople ? addPeopleItems : []),
+      {title: 'View team', onClick: props.onViewTeam, style: {borderTopWidth: 0}},
+      channelItem,
+      {title: 'Leave team', onClick: props.onLeaveTeam, danger: true},
+    ]
+
+    const header = {
+      title: 'header',
+      view: <Header teamname={props.teamname} memberCount={props.memberCount} />,
+    }
+
+    return (
+      <Kb.FloatingMenu
+        attachTo={props.attachTo}
+        visible={props.visible}
+        items={items}
+        header={header}
+        onHidden={props.onHidden}
+        position="bottom left"
+        closeOnSelect={true}
+      />
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({

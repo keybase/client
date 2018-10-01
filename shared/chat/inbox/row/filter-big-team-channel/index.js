@@ -19,22 +19,41 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-class FilterBigTeamChannel extends PureComponent<Props> {
+type State = {
+  isHovered: boolean,
+}
+
+class FilterBigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     return (
       <ClickableBox onClick={this.props.onSelectConversation}>
         <Box
+          className="hover_background_color_blueGrey2"
           style={collapseStyles([
             styles.filteredRow,
             this.props.isSelected && {backgroundColor: globalColors.blue},
           ])}
+          onMouseLeave={this._onMouseLeave}
+          onMouseOver={this._onMouseOver}
         >
-          <TeamAvatar teamname={this.props.teamname} isMuted={false} isSelected={false} />
+          <TeamAvatar
+            teamname={this.props.teamname}
+            isMuted={false}
+            isSelected={false}
+            isHovered={this.state.isHovered}
+          />
           <Text
             type="BodySemibold"
             style={collapseStyles([
               styles.teamname,
-              {color: this.props.isSelected ? globalColors.white : globalColors.darkBlue},
+              {color: this.props.isSelected ? globalColors.white : globalColors.black_75},
             ])}
             title={this.props.teamname}
           >
@@ -74,7 +93,7 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   teamname: platformStyles({
-    common: {color: globalColors.darkBlue},
+    common: {color: globalColors.black_75},
     isElectron: {
       overflow: 'hidden',
       textOverflow: 'ellipsis',

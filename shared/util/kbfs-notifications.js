@@ -8,6 +8,7 @@ import {
 import path from 'path'
 import {parseFolderNameToUsers} from './kbfs'
 import type {FSNotification} from '../constants/types/rpc-gen'
+import type {TypedState} from '../constants/reducer'
 
 type DecodedKBFSError = {
   title: string,
@@ -138,7 +139,7 @@ function decodeKBFSError(user: string, notification: FSNotification): DecodedKBF
   // }
 }
 
-export function kbfsNotification(notification: FSNotification, notify: any, getState: any) {
+export function kbfsNotification(notification: FSNotification, notify: any, state: TypedState) {
   const action = {
     // For now, disable file notifications because they're really annoying and
     // we now have the syncing indicator.
@@ -184,7 +185,7 @@ export function kbfsNotification(notification: FSNotification, notify: any, getS
 
   let title = `KBFS: ${action}`
   let body = `Chat or files with ${usernames} ${notification.status}`
-  let user = getState().config.username
+  let user = state.config.username
   let rateLimitKey
 
   const isError = notification.statusCode === kbfsCommonFSStatusCode.error

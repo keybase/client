@@ -20,6 +20,7 @@ import flags from '../../../../util/feature-flags'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
 import type {PlatformInputProps} from './types'
 import {formatDurationShort} from '../../../../util/timestamp'
+import WalletsIcon from './wallets-icon/container'
 
 const MentionCatcher = ({onClick}) => <Kb.Box onClick={onClick} style={styles.mentionCatcher} />
 
@@ -324,7 +325,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           {flags.explodingMessagesEnabled &&
             this.props.showingMenu && (
               <SetExplodingMessagePopup
-                attachTo={this.props.attachmentRef}
+                attachTo={this.props.getAttachmentRef}
                 conversationIDKey={this.props.conversationIDKey}
                 onAfterSelect={this._inputFocus}
                 onHidden={this.props.toggleShowingMenu}
@@ -334,6 +335,7 @@ class PlatformInput extends Component<PlatformInputProps & Kb.OverlayParentProps
           {this.state.emojiPickerOpen && (
             <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
           )}
+          {flags.walletsEnabled && <WalletsIcon size={16} style={styles.walletsIcon} />}
           <Kb.Icon
             color={this.state.emojiPickerOpen ? globalColors.black_75 : null}
             onClick={this._emojiPickerToggle}
@@ -542,6 +544,11 @@ const styles = styleSheetCreate({
     marginBottom: globalMargins.xtiny,
     marginLeft: 58,
     textAlign: 'left',
+  },
+  walletsIcon: {
+    alignSelf: 'flex-end',
+    marginBottom: 6,
+    marginRight: globalMargins.tiny,
   },
   mentionCatcher: {
     ...globalStyles.fillAbsolute,

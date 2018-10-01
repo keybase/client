@@ -107,6 +107,10 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 		return p, err
 	}
 	switch ltyp {
+	case chat1.PreviewLocationTyp_BYTES:
+		source := callerPreview.Location.Bytes()
+		p.Preview = make([]byte, len(source))
+		copy(p.Preview, source)
 	case chat1.PreviewLocationTyp_FILE:
 		f, err := os.Open(callerPreview.Location.File())
 		if err != nil {
@@ -177,6 +181,27 @@ func processCallerPreview(ctx context.Context, callerPreview chat1.MakePreviewRe
 	return p, nil
 }
 
+func DetectMIMEType(ctx context.Context, src *os.File) (res string, err error) {
+	head := make([]byte, 512)
+	_, err = io.ReadFull(src, head)
+	if err != nil && err != io.ErrUnexpectedEOF {
+		return res, err
+	}
+
+	res = http.DetectContentType(head)
+	if _, err = src.Seek(0, 0); err != nil {
+		return res, err
+	}
+	// MIME type detection failed us, try using an extension map
+	if res == "application/octet-stream" {
+		ext := strings.ToLower(filepath.Ext(src.Name()))
+		if typ, ok := mimeTypes[ext]; ok {
+			res = typ
+		}
+	}
+	return res, nil
+}
+
 func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLabeler, filename string,
 	callerPreview *chat1.MakePreviewRes) (p Preprocess, err error) {
 	if callerPreview != nil && callerPreview.Location != nil {
@@ -193,27 +218,10 @@ func PreprocessAsset(ctx context.Context, g *globals.Context, log utils.DebugLab
 	}
 	defer src.Close()
 
-	head := make([]byte, 512)
-	_, err = io.ReadFull(src, head)
-	if err != nil && err != io.ErrUnexpectedEOF {
+	if p.ContentType, err = DetectMIMEType(ctx, src); err != nil {
 		return p, err
-	}
-
-	p = Preprocess{
-		ContentType: http.DetectContentType(head),
-	}
-	if _, err := src.Seek(0, 0); err != nil {
-		return p, err
-	}
-	// MIME type detection failed us, try using an extension map
-	if p.ContentType == "application/octet-stream" {
-		ext := strings.ToLower(filepath.Ext(filename))
-		if typ, ok := mimeTypes[ext]; ok {
-			p.ContentType = typ
-		}
 	}
 	log.Debug(ctx, "preprocessAsset: detected attachment content type %s", p.ContentType)
-
 	previewRes, err := Preview(ctx, g, log, src, p.ContentType, filename)
 	if err != nil {
 		log.Debug(ctx, "preprocessAsset: error making preview: %s", err)

@@ -467,7 +467,7 @@ func (h *TeamsHandler) LookupImplicitTeam(ctx context.Context, arg keybase1.Look
 		teams.LookupImplicitTeam(ctx, h.G().ExternalG(), arg.Name, arg.Public)
 	if err == nil {
 		res.TeamID = team.ID
-		res.TlfID = team.KBFSTLFID()
+		res.TlfID = team.LatestKBFSTLFID()
 	}
 	return res, err
 }
@@ -484,7 +484,7 @@ func (h *TeamsHandler) LookupOrCreateImplicitTeam(ctx context.Context, arg keyba
 		arg.Name, arg.Public)
 	if err == nil {
 		res.TeamID = team.ID
-		res.TlfID = team.KBFSTLFID()
+		res.TlfID = team.LatestKBFSTLFID()
 	}
 	return res, err
 }
@@ -616,6 +616,13 @@ func (h *TeamsHandler) ProfileTeamLoad(ctx context.Context, arg keybase1.LoadTea
 	defer h.G().CTraceTimed(ctx, fmt.Sprintf("ProfileTeamLoad(%+v)", arg), func() error { return err })()
 	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
 	return teams.ProfileTeamLoad(mctx, arg)
+}
+
+func (h *TeamsHandler) Ftl(ctx context.Context, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
+	ctx = libkb.WithLogTag(ctx, "TM")
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("Ftl(%+v)", arg), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, h.G().ExternalG())
+	return teams.FTL(mctx, arg)
 
 }
 

@@ -1,4 +1,7 @@
 @import "~emoji-mart/css/emoji-mart.css";
+@import "../../common-adapters/avatar.css";
+@import "../../common-adapters/icon.css";
+@import "../../common-adapters/text.css";
 
 /* Reset */
 /* http://meyerweb.com/eric/tools/css/reset/
@@ -135,7 +138,7 @@ body {
     top: 0;
     bottom: 0;
     left: 0;
-    right: 0
+    right: 0;
 }
 
 #modal-root {

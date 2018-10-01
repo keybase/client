@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"fmt"
 	"io"
 
 	"github.com/keybase/go-codec/codec"
@@ -10,39 +11,6 @@ import (
 type encoder interface {
 	EncodeAndWrite(context.Context, interface{}, func()) <-chan error
 	EncodeAndWriteAsync(interface{}) <-chan error
-}
-
-// fieldDecoder decodes the fields of a packet.
-type fieldDecoder struct {
-	d           *codec.Decoder
-	fieldNumber int
-}
-
-func newFieldDecoder() *fieldDecoder {
-	return &fieldDecoder{
-		d:           codec.NewDecoderBytes([]byte{}, newCodecMsgpackHandle()),
-		fieldNumber: 0,
-	}
-}
-
-// Decode decodes the next field into the given interface. If an error
-// is returned, ResetBytes() must be called on a new packet before
-// this can be called again.
-func (dw *fieldDecoder) Decode(i interface{}) error {
-	defer func() {
-		dw.fieldNumber++
-	}()
-
-	err := dw.d.Decode(i)
-	if err != nil {
-		return newRPCMessageFieldDecodeError(dw.fieldNumber, err)
-	}
-	return nil
-}
-
-func (dw *fieldDecoder) ResetBytes(b []byte) {
-	dw.fieldNumber = 0
-	dw.d.ResetBytes(b)
 }
 
 func newCodecMsgpackHandle() codec.Handle {
@@ -59,46 +27,53 @@ type writeBundle struct {
 }
 
 type framedMsgpackEncoder struct {
-	handle   codec.Handle
-	writer   io.Writer
-	writeCh  chan writeBundle
-	doneCh   chan struct{}
-	closedCh chan struct{}
+	maxFrameLength int32
+	handle         codec.Handle
+	writer         io.Writer
+	writeCh        chan writeBundle
+	doneCh         chan struct{}
+	closedCh       chan struct{}
 }
 
-func newFramedMsgpackEncoder(writer io.Writer) *framedMsgpackEncoder {
+func newFramedMsgpackEncoder(maxFrameLength int32, writer io.Writer) *framedMsgpackEncoder {
 	e := &framedMsgpackEncoder{
-		handle:   newCodecMsgpackHandle(),
-		writer:   writer,
-		writeCh:  make(chan writeBundle),
-		doneCh:   make(chan struct{}),
-		closedCh: make(chan struct{}),
+		maxFrameLength: maxFrameLength,
+		handle:         newCodecMsgpackHandle(),
+		writer:         writer,
+		writeCh:        make(chan writeBundle),
+		doneCh:         make(chan struct{}),
+		closedCh:       make(chan struct{}),
 	}
 	go e.writerLoop()
 	return e
 }
 
-func (e *framedMsgpackEncoder) encodeToBytes(enc *codec.Encoder, i interface{}) (v []byte, err error) {
+func encodeToBytes(enc *codec.Encoder, i interface{}) (v []byte, err error) {
 	enc.ResetBytes(&v)
 	err = enc.Encode(i)
 	return v, err
 }
 
 func (e *framedMsgpackEncoder) encodeFrame(i interface{}) ([]byte, error) {
-	enc := codec.NewEncoderBytes(&[]byte{}, e.handle)
-	content, err := e.encodeToBytes(enc, i)
+	enc := codec.NewEncoderBytes(nil, e.handle)
+	content, err := encodeToBytes(enc, i)
 	if err != nil {
 		return nil, err
 	}
-	length, err := e.encodeToBytes(enc, len(content))
+	if len(content) > int(e.maxFrameLength) {
+		return nil, fmt.Errorf("frame length too big: %d > %d", len(content), e.maxFrameLength)
+	}
+	length, err := encodeToBytes(enc, len(content))
 	if err != nil {
 		return nil, err
 	}
 	return append(length, content...), nil
 }
 
-func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, i interface{}, sendNotifier func()) <-chan error {
-	bytes, err := e.encodeFrame(i)
+// encodeAndWriteInternal is called directly by tests that need to
+// write invalid frames.
+func (e *framedMsgpackEncoder) encodeAndWriteInternal(ctx context.Context, frame interface{}, sendNotifier func()) <-chan error {
+	bytes, err := e.encodeFrame(frame)
 	ch := make(chan error, 1)
 	if err != nil {
 		ch <- err
@@ -114,8 +89,12 @@ func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, i interface{}
 	return ch
 }
 
-func (e *framedMsgpackEncoder) EncodeAndWriteAsync(i interface{}) <-chan error {
-	bytes, err := e.encodeFrame(i)
+func (e *framedMsgpackEncoder) EncodeAndWrite(ctx context.Context, frame []interface{}, sendNotifier func()) <-chan error {
+	return e.encodeAndWriteInternal(ctx, frame, sendNotifier)
+}
+
+func (e *framedMsgpackEncoder) EncodeAndWriteAsync(frame []interface{}) <-chan error {
+	bytes, err := e.encodeFrame(frame)
 	ch := make(chan error, 1)
 	if err != nil {
 		ch <- err

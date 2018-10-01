@@ -66,6 +66,9 @@ func (p CommandLine) GetAutoFork() (bool, bool) {
 func (p CommandLine) GetHome() string {
 	return p.GetGString("home")
 }
+func (p CommandLine) GetMobileSharedHome() string {
+	return p.GetGString("mobile-shared-home")
+}
 func (p CommandLine) GetServerURI() string {
 	return p.GetGString("server")
 }
@@ -89,6 +92,9 @@ func (p CommandLine) GetChatDbFilename() string {
 }
 func (p CommandLine) GetPvlKitFilename() string {
 	return p.GetGString("pvl-kit")
+}
+func (p CommandLine) GetParamProofKitFilename() string {
+	return p.GetGString("paramproof-kit")
 }
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
@@ -185,6 +191,9 @@ func (p CommandLine) GetPinentry() string {
 }
 func (p CommandLine) GetAppType() libkb.AppType {
 	return libkb.DesktopAppType
+}
+func (p CommandLine) IsMobileExtension() (bool, bool) {
+	return false, false
 }
 func (p CommandLine) GetSlowGregorConn() (bool, bool) {
 	return p.GetBool("slow-gregor-conn", true)
@@ -356,6 +365,18 @@ func (p CommandLine) GetMountDir() string {
 
 func (p CommandLine) GetRememberPassphrase() (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
+}
+
+func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
+	return p.GetBool("attachment-disable-multi", true)
+}
+
+func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
+	ret := p.GetGInt("attachment-httpsrv-port")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
 }
 
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
@@ -536,6 +557,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "pvl-kit",
 			Usage: "Specify an alternate local PVL kit file location.",
+		},
+		cli.StringFlag{
+			Name:  "paramproof-kit",
+			Usage: "Specify an alternate local parameterized proof kit file location.",
 		},
 		cli.BoolFlag{
 			Name:  "remember-passphrase",

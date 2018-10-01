@@ -18,10 +18,9 @@ import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
 import markdown from './markdown.stories'
 import meta from './meta.stories'
-import nameWithIcon from './name-with-icon.stories'
+import nameWithIcon from './name-with-icon/index.stories'
 import newInput from './new-input.stories'
 import plainInput from './plain-input.stories'
-import popupMenu from './popup-menu.stories'
 import popupDialog from './popup-dialog.stories'
 import radiobutton from './radio-button.stories'
 import saveIndicator from './save-indicator.stories'
@@ -54,7 +53,6 @@ const load = () => {
     newInput,
     plainInput,
     popupDialog,
-    popupMenu,
     radiobutton,
     saveIndicator,
     standardScreen,

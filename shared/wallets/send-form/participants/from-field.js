@@ -2,9 +2,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import {ParticipantsRow} from '../../common'
+import type {AccountID} from '../../../constants/types/wallets'
 import {SelectedEntry, DropdownEntry} from './dropdown'
 import type {Account} from '.'
-import type {AccountID} from '../../../constants/types/wallets'
 
 type FromFieldProps = {|
   accounts: Account[],

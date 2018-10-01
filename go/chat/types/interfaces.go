@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	context "golang.org/x/net/context"
 )
 
@@ -34,6 +35,7 @@ type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 type NameInfoSource interface {
 	LookupIDUntrusted(ctx context.Context, name string, public bool) (*NameInfoUntrusted, error)
 	LookupID(ctx context.Context, name string, public bool) (*NameInfo, error)
+	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (*NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
 	EncryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (CryptKey, *NameInfo, error)
@@ -101,8 +103,14 @@ type MessageDeliverer interface {
 }
 
 type Searcher interface {
-	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp, sentBy string,
-		maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error)
+	SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, convID chat1.ConversationID,
+		re *regexp.Regexp, opts chat1.SearchOpts) ([]chat1.ChatSearchHit, error)
+}
+
+type Indexer interface {
+	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
+	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
+	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
 }
 
 type Sender interface {
@@ -153,6 +161,7 @@ type InboxSource interface {
 		policy chat1.RetentionPolicy) ([]chat1.ConversationLocal, error)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
+	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, *NameInfoUntrusted, error)
@@ -245,10 +254,12 @@ type ActivityNotifier interface {
 		topicType chat1.TopicType)
 	SetConvRetention(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
-	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID, topicType chat1.TopicType,
-		convs []chat1.InboxUIItem)
+	SetTeamRetention(ctx context.Context, uid gregor1.UID, teamID keybase1.TeamID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 	SetConvSettings(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		topicType chat1.TopicType, conv *chat1.InboxUIItem)
+	SubteamRename(ctx context.Context, uid gregor1.UID, convIDs []chat1.ConversationID,
+		topicType chat1.TopicType, convs []chat1.InboxUIItem)
 
 	InboxSyncStarted(ctx context.Context, uid gregor1.UID)
 	InboxSynced(ctx context.Context, uid gregor1.UID, topicType chat1.TopicType, syncRes chat1.ChatSyncResult)
@@ -323,4 +334,9 @@ type AttachmentUploader interface {
 
 type NativeVideoHelper interface {
 	ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error)
+}
+
+type StellarLoader interface {
+	LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo
+	LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo
 }

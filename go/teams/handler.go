@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -185,13 +186,20 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
 	change.Misc = row.Misc
+	m := libkb.NewMetaContext(ctx, g)
 
-	defer g.CTrace(ctx, fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
+	defer m.CTrace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
 	if err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno); err != nil {
-		g.Log.CWarningf(ctx, "error in HintLatestSeqno: %v", err)
+		m.CWarningf("error in HintLatestSeqno: %v", err)
 		return nil
 	}
+
+	if err = g.GetFastTeamLoader().HintLatestSeqno(m, row.Id, row.LatestSeqno); err != nil {
+		m.CWarningf("error in FastTeamLoader#HintLatestSeqno: %v", err)
+		err = nil // non-fatal
+	}
+
 	// If we're handling a rename we should also purge the resolver cache
 	if change.Renamed {
 		PurgeResolverTeamID(ctx, g, row.Id)
@@ -633,4 +641,8 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 	}
 
 	return nil
+}
+
+func HandleForceRepollNotification(ctx context.Context, g *libkb.GlobalContext, dtime gregor.TimeOrOffset) error {
+	return g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
 }

@@ -1,12 +1,10 @@
 // @flow
 import * as ConfigGen from '../actions/config-gen'
-import * as FavoriteGen from '../actions/favorite-gen'
-import * as KBFSGen from '../actions/kbfs-gen'
+import * as FsGen from '../actions/fs-gen'
 import Menubar from './index.desktop'
 import openUrl from '../util/open-url'
 import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
-import {defaultKBFSPath} from '../constants/config'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
 import {navigateTo, switchTo} from '../actions/route-tree'
@@ -30,10 +28,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(navigateTo([loginTab]))
   },
-  onFolderClick: (path: ?string) => {
-    dispatch(KBFSGen.createOpen({path: path || defaultKBFSPath}))
-    closeWindow()
-  },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
     closeWindow()
@@ -50,9 +44,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: () => {
-    dispatch(FavoriteGen.createFavoriteList())
-  },
+  refresh: () => dispatch(FsGen.createUserFileEditsLoad()),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -68,10 +60,13 @@ const mapDispatchToProps = dispatch => ({
   },
   updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  showUser: () => dispatchProps._showUser(stateProps.username),
-  ...ownProps,
-})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    showUser: () => dispatchProps._showUser(stateProps.username),
+    ...ownProps,
+  }
+}
 export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)

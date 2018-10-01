@@ -402,12 +402,12 @@ func (e DuplicateTopicNameError) Error() string {
 
 //=============================================================================
 
-type ImpteamUpgradeBadteamError struct {
+type ImpteamBadteamError struct {
 	Msg string
 }
 
-func (e ImpteamUpgradeBadteamError) Error() string {
-	return fmt.Sprintf("bad iteam found in upgraded conv: %s", e.Msg)
+func (e ImpteamBadteamError) Error() string {
+	return fmt.Sprintf("bad iteam found in conv: %s", e.Msg)
 }
 
 //=============================================================================
@@ -509,4 +509,18 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return OfflineErrorKindOfflineBasic
 	}
 	return OfflineErrorKindOnline
+}
+
+//=============================================================================
+
+type FTLError struct {
+	msg string
+}
+
+func NewFTLError(s string) error {
+	return &FTLError{msg: s}
+}
+
+func (f FTLError) Error() string {
+	return fmt.Sprintf("FTL Error: %s", f.msg)
 }

@@ -170,7 +170,7 @@ const styles = styleSheetCreate({
     common: {
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
-      backgroundColor: globalColors.black_05,
+      backgroundColor: globalColors.black_10,
       borderRadius: 19,
       flexGrow: 1,
       height: 24,

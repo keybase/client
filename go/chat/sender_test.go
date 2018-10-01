@@ -271,6 +271,8 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.Searcher = searcher
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
 
+	g.StellarLoader = types.DummyStellarLoader{}
+
 	return ctx, world, ri, sender, baseSender, &listener
 }
 
@@ -1083,7 +1085,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		}
 
 		// Nuke the body cache
-		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).MaybeNuke(context.TODO(), true, nil, conv.GetConvID(), uid))
+		require.NoError(t, storage.New(tc.Context(), tc.ChatG.ConvSource).ClearAll(context.TODO(), conv.GetConvID(), uid))
 
 		// Fetch a subset into the cache
 		_, err := tc.ChatG.ConvSource.Pull(ctx, conv.GetConvID(), uid, chat1.GetThreadReason_GENERAL, nil,
@@ -1293,9 +1295,14 @@ func TestPairwiseMACChecker(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
+		ephemeralMetadata := &chat1.MsgEphemeralMetadata{
+			Lifetime: 100000,
+		}
+
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
-		ctx := ctc.as(t, users[0]).startCtx
-		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
+		ctx1 := ctc.as(t, users[0]).startCtx
+		ctx2 := ctc.as(t, users[1]).startCtx
+		ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx1,
 			chat1.NewConversationLocalArg{
 				TlfName:       firstConv.TlfName,
 				TopicType:     chat1.TopicType_CHAT,
@@ -1305,36 +1312,46 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.NoError(t, err)
 		conv := ncres.Conv.Info
 
-		tc := ctc.world.Tcs[users[0].Username]
+		tc1 := ctc.world.Tcs[users[0].Username]
+		tc2 := ctc.world.Tcs[users[1].Username]
+		require.NoError(t, tc1.G.GetEKLib().KeygenIfNeeded(ctx1))
+		require.NoError(t, tc2.G.GetEKLib().KeygenIfNeeded(ctx2))
 		uid1 := users[0].User.GetUID()
 		uid2 := users[1].User.GetUID()
-		ri := ctc.as(t, users[0]).ri
-		boxer := NewBoxer(tc.Context())
-		getRI := func() chat1.RemoteInterface { return ri }
-		g := globals.NewContext(tc.G, tc.ChatG)
-		blockingSender := NewBlockingSender(g, boxer, getRI)
+		ri1 := ctc.as(t, users[0]).ri
+		getRI1 := func() chat1.RemoteInterface { return ri1 }
+		ri2 := ctc.as(t, users[1]).ri
+		getRI2 := func() chat1.RemoteInterface { return ri2 }
+		boxer1 := NewBoxer(tc1.Context())
+		boxer2 := NewBoxer(tc2.Context())
+		g1 := globals.NewContext(tc1.G, tc1.ChatG)
+		g2 := globals.NewContext(tc2.G, tc2.ChatG)
+		blockingSender1 := NewBlockingSender(g1, boxer1, getRI1)
+		blockingSender2 := NewBlockingSender(g2, boxer2, getRI2)
+		listener1 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
 
 		text := "hi"
 		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
 		// Pairwise MACs rely on the sender's DeviceID in the header.
-		deviceID := make([]byte, libkb.DeviceIDLen)
-		err = tc.G.ActiveDevice.DeviceID().ToBytes(deviceID)
+		deviceID1 := make([]byte, libkb.DeviceIDLen)
+		err = tc1.G.ActiveDevice.DeviceID().ToBytes(deviceID1)
 		require.NoError(t, err)
 		msg.ClientHeader.TlfName = firstConv.TlfName
-		msg.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID)
+		msg.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID1)
 
 		key := cryptKey(t)
-		signKP := getSigningKeyPairForTest(t, tc, users[0])
-		encryptionKeypair, err := tc.G.ActiveDevice.NaclEncryptionKey()
+		signKP := getSigningKeyPairForTest(t, tc1, users[0])
+		encryptionKeypair, err := tc1.G.ActiveDevice.NaclEncryptionKey()
 		require.NoError(t, err)
 
 		// Missing recipients uid2
 		pairwiseMACRecipients := []keybase1.KID{encryptionKeypair.GetKID()}
 
-		boxed, err := boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		boxed, err := boxer1.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
 		require.NoError(t, err)
 
-		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+		_, err = ri1.PostRemote(ctx1, chat1.PostRemoteArg{
 			ConversationID: conv.Id, MessageBoxed: *boxed,
 		})
 		require.Error(t, err)
@@ -1344,10 +1361,10 @@ func TestPairwiseMACChecker(t *testing.T) {
 
 		// Bogus recipients, both uids are missing
 		pairwiseMACRecipients = []keybase1.KID{"012141487209e42c6b39f7d9bcbda02a8e8045e4bcab10b571a5fa250ae72012bd3f0a"}
-		boxed, err = boxer.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
+		boxed, err = boxer1.box(context.TODO(), msg, key, nil, signKP, chat1.MessageBoxedVersion_V3, pairwiseMACRecipients)
 		require.NoError(t, err)
 
-		_, err = ri.PostRemote(ctx, chat1.PostRemoteArg{
+		_, err = ri1.PostRemote(ctx1, chat1.PostRemoteArg{
 			ConversationID: conv.Id,
 			MessageBoxed:   *boxed,
 		})
@@ -1361,15 +1378,65 @@ func TestPairwiseMACChecker(t *testing.T) {
 		require.Equal(t, expectedUIDs, merr.UIDs)
 
 		// Including all devices works
-		_, _, err = blockingSender.Send(ctx, conv.Id, msg, 0, nil)
+		msg.ClientHeader.EphemeralMetadata = ephemeralMetadata
+		_, _, err = blockingSender1.Send(ctx1, conv.Id, msg, 0, nil)
+		require.NoError(t, err)
+		select {
+		case <-listener1.newMessageRemote:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
+
+		// send from user2
+		text2 := "hi2"
+		msg2 := textMsgWithSender(t, text2, uid2.ToBytes(), chat1.MessageBoxedVersion_V3)
+		deviceID2 := make([]byte, libkb.DeviceIDLen)
+		err = tc2.G.ActiveDevice.DeviceID().ToBytes(deviceID2)
+		require.NoError(t, err)
+		msg2.ClientHeader.TlfName = firstConv.TlfName
+		msg2.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID2)
+		msg2.ClientHeader.EphemeralMetadata = ephemeralMetadata
+		_, _, err = blockingSender2.Send(ctx2, conv.Id, msg2, 0, nil)
+		require.NoError(t, err)
+		select {
+		case <-listener1.newMessageRemote:
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no new message")
+		}
+
+		tv, err := tc1.Context().ConvSource.Pull(ctx1, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
+		require.NoError(t, err)
+		require.Len(t, tv.Messages, 3)
+		for _, msg := range tv.Messages {
+			require.True(t, msg.IsValid())
+		}
+
+		// Delete user2 and ensure user1 can still read/write to the channel
+		kbtest.DeleteAccount(tc2.TestContext, users[1])
+		kbtest.Logout(tc1.TestContext)
+		require.NoError(t, users[0].Login(tc1.G))
+
+		// Nuke caches so we're forced to reload the deleted user
+		tc1.G.LocalDb.Nuke()
+		tc1.G.LocalChatDb.Nuke()
+
+		text3 := "hi3"
+		msg3 := textMsgWithSender(t, text3, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)
+		msg3.ClientHeader.TlfName = firstConv.TlfName
+		msg3.ClientHeader.SenderDevice = gregor1.DeviceID(deviceID1)
+		msg3.ClientHeader.EphemeralMetadata = ephemeralMetadata
+		_, _, err = blockingSender1.Send(ctx1, conv.Id, msg3, 0, nil)
 		require.NoError(t, err)
 
-		tv, err := tc.Context().ConvSource.Pull(ctx, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
+		tc1.G.LocalDb.Nuke()
+		tc1.G.LocalChatDb.Nuke()
+
+		tv, err = tc1.Context().ConvSource.Pull(ctx1, conv.Id, uid1.ToBytes(), chat1.GetThreadReason_GENERAL, nil, nil)
 		require.NoError(t, err)
-		require.Len(t, tv.Messages, 2)
-		msgUnboxed := tv.Messages[0]
-		require.True(t, msgUnboxed.IsValid())
-		require.Equal(t, msgUnboxed.Valid().MessageBody.Text().Body, text)
+		require.Len(t, tv.Messages, 4)
+		for _, msg := range tv.Messages {
+			require.True(t, msg.IsValid())
+		}
 	})
 }
 

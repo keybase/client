@@ -9,6 +9,11 @@
       "path": "Types.Path",
       "pathItems": "I.Map<Types.Path, Types.PathItem>"
     },
+    "loadingPath": {
+      "path": "Types.Path",
+      "id": "string",
+      "done": "boolean"
+    },
     "favoritesLoad": {},
     "favoritesLoaded": {
       "private": "I.Map<string, Types.Tlf>",
@@ -84,8 +89,11 @@
       "totalSyncingBytes": "number",
       "endEstimate?": "?number"
     },
-    "openInFileUI": {
-      "path?": "string"
+    "openLocalPathInSystemFileManager": {
+      "path": "string"
+    },
+    "openPathInSystemFileManager": {
+      "path": "Types.Path"
     },
     "fuseStatus": {},
     "fuseStatusResult": {
@@ -98,8 +106,7 @@
       "fuseInstalling?": "boolean",
       "kextPermissionError?": "boolean",
       "securityPrefsPropmted?": "boolean",
-      "showBanner?": "boolean",
-      "syncing?": "boolean"
+      "showBanner?": "boolean"
     },
     "installFuse": {},
     "installFuseResult": {
@@ -152,6 +159,14 @@
       "path": "Types.Path",
       "routePath": "I.List<string>"
     },
+    "openPathInFilesTab": {
+      "path": "Types.Path",
+      "routePath?": "I.List<string>"
+    },
+    "openFilesFromWidget": {
+      "path": "Types.Path",
+      "type": "Types.PathType"
+    },
     "letResetUserBackIn": {
       "id": "RPCTypes.TeamID",
       "username": "string"
@@ -163,6 +178,10 @@
     "pickAndUpload": {
       "type": "Types.MobilePickType",
       "parentPath": "Types.Path"
+    },
+    "userFileEditsLoad": {},
+    "userFileEditsLoaded": {
+      "tlfUpdates": "Types.UserTlfUpdates"
     },
 
     "placeholderAction": {}

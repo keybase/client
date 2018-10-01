@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import Box from './box'
-import Text from './text'
+import Text, {allTextTypes} from './text'
 import {globalColors, globalStyles, isMobile, platformStyles} from '../styles'
 
 const SmallGap = () => <Box style={{minHeight: 24}} />
@@ -72,8 +72,6 @@ const groups = [
     {label: 'Body extrabold Body extrabold', type: 'BodyExtrabold'},
     {action: true, label: 'Body primary link', type: 'BodyPrimaryLink'},
     {action: true, label: 'Body secondary link', normalOnly: true, type: 'BodySecondaryLink'},
-    {label: 'Body error Body error', normalOnly: true, type: 'BodyError'},
-    {label: 'Body success Body success', normalOnly: true, type: 'BodySuccess'},
   ],
   [
     {label: 'Body small Body small', type: 'BodySmall'},
@@ -135,6 +133,15 @@ const load = () => {
           {mapText(true)}
         </Container>
       </Box>
+    ))
+    .add('TextAll', () => (
+      <>
+        {Object.keys(allTextTypes).map(t => (
+          <Box key={t}>
+            <Text type={t}>{t}</Text>
+          </Box>
+        ))}
+      </>
     ))
 }
 

@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
-import {Box2, Icon, NewInput, Text} from '../../../common-adapters'
-import {collapseStyles, globalColors, styleSheetCreate} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
-type Props = {
+type Props = {|
   bottomLabel: string,
   displayUnit: string,
   inputPlaceholder: string,
@@ -11,92 +11,101 @@ type Props = {
   onChangeDisplayUnit: () => void,
   onClickInfo: () => void,
   topLabel: string,
+  value: string,
   warningAsset?: string,
   warningPayee?: string,
-}
+|}
 
 const AssetInput = (props: Props) => (
-  <Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.flexStart}>
+  <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} style={styles.container}>
     {!!props.topLabel && (
-      <Text type="BodySmallSemibold" style={collapseStyles([styles.topLabel, styles.labelMargin])}>
+      <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.topLabel, styles.labelMargin])}>
         {props.topLabel}
-      </Text>
+      </Kb.Text>
     )}
-    <NewInput
+    <Kb.NewInput
       type="number"
       decoration={
-        <Box2 direction="vertical" style={styles.flexEnd}>
-          <Text type="HeaderBigExtrabold" style={styles.unit}>
+        <Kb.Box2 direction="vertical" style={styles.flexEnd}>
+          <Kb.Text type="HeaderBigExtrabold" style={styles.unit}>
             {props.displayUnit}
-          </Text>
-          <Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
+          </Kb.Text>
+          <Kb.Text type="BodySmallPrimaryLink" onClick={props.onChangeDisplayUnit}>
             Change
-          </Text>
-        </Box2>
+          </Kb.Text>
+        </Kb.Box2>
       }
       containerStyle={styles.inputContainer}
       style={styles.input}
       onChangeText={props.onChangeAmount}
       textType="HeaderBigExtrabold"
       placeholder={props.inputPlaceholder}
-      placeholderColor={globalColors.purple2_40}
+      placeholderColor={Styles.globalColors.purple2_40}
       error={!!props.warningAsset}
+      value={props.value}
     />
     {props.warningAsset &&
       !props.warningPayee && (
-        <Text type="BodySmallError">
+        <Kb.Text type="BodySmallError">
           Your available to send is{' '}
-          <Text type="BodySmallExtrabold" style={{color: globalColors.red}}>
+          <Kb.Text type="BodySmallExtrabold" style={{color: Styles.globalColors.red}}>
             {props.warningAsset}
-          </Text>
-        </Text>
+          </Kb.Text>
+          .
+        </Kb.Text>
       )}
     {!!props.warningPayee && (
-      <Text type="BodySmallError">
+      <Kb.Text type="BodySmallError">
         {props.warningPayee} doesn't accept{' '}
-        <Text type="BodySmallSemibold" style={{color: globalColors.red}}>
+        <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.red}}>
           {props.warningAsset}
-        </Text>
+        </Kb.Text>
         . Please pick another asset.
-      </Text>
+      </Kb.Text>
     )}
-    <Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-      <Text type="BodySmall" style={styles.labelMargin}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+      <Kb.Text type="BodySmall" style={styles.labelMargin} selectable={true}>
         {props.bottomLabel}
-      </Text>
-      <Icon
+      </Kb.Text>
+      <Kb.Icon
         type="iconfont-question-mark"
-        color={globalColors.black_40}
+        color={Styles.globalColors.black_40}
         fontSize={12}
         onClick={props.onClickInfo}
       />
-    </Box2>
-  </Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   unit: {
-    color: globalColors.purple2,
+    color: Styles.globalColors.purple2,
   },
   input: {
-    color: globalColors.purple2,
+    color: Styles.globalColors.purple2,
     position: 'relative',
     top: -8,
   },
   inputContainer: {
     borderWidth: 0,
+    paddingLeft: 0,
+    paddingTop: 0,
   },
   flexEnd: {
     alignItems: 'flex-end',
   },
-  flexStart: {
+  container: {
     alignItems: 'flex-start',
+    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
   },
   labelMargin: {marginLeft: 1},
   text: {
     textAlign: 'center',
   },
-  topLabel: {color: globalColors.blue},
+  topLabel: {color: Styles.globalColors.blue},
 })
 
 export default AssetInput

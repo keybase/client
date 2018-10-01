@@ -74,7 +74,7 @@ class NoteAndMemo extends React.Component<Props, State> {
             {this.state.emojiPickerOpen &&
               !Styles.isMobile && (
                 <Kb.Overlay
-                  attachTo={this._emojiIcon.current}
+                  attachTo={() => this._emojiIcon.current}
                   position="bottom right"
                   onHidden={() => this.setState({emojiPickerOpen: false})}
                 >
@@ -88,11 +88,7 @@ class NoteAndMemo extends React.Component<Props, State> {
                 </Kb.Overlay>
               )}
           </Kb.Box2>
-          {!!this.props.noteError && (
-            <Kb.Text type="Body" style={styles.errorMessage}>
-              {this.props.noteError}
-            </Kb.Text>
-          )}
+          {!!this.props.noteError && <Kb.Text type="BodySmallError">{this.props.noteError}</Kb.Text>}
         </Kb.Box2>
         <Kb.Divider
           style={Styles.collapseStyles([
@@ -111,11 +107,7 @@ class NoteAndMemo extends React.Component<Props, State> {
             rowsMin={Styles.isMobile ? 1 : 2}
             rowsMax={6}
           />
-          {!!this.props.memoError && (
-            <Kb.Text type="Body" style={styles.errorMessage}>
-              {this.props.memoError}
-            </Kb.Text>
-          )}
+          {!!this.props.memoError && <Kb.Text type="BodySmallError">{this.props.memoError}</Kb.Text>}
         </Kb.Box2>
         <Kb.Divider
           style={Styles.collapseStyles([
@@ -138,9 +130,6 @@ const styles = Styles.styleSheetCreate({
   },
   emojiIcon: {
     alignSelf: 'flex-end',
-  },
-  errorMessage: {
-    color: Styles.globalColors.red,
   },
   divider: {
     marginTop: Styles.globalMargins.tiny,

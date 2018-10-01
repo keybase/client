@@ -11,6 +11,7 @@ const load = () => {
         onStart={action('onStart')}
         showAddParticipants={true}
         isLoading={false}
+        isError={false}
       />
     ))
     .add('No add more', () => (
@@ -19,6 +20,7 @@ const load = () => {
         onStart={action('onStart')}
         showAddParticipants={false}
         isLoading={false}
+        isError={false}
       />
     ))
     .add('Loading', () => (
@@ -27,6 +29,7 @@ const load = () => {
         onStart={action('onStart')}
         showAddParticipants={true}
         isLoading={true}
+        isError={false}
       />
     ))
 }

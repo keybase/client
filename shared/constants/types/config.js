@@ -6,18 +6,12 @@ import {type Tab} from '../tabs'
 import {type DeviceID} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
-export type AvatarSizes = {
-  '200': string,
-  '360': string,
-  '40': string,
-}
-
 export type OutOfDate = 'out-of-date' | 'critically-out-of-date'
 
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
-  avatars: {[username: string]: AvatarSizes}, // MUST be a plain object for remotes to work correctly
+  avatars: I.Map<string, I.Map<number, string>>,
   configuredAccounts: I.List<string>,
   daemonError: ?Error,
   daemonHandshakeState: 'starting' | 'waitingForWaiters' | 'done',

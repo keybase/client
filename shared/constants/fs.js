@@ -150,13 +150,16 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 })
 
 // Populate `time` with Date.now() if not provided.
-export const makeError = (
-  record?: $Rest<Types._FsError, {time: number, error: string}> & {time?: number, error: any}
-): I.RecordOf<Types._FsError> => {
+export const makeError = (record?: {
+  time?: number,
+  error: any,
+  erroredAction: any,
+  retriableAction?: any,
+}): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
     time: time || Date.now(),
-    error: !error ? 'unknown error' : JSON.stringify(error),
+    error: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
     retriableAction,
   })
@@ -169,11 +172,12 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   tlfs: makeTlfs(),
   edits: I.Map(),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
+  loadingPaths: I.Map(),
   downloads: I.Map(),
   uploads: makeUploads(),
   localHTTPServerInfo: null,
   errors: I.Map(),
+  tlfUpdates: I.List(),
 })
 
 const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
@@ -198,11 +202,12 @@ const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIc
 })
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
 const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.darkBlue
+const privateTextColor = globalColors.black_75
 const publicIconColor = globalColors.yellowGreen
 const publicTextColor = globalColors.yellowGreen2
 const unknownTextColor = globalColors.grey
@@ -252,12 +257,20 @@ const itemStylesKeybase = {
 }
 
 const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
-  if (usernames.length === 1) {
-    return makeAvatarPathItemIconSpec(usernames[0])
-  } else if (usernames.length > 1) {
-    return makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
-  }
-  return makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+  return usernames.length === 0
+    ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
+    : usernames.length === 1
+      ? makeAvatarPathItemIconSpec(usernames[0])
+      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
+}
+export const getIconSpecFromUsernamesAndTeamname = (
+  usernames: ?Array<string>,
+  teamname: ?string,
+  me?: ?string
+) => {
+  return teamname && teamname.length > 0
+    ? makeTeamAvatarPathItemIconSpec(teamname)
+    : getIconSpecFromUsernames(usernames || [], me)
 }
 const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
@@ -501,6 +514,66 @@ export const createFavoritesLoadedFromJSONResults = (
   })
 }
 
+export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
+  path: Types.stringToPath(''),
+  writer: '',
+  serverTime: 0,
+  history: I.List(),
+})
+
+export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  filename: '',
+  serverTime: 0,
+  editType: 'unknown',
+})
+
+const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
+  switch (fsNotificationType) {
+    case RPCTypes.kbfsCommonFSNotificationType.fileCreated:
+      return 'created'
+    case RPCTypes.kbfsCommonFSNotificationType.fileModified:
+      return 'modified'
+    case RPCTypes.kbfsCommonFSNotificationType.fileDeleted:
+      return 'deleted'
+    case RPCTypes.kbfsCommonFSNotificationType.fileRenamed:
+      return 'renamed'
+    default:
+      return 'unknown'
+  }
+}
+
+export const userTlfHistoryRPCToState = (
+  history: Array<RPCTypes.FSFolderEditHistory>
+): Types.UserTlfUpdates => {
+  let updates = []
+  history.forEach(folder => {
+    const updateServerTime = folder.serverTime
+    const path = pathFromFolderRPC(folder.folder)
+    const tlfUpdates = folder.history
+      ? folder.history.map(({writerName, edits}) =>
+          makeTlfUpdate({
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
+            history: I.List(
+              edits
+                ? edits.map(({filename, notificationType, serverTime}) =>
+                    makeTlfEdit({
+                      filename,
+                      serverTime,
+                      editType: fsNotificationTypeToEditType(notificationType),
+                    })
+                  )
+                : []
+            ),
+          })
+        )
+      : []
+    updates = updates.concat(tlfUpdates)
+  })
+  return I.List(updates)
+}
+
 export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
   if (mimeType === 'text/plain') {
     return 'text'
@@ -557,6 +630,12 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
     notificationsOn: false,
     created: false,
   }
+}
+
+export const pathFromFolderRPC = (folder: RPCTypes.Folder): Types.Path => {
+  const visibility = Types.getVisibilityFromRPCFolderType(folder.folderType)
+  if (!visibility) return Types.stringToPath('')
+  return Types.stringToPath(`/keybase/${visibility}/${folder.name}`)
 }
 
 export const showIgnoreFolder = (path: Types.Path, username?: string): boolean => {
@@ -664,6 +743,21 @@ export const kbfsEnabled = (state: TypedState) =>
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
 
+export const kbfsOutdated = (state: TypedState) =>
+  isWindows && state.fs.fuseStatus && state.fs.fuseStatus.installAction === 2
+
+export const kbfsUninstallString = (state: TypedState) => {
+  if (state.fs.fuseStatus && state.fs.fuseStatus.status && state.fs.fuseStatus.status.fields) {
+    const field = state.fs.fuseStatus.status.fields.find(element => {
+      return element.key === 'uninstallString'
+    })
+    if (field) {
+      return field.value
+    }
+  }
+  return ''
+}
+
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 
@@ -692,6 +786,10 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to load mime type: ${Types.pathToString(action.payload.path)}.`
     case FsGen.favoriteIgnore:
       return `Failed to ignore: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInSystemFileManager:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openLocalPathInSystemFileManager:
+      return `Failed to open path: ${action.payload.path}.`
     default:
       return 'An unexplainable error has occurred.'
   }

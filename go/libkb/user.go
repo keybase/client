@@ -462,12 +462,12 @@ func (u *User) sigChain() *SigChain {
 	return u.sigChainMem
 }
 
-func (u *User) MakeIDTable() error {
+func (u *User) MakeIDTable(m MetaContext) error {
 	kid := u.GetEldestKID()
 	if kid.IsNil() {
 		return NoKeyError{"Expected a key but didn't find one"}
 	}
-	idt, err := NewIdentityTable(u.G(), kid, u.sigChain(), u.sigHints)
+	idt, err := NewIdentityTable(m, kid, u.sigChain(), u.sigHints)
 	if err != nil {
 		return err
 	}

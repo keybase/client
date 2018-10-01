@@ -57,7 +57,7 @@
     "mobileAppState": { "nextAppState": ["'active'", "'background'", "'inactive'"] },
     "showMain": {},
     "loadAvatars": { "usernames": "Array<string>" },
-    "loadedAvatars": { "nameToUrlMap": "{[name: string]: ?Object}" },
+    "loadedAvatars": { "avatars": "I.Map<string, I.Map<number, string>>" },
     "loadTeamAvatars": { "teamnames": "Array<string>" },
     "bootstrapStatusLoaded": {
       "deviceID": "string",

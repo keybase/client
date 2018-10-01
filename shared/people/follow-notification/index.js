@@ -16,7 +16,7 @@ import {globalStyles, globalColors, globalMargins, platformStyles} from '../../s
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   inline: true,
   colorFollowing: true,
   type: 'BodySemibold',

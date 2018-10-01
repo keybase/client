@@ -436,6 +436,44 @@ func InstallAuto(context Context, binPath string, sourcePath string, timeout tim
 	return Install(context, binPath, sourcePath, components, forceUnmount, timeout, log)
 }
 
+const mountsPresentErrorCode = 7 // See Installer/Installer.m
+
+func installFuse(runMode libkb.RunMode, log Log) error {
+	err := libnativeinstaller.InstallFuse(runMode, log)
+	switch e := err.(type) {
+	case nil:
+		return nil
+	case (*exec.ExitError):
+		if waitStatus, ok := e.Sys().(syscall.WaitStatus); ok {
+			if waitStatus.ExitStatus() != mountsPresentErrorCode {
+				return err
+			}
+			// Otherwise, continue with the logic after switch.
+		} else {
+			return err
+		}
+	default:
+		return err
+	}
+
+	log.Info("Can't install/upgrade fuse when mounts are present. " +
+		"Assuming it's the redirector and trying to uninstall it first.")
+	if err = libnativeinstaller.UninstallRedirector(runMode, log); err != nil {
+		log.Info("Uninstalling redirector failed. " +
+			"Fuse should be able to update next time the OS reboots.")
+		return err
+	}
+	defer libnativeinstaller.InstallRedirector(runMode, log)
+	log.Info(
+		"Uninstalling redirector succeeded. Trying to install KBFuse again.")
+	if err = libnativeinstaller.InstallFuse(runMode, log); err != nil {
+		log.Info("Installing fuse failed again. " +
+			"Fuse should be able to update next time the OS reboots.")
+		return err
+	}
+	return nil
+}
+
 // Install installs specified components
 func Install(context Context, binPath string, sourcePath string, components []string, force bool, timeout time.Duration, log Log) keybase1.InstallResult {
 	var err error
@@ -532,7 +570,7 @@ func Install(context Context, binPath string, sourcePath string, components []st
 
 	if !helperCanceled &&
 		libkb.IsIn(string(ComponentNameFuse), components, false) {
-		err = libnativeinstaller.InstallFuse(context.GetRunMode(), log)
+		err = installFuse(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameFuse), err))
 		if err != nil {
 			log.Errorf("Error installing KBFuse: %s", err)

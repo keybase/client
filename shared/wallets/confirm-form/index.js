@@ -59,12 +59,12 @@ const ConfirmSend = (props: ConfirmSendProps) => (
             <React.Fragment>
               <Kb.Icon
                 type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.icon)}
+                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
                 color={Styles.globalColors.white}
               />
-              <Kb.Text type="BodySemibold" style={styles.buttonText}>
+              <Kb.Text type="BodyBig" style={styles.buttonText}>
                 Send{' '}
-                <Kb.Text type="BodyExtrabold" style={styles.buttonText}>
+                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
                   {props.amount} {props.assetType}
                 </Kb.Text>
               </Kb.Text>
@@ -79,7 +79,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
 const styles = Styles.styleSheetCreate({
   buttonText: {color: Styles.globalColors.white},
   buttonIcon: {
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.xtiny,
   },
   buttonContainer: Styles.platformStyles({
     common: {

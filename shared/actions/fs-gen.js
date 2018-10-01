@@ -35,6 +35,7 @@ export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const journalUpdate = 'fs:journalUpdate'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
 export const mimeTypeLoaded = 'fs:mimeTypeLoaded'
@@ -43,7 +44,10 @@ export const newFolderRow = 'fs:newFolderRow'
 export const notifySyncActivity = 'fs:notifySyncActivity'
 export const notifyTlfUpdate = 'fs:notifyTlfUpdate'
 export const openAndUpload = 'fs:openAndUpload'
-export const openInFileUI = 'fs:openInFileUI'
+export const openFilesFromWidget = 'fs:openFilesFromWidget'
+export const openLocalPathInSystemFileManager = 'fs:openLocalPathInSystemFileManager'
+export const openPathInFilesTab = 'fs:openPathInFilesTab'
+export const openPathInSystemFileManager = 'fs:openPathInSystemFileManager'
 export const openPathItem = 'fs:openPathItem'
 export const openSecurityPreferences = 'fs:openSecurityPreferences'
 export const pickAndUpload = 'fs:pickAndUpload'
@@ -57,6 +61,8 @@ export const uninstallKBFSConfirm = 'fs:uninstallKBFSConfirm'
 export const upload = 'fs:upload'
 export const uploadStarted = 'fs:uploadStarted'
 export const uploadWritingSuccess = 'fs:uploadWritingSuccess'
+export const userFileEditsLoad = 'fs:userFileEditsLoad'
+export const userFileEditsLoaded = 'fs:userFileEditsLoaded'
 
 // Payload Types
 type _CancelDownloadPayload = $ReadOnly<{|key: string|}>
@@ -131,6 +137,11 @@ type _LetResetUserBackInPayload = $ReadOnly<{|
   id: RPCTypes.TeamID,
   username: string,
 |}>
+type _LoadingPathPayload = $ReadOnly<{|
+  path: Types.Path,
+  id: string,
+  done: boolean,
+|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|
   address: string,
   token: string,
@@ -154,7 +165,16 @@ type _OpenAndUploadPayload = $ReadOnly<{|
   type: Types.OpenDialogType,
   parentPath: Types.Path,
 |}>
-type _OpenInFileUIPayload = $ReadOnly<{|path?: string|}>
+type _OpenFilesFromWidgetPayload = $ReadOnly<{|
+  path: Types.Path,
+  type: Types.PathType,
+|}>
+type _OpenLocalPathInSystemFileManagerPayload = $ReadOnly<{|path: string|}>
+type _OpenPathInFilesTabPayload = $ReadOnly<{|
+  path: Types.Path,
+  routePath?: I.List<string>,
+|}>
+type _OpenPathInSystemFileManagerPayload = $ReadOnly<{|path: Types.Path|}>
 type _OpenPathItemPayload = $ReadOnly<{|
   path: Types.Path,
   routePath: I.List<string>,
@@ -177,7 +197,6 @@ type _SetFlagsPayload = $ReadOnly<{|
   kextPermissionError?: boolean,
   securityPrefsPropmted?: boolean,
   showBanner?: boolean,
-  syncing?: boolean,
 |}>
 type _ShareNativePayload = $ReadOnly<{|
   path: Types.Path,
@@ -194,6 +213,8 @@ type _UploadPayload = $ReadOnly<{|
 |}>
 type _UploadStartedPayload = $ReadOnly<{|path: Types.Path|}>
 type _UploadWritingSuccessPayload = $ReadOnly<{|path: Types.Path|}>
+type _UserFileEditsLoadPayload = void
+type _UserFileEditsLoadedPayload = $ReadOnly<{|tlfUpdates: Types.UserTlfUpdates|}>
 
 // Action Creators
 export const createCancelDownload = (payload: _CancelDownloadPayload) => ({error: false, payload, type: cancelDownload})
@@ -222,6 +243,7 @@ export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => (
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({error: false, payload, type: installKBFS})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({error: false, payload, type: journalUpdate})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({error: false, payload, type: letResetUserBackIn})
+export const createLoadingPath = (payload: _LoadingPathPayload) => ({error: false, payload, type: loadingPath})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({error: false, payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({error: false, payload, type: mimeTypeLoad})
 export const createMimeTypeLoaded = (payload: _MimeTypeLoadedPayload) => ({error: false, payload, type: mimeTypeLoaded})
@@ -230,7 +252,10 @@ export const createNewFolderRow = (payload: _NewFolderRowPayload) => ({error: fa
 export const createNotifySyncActivity = (payload: _NotifySyncActivityPayload) => ({error: false, payload, type: notifySyncActivity})
 export const createNotifyTlfUpdate = (payload: _NotifyTlfUpdatePayload) => ({error: false, payload, type: notifyTlfUpdate})
 export const createOpenAndUpload = (payload: _OpenAndUploadPayload) => ({error: false, payload, type: openAndUpload})
-export const createOpenInFileUI = (payload: _OpenInFileUIPayload) => ({error: false, payload, type: openInFileUI})
+export const createOpenFilesFromWidget = (payload: _OpenFilesFromWidgetPayload) => ({error: false, payload, type: openFilesFromWidget})
+export const createOpenLocalPathInSystemFileManager = (payload: _OpenLocalPathInSystemFileManagerPayload) => ({error: false, payload, type: openLocalPathInSystemFileManager})
+export const createOpenPathInFilesTab = (payload: _OpenPathInFilesTabPayload) => ({error: false, payload, type: openPathInFilesTab})
+export const createOpenPathInSystemFileManager = (payload: _OpenPathInSystemFileManagerPayload) => ({error: false, payload, type: openPathInSystemFileManager})
 export const createOpenPathItem = (payload: _OpenPathItemPayload) => ({error: false, payload, type: openPathItem})
 export const createOpenSecurityPreferences = (payload: _OpenSecurityPreferencesPayload) => ({error: false, payload, type: openSecurityPreferences})
 export const createPickAndUpload = (payload: _PickAndUploadPayload) => ({error: false, payload, type: pickAndUpload})
@@ -244,6 +269,8 @@ export const createUninstallKBFSConfirm = (payload: _UninstallKBFSConfirmPayload
 export const createUpload = (payload: _UploadPayload) => ({error: false, payload, type: upload})
 export const createUploadStarted = (payload: _UploadStartedPayload) => ({error: false, payload, type: uploadStarted})
 export const createUploadWritingSuccess = (payload: _UploadWritingSuccessPayload) => ({error: false, payload, type: uploadWritingSuccess})
+export const createUserFileEditsLoad = (payload: _UserFileEditsLoadPayload) => ({error: false, payload, type: userFileEditsLoad})
+export const createUserFileEditsLoaded = (payload: _UserFileEditsLoadedPayload) => ({error: false, payload, type: userFileEditsLoaded})
 
 // Action Payloads
 export type CancelDownloadPayload = $Call<typeof createCancelDownload, _CancelDownloadPayload>
@@ -272,6 +299,7 @@ export type InstallFuseResultPayload = $Call<typeof createInstallFuseResult, _In
 export type InstallKBFSPayload = $Call<typeof createInstallKBFS, _InstallKBFSPayload>
 export type JournalUpdatePayload = $Call<typeof createJournalUpdate, _JournalUpdatePayload>
 export type LetResetUserBackInPayload = $Call<typeof createLetResetUserBackIn, _LetResetUserBackInPayload>
+export type LoadingPathPayload = $Call<typeof createLoadingPath, _LoadingPathPayload>
 export type LocalHTTPServerInfoPayload = $Call<typeof createLocalHTTPServerInfo, _LocalHTTPServerInfoPayload>
 export type MimeTypeLoadPayload = $Call<typeof createMimeTypeLoad, _MimeTypeLoadPayload>
 export type MimeTypeLoadedPayload = $Call<typeof createMimeTypeLoaded, _MimeTypeLoadedPayload>
@@ -280,7 +308,10 @@ export type NewFolderRowPayload = $Call<typeof createNewFolderRow, _NewFolderRow
 export type NotifySyncActivityPayload = $Call<typeof createNotifySyncActivity, _NotifySyncActivityPayload>
 export type NotifyTlfUpdatePayload = $Call<typeof createNotifyTlfUpdate, _NotifyTlfUpdatePayload>
 export type OpenAndUploadPayload = $Call<typeof createOpenAndUpload, _OpenAndUploadPayload>
-export type OpenInFileUIPayload = $Call<typeof createOpenInFileUI, _OpenInFileUIPayload>
+export type OpenFilesFromWidgetPayload = $Call<typeof createOpenFilesFromWidget, _OpenFilesFromWidgetPayload>
+export type OpenLocalPathInSystemFileManagerPayload = $Call<typeof createOpenLocalPathInSystemFileManager, _OpenLocalPathInSystemFileManagerPayload>
+export type OpenPathInFilesTabPayload = $Call<typeof createOpenPathInFilesTab, _OpenPathInFilesTabPayload>
+export type OpenPathInSystemFileManagerPayload = $Call<typeof createOpenPathInSystemFileManager, _OpenPathInSystemFileManagerPayload>
 export type OpenPathItemPayload = $Call<typeof createOpenPathItem, _OpenPathItemPayload>
 export type OpenSecurityPreferencesPayload = $Call<typeof createOpenSecurityPreferences, _OpenSecurityPreferencesPayload>
 export type PickAndUploadPayload = $Call<typeof createPickAndUpload, _PickAndUploadPayload>
@@ -294,6 +325,8 @@ export type UninstallKBFSConfirmPayload = $Call<typeof createUninstallKBFSConfir
 export type UploadPayload = $Call<typeof createUpload, _UploadPayload>
 export type UploadStartedPayload = $Call<typeof createUploadStarted, _UploadStartedPayload>
 export type UploadWritingSuccessPayload = $Call<typeof createUploadWritingSuccess, _UploadWritingSuccessPayload>
+export type UserFileEditsLoadPayload = $Call<typeof createUserFileEditsLoad, _UserFileEditsLoadPayload>
+export type UserFileEditsLoadedPayload = $Call<typeof createUserFileEditsLoaded, _UserFileEditsLoadedPayload>
 
 // All Actions
 // prettier-ignore
@@ -324,6 +357,7 @@ export type Actions =
   | InstallKBFSPayload
   | JournalUpdatePayload
   | LetResetUserBackInPayload
+  | LoadingPathPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload
   | MimeTypeLoadedPayload
@@ -332,7 +366,10 @@ export type Actions =
   | NotifySyncActivityPayload
   | NotifyTlfUpdatePayload
   | OpenAndUploadPayload
-  | OpenInFileUIPayload
+  | OpenFilesFromWidgetPayload
+  | OpenLocalPathInSystemFileManagerPayload
+  | OpenPathInFilesTabPayload
+  | OpenPathInSystemFileManagerPayload
   | OpenPathItemPayload
   | OpenSecurityPreferencesPayload
   | PickAndUploadPayload
@@ -346,4 +383,6 @@ export type Actions =
   | UploadPayload
   | UploadStartedPayload
   | UploadWritingSuccessPayload
+  | UserFileEditsLoadPayload
+  | UserFileEditsLoadedPayload
   | {type: 'common:resetStore', payload: void}

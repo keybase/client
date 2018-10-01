@@ -230,7 +230,9 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	}
 
 	// Load UPAKs to get the last writer username and device name.
-	lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithUID(responseRepo.LastModifyingUID))
+	lastWriterUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithContext(ctx, g).
+		WithUID(responseRepo.LastModifyingUID).
+		WithPublicKeyOptional())
 	if err != nil {
 		return nil, false, err
 	}
@@ -255,7 +257,10 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	if err != nil {
 		return nil, false, err
 	}
-	selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArg(g).WithSelf(true).WithUID(g.GetMyUID()))
+	selfUPAK, _, err := g.GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithContext(ctx, g).
+		WithSelf(true).
+		WithUID(g.GetMyUID()).
+		WithPublicKeyOptional())
 	if err != nil {
 		return nil, false, err
 	}

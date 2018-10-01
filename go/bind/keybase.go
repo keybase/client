@@ -120,18 +120,18 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
+func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
-		if err := Init(homeDir, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
+		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
 			kbCtx.Log.Errorf("Init error: %s", err)
 		}
 	})
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride bool,
-	externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
+func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() {
 		err = flattenError(err)
 		if err == nil {
@@ -139,7 +139,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		}
 	}()
 
-	fmt.Println("Go: Initializing")
+	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
 	}
@@ -160,7 +160,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 
 	kbCtx = libkb.NewGlobalContext()
 	kbCtx.Init()
-	kbCtx.SetServices(externals.GetServices())
+	kbCtx.SetProofServices(externals.NewProofServices(kbCtx))
 
 	// 10k uid -> FullName cache entries allowed
 	kbCtx.SetUIDMapper(uidmap.NewUIDMap(10000))
@@ -175,6 +175,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 	config := libkb.AppConfig{
 		HomeDir:                        homeDir,
+		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
 		RunMode:                        runMode,
 		Debug:                          true,
@@ -182,6 +183,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		VDebugSetting:                  "mobile", // use empty string for same logging as desktop default
 		SecurityAccessGroupOverride:    accessGroupOverride,
 		ChatInboxSourceLocalizeThreads: 5,
+		LinkCacheSize:                  1000,
 	}
 	err = kbCtx.Configure(config, usage)
 	if err != nil {
@@ -198,6 +200,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	kbCtx.SetUIRouter(uir)
 	kbCtx.SetDNSNameServerFetcher(dnsNSFetcher)
 	svc.SetupCriticalSubServices()
+	svc.SetupChatModules(nil)
 	svc.RunBackgroundOperations(uir)
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
@@ -263,10 +266,11 @@ func (s serviceCn) NewChat(config libkbfs.Config, params libkbfs.InitParams, ctx
 }
 
 // LogSend sends a log to Keybase
-func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir string) (res string, err error) {
+func LogSend(status string, feedback string, sendLogs bool, uiLogPath, traceDir, cpuProfileDir string) (res string, err error) {
 	defer func() { err = flattenError(err) }()
 	logSendContext.Logs.Desktop = uiLogPath
 	logSendContext.Logs.Trace = traceDir
+	logSendContext.Logs.CPUProfile = cpuProfileDir
 	env := kbCtx.Env
 	return logSendContext.LogSend(status, feedback, sendLogs, 10*1024*1024, env.GetUID(), env.GetInstallID(), true /* mergeExtendedStatus */)
 }
@@ -431,8 +435,8 @@ func BackgroundSync() {
 	<-doneCh
 }
 
-func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool, intMessageID int,
-	pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
+func HandleBackgroundNotification(strConvID, body string, intMembersType int, displayPlaintext bool,
+	intMessageID int, pushID string, badgeCount, unixTime int, soundName string, pusher PushNotifier) (err error) {
 	if err := waitForInit(5 * time.Second); err != nil {
 		return nil
 	}
@@ -445,15 +449,33 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 		func() error { return err })()
 	defer func() { err = flattenError(err) }()
 
-	msg, err := unboxNotification(ctx, strConvID, body, intMembersType)
+	// Unbox
+	if !kbCtx.ActiveDevice.HaveKeys() {
+		return libkb.LoginRequiredError{}
+	}
+	mp := chat.NewMobilePush(gc)
+	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
+	bConvID, err := hex.DecodeString(strConvID)
 	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: invalid convID: %s msg: %s", strConvID, err)
 		return err
 	}
-
+	convID := chat1.ConversationID(bConvID)
+	membersType := chat1.ConversationMembersType(intMembersType)
+	msgUnboxed, err := mp.UnboxPushNotification(ctx, uid, convID, membersType, body)
+	if err != nil {
+		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
+		return err
+	}
 	if !displayPlaintext {
 		return nil
 	}
 
+	// Send notification
+	msg, err := mp.FormatPushText(ctx, uid, convID, membersType, msgUnboxed)
+	if err != nil {
+		return err
+	}
 	age := time.Since(time.Unix(int64(unixTime), 0))
 	if age >= 15*time.Second {
 		kbCtx.Log.CDebugf(ctx, "HandleBackgroundNotification: stale notification: %v", age)
@@ -463,29 +485,8 @@ func HandleBackgroundNotification(strConvID, body string, intMembersType int, di
 	id := fmt.Sprintf("%s:%d", strConvID, intMessageID)
 	pusher.LocalNotification(id, msg, badgeCount, soundName, strConvID, "chat.newmessage")
 	// Hit the remote server to let it know we succeeded in showing something useful
-	kbCtx.ChatHelper.AckMobileNotificationSuccess(ctx, []string{pushID})
+	mp.AckNotificationSuccess(ctx, []string{pushID})
 	return nil
-}
-
-func unboxNotification(ctx context.Context, strConvID, body string, intMembersType int) (msg string, err error) {
-	if !kbCtx.ActiveDevice.HaveKeys() {
-		return "", libkb.LoginRequiredError{}
-	}
-	uid := gregor1.UID(kbCtx.Env.GetUID().ToBytes())
-	bConvID, err := hex.DecodeString(strConvID)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: invalid convID: %s msg: %s", strConvID,
-			err)
-		return "", err
-	}
-	convID := chat1.ConversationID(bConvID)
-	membersType := chat1.ConversationMembersType(intMembersType)
-	msg, err = kbCtx.ChatHelper.UnboxMobilePushNotification(ctx, uid, convID, membersType, body)
-	if err != nil {
-		kbCtx.Log.CDebugf(ctx, "unboxNotification: failed to unbox: %s", err)
-		return "", err
-	}
-	return msg, nil
 }
 
 func pushPendingMessageFailure(convID chat1.ConversationID, pusher PushNotifier) {

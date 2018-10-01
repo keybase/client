@@ -15,45 +15,50 @@ type ParticipantsProps = {|
   recipientType: CounterpartyType,
   // Used for send to other account
   user: string,
-  fromAccount: Account,
+  fromAccount?: Account,
+  toAccount?: Account,
   allAccounts: Account[],
-  onChangeFromAccount: (id: AccountID) => void,
-  onChangeToAccount: (id: AccountID) => void,
+  onChangeFromAccount: string => void,
+  onChangeRecipient: string => void,
   onLinkAccount: () => void,
   onCreateNewAccount: () => void,
   // Used for send to stellar address
   incorrect?: string,
-  onChangeAddress: string => void,
+  toFieldInput: string,
   // Used to display a keybase profile
   recipientUsername?: string,
   recipientFullName?: string,
   onShowProfile?: string => void,
+  onShowSuggestions: () => void,
   onRemoveProfile?: () => void,
 |}
 
 const Participants = (props: ParticipantsProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
-    {props.recipientType === 'otherAccount' && (
-      <FromField
-        initialAccount={props.fromAccount}
-        accounts={props.allAccounts}
-        onChangeSelectedAccount={props.onChangeFromAccount}
-        user={props.user}
-      />
-    )}
+    {props.recipientType === 'otherAccount' &&
+      props.fromAccount && (
+        <FromField
+          initialAccount={props.fromAccount}
+          accounts={props.allAccounts}
+          onChangeSelectedAccount={props.onChangeFromAccount}
+          user={props.user}
+        />
+      )}
     <ToField
+      toAccount={props.toAccount}
       accounts={props.allAccounts}
-      recipientFullName={props.recipientFullName}
       incorrect={props.incorrect}
-      onChangeAddress={props.onChangeAddress}
-      onChangeSelectedAccount={props.onChangeToAccount}
+      onChangeRecipient={props.onChangeRecipient}
       onCreateNewAccount={props.onCreateNewAccount}
       onLinkAccount={props.onLinkAccount}
       onRemoveProfile={props.onRemoveProfile}
       onShowProfile={props.onShowProfile}
+      onShowSuggestions={props.onShowSuggestions}
+      recipientFullName={props.recipientFullName}
       recipientType={props.recipientType}
-      user={props.user}
       recipientUsername={props.recipientUsername}
+      toFieldInput={props.toFieldInput}
+      user={props.user}
     />
   </Kb.Box2>
 )

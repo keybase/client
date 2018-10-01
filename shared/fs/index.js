@@ -73,7 +73,7 @@ class Files extends React.PureComponent<FolderProps> {
       */
         return (
           <WrapRow key="">
-            <Text type="BodyError">This should not happen.</Text>
+            <Text type="BodySmallError">This should not happen.</Text>
           </WrapRow>
         )
     }

@@ -5,7 +5,7 @@ import * as React from 'react'
 import {Box, Box2, ClickableBox} from '../../common-adapters'
 import PathItemIcon from '../common/path-item-icon'
 import PathItemAction from '../common/path-item-action-container'
-import OpenInFileUI from '../common/open-in-fileui-container'
+import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
@@ -38,6 +38,9 @@ const rowText = Styles.platformStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
+  },
+  isMobile: {
+    flexShrink: 1,
   },
 })
 
@@ -152,7 +155,7 @@ export const StillCommon = (
       {props.children}
     </ClickableBox>
     <Box style={rowStyles.rightBox}>
-      <OpenInFileUI path={props.path} />
+      <OpenInSystemFileManager path={props.path} />
       <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
     </Box>
   </HoverBox>

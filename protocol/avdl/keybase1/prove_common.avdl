@@ -81,9 +81,37 @@ protocol proveCommon {
     // Reserved (in line with keybase/proofs) but not yet implemented.
     // BITBUCKET_7,
     FACEBOOK_8,
+    GENERIC_SOCIAL_9,
     GENERIC_WEB_SITE_1000,
     DNS_1001,
     PGP_1002,
     ROOTER_100001
   }
+
+  record ProofServiceGroup {
+    // TODO need to spec out
+    string id;
+  }
+
+  record ParamProofUsernameConfig {
+    string re;
+    int min;
+    int max;
+  }
+
+  record ParamProofServiceConfig {
+    int version;
+    string domain;
+    @jsonkey("display_name")
+    string displayName;
+    union { null, ProofServiceGroup } group;
+    ParamProofUsernameConfig username;
+    @jsonkey("prefill_url")
+    string prefillUrl;
+    @jsonkey("check_url")
+    string checkUrl;
+    @jsonkey("check_path")
+    array<string> checkPath;
+  }
+
 }

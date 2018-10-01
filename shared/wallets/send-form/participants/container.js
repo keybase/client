@@ -1,9 +1,11 @@
 // @flow
 import Participants from '.'
 import * as RouteTree from '../../../actions/route-tree'
+import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {getAccount, getAccountIDs} from '../../../constants/wallets'
-import {stringToAccountID, accountIDToString, type AccountID} from '../../../constants/types/wallets'
+import * as TrackerGen from '../../../actions/tracker-gen'
+import {getAccount, getAccountIDs, searchKey} from '../../../constants/wallets'
+import {stringToAccountID} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
 const mapStateToProps = (state: TypedState) => {
@@ -20,15 +22,28 @@ const mapStateToProps = (state: TypedState) => {
       }
     })
     .toArray()
-  const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
-  const fromAccount = {
-    contents: fromAccountFromState.balanceDescription,
-    name: fromAccountFromState.name || fromAccountFromState.accountID,
-    id: fromAccountFromState.accountID,
+  let fromAccount
+  let toAccount
+  if (build.recipientType === 'otherAccount') {
+    const fromAccountFromState = getAccount(state, stringToAccountID(build.from))
+    fromAccount = {
+      contents: fromAccountFromState.balanceDescription,
+      id: fromAccountFromState.accountID,
+      name: fromAccountFromState.name || fromAccountFromState.accountID,
+    }
+    if (build.to) {
+      const toAccountFromState = getAccount(state, stringToAccountID(build.to))
+      toAccount = {
+        contents: toAccountFromState.balanceDescription,
+        id: toAccountFromState.accountID,
+        name: toAccountFromState.name || toAccountFromState.accountID,
+      }
+    }
   }
 
   // Building section
   const recipientType = build.recipientType || 'keybaseUser'
+  const toFieldInput = build.to
   // Built section
   const incorrect = built.toErrMsg
   const recipientUsername = built.toUsername
@@ -39,23 +54,42 @@ const mapStateToProps = (state: TypedState) => {
     incorrect,
     recipientType,
     recipientUsername,
+    toAccount,
+    toFieldInput,
     user: state.config.username,
   }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onChangeAddress: (to: string) => dispatch(WalletsGen.createSetBuildingTo({to})),
-  onChangeFromAccount: (id: AccountID) => {
-    const from = accountIDToString(id)
+  onChangeFromAccount: (from: string) => {
     dispatch(WalletsGen.createSetBuildingFrom({from}))
   },
-  onChangeToAccount: (id: AccountID) => {
-    const to = accountIDToString(id)
+  onChangeRecipient: (to: string) => {
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
-  onCreateNewAccount: () => dispatch(RouteTree.navigateAppend(['createNewAccount'])),
-  onLinkAccount: () => dispatch(RouteTree.navigateAppend(['linkExisting'])),
+  onCreateNewAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'createNewAccount',
+        },
+      ])
+    ),
+  onLinkAccount: () =>
+    dispatch(
+      RouteTree.navigateAppend([
+        {
+          props: {backButton: true},
+          selected: 'linkExisting',
+        },
+      ])
+    ),
   onRemoveProfile: () => dispatch(WalletsGen.createSetBuildingTo({to: ''})),
+  onShowProfile: (username: string) => {
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username}))
+  },
+  onShowSuggestions: () => dispatch(SearchGen.createSearchSuggestions({searchKey})),
 })
 
 export default compose(

@@ -3,6 +3,7 @@
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
+import * as WalletTypes from '../wallets'
 // $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
@@ -153,6 +154,15 @@ export type _MessageAttachment = {
 }
 export type MessageAttachment = I.RecordOf<_MessageAttachment>
 
+export type _ChatRequestInfo = {
+  amount: string,
+  amountDescription: string,
+  asset: WalletTypes.Asset,
+  currencyCode: string, // set if asset === 'currency'
+  type: 'requestInfo',
+}
+export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
+
 export type _MessageRequestPayment = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
@@ -161,15 +171,27 @@ export type _MessageRequestPayment = {
   deviceType: DeviceType,
   errorReason: ?string,
   id: MessageID,
-  note: string,
+  note: HiddenString,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
   requestID: RPCStellarTypes.KeybaseRequestID,
+  requestInfo: ?ChatRequestInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'requestPayment',
 }
 export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
+
+export type _ChatPaymentInfo = {
+  amountDescription: string,
+  delta: 'none' | 'increase' | 'decrease',
+  note: HiddenString,
+  status: WalletTypes.StatusSimplified,
+  statusDescription: string,
+  type: 'paymentInfo',
+  worth: string,
+}
+export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {
   author: string,
@@ -182,7 +204,7 @@ export type _MessageSendPayment = {
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
-  paymentID: RPCStellarTypes.PaymentID,
+  paymentInfo: ?ChatPaymentInfo, // If null, we are waiting on this from the service
   timestamp: number,
   type: 'sendPayment',
 }

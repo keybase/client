@@ -123,6 +123,7 @@ class UserInput extends Component<Props, State> {
   }
 
   _onFocus = () => {
+    this.props.onFocus && this.props.onFocus()
     this.setState({isFocused: true})
   }
 

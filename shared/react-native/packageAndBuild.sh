@@ -8,13 +8,13 @@ cd $dir/.. # we're in /shared/
 
 arg1=${1:-}
 arg2=${2:-}
-checkArg () 
+checkArg ()
 {
   # check if arg is bound
   if [ -x ${1+x} ]; then
     return
   fi
-  case $1 in 
+  case $1 in
     "ios"|"android"|"")
       ;;
     *)
@@ -31,7 +31,7 @@ requestbundles ()
     return
   fi
   printf "\nRequesting bundles...\n"
-  case "ios" in 
+  case "ios" in
     $arg1|$arg2)
       curl -s -o /dev/null localhost:8081/index.ios.bundle 2>&1;;
   esac
@@ -42,9 +42,9 @@ requestbundles ()
 }
 
 # start in background so we get the bundler dashboard
-sleep 5 && requestbundles & 
+sleep 5 && requestbundles &
 backgroundpid=$!
 trap 'kill $backgroundpid' EXIT # quit requestBundles on exit
 while true; do
-  ./node_modules/react-native/scripts/packager.sh --resetCache
+  BABEL_PLATFORM=ReactNative babel-node ./node_modules/react-native/local-cli/cli.js start --resetCache
 done

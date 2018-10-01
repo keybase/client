@@ -128,15 +128,14 @@ export const niceError = (e: RPCError) => {
   return caps.endsWith('.') ? caps : `${caps}.`
 }
 
+export function isEOFError(error: RPCError | Error) {
+  return (
+    error.code && error.code === transportErrors['EOF'] && error.message === transportErrors.msg[error.code]
+  )
+}
+
 export function isErrorTransient(error: RPCError | Error) {
-  if (
-    error.code &&
-    error.code === transportErrors['EOF'] &&
-    error.message === transportErrors.msg[error.code]
-  ) {
-    // 'EOF from server' error from rpc library thrown when service restarts
-    // no need to show to user
-    return true
-  }
-  return false
+  // 'EOF from server' error from rpc library thrown when service
+  // restarts no need to show to user
+  return isEOFError(error)
 }

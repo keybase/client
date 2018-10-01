@@ -48,7 +48,7 @@ class SelectOtherDevice extends React.Component<Props> {
         icon={<Icon type={iconType} />}
         body={
           <Box2 direction="vertical" fullWidth={true}>
-            <Text type="BodySemiboldItalic">
+            <Text type="BodySemibold">
               {name}
               {isBackup ? '...' : ''}
             </Text>

@@ -5,10 +5,12 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -22,11 +24,7 @@ type CmdChatSearch struct {
 	libkb.Contextified
 	resolvingRequest chatConversationResolvingRequest
 	query            string
-	sentBy           string
-	maxHits          int
-	maxMessages      int
-	beforeContext    int
-	afterContext     int
+	opts             chat1.SearchOpts
 	isRegex          bool
 	hasTTY           bool
 }
@@ -58,7 +56,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-hits",
 				Value: 10,
-				Usage: "Specify the maximum number of search hits to get.",
+				Usage: fmt.Sprintf("Specify the maximum number of search hits to get. Maximum value is %d.", chat.MaxAllowedSearchHits),
 			},
 			cli.StringFlag{
 				Name:  "sent-by",
@@ -68,7 +66,7 @@ func newCmdChatSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 			cli.IntFlag{
 				Name:  "max-messages",
 				Value: 10000,
-				Usage: "Specify the maximum number of messages to search.",
+				Usage: fmt.Sprintf("Specify the maximum number of messages to search. Maximum value is %d.", chat.MaxAllowedSearchMessages),
 			},
 			cli.IntFlag{
 				Name:  "B, before-context",
@@ -143,11 +141,7 @@ func (c *CmdChatSearch) Run() (err error) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		Query:            c.query,
 		IsRegex:          c.isRegex,
-		SentBy:           c.sentBy,
-		MaxHits:          c.maxHits,
-		MaxMessages:      c.maxMessages,
-		BeforeContext:    c.beforeContext,
-		AfterContext:     c.afterContext,
+		Opts:             c.opts,
 	}
 
 	_, err = resolver.ChatClient.GetSearchRegexp(ctx, arg)
@@ -167,16 +161,22 @@ func (c *CmdChatSearch) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	c.query = ctx.Args().Get(1)
-	c.sentBy = ctx.String("sent-by")
-	c.maxHits = ctx.Int("max-hits")
-	c.maxMessages = ctx.Int("max-messages")
+	c.opts.SentBy = ctx.String("sent-by")
+	c.opts.MaxHits = ctx.Int("max-hits")
+	if c.opts.MaxHits > chat.MaxAllowedSearchHits {
+		return fmt.Errorf("max-hits cannot exceed %d.", chat.MaxAllowedSearchHits)
+	}
+	c.opts.MaxMessages = ctx.Int("max-messages")
+	if c.opts.MaxMessages > chat.MaxAllowedSearchMessages {
+		return fmt.Errorf("max-messages cannot exceed %d.", chat.MaxAllowedSearchMessages)
+	}
 
-	c.afterContext = ctx.Int("after-context")
-	c.beforeContext = ctx.Int("before-context")
-	if c.afterContext == 0 && c.beforeContext == 0 {
+	c.opts.AfterContext = ctx.Int("after-context")
+	c.opts.BeforeContext = ctx.Int("before-context")
+	if c.opts.AfterContext == 0 && c.opts.BeforeContext == 0 {
 		context := ctx.Int("context")
-		c.beforeContext = context
-		c.afterContext = context
+		c.opts.BeforeContext = context
+		c.opts.AfterContext = context
 	}
 
 	c.isRegex = ctx.Bool("regex")

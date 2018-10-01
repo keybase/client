@@ -7,15 +7,25 @@ import {globalStyles, globalMargins, globalColors} from '../../../styles'
 
 type Props = {
   kbfsEnabled: boolean,
+  kbfsOutdated?: boolean,
   inProgress: boolean,
   showBanner: boolean,
   path?: Types.Path,
   onDismiss?: () => void,
   onInstall: () => void,
-  openInFileUI?: () => void,
+  openInSystemFileManager?: () => void,
+  dokanUninstall?: () => void,
 }
 
-const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: Props) => {
+const Banner = ({
+  kbfsEnabled,
+  kbfsOutdated,
+  showBanner,
+  onInstall,
+  onDismiss,
+  openInSystemFileManager,
+  dokanUninstall,
+}: Props) => {
   if (!showBanner) {
     return null
   }
@@ -27,6 +37,12 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: P
     alignItems: 'center',
     position: 'relative',
   }
+  const promptText = kbfsOutdated
+    ? dokanUninstall
+      ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
+      : 'A newer version of Dokan is available. Please remove the old version before installing it.'
+    : `Get access to your files and folders just like you normally do with your local files. It's encrypted and secure.`
+  const buttonText = dokanUninstall ? 'Yes, uninstall' : 'Yes, enable'
   let bannerContent
   if (kbfsEnabled) {
     bannerContent = (
@@ -34,9 +50,9 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: P
         <Text type="Header" style={textStyle}>
           {onDismiss && 'Yay! '}Keybase is {onDismiss && 'now '}enabled in your {fileUIName}.
         </Text>
-        {openInFileUI && (
+        {openInSystemFileManager && (
           <Box style={{justifyContent: 'flex-start'}}>
-            <Button type="Primary" label="Open folder" onClick={openInFileUI} />
+            <Button type="Primary" label="Open folder" onClick={openInSystemFileManager} />
           </Box>
         )}
       </Box>
@@ -48,11 +64,10 @@ const Banner = ({kbfsEnabled, showBanner, onInstall, onDismiss, openInFileUI}: P
           Enable Keybase in {fileUIName}?
         </Text>
         <Text type="BodySemibold" style={textStyle}>
-          Get access to your files and folders just like you normally do with your local files. It's encrypted
-          and secure.
+          {promptText}
         </Text>
         <Box style={{justifyContent: 'flex-start'}}>
-          <Button type="PrimaryGreen" label="Yes, enable" onClick={onInstall} />
+          <Button type="PrimaryGreen" label={buttonText} onClick={dokanUninstall || onInstall} />
         </Box>
       </Box>
     )

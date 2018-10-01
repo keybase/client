@@ -2,7 +2,6 @@
 import * as Constants from '../constants/notifications'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
-import * as WalletsGen from './wallets-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import {getEngine} from '../engine'
@@ -43,13 +42,10 @@ const setupEngineListeners = () => {
     })
   })
 
-  getEngine().setIncomingActionCreators('keybase.1.NotifyBadges.badgeState', ({badgeState}) =>
-    NotificationsGen.createReceivedBadgeState({badgeState})
-  )
-
-  getEngine().setIncomingActionCreators('stellar.1.notify.paymentNotification', ({accountID}) =>
-    WalletsGen.createRefreshPayments({accountID})
-  )
+  getEngine().setIncomingCallMap({
+    'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
+      Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
+  })
 }
 
 const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {

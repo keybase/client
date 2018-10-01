@@ -85,7 +85,7 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
           {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
         </ScrollView>
         <FloatingMenu
-          attachTo={this.props.attachmentRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
           onHidden={this.props.toggleShowingMenu}

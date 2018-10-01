@@ -30,9 +30,11 @@
     return EXIT_FAILURE;
   }
 
+  NSString *codeRequirement = @"anchor apple generic and (identifier \"keybase.Installer\" or identifier \"keybase.Keybase\") and (certificate leaf[field.1.2.840.113635.100.6.1.9] /* exists */ or certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = \"99229SGT5K\")";
+
   @try {
     KBHelper *helper = [[KBHelper alloc] init];
-    [helper listen:service];
+    [helper listen:service codeRequirement:codeRequirement];
 
     dispatch_main();
   } @catch(NSException *e) {
@@ -42,7 +44,7 @@
   return 0;
 }
 
-- (void)handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId completion:(void (^)(NSError *error, id value))completion {
+- (void)handleRequestWithMethod:(NSString *)method params:(NSArray *)params messageId:(NSNumber *)messageId remote:(xpc_connection_t)remote completion:(void (^)(NSError *error, id value))completion {
   @try {
     [self _handleRequestWithMethod:method params:params messageId:messageId completion:completion];
   } @catch (NSException *e) {

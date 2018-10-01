@@ -58,7 +58,7 @@ class Inbox extends React.PureComponent<Props, State> {
           key="divider"
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
-          smallIDsHidden={this.props.smallIDsHidden}
+          rows={this.props.rows}
         />
       )
     }
@@ -168,6 +168,9 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
+
   render() {
     this._dividerShowButton = false
     this._dividerIndex = this.props.rows.findIndex(r => {
@@ -178,18 +181,17 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
+    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating &&
-      this.props.showSmallTeamsExpandDivider && (
-        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-      )
+      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
-        rows={this.props.rows}
+        onSelectUp={this._onSelectUp}
+        onSelectDown={this._onSelectDown}
       />
     )
     return (

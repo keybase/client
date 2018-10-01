@@ -19,32 +19,34 @@ function rowBorderColor(idx: number, isLastParticipant: boolean, backgroundColor
 
 type AvatarProps = {
   participants: Array<string>,
+  isHovered: boolean,
   isLocked: boolean,
   isMuted: boolean,
   isSelected: boolean,
   backgroundColor: string,
 }
 
-const MutedIcon = ({isMuted, isSelected, isLocked}) => {
+const MutedIcon = ({isHovered, isMuted, isSelected, isLocked}) => {
   let icon = null
+  let type
   if (isMuted) {
-    const type = isSelected
-      ? isMobile
-        ? 'icon-shh-active-24'
-        : 'icon-shh-active-16'
-      : isMobile
-        ? 'icon-shh-24'
-        : 'icon-shh-16'
-    icon = <Icon type={type} style={avatarMutedIconStyle} />
+    if (isMobile) {
+      type = isSelected ? 'icon-shh-active-24' : 'icon-shh-24'
+    } else {
+      type = isSelected ? 'icon-shh-active-16' : isHovered ? 'icon-shh-hover-16' : 'icon-shh-16'
+    }
+    icon = <Icon type={type} style={avatarIconStyle} />
   } else if (isLocked) {
-    const type = isSelected
-      ? isMobile
-        ? 'icon-addon-lock-active-22'
-        : 'icon-addon-lock-active-16'
-      : isMobile
-        ? 'icon-addon-lock-22'
-        : 'icon-addon-lock-16'
-    icon = <Icon type={type} style={avatarLockIconStyle} />
+    if (isMobile) {
+      type = isSelected ? 'icon-addon-lock-active-22' : 'icon-addon-lock-22'
+    } else {
+      type = isSelected
+        ? 'icon-addon-lock-active-16'
+        : isHovered
+          ? 'icon-addon-lock-hover-16'
+          : 'icon-addon-lock-16'
+    }
+    icon = <Icon type={type} style={avatarIconStyle} />
   }
   return icon
 }
@@ -61,7 +63,7 @@ class Avatars extends React.Component<AvatarProps> {
   }
 
   render() {
-    const {participants, isLocked, isMuted, isSelected, backgroundColor} = this.props
+    const {participants, isHovered, isLocked, isMuted, isSelected, backgroundColor} = this.props
 
     const avatarCount = Math.min(2, participants.length)
     const opacity = isLocked ? 0.4 : 1
@@ -84,7 +86,7 @@ class Avatars extends React.Component<AvatarProps> {
             multiPadding={isMobile ? 2 : 0}
             style={opacity === 1 ? multiStyle(backgroundColor) : {...multiStyle(backgroundColor), opacity}}
           />
-          <MutedIcon isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
+          <MutedIcon isHovered={isHovered} isSelected={isSelected} isMuted={isMuted} isLocked={isLocked} />
         </Box>
       </Box>
     )
@@ -94,8 +96,8 @@ class Avatars extends React.Component<AvatarProps> {
 const multiStyle = memoize(backgroundColor => {
   return {
     ...(isMobile ? {paddingBottom: 10, paddingTop: 10, backgroundColor} : {}),
-    height: '100%',
-    width: '100%',
+    height: 48,
+    width: 48,
   }
 })
 
@@ -103,6 +105,7 @@ const avatarBoxStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   flexShrink: 0,
+  height: 48,
   justifyContent: 'flex-start',
   marginLeft: globalMargins.tiny,
   marginRight: globalMargins.tiny,
@@ -112,16 +115,15 @@ const avatarBoxStyle = {
 }
 
 const avatarInnerBoxStyle = {
-  height: '100%',
+  height: 48,
   maxWidth: 48,
   minWidth: 48,
-  paddingBottom: globalMargins.xtiny,
-  paddingTop: globalMargins.xtiny,
   position: 'relative',
 }
 
 class TeamAvatar extends React.Component<{
   teamname: string,
+  isHovered: boolean,
   isMuted: boolean,
   isSelected: boolean,
 }> {
@@ -129,20 +131,19 @@ class TeamAvatar extends React.Component<{
     return (
       <Box style={avatarBoxStyle}>
         <Avatar teamname={this.props.teamname} size={48} />
-        <MutedIcon isSelected={this.props.isSelected} isMuted={this.props.isMuted} isLocked={false} />
+        <MutedIcon
+          isSelected={this.props.isSelected}
+          isMuted={this.props.isMuted}
+          isHovered={this.props.isHovered}
+          isLocked={false}
+        />
       </Box>
     )
   }
 }
 
-const avatarMutedIconStyle = {
-  bottom: globalMargins.xtiny,
-  position: 'absolute',
-  right: 0,
-}
-
-const avatarLockIconStyle = {
-  bottom: 3,
+const avatarIconStyle = {
+  bottom: 0,
   position: 'absolute',
   right: 0,
 }

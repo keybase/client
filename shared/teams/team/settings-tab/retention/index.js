@@ -10,7 +10,7 @@ import {
   type StylesCrossPlatform,
 } from '../../../../styles'
 import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
-import {type MenuItem} from '../../../../common-adapters/popup-menu'
+import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
 import {daysToLabel} from '../../../../util/timestamp'
@@ -50,7 +50,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
-  _dropdownRef: ?React.Component<any, any>
+  _dropdownRef: ?ClickableBox
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -99,6 +99,7 @@ class RetentionPicker extends React.Component<Props, State> {
     }))
 
   _setDropdownRef = ref => (this._dropdownRef = ref)
+  _getDropdownRef = () => this._dropdownRef
 
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
@@ -140,17 +141,17 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  componentWillReceiveProps(nextProps: Props) {
-    if (
-      !policyEquals(nextProps.policy, this.props.policy) ||
-      !policyEquals(nextProps.teamPolicy, this.props.teamPolicy)
+  componentDidUpdate(prevProps, prevState) {
+  if (
+      !policyEquals(this.props.policy, prevProps.policy) ||
+      !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)
     ) {
-      if (policyEquals(nextProps.policy, this.state.selected)) {
+      if (policyEquals(this.props.policy, this.state.selected)) {
         // we just got updated retention policy matching the selected one
         this._setSaving(false)
       } // we could show a notice that we received a new value in an else block
       this._makeItems()
-      this._setInitialSelected(nextProps.policy)
+      this._setInitialSelected(this.props.policy)
     }
   }
 
@@ -158,7 +159,7 @@ class RetentionPicker extends React.Component<Props, State> {
     return (
       <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <FloatingMenu
-          attachTo={this._dropdownRef}
+          attachTo={this._getDropdownRef}
           closeOnSelect={true}
           visible={this.state.showMenu}
           onHidden={this._toggleShowMenu}

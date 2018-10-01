@@ -7,6 +7,7 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -63,6 +64,34 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			log("Result.error: %v", spew.Sdump(eerr))
 		}
 		return "", err
+	case "loadkey":
+		if len(args) != 2 {
+			return "", fmt.Errorf("require 2 args: <uid> <kid>")
+		}
+		uid, err := keybase1.UIDFromString(args[0])
+		if err != nil {
+			return "", err
+		}
+		kid := keybase1.KIDFromString(args[1])
+		_, _, _, err = t.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
+		return "", err
+	case "eldest":
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 arg: username")
+		}
+		upak, _, err := t.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
+		if err != nil {
+			return "", err
+		}
+		var eldestSeqnos []keybase1.Seqno
+		for _, upak := range upak.AllIncarnations() {
+			eldestSeqnos = append(eldestSeqnos, upak.EldestSeqno)
+		}
+		sort.Slice(eldestSeqnos, func(i, j int) bool {
+			return eldestSeqnos[i] < eldestSeqnos[j]
+		})
+		log("%v", eldestSeqnos)
+		return "", nil
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

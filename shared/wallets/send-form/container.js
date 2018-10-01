@@ -10,7 +10,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  isRequest: !!ownProps.isRequest,
+  isRequest: !!ownProps.routeProps.get('isRequest'),
   onClose: dispatchProps.onClose,
 })
 

@@ -105,15 +105,15 @@ export type NewReactionButtonProps = {|
 |}
 type NewReactionButtonState = {|
   applyClasses: boolean, // don't use classes on first mount. Saves on performance and prevents animation thrashing
-  attachmentRef: ?React.Component<any, any>,
   hovering: boolean,
   iconIndex: number,
   showingPicker: boolean,
 |}
 export class NewReactionButton extends React.Component<NewReactionButtonProps, NewReactionButtonState> {
-  state = {applyClasses: false, attachmentRef: null, hovering: false, iconIndex: 0, showingPicker: false}
+  state = {applyClasses: false, hovering: false, iconIndex: 0, showingPicker: false}
   _delayInterval = new DelayInterval(1000, 400)
   _intervalID: ?IntervalID
+  _attachmentRef: ?React.Component<any>
 
   _setShowingPicker = (showingPicker: boolean) => {
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -165,6 +165,8 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
     this._stopCycle()
   }
 
+  _getAttachmentRef = () => this._attachmentRef
+
   render() {
     return (
       <ButtonBox
@@ -181,7 +183,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         ])}
       >
         <Box2
-          ref={attachmentRef => this.setState(s => (s.attachmentRef ? null : {attachmentRef}))}
+          ref={attachmentRef => (this._attachmentRef = attachmentRef)}
           centerChildren={true}
           fullHeight={true}
           direction="horizontal"
@@ -219,7 +221,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
         {this.state.showingPicker &&
           !Styles.isMobile && (
             <FloatingBox
-              attachTo={this.state.attachmentRef}
+              attachTo={this._getAttachmentRef}
               containerStyle={styles.emojiContainer}
               position="bottom left"
               onHidden={() => this._setShowingPicker(false)}

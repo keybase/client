@@ -20,7 +20,7 @@ type Props = PropsWithTimer<_Props>
 class GlobalError extends Component<Props, State> {
   state: State
   timerID: ?TimeoutID
-  _mounted: boolean = true
+  _mounted: boolean = false
 
   constructor(props: Props) {
     super(props)

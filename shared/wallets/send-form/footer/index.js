@@ -70,8 +70,10 @@ const styles = styleSheetCreate({
     justifyContent: 'center',
   },
   button: {
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    marginLeft: globalMargins.small,
+    marginRight: globalMargins.small,
+    marginBottom: globalMargins.small,
+    marginTop: globalMargins.tiny,
   },
   icon: {marginRight: globalMargins.tiny},
   background: {

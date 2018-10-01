@@ -79,6 +79,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 	caller := user.ToUserVersion()
 
 	var res []stellar1.PaymentSummary
+collection:
 	for _, tx := range t.transactions {
 		if limit > 0 && len(res) == limit {
 			break
@@ -92,7 +93,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			for _, acc := range []stellar1.AccountID{p.From, p.To} {
 				if acc.Eq(accountID) {
 					res = append(res, tx.Summary)
-					continue
+					continue collection
 				}
 			}
 		case stellar1.PaymentSummaryType_DIRECT:
@@ -100,7 +101,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			for _, acc := range []stellar1.AccountID{p.FromStellar, p.ToStellar} {
 				if acc.Eq(accountID) {
 					res = append(res, tx.Summary)
-					continue
+					continue collection
 				}
 			}
 		case stellar1.PaymentSummaryType_RELAY:
@@ -109,7 +110,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			// Caller must be a member of the impteam.
 			if !t.isCallerInImplicitTeam(tc, p.TeamID) {
 				t.T.Logf("filtered out relay (team membership): %v", p.KbTxID)
-				continue
+				continue collection
 			}
 
 			filterByAccount := func(r *stellar1.PaymentSummaryRelay, accountID stellar1.AccountID) bool {
@@ -138,7 +139,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 			if !filterByAccount(&p, accountID) {
 				t.T.Logf("filtered out relay (account filter): %v queryAccountID:%v callerAccountID:%v",
 					p.KbTxID, accountID, callerAccountID)
-				continue
+				continue collection
 			}
 
 			if skipPending {
@@ -150,7 +151,7 @@ func (t *txlogger) Filter(ctx context.Context, tc *TestContext, accountID stella
 					pending = false
 				}
 				if pending {
-					continue
+					continue collection
 				}
 			}
 
@@ -454,19 +455,36 @@ func (r *RemoteClientMock) ExchangeRate(ctx context.Context, currency string) (s
 	return r.Backend.ExchangeRate(ctx, r.Tc, currency)
 }
 
-func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
+func (r *RemoteClientMock) SubmitRequest(ctx context.Context, post stellar1.RequestPost) (stellar1.KeybaseRequestID, error) {
 	return r.Backend.SubmitRequest(ctx, r.Tc, post)
 }
 
-func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (res stellar1.RequestDetails, err error) {
+func (r *RemoteClientMock) RequestDetails(ctx context.Context, requestID stellar1.KeybaseRequestID) (stellar1.RequestDetails, error) {
 	return r.Backend.RequestDetails(ctx, r.Tc, requestID)
 }
 
-func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) (err error) {
+func (r *RemoteClientMock) CancelRequest(ctx context.Context, requestID stellar1.KeybaseRequestID) error {
 	return r.Backend.CancelRequest(ctx, r.Tc, requestID)
 }
 
+func (r *RemoteClientMock) MarkAsRead(ctx context.Context, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
+	return r.Backend.MarkAsRead(ctx, r.Tc, acctID, mostRecentID)
+}
+
+func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) error {
+	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
+func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
+	return r.Backend.IsAccountMobileOnly(ctx, r.Tc, acctID)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
+
+const (
+	defaultExchangeRate   = "0.318328"
+	alternateExchangeRate = "0.212133"
+)
 
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
@@ -478,6 +496,7 @@ type BackendMock struct {
 	accounts map[stellar1.AccountID]*FakeAccount
 	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
+	exchRate string
 }
 
 func NewBackendMock(t testing.TB) *BackendMock {
@@ -487,6 +506,7 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		accounts: make(map[stellar1.AccountID]*FakeAccount),
 		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
+		exchRate: defaultExchangeRate,
 	}
 }
 
@@ -898,8 +918,16 @@ func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestCon
 func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
 	return stellar1.OutsideExchangeRate{
 		Currency: stellar1.OutsideCurrencyCode(currency),
-		Rate:     "0.318328",
+		Rate:     r.exchRate,
 	}, nil
+}
+
+func (r *BackendMock) UseDefaultExchangeRate() {
+	r.exchRate = defaultExchangeRate
+}
+
+func (r *BackendMock) UseAlternateExchangeRate() {
+	r.exchRate = alternateExchangeRate
 }
 
 func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
@@ -958,6 +986,18 @@ func (r *BackendMock) CancelRequest(ctx context.Context, tc *TestContext, reques
 
 	details.Status = stellar1.RequestStatus_CANCELED
 	return nil
+}
+
+func (r *BackendMock) MarkAsRead(ctx context.Context, tc *TestContext, acctID stellar1.AccountID, mostRecentID stellar1.TransactionID) error {
+	return nil
+}
+
+func (r *BackendMock) IsAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (bool, error) {
+	return remote.IsAccountMobileOnly(ctx, tc.G, accountID)
+}
+
+func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
+	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
 }
 
 // Friendbot sends someone XLM

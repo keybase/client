@@ -262,7 +262,8 @@
       "name": "ListFilter",
       "symbols": [
         "NO_FILTER_0",
-        "FILTER_ALL_HIDDEN_1"
+        "FILTER_ALL_HIDDEN_1",
+        "FILTER_SYSTEM_HIDDEN_2"
       ]
     },
     {

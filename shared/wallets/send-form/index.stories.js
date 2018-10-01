@@ -1,11 +1,12 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import assetInput, {props3 as assetInputProps} from './asset-input/index.stories'
+import assetInput, {props4 as assetInputProps} from './asset-input/index.stories'
 import chooseAsset from './choose-asset/index.stories'
 import footers from './footer/index.stories'
 import noteAndMemo from './note-and-memo/index.stories'
-import participants from './participants/index.stories'
+import participants, {participantProviderProperties} from './participants/index.stories'
+
 import SendForm from '.'
 
 // TODO some of the state of these child components
@@ -29,7 +30,11 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Header: props => ({}),
   NoteAndMemo: props => ({}),
-  Participants: props => ({}),
+  Participants: props => ({
+    onShowProfile: Sb.action('onShowProfile'),
+    onShowSuggestions: Sb.action('onShowSuggestions'),
+  }),
+  ...participantProviderProperties,
 })
 
 const load = () => {

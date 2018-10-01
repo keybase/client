@@ -11,7 +11,7 @@ jobs:
     parallelism: 1
 
     docker:
-    - image: keybaseprivate/circleci-client@sha256:d0766bb0c294bee3731b32aeaa3d7f2812e9bb5d80eb4d58ee7d5545818c38e9
+    - image: keybaseprivate/circleci-client@sha256:25df30922fbb23014fd9d72a54f28d3bb0dd806adb1655ef43ca5a99c67c35a0
       command: /sbin/init
 
     steps:
@@ -24,7 +24,7 @@ jobs:
     # Install JS dependencies.
     - run:
         working_directory: shared
-        command: yarn install --pure-lockfile --ignore-engines --prefer-offline
+        command: yarn install --pure-lockfile --ignore-engines --network-concurrency 1
     - run:
         working_directory: shared
         command: yarn global add react-native-cli
@@ -41,6 +41,7 @@ jobs:
         working_directory: shared
         environment:
           REACT_NATIVE_MAX_WORKERS: 1
+          BABEL_PLATFORM: ReactNative
         command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
 
     # Build app

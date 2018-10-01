@@ -107,8 +107,16 @@ func (t *Team) OpenTeamJoinAs() keybase1.TeamRole {
 	return t.chain().inner.OpenTeamJoinAs
 }
 
-func (t *Team) KBFSTLFID() keybase1.TLFID {
-	return t.chain().inner.TlfID
+func (t *Team) KBFSTLFIDs() []keybase1.TLFID {
+	return t.chain().inner.TlfIDs
+}
+
+func (t *Team) LatestKBFSTLFID() (res keybase1.TLFID) {
+	ids := t.KBFSTLFIDs()
+	if len(ids) > 0 {
+		res = ids[len(ids)-1]
+	}
+	return res
 }
 
 func (t *Team) KBFSCryptKeys(ctx context.Context, appType keybase1.TeamApplication) []keybase1.CryptKey {
@@ -374,6 +382,34 @@ func (t *Team) CurrentSeqno() keybase1.Seqno {
 
 func (t *Team) AllApplicationKeys(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
 	return AllApplicationKeys(t.MetaContext(ctx), t.Data, application, t.chain().GetLatestGeneration())
+}
+
+func (t *Team) AllApplicationKeysWithKBFS(ctx context.Context, application keybase1.TeamApplication) (res []keybase1.TeamApplicationKey, err error) {
+	teamKeys, err := t.AllApplicationKeys(ctx, application)
+	if err != nil {
+		return res, err
+	}
+	kbfsKeys := t.KBFSCryptKeys(ctx, application)
+	if len(kbfsKeys) > 0 {
+		latestKBFSGen := kbfsKeys[len(kbfsKeys)-1].Generation()
+		for _, k := range kbfsKeys {
+			res = append(res, keybase1.TeamApplicationKey{
+				Application:   application,
+				KeyGeneration: keybase1.PerTeamKeyGeneration(k.KeyGeneration),
+				Key:           k.Key,
+			})
+		}
+		for _, tk := range teamKeys {
+			res = append(res, keybase1.TeamApplicationKey{
+				Application:   application,
+				KeyGeneration: keybase1.PerTeamKeyGeneration(tk.Generation() + latestKBFSGen),
+				Key:           tk.Key,
+			})
+		}
+	} else {
+		res = teamKeys
+	}
+	return res, nil
 }
 
 // ApplicationKey returns the most recent key for an application.
@@ -1733,14 +1769,10 @@ func (t *Team) AssociateWithTLFKeyset(ctx context.Context, tlfID keybase1.TLFID,
 		return cryptKeys[i].KeyGeneration < cryptKeys[j].KeyGeneration
 	})
 
-	teamKeys, err := t.AllApplicationKeys(ctx, appType)
+	latestKey, err := t.ApplicationKey(ctx, appType)
 	if err != nil {
 		return err
 	}
-	if len(teamKeys) == 0 {
-		return errors.New("no team keys for TLF associate")
-	}
-	latestKey := teamKeys[len(teamKeys)-1]
 	encStr, hash, err := t.boxKBFSCryptKeys(ctx, latestKey, cryptKeys)
 	if err != nil {
 		return err
@@ -1823,7 +1855,9 @@ func (t *Team) AssociateWithTLFID(ctx context.Context, tlfID keybase1.TLFID) (er
 // bounce off a gregor and back to us. But they are idempotent, so it should be fine to be double-notified.
 func (t *Team) notify(ctx context.Context, changes keybase1.TeamChangeSet) {
 	changes.KeyRotated = changes.KeyRotated || t.rotated
+	m := libkb.NewMetaContext(ctx, t.G())
 	t.G().GetTeamLoader().HintLatestSeqno(ctx, t.ID, t.NextSeqno())
+	t.G().GetFastTeamLoader().HintLatestSeqno(m, t.ID, t.NextSeqno())
 	t.G().NotifyRouter.HandleTeamChangedByBothKeys(ctx, t.ID, t.Name().String(), t.NextSeqno(), t.IsImplicit(), changes)
 }
 
@@ -1857,12 +1891,12 @@ func UpgradeTLFIDToImpteam(ctx context.Context, g *libkb.GlobalContext, tlfName 
 	}
 
 	// Associate the imp team with the TLF ID
-	if team.KBFSTLFID().IsNil() {
+	if team.LatestKBFSTLFID().IsNil() {
 		if err = team.AssociateWithTLFID(ctx, tlfID); err != nil {
 			return err
 		}
 	} else {
-		if team.KBFSTLFID().String() != tlfID.String() {
+		if team.LatestKBFSTLFID().String() != tlfID.String() {
 			return fmt.Errorf("implicit team already associated with different TLF ID: teamID: %s tlfID: %s",
 				team.ID, tlfID)
 		}

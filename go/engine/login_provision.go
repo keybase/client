@@ -90,20 +90,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// transaction around config file
-	tx, err := m.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
-	// From this point on, if there's an error, we abort the
-	// transaction.
-	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
-	}()
-
+	var err error
 	e.perUserKeyring, err = libkb.NewPerUserKeyring(m.G(), e.arg.User.GetUID())
 	if err != nil {
 		return err
@@ -111,7 +98,7 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 
 	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
-	// through the provisioning options
+	// through the provisioning options.
 	if err := e.route(m); err != nil {
 		// cleanup state because there was an error:
 		e.cleanup(m)
@@ -125,24 +112,15 @@ func (e *loginProvision) Run(m libkb.MetaContext) error {
 		return err
 	}
 
-	// commit the config changes
-	if err := tx.Commit(); err != nil {
-		return err
-	}
+	// e.route is point of no return. If it succeeds, it means that
+	// config has already been written and there is no way to roll
+	// back.
 
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
-
-	if err := e.displaySuccess(m); err != nil {
-		return err
-	}
+	e.displaySuccess(m)
 
 	m.G().KeyfamilyChanged(e.arg.User.GetUID())
 
 	// check to make sure local files stored correctly
-	// TODO we should error out here if this fails once we have the active
-	// device setting in a transaction.
 	verifyLocalStorage(m, e.username, e.arg.User.GetUID())
 
 	// initialize a stellar wallet for the user if they don't already have one.
@@ -188,8 +166,15 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 	m.CDebugf("deviceWithType: got device name: %q", name)
 
 	// make a new secret:
-	secret, err := libkb.NewKex2Secret(e.arg.DeviceType == libkb.DeviceTypeMobile ||
-		provisionerType == keybase1.DeviceType_MOBILE)
+	uid := m.CurrentUID()
+
+	// Continue to generate legacy Kex2 secret types
+	kex2SecretTyp := libkb.Kex2SecretTypeV1Desktop
+	if e.arg.DeviceType == libkb.DeviceTypeMobile || provisionerType == keybase1.DeviceType_MOBILE {
+		kex2SecretTyp = libkb.Kex2SecretTypeV1Mobile
+	}
+	m.CDebugf("Generating Kex2 secret for uid=%s, typ=%d", uid, kex2SecretTyp)
+	secret, err := libkb.NewKex2SecretFromTypeAndUID(kex2SecretTyp, uid)
 	if err != nil {
 		return err
 	}
@@ -236,7 +221,7 @@ func (e *loginProvision) deviceWithType(m libkb.MetaContext, provisionerType key
 					continue
 				}
 				m.CDebugf("received secret phrase, adding to provisionee")
-				ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
+				ks, err := libkb.NewKex2SecretFromUIDAndPhrase(uid, receivedSecret.Phrase)
 				if err != nil {
 					m.CWarningf("DisplayAndPromptSecret error: %s", err)
 				} else {
@@ -554,6 +539,11 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 func (e *loginProvision) makeDeviceKeys(m libkb.MetaContext, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(m.G(), args)
 	if err := RunEngine2(m, eng); err != nil {
+		return err
+	}
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := eng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
 

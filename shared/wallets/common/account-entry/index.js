@@ -28,7 +28,7 @@ const AccountEntry = (props: AccountEntryProps) => {
       {props.showWalletIcon && (
         <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-32' : 'icon-wallet-64'}
-          color={Styles.globalColors.darkBlue}
+          color={Styles.globalColors.black_75}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
       )}
@@ -41,12 +41,13 @@ const AccountEntry = (props: AccountEntryProps) => {
               username={props.keybaseUser}
             />
           )}
-          <Kb.Text type="BodySmall" style={styles.title}>
+          <Kb.Text type="BodySemibold" style={styles.title}>
             {props.name}
           </Kb.Text>
         </Kb.Box2>
         <Kb.Text
           type="BodySmall"
+          selectable={true}
           style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
         >
           {props.contents}
@@ -84,9 +85,8 @@ const styles = Styles.styleSheetCreate({
   },
   rightColumn: rightColumnStyle,
   title: {
-    ...Styles.globalStyles.fontSemibold,
     ...rightColumnStyle,
-    color: Styles.globalColors.darkBlue,
+    color: Styles.globalColors.black_75,
   },
   user: {
     alignItems: 'center',

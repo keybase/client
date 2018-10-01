@@ -495,6 +495,10 @@
         {
           "type": "Time",
           "name": "cachedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "loadedLatest"
         }
       ]
     },
@@ -626,6 +630,123 @@
             "keys": "Seqno"
           },
           "name": "linkIDs"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "MerkleRootV2",
+            "keys": "Seqno"
+          },
+          "name": "merkleInfo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Audit",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleSeqno",
+          "mpackkey": "mms",
+          "jsonkey": "mms"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxChainSeqno",
+          "mpackkey": "mcs",
+          "jsonkey": "mcs"
+        },
+        {
+          "type": "Seqno",
+          "name": "maxMerkleProbe",
+          "mpackkey": "mmp",
+          "jsonkey": "mmp"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Probe",
+      "fields": [
+        {
+          "type": "int",
+          "name": "index",
+          "mpackkey": "i",
+          "jsonkey": "i"
+        },
+        {
+          "type": "Seqno",
+          "name": "teamSeqno",
+          "mpackkey": "s",
+          "jsonkey": "t"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AuditVersion",
+      "symbols": [
+        "V0_0",
+        "V1_1",
+        "V2_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AuditHistory",
+      "fields": [
+        {
+          "type": "TeamID",
+          "name": "ID",
+          "lint": "ignore"
+        },
+        {
+          "type": "boolean",
+          "name": "public"
+        },
+        {
+          "type": "Seqno",
+          "name": "priorMerkleSeqno"
+        },
+        {
+          "type": "AuditVersion",
+          "name": "version"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Audit"
+          },
+          "name": "audits"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "preProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "Probe",
+            "keys": "Seqno"
+          },
+          "name": "postProbes"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "LinkID",
+            "keys": "Seqno"
+          },
+          "name": "tails"
         }
       ]
     },
@@ -956,8 +1077,11 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          },
+          "name": "tlfIDs"
         },
         {
           "type": {
@@ -966,6 +1090,13 @@
             "keys": "TeamApplication"
           },
           "name": "tlfLegacyUpgrade"
+        },
+        {
+          "type": [
+            null,
+            "MerkleRootV2"
+          ],
+          "name": "headMerkle"
         }
       ]
     },
@@ -1561,6 +1692,13 @@
           "name": "public"
         },
         {
+          "type": [
+            null,
+            "TeamName"
+          ],
+          "name": "assertTeamName"
+        },
+        {
           "type": {
             "type": "array",
             "items": "TeamApplication"
@@ -1577,6 +1715,10 @@
         {
           "type": "boolean",
           "name": "needLatestKey"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRefresh"
         }
       ]
     },
@@ -2964,6 +3106,15 @@
       ],
       "response": "TeamID",
       "doc": "Gets a TeamID from a team name string. Returns an error if the\n   current user can't read the team."
+    },
+    "ftl": {
+      "request": [
+        {
+          "name": "arg",
+          "type": "FastTeamLoadArg"
+        }
+      ],
+      "response": "FastTeamLoadRes"
     }
   },
   "namespace": "keybase.1"

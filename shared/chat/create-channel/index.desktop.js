@@ -26,7 +26,7 @@ const CreateChannel = (props: Props) => (
   <PopupDialog onClose={props.onClose} styleCover={_styleCover} styleContainer={_styleContainer}>
     <Box style={{..._boxStyle, paddingTop: globalMargins.medium}}>
       <Avatar isTeam={true} teamname={props.teamname} size={32} />
-      <Text type="BodySmallSemibold" style={{color: globalColors.darkBlue, marginTop: globalMargins.xtiny}}>
+      <Text type="BodySmallSemibold" style={{marginTop: globalMargins.xtiny}}>
         {props.teamname}
       </Text>
       <Text type="Header" style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}}>

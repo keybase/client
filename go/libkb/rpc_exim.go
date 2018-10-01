@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -422,7 +423,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := VerificationError{}
+		ret := kbcrypto.VerificationError{}
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
@@ -722,6 +723,14 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return e
 	case SCTeamFTLOutdated:
 		return NewTeamFTLOutdatedError(s.Desc)
+	case SCFeatureFlag:
+		var feature Feature
+		for _, field := range s.Fields {
+			if field.Key == "feature" {
+				feature = Feature(field.Value)
+			}
+		}
+		return NewFeatureFlagError(s.Desc, feature)
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1912,16 +1921,6 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	}
 }
 
-func (e VerificationError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCSigCannotVerify,
-		Name: "SC_SIG_CANNOT_VERIFY",
-		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
-		},
-	}
-}
-
 func (e NoSigChainError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCKeyNoEldest,
@@ -2347,5 +2346,13 @@ func (e TeamFTLOutdatedError) ToStatus() (ret keybase1.Status) {
 	ret.Code = SCTeamFTLOutdated
 	ret.Name = "TEAM_FTL_OUTDATED"
 	ret.Desc = e.msg
+	return ret
+}
+
+func (e FeatureFlagError) ToStatus() (ret keybase1.Status) {
+	ret.Code = SCFeatureFlag
+	ret.Name = "FEATURE_FLAG"
+	ret.Desc = e.msg
+	ret.Fields = []keybase1.StringKVPair{keybase1.StringKVPair{Key: "feature", Value: string(e.feature)}}
 	return ret
 }

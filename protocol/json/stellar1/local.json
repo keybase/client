@@ -110,7 +110,8 @@
         "NONE_0",
         "KEYBASE_1",
         "STELLAR_2",
-        "SBS_3"
+        "SBS_3",
+        "OWNACCOUNT_4"
       ]
     },
     {
@@ -159,19 +160,50 @@
         },
         {
           "type": "string",
-          "name": "source"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "currentWorth"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",
-          "name": "targetType"
+          "name": "fromType"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
+        },
+        {
+          "type": "string",
+          "name": "fromAccountName"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -180,6 +212,10 @@
         {
           "type": "string",
           "name": "noteErr"
+        },
+        {
+          "type": "boolean",
+          "name": "unread"
         }
       ]
     },
@@ -220,6 +256,13 @@
             "PageCursor"
           ],
           "name": "cursor"
+        },
+        {
+          "type": [
+            null,
+            "PaymentID"
+          ],
+          "name": "oldestUnread"
         }
       ]
     },
@@ -273,19 +316,50 @@
         },
         {
           "type": "string",
-          "name": "source"
-        },
-        {
-          "type": "ParticipantType",
-          "name": "sourceType"
+          "name": "currentWorth"
         },
         {
           "type": "string",
-          "name": "target"
+          "name": "currentWorthCurrency"
         },
         {
           "type": "ParticipantType",
-          "name": "targetType"
+          "name": "fromType"
+        },
+        {
+          "type": "ParticipantType",
+          "name": "toType"
+        },
+        {
+          "type": "AccountID",
+          "name": "fromAccountID"
+        },
+        {
+          "type": "string",
+          "name": "fromAccountName"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": [
+            null,
+            "AccountID"
+          ],
+          "name": "toAccountID"
+        },
+        {
+          "type": "string",
+          "name": "toAccountName"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
+        },
+        {
+          "type": "string",
+          "name": "toAssertion"
         },
         {
           "type": "string",
@@ -370,6 +444,10 @@
         {
           "type": "boolean",
           "name": "readyToSend"
+        },
+        {
+          "type": "AccountID",
+          "name": "from"
         },
         {
           "type": "string",
@@ -673,6 +751,19 @@
         "items": "WalletAccountLocal"
       }
     },
+    "getWalletAccountLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "WalletAccountLocal"
+    },
     "getAccountAssetsLocal": {
       "request": [
         {
@@ -724,6 +815,23 @@
         "type": "array",
         "items": "PaymentOrErrorLocal"
       }
+    },
+    "markAsReadLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "mostRecentID",
+          "type": "PaymentID"
+        }
+      ],
+      "response": null
     },
     "getPaymentDetailsLocal": {
       "request": [
@@ -978,6 +1086,10 @@
           "type": "AccountID"
         },
         {
+          "name": "fromPrimaryAccount",
+          "type": "boolean"
+        },
+        {
           "name": "fromSeqno",
           "type": "string"
         },
@@ -1135,6 +1247,32 @@
       ],
       "response": "KeybaseRequestID"
     },
+    "setAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": null
+    },
+    "isAccountMobileOnlyLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        }
+      ],
+      "response": "boolean"
+    },
     "balancesLocal": {
       "request": [
         {
@@ -1261,6 +1399,10 @@
         {
           "name": "makePrimary",
           "type": "boolean"
+        },
+        {
+          "name": "name",
+          "type": "string"
         }
       ],
       "response": null

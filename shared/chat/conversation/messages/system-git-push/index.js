@@ -8,6 +8,8 @@ import {globalStyles, globalColors, globalMargins, isMobile, platformStyles} fro
 import {formatTimeForMessages} from '../../../../util/timestamp'
 import {gitGitPushType} from '../../../../constants/types/rpc-gen'
 
+const branchRefPrefix = 'refs/heads/'
+
 type Props = {
   message: Types.MessageSystemGitPush,
   onClickUserAvatar: (username: string) => void,
@@ -18,7 +20,7 @@ type Props = {
 const gitPushType = invert(gitGitPushType)
 
 const connectedUsernamesProps = {
-  clickable: true,
+  onUsernameClicked: 'profile',
   colorFollowing: true,
   inline: true,
   type: 'BodySmallSemibold',
@@ -127,7 +129,10 @@ class GitPush extends React.PureComponent<Props> {
     switch (gitType) {
       case 'default':
         return refs.map(ref => {
-          const branchName = ref.refName.split('/')[2]
+          let branchName = ref.refName
+          if (branchName.startsWith(branchRefPrefix)) {
+            branchName = branchName.substring(branchRefPrefix.length)
+          } // else show full ref
           return (
             <GitPushCommon
               key={branchName}

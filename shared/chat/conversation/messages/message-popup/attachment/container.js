@@ -1,7 +1,7 @@
 // @flow
-import type {Component} from 'react'
+import * as React from 'react'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import * as KBFSGen from '../../../../../actions/kbfs-gen'
+import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
 import * as Route from '../../../../../actions/route-tree'
@@ -12,7 +12,7 @@ import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
 import Attachment from '.'
 
 type OwnProps = {
-  attachTo: ?Component<any, any>,
+  attachTo: () => ?React.Component<any>,
   message: Types.MessageAttachment,
   onHidden: () => void,
   position: Position,
@@ -77,7 +77,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     )
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
-    message.downloadPath && dispatch(KBFSGen.createOpenInFileUI({path: message.downloadPath}))
+    message.downloadPath &&
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
   },
 })
 

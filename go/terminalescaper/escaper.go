@@ -5,6 +5,43 @@ import (
 	"unicode/utf8"
 )
 
+// Taken from unexported data at golang.org/x/crypto/ssh/terminal
+// and expanded with data at github.com/keybase/client/go/client:color.go
+type EscapeCode []byte
+
+var keyEscape byte = 27
+var vt100EscapeCodes = []EscapeCode{
+	// Foreground colors
+	EscapeCode{keyEscape, '[', '3', '0', 'm'},
+	EscapeCode{keyEscape, '[', '3', '1', 'm'},
+	EscapeCode{keyEscape, '[', '3', '2', 'm'},
+	EscapeCode{keyEscape, '[', '3', '3', 'm'},
+	EscapeCode{keyEscape, '[', '3', '4', 'm'},
+	EscapeCode{keyEscape, '[', '3', '5', 'm'},
+	EscapeCode{keyEscape, '[', '3', '6', 'm'},
+	EscapeCode{keyEscape, '[', '3', '7', 'm'},
+	EscapeCode{keyEscape, '[', '9', '0', 'm'},
+	// Reset foreground color
+	EscapeCode{keyEscape, '[', '3', '9', 'm'},
+	// Bold
+	EscapeCode{keyEscape, '[', '1', 'm'},
+	// Italic
+	EscapeCode{keyEscape, '[', '3', 'm'},
+	// Underline
+	EscapeCode{keyEscape, '[', '4', 'm'},
+	// Reset bold (or doubly underline according to ECMA-48; fallback is code [22m)
+	// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
+	EscapeCode{keyEscape, '[', '2', '1', 'm'},
+	// Normal intensity
+	EscapeCode{keyEscape, '[', '2', '2', 'm'},
+	// Reset italic
+	EscapeCode{keyEscape, '[', '2', '3', 'm'},
+	// Reset underline
+	EscapeCode{keyEscape, '[', '2', '4', 'm'},
+	// Reset all formatting
+	EscapeCode{keyEscape, '[', '0', 'm'},
+}
+
 // Clean escapes the UTF8 encoded string provided as input so it is safe to print on a unix terminal.
 // It removes non printing characters and substitutes the vt100 escape character 0x1b with '^['.
 func Clean(s string) string {
@@ -13,16 +50,35 @@ func Clean(s string) string {
 			return r
 		} else if r == '\n' || r == '\t' { // Allow newlines and tabs.
 			return r
-		} else if r == 0x1b { // 0x1b denotes the start of a vt100 escape sequence. Substiture it with '^[' (this is how it is usually shown, i.e. in vim).
+		} else if r == rune(keyEscape) {
+			// Start of a vt100 escape sequence. If not a color, we will
+			// substitute it with '^[' (this is how it is usually shown, i.e.
+			// in vim).
 			return -1
 		}
 		return -2
 	}, s)
 }
 
+func isStartOfColorCode(s string, i int) bool {
+outer:
+	for _, code := range vt100EscapeCodes {
+		if i+len(code) > len(s) {
+			continue
+		}
+		for j, c := range code {
+			if s[i+j] != c {
+				continue outer
+			}
+		}
+		return true
+	}
+	return false
+}
+
 // replace returns a copy of the string s with all its characters modified
 // according to the mapping function.
-// If mapping returns -1, the character is substituted with the two character string `^[`.
+// If mapping returns -1, the character is substituted with the two character string `^[` (unless it is the start of a color code).
 // If mapping returns any other negative value, the character is dropped from the string with no replacement.
 // This function is copied from strings.Map, and is identical except for how -1 is handled (differences are marked).
 func replace(mapping func(rune) rune, s string) string {
@@ -51,8 +107,14 @@ func replace(mapping func(rune) rune, s string) string {
 			} else {
 				nbytes += utf8.EncodeRune(b[nbytes:], r)
 			}
-		} else if r == -1 { // This else branch is NOT part of strings.Map
-			// Substitute -1 with `^[`
+		} else if r == -1 && isStartOfColorCode(s, i) {
+			// This branch is NOT part of strings.Map
+			// Allow color codes.
+			b[nbytes] = byte(c)
+			nbytes++
+		} else if r == -1 {
+			// This else branch is NOT part of strings.Map
+			// Substitute escape code with ^[ to nullify it.
 			b[nbytes] = byte('^')
 			b[nbytes+1] = byte('[')
 			nbytes += 2
@@ -76,7 +138,7 @@ func replace(mapping func(rune) rune, s string) string {
 		return s
 	}
 
-	for _, c := range s {
+	for i, c := range s {
 		r := mapping(c)
 
 		// common case
@@ -87,6 +149,7 @@ func replace(mapping func(rune) rune, s string) string {
 		}
 
 		// b is not big enough or r is not a ASCII rune.
+		// The isStartOfColorCode check is NOT part of strings.Map
 		if r >= 0 {
 			if nbytes+utf8.UTFMax >= len(b) {
 				// Grow the buffer.
@@ -95,6 +158,11 @@ func replace(mapping func(rune) rune, s string) string {
 				b = nb
 			}
 			nbytes += utf8.EncodeRune(b[nbytes:], r)
+		} else if r == -1 && isStartOfColorCode(s, i) {
+			// This branch is NOT part of strings.Map
+			// Allow color codes.
+			b[nbytes] = byte(c)
+			nbytes++
 		} else if r == -1 { // This else branch is NOT part of strings.Map, but mirrors the preceding if branch
 			if nbytes+2 >= len(b) {
 				// Grow the buffer.

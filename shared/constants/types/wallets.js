@@ -8,6 +8,11 @@ import * as StellarRPCTypes from './rpc-stellar-gen'
 export const paymentIDIsEqual = (p1: StellarRPCTypes.PaymentID, p2: StellarRPCTypes.PaymentID) =>
   p1.txID === p2.txID
 
+// Possible roles given an account and a
+// transaction. senderAndReceiver means a transaction sending money
+// from an account to itself.
+export type Role = 'senderOnly' | 'receiverOnly' | 'senderAndReceiver'
+
 // Possible 'types' of things you can send or receive transactions with
 export type CounterpartyType = 'keybaseUser' | 'stellarPublicKey' | 'otherAccount'
 
@@ -55,6 +60,14 @@ export type _Assets = {
   reserves: I.List<Reserve>,
 }
 
+export type CurrencyCode = StellarRPCTypes.OutsideCurrencyCode
+
+export type _LocalCurrency = {
+  description: string,
+  code: CurrencyCode,
+  symbol: string,
+  name: string,
+}
 export type _BuildingPayment = {
   amount: string,
   currency: string,
@@ -68,6 +81,7 @@ export type _BuildingPayment = {
 export type _BuiltPayment = {
   amountErrMsg: string,
   banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  from: string,
   publicMemoErrMsg: HiddenString,
   readyToSend: boolean,
   secretNoteErrMsg: HiddenString,
@@ -89,13 +103,15 @@ export type _Payment = {
   publicMemo: HiddenString,
   publicMemoType: string,
   source: string,
+  sourceAccountID: string,
   sourceType: string,
   statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
   target: string,
+  targetAccountID: ?string,
   targetType: string,
-  time: number,
+  time: ?number,
   txID: string,
   worth: string,
   worthCurrency: string,
@@ -109,10 +125,12 @@ export type _AssetDescription = {
 
 export type AssetDescription = I.RecordOf<_AssetDescription>
 
+export type Asset = 'native' | 'currency' | AssetDescription
+
 export type _Request = {
   amount: string, // The number alone
   amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
-  asset: 'native' | 'currency' | AssetDescription,
+  asset: Asset,
   completed: boolean,
   completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
   currencyCode: string, // set if asset === 'currency'
@@ -133,6 +151,7 @@ export type BuiltPayment = I.RecordOf<_BuiltPayment>
 
 export type Payment = I.RecordOf<_Payment>
 
+export type Currency = I.RecordOf<_LocalCurrency>
 export type Request = I.RecordOf<_Request>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
@@ -146,6 +165,7 @@ export type _State = {
   builtPayment: BuiltPayment,
   createNewAccountError: string,
   exportedSecretKey: HiddenString,
+  exportedSecretKeyAccountID: AccountID,
   linkExistingAccountError: string,
   requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
   secretKey: HiddenString,
@@ -157,6 +177,8 @@ export type _State = {
   pendingMap: I.Map<AccountID, I.List<Payment>>,
   secretKeyMap: I.Map<AccountID, HiddenString>,
   selectedAccount: AccountID,
+  currencies: I.List<Currency>,
+  currencyMap: I.Map<AccountID, Currency>,
 }
 
 export type State = I.RecordOf<_State>

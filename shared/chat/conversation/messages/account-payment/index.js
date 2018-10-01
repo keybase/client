@@ -10,7 +10,13 @@ import {
   Text,
   type IconType,
 } from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalColors,
+  globalMargins,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 
 export type Props = {|
   action: string,
@@ -27,15 +33,22 @@ export type Props = {|
 
 const AccountPayment = (props: Props) => {
   const contents = props.loading ? (
-    <ProgressIndicator style={styles.progressIndicator} />
+    <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.headingContainer}>
+      <ProgressIndicator style={styles.progressIndicator} />
+      <Text type="BodySmall">loading...</Text>
+    </Box2>
   ) : (
     <React.Fragment>
       <Box2 direction="horizontal" fullWidth={true} style={styles.headingContainer}>
-        <Box2 direction="horizontal" gap="xtiny" style={styles.headingContainer}>
+        <Box2
+          direction="horizontal"
+          gap="xtiny"
+          style={collapseStyles([styles.headingContainer, {marginBottom: globalMargins.xtiny}])}
+        >
           <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />
           <Text type="BodySmall" style={styles.purple}>
             {props.action}{' '}
-            <Text type="BodySmallExtrabold" style={styles.purple}>
+            <Text type="BodySmallExtrabold" selectable={true} style={styles.purple}>
               {props.amount}
             </Text>
             {props.pending ? '...' : '.'}
@@ -43,7 +56,7 @@ const AccountPayment = (props: Props) => {
         </Box2>
         {!!props.balanceChange && (
           <Box2 direction="horizontal">
-            <Text type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
+            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
               {props.balanceChange}
             </Text>
           </Box2>

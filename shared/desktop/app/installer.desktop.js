@@ -5,14 +5,18 @@ import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
 import {isLinux, isWindows} from '../../constants/platform'
 import logger from '../../logger'
-import {
-  ExitCodeFuseKextError,
-  ExitCodeFuseKextPermissionError,
-  ExitCodeAuthCanceledError,
-} from '../../constants/favorite'
 import UserData from './user-data.desktop'
 
 import type {InstallResult} from '../../constants/types/rpc-gen'
+
+// Copied from old constants/favorite.js
+//
+// See Installer.m: KBExitFuseKextError
+const ExitCodeFuseKextError = 4
+// See Installer.m: KBExitFuseKextPermissionError
+const ExitCodeFuseKextPermissionError = 5
+// See Installer.m: KBExitAuthCanceledError
+const ExitCodeAuthCanceledError = 6
 
 type State = {
   promptedForCLI: boolean,

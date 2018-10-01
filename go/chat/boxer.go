@@ -27,6 +27,8 @@ import (
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/ephemeral"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -108,9 +110,9 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 	return chat1.NewMessageUnboxedWithError(e)
 }
 
-func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) UnboxingError {
-	// Banned folders are only detectable by the error string currently, hopefully
-	// we can do something better in the future.
+func (b *Boxer) detectPermanentError(err error, tlfName string) UnboxingError {
+	// Banned folders are only detectable by the error string currently,
+	// hopefully we can do something better in the future.
 	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
 		return NewPermanentUnboxingError(err)
 	}
@@ -136,10 +138,14 @@ func (b *Boxer) detectKBFSPermanentServerError(err error, tlfName string) Unboxi
 			err.Msg = fmt.Sprintf("user deleted in chat '%v'", tlfName)
 		}
 		return NewPermanentUnboxingError(err)
-	case teams.TeamDoesNotExistError:
+	case teams.TeamDoesNotExistError,
+		DecryptionKeyNotFoundError,
+		NotAuthenticatedForThisDeviceError,
+		InvalidMACError:
 		return NewPermanentUnboxingError(err)
-	case DecryptionKeyNotFoundError:
-		return NewPermanentUnboxingError(err)
+	case ephemeral.EphemeralKeyError:
+		// Normalize error message with EphemeralUnboxingError
+		return NewPermanentUnboxingError(NewEphemeralUnboxingError(err))
 	}
 
 	// Check for no space left on device errors
@@ -265,6 +271,13 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 	defer b.Trace(ctx, func() error { return uberr }, "UnboxMessage(%s, %d)", conv.GetConvID(),
 		boxed.GetMessageID())()
 
+	// Check to see if the context has been cancelled
+	select {
+	case <-ctx.Done():
+		return m, NewTransientUnboxingError(ctx.Err())
+	default:
+	}
+
 	// If we don't have an rtime, add one.
 	if boxed.ServerHeader.Rtime == nil {
 		now := gregor1.ToTime(b.clock.Now())
@@ -282,7 +295,7 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		conv.IsPublic(), boxed.KeyGeneration, keyMembersType == chat1.ConversationMembersType_KBFS)
 	if err != nil {
 		// Post-process error from this
-		uberr = b.detectKBFSPermanentServerError(err, tlfName)
+		uberr = b.detectPermanentError(err, tlfName)
 		if uberr.IsPermanent() {
 			return b.makeErrorMessage(ctx, boxed, uberr), nil
 		}
@@ -296,12 +309,16 @@ func (b *Boxer) UnboxMessage(ctx context.Context, boxed chat1.MessageBoxed, conv
 		if boxed.IsEphemeralExpired(b.clock.Now()) {
 			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralAlreadyExpiredError())), nil
 		}
-		ek, ekErr := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
+		ek, err := CtxKeyFinder(ctx, b.G()).EphemeralKeyForDecryption(
 			ctx, tlfName, boxed.ClientHeader.Conv.Tlfid, conv.GetMembersType(), boxed.ClientHeader.TlfPublic,
 			boxed.EphemeralMetadata().Generation)
-		if ekErr != nil {
-			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %s", boxed.ServerHeader.MessageID, ekErr.Error())
-			return b.makeErrorMessage(ctx, boxed, NewPermanentUnboxingError(NewEphemeralUnboxingError(ekErr))), nil
+		if err != nil {
+			b.Debug(ctx, "failed to get a key for ephemeral message: msgID: %d err: %v", boxed.ServerHeader.MessageID, err)
+			uberr = b.detectPermanentError(err, tlfName)
+			if uberr.IsPermanent() {
+				return b.makeErrorMessage(ctx, boxed, uberr), nil
+			}
+			return chat1.MessageUnboxed{}, uberr
 		}
 		ephemeralSeed = &ek
 	}
@@ -677,7 +694,15 @@ func (b *Boxer) validatePairwiseMAC(ctx context.Context, boxed chat1.MessageBoxe
 	}
 	senderEncryptionKID := senderUPAK.Current.FindEncryptionKIDFromDeviceID(senderDeviceID)
 	if senderEncryptionKID.IsNil() {
-		return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		for _, upk := range senderUPAK.PastIncarnations {
+			senderEncryptionKID = upk.FindEncryptionKIDFromDeviceID(senderDeviceID)
+			if !senderEncryptionKID.IsNil() {
+				break
+			}
+		}
+		if senderEncryptionKID.IsNil() {
+			return nil, fmt.Errorf("failed to find encryption key for device %s", senderDeviceID.String())
+		}
 	}
 	senderDeviceDHKeyNacl, err := libkb.ImportDHKeypairFromKID(senderEncryptionKID)
 	if err != nil {
@@ -745,7 +770,8 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 		}
 		senderKeyToValidate, err = b.validatePairwiseMAC(ctx, boxed, headerHash)
 		if err != nil {
-			return nil, NewPermanentUnboxingError(err)
+			// Return a transient error if possible
+			return nil, b.detectPermanentError(err, boxed.ClientHeader.TlfName)
 		}
 	} else if bytes.Equal(boxed.VerifyKey, dummySigningKey().GetKID().ToBytes()) {
 		// Note that this can happen if the server is stripping MACs for some
@@ -771,7 +797,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 
 	// Open header and verify against VerifyKey
 	headerPacked, err := b.signEncryptOpen(boxed.HeaderCiphertext.AsSignEncrypted(), headerEncryptionKey,
-		boxed.VerifyKey, libkb.SignaturePrefixChatMBv2)
+		boxed.VerifyKey, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, NewPermanentUnboxingError(err)
 	}
@@ -1179,8 +1205,7 @@ func (b *Boxer) UnboxMessages(ctx context.Context, boxed []chat1.MessageBoxed, c
 	}
 
 	boxCh := make(chan chat1.MessageBoxed)
-	eg, ctx := errgroup.WithContext(BackgroundContext(ctx, b.G()))
-
+	eg, ctx := errgroup.WithContext(ctx)
 	eg.Go(func() error {
 		defer close(boxCh)
 		for _, msg := range boxed {
@@ -1477,7 +1502,7 @@ func (b *Boxer) boxV1(messagePlaintext chat1.MessagePlaintext, key types.CryptKe
 	}
 
 	// sign the header and insert the signature
-	sig, err := b.signMarshal(header, signingKeyPair, libkb.SignaturePrefixChatMBv1)
+	sig, err := b.signMarshal(header, signingKeyPair, kbcrypto.SignaturePrefixChatMBv1)
 	if err != nil {
 		return nil, err
 	}
@@ -1600,7 +1625,7 @@ func (b *Boxer) boxV2orV3orV4(ctx context.Context, messagePlaintext chat1.Messag
 
 	// signencrypt the header
 	headerSealed, err := b.signEncryptMarshal(headerVersioned, headerEncryptionKey,
-		signingKeyPair, libkb.SignaturePrefixChatMBv2)
+		signingKeyPair, kbcrypto.SignaturePrefixChatMBv2)
 	if err != nil {
 		return nil, err
 	}
@@ -1676,7 +1701,7 @@ func (b *Boxer) open(data chat1.EncryptedData, key libkb.NaclSecretBoxKey) ([]by
 
 // signMarshal signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It marshals data before signing.
-func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignatureInfo, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -1688,7 +1713,7 @@ func (b *Boxer) signMarshal(data interface{}, kp libkb.NaclSigningKeyPair, prefi
 // signEncryptMarshal signencrypts data given an encryption and signing key, returning a chat1.SignEncryptedData.
 // It marshals data before signing.
 func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	encoded, err := b.marshal(data)
 	if err != nil {
 		return chat1.SignEncryptedData{}, err
@@ -1698,7 +1723,7 @@ func (b *Boxer) signEncryptMarshal(data interface{}, encryptionKey libkb.NaclSec
 }
 
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignatureInfo, error) {
 	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
@@ -1719,7 +1744,7 @@ func (b *Boxer) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.Signa
 
 // signEncrypt signencrypts msg.
 func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
-	signingKeyPair libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignEncryptedData, error) {
+	signingKeyPair libkb.NaclSigningKeyPair, prefix kbcrypto.SignaturePrefix) (chat1.SignEncryptedData, error) {
 	if signingKeyPair.Private == nil {
 		return chat1.SignEncryptedData{}, libkb.NoSecretKeyError{}
 	}
@@ -1750,12 +1775,12 @@ func (b *Boxer) signEncrypt(msg []byte, encryptionKey libkb.NaclSecretBoxKey,
 
 // signEncryptOpen opens and verifies chat1.SignEncryptedData.
 func (b *Boxer) signEncryptOpen(data chat1.SignEncryptedData, encryptionKey libkb.NaclSecretBoxKey,
-	verifyKID []byte, prefix libkb.SignaturePrefix) ([]byte, error) {
+	verifyKID []byte, prefix kbcrypto.SignaturePrefix) ([]byte, error) {
 	var encKey [signencrypt.SecretboxKeySize]byte = encryptionKey
 
-	verifyKey := libkb.KIDToNaclSigningKeyPublic(verifyKID)
+	verifyKey := kbcrypto.KIDToNaclSigningKeyPublic(verifyKID)
 	if verifyKey == nil {
-		return nil, libkb.BadKeyError{}
+		return nil, kbcrypto.BadKeyError{}
 	}
 	var verKey [ed25519.PublicKeySize]byte = *verifyKey
 
@@ -1827,7 +1852,7 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 	if err != nil {
 		return verifyMessageRes{}, NewPermanentUnboxingError(err)
 	}
-	if !b.verify(hpack, *header.HeaderSignature, libkb.SignaturePrefixChatMBv1) {
+	if !b.verify(hpack, *header.HeaderSignature, kbcrypto.SignaturePrefixChatMBv1) {
 		return verifyMessageRes{}, NewPermanentUnboxingError(libkb.BadSigError{E: "header signature invalid"})
 	}
 
@@ -1837,8 +1862,8 @@ func (b *Boxer) verifyMessageHeaderV1(ctx context.Context, header chat1.HeaderPl
 }
 
 // verify verifies the signature of data using SignatureInfo.
-func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
-	sigInfo := libkb.NaclSigInfo{
+func (b *Boxer) verify(data []byte, si chat1.SignatureInfo, prefix kbcrypto.SignaturePrefix) bool {
+	sigInfo := kbcrypto.NaclSigInfo{
 		Version: si.V,
 		Prefix:  prefix,
 		Kid:     si.K,
@@ -1994,9 +2019,9 @@ func (b *Boxer) compareHeadersMBV1(ctx context.Context, hServer chat1.MessageCli
 }
 
 func (b *Boxer) CompareTlfNames(ctx context.Context, tlfName1, tlfName2 string,
-	conv chat1.Conversation, tlfPublic bool) (bool, error) {
+	membersType chat1.ConversationMembersType, tlfPublic bool) (bool, error) {
 	get1 := func(tlfName string, tlfPublic bool) (string, error) {
-		nameInfo, err := CreateNameInfoSource(ctx, b.G(), conv.GetMembersType()).LookupID(ctx, tlfName,
+		nameInfo, err := CreateNameInfoSource(ctx, b.G(), membersType).LookupID(ctx, tlfName,
 			tlfPublic)
 		if err != nil {
 			return "", err

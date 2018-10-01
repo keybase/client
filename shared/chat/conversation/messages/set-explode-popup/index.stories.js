@@ -5,7 +5,7 @@ import {messageExplodeDescriptions} from '../../../../constants/chat2'
 import SetExplodingPopup from '.'
 
 const common = {
-  attachTo: null,
+  attachTo: () => null,
   onHidden: Sb.action('onHidden'),
   onSelect: Sb.action('onSelect'),
   selected: 0,

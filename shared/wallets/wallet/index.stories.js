@@ -4,12 +4,12 @@ import * as Sb from '../../stories/storybook'
 import {stringToAccountID} from '../../constants/types/wallets'
 import Wallet from '.'
 import header, {Container} from './header/index.stories'
-import settingsPopup from './settings-popup/index.stories'
+import settings from './settings/index.stories'
 
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: props => ({
-    onDeposit: Sb.action('onDeposit'),
+    accountID: stringToAccountID('fakeAccountID'),
     onReceive: Sb.action('onReceive'),
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
@@ -25,12 +25,12 @@ const provider = Sb.createPropProviderWithCommon({
 const props = {
   accountID: stringToAccountID('fakeAccountID'),
   navigateAppend: Sb.action('navigateAppend'),
-  sections: [{title: 'Your Assets', data: []}, {title: 'History', data: ['historyPlaceholder']}],
+  sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['noPayments']}],
 }
 
 const load = () => {
   header()
-  settingsPopup()
+  settings()
   Sb.storiesOf('Wallets/Wallet', module)
     .addDecorator(provider)
     .addDecorator(Container)

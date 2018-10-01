@@ -14,6 +14,12 @@ import (
 // Lock writes the pid to filename after acquiring a lock on the file.
 // When the process exits, the lock will be released.
 func (f *LockPIDFile) Lock() (err error) {
+	if isIOS {
+		// on iOS, our share extension can have multiple copies running, and furthermore this lock
+		// doesn't do anything there, so let's just do nothing.
+		f.G().Log.Debug("Skipping PID file lock on iOS")
+		return nil
+	}
 
 	if f.file, err = os.OpenFile(f.name, os.O_CREATE|os.O_RDWR, 0600); err != nil {
 		return PIDFileLockError{f.name}

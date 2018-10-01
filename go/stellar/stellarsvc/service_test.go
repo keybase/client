@@ -36,6 +36,8 @@ func SetupTest(t *testing.T, name string, depth int) (tc libkb.TestContext) {
 		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 
+	tc.G.SetService()
+
 	tc.G.ChatHelper = kbtest.NewMockChatHelper()
 
 	return tc
@@ -70,7 +72,7 @@ func TestCreateWallet(t *testing.T) {
 	require.Equal(t, stellar1.AccountMode_USER, bundle.Accounts[0].Mode)
 	require.True(t, bundle.Accounts[0].IsPrimary)
 	require.Len(t, bundle.Accounts[0].Signers, 1)
-	require.Equal(t, "", bundle.Accounts[0].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), bundle.Accounts[0].Name)
 
 	t.Logf("Lookup the user by public address as another user")
 	a1 := bundle.Accounts[0].AccountID
@@ -98,6 +100,7 @@ func TestCreateWallet(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s2,
 		MakePrimary: true,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 
@@ -185,6 +188,7 @@ func TestImportExport(t *testing.T) {
 	argS1 := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s1,
 		MakePrimary: false,
+		Name:        "qq",
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argS1)
 	require.NoError(t, err)
@@ -234,6 +238,7 @@ func TestImportExport(t *testing.T) {
 	argS2 := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s2,
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srv.ImportSecretKeyLocal(context.Background(), argS2)
 	require.NoError(t, err)
@@ -293,7 +298,7 @@ func TestGetWalletAccountsCLILocal(t *testing.T) {
 	require.Equal(t, account.Balance[0].Amount, "0")
 	require.True(t, account.IsPrimary)
 	require.NotNil(t, account.ExchangeRate)
-	require.EqualValues(t, defaultOutsideCurrency, account.ExchangeRate.Currency)
+	require.EqualValues(t, stellar.DefaultCurrencySetting, account.ExchangeRate.Currency)
 }
 
 func TestSendLocalStellarAddress(t *testing.T) {
@@ -308,11 +313,11 @@ func TestSendLocalStellarAddress(t *testing.T) {
 	accountIDSender := rm.AddAccount()
 	accountIDRecip := rm.AddAccount()
 
-	argImport := stellar1.ImportSecretKeyLocalArg{
+	err = srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
-	}
-	err = srv.ImportSecretKeyLocal(context.Background(), argImport)
+		Name:        "uu",
+	})
 	require.NoError(t, err)
 
 	arg := stellar1.SendCLILocalArg{
@@ -358,6 +363,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
@@ -410,6 +416,7 @@ func TestRecentPaymentsLocal(t *testing.T) {
 	argImport := stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   rm.SecretKey(accountIDSender),
 		MakePrimary: true,
+		Name:        "uu",
 	}
 	err = srvSender.ImportSecretKeyLocal(context.Background(), argImport)
 	require.NoError(t, err)
@@ -646,10 +653,10 @@ func TestGetAvailableCurrencies(t *testing.T) {
 }
 
 func TestDefaultCurrency(t *testing.T) {
-	// Initial account should be created with display currency set
-	// according to system locale/region. Additional accounts display
-	// currencies should be set to primary account currency (and can
-	// later be changed by the user).
+	// Initial account are created without display currency. When an account
+	// has no currency selected, default "USD" is used. Additional accounts
+	// display currencies should be set to primary account currency or NULL as
+	// well (and can later be changed by the user).
 
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
@@ -661,7 +668,13 @@ func TestDefaultCurrency(t *testing.T) {
 	primary := getPrimaryAccountID(tcs[0])
 	currency, err := remote.GetAccountDisplayCurrency(context.Background(), tcs[0].G, primary)
 	require.NoError(t, err)
-	require.EqualValues(t, "USD", currency)
+	require.EqualValues(t, "", currency)
+
+	// stellar.GetAccountDisplayCurrency also checks for NULLs and returns
+	// default currency code.
+	codeStr, err := stellar.GetAccountDisplayCurrency(tcs[0].MetaContext(), primary)
+	require.NoError(t, err)
+	require.Equal(t, "USD", codeStr)
 
 	err = tcs[0].Srv.SetDisplayCurrency(context.Background(), stellar1.SetDisplayCurrencyArg{
 		AccountID: primary,
@@ -677,6 +690,7 @@ func TestDefaultCurrency(t *testing.T) {
 	err = tcs[0].Srv.ImportSecretKeyLocal(context.Background(), stellar1.ImportSecretKeyLocalArg{
 		SecretKey:   s1,
 		MakePrimary: false,
+		Name:        "uu",
 	})
 	require.NoError(t, err)
 
@@ -798,6 +812,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		}
 		rcm := NewRemoteClientMock(tc2, bem)
 		tc2.Srv = New(tc.G, newTestUISource(), rcm)
+		stellar.ServiceInit(tc.G, rcm)
 		tcs = append(tcs, tc2)
 	}
 	cleanup := func() {

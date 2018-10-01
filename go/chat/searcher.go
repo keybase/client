@@ -11,6 +11,8 @@ import (
 )
 
 const defaultPageSize = 300
+const MaxAllowedSearchHits = 10000
+const MaxAllowedSearchMessages = 100000
 
 type Searcher struct {
 	globals.Contextified
@@ -28,10 +30,16 @@ func NewSearcher(g *globals.Context) *Searcher {
 	}
 }
 
-func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, conversationID chat1.ConversationID, re *regexp.Regexp,
-	sentBy string, maxHits, maxMessages, beforeContext, afterContext int) (hits []chat1.ChatSearchHit, err error) {
+func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchHit, convID chat1.ConversationID,
+	re *regexp.Regexp, opts chat1.SearchOpts) (hits []chat1.ChatSearchHit, err error) {
 	uid := gregor1.UID(s.G().Env.GetUID().ToBytes())
 	pagination := &chat1.Pagination{Num: s.pageSize}
+
+	sentBy := opts.SentBy
+	maxHits := opts.MaxHits
+	maxMessages := opts.MaxMessages
+	beforeContext := opts.BeforeContext
+	afterContext := opts.AfterContext
 
 	// Context cannot exceed the page size.
 	if beforeContext >= s.pageSize {
@@ -41,12 +49,20 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		afterContext = s.pageSize - 1
 	}
 
+	if maxHits > MaxAllowedSearchHits {
+		maxHits = MaxAllowedSearchHits
+	}
+
+	if maxMessages > MaxAllowedSearchMessages {
+		maxMessages = MaxAllowedSearchMessages
+	}
+
 	// If we have to gather search result context around a pagination boundary,
 	// we may have to fetch the next page of the thread
 	var prevPage, curPage, nextPage *chat1.ThreadView
 
 	getNextPage := func() (*chat1.ThreadView, error) {
-		thread, err := s.G().ConvSource.Pull(ctx, conversationID, uid,
+		thread, err := s.G().ConvSource.Pull(ctx, convID, uid,
 			chat1.GetThreadReason_SEARCHER,
 			&chat1.GetThreadQuery{
 				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
@@ -118,7 +134,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 	getUIMsgs := func(msgs []chat1.MessageUnboxed) (uiMsgs []chat1.UIMessage) {
 		for i := len(msgs) - 1; i >= 0; i-- {
 			msg := msgs[i]
-			uiMsg := utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, conversationID)
+			uiMsg := utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID)
 			uiMsgs = append(uiMsgs, uiMsg)
 		}
 		return uiMsgs
@@ -139,10 +155,10 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 		}
 
 		for i, msg := range curPage.Messages {
+			numMessages++
 			if sentBy != "" && msg.Valid().SenderUsername != sentBy {
 				continue
 			}
-			numMessages++
 			msgText := msg.Valid().MessageBody.Text().Body
 			matches := re.FindAllString(msgText, -1)
 
@@ -157,7 +173,7 @@ func (s *Searcher) SearchRegexp(ctx context.Context, uiCh chan chat1.ChatSearchH
 				nextPage = newThread
 				searchHit := chat1.ChatSearchHit{
 					BeforeMessages: getUIMsgs(beforeMsgs),
-					HitMessage:     utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, conversationID),
+					HitMessage:     utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID),
 					AfterMessages:  getUIMsgs(afterMsgs),
 					Matches:        matches,
 				}

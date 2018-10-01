@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
-import {PopupHeaderText} from '../../../../common-adapters/popup-menu'
 import {formatTimeForPopup, formatTimeForRevoked} from '../../../../util/timestamp'
 import {isAndroid} from '../../../../constants/platform'
 import type {DeviceType} from '../../../../constants/types/devices'
@@ -61,7 +60,7 @@ const MessagePopupHeader = (props: {
         <Kb.Box2 direction="horizontal" gap="xtiny" gapStart={true} style={styles.alignItemsCenter}>
           <Kb.Avatar username={author} size={16} clickToProfile="tracker" />
           <Kb.ConnectedUsernames
-            clickable={true}
+            onUsernameClicked="profile"
             colorFollowing={true}
             colorYou={true}
             usernames={[author]}
@@ -84,9 +83,9 @@ const MessagePopupHeader = (props: {
           direction="vertical"
           style={Styles.collapseStyles([isLast && styles.revokedAtContainerLast])}
         >
-          <PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
             {whoRevoked} revoked this device on {formatTimeForRevoked(deviceRevokedAt)}.
-          </PopupHeaderText>
+          </Kb.PopupHeaderText>
         </Kb.Box2>
       )}
     </Kb.Box>

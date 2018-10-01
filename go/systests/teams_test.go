@@ -177,9 +177,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	g.SetUI(&signupUI)
 	signup := client.NewCmdSignupRunner(g)
 	signup.SetTestWithPaper(paper)
-	if err := signup.Run(); err != nil {
-		tt.t.Fatal(err)
-	}
+	require.NoError(tt.t, signup.Run())
 	tt.t.Logf("signed up %s", userInfo.username)
 
 	u.tc = tc
@@ -189,9 +187,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	u.uid = libkb.UsernameToUID(u.username)
 
 	cli, xp, err := client.GetRPCClientWithContext(g)
-	if err != nil {
-		tt.t.Fatal(err)
-	}
+	require.NoError(tt.t, err)
 
 	u.deviceClient = keybase1.DeviceClient{Cli: cli}
 	u.device.userClient = keybase1.UserClient{Cli: cli}
@@ -200,23 +196,19 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	// register for notifications
 	u.notifications = newTeamNotifyHandler()
 	srv := rpc.NewServer(xp, nil)
-	if err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
-	if err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
-	if err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications)); err != nil {
-		tt.t.Fatal(err)
-	}
+	err = srv.Register(keybase1.NotifyTeamProtocol(u.notifications))
+	require.NoError(tt.t, err)
+	err = srv.Register(keybase1.NotifyBadgesProtocol(u.notifications))
+	require.NoError(tt.t, err)
+	err = srv.Register(keybase1.NotifyEphemeralProtocol(u.notifications))
+	require.NoError(tt.t, err)
 	ncli := keybase1.NotifyCtlClient{Cli: cli}
-	if err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
+	err = ncli.SetNotifications(context.TODO(), keybase1.NotificationChannels{
 		Team:      true,
 		Badges:    true,
 		Ephemeral: true,
-	}); err != nil {
-		tt.t.Fatal(err)
-	}
+	})
+	require.NoError(tt.t, err)
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
@@ -1545,4 +1537,39 @@ func TestTeamBustResolverCacheOnSubteamRename(t *testing.T) {
 		_, err = teams.ResolveNameToID(context.TODO(), user.tc.G, subteamName)
 		require.Error(t, err)
 	}
+}
+
+func TestForceRepollState(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	tt.addUser("onr")
+	tt.addUser("wtr")
+
+	_, err := tt.users[0].tc.G.API.Post(libkb.APIArg{
+		Endpoint:    "test/big_state_cutoff",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"cutoff": libkb.I{Val: 1},
+		},
+	})
+	require.NoError(t, err)
+
+	team := tt.users[0].createTeam()
+	for i := 0; i < 3; i++ {
+		tt.users[0].addTeamMember(team, tt.users[1].username, keybase1.TeamRole_WRITER)
+		tt.users[0].removeTeamMember(team, tt.users[1].username)
+	}
+	found := false
+	w := 10 * time.Millisecond
+	for i := 0; i < 10; i++ {
+		found = tt.users[0].tc.G.GetTeamLoader().(*teams.TeamLoader).InForceRepollMode(context.TODO())
+		if found {
+			break
+		}
+		w *= 2
+		t.Logf("Waiting for %v, for gregor state update", w)
+		time.Sleep(w)
+	}
+	require.True(t, found)
 }

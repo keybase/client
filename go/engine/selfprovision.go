@@ -15,6 +15,8 @@ type SelfProvisionEngine struct {
 	User           *libkb.User
 	perUserKeyring *libkb.PerUserKeyring
 	ekReboxer      *ephemeralKeyReboxer
+
+	deviceWrapEng *DeviceWrap
 }
 
 // If a device is cloned, we can provision a new device from the current device
@@ -64,12 +66,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 		return fmt.Errorf("to self provision, you must be a cloned device")
 	}
 
-	// transaction around config file
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
 	uv, _ := e.G().ActiveDevice.GetUsernameAndUserVersionIfValid(m)
 	// Pass the UV here so the passphrase stream is cached on the provisional
 	// login context
@@ -77,9 +73,6 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 
 	// From this point on, if there's an error, we abort the transaction.
 	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
 		if err == nil {
 			// cache the passphrase stream from the login context to the active
 			// device.
@@ -95,32 +88,29 @@ func (e *SelfProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	e.ekReboxer = newEphemeralKeyReboxer(m)
 
 	// Make new device keys and sign them with current device keys
-	if err = e.provision(m, keys); err != nil {
+	if err := e.provision(m, keys); err != nil {
 		return err
 	}
 
-	// commit the config changes
-	// NOTE we should wrap the Active device change in a transaction as well.
-	if err := tx.Commit(); err != nil {
+	// Finish provisoning by calling SwitchConfigAndActiveDevice. we
+	// can't undo that, so do not error out after that.
+	if err := e.deviceWrapEng.SwitchConfigAndActiveDevice(m); err != nil {
 		return err
 	}
 
-	// Zero out the TX so that we don't abort it in the defer() exit.
-	tx = nil
-
-	// Now we can cleanup old deviceEKs and store the new deviceEK, encrypted
-	// by the new globally set active device.
+	// Cleanup EKs belonging to the old device.
 	if deviceEKStorage := m.G().GetDeviceEKStorage(); deviceEKStorage != nil {
 		if err = deviceEKStorage.ForceDeleteAll(m.Ctx(), e.User.GetNormalizedName()); err != nil {
 			m.CDebugf("unable to remove old ephemeral keys: %v", err)
 		}
 	}
+
+	// Store and encrypt the new deviceEK with the new globally set
+	// active device.
 	if e.ekReboxer.storeEKs(m); err != nil {
 		m.CDebugf("unable to store ephemeral keys: %v", err)
 	}
 
-	// TODO we should error out here if this fails once we have the active
-	// device setting in a transaction.
 	verifyLocalStorage(m, e.User.GetNormalizedName().String(), e.User.GetUID())
 	if err := e.syncSecretStore(m); err != nil {
 		m.CDebugf("unable to syncSecretStore: %v", err)
@@ -209,8 +199,8 @@ func (e *SelfProvisionEngine) makeDeviceKeysWithSigner(m libkb.MetaContext, sign
 		EkReboxer:       e.ekReboxer,
 	}
 
-	eng := NewDeviceWrap(m.G(), args)
-	return RunEngine2(m, eng)
+	e.deviceWrapEng = NewDeviceWrap(m.G(), args)
+	return RunEngine2(m, e.deviceWrapEng)
 }
 
 // copied from loginProvision

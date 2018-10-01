@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.util.Base64;
-import android.util.Log;
 
 import org.msgpack.MessagePack;
 
@@ -70,7 +69,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
         try {
             prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error clearing secret for " + id + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error clearing secret for " + id, e);
             throw e;
         }
 
@@ -97,7 +96,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
             MessagePack msgpack = new MessagePack();
             return msgpack.write(userNames);
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error getting users with stored secrets for " + serviceName, e);
             throw e;
         }
     }
@@ -127,13 +126,13 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 // Invalid key, this can happen when a user changes their lock screen from something to nothing
                 // or enrolls a new finger. See https://developer.android.com/reference/android/security/keystore/KeyPermanentlyInvalidatedException.html
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && e instanceof KeyPermanentlyInvalidatedException) {
-                    NativeLogger.info("KeyStore: key no longer valid; deleting entry: " + Log.getStackTraceString(e));
+                    NativeLogger.info("KeyStore: key no longer valid; deleting entry", e);
                     ks.deleteEntry((keyStoreAlias(serviceName)));
                 }
                 throw e;
             }
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error retrieving secret for " + id + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error retrieving secret for " + id, e);
             throw e;
         }
     }
@@ -166,7 +165,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
                 ks.load(null);
             }
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error setting up key store for " + id + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error setting up key store for " + id, e);
             throw e;
         }
 
@@ -193,7 +192,7 @@ public class KeyStore implements UnsafeExternalKeyStore {
 
             saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
         } catch (Exception e) {
-            NativeLogger.error("KeyStore: error storing secret for " + id + ": " + Log.getStackTraceString(e));
+            NativeLogger.error("KeyStore: error storing secret for " + id, e);
             throw e;
         }
 

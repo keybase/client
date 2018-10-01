@@ -6,13 +6,14 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"github.com/keybase/npipe"
 	"net"
+
+	mspipe "github.com/keybase/go-winio"
 )
 
 // Use Dial to connect to a server and read messages from it.
 func DoDial(name string) {
-	conn, err := npipe.Dial(name)
+	conn, err := mspipe.DialPipe(name, nil)
 	if err != nil {
 		fmt.Printf("error %s\n", err.Error())
 		return
@@ -30,7 +31,7 @@ func DoDial(name string) {
 
 // Use Listen to start a server, and accept connections with Accept().
 func DoListen(name string) {
-	ln, err := npipe.Listen(name)
+	ln, err := mspipe.ListenPipe(name, nil)
 	if err != nil {
 		fmt.Printf("error %s\n", err.Error())
 		return

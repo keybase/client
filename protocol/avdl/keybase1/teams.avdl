@@ -55,10 +55,10 @@ protocol teams {
 
   @lint("ignore")
   record PerTeamKey {
-      PerTeamKeyGeneration gen;
-      Seqno seqno;
-      KID sigKID;
-      KID encKID;
+    PerTeamKeyGeneration gen;
+    Seqno seqno;
+    KID sigKID;
+    KID encKID;
   }
 
   fixed PerTeamKeySeed(32);
@@ -127,16 +127,16 @@ protocol teams {
   }
 
   record TeamPlusApplicationKeys {
-      TeamID id;
-      string name;
-      boolean implicit;
-      boolean public;
-      TeamApplication application;
+    TeamID id;
+    string name;
+    boolean implicit;
+    boolean public;
+    TeamApplication application;
 
-      array<UserVersion> writers;
-      array<UserVersion> onlyReaders;
+    array<UserVersion> writers;
+    array<UserVersion> onlyReaders;
 
-      array<TeamApplicationKey> applicationKeys;
+    array<TeamApplicationKey> applicationKeys;
   }
 
   // Snapshot of a loaded team.
@@ -207,6 +207,10 @@ protocol teams {
 
     // Should only be used by TeamLoader (because it is mutable, not threadsafe to read)
     Time cachedAt;
+
+    // True if we've ever loaded this team for the "latest" version; sometimes
+    // we don't, depending on the access patterns
+    boolean loadedLatest;
   }
 
   record LinkTriple {
@@ -266,6 +270,59 @@ protocol teams {
 
     // This is filled up to lastSeqno.
     map<Seqno, LinkID> linkIDs;
+
+    // For any link where we have it, fill in merkle sequence information.
+    map<Seqno, MerkleRootV2> merkleInfo;
+  }
+
+  record Audit {
+    Time time;
+    // The Maximum Merkle Seqno known globally at the time of the audit.
+    @mpackkey("mms") @jsonkey("mms")
+    Seqno maxMerkleSeqno;
+
+    // The maximum Seqno in the chain at the time of the audit.
+    @mpackkey("mcs") @jsonkey("mcs")
+    Seqno maxChainSeqno;
+
+    // The maximum merkle Seqno probed in this audit.
+    @mpackkey("mmp") @jsonkey("mmp")
+    Seqno maxMerkleProbe;
+  }
+
+  record Probe {
+    @mpackkey("i") @jsonkey("i")
+    int index;
+    @mpackkey("s") @jsonkey("t")
+    Seqno teamSeqno;
+  }
+
+  enum AuditVersion {
+    V0_0,
+    V1_1,
+    V2_2
+  }
+
+  record AuditHistory {
+    @lint("ignore")
+    TeamID ID;
+    // Whether this is a public team.
+    boolean public;
+    // The Merkle sequence number signed into the head link of the team chain.
+    Seqno priorMerkleSeqno;
+
+    // Version #, or 0 if not specified
+    AuditVersion version;
+
+    // When the last audit(s) happened
+    array<Audit> audits;
+    // Probes of before the team was created. The value in the map is the index
+    // of the audit (each audit has a value in the audits array above).
+    map<Seqno,Probe> preProbes;
+    // Probes of after the team was created
+    map<Seqno,Probe> postProbes;
+    // For each chain tail we audit, write down the corresponding linkID
+    map<Seqno,LinkID> tails;
   }
 
   enum TeamInviteCategory {
@@ -403,14 +460,18 @@ protocol teams {
     boolean open;
     TeamRole openTeamJoinAs;
 
-    // If there is a TLF associated, it shows up here. The last writer wins
-    // here, and we are not concerned about historical associations that have been
-    // overwritten (for now). An empty TLFID is given by an empty string.
-    TLFID tlfID;
+    // The list of TLF ID that have been associated with this team in time ascending order.
+    array<TLFID> tlfIDs;
 
     // Information about KBFS TLF crypt keys for the TLF associated with this team. The latest
     // link per app type is what shows up here.
     map<TeamApplication, TeamLegacyTLFUpgradeChainInfo> tlfLegacyUpgrade;
+
+    // The head merkle object is the merkle root signed into the head of the team
+    // It was rolled out in 2018-09, so isn't available for all stored copies
+    // of TeamSigChainState. Thus, if you need it, you should check if it's there,
+    // and if not, fetch the chainlink from the server and check against linksIDs[1].
+    union { null, MerkleRootV2 } headMerkle;
   }
 
   // The team got this name at this point in time.
@@ -673,6 +734,8 @@ protocol teams {
     TeamID ID;
     boolean public;
 
+    union { null, TeamName } assertTeamName;
+
     // All (applications X keyGenerationsNeeded) should be loaded
     array<TeamApplication> applications;
     array<PerTeamKeyGeneration> keyGenerationsNeeded;
@@ -680,6 +743,10 @@ protocol teams {
     // Specify this flag if you need the latest generation, which will maybe
     // trigger a poll of the team.
     boolean needLatestKey;
+
+    // Specify this flag if you want to force past the time-based cache,
+    // currently set to one hour.
+    boolean forceRefresh;
   }
 
   record FastTeamLoadRes {
@@ -1011,4 +1078,6 @@ protocol teams {
    current user can't read the team.
    */
   TeamID getTeamID(string teamName);
+
+  FastTeamLoadRes ftl(FastTeamLoadArg arg);
 }

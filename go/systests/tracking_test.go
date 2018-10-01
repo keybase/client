@@ -220,12 +220,17 @@ func TestV2Compressed(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 
+	ctx := context.TODO()
+
 	alice := tt.addUser("alice")
 	aliceG := alice.tc.G
 
 	tt.addUser("wong")
 	wong := tt.users[1]
 	wongG := wong.tc.G
+	upk, err := wongG.GetUPAKLoader().LoadUserPlusKeys(ctx, wong.uid, "")
+	require.NoError(t, err)
+
 	iuiW := newSimpleIdentifyUI()
 	attachIdentifyUI(t, wongG, iuiW)
 	iuiW.confirmRes = keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true, AutoConfirmed: true}
@@ -233,7 +238,7 @@ func TestV2Compressed(t *testing.T) {
 	idAndListFollowers := func(username string) {
 		cli1, err := client.GetIdentifyClient(aliceG)
 		require.NoError(t, err)
-		_, err = cli1.Identify2(context.TODO(), keybase1.Identify2Arg{
+		_, err = cli1.Identify2(ctx, keybase1.Identify2Arg{
 			UserAssertion:    username,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		})
@@ -241,7 +246,7 @@ func TestV2Compressed(t *testing.T) {
 
 		cli2, err := client.GetUserClient(aliceG)
 		require.NoError(t, err)
-		_, err = cli2.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{
+		_, err = cli2.ListTrackers2(ctx, keybase1.ListTrackers2Arg{
 			Assertion: username,
 			Reverse:   false,
 		})
@@ -260,4 +265,16 @@ func TestV2Compressed(t *testing.T) {
 	// ensure we don't stub tail since we need to check against the merkle tree
 	wong.untrack(alice.username)
 	idAndListFollowers(wong.username)
+
+	wong.reset()
+	wong.loginAfterReset()
+	tt.addUser("bob")
+	bob := tt.users[2]
+	bobG := bob.tc.G
+	for _, dk := range upk.DeviceKeys {
+		user, upak, _, err := bobG.GetUPAKLoader().LoadKeyV2(ctx, wong.uid, dk.KID)
+		require.NoError(t, err)
+		require.NotNil(t, user)
+		require.NotNil(t, upak)
+	}
 }

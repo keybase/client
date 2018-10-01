@@ -2,7 +2,7 @@
 import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import {orderBy} from 'lodash-es'
 import moment from 'moment'
 import {
@@ -21,9 +21,9 @@ import {
   UserProofs,
   Usernames,
   BackButton,
+  PopupHeaderText,
 } from '../common-adapters'
 import UserActions from './user-actions'
-import {PopupHeaderText} from '../common-adapters/popup-menu'
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
@@ -40,7 +40,6 @@ type State = {
   searchHovered: boolean,
   foldersExpanded: boolean,
   selectedProofMenuRowIndex: ?number,
-  selectedProofMenuRowRef: ?React.Component<any, any>,
 }
 
 const EditControl = ({isYou, onClickShowcaseOffer}: {isYou: boolean, onClickShowcaseOffer: () => void}) => (
@@ -81,7 +80,7 @@ const _ShowcasedTeamRow = (
     style={styleShowcasedTeamContainer}
   >
     <ShowcasedTeamInfo
-      attachTo={props.attachmentRef}
+      attachTo={props.getAttachmentRef}
       onHidden={props.toggleShowingMenu}
       team={props.team}
       visible={props.showingMenu}
@@ -99,13 +98,13 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = OverlayParentHOC(_ShowcasedTeamRow)
 
-class ProfileRender extends PureComponent<Props, State> {
+class ProfileRender extends React.PureComponent<Props, State> {
   state: State = {
     searchHovered: false,
     foldersExpanded: false,
     selectedProofMenuRowIndex: null,
-    selectedProofMenuRowRef: null,
   }
+  _selectedProofMenuRowRef: ?React.Component<any>
   _proofList: ?UserProofs = null
   _scrollContainer: ?React.Component<any, any> = null
 
@@ -206,13 +205,13 @@ class ProfileRender extends PureComponent<Props, State> {
     if (!this._proofList) {
       return
     }
-    const selectedProofMenuRowRef = this._proofList.getRow(idx)
-
-    this.setState({selectedProofMenuRowIndex: idx, selectedProofMenuRowRef})
+    this._selectedProofMenuRowRef = this._proofList.getRow(idx)
+    this.setState({selectedProofMenuRowIndex: idx})
   }
 
   handleHideMenu() {
-    this.setState({selectedProofMenuRowIndex: null, selectedProofMenuRowRef: null})
+    this._selectedProofMenuRowRef = null
+    this.setState({selectedProofMenuRowIndex: null})
   }
 
   componentDidMount() {
@@ -249,6 +248,8 @@ class ProfileRender extends PureComponent<Props, State> {
       }
     }
 
+    // TODO/songgao: is it intended that this prop is still here? The prop is
+    // not provided in the container at all.
     let folders = orderBy(this.props.tlfs || [], 'isPublic', 'asc').map(folder => (
       <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
         <Box style={{...Styles.globalStyles.flexBoxRow, alignItems: 'center', minWidth: 24, minHeight: 24}}>
@@ -402,6 +403,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     onFollow={this.props.onFollow}
                     onOpenPrivateFolder={this.props.onOpenPrivateFolder}
                     onRefresh={this.props.refresh}
+                    onSendOrRequestLumens={this.props.onSendOrRequestLumens}
                     onUnfollow={this.props.onUnfollow}
                     onAcceptProofs={this.props.onAcceptProofs}
                     waiting={this.props.waiting}
@@ -463,7 +465,7 @@ class ProfileRender extends PureComponent<Props, State> {
                     closeOnSelect={true}
                     visible={this.state.selectedProofMenuRowIndex !== null}
                     onHidden={() => this.handleHideMenu()}
-                    attachTo={this.state.selectedProofMenuRowRef}
+                    attachTo={() => this._selectedProofMenuRowRef}
                     position="bottom right"
                     containerStyle={styles.floatingMenu}
                     {...proofMenuContent}

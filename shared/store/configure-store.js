@@ -87,9 +87,11 @@ const errorCatching = store => next => action => {
   }
 }
 
+export const sagaMiddleware = createSagaMiddleware(crashHandler)
+
 const middlewares = [
   errorCatching,
-  createSagaMiddleware(crashHandler),
+  sagaMiddleware,
   ...(enableStoreLogging && loggerMiddleware ? [loggerMiddleware] : []),
   ...(enableActionLogging ? [actionLogger] : []),
 ]

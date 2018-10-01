@@ -115,47 +115,51 @@ const MentionHud = compose(
   withStateHandlers({selectedIndex: 0}, {setSelectedIndex: () => selectedIndex => ({selectedIndex})}),
   withProps(_withProps),
   lifecycle({
-    componentWillReceiveProps(nextProps) {
-      if (nextProps.data.length === 0) {
-        nextProps.setSelectedIndex(0)
+    componentDidUpdate(prevProps, prevState) {
+      if (this.props.data.length === 0) {
+        if (prevProps.selectedIndex === 0) {
+          // We've already done this, so just get out of here so we don't infinite loop
+          return
+        }
+        this.props.setSelectedIndex(0)
       }
-      if (nextProps.data.length && nextProps.data.length !== this.props.data.length) {
-        nextProps.setSelectedIndex(Math.min(nextProps.selectedIndex, nextProps.data.length - 1))
+      if (this.props.data.length && this.props.data.length !== prevProps.data.length) {
+        this.props.setSelectedIndex(Math.min(this.props.selectedIndex, this.props.data.length - 1))
       }
 
-      if (nextProps.selectUpCounter !== this.props.selectUpCounter) {
-        let next = nextProps.selectedIndex - 1
+      if (this.props.selectUpCounter !== prevProps.selectUpCounter) {
+        let next = this.props.selectedIndex - 1
         if (next < 0) {
-          next = Math.max(nextProps.data.length - 1, 0)
+          next = Math.max(this.props.data.length - 1, 0)
         }
-        nextProps.setSelectedIndex(next)
-      } else if (nextProps.selectDownCounter !== this.props.selectDownCounter) {
-        let next = nextProps.selectedIndex + 1
-        if (next >= nextProps.data.length) {
+        this.props.setSelectedIndex(next)
+      } else if (this.props.selectDownCounter !== prevProps.selectDownCounter) {
+        let next = this.props.selectedIndex + 1
+        if (next >= this.props.data.length) {
           next = 0
         }
-        nextProps.setSelectedIndex(next)
+        this.props.setSelectedIndex(next)
       }
 
-      if (nextProps.pickSelectedUserCounter !== this.props.pickSelectedUserCounter) {
-        if (nextProps.selectedIndex < nextProps.data.length) {
-          nextProps.onPickUser(nextProps.data[nextProps.selectedIndex].username)
+      if (this.props.pickSelectedUserCounter !== prevProps.pickSelectedUserCounter) {
+        if (this.props.selectedIndex < this.props.data.length) {
+          this.props.onPickUser(this.props.data[this.props.selectedIndex].username)
         } else {
           // Just exit
-          nextProps.onPickUser(nextProps.filter, {notUser: true})
+          this.props.onPickUser(this.props.filter, {notUser: true})
         }
       }
 
-      if (nextProps.selectedIndex !== this.props.selectedIndex) {
-        if (nextProps.selectedIndex < nextProps.data.length) {
+      if (this.props.selectedIndex !== prevProps.selectedIndex) {
+        if (this.props.selectedIndex < this.props.data.length) {
           // Check if the previously selected entry matches the currently selected one
           // we do this to prevent replace the user's text if the currently selected
           // moves around in the list
-          const prevUser = this.props.fullList[this.props.selectedIndex]
+          const prevUser = prevProps.fullList[prevProps.selectedIndex]
           const prevUsername = prevUser && prevUser.username
-          const nextUsername = nextProps.data[nextProps.selectedIndex].username
+          const nextUsername = this.props.data[this.props.selectedIndex].username
           if (prevUsername !== nextUsername) {
-            nextProps.onSelectUser(nextUsername)
+            this.props.onSelectUser(nextUsername)
           }
         }
       }

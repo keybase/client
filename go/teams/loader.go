@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -68,6 +69,13 @@ type TeamLoader struct {
 	// Cache lookups of team name -> ID for a few seconds, to absorb bursts of lookups
 	// from the frontend
 	nameLookupBurstCache *libkb.BurstCache
+
+	// We can get pushed by the server into "force repoll" mode, in which we're
+	// not getting cache invalidations. An example: when Coyne or Nojima revokes
+	// a device. We want to cut down on notification spam. So instead, all attempts
+	// to load a team result in a preliminary poll for freshness, which this state is enabled.
+	forceRepollMutex sync.RWMutex
+	forceRepollUntil gregor.TimeOrOffset
 }
 
 var _ libkb.TeamLoader = (*TeamLoader)(nil)
@@ -552,7 +560,7 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	if fetchLinksAndOrSecrets {
 		lows := l.lows(ctx, ret)
 		l.G().Log.CDebugf(ctx, "TeamLoader getting links from server (%+v)", lows)
-		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, arg.public, lows, arg.readSubteamID)
+		teamUpdate, err = l.world.getNewLinksFromServer(ctx, arg.teamID, lows, arg.readSubteamID)
 		if err != nil {
 			return nil, err
 		}
@@ -750,6 +758,12 @@ func (l *TeamLoader) load2InnerLockedRetry(ctx context.Context, arg load2ArgT) (
 	// while holding the single-flight lock reads or writes this field.
 	ret.LatestSeqnoHint = 0
 
+	tracer.Stage("audit")
+	err = l.audit(ctx, readSubteamID, &ret.Chain)
+	if err != nil {
+		return nil, err
+	}
+
 	// Cache the validated result
 	tracer.Stage("put")
 	l.storage.Put(ctx, ret)
@@ -837,6 +851,8 @@ func (l *TeamLoader) userPreload(ctx context.Context, links []*ChainLinkUnpacked
 // - ForceRepoll
 // - Cache freshness / StaleOK
 // - NeedSeqnos
+// - If this user is in global "force repoll" mode, where it would be too spammy to
+//   push out individual team changed notifications, so all team loads need a repoll.
 func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromCache *keybase1.TeamData) (bool, bool) {
 	// NeedAdmin is a special constraint where we start from scratch.
 	// Because of admin-only invite links.
@@ -905,6 +921,12 @@ func (l *TeamLoader) load2DecideRepoll(ctx context.Context, arg load2ArgT, fromC
 	cacheIsOld := (fromCache != nil) && !l.isFresh(ctx, fromCache.CachedAt)
 	if cacheIsOld && !arg.staleOK {
 		// We need a merkle leaf
+		repoll = true
+	}
+
+	// InForceRepoll needs to a acquire a lock, so avoid it if we can
+	// (i.e., if repoll is already set to true).
+	if !repoll && l.InForceRepollMode(ctx) {
 		repoll = true
 	}
 
@@ -1401,4 +1423,88 @@ func (l *TeamLoader) NotifyTeamRename(ctx context.Context, id keybase1.TeamID, n
 	}
 
 	return nil
+}
+
+func (l *TeamLoader) getHeadMerkleSeqno(mctx libkb.MetaContext, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (ret keybase1.Seqno, err error) {
+	defer mctx.CTrace("TeamLoader#getHeadMerkleSeqno", func() error { return err })()
+
+	if state.HeadMerkle != nil {
+		return state.HeadMerkle.Seqno, nil
+	}
+	headSeqno := keybase1.Seqno(1)
+	expectedLinkRaw, ok := state.LinkIDs[headSeqno]
+	if !ok {
+		return ret, fmt.Errorf("couldn't find head link in team state during audit")
+	}
+	expectedLink, err := libkb.ImportLinkID(expectedLinkRaw)
+	if err != nil {
+		return ret, err
+	}
+	teamUpdate, err := l.world.getLinksFromServer(mctx.Ctx(), state.Id, []keybase1.Seqno{headSeqno}, &readSubteamID)
+	if err != nil {
+		return ret, err
+	}
+	newLinks, err := teamUpdate.unpackLinks(mctx.Ctx())
+	if err != nil {
+		return ret, err
+	}
+	if len(newLinks) != 1 {
+		return ret, fmt.Errorf("expected only one chainlink back; got %d", len(newLinks))
+	}
+	headLink := newLinks[0]
+	err = headLink.AssertInnerOuterMatch()
+	if err != nil {
+		return ret, err
+	}
+	if headLink.Seqno() != headSeqno {
+		return ret, NewInvalidLink(headLink, "wrong head seqno; wanted 1 but got something else")
+	}
+	if !headLink.LinkID().Eq(expectedLink) {
+		return ret, NewInvalidLink(headLink, "wrong head link hash: %s != %s", headLink.LinkID, expectedLink)
+	}
+	if headLink.isStubbed() {
+		return ret, NewInvalidLink(headLink, "got a stubbed head link, but wasn't expecting that")
+	}
+	headMerkle := headLink.inner.Body.MerkleRoot.ToMerkleRootV2()
+	state.HeadMerkle = &headMerkle
+	return headMerkle.Seqno, nil
+}
+
+func (l *TeamLoader) audit(ctx context.Context, readSubteamID keybase1.TeamID, state *keybase1.TeamSigChainState) (err error) {
+	mctx := libkb.NewMetaContext(ctx, l.G())
+
+	if l.G().Env.Test.TeamSkipAudit {
+		mctx.CDebugf("skipping audit in test due to flag")
+		return nil
+	}
+
+	headMerklSeqno, err := l.getHeadMerkleSeqno(mctx, readSubteamID, state)
+	if err != nil {
+		return err
+	}
+
+	err = mctx.G().GetTeamAuditor().AuditTeam(mctx, state.Id, state.Public, headMerklSeqno, state.LinkIDs, state.LastSeqno)
+	return err
+}
+
+func (l *TeamLoader) ForceRepollUntil(ctx context.Context, dtime gregor.TimeOrOffset) error {
+	l.G().Log.CDebugf(ctx, "TeamLoader#ForceRepollUntil(%+v)", dtime)
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	l.forceRepollUntil = dtime
+	return nil
+}
+
+func (l *TeamLoader) InForceRepollMode(ctx context.Context) bool {
+	l.forceRepollMutex.Lock()
+	defer l.forceRepollMutex.Unlock()
+	if l.forceRepollUntil == nil {
+		return false
+	}
+	if !l.forceRepollUntil.Before(l.G().Clock().Now()) {
+		l.G().Log.CDebugf(ctx, "TeamLoader#InForceRepollMode: returning true")
+		return true
+	}
+	l.forceRepollUntil = nil
+	return false
 }
