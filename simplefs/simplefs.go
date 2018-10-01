@@ -1387,7 +1387,7 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 // SimpleFSStat - Get info about file
 func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatArg) (de keybase1.Dirent, err error) {
 	if arg.IdentifyBehavior != nil {
-		ctx, err = libkbfs.MakeExtendedIdentify(ctx, arg.IdentifyBehavior)
+		ctx, err = libkbfs.MakeExtendedIdentify(ctx, *arg.IdentifyBehavior)
 		if err != nil {
 			return keybase1.Dirent{}, err
 		}
