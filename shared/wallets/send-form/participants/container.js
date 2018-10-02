@@ -5,7 +5,7 @@ import * as RouteTree from '../../../actions/route-tree'
 import * as SearchGen from '../../../actions/search-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import {getAccount, getAccountIDs, searchKey} from '../../../constants/wallets'
+import {getAccount, getAccounts, searchKey} from '../../../constants/wallets'
 import {stringToAccountID, type Account as StateAccount} from '../../../constants/types/wallets'
 import {compose, connect, setDisplayName, type TypedState, type Dispatch} from '../../../util/container'
 
@@ -72,8 +72,8 @@ const mapStateToPropsOtherAccount = (state: TypedState) => {
   const fromAccount = makeAccount(getAccount(state, stringToAccountID(build.from)))
   const toAccount = build.to ? makeAccount(getAccount(state, stringToAccountID(build.to))) : undefined
 
-  const allAccounts = getAccountIDs(state)
-    .map(accountID => makeAccount(getAccount(state, accountID)))
+  const allAccounts = getAccounts(state)
+    .map(makeAccount)
     .toArray()
 
   return {
