@@ -216,6 +216,7 @@ const styles = Styles.styleSheetCreate({
   keybaseUserRemoveButton: {
     flex: 1,
     textAlign: 'right',
+    marginRight: Styles.globalMargins.tiny, // consistent with UserInput
   },
   stellarIcon: {
     alignSelf: 'flex-start',

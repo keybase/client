@@ -2,12 +2,8 @@
 import * as Container from '../../../../util/container'
 import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
-import * as WalletConstants from '../../../../constants/wallets'
-import * as WalletTypes from '../../../../constants/types/wallets'
-import * as WalletsGen from '../../../../actions/wallets-gen'
-import * as Route from '../../../../actions/route-tree-gen'
+import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Styles from '../../../../styles'
-import HiddenString from '../../../../util/hidden-string'
 import AccountPayment from '.'
 
 // Props for rendering the loading indicator
@@ -71,7 +67,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         balanceChangeColor: '',
         icon: 'iconfont-stellar-request',
         loading: false,
-        memo: message.note,
+        memo: message.note.stringValue(),
         pending: false,
       }
     }
@@ -80,25 +76,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => ({
-  onSend: () => {
-    if (ownProps.message.type !== 'requestPayment') {
-      throw new Error(`AccountPayment: impossible case encountered: '${ownProps.message.type}'`)
-    }
-    const {requestInfo} = ownProps.message
-    if (requestInfo && ownProps.message.type === 'requestPayment') {
-      const message = ownProps.message
-      if (requestInfo.currencyCode) {
-        dispatch(WalletsGen.createSetBuildingCurrency({currency: requestInfo.currencyCode}))
-      }
-      dispatch(WalletsGen.createSetBuildingAmount({amount: requestInfo.amount}))
-      dispatch(WalletsGen.createSetBuildingFrom({from: WalletTypes.noAccountID})) // Meaning default account
-      dispatch(WalletsGen.createSetBuildingRecipientType({recipientType: 'keybaseUser'}))
-      dispatch(WalletsGen.createSetBuildingTo({to: message.author}))
-      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(message.note)}))
-      dispatch(Route.createNavigateAppend({path: [WalletConstants.sendReceiveFormRouteKey]}))
-    }
-  },
+const mapDispatchToProps = (dispatch, {message: {conversationIDKey, ordinal}}) => ({
+  onSend: () => dispatch(Chat2Gen.createPrepareFulfillRequestForm({conversationIDKey, ordinal})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

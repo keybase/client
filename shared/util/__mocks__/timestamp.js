@@ -34,5 +34,9 @@ export function formatDurationShort(ms: number): string {
   return '[mocked]'
 }
 
+export function formatTimeForPeopleItem(time: number): string {
+  return '[mocked]'
+}
+
 export const formatDuration = (duration: number): string => '[mocked]'
 export const formatDurationFromNowTo = (timeInFuture?: number): string => '[mocked]'

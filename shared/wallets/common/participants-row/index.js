@@ -49,7 +49,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
 })

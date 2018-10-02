@@ -1,14 +1,11 @@
-Features:
-    • Inline video in chat
-    • Better reconnection handling
-    • More visual polish
-    • Better explanation of Facebook proof process
-    • Windows: Taskbar overlay icon on chat activity
+• Inbox performance improvements
+• More polish around the app
+• Better feedback on buttons that are waiting for the server to respond
 
-Bugs:
-    • Some git notifications in chat could show incorrectly
-    • Squashed some EOF errors
-    • Better selection of a different conversation when leaving the selected one
-    • Show in finder sometimes wouldn't work from chat
-    • Some teams that weren't subteams could show in the list
-    • On iOS the statusbar could disappear after viewing a video
+Improved error handling in these flows:
+    • Loading the home page on spotty networks
+    • Various operations on the files tab
+    • Creating / deleting git repositories
+    • Leaving a team
+
+• 64 bit windows build

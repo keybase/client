@@ -24,7 +24,8 @@
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
-      "build": "Types.BuiltPayment"
+      "build": "Types.BuiltPayment",
+      "forBuildingPayment": "Types.BuildingPayment"
     },
     "clearBuildingPayment": {
       "_description": "Clear a payment that was being prepared"

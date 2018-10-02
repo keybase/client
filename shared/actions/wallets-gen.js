@@ -73,7 +73,10 @@ type _AssetsReceivedPayload = $ReadOnly<{|
   assets: Array<Types.Assets>,
 |}>
 type _BuildPaymentPayload = void
-type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|
+  build: Types.BuiltPayment,
+  forBuildingPayment: Types.BuildingPayment,
+|}>
 type _CancelRequestPayload = $ReadOnly<{|
   conversationIDKey?: ChatTypes.ConversationIDKey,
   ordinal?: ChatTypes.Ordinal,

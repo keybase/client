@@ -9,6 +9,7 @@ export type Position =
   | 'left center'
   | 'top center'
   | 'bottom center'
+  | 'center center'
 
 export type Props<PP: {}> = {|
   ...PP,
