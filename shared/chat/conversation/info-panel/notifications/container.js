@@ -62,7 +62,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('LifecycleNotifications'),
   withStateHandlers(
     props => ({

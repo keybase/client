@@ -8,4 +8,11 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps})
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Body'))(Body)
+export default compose(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
+  setDisplayName('Body')
+)(Body)

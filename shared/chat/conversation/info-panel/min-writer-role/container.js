@@ -42,6 +42,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   Container.setDisplayName('MinWriterRole')
 )(MinWriterRole)

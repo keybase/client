@@ -37,7 +37,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 const ConnectedEditTeamDescription = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(({origDescription}) => ({description: origDescription}), {
     onChangeDescription: () => description => ({description}),
   }),

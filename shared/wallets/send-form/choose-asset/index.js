@@ -234,7 +234,8 @@ const OtherChoice = (props: OtherChoiceProps) => (
             ])}
           >
             {props.code}
-          </Text>/{props.issuer}
+          </Text>
+          /{props.issuer}
         </Text>
         {!!props.disabledExplanation && (
           <Text type="BodySmall" style={styles.grey}>

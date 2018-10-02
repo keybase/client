@@ -57,4 +57,8 @@ const paymentsFromState = (payments: ?I.List<Types.Payment>) => {
   return payments.map(p => ({paymentID: p.id, status: p.statusSimplified})).toArray()
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Wallet)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Wallet)

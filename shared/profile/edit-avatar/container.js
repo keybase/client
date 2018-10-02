@@ -43,4 +43,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
   teamname: stateProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditAvatar)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(EditAvatar)

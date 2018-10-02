@@ -63,6 +63,7 @@ const TlfUpdateHoc = (ComposedComponent: React.ComponentType<any>) =>
     }
   }
 
-export default compose(remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps), TlfUpdateHoc)(
-  FilesPreview
-)
+export default compose(
+  remoteConnect(mapStateToProps, mapDispatchToProps, mergeProps),
+  TlfUpdateHoc
+)(FilesPreview)

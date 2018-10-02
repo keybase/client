@@ -30,9 +30,7 @@ type ChatPreviewProps = {
 export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
-      return (
-        <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
-      )
+      return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
     })}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>

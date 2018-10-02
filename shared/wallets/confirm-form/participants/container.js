@@ -31,4 +31,8 @@ const mapStateToProps = (state: TypedState) => {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(ConfirmSend)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(ConfirmSend)

@@ -53,7 +53,11 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {focusInputCounter: 0, listScrollDownCounter: 0},
     {

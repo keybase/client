@@ -119,8 +119,7 @@ function updateConstants() {
   const icons = {}
 
   // Build constants for the png assests.
-  fs
-    .readdirSync(paths.iconpng)
+  fs.readdirSync(paths.iconpng)
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)

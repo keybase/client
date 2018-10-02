@@ -238,4 +238,8 @@ const mapStateToProps = (state: TypedState) => ({
   username: state.config.username,
 })
 
-export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(RpcStats)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(RpcStats)

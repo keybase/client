@@ -14,4 +14,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   toggle: ownProps.toggle,
 })
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(BigTeamsDivider)
+export default connect(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(BigTeamsDivider)

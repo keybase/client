@@ -45,6 +45,10 @@ const mergeProps = ({errors}, {_dismiss, _retry}) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   setDisplayName('ConnectedErrs')
 )(Errs)

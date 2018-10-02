@@ -57,7 +57,11 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props._loadGit()

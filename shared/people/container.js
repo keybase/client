@@ -49,5 +49,9 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-// $FlowIssue TODO don't use toJS above, you lose all types
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(LoadOnMount)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+  // $FlowIssue TODO don't use toJS above, you lose all types
+)(LoadOnMount)

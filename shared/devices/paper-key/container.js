@@ -20,4 +20,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   waiting: stateProps.waiting,
 })
 
-export default Container.connect(mapStateToProps, mapDispatchToProps, mergeProps)(PaperKey)
+export default Container.connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(PaperKey)

@@ -16,4 +16,8 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
     dispatch(SignupGen.createCheckUsernameEmail({email, username})),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(UsernameEmail)
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(UsernameEmail)
