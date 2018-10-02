@@ -110,11 +110,7 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     }
   }
 
-  _onChangeStellarRecipient = debounce((to: string) => {
-    this.props.onChangeRecipient(to)
-  }, 1e3)
-
-  render() {
+  render = () => {
     if (this.props.allAccounts.length <= 1) {
       // A user is sending to another account, but has no other
       // accounts. Show a "create new account" button.
