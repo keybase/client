@@ -1463,6 +1463,14 @@ func (h *Server) DownloadAttachmentLocal(ctx context.Context, arg chat1.Download
 	return h.downloadAttachmentLocal(ctx, uid, darg)
 }
 
+func (h *Server) getDownloadTempDir(basename string) (string, error) {
+	p := filepath.Join(h.G().GetEnv().GetCacheDir(), "dltemp")
+	if err := os.MkdirAll(p, os.ModePerm); err != nil {
+		return "", err
+	}
+	return filepath.Join(p, basename), nil
+}
+
 // DownloadFileAttachmentLocal implements chat1.LocalInterface.DownloadFileAttachmentLocal.
 func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.DownloadFileAttachmentLocalArg) (res chat1.DownloadFileAttachmentLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1500,7 +1508,11 @@ func (h *Server) DownloadFileAttachmentLocal(ctx context.Context, arg chat1.Down
 		}
 		basepath := body.Attachment().Object.Filename
 		basename := path.Base(basepath)
-		f, err := os.OpenFile(filepath.Join(os.TempDir(), basename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
+		fullpath, err := h.getDownloadTempDir(basename)
+		if err != nil {
+			return res, err
+		}
+		f, err := os.OpenFile(fullpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0644)
 		if err != nil {
 			return res, err
 		}
