@@ -679,7 +679,7 @@ type BlockHashKey struct {
 // MakeBlockHashKey makes a key used for encryption and decryption for
 // the v2 block encryption scheme.
 func MakeBlockHashKey(
-	serverHalf TLFCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
+	serverHalf BlockCryptKeyServerHalf, key TLFCryptKey) BlockHashKey {
 	keyData := key.Data()
 	mac := hmac.New(sha512.New, keyData[:])
 	serverHalfData := serverHalf.Data()
