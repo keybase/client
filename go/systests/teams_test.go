@@ -1061,7 +1061,7 @@ func TestTeamSignedByRevokedDevice(t *testing.T) {
 
 	t.Logf("bob should see alice's key is revoked")
 	{
-		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKey(context.TODO(), alice.uid, revokedKID, false)
 		require.NoError(t, err)
 		t.Logf("%v", spew.Sdump(pubKey))
 		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)
@@ -1143,7 +1143,7 @@ func TestTeamSignedByRevokedDevice2(t *testing.T) {
 
 	t.Logf("bob should see alice's key is revoked")
 	{
-		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKeyV2(context.TODO(), alice.uid, revokedKID)
+		_, _, pubKey, err := bob.tc.G.GetUPAKLoader().LoadKey(context.TODO(), alice.uid, revokedKID, false)
 		require.NoError(t, err)
 		t.Logf("%v", spew.Sdump(pubKey))
 		require.NotNil(t, pubKey.Base.Revocation, "key should be revoked: %v", revokedKID)

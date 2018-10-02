@@ -42,21 +42,22 @@ func (c *loadKeyCache) loadKeyV2(mctx libkb.MetaContext, uid keybase1.UID, kid k
 	}
 
 	// Load the user. LoadKeyV2 handles punching through the cache when needed.
-	user, upak, _, err := mctx.G().GetUPAKLoader().LoadKeyV2(mctx.Ctx(), uid, kid)
+	user, upakPtr, _, err := mctx.G().GetUPAKLoader().LoadKey(mctx.Ctx(), uid, kid, false)
 	if err != nil {
 		return uv, pubKey, linkMap, err
 	}
-	if user == nil || upak == nil {
+	if user == nil || upakPtr == nil {
 		return uv, pubKey, linkMap, libkb.NotFoundError{}
 	}
+	upak := *upakPtr
 
 	// Put all the user's keys into the cache
-	c.userLinkMapCache[uid] = upak.SeqnoLinkIDs
+	c.userLinkMapCache[uid] = upak.GetSeqnoLinkIDs()
 	if c.userKeyCache[uid] == nil {
 		c.userKeyCache[uid] = make(map[keybase1.KID]uvAndKey)
 	}
-	for _, user := range append(upak.PastIncarnations, upak.Current) {
-		pubKey, ok := user.DeviceKeys[kid]
+	for _, user := range append(upak.GetPastIncarnations(), upak.GetCurrent()) {
+		pubKey, ok := user.GetDeviceKeys()[kid]
 		if ok {
 			c.userKeyCache[uid][kid] = uvAndKey{
 				UV:  user.ToUserVersion(),

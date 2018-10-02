@@ -800,7 +800,16 @@ func (f failingUpak) LoadLite(arg libkb.LoadUserArg) (ret *keybase1.UPKLiteV1All
 	require.Fail(f.t, "LoadLite call")
 	return nil, nil
 }
-func (f failingUpak) LoadKeyV2(ctx context.Context, uid keybase1.UID, kid keybase1.KID) (*keybase1.UserPlusKeysV2, *keybase1.UserPlusKeysV2AllIncarnations, *keybase1.PublicKeyV2NaCl, error) {
+func (f failingUpak) LoadV2OrLite(arg libkb.LoadUserArg) (ret *keybase1.UPKLiteAllIncarnationsInterface, user *libkb.User, err error) {
+	require.Fail(f.t, "LoadV2OrLite call")
+	return nil, nil, nil
+}
+func (f failingUpak) LookupUsernameUPAKLite(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+	require.Fail(f.t, "LookupUsernameUPAKLite call")
+	return "", nil
+}
+func (f failingUpak) LoadKey(ctx context.Context, uid keybase1.UID, kid keybase1.KID, includeLowKeys bool) (ret *keybase1.UPKLiteInterface,
+	upak *keybase1.UPKLiteAllIncarnationsInterface, key *keybase1.PublicKeyV2NaCl, err error) {
 	require.Fail(f.t, "LoadKeyV2")
 	return nil, nil, nil, nil
 }

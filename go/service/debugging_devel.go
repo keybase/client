@@ -76,7 +76,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			return "", err
 		}
 		kid := keybase1.KIDFromString(args[1])
-		_, _, _, err = t.G().GetUPAKLoader().LoadKeyV2(ctx, uid, kid)
+		_, _, _, err = t.G().GetUPAKLoader().LoadKey(ctx, uid, kid, false)
 		return "", err
 	case "eldest":
 		if len(args) != 1 {

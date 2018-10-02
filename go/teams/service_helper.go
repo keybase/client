@@ -1658,7 +1658,7 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 	if err != nil {
 		return res, err
 	}
-	upak, _, err := mctx.G().GetUPAKLoader().LoadV2(libkb.NewLoadUserArgWithMetaContext(mctx).
+	upak, err := mctx.G().GetUPAKLoader().LoadLite(libkb.NewLoadUserArgWithMetaContext(mctx).
 		WithUID(arg.Uid).
 		WithPublicKeyOptional().
 		WithForcePoll(false))
@@ -1666,12 +1666,12 @@ func FindNextMerkleRootAfterRemoval(mctx libkb.MetaContext, arg keybase1.FindNex
 		return res, err
 	}
 
-	vers, _ := upak.FindKID(arg.SigningKey)
+	vers, _ := libkb.FindKID(upak, arg.SigningKey)
 	if vers == nil {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("KID %s not found for %s", arg.SigningKey, arg.Uid)}
 	}
 
-	uv := vers.ToUserVersion()
+	uv := (*vers).ToUserVersion()
 	logPoints := team.chain().inner.UserLog[uv]
 	demotionPredicate := func(p keybase1.UserLogPoint) bool {
 		if arg.AnyRoleAllowed {
