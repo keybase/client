@@ -104,4 +104,6 @@ const Participants = (props: ParticipantsProps) => {
   }
 }
 
+export {ParticipantsKeybaseUser, ParticipantsStellarPublicKey, ParticipantsOtherAccount}
+
 export default Participants

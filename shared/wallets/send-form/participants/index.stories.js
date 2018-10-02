@@ -3,7 +3,12 @@ import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
 import {Box} from '../../../common-adapters'
 import {stringToAccountID} from '../../../constants/types/wallets'
-import Participants, {type Account} from '.'
+import {
+  type Account,
+  ParticipantsKeybaseUser,
+  ParticipantsStellarPublicKey,
+  ParticipantsOtherAccount,
+} from '.'
 import {makeSelectorMap as makeResultsListSelectorMap} from '../../../search/results-list/index.stories'
 import {type ConnectPropsMap as RowConnectPropsMap} from '../../../search/result-row/index.stories'
 import {makeSelectorMap as makeUserInputSelectorMap} from '../../../search/user-input/index.stories'
@@ -101,13 +106,6 @@ const keybaseUserProps = {
   onRemoveProfile: Sb.action('onRemoveProfile'),
 }
 
-const stellarPublicKeyProps = {
-  recipientType: 'stellarPublicKey',
-  incorrect: '',
-  toFieldInput: '',
-  onChangeRecipient: Sb.action('onChangeRecipient'),
-}
-
 const otherAccountProps = {
   recipientType: 'otherAccount',
   user: 'cjb',
@@ -119,18 +117,25 @@ const otherAccountProps = {
   onCreateNewAccount: Sb.action('onCreateNewAccount'),
 }
 
+const stellarPublicKeyProps = {
+  recipientType: 'stellarPublicKey',
+  incorrect: '',
+  toFieldInput: '',
+  onChangeRecipient: Sb.action('onChangeRecipient'),
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/SendForm/Participants', module)
     .addDecorator(provider)
     .addDecorator(story => <Box style={{maxWidth: 360, marginTop: 60}}>{story()}</Box>)
-    .add('To Keybase user', () => <Participants {...keybaseUserProps} />)
-    .add('To other account (multiple accounts)', () => <Participants {...otherAccountProps} />)
-    .add('To other account (one account)', () => (
-      <Participants {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
-    ))
-    .add('To stellar address', () => <Participants {...stellarPublicKeyProps} />)
+    .add('To Keybase user', () => <ParticipantsKeybaseUser {...keybaseUserProps} />)
+    .add('To stellar address', () => <ParticipantsStellarPublicKey {...stellarPublicKeyProps} />)
     .add('Stellar address Error', () => (
-      <Participants {...stellarPublicKeyProps} incorrect="Stellar address incorrect" />
+      <ParticipantsStellarPublicKey {...stellarPublicKeyProps} incorrect="Stellar address incorrect" />
+    ))
+    .add('To other account (multiple accounts)', () => <ParticipantsOtherAccount {...otherAccountProps} />)
+    .add('To other account (one account)', () => (
+      <ParticipantsOtherAccount {...otherAccountProps} allAccounts={accounts.slice(0, 1)} />
     ))
 }
 
