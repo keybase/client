@@ -824,7 +824,6 @@ const rootReducer = (
     case TeamBuildingGen.addUsersToTeamSoFar:
     case TeamBuildingGen.removeUsersFromTeamSoFar:
     case TeamBuildingGen.searchResultsLoaded:
-    case TeamBuildingGen.searchResultCountsLoaded:
     case TeamBuildingGen.finishedTeamBuilding:
     case TeamBuildingGen.search:
       return teamBuildingReducer(state, action)

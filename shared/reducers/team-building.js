@@ -24,12 +24,6 @@ export default function<X, S: I.RecordOf<X & Types.TeamBuildingSubState>>(
       const {query, service, users} = action.payload
       return state.mergeIn(['teamBuildingSearchResults', query], {[service]: users})
     }
-    case TeamBuildingGen.searchResultCountsLoaded: {
-      const {query, counts} = action.payload
-      return state.update('teamBuildingServiceResultCount', serviceResultCount =>
-        serviceResultCount.update(query, I.Map(), m => m.merge(counts))
-      )
-    }
     case TeamBuildingGen.finishedTeamBuilding:
       return state.merge({
         teamBuildingFinishedTeam: state.teamBuildingTeamSoFar,

@@ -15,7 +15,6 @@ export const cancelTeamBuilding = 'team-building:cancelTeamBuilding'
 export const finishedTeamBuilding = 'team-building:finishedTeamBuilding'
 export const removeUsersFromTeamSoFar = 'team-building:removeUsersFromTeamSoFar'
 export const search = 'team-building:search'
-export const searchResultCountsLoaded = 'team-building:searchResultCountsLoaded'
 export const searchResultsLoaded = 'team-building:searchResultsLoaded'
 
 // Payload Types
@@ -27,10 +26,6 @@ type _SearchPayload = $ReadOnly<{|
   query: string,
   service: Types.ServiceIdWithContact,
   limit?: number,
-|}>
-type _SearchResultCountsLoadedPayload = $ReadOnly<{|
-  counts: {[key: Types.ServiceIdWithContact]: number},
-  query: string,
 |}>
 type _SearchResultsLoadedPayload = $ReadOnly<{|
   users: Array<Types.User>,
@@ -44,7 +39,6 @@ export const createCancelTeamBuilding = (payload: _CancelTeamBuildingPayload) =>
 export const createFinishedTeamBuilding = (payload: _FinishedTeamBuildingPayload) => ({error: false, payload, type: finishedTeamBuilding})
 export const createRemoveUsersFromTeamSoFar = (payload: _RemoveUsersFromTeamSoFarPayload) => ({error: false, payload, type: removeUsersFromTeamSoFar})
 export const createSearch = (payload: _SearchPayload) => ({error: false, payload, type: search})
-export const createSearchResultCountsLoaded = (payload: _SearchResultCountsLoadedPayload) => ({error: false, payload, type: searchResultCountsLoaded})
 export const createSearchResultsLoaded = (payload: _SearchResultsLoadedPayload) => ({error: false, payload, type: searchResultsLoaded})
 
 // Action Payloads
@@ -53,7 +47,6 @@ export type CancelTeamBuildingPayload = $Call<typeof createCancelTeamBuilding, _
 export type FinishedTeamBuildingPayload = $Call<typeof createFinishedTeamBuilding, _FinishedTeamBuildingPayload>
 export type RemoveUsersFromTeamSoFarPayload = $Call<typeof createRemoveUsersFromTeamSoFar, _RemoveUsersFromTeamSoFarPayload>
 export type SearchPayload = $Call<typeof createSearch, _SearchPayload>
-export type SearchResultCountsLoadedPayload = $Call<typeof createSearchResultCountsLoaded, _SearchResultCountsLoadedPayload>
 export type SearchResultsLoadedPayload = $Call<typeof createSearchResultsLoaded, _SearchResultsLoadedPayload>
 
 // All Actions
@@ -64,6 +57,5 @@ export type Actions =
   | FinishedTeamBuildingPayload
   | RemoveUsersFromTeamSoFarPayload
   | SearchPayload
-  | SearchResultCountsLoadedPayload
   | SearchResultsLoadedPayload
   | {type: 'common:resetStore', payload: void}

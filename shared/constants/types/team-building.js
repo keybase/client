@@ -3,15 +3,20 @@
 import * as I from 'immutable'
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
-export type ServiceIdWithContact =
-  | 'facebook'
-  | 'github'
-  | 'hackernews'
-  | 'keybase'
-  | 'pgp'
-  | 'reddit'
-  | 'twitter'
-  | 'contact'
+
+// Use services from constants instead, here to avoid a circular dependency
+export const _services = {
+  contact: true,
+  facebook: true,
+  github: true,
+  hackernews: true,
+  keybase: true,
+  pgp: true,
+  reddit: true,
+  twitter: true,
+}
+
+export type ServiceIdWithContact = $Keys<typeof _services>
 
 export type SearchString = string
 type UsernameOnService = string
@@ -40,4 +45,29 @@ export type TeamBuildingSubState = {
   teamBuildingSearchQuery: Query,
   teamBuildingSelectedService: ServiceIdWithContact,
   teamBuildingSearchLimit: number,
+}
+
+export type RawSearchResult = {
+  score: number,
+  keybase: ?{
+    username: string,
+    uid: string,
+    picture_url: string,
+    full_name: string,
+    is_followee: boolean,
+  },
+  service: ?{
+    service_name: ServiceIdWithContact,
+    username: string,
+    picture_url: string,
+    bio: string,
+    location: string,
+    full_name: string,
+  },
+  services_summary: {
+    [key: ServiceIdWithContact]: {
+      service_name: ServiceIdWithContact,
+      username: string,
+    },
+  },
 }
