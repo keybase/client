@@ -7,10 +7,9 @@ import Channel from './channel-container'
 import Mention from './mention-container'
 import Box from './box'
 import Emoji from './emoji'
-import {parseMarkdown, EmojiIfExists} from './markdown.shared'
+import {EmojiIfExists} from './markdown.shared'
 import {emojiRegex} from '../markdown/emoji'
 import SimpleMarkdown from 'simple-markdown'
-import tlds from 'tlds'
 
 import type {Props} from './markdown'
 
@@ -190,24 +189,7 @@ function messageCreateComponent(type, key, children, options) {
   }
 }
 
-// https://gist.github.com/dperini/729294
-// const linkRegex = /^(?:(?:(?:https?):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z0-9\u00a1-\uffff][a-z0-9\u00a1-\uffff_-]{0,62})?[a-z0-9\u00a1-\uffff]\.)+(?:[a-z\u00a1-\uffff]{2,}\.?))(?::\d{2,5})?(?:[/?#]\S*)?/i
 const linkRegex = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
-
-// const tldExp = new RegExp(`^(http:\\/\\/|https:\\/\\/|\\w)+\\.(${tlds.join('|')})\\b`, 'i')
-// const ipExp = new RegExp(/^\s*\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/)
-// const linkMatch = (source, state, prevCapture) => {
-// let match = tldExp.exec(source)
-// if (!match) {
-// // includes a valid tld?
-// match = ipExp.exec(source)
-// if (!match) {
-// // ip?
-// return null
-// }
-// }
-// return match
-// }
 
 var debugAnyScopeRegex = function(name, regex) {
   var match = function(source, state) {
@@ -218,10 +200,6 @@ var debugAnyScopeRegex = function(name, regex) {
   return match
 }
 
-// const rules = {
-// ...SimpleMarkdown.defaultRules,
-// }
-
 const rules = {
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
@@ -229,7 +207,7 @@ const rules = {
     // original
     // match: blockRegex(/^(?:\n *)*\n/),
     // ours: handle \n inside text also
-    match: debugAnyScopeRegex('newline', /^\n/), // SimpleMarkdown.anyScopeRegex(/^\n/),
+    match: SimpleMarkdown.anyScopeRegex(/^\n/),
   },
   escape: {
     // handle escaped chars, keep this to handle escapes globally
@@ -293,33 +271,6 @@ const rules = {
       )
     },
   },
-  // },
-  // // link: {
-  // // ...SimpleMarkdown.defaultRules.link,
-  // // react: (node, output, state) => {
-  // // return (
-  // // <Text
-  // // className="hover-underline"
-  // // type="BodyPrimaryLink"
-  // // key={state.key}
-  // // style={linkStyle}
-  // // onClickURL={state.href}
-  // // >
-  // // {node.content}
-  // // </Text>
-  // // )
-  // // },
-  // // },
-  // // textBlock: {
-  // // ...SimpleMarkdown.defaultRules.textBlock,
-  // // react: (node, output, state) => {
-  // // return (
-  // // <Text type="Body" key={state.key} style={textBlockStyle}>
-  // // {node.content && node.content.length ? node.content : '\u200b'}
-  // // </Text>
-  // // )
-  // // },
-  // // },
   strong: {
     ...SimpleMarkdown.defaultRules.strong,
     // original
@@ -421,34 +372,12 @@ const reactOutput = SimpleMarkdown.reactFor(SimpleMarkdown.ruleOutput(rules, 're
 
 class Markdown extends PureComponent<Props> {
   render() {
-    if (true) {
-      const parseTree = parser(this.props.children || '', {inline: false})
-      // <div>
-      // console.log(parseTree)
-      // <pre>{'\n\n\n--------'}</pre>
-      // <pre>{this.props.children}</pre>
-      // <pre>{JSON.stringify(parseTree, null, 2)}</pre>
-      // </div>
-      return (
-        <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
-          {reactOutput(parseTree)}
-        </Text>
-      )
-    } else {
-      const content = parseMarkdown(
-        this.props.children,
-        this.props.preview ? previewCreateComponent : messageCreateComponent,
-        this.props.meta
-      )
-      return (
-        <Text
-          type="Body"
-          style={Styles.platformStyles({isElectron: {whiteSpace: 'pre', ...this.props.style}})}
-        >
-          {content}
-        </Text>
-      )
-    }
+    const parseTree = parser(this.props.children || '', {inline: false})
+    return (
+      <Text type="Body" style={Styles.collapseStyles([styles.rootWrapper, this.props.style])}>
+        {reactOutput(parseTree)}
+      </Text>
+    )
   }
 }
 
