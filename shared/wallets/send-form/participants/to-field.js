@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {ParticipantsRow} from '../../common'
 import {SelectedEntry, DropdownEntry, DropdownText} from './dropdown'
 import Search from './search'
 import type {Account} from '.'
@@ -18,7 +19,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
   if (props.recipientUsername) {
     // A username has been set, so display their name and avatar.
     return (
-      <React.Fragment>
+      <ParticipantsRow heading="To" headingAlignment="Right">
         <Kb.ConnectedNameWithIcon
           colorFollowing={true}
           horizontal={true}
@@ -33,7 +34,7 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
           color={Styles.globalColors.black_20}
           onClick={props.onRemoveProfile}
         />
-      </React.Fragment>
+      </ParticipantsRow>
     )
   }
 
@@ -55,35 +56,42 @@ type ToStellarPublicKeyProps = {|
 |}
 
 const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
-    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
-      <Kb.Icon
-        type={
-          props.recipientPublicKey.length === 0 || props.errorMessage
-            ? 'icon-stellar-logo-grey-16'
-            : 'icon-stellar-logo-16'
-        }
-        style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
-      />
-      <Kb.NewInput
-        type="text"
-        onChangeText={props.onChangeRecipient}
-        textType="BodySemibold"
-        placeholder={'Stellar address'}
-        placeholderColor={Styles.globalColors.black_20}
-        hideBorder={true}
-        containerStyle={styles.input}
-        multiline={true}
-        rowsMin={2}
-        rowsMax={3}
-      />
+  <ParticipantsRow
+    heading="To"
+    headingAlignment="Right"
+    headingStyle={{alignSelf: 'flex-start'}}
+    dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
+  >
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.inputInner}>
+        <Kb.Icon
+          type={
+            props.recipientPublicKey.length === 0 || props.errorMessage
+              ? 'icon-stellar-logo-grey-16'
+              : 'icon-stellar-logo-16'
+          }
+          style={Kb.iconCastPlatformStyles(styles.stellarIcon)}
+        />
+        <Kb.NewInput
+          type="text"
+          onChangeText={props.onChangeRecipient}
+          textType="BodySemibold"
+          placeholder={'Stellar address'}
+          placeholderColor={Styles.globalColors.black_20}
+          hideBorder={true}
+          containerStyle={styles.input}
+          multiline={true}
+          rowsMin={2}
+          rowsMax={3}
+        />
+      </Kb.Box2>
+      {!!props.errorMessage && (
+        <Kb.Text type="BodySmall" style={styles.errorText}>
+          {props.errorMessage}
+        </Kb.Text>
+      )}
     </Kb.Box2>
-    {!!props.errorMessage && (
-      <Kb.Text type="BodySmall" style={styles.errorText}>
-        {props.errorMessage}
-      </Kb.Text>
-    )}
-  </Kb.Box2>
+  </ParticipantsRow>
 )
 
 type ToOtherAccountProps = {|
@@ -142,17 +150,19 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
     }
 
     return (
-      <Kb.Dropdown
-        onChanged={this.onAccountDropdownChange}
-        items={items}
-        selected={
-          this.props.toAccount ? (
-            <SelectedEntry account={this.props.toAccount} user={this.props.user} />
-          ) : (
-            <DropdownText key="placeholder-select" text="Pick another account" />
-          )
-        }
-      />
+      <ParticipantsRow heading="To" headingAlignment="Left">
+        <Kb.Dropdown
+          onChanged={this.onAccountDropdownChange}
+          items={items}
+          selected={
+            this.props.toAccount ? (
+              <SelectedEntry account={this.props.toAccount} user={this.props.user} />
+            ) : (
+              <DropdownText key="placeholder-select" text="Pick another account" />
+            )
+          }
+        />
+      </ParticipantsRow>
     )
   }
 }
