@@ -59,7 +59,7 @@ const ToStellarPublicKey = (props: ToStellarPublicKeyProps) => (
   <ParticipantsRow
     heading="To"
     headingAlignment="Right"
-    headingStyle={{alignSelf: 'flex-start'}}
+    headingStyle={styles.heading}
     dividerColor={props.errorMessage ? Styles.globalColors.red : ''}
   >
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.inputBox}>
@@ -179,6 +179,9 @@ const styles = Styles.styleSheetCreate({
   },
 
   // ToStellarPublicKey
+  heading: {
+    alignSelf: 'flex-start',
+  },
   inputBox: {flexGrow: 1},
   inputInner: {
     alignItems: 'flex-start',
