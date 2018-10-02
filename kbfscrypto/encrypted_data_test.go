@@ -25,6 +25,21 @@ func TestEncryptDecryptDataSuccess(t *testing.T) {
 	require.Equal(t, data, decryptedData)
 }
 
+func TestEncryptDecryptDataV2Success(t *testing.T) {
+	data := []byte{0x20, 0x30}
+	key := [32]byte{0x40, 0x45}
+	blockKey := BlockCryptKey{privateByte32Container{key}}
+	encryptedBlock, err := EncryptPaddedEncodedBlockV2(data, blockKey)
+	require.NoError(t, err)
+	require.Equal(
+		t, EncryptionSecretboxWithKeyNonce,
+		encryptedBlock.encryptedData.Version)
+
+	decryptedData, err := DecryptBlock(encryptedBlock, blockKey)
+	require.NoError(t, err)
+	require.Equal(t, data, decryptedData)
+}
+
 func TestDecryptDataFailure(t *testing.T) {
 	// Test various failure cases for decryptMetadata().
 	data := []byte{0x20, 0x30}
@@ -32,10 +47,21 @@ func TestDecryptDataFailure(t *testing.T) {
 	encryptedData, err := encryptData(data, key)
 	require.NoError(t, err)
 
+	// Wrong nonce for v2.
+
+	encryptedDataWrongNonce := encryptedData
+	encryptedDataWrongNonce.Version++
+	_, err = DecryptBlock(
+		EncryptedBlock{encryptedDataWrongNonce},
+		BlockCryptKey{privateByte32Container{key}})
+	assert.Equal(t,
+		InvalidNonceError{encryptedDataWrongNonce.Nonce},
+		errors.Cause(err))
+
 	// Wrong version.
 
 	encryptedDataWrongVersion := encryptedData
-	encryptedDataWrongVersion.Version++
+	encryptedDataWrongVersion.Version += 2
 	_, err = decryptData(encryptedDataWrongVersion, key)
 	assert.Equal(t,
 		UnknownEncryptionVer{encryptedDataWrongVersion.Version},

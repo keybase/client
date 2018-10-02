@@ -50,6 +50,17 @@ func (e UnknownEncryptionVer) Error() string {
 	return fmt.Sprintf("Unknown encryption version %d", int(e.Ver))
 }
 
+// InvalidEncryptionVer indicates that we can't decrypt an
+// encryptedData object because this data type doesn't support that
+// encryption version.
+type InvalidEncryptionVer struct {
+	Ver EncryptionVer
+}
+
+func (e InvalidEncryptionVer) Error() string {
+	return fmt.Sprintf("Invalid encryption version %d", int(e.Ver))
+}
+
 // InvalidNonceError indicates that an invalid cryptographic nonce was
 // detected.
 type InvalidNonceError struct {

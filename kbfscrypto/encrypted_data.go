@@ -5,6 +5,8 @@
 package kbfscrypto
 
 import (
+	"bytes"
+	"crypto/sha512"
 	"encoding/hex"
 	"fmt"
 	"reflect"
@@ -24,6 +26,10 @@ const (
 	// EncryptionSecretbox is the encryption version that uses
 	// nacl/secretbox or nacl/box.
 	EncryptionSecretbox EncryptionVer = 1
+	// EncryptionSecretboxWithKeyNonce is the encryption version that
+	// uses nacl/secretbox or nacl/box, with a nonce derived from a
+	// secret key.
+	EncryptionSecretboxWithKeyNonce EncryptionVer = 2
 )
 
 func (v EncryptionVer) String() string {
@@ -59,6 +65,20 @@ func (ed encryptedData) String() string {
 		hex.EncodeToString(ed.Nonce))
 }
 
+// encryptDataWithNonce encrypts the given data with the given
+// symmetric key and nonce.
+func encryptDataWithNonce(
+	data []byte, key [32]byte, nonce [24]byte, ver EncryptionVer) (
+	encryptedData, error) {
+	sealedData := secretbox.Seal(nil, data, &nonce, &key)
+
+	return encryptedData{
+		Version:       ver,
+		Nonce:         nonce[:],
+		EncryptedData: sealedData,
+	}, nil
+}
+
 // encryptData encrypts the given data with the given symmetric key.
 func encryptData(data []byte, key [32]byte) (encryptedData, error) {
 	var nonce [24]byte
@@ -67,30 +87,13 @@ func encryptData(data []byte, key [32]byte) (encryptedData, error) {
 		return encryptedData{}, err
 	}
 
-	sealedData := secretbox.Seal(nil, data, &nonce, &key)
-
-	return encryptedData{
-		Version:       EncryptionSecretbox,
-		Nonce:         nonce[:],
-		EncryptedData: sealedData,
-	}, nil
+	return encryptDataWithNonce(data, key, nonce, EncryptionSecretbox)
 }
 
-// decryptData decrypts the given encrypted data with the given
-// symmetric key.
-func decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
-	if encryptedData.Version != EncryptionSecretbox {
-		return nil, errors.WithStack(
-			UnknownEncryptionVer{encryptedData.Version})
-	}
-
-	var nonce [24]byte
-	if len(encryptedData.Nonce) != len(nonce) {
-		return nil, errors.WithStack(
-			InvalidNonceError{encryptedData.Nonce})
-	}
-	copy(nonce[:], encryptedData.Nonce)
-
+// decryptDataWithNonce decrypts the given encrypted data with the
+// given symmetric key and nonce.
+func decryptDataWithNonce(
+	encryptedData encryptedData, key [32]byte, nonce [24]byte) ([]byte, error) {
 	decryptedData, ok := secretbox.Open(
 		nil, encryptedData.EncryptedData, &nonce, &key)
 	if !ok {
@@ -98,6 +101,28 @@ func decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
 	}
 
 	return decryptedData, nil
+}
+
+// decryptData decrypts the given encrypted data with the given
+// symmetric key.
+func decryptData(encryptedData encryptedData, key [32]byte) ([]byte, error) {
+	switch encryptedData.Version {
+	case EncryptionSecretbox, EncryptionSecretboxWithKeyNonce:
+	// We're good.
+	default:
+		return nil, errors.WithStack(
+			UnknownEncryptionVer{encryptedData.Version})
+	}
+
+	// For v2, the caller must have already checked the nonce.
+	var nonce [24]byte
+	if len(encryptedData.Nonce) != len(nonce) {
+		return nil, errors.WithStack(
+			InvalidNonceError{encryptedData.Nonce})
+	}
+	copy(nonce[:], encryptedData.Nonce)
+
+	return decryptDataWithNonce(encryptedData, key, nonce)
 }
 
 // EncryptedTLFCryptKeyClientHalf is an encrypted
@@ -164,6 +189,13 @@ func EncryptEncodedPrivateMetadata(encodedPrivateMetadata []byte, key TLFCryptKe
 func DecryptPrivateMetadata(
 	encryptedPrivateMetadata EncryptedPrivateMetadata, key TLFCryptKey) (
 	[]byte, error) {
+	if encryptedPrivateMetadata.encryptedData.Version ==
+		EncryptionSecretboxWithKeyNonce {
+		// Only blocks should have v2 encryption.
+		return nil, errors.WithStack(InvalidEncryptionVer{
+			encryptedPrivateMetadata.encryptedData.Version})
+	}
+
 	return decryptData(encryptedPrivateMetadata.encryptedData, key.Data())
 }
 
@@ -183,10 +215,48 @@ func EncryptPaddedEncodedBlock(paddedEncodedBlock []byte, key BlockCryptKey) (
 	return EncryptedBlock{encryptedData}, nil
 }
 
+func keyAndNonceFromBlockCryptKey(key BlockCryptKey) (
+	encKey [32]byte, nonce [24]byte) {
+	// Hash the full key with SHA-512 to get 64 bytes.
+	keyData := key.Data()
+	h := sha512.Sum512(keyData[:])
+	copy(encKey[:], h[:32])
+	copy(nonce[:], h[32:56])
+	return encKey, nonce
+}
+
+// EncryptPaddedEncodedBlockV2 encrypts a padded, encoded block, using
+// the v2 block encryption scheme.
+func EncryptPaddedEncodedBlockV2(paddedEncodedBlock []byte, key BlockCryptKey) (
+	encryptedBlock EncryptedBlock, err error) {
+	encKey, nonce := keyAndNonceFromBlockCryptKey(key)
+
+	encryptedData, err := encryptDataWithNonce(
+		paddedEncodedBlock, encKey, nonce, EncryptionSecretboxWithKeyNonce)
+	if err != nil {
+		return EncryptedBlock{}, err
+	}
+
+	return EncryptedBlock{encryptedData}, nil
+}
+
 // DecryptBlock decrypts a block, but does not unpad or decode it.
 func DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey) (
 	[]byte, error) {
-	return decryptData(encryptedBlock.encryptedData, key.Data())
+	keyData := key.Data()
+	if encryptedBlock.encryptedData.Version == EncryptionSecretboxWithKeyNonce {
+		var nonce [24]byte
+		keyData, nonce = keyAndNonceFromBlockCryptKey(key)
+
+		// Make sure the nonce in the encrypted data matches the
+		// computed nonce.
+		if !bytes.Equal(nonce[:], encryptedBlock.encryptedData.Nonce) {
+			return nil, errors.WithStack(
+				InvalidNonceError{encryptedBlock.encryptedData.Nonce})
+		}
+	}
+
+	return decryptData(encryptedBlock.encryptedData, keyData)
 }
 
 // EncryptedTLFCryptKeys is an encrypted TLFCryptKey array.
@@ -215,6 +285,13 @@ func EncryptTLFCryptKeys(codec kbfscodec.Codec, oldKeys []TLFCryptKey, key TLFCr
 func DecryptTLFCryptKeys(
 	codec kbfscodec.Codec, encryptedTLFCryptKeys EncryptedTLFCryptKeys, key TLFCryptKey) (
 	[]TLFCryptKey, error) {
+	if encryptedTLFCryptKeys.encryptedData.Version ==
+		EncryptionSecretboxWithKeyNonce {
+		// Only blocks should have v2 encryption.
+		return nil, errors.WithStack(
+			InvalidEncryptionVer{encryptedTLFCryptKeys.encryptedData.Version})
+	}
+
 	encodedKeys, err := decryptData(encryptedTLFCryptKeys.encryptedData, key.Data())
 	if err != nil {
 		return nil, err
