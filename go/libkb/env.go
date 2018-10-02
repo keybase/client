@@ -102,6 +102,7 @@ func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { re
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
 func (n NullConfiguration) IsMobileExtension() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetSlowGregorConn() (bool, bool)                 { return false, false }
+func (n NullConfiguration) GetReadDeletedSigChain() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetRememberPassphrase() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { return 0, false }
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
@@ -1042,6 +1043,14 @@ func (e *Env) GetSlowGregorConn() bool {
 	)
 }
 
+func (e *Env) GetReadDeletedSigChain() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetReadDeletedSigChain() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_READ_DELETED_SIGCHAIN") },
+		func() (bool, bool) { return e.GetConfig().GetReadDeletedSigChain() },
+	)
+}
+
 func (e *Env) GetFeatureFlags() FeatureFlags {
 	var ret FeatureFlags
 	pick := func(f FeatureFlags, err error) {
@@ -1370,6 +1379,10 @@ func (c AppConfig) IsMobileExtension() (bool, bool) {
 }
 
 func (c AppConfig) GetSlowGregorConn() (bool, bool) {
+	return false, false
+}
+
+func (c AppConfig) GetReadDeletedSigChain() (bool, bool) {
 	return false, false
 }
 

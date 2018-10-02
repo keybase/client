@@ -829,6 +829,10 @@ func (f *JSONConfigFile) GetSlowGregorConn() (bool, bool) {
 	return f.GetBoolAtPath("slow_gregor_conn")
 }
 
+func (f *JSONConfigFile) GetReadDeletedSigChain() (bool, bool) {
+	return f.GetBoolAtPath("read_deleted_sigchain")
+}
+
 func (f *JSONConfigFile) SetRememberPassphrase(remember bool) error {
 	return f.SetBoolAtPath("remember_passphrase", remember)
 }
