@@ -172,6 +172,7 @@ export type _State = {
   secretKeyError: string,
   secretKeyValidationState: ValidationState,
   selectedAccount: AccountID,
+  sentPaymentError: string,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   paymentsMap: I.Map<AccountID, I.List<Payment>>,
   pendingMap: I.Map<AccountID, I.List<Payment>>,

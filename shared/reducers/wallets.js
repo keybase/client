@@ -118,6 +118,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         secretKey: new HiddenString(''),
         secretKeyError: '',
         secretKeyValidationState: 'none',
+        sentPaymentError: '',
       })
     case WalletsGen.createdNewAccount:
       return action.error
@@ -147,6 +148,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             secretKeyValidationState: 'none',
             selectedAccount: action.payload.accountID,
           })
+    case WalletsGen.sentPaymentError:
+      return state.set('sentPaymentError', action.payload.error)
     case WalletsGen.requestDetailReceived:
       const request = Constants.requestResultToRequest(action.payload.request)
       return request ? state.update('requests', r => r.set(request.id, request)) : state

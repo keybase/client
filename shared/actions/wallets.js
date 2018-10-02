@@ -65,7 +65,9 @@ const sendPayment = (state: TypedState) =>
       worthAmount: '',
     },
     Constants.sendPaymentWaitingKey
-  ).then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+  )
+    .then(res => WalletsGen.createSentPayment({kbTxID: new HiddenString(res.kbTxID)}))
+    .catch(err => WalletsGen.createSentPaymentError({error: err.desc}))
 
 const requestPayment = (state: TypedState) =>
   RPCTypes.localMakeRequestLocalRpcPromise(
@@ -83,6 +85,8 @@ const requestPayment = (state: TypedState) =>
 const clearBuiltPayment = () => Saga.put(WalletsGen.createClearBuiltPayment())
 
 const clearBuildingPayment = () => Saga.put(WalletsGen.createClearBuildingPayment())
+
+const clearErrors = () => Saga.put(WalletsGen.createClearErrors())
 
 const loadAccount = (state: TypedState, action: WalletsGen.BuiltPaymentReceivedPayload) => {
   const {from: _accountID} = action.payload.build
@@ -425,6 +429,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(WalletsGen.sendPayment, sendPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.sentPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.sentPayment, clearErrors)
+
   yield Saga.actionToAction(WalletsGen.sentPayment, maybeNavigateAwayFromSendForm)
 
   yield Saga.actionToPromise(WalletsGen.requestPayment, requestPayment)
@@ -435,6 +441,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   // Effects of abandoning payments
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuildingPayment)
   yield Saga.actionToAction(WalletsGen.abandonPayment, clearBuiltPayment)
+  yield Saga.actionToAction(WalletsGen.abandonPayment, clearErrors)
   yield Saga.actionToAction(WalletsGen.abandonPayment, maybeNavigateAwayFromSendForm)
 
   yield Saga.actionToPromise(WalletsGen.loadRequestDetail, loadRequestDetail)

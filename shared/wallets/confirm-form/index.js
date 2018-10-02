@@ -20,6 +20,7 @@ type ConfirmSendProps = {|
   publicMemo?: string,
   bannerBackground?: Background,
   bannerText?: string,
+  sendFailed: boolean,
   waitingKey?: string,
 |}
 
@@ -51,6 +52,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
       >
         <Kb.WaitingButton
           type="PrimaryGreen"
+          disabled={props.sendFailed}
           onClick={props.onSendClick}
           waitingKey={props.waitingKey}
           fullWidth={true}

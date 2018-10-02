@@ -12,16 +12,25 @@ const mapStateToProps = (state: TypedState) => {
     amount: build.amount,
     assetConversion: built.worthDescription,
     assetType: build.currency,
+    bannerBackground: state.wallets.sentPaymentError ? 'HighRisk' : 'Announcements',
+    bannerText: state.wallets.sentPaymentError,
     encryptedNote: build.secretNote.stringValue(),
     publicMemo: build.publicMemo.stringValue(),
+    sendFailed: !!state.wallets.sentPaymentError,
     waitingKey: Constants.sendPaymentWaitingKey,
     yourUsername: state.config.username,
   }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onBack: () => dispatch(navigateUp()),
-  onClose: () => dispatch(navigateUp()),
+  onBack: () => {
+    dispatch(WalletsGen.createClearErrors())
+    dispatch(navigateUp())
+  },
+  onClose: () => {
+    dispatch(WalletsGen.createClearErrors())
+    dispatch(navigateUp())
+  },
   onSendClick: () => dispatch(WalletsGen.createSendPayment()),
 })
 

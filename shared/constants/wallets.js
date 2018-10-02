@@ -64,6 +64,7 @@ const makeState: I.RecordFactory<Types._State> = I.Record({
   secretKeyMap: I.Map(),
   secretKeyValidationState: 'none',
   selectedAccount: Types.noAccountID,
+  sentPaymentError: '',
   currencies: I.List(),
   currencyMap: I.Map(),
 })
