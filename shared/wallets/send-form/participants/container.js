@@ -46,7 +46,7 @@ const mapStateToProps = (state: TypedState) => {
   const toFieldInput = build.to
   // Built section
   const incorrect = built.toErrMsg
-  const recipientUsername = built.toUsername
+  const recipientUsername = built.toUsername || (recipientType === 'keybaseUser' ? toFieldInput : '')
 
   return {
     allAccounts,
