@@ -116,7 +116,8 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
 
   render() {
     if (this.props.allAccounts.length <= 1) {
-      // Case #3a: A user is sending to another account, but has no other accounts. Show a "create new account" button
+      // A user is sending to another account, but has no other
+      // accounts. Show a "create new account" button.
       return (
         <Kb.Box2 direction="horizontal" centerChildren={true} style={{width: 270}}>
           <Kb.Button
@@ -129,7 +130,9 @@ class ToOtherAccount extends React.Component<ToOtherAccountProps> {
       )
     }
 
-    // Case #3b: A user is sending from an account to another account with other accounts. Show a dropdown list of other accounts, in addition to the link existing and create new actions.
+    // A user is sending from an account to another account with other
+    // accounts. Show a dropdown list of other accounts, in addition
+    // to the link existing and create new actions.
     let items = [
       <DropdownText key="link-existing" text="Link an existing Stellar account" />,
       <DropdownText key="create-new" text="Create a new account" />,
