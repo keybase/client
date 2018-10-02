@@ -41,12 +41,10 @@ const parseRawResultToUser = (
   result: Types.RawSearchResult,
   service: Types.ServiceIdWithContact
 ): ?Types.User => {
-  const serviceMap = result.services_summary
-    ? Object.keys(result.services_summary).reduce((acc, service_name) => {
-        acc[service_name] = result.services_summary[service_name].username
-        return acc
-      }, {})
-    : {}
+  const serviceMap = Object.keys(result.services_summary || {}).reduce((acc, service_name) => {
+    acc[service_name] = result.services_summary[service_name].username
+    return acc
+  }, {})
 
   // Add the keybase service to the service map since it isn't there by default
   if (result.keybase) {
@@ -67,6 +65,7 @@ const parseRawResultToUser = (
           result.service.service_name
         }`
       )
+      return null
     }
 
     const kbPrettyName = result.keybase && (result.keybase.full_name || result.keybase.username)

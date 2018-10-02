@@ -53,9 +53,9 @@ const searchResultCounts = (state: TypedState) => {
     // Change this to control how many requests are in flight at a time
     const parallelRequestsCount = 2
 
-    // Channel to interact with workers. Fixed buffer size to handle all the messages we'll put
+    // Channel to interact with workers. Initial buffer size to handle all the messages we'll put
     // + 1 because we'll put the END message at the end when we close
-    const serviceChannel = yield Saga.call(Saga.channel, Saga.buffers.fixed(servicesToSearch.length + 1))
+    const serviceChannel = yield Saga.call(Saga.channel, Saga.buffers.expanding(servicesToSearch.length + 1))
     servicesToSearch.forEach(service => serviceChannel.put(service))
     // After the workers pull all the services they can stop
     serviceChannel.close()
