@@ -209,9 +209,9 @@ const linkRegex = /^( *)((https?:\/\/)?[\w-]+(\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // return match
 // }
 
-var debugAnyScopeRegex = function(regex) {
+var debugAnyScopeRegex = function(name, regex) {
   var match = function(source, state) {
-    console.log('[debug]: ', source, state, regex.exec(source))
+    console.log('[debug]: ', name, source, state, regex.exec(source))
     return regex.exec(source)
   }
   match.regex = regex
@@ -229,7 +229,7 @@ const rules = {
     // original
     // match: blockRegex(/^(?:\n *)*\n/),
     // ours: handle \n inside text also
-    match: debugAnyScopeRegex(/^\n/), // SimpleMarkdown.anyScopeRegex(/^\n/),
+    match: debugAnyScopeRegex('newline', /^\n/), // SimpleMarkdown.anyScopeRegex(/^\n/),
   },
   escape: {
     // handle escaped chars, keep this to handle escapes globally
@@ -374,6 +374,10 @@ const rules = {
   },
   text: {
     ...SimpleMarkdown.defaultRules.text,
+    // original:
+    // /^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n\n| {2,}\n|\w+:\S|$)/
+    // ours: stop on single new lines
+    match: SimpleMarkdown.anyScopeRegex(/^[\s\S]+?(?=[^0-9A-Za-z\s\u00c0-\uffff]|\n|\w+:\S|$)/),
   },
   emoji: {
     order: SimpleMarkdown.defaultRules.text.order - 0.5,
