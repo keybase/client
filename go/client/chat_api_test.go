@@ -17,6 +17,7 @@ import (
 type handlerTracker struct {
 	listV1         int
 	readV1         int
+	getV1          int
 	sendV1         int
 	editV1         int
 	reactionV1     int
@@ -35,6 +36,11 @@ func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) ReadV1(context.Context, Call, io.Writer) error {
 	h.readV1++
+	return nil
+}
+
+func (h *handlerTracker) GetV1(context.Context, Call, io.Writer) error {
+	h.getV1++
 	return nil
 }
 
@@ -96,6 +102,10 @@ func (c *chatEcho) ListV1(context.Context, listOptionsV1) Reply {
 }
 
 func (c *chatEcho) ReadV1(context.Context, readOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) GetV1(context.Context, getOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

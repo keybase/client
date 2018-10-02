@@ -164,7 +164,7 @@ export type MessageTypes = {|
     outParam: SimpleFSListResult,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
-    inParam: $ReadOnly<{|path: Path|}>,
+    inParam: $ReadOnly<{|path: Path, identifyBehavior?: ?TLFIdentifyBehavior|}>,
     outParam: Dirent,
   |},
   'keybase.1.SimpleFS.simpleFSSyncStatus': {|
@@ -1547,6 +1547,7 @@ export const simpleFSKBFSArchivedType = {
 export const simpleFSListFilter = {
   noFilter: 0,
   filterAllHidden: 1,
+  filterSystemHidden: 2,
 }
 
 export const simpleFSOpenFlags = {
@@ -2033,6 +2034,7 @@ export type ListArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter}>
 export type ListFilter =
   | 0 // NO_FILTER_0
   | 1 // FILTER_ALL_HIDDEN_1
+  | 2 // FILTER_SYSTEM_HIDDEN_2
 
 export type ListResult = $ReadOnly<{files?: ?Array<File>}>
 export type ListToDepthArgs = $ReadOnly<{opID: OpID, path: Path, filter: ListFilter, depth: Int}>
@@ -2643,7 +2645,7 @@ export type TeamNewlyAddedRow = $ReadOnly<{id: TeamID, name: String}>
 export type TeamOpenReqMsg = $ReadOnly<{teamID: TeamID, tars?: ?Array<TeamAccessRequest>}>
 export type TeamOperation = $ReadOnly<{manageMembers: Boolean, manageSubteams: Boolean, createChannel: Boolean, chat: Boolean, deleteChannel: Boolean, renameChannel: Boolean, editChannelDescription: Boolean, setTeamShowcase: Boolean, setMemberShowcase: Boolean, setRetentionPolicy: Boolean, setMinWriterRole: Boolean, changeOpenTeam: Boolean, leaveTeam: Boolean, joinTeam: Boolean, setPublicityAny: Boolean, listFirst: Boolean, changeTarsDisabled: Boolean, deleteChatHistory: Boolean}>
 export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, implicit: Boolean, public: Boolean, application: TeamApplication, writers?: ?Array<UserVersion>, onlyReaders?: ?Array<UserVersion>, applicationKeys?: ?Array<TeamApplicationKey>}>
-export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
+export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, needApplicationsAtGenerationsWithKBFS: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
 export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
 export type TeamRole =

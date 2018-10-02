@@ -108,9 +108,9 @@ type Searcher interface {
 }
 
 type Indexer interface {
-	Search(ctx context.Context, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
-	Add(ctx context.Context, convID chat1.ConversationID, msg chat1.MessageUnboxed) error
-	Remove(ctx context.Context, convID chat1.ConversationID, msg chat1.MessageUnboxed) error
+	Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts) ([]chat1.ChatConvSearchHit, error)
+	Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
+	Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg chat1.MessageUnboxed) error
 }
 
 type Sender interface {

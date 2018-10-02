@@ -72,6 +72,7 @@ func NewCmdShowNotifications(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Usage: "Display all notifications sent by daemon in real-time",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdShowNotifications{Contextified: libkb.NewContextified(g)}, "show-notifications", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{},
 	}

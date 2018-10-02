@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -266,9 +267,37 @@ func (r rpcCancelMessage) Err() error {
 	return r.err
 }
 
-func decodeRPC(l int, d *fieldDecoder, p *protocolHandler, cc *callContainer) (rpcMessage, error) {
+// fieldDecoder decodes the fields of a packet.
+type fieldDecoder struct {
+	d           *codec.Decoder
+	fieldNumber int
+}
+
+func newFieldDecoder(reader *frameReader) *fieldDecoder {
+	return &fieldDecoder{
+		d:           codec.NewDecoder(reader, newCodecMsgpackHandle()),
+		fieldNumber: 0,
+	}
+}
+
+// Decode decodes the next field into the given interface.
+func (dw *fieldDecoder) Decode(i interface{}) error {
+	defer func() {
+		dw.fieldNumber++
+	}()
+
+	err := dw.d.Decode(i)
+	if err != nil {
+		return newRPCMessageFieldDecodeError(dw.fieldNumber, err)
+	}
+	return nil
+}
+
+func decodeRPC(l int, r *frameReader, p *protocolHandler, cc *callContainer) (rpcMessage, error) {
+	decoder := newFieldDecoder(r)
+
 	typ := MethodInvalid
-	if err := d.Decode(&typ); err != nil {
+	if err := decoder.Decode(&typ); err != nil {
 		return nil, newRPCDecodeError(typ, "", l, err)
 	}
 
@@ -291,7 +320,7 @@ func decodeRPC(l int, d *fieldDecoder, p *protocolHandler, cc *callContainer) (r
 		return nil, newRPCDecodeError(typ, "", l, errors.New("wrong message length"))
 	}
 
-	if err := data.DecodeMessage(dataLength, d, p, cc); err != nil {
+	if err := data.DecodeMessage(dataLength, decoder, p, cc); err != nil {
 		return data, newRPCDecodeError(typ, data.Name(), l, err)
 	}
 	return data, nil

@@ -189,10 +189,6 @@
           "name": "asset"
         },
         {
-          "type": "uint64",
-          "name": "operationID"
-        },
-        {
           "type": "TimeMs",
           "name": "ctime"
         },

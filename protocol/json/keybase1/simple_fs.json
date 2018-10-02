@@ -262,7 +262,8 @@
       "name": "ListFilter",
       "symbols": [
         "NO_FILTER_0",
-        "FILTER_ALL_HIDDEN_1"
+        "FILTER_ALL_HIDDEN_1",
+        "FILTER_SYSTEM_HIDDEN_2"
       ]
     },
     {
@@ -827,6 +828,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "Dirent",

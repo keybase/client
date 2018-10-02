@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as ConfigGen from '../config-gen'
 import * as FsGen from '../fs-gen'
 import * as Saga from '../../util/saga'
 import * as Config from '../../constants/config'
@@ -7,6 +8,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as SafeElectron from '../../util/safe-electron.desktop'
+import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
 import {fileUIName, isLinux, isWindows} from '../../constants/platform'
@@ -14,6 +16,7 @@ import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {navigateTo, switchTo} from '../route-tree'
 
 type pathType = 'file' | 'directory'
 
@@ -341,7 +344,10 @@ const loadUserFileEdits = (state: TypedState, action) =>
         // TODO (songgao): make a new action that accepts an array of updates,
         // so that we only need to trigger one update through store/rpc/widget
         // for all these each time.
-        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({path}))),
+        ...updateSet.map(path => Saga.put(FsGen.createFilePreviewLoad({
+          path,
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        }))),
         Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
       ])
     } catch (ex) {
@@ -349,14 +355,35 @@ const loadUserFileEdits = (state: TypedState, action) =>
     }
   })
 
+const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
+  Saga.sequentially([
+    Saga.put(ConfigGen.createShowMain()),
+    ...(path
+      ? [Saga.put(
+          navigateTo([
+            Tabs.fsTab,
+            {
+              props: {path: Types.getPathParent(path)},
+              selected: 'folder',
+            },
+            {
+              props: {path},
+              selected: type === 'folder' ? 'folder' : 'preview',
+            },
+          ])
+        )]
+      : [Saga.put(switchTo([Tabs.fsTab]))]),
+  ])
+
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
   yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
-  yield Saga.safeTakeEvery(FsGen.fuseStatus, fuseStatusSaga)
+  yield Saga.safeTakeEvery([ConfigGen.setupEngineListeners, FsGen.fuseStatus], fuseStatusSaga)
   yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
   yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
   yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
   yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
     yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
     yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)

@@ -7,7 +7,8 @@ import (
 )
 
 func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
-	linkServer, err := ImportLinkFromServer(tc.G, nil, data, uid)
+	m := NewMetaContextForTest(tc)
+	linkServer, err := ImportLinkFromServer(m, nil, data, uid)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -21,7 +22,7 @@ func importExportLink(tc TestContext, data []byte, uid keybase1.UID) {
 	}
 
 	unpacked := NewChainLink(tc.G, nil, linkServer.id)
-	if err := unpacked.Unpack(true, uid, packedBytes); err != nil {
+	if err := unpacked.Unpack(m, true, uid, packedBytes); err != nil {
 		tc.T.Fatal(err)
 	}
 

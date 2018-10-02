@@ -78,6 +78,10 @@ function HOCTimers<Props: TimerProps>(
     }
   }
 
+  // TODO forward a ref to `WrappedComponent` when react-redux is patched to
+  // work with React.forwardRef.
+  // https://github.com/reduxjs/react-redux/pull/1000
+
   return TimersComponent
 }
 
